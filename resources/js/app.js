@@ -4,6 +4,7 @@ require('./bootstrap')
 import router from './router'
 import App from './components/App'
 import Login from './components/auth/Login'
+import Register from './components/auth/Register'
 
 //Global Libraries
 import Vuelidate from 'vuelidate'
@@ -16,6 +17,7 @@ const app = new Vue({
     router,
     components:{
         App,
-        Login
+        Login,
+        Register
     }
 });
