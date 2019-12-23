@@ -32,14 +32,14 @@
                     <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none" :class="{'border-red-600': $v.registerForm.password_confirmation.$error}" id="password_confirm" type="password" placeholder="Confirm Password" v-model="$v.registerForm.password_confirmation.$model">
                     <span v-if="$v.registerForm.password_confirmation.$dirty && !$v.registerForm.password_confirmation.sameAs" class="text-red-600 text-sm">Password does not match.</span>
                 </div>
-                 <div class="mb-4 flex justify-end">
+                <div class="mb-4 flex justify-end">
                     <button type="submit" class="bg-orange-400 text-white rounded-full font-bold text-sm uppercase px-12 py-5 hover:bg-orange-500 focus:outline-none">Create Account</button>
                 </div>
             </form>
         </div>
         <div class="mt-6">
             <div class="flex justify-center">
-                <small class="text-gray-700 text-xs font-bold mb-2 uppercase">Don't have an account yet? <a href="#" class="hover:underline">Register Here</a></small>
+                <small class="text-gray-700 text-xs font-bold mb-2 uppercase">Already have an account? <a :href="loginRoute" class="hover:underline">Login</a></small>
             </div>
         </div>
     </div>
@@ -56,7 +56,8 @@ export default {
                 email:'',
                 password:'',
                 password_confirmation:''
-            }
+            },
+            loginRoute:`${process.env.MIX_APP_URL}/login`
         }
     },
     created() {
@@ -86,10 +87,5 @@ export default {
             }
         }
     }
-
 }
 </script>
-
-<style>
-
-</style>

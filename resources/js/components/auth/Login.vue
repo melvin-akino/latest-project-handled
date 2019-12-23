@@ -35,7 +35,7 @@
                 <a href="#" class="inline-block text-gray-700 text-xs font-bold mb-2 uppercase hover:underline">Contact Us</a>
             </div>
             <div class="mb-1 flex justify-center">
-                <small class="text-gray-700 text-xs font-bold mb-2 uppercase">Don't have an account yet? <a href="#" class="hover:underline">Register Here</a></small>
+                <small class="text-gray-700 text-xs font-bold mb-2 uppercase">Don't have an account yet? <a :href="registerRoute" class="hover:underline">Register Here</a></small>
             </div>
             <div class="flex justify-center">
                 <small class="text-gray-700 text-xs font-bold mb-2 uppercase"><i class="far fa-question-circle"></i> Best viewed on Google Chrome, Firefox or Safari</small>
@@ -54,7 +54,8 @@ export default {
                 email:'',
                 password:''
             },
-            loginError:''
+            loginError:'',
+            registerRoute:`${process.env.MIX_APP_URL}/register`
         }
     },
     created() {
