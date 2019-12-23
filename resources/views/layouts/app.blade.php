@@ -9,7 +9,7 @@
     <meta name="app-url" content="{{ url('/') }}">
 
     <title>{{ config('app.name', 'Laravel') }}</title>
-
+    <link rel="icon" type="image/png" href="{{asset('images/logo-2.png')}}">
     <!-- Scripts -->
     <script src="{{ asset('js/app.js') }}" defer></script>
 
