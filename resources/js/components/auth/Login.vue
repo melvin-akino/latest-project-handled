@@ -3,7 +3,7 @@
         <div class="mx-auto bg-white shadow-lg w-160 h-auto px-12 pt-12 pb-4 mt-6">
             <form method="POST" @submit.prevent="login">
                 <div class="mb-4">
-                    <label class="block text-gray-700 text-sm mb-2 font-bold uppercase" for="username">
+                    <label class="block text-gray-700 text-sm mb-2 font-bold uppercase" for="email">
                         <i class="far fa-user"></i> &nbsp; Email
                     </label>
                     <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none" :class="{'border-red-600': $v.loginForm.email.$error}" id="email" type="text" placeholder="Email" v-model="$v.loginForm.email.$model" @keyup="clearLoginError">
@@ -11,7 +11,7 @@
                     <span v-if="$v.loginForm.email.$dirty && !$v.loginForm.email.email" class="text-red-600 text-sm">Please type a valid email.</span>
                 </div>
                 <div class="mb-4">
-                    <label class="block text-gray-700 text-sm font-bold mb-2 uppercase" for="username">
+                    <label class="block text-gray-700 text-sm font-bold mb-2 uppercase" for="password">
                         <i class="fas fa-key"></i> &nbsp; Password
                     </label>
                     <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none" :class="{'border-red-600': $v.loginForm.password.$error}" id="password" type="password" placeholder="Password" v-model="$v.loginForm.password.$model" @keyup="clearLoginError">
@@ -58,7 +58,7 @@ export default {
         }
     },
     created() {
-         document.title = 'Login - Multiline'
+        document.title = 'Login - Multiline'
     },
     validations:{
         loginForm:{
