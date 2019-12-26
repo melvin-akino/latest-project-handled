@@ -5,6 +5,8 @@ import router from './router'
 import App from './components/App'
 import Login from './components/auth/Login'
 import Register from './components/auth/Register'
+import ForgotPassword from './components/auth/ForgotPassword'
+import ResetPassword from './components/auth/ResetPassword'
 
 //Global Libraries
 import Vuelidate from 'vuelidate'
@@ -18,6 +20,8 @@ const app = new Vue({
     components:{
         App,
         Login,
-        Register
+        Register,
+        ForgotPassword,
+        ResetPassword
     }
 });

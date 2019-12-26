@@ -31,7 +31,7 @@
         </div>
         <div class="mt-6">
             <div class="mb-1 flex justify-center">
-                <a href="#" class="inline-block text-gray-700 text-xs font-bold mb-2 uppercase mr-6 hover:underline">Forgot Password</a>
+                <a :href="forgotPasswordRoute" class="inline-block text-gray-700 text-xs font-bold mb-2 uppercase mr-6 hover:underline">Forgot Password</a>
                 <a href="#" class="inline-block text-gray-700 text-xs font-bold mb-2 uppercase hover:underline">Contact Us</a>
             </div>
             <div class="mb-1 flex justify-center">
@@ -55,7 +55,8 @@ export default {
                 password:''
             },
             loginError:'',
-            registerRoute:`${process.env.MIX_APP_URL}/register`
+            registerRoute:`${process.env.MIX_APP_URL}/register`,
+            forgotPasswordRoute:`${process.env.MIX_APP_URL}/password/reset`
         }
     },
     created() {

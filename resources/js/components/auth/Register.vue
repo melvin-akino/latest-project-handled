@@ -23,7 +23,7 @@
                     </label>
                     <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none" :class="{'border-red-600': $v.registerForm.password.$error}" id="password" type="password" placeholder="Password" v-model="$v.registerForm.password.$model">
                     <span v-if="$v.registerForm.password.$dirty && !$v.registerForm.password.required" class="text-red-600 text-sm">Please type a password.</span>
-                    <span v-if="$v.registerForm.password.$dirty && !$v.registerForm.password.minLength" class="text-red-600 text-sm">Password must have a minimum of 8 characters.</span>
+                    <span v-if="$v.registerForm.password.$dirty && !$v.registerForm.password.minLength" class="text-red-600 text-sm">Password must have a minimum of 6 characters.</span>
                 </div>
                 <div class="mb-4">
                     <label class="block text-gray-700 text-sm font-bold mb-2 uppercase" for="password_confirm">
@@ -67,7 +67,7 @@ export default {
         registerForm:{
             name:{required},
             email:{required, email},
-            password:{required, minLength:minLength(8)},
+            password:{required, minLength:minLength(6)},
             password_confirmation:{sameAs:sameAs('password')}
         }
     },
