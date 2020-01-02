@@ -1,6 +1,6 @@
 <template>
     <div class="register">
-        <div class="mx-auto bg-white shadow-lg w-160 h-auto px-12 pt-12 pb-4 mt-6">
+        <div class="mx-auto sm:bg-white sm:shadow-lg md:w-160 sm:w-120 xs:w-100 w-full h-auto sm:px-12 px-4 sm:pt-12 pt-6 pb-4 mt-6">
             <form method="POST" @submit.prevent="register">
                 <div class="mb-4">
                     <label class="block text-gray-700 text-sm mb-2 font-bold uppercase" for="name">
@@ -33,12 +33,12 @@
                     <span v-if="$v.registerForm.password_confirmation.$dirty && !$v.registerForm.password_confirmation.sameAs" class="text-red-600 text-sm">Password does not match.</span>
                 </div>
                 <div class="mb-4 flex justify-end">
-                    <button type="submit" class="bg-orange-400 text-white rounded-full font-bold text-sm uppercase px-12 py-5 hover:bg-orange-500 focus:outline-none">Create Account</button>
+                    <button type="submit" class="bg-orange-400 text-white rounded-full font-bold sm:text-sm text-xs uppercase px-12 sm:py-5 py-2 hover:bg-orange-500 focus:outline-none">Create Account</button>
                 </div>
             </form>
         </div>
         <div class="mt-6">
-            <div class="flex justify-center">
+            <div class="flex justify-center sm:pb-0 pb-12">
                 <small class="text-gray-700 text-xs font-bold mb-2 uppercase">Already have an account? <a :href="loginRoute" class="hover:underline">Login</a></small>
             </div>
         </div>

@@ -1,6 +1,6 @@
 <template>
     <div class="login">
-        <div class="mx-auto bg-white shadow-lg w-160 h-auto px-12 pt-12 pb-4 mt-6">
+        <div class="mx-auto sm:bg-white sm:shadow-lg md:w-160 sm:w-120 xs:w-100 w-full h-auto sm:px-12 px-4 sm:pt-12 pt-6 pb-4 mt-6">
             <form method="POST" @submit.prevent="login">
                 <div class="mb-4">
                     <label class="block text-gray-700 text-sm mb-2 font-bold uppercase" for="email">
@@ -25,19 +25,19 @@
                 </div>
                 <div class="mb-4 flex justify-between">
                     <span class="text-sm text-red-600">{{loginError}}</span>
-                    <button type="submit" class="bg-orange-400 text-white rounded-full font-bold text-sm uppercase px-12 py-5 hover:bg-orange-500 focus:outline-none">Login</button>
+                    <button type="submit" class="bg-orange-400 text-white rounded-full font-bold sm:text-sm text-xs uppercase px-12 sm:py-5 py-2 hover:bg-orange-500 focus:outline-none">Login</button>
                 </div>
             </form>
         </div>
-        <div class="mt-6">
-            <div class="mb-1 flex justify-center">
+        <div class="sm:mt-6 mt-4">
+            <div class="mb-1 flex justify-center sm:px-0 px-5">
                 <a :href="forgotPasswordRoute" class="inline-block text-gray-700 text-xs font-bold mb-2 uppercase mr-6 hover:underline">Forgot Password</a>
                 <a href="#" class="inline-block text-gray-700 text-xs font-bold mb-2 uppercase hover:underline">Contact Us</a>
             </div>
-            <div class="mb-1 flex justify-center">
+            <div class="mb-1 flex justify-center sm:px-0 px-5">
                 <small class="text-gray-700 text-xs font-bold mb-2 uppercase">Don't have an account yet? <a :href="registerRoute" class="hover:underline">Register Here</a></small>
             </div>
-            <div class="flex justify-center">
+            <div class="hidden sm:flex justify-center sm:px-0 px-5">
                 <small class="text-gray-700 text-xs font-bold mb-2 uppercase"><i class="far fa-question-circle"></i> Best viewed on Google Chrome, Firefox or Safari</small>
             </div>
         </div>

@@ -1,6 +1,6 @@
 <template>
     <div class="reset-password">
-        <div class="mx-auto bg-white shadow-lg w-160 h-auto px-12 pt-12 pb-4 mt-6">
+        <div class="mx-auto sm:bg-white sm:shadow-lg md:w-160 sm:w-120 xs:w-100 w-full h-auto sm:px-12 px-4 pt-12 pb-4 mt-6">
             <p class="text-gray-700 text-lg mb-2 font-bold uppercase">Reset Password</p>
             <form method="POST" @submit.prevent="resetPassword">
                 <div class="mb-4">
@@ -22,7 +22,7 @@
                 </div>
 
                 <div class="mb-4 flex justify-end">
-                    <button type="submit" class="bg-orange-400 text-white rounded-full font-bold text-sm uppercase px-12 py-5 hover:bg-orange-500 focus:outline-none">Reset Password</button>
+                    <button type="submit" class="bg-orange-400 text-white rounded-full font-bold sm:text-sm text-xs uppercase px-12 sm:py-5 py-2 hover:bg-orange-500 focus:outline-none">Reset Password</button>
                 </div>
             </form>
         </div>

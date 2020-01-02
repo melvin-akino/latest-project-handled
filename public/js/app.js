@@ -25218,7 +25218,7 @@ var render = function() {
       "div",
       {
         staticClass:
-          "mx-auto bg-white shadow-lg w-160 h-auto px-12 pt-12 pb-4 mt-6"
+          "mx-auto sm:bg-white sm:shadow-lg md:w-160 sm:w-120 xs:w-100 w-full h-auto sm:px-12 px-4 pt-12 pb-4 mt-6"
       },
       [
         _c(
@@ -25264,13 +25264,12 @@ var render = function() {
                   }
                 ],
                 staticClass:
-                  "shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none",
+                  "shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none text-xs",
                 class: { "border-red-600": _vm.$v.email.$error },
                 attrs: {
                   id: "email",
                   type: "text",
-                  placeholder:
-                    "Type your email here so you can receive a password reset link."
+                  placeholder: "Receive password reset link using your email."
                 },
                 domProps: { value: _vm.$v.email.$model },
                 on: {
@@ -25297,21 +25296,25 @@ var render = function() {
                 : _vm._e()
             ]),
             _vm._v(" "),
-            _c("div", { staticClass: "mb-4 flex justify-end" }, [
-              _c(
-                "button",
-                {
-                  staticClass:
-                    "bg-orange-400 text-white rounded-full font-bold text-sm uppercase px-12 py-5 hover:bg-orange-500 focus:outline-none",
-                  attrs: { type: "submit", isSending: _vm.isSending }
-                },
-                [
-                  _vm.isSending
-                    ? _c("span", [_vm._v("Sending...")])
-                    : _c("span", [_vm._v("Send Password Reset Link")])
-                ]
-              )
-            ])
+            _c(
+              "div",
+              { staticClass: "mb-4 flex sm:justify-end justify-center" },
+              [
+                _c(
+                  "button",
+                  {
+                    staticClass:
+                      "bg-orange-400 text-white rounded-full font-bold sm:text-sm text-xs uppercase px-12 sm:py-5 py-2 hover:bg-orange-500 focus:outline-none",
+                    attrs: { type: "submit", isSending: _vm.isSending }
+                  },
+                  [
+                    _vm.isSending
+                      ? _c("span", [_vm._v("Sending...")])
+                      : _c("span", [_vm._v("Send Password Reset Link")])
+                  ]
+                )
+              ]
+            )
           ]
         )
       ]
@@ -25359,7 +25362,7 @@ var render = function() {
       "div",
       {
         staticClass:
-          "mx-auto bg-white shadow-lg w-160 h-auto px-12 pt-12 pb-4 mt-6"
+          "mx-auto sm:bg-white sm:shadow-lg md:w-160 sm:w-120 xs:w-100 w-full h-auto sm:px-12 px-4 sm:pt-12 pt-6 pb-4 mt-6"
       },
       [
         _c(
@@ -25474,7 +25477,7 @@ var render = function() {
                 "button",
                 {
                   staticClass:
-                    "bg-orange-400 text-white rounded-full font-bold text-sm uppercase px-12 py-5 hover:bg-orange-500 focus:outline-none",
+                    "bg-orange-400 text-white rounded-full font-bold sm:text-sm text-xs uppercase px-12 sm:py-5 py-2 hover:bg-orange-500 focus:outline-none",
                   attrs: { type: "submit" }
                 },
                 [_vm._v("Login")]
@@ -25485,8 +25488,8 @@ var render = function() {
       ]
     ),
     _vm._v(" "),
-    _c("div", { staticClass: "mt-6" }, [
-      _c("div", { staticClass: "mb-1 flex justify-center" }, [
+    _c("div", { staticClass: "sm:mt-6 mt-4" }, [
+      _c("div", { staticClass: "mb-1 flex justify-center sm:px-0 px-5" }, [
         _c(
           "a",
           {
@@ -25508,7 +25511,7 @@ var render = function() {
         )
       ]),
       _vm._v(" "),
-      _c("div", { staticClass: "mb-1 flex justify-center" }, [
+      _c("div", { staticClass: "mb-1 flex justify-center sm:px-0 px-5" }, [
         _c(
           "small",
           { staticClass: "text-gray-700 text-xs font-bold mb-2 uppercase" },
@@ -25588,16 +25591,20 @@ var staticRenderFns = [
     var _vm = this
     var _h = _vm.$createElement
     var _c = _vm._self._c || _h
-    return _c("div", { staticClass: "flex justify-center" }, [
-      _c(
-        "small",
-        { staticClass: "text-gray-700 text-xs font-bold mb-2 uppercase" },
-        [
-          _c("i", { staticClass: "far fa-question-circle" }),
-          _vm._v(" Best viewed on Google Chrome, Firefox or Safari")
-        ]
-      )
-    ])
+    return _c(
+      "div",
+      { staticClass: "hidden sm:flex justify-center sm:px-0 px-5" },
+      [
+        _c(
+          "small",
+          { staticClass: "text-gray-700 text-xs font-bold mb-2 uppercase" },
+          [
+            _c("i", { staticClass: "far fa-question-circle" }),
+            _vm._v(" Best viewed on Google Chrome, Firefox or Safari")
+          ]
+        )
+      ]
+    )
   }
 ]
 render._withStripped = true
@@ -25626,7 +25633,7 @@ var render = function() {
       "div",
       {
         staticClass:
-          "mx-auto bg-white shadow-lg w-160 h-auto px-12 pt-12 pb-4 mt-6"
+          "mx-auto sm:bg-white sm:shadow-lg md:w-160 sm:w-120 xs:w-100 w-full h-auto sm:px-12 px-4 sm:pt-12 pt-6 pb-4 mt-6"
       },
       [
         _c(
@@ -25877,7 +25884,7 @@ var render = function() {
     ),
     _vm._v(" "),
     _c("div", { staticClass: "mt-6" }, [
-      _c("div", { staticClass: "flex justify-center" }, [
+      _c("div", { staticClass: "flex justify-center sm:pb-0 pb-12" }, [
         _c(
           "small",
           { staticClass: "text-gray-700 text-xs font-bold mb-2 uppercase" },
@@ -25907,7 +25914,7 @@ var staticRenderFns = [
         "button",
         {
           staticClass:
-            "bg-orange-400 text-white rounded-full font-bold text-sm uppercase px-12 py-5 hover:bg-orange-500 focus:outline-none",
+            "bg-orange-400 text-white rounded-full font-bold sm:text-sm text-xs uppercase px-12 sm:py-5 py-2 hover:bg-orange-500 focus:outline-none",
           attrs: { type: "submit" }
         },
         [_vm._v("Create Account")]
@@ -25941,7 +25948,7 @@ var render = function() {
       "div",
       {
         staticClass:
-          "mx-auto bg-white shadow-lg w-160 h-auto px-12 pt-12 pb-4 mt-6"
+          "mx-auto sm:bg-white sm:shadow-lg md:w-160 sm:w-120 xs:w-100 w-full h-auto sm:px-12 px-4 pt-12 pb-4 mt-6"
       },
       [
         _c(
@@ -26101,7 +26108,7 @@ var staticRenderFns = [
         "button",
         {
           staticClass:
-            "bg-orange-400 text-white rounded-full font-bold text-sm uppercase px-12 py-5 hover:bg-orange-500 focus:outline-none",
+            "bg-orange-400 text-white rounded-full font-bold sm:text-sm text-xs uppercase px-12 sm:py-5 py-2 hover:bg-orange-500 focus:outline-none",
           attrs: { type: "submit" }
         },
         [_vm._v("Reset Password")]
