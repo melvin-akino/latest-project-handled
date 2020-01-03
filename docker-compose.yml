@@ -1,0 +1,37 @@
+version: "3.0"
+
+services:
+	memcached:
+		image: memcached:alpine
+		container_name: ml-memcached
+
+	postgres:
+		image: postgres:latest
+		container_name: ml-postgres
+		working_dir: /application
+		volumes:
+			- .:/application
+		environment:
+			- POSTGRES_USER=postgres
+			- POSTGRES_PASSWORD=postgres
+			- POSTGRES_DB=laravue
+		ports:
+		 - "5432:5432"
+
+	webserver:
+		image: nginx:alpine
+		container_name: ml-webserver
+		working_dir: /application
+		volumes:
+			- .:/application
+			- ./phpdocker/nginx/nginx.conf:/etc/nginx/conf.d/default.conf
+		ports:
+		 - "8000:80"
+
+	php-fpm:
+		build: phpdocker/php-fpm
+		container_name: ml-php-fpm
+		working_dir: /application
+		volumes:
+			- .:/application
+			- ./phpdocker/php-fpm/php-ini-overrides.ini:/etc/php/7.2/fpm/conf.d/99-overrides.ini
