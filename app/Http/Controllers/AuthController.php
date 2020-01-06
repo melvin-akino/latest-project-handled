@@ -1,0 +1,228 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\User;
+use App\Auth\PasswordReset;
+
+use App\Http\Requests\Auth\LoginRequests;
+use App\Http\Requests\Auth\RegistrationRequests;
+use App\Http\Requests\Auth\ForgotPasswordRequests;
+use App\Http\Requests\Auth\ChangePasswordRequests;
+
+use App\Notifications\PasswordResetRequest;
+use App\Notifications\PasswordResetSuccess;
+
+use Carbon\Carbon;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Str;
+
+class AuthController extends Controller {
+	/**
+	 * User Registration
+	 *
+	 * @param  [string] 	name
+	 * @param  [string] 	email
+	 * @param  [string] 	password
+	 * @param  [string] 	password_confirmation
+	 * @param  [string] 	firstname
+	 * @param  [string] 	lastname
+	 * @param  [string] 	address
+	 * @param  [integer] 	country
+	 * @param  [integer] 	state
+	 * @param  [integer] 	city
+	 * @param  [string] 	postcode
+	 * @param  [string] 	phone
+	 * @param  [integer] 	phone_country_code
+	 * @param  [integer] 	odds_type
+	 * @param  [integer] 	currency_id
+	 * @param  [date] 		birthdate
+	 *
+	 * @return [string] 	message
+	 */
+	public function register(RegistrationRequests $request) {
+		$user = new User([
+			'name' => $request->name,
+			'email' => $request->email,
+			'password' => bcrypt($request->password),
+			'firstname' => $request->firstname,
+			'lastname' => $request->lastname,
+			'address' => $request->address,
+			'country' => $request->country,
+			'state' => $request->state,
+			'city' => $request->city,
+			'postcode' => $request->postcode,
+			'phone' => $request->phone,
+			'phone_country_code' => $request->phone_country_code,
+			'odds_type' => $request->odds_type,
+			'currency_id' => $request->currency_id,
+			'birthdate' => $request->birthdate,
+		]);
+
+		$user->save();
+
+		return response()->json([
+			'message' => 'User Successfully Registered'
+		], 201);
+	}
+
+	/**
+	 * User Login
+	 *
+	 * @param  [string] 	email
+	 * @param  [string] 	password
+	 * @param  [boolean] 	remember_me
+	 *
+	 * @return [string] 	access_token
+	 * @return [string] 	token_type
+	 * @return [string] 	expires_at
+	 */
+	public function login(LoginRequests $request) {
+		$credentials = request(['email', 'password']);
+
+		if(!Auth::attempt($credentials))
+			return response()->json([
+				'message' => 'Unauthorized'
+			], 401);
+
+		$user = $request->user();
+		$tokenResult = $user->createToken('Personal Access Token');
+		$token = $tokenResult->token;
+
+		if ($request->remember_me)
+			$token->expires_at = Carbon::now()->addWeeks(1);
+
+		$token->save();
+
+		return response()->json([
+			'access_token' => $tokenResult->accessToken,
+			'token_type' => 'Bearer',
+			'expires_at' => Carbon::parse($tokenResult->token->expires_at)->toDateTimeString()
+		]);
+	}
+
+	/**
+	 * Logout user (Revoke the token)
+	 *
+	 * @return [string] 	message
+	 */
+	public function logout(Request $request) {
+		$request->user()->token()->revoke();
+
+		return response()->json([
+			'message' => "Logout Successful",
+		]);
+	}
+
+	/**
+	 * Get the authenticated User
+	 *
+	 * @return [json] 		user object
+	 */
+	public function user(Request $request) {
+		return response()->json($request->user());
+	}
+
+	/**
+	 * Create token password reset
+	 *
+	 * @param  [string] 	email
+	 *
+	 * @return [string] 	message
+	 */
+	public function create(ForgotPasswordRequests $request) {
+		$user = User::where('email', $request->email)
+			->first();
+
+		if (!$user)
+			return response()->json([
+				'message' => "E-mail Address not found",
+			], 404);
+
+		$passwordReset = PasswordReset::updateOrCreate(
+			['email' => $user->email],
+			[
+				'email' => $user->email,
+				'token' => Str::random(60),
+			]
+		);
+
+		if ($user && $passwordReset)
+			$user->notify(
+				new PasswordResetRequest($passwordReset->token)
+			);
+
+		return response()->json([
+			'message' => "Password Reset Link Sent to your E-mail Address"
+		]);
+	}
+
+	/**
+	 * Find Password Reset Token
+	 *
+	 * @param  [string] 	$token
+	 *
+	 * @return [string] 	message
+	 * @return [json] 		passwordReset object
+	 */
+	public function find($token) {
+		$passwordReset = PasswordReset::where('token', $token)
+			->first();
+
+		if (!$passwordReset)
+			return response()->json([
+				'message' => "Invalid Password Reset Token",
+			], 404);
+
+		if (Carbon::parse($passwordReset->updated_at)->addMinutes(720)->isPast()) {
+			$passwordReset->delete();
+
+			return response()->json([
+				'message' => "Invalid Password Reset Token",
+			], 404);
+		}
+
+		return response()->json($passwordReset);
+	}
+
+	/**
+	 * Reset Password
+	 *
+	 * @param  [string] 	email
+	 * @param  [string] 	password
+	 * @param  [string] 	password_confirmation
+	 * @param  [string] 	token
+	 *
+	 * @return [string] 	message
+	 * @return [json] 		user object
+	 */
+	public function reset(ChangePasswordRequests $request) {
+		$passwordReset = PasswordReset::where([
+			['email', $request->email],
+			['token', $request->token],
+		])->first();
+
+		if (!$passwordReset)
+			return response()->json([
+				'message' => "Invalid Password Reset Token",
+			], 404);
+
+		$user = User::where('email', $passwordReset->email)
+			->first();
+
+		if (!$user)
+			return response()->json([
+				'message' => "E-mail Address not found",
+			], 404);
+
+		$user->password = bcrypt($request->password);
+		$user->save();
+
+		$passwordReset->delete();
+
+		$user->notify(new PasswordResetSuccess($passwordReset));
+
+		return response()->json($user);
+	}
+}

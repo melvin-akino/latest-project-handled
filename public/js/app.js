@@ -6490,7 +6490,7 @@ __webpack_require__.r(__webpack_exports__);
       email: '',
       emailMessage: '',
       isSending: false,
-      loginRoute: "".concat("http://127.0.0.1:8000", "/login")
+      loginRoute: "".concat("http://localhost:8080", "/login")
     };
   },
   created: function created() {
@@ -6595,8 +6595,8 @@ __webpack_require__.r(__webpack_exports__);
         password: ''
       },
       loginError: '',
-      registerRoute: "".concat("http://127.0.0.1:8000", "/register"),
-      forgotPasswordRoute: "".concat("http://127.0.0.1:8000", "/password/reset")
+      registerRoute: "".concat("http://localhost:8080", "/register"),
+      forgotPasswordRoute: "".concat("http://localhost:8080", "/password/reset")
     };
   },
   created: function created() {
@@ -6709,7 +6709,7 @@ __webpack_require__.r(__webpack_exports__);
         password: '',
         password_confirmation: ''
       },
-      loginRoute: "".concat("http://127.0.0.1:8000", "/login")
+      loginRoute: "".concat("http://localhost:8080", "/login")
     };
   },
   created: function created() {
@@ -44008,8 +44008,8 @@ var router = new vue_router__WEBPACK_IMPORTED_MODULE_1__["default"]({
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
-__webpack_require__(/*! E:\multiline-frontend-v2\resources\js\app.js */"./resources/js/app.js");
-module.exports = __webpack_require__(/*! E:\multiline-frontend-v2\resources\sass\app.scss */"./resources/sass/app.scss");
+__webpack_require__(/*! /application/resources/js/app.js */"./resources/js/app.js");
+module.exports = __webpack_require__(/*! /application/resources/sass/app.scss */"./resources/sass/app.scss");
 
 
 /***/ })
