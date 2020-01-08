@@ -6490,7 +6490,7 @@ __webpack_require__.r(__webpack_exports__);
       email: '',
       emailMessage: '',
       isSending: false,
-      loginRoute: "".concat("http://localhost:8080", "/login")
+      loginRoute: "".concat("http://192.168.10.59:8080", "/login")
     };
   },
   created: function created() {
@@ -6595,8 +6595,8 @@ __webpack_require__.r(__webpack_exports__);
         password: ''
       },
       loginError: '',
-      registerRoute: "".concat("http://localhost:8080", "/register"),
-      forgotPasswordRoute: "".concat("http://localhost:8080", "/password/reset")
+      registerRoute: "".concat("http://192.168.10.59:8080", "/register"),
+      forgotPasswordRoute: "".concat("http://192.168.10.59:8080", "/password/reset")
     };
   },
   created: function created() {
@@ -6709,7 +6709,7 @@ __webpack_require__.r(__webpack_exports__);
         password: '',
         password_confirmation: ''
       },
-      loginRoute: "".concat("http://localhost:8080", "/login")
+      loginRoute: "".concat("http://192.168.10.59:8080", "/login")
     };
   },
   created: function created() {
@@ -25823,7 +25823,7 @@ var render = function() {
                 {
                   staticClass:
                     "block text-gray-700 text-sm font-bold mb-2 uppercase",
-                  attrs: { for: "password_confirm" }
+                  attrs: { for: "password_confirmation" }
                 },
                 [
                   _vm._v(
@@ -25848,7 +25848,7 @@ var render = function() {
                     _vm.$v.registerForm.password_confirmation.$error
                 },
                 attrs: {
-                  id: "password_confirm",
+                  id: "password_confirmation",
                   type: "password",
                   placeholder: "Confirm Password"
                 },

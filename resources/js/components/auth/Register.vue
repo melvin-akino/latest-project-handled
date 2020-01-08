@@ -26,10 +26,10 @@
                     <span v-if="$v.registerForm.password.$dirty && !$v.registerForm.password.minLength" class="text-red-600 text-sm">Password must have a minimum of 6 characters.</span>
                 </div>
                 <div class="mb-4">
-                    <label class="block text-gray-700 text-sm font-bold mb-2 uppercase" for="password_confirm">
+                    <label class="block text-gray-700 text-sm font-bold mb-2 uppercase" for="password_confirmation">
                         Confirm Password
                     </label>
-                    <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none" :class="{'border-red-600': $v.registerForm.password_confirmation.$error}" id="password_confirm" type="password" placeholder="Confirm Password" v-model="$v.registerForm.password_confirmation.$model">
+                    <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none" :class="{'border-red-600': $v.registerForm.password_confirmation.$error}" id="password_confirmation" type="password" placeholder="Confirm Password" v-model="$v.registerForm.password_confirmation.$model">
                     <span v-if="$v.registerForm.password_confirmation.$dirty && !$v.registerForm.password_confirmation.sameAs" class="text-red-600 text-sm">Password does not match.</span>
                 </div>
                 <div class="mb-4 flex justify-end">
