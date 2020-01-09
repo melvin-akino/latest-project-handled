@@ -1,8 +1,6 @@
 import Vue from 'vue'
 import Vuelidate from 'vuelidate'
 Vue.use(Vuelidate)
-import axios form 'axios'
-jest.mock('axios')
 
 import {mount} from '@vue/test-utils'
 import ForgotPassword from '../components/auth/ForgotPassword.vue'
