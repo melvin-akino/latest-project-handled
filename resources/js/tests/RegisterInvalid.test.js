@@ -4,15 +4,28 @@ Vue.use(Vuelidate)
 
 import {mount} from '@vue/test-utils'
 import Register from '../components/auth/Register.vue'
+
 describe('Registration Tests For Invalid Parameters', () => {
-    it('Call the register function on form submit', () => {
+    it('Register form do not proceed to register when all inputs are invalid', () => {
         const wrapper = mount(Register)
-        const register = jest.fn()
-        wrapper.setMethods({
-            register:register
-        })
+        const validation = wrapper.vm.$v.registerForm
+        wrapper.find('#name').setValue('')
+        wrapper.find('#email').setValue('tonystark')
+        wrapper.find('#password').setValue('123')
+        wrapper.find('#password_confirmation').setValue('123')
         wrapper.find('form').trigger('submit')
-        expect(register).toHaveBeenCalled()
+        expect(validation.$invalid).toBe(true)
+    })
+
+    it('Register form do not proceed to register when some inputs are invalid', () => {
+        const wrapper = mount(Register)
+        const validation = wrapper.vm.$v.registerForm
+        wrapper.find('#name').setValue('Tony Stark')
+        wrapper.find('#email').setValue('tonystark')
+        wrapper.find('#password').setValue('12345')
+        wrapper.find('#password_confirmation').setValue('123')
+        wrapper.find('form').trigger('submit')
+        expect(validation.$invalid).toBe(true)
     })
 
     const requiredformInputs = ['name', 'email', 'password']
@@ -114,5 +127,3 @@ describe('Registration Tests For Invalid Parameters', () => {
         expect(wrapper.html()).toContain('Password does not match')
     })
 })
-
-

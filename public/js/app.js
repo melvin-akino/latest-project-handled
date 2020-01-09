@@ -6488,7 +6488,7 @@ __webpack_require__.r(__webpack_exports__);
   data: function data() {
     return {
       email: '',
-      emailMessage: '',
+      emailMessage: false,
       isSending: false,
       loginRoute: "".concat("http://192.168.10.59:8080", "/login")
     };
@@ -6511,8 +6511,8 @@ __webpack_require__.r(__webpack_exports__);
         axios.post('/password/email', {
           email: this.email
         }).then(function (response) {
-          _this.emailMessage = 'We have e-mailed your password reset link!';
           _this.isSending = false;
+          _this.emailMessage = true;
         })["catch"](function (err) {
           return console.log(err);
         });
@@ -25227,9 +25227,11 @@ var render = function() {
           [_vm._v("Forgot Password")]
         ),
         _vm._v(" "),
-        _c("p", { staticClass: "text-green-500 text-sm mb-2 font-bold" }, [
-          _vm._v(_vm._s(_vm.emailMessage))
-        ]),
+        _vm.emailMessage
+          ? _c("p", { staticClass: "text-green-500 text-sm mb-2 font-bold" }, [
+              _vm._v("We have e-mailed your password reset link!")
+            ])
+          : _vm._e(),
         _vm._v(" "),
         _c(
           "form",

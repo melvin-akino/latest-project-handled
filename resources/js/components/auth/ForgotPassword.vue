@@ -2,7 +2,7 @@
     <div class="forgot-password">
         <div class="mx-auto sm:bg-white sm:shadow-lg md:w-160 sm:w-120 xs:w-100 w-full h-auto sm:px-12 px-4 pt-12 pb-4 mt-6">
             <p class="text-gray-700 text-lg mb-2 font-bold uppercase">Forgot Password</p>
-            <p class="text-green-500 text-sm mb-2 font-bold">{{emailMessage}}</p>
+            <p class="text-green-500 text-sm mb-2 font-bold" v-if="emailMessage">We have e-mailed your password reset link!</p>
             <form method="POST" @submit.prevent="sendEmailToResetPassword">
                 <div class="mb-4">
                     <label for="email" class="block text-gray-700 text-sm mb-2 font-bold uppercase">Email</label>
@@ -34,7 +34,7 @@ export default {
     data() {
         return {
             email:'',
-            emailMessage:'',
+            emailMessage:false,
             isSending:false,
             loginRoute:`${process.env.MIX_APP_URL}/login`
         }
@@ -51,8 +51,8 @@ export default {
                 this.isSending = true
                 axios.post('/password/email', { email: this.email })
                 .then(response => {
-                    this.emailMessage = 'We have e-mailed your password reset link!'
                     this.isSending = false
+                    this.emailMessage = true
                 })
                 .catch(err => console.log(err))
             } else {
