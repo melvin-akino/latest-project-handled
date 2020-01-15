@@ -150,7 +150,7 @@ class AuthController extends Controller {
 
 		if ($user && $passwordReset)
 			$user->notify(
-				new PasswordResetRequest($passwordReset->token)
+				new PasswordResetRequest($passwordReset->token, $user->email)
 			);
 
 		return response()->json([

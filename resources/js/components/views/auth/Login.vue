@@ -25,17 +25,20 @@
                 </div>
                 <div class="mb-4 flex justify-between">
                     <span class="text-sm text-red-600">{{loginError}}</span>
-                    <button type="submit" class="bg-orange-400 text-white rounded-full font-bold sm:text-sm text-xs uppercase px-12 sm:py-5 py-2 hover:bg-orange-500 focus:outline-none">Login</button>
+                    <button type="submit" class="bg-orange-400 text-white rounded-full font-bold sm:text-sm text-xs uppercase px-12 sm:py-5 py-2 hover:bg-orange-500 focus:outline-none">
+                        <span v-if="isLoggingIn">Logging In</span>
+                        <span v-else>Login</span>
+                    </button>
                 </div>
             </form>
         </div>
         <div class="sm:mt-6 mt-4">
             <div class="mb-1 flex justify-center sm:px-0 px-5">
-                <a :href="forgotPasswordRoute" class="inline-block text-gray-700 text-xs font-bold mb-2 uppercase mr-6 hover:underline">Forgot Password</a>
+                <router-link to="/forgot-password" class="inline-block text-gray-700 text-xs font-bold mb-2 uppercase mr-6 hover:underline">Forgot Password</router-link>
                 <a href="#" class="inline-block text-gray-700 text-xs font-bold mb-2 uppercase hover:underline">Contact Us</a>
             </div>
             <div class="mb-1 flex justify-center sm:px-0 px-5">
-                <small class="text-gray-700 text-xs font-bold mb-2 uppercase">Don't have an account yet? <a :href="registerRoute" class="hover:underline">Register Here</a></small>
+                <small class="text-gray-700 text-xs font-bold mb-2 uppercase">Don't have an account yet? <router-link to="/register" class="hover:underline">Register Here</router-link></small>
             </div>
             <div class="hidden sm:flex justify-center sm:px-0 px-5">
                 <small class="text-gray-700 text-xs font-bold mb-2 uppercase"><i class="far fa-question-circle"></i> Best viewed on Google Chrome, Firefox or Safari</small>
@@ -46,6 +49,7 @@
 
 <script>
 import { required, email } from 'vuelidate/lib/validators'
+import Cookies from 'js-cookie'
 export default {
     name:'Login',
     data() {
@@ -55,8 +59,7 @@ export default {
                 password:''
             },
             loginError:'',
-            registerRoute:`${process.env.MIX_APP_URL}/register`,
-            forgotPasswordRoute:`${process.env.MIX_APP_URL}/password/reset`
+            isLoggingIn:false,
         }
     },
     created() {
@@ -69,11 +72,16 @@ export default {
         }
     },
     methods:{
-        login() {
+      login() {
             if(!this.$v.loginForm.$invalid) {
-                axios.post('/login', { email:this.loginForm.email, password:this.loginForm.password })
-                .then(response => window.location.href = '/')
-                .catch(err => {
+                this.isLoggingIn = true
+                axios.post('/auth/login', { email:this.loginForm.email, password:this.loginForm.password })
+                .then(response => {
+                    this.$store.commit('SET_IS_AUTHENTICATED', true)
+                    Cookies.set('access_token', response.data.access_token)
+                    this.isLoggingIn = false
+                    this.$router.push('/')
+                }).catch(err => {
                     console.log(err)
                     this.loginError = 'Invalid email or password.'
                 })

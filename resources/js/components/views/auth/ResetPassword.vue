@@ -1,11 +1,11 @@
 <template>
     <div class="reset-password">
         <div class="mx-auto sm:bg-white sm:shadow-lg md:w-160 sm:w-120 xs:w-100 w-full h-auto sm:px-12 px-4 pt-12 pb-4 mt-6">
-            <p class="text-gray-700 text-lg mb-2 font-bold uppercase">Reset Password</p>
-            <form method="POST" @submit.prevent="resetPassword">
+            <form method="POST" @submit.prevent="resetPassword" v-if="!isResetPasswordSuccess">
+                <p class="text-gray-700 text-lg mb-2 font-bold uppercase">Reset Password</p>
                 <div class="mb-4">
                     <label for="email" class="block text-gray-700 text-sm mb-2 font-bold uppercase">Email</label>
-                    <input id="email" type="email" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none hover:cursor-not-allowed" :value="email" disabled>
+                    <input id="email" type="email" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none hover:cursor-not-allowed" :value="$route.params.email" disabled>
                 </div>
 
                 <div class="mb-4">
@@ -21,10 +21,15 @@
                     <span v-if="$v.resetPasswordForm.password_confirmation.$dirty && !$v.resetPasswordForm.password_confirmation.sameAs" class="text-red-600 text-sm">Passwords do not match.</span>
                 </div>
 
-                <div class="mb-4 flex justify-end">
+                <div class="mb-4 flex justify-between">
+                    <span class="text-sm text-red-600">{{resetPasswordFormError}}</span>
                     <button type="submit" class="bg-orange-400 text-white rounded-full font-bold sm:text-sm text-xs uppercase px-12 sm:py-5 py-2 hover:bg-orange-500 focus:outline-none">Reset Password</button>
                 </div>
             </form>
+            <div class="h-20 w-full mr-12 text-gray-700 font-bold mb-2 uppercase flex flex-col justify-center items-center rounded-lg" v-if="isResetPasswordSuccess">
+                <div class="text-green-400 text-2xl">Your password has been changed!</div>
+                <div><router-link to="/login" class="underline">Login Here</router-link></div>
+            </div>
         </div>
     </div>
 </template>
@@ -33,13 +38,14 @@
 import {required, sameAs, minLength} from 'vuelidate/lib/validators'
 export default {
     name:'ResetPassword',
-    props:['email', 'token'],
     data() {
         return {
             resetPasswordForm:{
                 password:'',
                 password_confirmation:'',
-            }
+            },
+            resetPasswordFormError:'',
+            isResetPasswordSuccess: false
         }
     },
     created() {
@@ -54,9 +60,13 @@ export default {
     methods:{
         resetPassword() {
             if(!this.$v.resetPasswordForm.$invalid) {
-                axios.post('/password/reset',{ token:this.token, email:this.email, password: this.resetPasswordForm.password, password_confirmation:this.resetPasswordForm.password_confirmation})
-                .then(response => window.location.href = '/')
-                .catch(err => console.log(err))
+                axios.post('/auth/password/reset/',{ token:this.$route.params.token, email:this.$route.params.email, password: this.resetPasswordForm.password, password_confirmation:this.resetPasswordForm.password_confirmation})
+                .then(response => {
+                    this.isResetPasswordSuccess = true
+                })
+                .catch(err => {
+                    this.resetPasswordFormError = err.response.data.message
+                })
             } else {
                 this.$v.resetPasswordForm.password.$touch()
                 this.$v.resetPasswordForm.password_confirmation.$touch()

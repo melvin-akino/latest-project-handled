@@ -1,9 +1,17 @@
 <template>
-    <router-view></router-view>
+    <div>
+        <appwrapper>
+            <router-view></router-view>
+        </appwrapper>
+    </div>
 </template>
 
 <script>
+import appwrapper from './layouts/appwrapper'
 export default {
-    name:'App'
+    name:'App',
+    components:{
+        appwrapper
+    }
 }
 </script>
