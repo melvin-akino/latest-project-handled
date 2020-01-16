@@ -59,7 +59,7 @@ export default {
                 password:''
             },
             loginError:'',
-            isLoggingIn:false,
+            isLoggingIn:false
         }
     },
     created() {
@@ -72,19 +72,19 @@ export default {
         }
     },
     methods:{
-      login() {
+        async login() {
             if(!this.$v.loginForm.$invalid) {
                 this.isLoggingIn = true
-                axios.post('/auth/login', { email:this.loginForm.email, password:this.loginForm.password })
-                .then(response => {
-                    this.$store.commit('SET_IS_AUTHENTICATED', true)
-                    Cookies.set('access_token', response.data.access_token)
-                    this.isLoggingIn = false
-                    this.$router.push('/')
-                }).catch(err => {
-                    console.log(err)
-                    this.loginError = 'Invalid email or password.'
-                })
+                try {
+                  const response = await axios.post('/auth/login', { email:this.loginForm.email, password:this.loginForm.password })
+                  Cookies.set('access_token', response.data.access_token)
+                  await this.$router.push('/')
+                  this.$store.commit('SET_IS_AUTHENTICATED', true)
+                } catch(err) {
+                  console.log(err)
+                  this.isLoggingIn = false
+                  this.loginError = 'Invalid email or password.'
+                }
             } else {
                 this.$v.loginForm.email.$touch()
                 this.$v.loginForm.password.$touch()

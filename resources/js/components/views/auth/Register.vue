@@ -130,12 +130,12 @@
                         <span v-if="$v.registerForm.step4.currency_id.$dirty && !$v.registerForm.step4.currency_id.required" class="text-red-600 text-sm">Currency is required.</span>
                     </div>
                 </div>
-
                 <div class="mb-2 flex justify-end">
                     <button type="button" v-if="step != 1" class="bg-orange-400 text-white rounded-full font-bold sm:text-sm text-xs uppercase px-12 sm:py-5 py-2 hover:bg-orange-500 focus:outline-none"  @click.prevent="prevStep">Previous</button>
                     <button type="button" v-if="step != totalSteps" class="bg-orange-400 text-white rounded-full font-bold sm:text-sm text-xs uppercase px-12 sm:py-5 py-2  ml-5 hover:bg-orange-500 focus:outline-none" @click.prevent="nextStep">Next</button>
                     <button type="submit" v-if="step === totalSteps" class="bg-orange-400 text-white rounded-full font-bold sm:text-sm text-xs uppercase px-12 sm:py-5 py-2 ml-5 hover:bg-orange-500 focus:outline-none" @click.prevent="register">Create Account</button>
                 </div>
+
             </form>
             <div class="h-20 w-full mr-12 text-gray-700 font-bold mb-2 uppercase flex flex-col justify-center items-center rounded-lg" v-if="isRegisterSuccessful">
                 <div class="text-green-400 text-2xl">{{successfulRegisterMessage}}!</div>

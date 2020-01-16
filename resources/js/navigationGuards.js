@@ -8,8 +8,9 @@ export default router.beforeEach((to, from, next) => {
     const token = Cookies.get('access_token')
     if(token) {
         axios.get('/auth/user', {headers:{'Authorization': `Bearer ${token}`}})
-        .then(() => {
+        .then(response => {
             store.commit('SET_IS_AUTHENTICATED', true)
+            store.commit('SET_AUTH_USER', response.data)
             if(authRoutes.includes(to.matched[0].path)) {
                 next('/')
             } else {
