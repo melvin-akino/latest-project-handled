@@ -10,20 +10,23 @@
 
                 <div class="mb-4">
                     <label for="password" class="block text-gray-700 text-sm mb-2 font-bold uppercase">New Password</label>
-                    <input id="password" type="password" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none" v-model="$v.resetPasswordForm.password.$model">
+                    <input id="password" type="password" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none" v-model="$v.resetPasswordForm.password.$model" @keyup="clearPasswordResetFormError">
                     <span v-if="$v.resetPasswordForm.password.$dirty && !$v.resetPasswordForm.password.required" class="text-red-600 text-sm">Please type a new password.</span>
                     <span v-if="$v.resetPasswordForm.password.$dirty && !$v.resetPasswordForm.password.minLength" class="text-red-600 text-sm">Password must have a minimum of 6 characters.</span>
                 </div>
 
                 <div class="mb-4">
                     <label for="password_confirmation" class="block text-gray-700 text-sm mb-2 font-bold uppercase">Confirm New Password</label>
-                    <input id="password_confirmation" type="password" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none" v-model="$v.resetPasswordForm.password_confirmation.$model">
+                    <input id="password_confirmation" type="password" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none" v-model="$v.resetPasswordForm.password_confirmation.$model" @keyup="clearPasswordResetFormError">
                     <span v-if="$v.resetPasswordForm.password_confirmation.$dirty && !$v.resetPasswordForm.password_confirmation.sameAs" class="text-red-600 text-sm">Passwords do not match.</span>
                 </div>
 
                 <div class="mb-4 flex justify-between">
                     <span class="text-sm text-red-600">{{resetPasswordFormError}}</span>
-                    <button type="submit" class="bg-orange-400 text-white rounded-full font-bold sm:text-sm text-xs uppercase px-12 sm:py-5 py-2 hover:bg-orange-500 focus:outline-none">Reset Password</button>
+                    <button type="submit" class="bg-orange-400 text-white rounded-full font-bold sm:text-sm text-xs uppercase px-12 sm:py-5 py-2 hover:bg-orange-500 focus:outline-none">
+                      <span v-if="isResettingPassword">Changing Password...</span>
+                      <span v-else>Reset Password</span>
+                    </button>
                 </div>
             </form>
             <div class="h-20 w-full mr-12 text-gray-700 font-bold mb-2 uppercase flex flex-col justify-center items-center rounded-lg" v-if="isResetPasswordSuccess">
@@ -45,6 +48,7 @@ export default {
                 password_confirmation:'',
             },
             resetPasswordFormError:'',
+            isResettingPassword:false,
             isResetPasswordSuccess: false
         }
     },
@@ -60,17 +64,23 @@ export default {
     methods:{
         resetPassword() {
             if(!this.$v.resetPasswordForm.$invalid) {
+                this.isResettingPassword = true
                 axios.post('/auth/password/reset/',{ token:this.$route.params.token, email:this.$route.params.email, password: this.resetPasswordForm.password, password_confirmation:this.resetPasswordForm.password_confirmation})
                 .then(response => {
                     this.isResetPasswordSuccess = true
+                    this.isResettingPassword = false
                 })
                 .catch(err => {
                     this.resetPasswordFormError = err.response.data.message
+                    this.isResettingPassword = false
                 })
             } else {
                 this.$v.resetPasswordForm.password.$touch()
                 this.$v.resetPasswordForm.password_confirmation.$touch()
             }
+        },
+        clearPasswordResetFormError() {
+          this.resetPasswordFormError = ''
         }
     }
 }

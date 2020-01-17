@@ -6602,7 +6602,6 @@ __webpack_require__.r(__webpack_exports__);
 //
 //
 //
-//
 
 
 
@@ -25160,97 +25159,98 @@ var render = function() {
       class: { "flex flex-col items-center": !_vm.$store.state.isAuthenticated }
     },
     [
-      _vm.$store.state.isAuthenticated
-        ? _c("nav", { staticClass: "flex bg-white shadow-md w-full h-16" }, [
-            _c(
-              "div",
-              { staticClass: "flex justify-start items-center w-full ml-16" },
-              [
-                _c(
-                  "router-link",
-                  {
-                    staticClass: "text-gray-700 text-sm uppercase ml-5 p-6",
-                    attrs: { to: "/" }
-                  },
-                  [_vm._v("Trade")]
-                ),
-                _vm._v(" "),
-                _c(
-                  "router-link",
-                  {
-                    staticClass: "text-gray-700 text-sm uppercase ml-5 p-6",
-                    attrs: { to: "/settlement" }
-                  },
-                  [_vm._v("Settlement")]
-                ),
-                _vm._v(" "),
-                _c(
-                  "router-link",
-                  {
-                    staticClass: "text-gray-700 text-sm uppercase ml-5 p-6",
-                    attrs: { to: "/open-orders" }
-                  },
-                  [_vm._v("Open Orders")]
-                ),
-                _vm._v(" "),
-                _c(
-                  "router-link",
-                  {
-                    staticClass: "text-gray-700 text-sm uppercase ml-5 p-6",
-                    attrs: { to: "/settings" }
-                  },
-                  [_vm._v("Settings")]
-                )
-              ],
-              1
-            ),
-            _vm._v(" "),
-            _c(
-              "div",
-              { staticClass: "flex justify-center items-center w-full" },
-              [
-                _c("img", {
-                  staticClass: "w-12 mt-2",
-                  attrs: { src: _vm.logo }
-                })
-              ]
-            ),
-            _vm._v(" "),
-            _c(
-              "div",
-              { staticClass: "flex justify-end items-center w-full mr-16" },
-              [
-                _c(
-                  "a",
-                  {
-                    staticClass: "text-gray-700 text-sm uppercase ml-5",
-                    attrs: { href: "#", role: "button" }
-                  },
-                  [
-                    _vm._v(
-                      "\n                " +
-                        _vm._s(_vm.$store.state.authUser.name) +
-                        "\n            "
-                    )
-                  ]
-                ),
-                _vm._v(" "),
-                _c(
-                  "a",
-                  {
-                    staticClass: "text-gray-700 text-sm uppercase ml-5 mr-5",
-                    attrs: { href: "#", role: "button" },
-                    on: { click: _vm.logout }
-                  },
-                  [_vm._v("Logout")]
-                )
-              ]
-            )
-          ])
-        : _c("img", {
-            staticClass: "sm:w-64 w-40 sm:mt-12 mt-10",
-            attrs: { src: _vm.logo }
-          }),
+      _c(
+        "nav",
+        {
+          staticClass: "flex bg-white shadow-md w-full h-16",
+          class: { "mb-16": !_vm.$store.state.isAuthenticated }
+        },
+        [
+          _vm.$store.state.isAuthenticated
+            ? _c(
+                "div",
+                { staticClass: "flex justify-start items-center w-full ml-16" },
+                [
+                  _c(
+                    "router-link",
+                    {
+                      staticClass: "text-gray-700 text-sm uppercase ml-5 p-6",
+                      attrs: { to: "/" }
+                    },
+                    [_vm._v("Trade")]
+                  ),
+                  _vm._v(" "),
+                  _c(
+                    "router-link",
+                    {
+                      staticClass: "text-gray-700 text-sm uppercase ml-5 p-6",
+                      attrs: { to: "/settlement" }
+                    },
+                    [_vm._v("Settlement")]
+                  ),
+                  _vm._v(" "),
+                  _c(
+                    "router-link",
+                    {
+                      staticClass: "text-gray-700 text-sm uppercase ml-5 p-6",
+                      attrs: { to: "/open-orders" }
+                    },
+                    [_vm._v("Open Orders")]
+                  ),
+                  _vm._v(" "),
+                  _c(
+                    "router-link",
+                    {
+                      staticClass: "text-gray-700 text-sm uppercase ml-5 p-6",
+                      attrs: { to: "/settings" }
+                    },
+                    [_vm._v("Settings")]
+                  )
+                ],
+                1
+              )
+            : _vm._e(),
+          _vm._v(" "),
+          _c(
+            "div",
+            { staticClass: "flex justify-center items-center w-full" },
+            [_c("img", { staticClass: "w-12 mt-2", attrs: { src: _vm.logo } })]
+          ),
+          _vm._v(" "),
+          _vm.$store.state.isAuthenticated
+            ? _c(
+                "div",
+                { staticClass: "flex justify-end items-center w-full mr-16" },
+                [
+                  _c(
+                    "a",
+                    {
+                      staticClass: "text-gray-700 text-sm uppercase ml-5",
+                      attrs: { href: "#", role: "button" }
+                    },
+                    [
+                      _vm._v(
+                        "\n                " +
+                          _vm._s(_vm.$store.state.authUser.name) +
+                          "\n            "
+                      )
+                    ]
+                  ),
+                  _vm._v(" "),
+                  _c(
+                    "a",
+                    {
+                      staticClass: "text-gray-700 text-sm uppercase ml-5 mr-5",
+                      attrs: { href: "#", role: "button" },
+                      on: { click: _vm.logout }
+                    },
+                    [_vm._v("Logout")]
+                  )
+                ]
+              )
+            : _vm._e()
+        ]
+      ),
       _vm._v(" "),
       _vm._t("default")
     ],
@@ -42666,42 +42666,42 @@ vue__WEBPACK_IMPORTED_MODULE_0___default.a.use(vue_router__WEBPACK_IMPORTED_MODU
 var routes = [{
   path: '/login',
   component: function component() {
-    return Promise.all(/*! import() */[__webpack_require__.e(10), __webpack_require__.e(6), __webpack_require__.e(0)]).then(__webpack_require__.bind(null, /*! ./components/views/auth/Login */ "./resources/js/components/views/auth/Login.vue"));
+    return Promise.all(/*! import() */[__webpack_require__.e(0), __webpack_require__.e(9), __webpack_require__.e(6)]).then(__webpack_require__.bind(null, /*! ./components/views/auth/Login */ "./resources/js/components/views/auth/Login.vue"));
   }
 }, {
   path: '/register',
   component: function component() {
-    return Promise.all(/*! import() */[__webpack_require__.e(10), __webpack_require__.e(7)]).then(__webpack_require__.bind(null, /*! ./components/views/auth/Register */ "./resources/js/components/views/auth/Register.vue"));
+    return Promise.all(/*! import() */[__webpack_require__.e(0), __webpack_require__.e(7)]).then(__webpack_require__.bind(null, /*! ./components/views/auth/Register */ "./resources/js/components/views/auth/Register.vue"));
   }
 }, {
   path: '/forgot-password',
   component: function component() {
-    return Promise.all(/*! import() */[__webpack_require__.e(10), __webpack_require__.e(5)]).then(__webpack_require__.bind(null, /*! ./components/views/auth/ForgotPassword */ "./resources/js/components/views/auth/ForgotPassword.vue"));
+    return Promise.all(/*! import() */[__webpack_require__.e(0), __webpack_require__.e(5)]).then(__webpack_require__.bind(null, /*! ./components/views/auth/ForgotPassword */ "./resources/js/components/views/auth/ForgotPassword.vue"));
   }
 }, {
   path: '/reset-password/:token/:email',
   component: function component() {
-    return Promise.all(/*! import() */[__webpack_require__.e(10), __webpack_require__.e(8)]).then(__webpack_require__.bind(null, /*! ./components/views/auth/ResetPassword */ "./resources/js/components/views/auth/ResetPassword.vue"));
+    return Promise.all(/*! import() */[__webpack_require__.e(0), __webpack_require__.e(8)]).then(__webpack_require__.bind(null, /*! ./components/views/auth/ResetPassword */ "./resources/js/components/views/auth/ResetPassword.vue"));
   }
 }, {
   path: '/',
   component: function component() {
-    return __webpack_require__.e(/*! import() */ 4).then(__webpack_require__.bind(null, /*! ./components/views/Trade */ "./resources/js/components/views/Trade.vue"));
+    return __webpack_require__.e(/*! import() */ 1).then(__webpack_require__.bind(null, /*! ./components/views/Trade */ "./resources/js/components/views/Trade.vue"));
   }
 }, {
   path: '/settlement',
   component: function component() {
-    return __webpack_require__.e(/*! import() */ 3).then(__webpack_require__.bind(null, /*! ./components/views/Settlement */ "./resources/js/components/views/Settlement.vue"));
+    return __webpack_require__.e(/*! import() */ 4).then(__webpack_require__.bind(null, /*! ./components/views/Settlement */ "./resources/js/components/views/Settlement.vue"));
   }
 }, {
   path: '/open-orders',
   component: function component() {
-    return __webpack_require__.e(/*! import() */ 1).then(__webpack_require__.bind(null, /*! ./components/views/OpenOrders */ "./resources/js/components/views/OpenOrders.vue"));
+    return __webpack_require__.e(/*! import() */ 2).then(__webpack_require__.bind(null, /*! ./components/views/OpenOrders */ "./resources/js/components/views/OpenOrders.vue"));
   }
 }, {
   path: '/settings',
   component: function component() {
-    return __webpack_require__.e(/*! import() */ 2).then(__webpack_require__.bind(null, /*! ./components/views/Settings */ "./resources/js/components/views/Settings.vue"));
+    return __webpack_require__.e(/*! import() */ 3).then(__webpack_require__.bind(null, /*! ./components/views/Settings */ "./resources/js/components/views/Settings.vue"));
   }
 }];
 var router = new vue_router__WEBPACK_IMPORTED_MODULE_1__["default"]({

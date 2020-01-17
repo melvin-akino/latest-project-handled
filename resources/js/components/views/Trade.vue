@@ -1,28 +1,24 @@
 <template>
     <div class="trade flex">
         <div class="flex flex-col items-center bg-white h-screen shadow-inner sportstab py-10">
-            <a href="#" class="mb-6 text-3xl"><i class="fas fa-futbol text-gray-500 hover:text-orange-500"></i></a>
-            <a href="#" class="mb-6 text-3xl"><i class="fas fa-basketball-ball text-gray-500 hover:text-orange-500"></i></a>
-            <a href="#" class="mb-6 text-3xl"><i class="fas fa-baseball-ball text-gray-500 hover:text-orange-500"></i></a>
-            <a href="#" class="mb-6 text-3xl"><i class="fas fa-bowling-ball text-gray-500 hover:text-orange-500"></i></i></a>
-            <a href="#" class="mb-6 text-3xl"><i class="fas fa-golf-ball text-gray-500 hover:text-orange-500"></i></a>
-            <a href="#" class="mb-6 text-3xl"><i class="fas fa-volleyball-ball text-gray-500 hover:text-orange-500"></i></a>
-            <a href="#" class="mb-6 text-3xl"><i class="fas fa-football-ball text-gray-500 hover:text-orange-500"></i></a>
+            <!-- This section should also be child components -->
+            <a href="#" class="mb-6 text-3xl px-3" :class="[selectedSport === 1 ? 'bg-orange-500 text-white' : 'text-gray-500']" @click="selectSport(1)"><i class="fas fa-futbol"></i></a>
+            <a href="#" class="mb-6 text-3xl px-3" :class="[selectedSport === 2 ? 'bg-orange-500 text-white' : 'text-gray-500']" @click="selectSport(2)"><i class="fas fa-basketball-ball"></i></a>
+            <a href="#" class="mb-6 text-3xl px-3" :class="[selectedSport === 3 ? 'bg-orange-500 text-white' : 'text-gray-500']" @click="selectSport(3)"><i class="fas fa-baseball-ball"></i></a>
+            <a href="#" class="mb-6 text-3xl px-3" :class="[selectedSport === 4 ? 'bg-orange-500 text-white' : 'text-gray-500']" @click="selectSport(4)"><i class="fas fa-bowling-ball"></i></a>
+            <a href="#" class="mb-6 text-3xl px-3" :class="[selectedSport === 5 ? 'bg-orange-500 text-white' : 'text-gray-500']" @click="selectSport(5)"><i class="fas fa-volleyball-ball"></i></a>
+            <a href="#" class="mb-6 text-3xl px-3" :class="[selectedSport === 6 ? 'bg-orange-500 text-white' : 'text-gray-500']" @click="selectSport(6)"><i class="fas fa-football-ball"></i></a>
         </div>
 
         <div class="flex flex-col w-2/12 h-screen p-8">
           <div class="flex justify-around">
-            <a href="#" class="text-gray-700 text-sm uppercase font-bold p-5" v-for="(gameSchedMode, index) in gameSchedModes">{{gameSchedMode}}</a>
+            <!-- This section should also be child components -->
+            <a href="#" class="text-gray-700 text-sm uppercase font-bold p-5" :class="{'bg-white rounded-lg shadow-lg': selectedLeagueSchedMode === index}" @click="selectLeagueSchedMode(index)" v-for="(leagueSchedMode, index) in leagueSchedModes" :key="index">{{leagueSchedMode}}</a>
           </div>
 
-          <div class="flex flex-col pt-2 text-center">
+          <div class="flex flex-col pt-2">
             <!-- Static at first, the actual league datas should be child components -->
-            <a href="#" class="text-gray-700 text-sm capitalize font-bold p-5 w-full">Austria 2 Liga</a>
-            <a href="#" class="text-gray-700 text-sm capitalize font-bold p-5 w-full bg-white rounded-lg shadow-lg">Belgium First Division A</a>
-            <a href="#" class="text-gray-700 text-sm capitalize font-bold p-5 w-full">Belgium First Division B</a>
-            <a href="#" class="text-gray-700 text-sm capitalize font-bold p-5 w-full">Denmark Super League</a>
-            <a href="#" class="text-gray-700 text-sm capitalize font-bold p-5 w-full">Indian Super League</a>
-            <a href="#" class="text-gray-700 text-sm capitalize font-bold p-5 w-full">Major Soccer League</a>
+            <a href="#" class="text-gray-700 text-sm capitalize font-bold p-5 w-full" :class="{'bg-white rounded-lg shadow-lg': selectedLeague === index}" @click="selectLeague(index)" v-for="(league, index) in leagues" :key="index">{{league}}</a>
           </div>
         </div>
 
@@ -35,8 +31,24 @@
 <script>
 export default {
   data() {
+    // Mock Data these or some of these should come from the database through API response
     return {
-      gameSchedModes:['Live', 'Today', 'Early']
+      leagueSchedModes:['Live', 'Today', 'Early'],
+      leagues:['Austria 2 Liga', 'Belgium First Division A', 'Belgium First Division B', 'Denmark Super League', 'Indian Super League', 'Major Soccer League'],
+      selectedSport: 1,
+      selectedLeagueSchedMode: 1,
+      selectedLeague: null
+    }
+  },
+  methods: {
+    selectSport(sport) {
+      this.selectedSport = sport
+    },
+    selectLeagueSchedMode(schedMode) {
+      this.selectedLeagueSchedMode = schedMode
+    },
+    selectLeague(league) {
+      this.selectedLeague = league
     }
   }
 }

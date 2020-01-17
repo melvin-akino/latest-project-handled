@@ -1,6 +1,7 @@
 <template>
     <div class="login">
         <div class="mx-auto sm:bg-white sm:shadow-lg md:w-160 sm:w-120 xs:w-100 w-full h-auto sm:px-12 px-4 sm:pt-12 pt-6 pb-4 mt-6">
+            <h3 class="block text-gray-700 text-lg mb-2 font-bold uppercase">Login</h3>
             <form method="POST" @submit.prevent="login">
                 <div class="mb-4">
                     <label class="block text-gray-700 text-sm mb-2 font-bold uppercase" for="email">
