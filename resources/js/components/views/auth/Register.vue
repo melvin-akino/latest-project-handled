@@ -130,7 +130,7 @@
                             <label class="block text-gray-700 text-sm font-bold mb-2 uppercase" for="phone_country_code">
                             Phone Country Code
                             </label>
-                            <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none" :class="{'border-red-600': $v.registerForm.step2.phone_country_code.$error}" id="phone_country_code" type="number" placeholder="Phone Country Code" v-model="$v.registerForm.step2.phone_country_code.$model">
+                            <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none" :class="{'border-red-600': $v.registerForm.step2.phone_country_code.$error}" id="phone_country_code" type="text" placeholder="Phone Country Code" v-model="$v.registerForm.step2.phone_country_code.$model">
                             <span v-if="$v.registerForm.step2.phone_country_code.$dirty && !$v.registerForm.step2.phone_country_code.required" class="text-red-600 text-sm">Phone country code is required.</span>
                             <span v-if="$v.registerForm.step2.phone_country_code.$dirty && !$v.registerForm.step2.phone_country_code.numeric" class="text-red-600 text-sm">Phone country code should be numeric.</span>
                         </div>
@@ -138,7 +138,7 @@
                             <label class="block text-gray-700 text-sm font-bold mb-2 uppercase" for="phone">
                             Phone
                             </label>
-                            <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none" :class="{'border-red-600': $v.registerForm.step2.phone.$error}" id="phone" type="number" placeholder="Phone" v-model="$v.registerForm.step2.phone.$model">
+                            <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none" :class="{'border-red-600': $v.registerForm.step2.phone.$error}" id="phone" type="text" placeholder="Phone" v-model="$v.registerForm.step2.phone.$model">
                             <span v-if="$v.registerForm.step2.phone.$dirty && !$v.registerForm.step2.phone.required" class="text-red-600 text-sm">Phone is required.</span>
                             <span v-if="$v.registerForm.step2.phone.$dirty && !$v.registerForm.step2.phone.numeric" class="text-red-600 text-sm">Phone should be numeric.</span>
                         </div>
