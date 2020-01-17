@@ -20,12 +20,9 @@
     <!-- Styles -->
     <link href="{{ asset('css/app.css') }}" rel="stylesheet">
 </head>
-<body class="bg-gray-200">
+<body>
     <div id="app">
-        <div class="flex flex-col items-center h-full w-full sm:pb-0 pb-8">
-            <img src="{{asset('images/logo-2.png')}}" class="sm:w-64 w-40 sm:mt-12 mt-10">
-            @yield('content')
-        </div>
+        <App></App>
     </div>
 </body>
 </html>

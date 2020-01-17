@@ -42,7 +42,7 @@ class RegistrationRequests extends FormRequest
             'odds_type'                      => 'required|numeric', // Additional validation: `odds_type`           must exist from `odds_type`           table
             'address'                        => 'required',
             'phone'                          => 'required',
-            'birthdate'                      => 'date',
+            'birthdate'                      => 'date|nullable',
         ];
     }
 
