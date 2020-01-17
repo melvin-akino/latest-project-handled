@@ -1,3 +1,0 @@
-[submodule "database"]
-	path = database
-	url = git@bitbucket.org:nptcore/multiline-v2-database.git
