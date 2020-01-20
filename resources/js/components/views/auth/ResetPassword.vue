@@ -52,8 +52,12 @@ export default {
             isResetPasswordSuccess: false
         }
     },
-    created() {
-        document.title = 'Reset Password - Multiline'
+    head:{
+        title() {
+            return {
+                inner: 'Reset Password'
+            }
+        }
     },
     validations:{
         resetPasswordForm: {

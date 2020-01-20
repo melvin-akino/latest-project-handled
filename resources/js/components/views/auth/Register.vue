@@ -242,8 +242,12 @@ export default {
       registerErrors: []
     }
   },
-  created() {
-      document.title = 'Register - Multiline'
+  head:{
+    title() {
+        return {
+            inner: 'Register'
+        }
+    }
   },
   validations: {
     registerForm: {

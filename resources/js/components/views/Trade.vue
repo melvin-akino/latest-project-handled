@@ -40,6 +40,13 @@ export default {
       selectedLeague: null
     }
   },
+  head:{
+    title() {
+      return {
+        inner: 'Trade'
+      }
+    }
+  },
   methods: {
     selectSport(sport) {
       this.selectedSport = sport

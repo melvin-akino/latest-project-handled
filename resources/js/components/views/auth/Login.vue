@@ -63,8 +63,12 @@ export default {
             isLoggingIn:false
         }
     },
-    created() {
-        document.title = 'Login - Multiline'
+    head:{
+        title() {
+            return {
+                inner: 'Login'
+            }
+        }
     },
     validations:{
         loginForm:{

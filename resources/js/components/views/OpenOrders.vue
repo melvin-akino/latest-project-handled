@@ -6,7 +6,13 @@
 
 <script>
 export default {
-
+    head:{
+        title() {
+            return {
+                inner: 'Open Orders'
+            }
+        }
+    },
 }
 </script>
 

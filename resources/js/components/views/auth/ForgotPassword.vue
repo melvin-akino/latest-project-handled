@@ -43,8 +43,12 @@ export default {
             forgotPasswordErrors:[]
         }
     },
-    created() {
-        document.title = 'Forgot Password - Multiline'
+    head:{
+        title() {
+            return {
+                inner: 'Forgot Password'
+            }
+        }
     },
     validations:{
         email:{required, email}
