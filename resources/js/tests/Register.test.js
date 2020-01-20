@@ -12,8 +12,8 @@ const wrapper = shallowMount(Register, {
 const testRequiredFieldsOnButtonClick = (requiredFields, step) => {
     requiredFields.forEach(field => {
         const validation = wrapper.vm.$v.registerForm
-        wrapper.find('button').trigger('click')
         wrapper.find(`#${field}`).setValue('' || null)
+        wrapper.find('button').trigger('click')
         expect(validation[step][field].required).toBe(false)
     })
 }
@@ -27,7 +27,7 @@ const testRequiredFieldsOnTyping = (requiredFields, step) => {
     })
 }
 
-describe('Register component tests', () => {
+describe('Register invalid parameters test', () => {
     it('Required validation rule should be false on button click or typing when field is empty or null in step 1', () => {
         let requiredFields = ['name', 'firstname', 'lastname', 'email', 'password']
         testRequiredFieldsOnButtonClick(requiredFields, 'step1')
@@ -116,6 +116,23 @@ describe('Register component tests', () => {
         expect(validation.step1.name.alphaNum).toBe(false)
     })
 
+    it('Password same as validation rule should be false on button click when password and password confirmation does not match', () => {
+        const validation = wrapper.vm.$v.registerForm
+        wrapper.find('#password').setValue('1234asdf')
+        wrapper.find('#password_confirmation').setValue('1234qwer')
+        wrapper.find('button').trigger('click')
+        expect(validation.step1.password_confirmation.sameAs).toBe(false)
+    })
+
+    it('Password same as validation rule should be false on button click when password and password confirmation does not match', () => {
+        const validation = wrapper.vm.$v.registerForm
+        wrapper.find('#password').trigger('keydown.up')
+        wrapper.find('#password').setValue('1234asdf')
+        wrapper.find('#password_confirmation').trigger('keydown.up')
+        wrapper.find('#password_confirmation').setValue('1234qwer')
+        expect(validation.step1.password_confirmation.sameAs).toBe(false)
+    })
+
     it('Numeric validation rule should be false on button click when phone and country code have non numeric value', async () => {
         const validation = wrapper.vm.$v.registerForm
         wrapper.vm.step = 2
@@ -138,13 +155,4 @@ describe('Register component tests', () => {
         expect(validation.step2.phone.numeric).toBe(false)
         expect(validation.step2.phone_country_code.numeric).toBe(false)
     })
-
-    // it('Password same as validation rule should be false on button click when password and password confirmation does not match', () => {
-    //     const validation = wrapper.vm.$v.registerForm
-    //     // wrapper.find('#password').setValue('1234asdf')
-    //     wrapper.find('#password_confirmation').setValue('1234qwer')
-    //     wrapper.find('button').trigger('click')
-    //     expect(validation.step1.password_confirmation.sameAs).toBe(false)
-    // })
-
 })
