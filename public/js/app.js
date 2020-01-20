@@ -6616,7 +6616,7 @@ __webpack_require__.r(__webpack_exports__);
       var _this = this;
 
       var token = js_cookie__WEBPACK_IMPORTED_MODULE_2___default.a.get('access_token');
-      axios__WEBPACK_IMPORTED_MODULE_1___default.a.get('/auth/logout', {
+      axios__WEBPACK_IMPORTED_MODULE_1___default.a.get('/v1/auth/logout', {
         headers: {
           'Authorization': "Bearer ".concat(token)
         }
@@ -42618,7 +42618,7 @@ __webpack_require__.r(__webpack_exports__);
   var token = js_cookie__WEBPACK_IMPORTED_MODULE_1___default.a.get('access_token');
 
   if (token) {
-    axios__WEBPACK_IMPORTED_MODULE_2___default.a.get('/auth/user', {
+    axios__WEBPACK_IMPORTED_MODULE_2___default.a.get('/v1/auth/user', {
       headers: {
         'Authorization': "Bearer ".concat(token)
       }
