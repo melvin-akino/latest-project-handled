@@ -3,8 +3,7 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
-use App\Models\OddType;
-use Carbon\Carbon;
+use Illuminate\Support\Facades\Artisan;
 
 class CreateOddTypesTable extends Migration
 {
@@ -19,23 +18,9 @@ class CreateOddTypesTable extends Migration
                 $table->timestamps();
             });
 
-            $oddTypes = [
-                'FT 1X1',
-                'FT Handicap',
-                'FT O/U',
-                'FT O/E',
-                '1H 1X2',
-                '1H Handicap',
-                '1H O/U'
-            ];
-
-            foreach ($oddTypes as $key => $type) {
-                $oddType = new OddType();
-                $oddType->type = $type;
-                $oddType->created_at = Carbon::now();
-                $oddType->updated_at = Carbon::now();
-                $oddType->save();
-            }
+            Artisan::call('db:seed', [
+                '--class' => OddTypesSeeder::class
+            ]);
         }
     }
 
