@@ -33,7 +33,37 @@ const routes = [
     },
     {
         path:'/settings',
-        component:() => import('./components/views/Settings')
+        component:() => import('./components/views/settings'),
+        children: [
+            {
+                path:'general',
+                component:() => import('./components/views/settings/General')
+            },
+            {
+                path:'profile',
+                component:() => import('./components/views/settings/Profile')
+            },
+            {
+                path:'trade-page',
+                component:() => import('./components/views/settings/TradePage')
+            },
+            {
+                path:'bet-slip',
+                component:() => import('./components/views/settings/BetSlip')
+            },
+            {
+                path:'bookies',
+                component:() => import('./components/views/settings/Bookies')
+            },
+            {
+                path:'bet-columns',
+                component:() => import('./components/views/settings/BetColumns')
+            },
+            {
+                path:'notifications-and-sounds',
+                component:() => import('./components/views/settings/NotificationsAndSounds')
+            }
+        ]
     },
 ];
 

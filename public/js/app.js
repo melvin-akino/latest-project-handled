@@ -6602,6 +6602,8 @@ __webpack_require__.r(__webpack_exports__);
 //
 //
 //
+//
+//
 
 
 
@@ -25428,7 +25430,7 @@ var render = function() {
   return _c(
     "div",
     {
-      staticClass: "bg-gray-200 h-screen w-full sm:pb-0 pb-8",
+      staticClass: "w-full sm:pb-0 pb-8",
       class: { "flex flex-col items-center": !_vm.$store.state.isAuthenticated }
     },
     [
@@ -25436,7 +25438,7 @@ var render = function() {
         "nav",
         {
           staticClass: "flex bg-white shadow-md w-full h-16",
-          class: { "mb-16": !_vm.$store.state.isAuthenticated }
+          class: [!_vm.$store.state.isAuthenticated ? "mb-16" : "fixed"]
         },
         [
           _vm.$store.state.isAuthenticated
@@ -25475,7 +25477,7 @@ var render = function() {
                     "router-link",
                     {
                       staticClass: "text-gray-700 text-sm uppercase ml-5 p-6",
-                      attrs: { to: "/settings" }
+                      attrs: { to: "/settings/general" }
                     },
                     [_vm._v("Settings")]
                   )
@@ -25525,9 +25527,8 @@ var render = function() {
         ]
       ),
       _vm._v(" "),
-      _vm._t("default")
-    ],
-    2
+      _c("main", { staticClass: "pt-16" }, [_vm._t("default")], 2)
+    ]
   )
 }
 var staticRenderFns = []
@@ -42641,14 +42642,14 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _navigationGuards__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./navigationGuards */ "./resources/js/navigationGuards.js");
 /* harmony import */ var _store__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./store */ "./resources/js/store/index.js");
 /* harmony import */ var _components_App__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./components/App */ "./resources/js/components/App.vue");
-/* harmony import */ var vuelidate__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! vuelidate */ "./node_modules/vuelidate/lib/index.js");
-/* harmony import */ var vuelidate__WEBPACK_IMPORTED_MODULE_5___default = /*#__PURE__*/__webpack_require__.n(vuelidate__WEBPACK_IMPORTED_MODULE_5__);
-/* harmony import */ var vue_head__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! vue-head */ "./node_modules/vue-head/vue-head.js");
-/* harmony import */ var vue_head__WEBPACK_IMPORTED_MODULE_6___default = /*#__PURE__*/__webpack_require__.n(vue_head__WEBPACK_IMPORTED_MODULE_6__);
-/* harmony import */ var _fortawesome_fontawesome_free_css_all_css__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! @fortawesome/fontawesome-free/css/all.css */ "./node_modules/@fortawesome/fontawesome-free/css/all.css");
-/* harmony import */ var _fortawesome_fontawesome_free_css_all_css__WEBPACK_IMPORTED_MODULE_7___default = /*#__PURE__*/__webpack_require__.n(_fortawesome_fontawesome_free_css_all_css__WEBPACK_IMPORTED_MODULE_7__);
-/* harmony import */ var _fortawesome_fontawesome_free_js_all_js__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! @fortawesome/fontawesome-free/js/all.js */ "./node_modules/@fortawesome/fontawesome-free/js/all.js");
-/* harmony import */ var _fortawesome_fontawesome_free_js_all_js__WEBPACK_IMPORTED_MODULE_8___default = /*#__PURE__*/__webpack_require__.n(_fortawesome_fontawesome_free_js_all_js__WEBPACK_IMPORTED_MODULE_8__);
+/* harmony import */ var _fortawesome_fontawesome_free_css_all_css__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! @fortawesome/fontawesome-free/css/all.css */ "./node_modules/@fortawesome/fontawesome-free/css/all.css");
+/* harmony import */ var _fortawesome_fontawesome_free_css_all_css__WEBPACK_IMPORTED_MODULE_5___default = /*#__PURE__*/__webpack_require__.n(_fortawesome_fontawesome_free_css_all_css__WEBPACK_IMPORTED_MODULE_5__);
+/* harmony import */ var _fortawesome_fontawesome_free_js_all_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! @fortawesome/fontawesome-free/js/all.js */ "./node_modules/@fortawesome/fontawesome-free/js/all.js");
+/* harmony import */ var _fortawesome_fontawesome_free_js_all_js__WEBPACK_IMPORTED_MODULE_6___default = /*#__PURE__*/__webpack_require__.n(_fortawesome_fontawesome_free_js_all_js__WEBPACK_IMPORTED_MODULE_6__);
+/* harmony import */ var vuelidate__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! vuelidate */ "./node_modules/vuelidate/lib/index.js");
+/* harmony import */ var vuelidate__WEBPACK_IMPORTED_MODULE_7___default = /*#__PURE__*/__webpack_require__.n(vuelidate__WEBPACK_IMPORTED_MODULE_7__);
+/* harmony import */ var vue_head__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! vue-head */ "./node_modules/vue-head/vue-head.js");
+/* harmony import */ var vue_head__WEBPACK_IMPORTED_MODULE_8___default = /*#__PURE__*/__webpack_require__.n(vue_head__WEBPACK_IMPORTED_MODULE_8__);
 
 
 __webpack_require__(/*! ./bootstrap */ "./resources/js/bootstrap.js");
@@ -42659,11 +42660,11 @@ __webpack_require__(/*! ./bootstrap */ "./resources/js/bootstrap.js");
  //Global Libraries
 
 
-vue__WEBPACK_IMPORTED_MODULE_0___default.a.use(vuelidate__WEBPACK_IMPORTED_MODULE_5___default.a);
-
-vue__WEBPACK_IMPORTED_MODULE_0___default.a.use(vue_head__WEBPACK_IMPORTED_MODULE_6___default.a);
 
 
+vue__WEBPACK_IMPORTED_MODULE_0___default.a.use(vuelidate__WEBPACK_IMPORTED_MODULE_7___default.a);
+
+vue__WEBPACK_IMPORTED_MODULE_0___default.a.use(vue_head__WEBPACK_IMPORTED_MODULE_8___default.a);
 var app = new vue__WEBPACK_IMPORTED_MODULE_0___default.a({
   el: '#app',
   router: _router__WEBPACK_IMPORTED_MODULE_1__["default"],
@@ -42943,22 +42944,22 @@ vue__WEBPACK_IMPORTED_MODULE_0___default.a.use(vue_router__WEBPACK_IMPORTED_MODU
 var routes = [{
   path: '/login',
   component: function component() {
-    return Promise.all(/*! import() */[__webpack_require__.e(0), __webpack_require__.e(9), __webpack_require__.e(6)]).then(__webpack_require__.bind(null, /*! ./components/views/auth/Login */ "./resources/js/components/views/auth/Login.vue"));
+    return Promise.all(/*! import() */[__webpack_require__.e(0), __webpack_require__.e(16), __webpack_require__.e(5)]).then(__webpack_require__.bind(null, /*! ./components/views/auth/Login */ "./resources/js/components/views/auth/Login.vue"));
   }
 }, {
   path: '/register',
   component: function component() {
-    return Promise.all(/*! import() */[__webpack_require__.e(0), __webpack_require__.e(7)]).then(__webpack_require__.bind(null, /*! ./components/views/auth/Register */ "./resources/js/components/views/auth/Register.vue"));
+    return Promise.all(/*! import() */[__webpack_require__.e(0), __webpack_require__.e(6)]).then(__webpack_require__.bind(null, /*! ./components/views/auth/Register */ "./resources/js/components/views/auth/Register.vue"));
   }
 }, {
   path: '/forgot-password',
   component: function component() {
-    return Promise.all(/*! import() */[__webpack_require__.e(0), __webpack_require__.e(5)]).then(__webpack_require__.bind(null, /*! ./components/views/auth/ForgotPassword */ "./resources/js/components/views/auth/ForgotPassword.vue"));
+    return Promise.all(/*! import() */[__webpack_require__.e(0), __webpack_require__.e(4)]).then(__webpack_require__.bind(null, /*! ./components/views/auth/ForgotPassword */ "./resources/js/components/views/auth/ForgotPassword.vue"));
   }
 }, {
   path: '/reset-password/:token/:email',
   component: function component() {
-    return Promise.all(/*! import() */[__webpack_require__.e(0), __webpack_require__.e(8)]).then(__webpack_require__.bind(null, /*! ./components/views/auth/ResetPassword */ "./resources/js/components/views/auth/ResetPassword.vue"));
+    return Promise.all(/*! import() */[__webpack_require__.e(0), __webpack_require__.e(7)]).then(__webpack_require__.bind(null, /*! ./components/views/auth/ResetPassword */ "./resources/js/components/views/auth/ResetPassword.vue"));
   }
 }, {
   path: '/',
@@ -42968,7 +42969,7 @@ var routes = [{
 }, {
   path: '/settlement',
   component: function component() {
-    return __webpack_require__.e(/*! import() */ 4).then(__webpack_require__.bind(null, /*! ./components/views/Settlement */ "./resources/js/components/views/Settlement.vue"));
+    return __webpack_require__.e(/*! import() */ 3).then(__webpack_require__.bind(null, /*! ./components/views/Settlement */ "./resources/js/components/views/Settlement.vue"));
   }
 }, {
   path: '/open-orders',
@@ -42978,8 +42979,44 @@ var routes = [{
 }, {
   path: '/settings',
   component: function component() {
-    return __webpack_require__.e(/*! import() */ 3).then(__webpack_require__.bind(null, /*! ./components/views/Settings */ "./resources/js/components/views/Settings.vue"));
-  }
+    return __webpack_require__.e(/*! import() */ 13).then(__webpack_require__.bind(null, /*! ./components/views/settings */ "./resources/js/components/views/settings/index.vue"));
+  },
+  children: [{
+    path: 'general',
+    component: function component() {
+      return __webpack_require__.e(/*! import() */ 10).then(__webpack_require__.bind(null, /*! ./components/views/settings/General */ "./resources/js/components/views/settings/General.vue"));
+    }
+  }, {
+    path: 'profile',
+    component: function component() {
+      return __webpack_require__.e(/*! import() */ 15).then(__webpack_require__.bind(null, /*! ./components/views/settings/Profile */ "./resources/js/components/views/settings/Profile.vue"));
+    }
+  }, {
+    path: 'trade-page',
+    component: function component() {
+      return __webpack_require__.e(/*! import() */ 12).then(__webpack_require__.bind(null, /*! ./components/views/settings/TradePage */ "./resources/js/components/views/settings/TradePage.vue"));
+    }
+  }, {
+    path: 'bet-slip',
+    component: function component() {
+      return __webpack_require__.e(/*! import() */ 14).then(__webpack_require__.bind(null, /*! ./components/views/settings/BetSlip */ "./resources/js/components/views/settings/BetSlip.vue"));
+    }
+  }, {
+    path: 'bookies',
+    component: function component() {
+      return __webpack_require__.e(/*! import() */ 9).then(__webpack_require__.bind(null, /*! ./components/views/settings/Bookies */ "./resources/js/components/views/settings/Bookies.vue"));
+    }
+  }, {
+    path: 'bet-columns',
+    component: function component() {
+      return __webpack_require__.e(/*! import() */ 8).then(__webpack_require__.bind(null, /*! ./components/views/settings/BetColumns */ "./resources/js/components/views/settings/BetColumns.vue"));
+    }
+  }, {
+    path: 'notifications-and-sounds',
+    component: function component() {
+      return __webpack_require__.e(/*! import() */ 11).then(__webpack_require__.bind(null, /*! ./components/views/settings/NotificationsAndSounds */ "./resources/js/components/views/settings/NotificationsAndSounds.vue"));
+    }
+  }]
 }];
 var router = new vue_router__WEBPACK_IMPORTED_MODULE_1__["default"]({
   routes: routes

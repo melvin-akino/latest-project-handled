@@ -10,7 +10,7 @@
             <a href="#" class="mb-6 text-3xl px-3" :class="[selectedSport === 6 ? 'bg-orange-500 text-white' : 'text-gray-500']" @click="selectSport(6)"><i class="fas fa-football-ball"></i></a>
         </div>
 
-        <div class="flex flex-col w-2/12 h-screen p-8">
+        <div class="flex flex-col w-2/12 h-full p-8">
           <div class="flex justify-around">
             <!-- This section should also be child components -->
             <a href="#" class="text-gray-700 text-sm uppercase font-bold p-5" :class="{'bg-white rounded-lg shadow-lg': selectedLeagueSchedMode === index}" @click="selectLeagueSchedMode(index)" v-for="(leagueSchedMode, index) in leagueSchedModes" :key="index">{{leagueSchedMode}}</a>
@@ -22,7 +22,7 @@
           </div>
         </div>
 
-        <div class="w-full h-screen">
+        <div class="w-full h-full">
           <!-- League and games data here -->
         </div>
     </div>
