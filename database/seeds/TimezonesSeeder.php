@@ -517,8 +517,8 @@ class TimezonesSeeder extends Seeder
     {
         foreach ($this->timezones AS $name => $offset) {
             Timezones::create([
-                'name' => $name,
-                'timezone' => $offset,
+                'name'      => $name,
+                'timezone'  => $offset,
             ]);
         }
     }
