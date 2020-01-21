@@ -2,28 +2,38 @@ import Vue from 'vue'
 import VueRouter from 'vue-router'
 Vue.use(VueRouter)
 
-// Components
-import Trade from './components/views/Trade'
-import Settlement from './components/views/Settlement'
-import OpenOrders from './components/views/OpenOrders'
-import Settings from './components/views/Settings'
-
 const routes = [
     {
+        path:'/login',
+        component:() => import('./components/views/auth/Login')
+    },
+    {
+        path:'/register',
+        component:() => import('./components/views/auth/Register')
+    },
+    {
+        path:'/forgot-password',
+        component:() => import('./components/views/auth/ForgotPassword')
+    },
+    {
+        path:'/reset-password/:token/:email',
+        component:() => import('./components/views/auth/ResetPassword')
+    },
+    {
         path:'/',
-        component:Trade
+        component:() => import('./components/views/Trade')
     },
     {
         path:'/settlement',
-        component:Settlement
+        component:() => import('./components/views/Settlement')
     },
     {
         path:'/open-orders',
-        component:OpenOrders
+        component:() => import('./components/views/OpenOrders')
     },
     {
         path:'/settings',
-        component:Settings
+        component:() => import('./components/views/Settings')
     },
 ];
 
