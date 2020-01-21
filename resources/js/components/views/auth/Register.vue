@@ -330,7 +330,7 @@ export default {
           currency_id: this.registerForm.step3.currency_id,
         }
 
-        axios.post('/auth/register', data)
+        axios.post('/v1/auth/register', data)
         .then((response) => {
           this.isRegisterSuccessful = true
           this.successfulRegisterMessage = response.data.message

@@ -77,7 +77,7 @@ export default {
             if(!this.$v.loginForm.$invalid) {
                 this.isLoggingIn = true
                 try {
-                  const response = await axios.post('/auth/login', { email:this.loginForm.email, password:this.loginForm.password })
+                  const response = await axios.post('/v1/auth/login', { email: this.loginForm.email, password: this.loginForm.password })
                   Cookies.set('access_token', response.data.access_token)
                   await this.$router.push('/')
                   this.$store.commit('SET_IS_AUTHENTICATED', true)
