@@ -23,12 +23,12 @@ class OddTypesSeeder extends Seeder
             '1H O/U'
         ];
 
-        foreach ($oddTypes as $key => $type) {
-            $oddType = new OddType();
-            $oddType->type = $type;
-            $oddType->created_at = Carbon::now();
-            $oddType->updated_at = Carbon::now();
-            $oddType->save();
+        foreach ($oddTypes as $type) {
+            OddType::create([
+                'type'       => $type,
+                'created_at' => Carbon::now(),
+                'updated_at' => Carbon::now()
+            ]);
         }
     }
 }
