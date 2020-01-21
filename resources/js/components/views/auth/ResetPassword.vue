@@ -65,7 +65,7 @@ export default {
         resetPassword() {
             if(!this.$v.resetPasswordForm.$invalid) {
                 this.isResettingPassword = true
-                axios.post('/v1/auth/password/reset/',{ token:this.$route.params.token, email:this.$route.params.email, password: this.resetPasswordForm.password, password_confirmation:this.resetPasswordForm.password_confirmation})
+                axios.post('/v1/auth/password/reset/', { token: this.$route.params.token, email: this.$route.params.email, password: this.resetPasswordForm.password, password_confirmation: this.resetPasswordForm.password_confirmation })
                 .then(response => {
                     this.isResetPasswordSuccess = true
                     this.isResettingPassword = false

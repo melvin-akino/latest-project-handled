@@ -7,7 +7,7 @@ export default router.beforeEach((to, from, next) => {
     const authRoutes = ['/login', '/register', '/forgot-password', '/reset-password/:token/:email']
     const token = Cookies.get('access_token')
     if(token) {
-        axios.get('/v1/auth/user', {headers:{'Authorization': `Bearer ${token}`}})
+        axios.get('/v1/auth/user', { headers: { 'Authorization': `Bearer ${token}` } })
         .then(response => {
             store.commit('SET_IS_AUTHENTICATED', true)
             store.commit('SET_AUTH_USER', response.data)
