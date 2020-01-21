@@ -100,6 +100,7 @@ return [
     */
     'providers' => [
         Illuminate\Pagination\PaginationServiceProvider::class,
+        Laravel\Passport\PassportServiceProvider::class
     ],
 
     /*
