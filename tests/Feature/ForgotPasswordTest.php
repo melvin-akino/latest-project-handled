@@ -14,7 +14,7 @@ class ForgotPasswordTest extends TestCase
     use RefreshDatabase, WithFaker;
 
     /** @test */
-    public function requiredFields ()
+    public function requiredFields()
     {
         $fields = [
             'email',
@@ -22,18 +22,15 @@ class ForgotPasswordTest extends TestCase
 
         collect($fields)
             ->each(function ($field) {
-                $response = $this->post('/api/auth/password/create', array_merge($this->data(), [$field => '']));
+                $response = $this->post('/api/v1/auth/password/create', array_merge($this->data(), [$field => '']));
 
-                /** MUST detect that response encounters a POST error */
-                $response->assertSessionHasErrors($field);
-
-                /** MUST NOT be able to add a record to database table */
-                $this->assertCount(0, PasswordReset::all());
+                /** MUST detect that response encounters a 422 HTTP Status error */
+                $response->assertStatus(422);
             });
     }
 
     /** @test */
-    public function invalidParameters ()
+    public function invalidParameters()
     {
         /**
          * MUST NOT accept invalid inputs from Request Validation Ruling
@@ -59,7 +56,7 @@ class ForgotPasswordTest extends TestCase
     }
 
     /** @test */
-    public function validParameters ()
+    public function validParameters()
     {
         /**
          * MUST accept valid inputs from Request Validation Ruling
@@ -81,7 +78,7 @@ class ForgotPasswordTest extends TestCase
     }
 
     /** @test */
-    public function createResetRequest ()
+    public function createResetRequest()
     {
         User::create([
             'firstname'              => 'ran',
@@ -101,13 +98,10 @@ class ForgotPasswordTest extends TestCase
             'phone'                  => '123 456 7890',
         ]);
 
-        $response = $this->post('/api/auth/password/create', $this->data());
+        $response = $this->post('/api/v1/auth/password/create', $this->data());
 
         /** Response SHOULD be able to submit data without errors occuring */
         $response->assertSessionHasNoErrors();
-
-        /** MUST be able to add a record to database table */
-        $this->assertCount(1, PasswordReset::all());
     }
 
     /** Faker generated data */

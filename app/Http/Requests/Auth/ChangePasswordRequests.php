@@ -2,7 +2,9 @@
 
 namespace App\Http\Requests\Auth;
 
+use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\ValidationException;
 
 class ChangePasswordRequests extends FormRequest
 {
@@ -39,22 +41,29 @@ class ChangePasswordRequests extends FormRequest
     public function messages()
     {
         return [
-            'required'                      => "This field is required",
-            'email'                         => "Please input a valid E-mail format",
+            'required'                      => trans('validation.custom.required'),
+            'email'                         => trans('validation.custom.email.valid'),
 
-            'email.exists'                  => "E-mail Address does not exist from our records",
+            'email.exists'                  => trans('validation.custom.email.exists'),
 
-            'password.min'                  => "Password must be at least 6 characters",
-            'password.max'                  => "Password is only up to 32 characters",
+            'password.min'                  => trans('validation.custom.password.min', ['count' => 6]),
+            'password.max'                  => trans('validation.custom.password.max', ['count' => 32]),
 
-            'password_confirmation.min'     => "Confirm Password must be at least 6 characters",
-            'password_confirmation.max'     => "Confirm Password is only up to 32 characters",
-            'password_confirmation.same'    => "Confirm Password must be the same with Password",
+            'password_confirmation.min'     => trans('validation.custom.password_confirmation.min', ['count' => 6]),
+            'password_confirmation.max'     => trans('validation.custom.password_confirmation.max', ['count' => 32]),
+            'password_confirmation.same'    => trans('validation.custom.password_confirmation.same'),
         ];
     }
 
-    public function response (array $error)
+    protected function failedValidation(Validator $validator)
     {
-        return compact('error');
+        $response = response()->json([
+            'status'                        => false,
+            'status_code'                   => 422,
+            'message'                       => trans('validation.custom.error'),
+            'errors'                        => $validator->errors(),
+        ], 422);
+
+        throw new ValidationException($validator, $response);
     }
 }
