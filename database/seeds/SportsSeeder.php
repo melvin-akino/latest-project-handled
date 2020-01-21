@@ -14,18 +14,18 @@ class SportsSeeder extends Seeder
     public function run()
     {
         $sports = [
-            'Soccer'
+            'Soccer' => "Football Sports"
         ];
 
-        foreach ($sports as $key => $sport) {
-            $sportModel = new SportModel();
-            $sportModel->sport = $sport;
-            $sportModel->details = 'Ball Sports';
-            $sportModel->priority = 1;
-            $sportModel->is_enabled = true;
-            $sportModel->created_at = Carbon::now();
-            $sportModel->updated_at = Carbon::now();
-            $sportModel->save();
+        foreach ($sports as $sport => $detail) {
+            SportModel::create([
+                'sport'      => $sport,
+                'details'    => $detail,
+                'priority'   => 1,
+                'is_enabled' => true,
+                'created_at' => Carbon::now(),
+                'updated_at' => Carbon::now()
+            ]);
         }
     }
 }
