@@ -2,7 +2,6 @@
 
 use Illuminate\Database\Seeder;
 use App\Models\Sport as SportModel;
-use Carbon\Carbon;
 
 class SportsSeeder extends Seeder
 {
@@ -22,9 +21,7 @@ class SportsSeeder extends Seeder
                 'sport'      => $sport,
                 'details'    => $detail,
                 'priority'   => 1,
-                'is_enabled' => true,
-                'created_at' => Carbon::now(),
-                'updated_at' => Carbon::now()
+                'is_enabled' => true
             ]);
         }
     }
