@@ -16,4 +16,9 @@ class Sport extends Model
         'created_at',
         'updated_at'
     ];
+
+    public function oddTypes()
+    {
+        return $this->belongsToMany('App\Models\OddType');
+    }
 }
