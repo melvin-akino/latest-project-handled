@@ -13,25 +13,25 @@ define("SPORT_SOCCER", 1);
 return [
     'user_sport_odd_configurations' => [
         [
-            'sport_id'  => SPORT_SOCCER,
+            'sport_id'    => SPORT_SOCCER,
             'odd_type_id' => ODD_FT1X1
         ], [
-            'sport_id'  => SPORT_SOCCER,
+            'sport_id'    => SPORT_SOCCER,
             'odd_type_id' => ODD_FTHANDICAP
         ], [
-            'sport_id'  => SPORT_SOCCER,
+            'sport_id'    => SPORT_SOCCER,
             'odd_type_id' => ODD_FTOVERUNDER
         ], [
-            'sport_id'  => SPORT_SOCCER,
+            'sport_id'    => SPORT_SOCCER,
             'odd_type_id' => ODD_FTODDEVEN
         ], [
-            'sport_id'  => SPORT_SOCCER,
+            'sport_id'    => SPORT_SOCCER,
             'odd_type_id' => ODD_ONEH1X2
         ], [
-            'sport_id'  => SPORT_SOCCER,
+            'sport_id'    => SPORT_SOCCER,
             'odd_type_id' => ODD_ONEHHANDICAP
         ], [
-            'sport_id'  => SPORT_SOCCER,
+            'sport_id'    => SPORT_SOCCER,
             'odd_type_id' => ODD_ONEHOVERUNDER
         ]
     ]
