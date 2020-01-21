@@ -9,8 +9,6 @@ class OddType extends Model
     protected $table = 'odd_types';
 
     protected $fillable = [
-        'type',
-        'created_at',
-        'updated_at'
+        'type'
     ];
 }

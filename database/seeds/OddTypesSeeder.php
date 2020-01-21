@@ -2,7 +2,6 @@
 
 use Illuminate\Database\Seeder;
 use App\Models\OddType;
-use Carbon\Carbon;
 
 class OddTypesSeeder extends Seeder
 {
@@ -25,9 +24,7 @@ class OddTypesSeeder extends Seeder
 
         foreach ($oddTypes as $type) {
             OddType::create([
-                'type'       => $type,
-                'created_at' => Carbon::now(),
-                'updated_at' => Carbon::now()
+                'type' => $type
             ]);
         }
     }
