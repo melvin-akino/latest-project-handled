@@ -515,11 +515,11 @@ class TimezonesSeeder extends Seeder
      */
     public function run()
     {
-    	foreach ($this->timezones AS $name => $offset) {
-    		Timezones::create([
-    			'name' => $name,
-    			'timezone' => $offset,
-    		]);
-    	}
+        foreach ($this->timezones AS $name => $offset) {
+            Timezones::create([
+                'name' => $name,
+                'timezone' => $offset,
+            ]);
+        }
     }
 }
