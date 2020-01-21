@@ -53,7 +53,7 @@ export default {
         sendEmailToResetPassword() {
             if(!this.$v.email.$invalid) {
                 this.isSending = true
-                axios.post('/auth/password/create', { email: this.email })
+                axios.post('/v1/auth/password/create', { email: this.email })
                 .then(response => {
                     this.emailMessage = response.data.message
                     this.isSending = false
