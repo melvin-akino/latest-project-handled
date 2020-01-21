@@ -2,7 +2,6 @@
 
 use Illuminate\Database\Seeder;
 use App\Models\SportOddType;
-use Carbon\Carbon;
 
 class SportOddTypeSeeder extends Seeder
 {
@@ -36,9 +35,7 @@ class SportOddTypeSeeder extends Seeder
         foreach ($oddTypeIds as $oddTypeId) {
             SportOddType::create([
                 'sport_id'    => self::SOCCER,
-                'odd_type_id' => $oddTypeId,
-                'created_at'  => Carbon::now(),
-                'updated_at'  => Carbon::now()
+                'odd_type_id' => $oddTypeId
             ]);
         }
     }
