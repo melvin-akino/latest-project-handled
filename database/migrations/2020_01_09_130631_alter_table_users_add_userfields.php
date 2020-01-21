@@ -7,8 +7,16 @@ use Illuminate\Support\Facades\Schema;
 class AlterTableUsersAddUserfields extends Migration
 {
     protected $tablename = "users";
-
+    protected $str = [
+        'firstname',
+        'lastname',
+        'phone',
+    ];
+    protected $text = [
+        'address',
+    ];
     protected $int = [
+        'country',
         'status',
         'state',
         'city',
@@ -24,9 +32,6 @@ class AlterTableUsersAddUserfields extends Migration
     public function up()
     {
         Schema::table($this->tablename, function (Blueprint $table) {
-
-            $table->smallInteger('status');
-
             // STRINGS
             foreach ($this->str AS $row) {
                 $table->string($row)->nullable();
@@ -39,7 +44,7 @@ class AlterTableUsersAddUserfields extends Migration
 
             // INTEGERS
             foreach ($this->int AS $row) {
-                $table->integer($row)->nullable();
+                $table->smallInteger($row)->nullable();
             }
 
             // DATES
