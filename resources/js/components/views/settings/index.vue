@@ -1,19 +1,34 @@
 <template>
     <div class="settings flex container mx-auto">
-        <div class="mt-3 mr-16 fixed">
-            <p class="text-4xl">Trade Settings</p>
-            <div class="flex flex-col mt-3">
-                <router-link to="/settings/general" class="p-3 bg-white border border-gray-400">General</router-link>
-                <router-link to="/settings/profile" class="p-3 bg-white border border-gray-400">Profile</router-link>
-                <router-link to="/settings/trade-page" class="p-3 bg-white border border-gray-400">Trade Page</router-link>
-                <router-link to="/settings/bet-slip" class="p-3 bg-white border border-gray-400">Bet Slip</router-link>
-                <router-link to="/settings/bookies" class="p-3 bg-white border border-gray-400">Bookies</router-link>
-                <router-link to="/settings/bet-columns" class="p-3 bg-white border border-gray-400">Bet Columns</router-link>
-                <router-link to="/settings/notifications-and-sounds" class="p-3 bg-white border border-gray-400">Notifications & Sounds</router-link>
+        <div class="mr-16 fixed">
+            <div class="flex flex-col mt-6">
+                <router-link to="/settings/general" class="py-3 px-8 bg-white border border-gray-400 text-sm">General</router-link>
+                <router-link to="/settings/profile" class="py-3 px-8 bg-white border border-gray-400 text-sm">Profile</router-link>
+                <router-link to="/settings/trade-page" class="py-3 px-8 bg-white border border-gray-400 text-sm">Trade Page</router-link>
+                <router-link to="/settings/bet-slip" class="py-3 px-8 bg-white border border-gray-400 text-sm">Bet Slip</router-link>
+                <router-link to="/settings/bookies" class="py-3 px-8 bg-white border border-gray-400 text-sm">Bookies</router-link>
+                <router-link to="/settings/bet-columns" class="py-3 px-8 bg-white border border-gray-400 text-sm">Bet Columns</router-link>
+                <router-link to="/settings/notifications-and-sounds" class="py-3 px-8 bg-white border border-gray-400 text-sm">Notifications & Sounds</router-link>
             </div>
         </div>
         <div class="w-3/4 ml-64">
+            <p class="text-2xl mt-6 mb-12 capitalize">{{titlePageUri}}</p>
             <router-view></router-view>
+            <div class="shadow border border-gray-400 bg-white w-full p-5 mb-6">
+                <label class="block font-bold capitalize text-gray-700 text-sm mr-5">Select Language</label>
+                <div class="relative w-1/3 mt-4">
+                    <select class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 text-sm leading-tight focus:outline-none">
+                        <option value="1">English</option>
+                    </select>
+                    <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+                        <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
+                    </div>
+                </div>
+            </div>
+            <div class="flex justify-evenly shadow border border-gray-400 bg-white w-full p-5 mb-6">
+                <button class="bg-red-600 text-white text-sm uppercase px-2 w-1/4 mr-5 hover:bg-red-700">Reset to default</button>
+                <p class="text-xs">Reset all your settings to platform default. You will lose saved history/bets views and all your trade and betslip options will be reverted to the basic ones.</p>
+            </div>
         </div>
     </div>
 </template>
@@ -27,6 +42,12 @@ export default {
             }
         }
     },
+    computed:{
+        titlePageUri(){
+            let titlePageUri = this.$route.path.split('/')
+            return titlePageUri[titlePageUri.length - 1].replace(/-/g, ' ')
+        }
+    }
 }
 </script>
 

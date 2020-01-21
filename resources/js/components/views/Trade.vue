@@ -2,23 +2,23 @@
     <div class="trade flex">
         <div class="flex flex-col items-center bg-white h-screen shadow-inner sportstab py-10">
             <!-- This section should also be child components -->
-            <a href="#" class="mb-6 text-3xl px-3" :class="[selectedSport === 1 ? 'bg-orange-500 text-white' : 'text-gray-500']" @click="selectSport(1)"><i class="fas fa-futbol"></i></a>
-            <a href="#" class="mb-6 text-3xl px-3" :class="[selectedSport === 2 ? 'bg-orange-500 text-white' : 'text-gray-500']" @click="selectSport(2)"><i class="fas fa-basketball-ball"></i></a>
-            <a href="#" class="mb-6 text-3xl px-3" :class="[selectedSport === 3 ? 'bg-orange-500 text-white' : 'text-gray-500']" @click="selectSport(3)"><i class="fas fa-baseball-ball"></i></a>
-            <a href="#" class="mb-6 text-3xl px-3" :class="[selectedSport === 4 ? 'bg-orange-500 text-white' : 'text-gray-500']" @click="selectSport(4)"><i class="fas fa-bowling-ball"></i></a>
-            <a href="#" class="mb-6 text-3xl px-3" :class="[selectedSport === 5 ? 'bg-orange-500 text-white' : 'text-gray-500']" @click="selectSport(5)"><i class="fas fa-volleyball-ball"></i></a>
-            <a href="#" class="mb-6 text-3xl px-3" :class="[selectedSport === 6 ? 'bg-orange-500 text-white' : 'text-gray-500']" @click="selectSport(6)"><i class="fas fa-football-ball"></i></a>
+            <a href="#" class="mb-4 text-2xl px-4 py-2" :class="[selectedSport === 1 ? 'bg-orange-500 text-white' : 'text-gray-500']" @click="selectSport(1)"><i class="fas fa-futbol"></i></a>
+            <a href="#" class="mb-4 text-2xl px-4 py-2" :class="[selectedSport === 2 ? 'bg-orange-500 text-white' : 'text-gray-500']" @click="selectSport(2)"><i class="fas fa-basketball-ball"></i></a>
+            <a href="#" class="mb-4 text-2xl px-4 py-2" :class="[selectedSport === 3 ? 'bg-orange-500 text-white' : 'text-gray-500']" @click="selectSport(3)"><i class="fas fa-baseball-ball"></i></a>
+            <a href="#" class="mb-4 text-2xl px-4 py-2" :class="[selectedSport === 4 ? 'bg-orange-500 text-white' : 'text-gray-500']" @click="selectSport(4)"><i class="fas fa-bowling-ball"></i></a>
+            <a href="#" class="mb-4 text-2xl px-4 py-2" :class="[selectedSport === 5 ? 'bg-orange-500 text-white' : 'text-gray-500']" @click="selectSport(5)"><i class="fas fa-volleyball-ball"></i></a>
+            <a href="#" class="mb-4 text-2xl px-4 py-2" :class="[selectedSport === 6 ? 'bg-orange-500 text-white' : 'text-gray-500']" @click="selectSport(6)"><i class="fas fa-football-ball"></i></a>
         </div>
 
-        <div class="flex flex-col w-2/12 h-full p-8">
+        <div class="flex flex-col w-3/12 h-full p-8 xl:w-2/12">
           <div class="flex justify-around">
             <!-- This section should also be child components -->
-            <a href="#" class="text-gray-700 text-sm uppercase font-bold p-5" :class="{'bg-white rounded-lg shadow-lg': selectedLeagueSchedMode === index}" @click="selectLeagueSchedMode(index)" v-for="(leagueSchedMode, index) in leagueSchedModes" :key="index">{{leagueSchedMode}}</a>
+            <a href="#" class="text-sm uppercase font-bold py-2 px-4" :class="[selectedLeagueSchedMode === index ? 'bg-orange-500 text-white rounded-lg shadow-lg' : 'text-gray-700']" @click="selectLeagueSchedMode(index)" v-for="(leagueSchedMode, index) in leagueSchedModes" :key="index">{{leagueSchedMode}}</a>
           </div>
 
           <div class="flex flex-col pt-2">
             <!-- Static at first, the actual league datas should be child components -->
-            <a href="#" class="text-gray-700 text-sm capitalize font-bold p-5 w-full" :class="{'bg-white rounded-lg shadow-lg': selectedLeague === index}" @click="selectLeague(index)" v-for="(league, index) in leagues" :key="index">{{league}}</a>
+            <a href="#" class="text-gray-700 text-sm capitalize font-bold py-3 px-4 w-full" :class="{'bg-white rounded-lg shadow-lg': selectedLeague === index}" @click="selectLeague(index)" v-for="(league, index) in leagues" :key="index">{{league}}</a>
           </div>
         </div>
 

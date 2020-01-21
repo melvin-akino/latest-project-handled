@@ -1,5 +1,5 @@
 // Fonts
-@import url('https://fonts.googleapis.com/css?family=Nunito');
+@import url('https://fonts.googleapis.com/css?family=Nunito|Montserrat:100,300,400,600,700|Assistant:300,400,500,600,700');
 
 // Variables
 @import 'variables';
@@ -13,3 +13,7 @@
 @import "tailwindcss/components";
 
 @import "tailwindcss/utilities";
+
+body {
+    font-family: 'Assistant', sans-serif;
+}

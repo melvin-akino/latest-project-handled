@@ -6651,7 +6651,7 @@ exports = module.exports = __webpack_require__(/*! ../../../../node_modules/css-
 
 
 // module
-exports.push([module.i, ".router-link-exact-active {\n  background-color: #ED8936;\n  color: #ffffff;\n}", ""]);
+exports.push([module.i, ".router-link-exact-active {\n  background-color: #ED8936;\n  color: #ffffff;\n  font-weight: bold;\n}", ""]);
 
 // exports
 
@@ -25438,18 +25438,19 @@ var render = function() {
         "nav",
         {
           staticClass: "flex bg-white shadow-md w-full h-16",
-          class: [!_vm.$store.state.isAuthenticated ? "mb-16" : "fixed"]
+          class: [!_vm.$store.state.isAuthenticated ? "mb-16" : "fixed z-10"]
         },
         [
           _vm.$store.state.isAuthenticated
             ? _c(
                 "div",
-                { staticClass: "flex justify-start items-center w-full ml-16" },
+                { staticClass: "flex justify-start items-center w-5/12 ml-16" },
                 [
                   _c(
                     "router-link",
                     {
-                      staticClass: "text-gray-700 text-sm uppercase ml-5 p-6",
+                      staticClass:
+                        "text-gray-700 text-sm uppercase ml-5 sm:px-4 px-6 py-6",
                       attrs: { to: "/" }
                     },
                     [_vm._v("Trade")]
@@ -25458,7 +25459,8 @@ var render = function() {
                   _c(
                     "router-link",
                     {
-                      staticClass: "text-gray-700 text-sm uppercase ml-5 p-6",
+                      staticClass:
+                        "text-gray-700 text-sm uppercase ml-5 sm:px-4 px-6 py-6",
                       attrs: { to: "/settlement" }
                     },
                     [_vm._v("Settlement")]
@@ -25467,7 +25469,8 @@ var render = function() {
                   _c(
                     "router-link",
                     {
-                      staticClass: "text-gray-700 text-sm uppercase ml-5 p-6",
+                      staticClass:
+                        "text-gray-700 text-sm uppercase ml-5 sm:px-4 px-6 py-6",
                       attrs: { to: "/open-orders" }
                     },
                     [_vm._v("Open Orders")]
@@ -25476,7 +25479,8 @@ var render = function() {
                   _c(
                     "router-link",
                     {
-                      staticClass: "text-gray-700 text-sm uppercase ml-5 p-6",
+                      staticClass:
+                        "text-gray-700 text-sm uppercase ml-5 sm:px-4 px-6 py-6",
                       attrs: { to: "/settings/general" }
                     },
                     [_vm._v("Settings")]
@@ -25488,14 +25492,14 @@ var render = function() {
           _vm._v(" "),
           _c(
             "div",
-            { staticClass: "flex justify-center items-center w-full" },
+            { staticClass: "flex justify-center items-center w-2/12" },
             [_c("img", { staticClass: "w-12 mt-2", attrs: { src: _vm.logo } })]
           ),
           _vm._v(" "),
           _vm.$store.state.isAuthenticated
             ? _c(
                 "div",
-                { staticClass: "flex justify-end items-center w-full mr-16" },
+                { staticClass: "flex justify-end items-center w-5/12 mr-16" },
                 [
                   _c(
                     "a",
@@ -42979,32 +42983,32 @@ var routes = [{
 }, {
   path: '/settings',
   component: function component() {
-    return __webpack_require__.e(/*! import() */ 13).then(__webpack_require__.bind(null, /*! ./components/views/settings */ "./resources/js/components/views/settings/index.vue"));
+    return __webpack_require__.e(/*! import() */ 15).then(__webpack_require__.bind(null, /*! ./components/views/settings */ "./resources/js/components/views/settings/index.vue"));
   },
   children: [{
     path: 'general',
     component: function component() {
-      return __webpack_require__.e(/*! import() */ 10).then(__webpack_require__.bind(null, /*! ./components/views/settings/General */ "./resources/js/components/views/settings/General.vue"));
+      return __webpack_require__.e(/*! import() */ 11).then(__webpack_require__.bind(null, /*! ./components/views/settings/General */ "./resources/js/components/views/settings/General.vue"));
     }
   }, {
     path: 'profile',
     component: function component() {
-      return __webpack_require__.e(/*! import() */ 15).then(__webpack_require__.bind(null, /*! ./components/views/settings/Profile */ "./resources/js/components/views/settings/Profile.vue"));
+      return Promise.all(/*! import() */[__webpack_require__.e(0), __webpack_require__.e(13)]).then(__webpack_require__.bind(null, /*! ./components/views/settings/Profile */ "./resources/js/components/views/settings/Profile.vue"));
     }
   }, {
     path: 'trade-page',
     component: function component() {
-      return __webpack_require__.e(/*! import() */ 12).then(__webpack_require__.bind(null, /*! ./components/views/settings/TradePage */ "./resources/js/components/views/settings/TradePage.vue"));
+      return __webpack_require__.e(/*! import() */ 14).then(__webpack_require__.bind(null, /*! ./components/views/settings/TradePage */ "./resources/js/components/views/settings/TradePage.vue"));
     }
   }, {
     path: 'bet-slip',
     component: function component() {
-      return __webpack_require__.e(/*! import() */ 14).then(__webpack_require__.bind(null, /*! ./components/views/settings/BetSlip */ "./resources/js/components/views/settings/BetSlip.vue"));
+      return __webpack_require__.e(/*! import() */ 9).then(__webpack_require__.bind(null, /*! ./components/views/settings/BetSlip */ "./resources/js/components/views/settings/BetSlip.vue"));
     }
   }, {
     path: 'bookies',
     component: function component() {
-      return __webpack_require__.e(/*! import() */ 9).then(__webpack_require__.bind(null, /*! ./components/views/settings/Bookies */ "./resources/js/components/views/settings/Bookies.vue"));
+      return __webpack_require__.e(/*! import() */ 10).then(__webpack_require__.bind(null, /*! ./components/views/settings/Bookies */ "./resources/js/components/views/settings/Bookies.vue"));
     }
   }, {
     path: 'bet-columns',
@@ -43014,7 +43018,7 @@ var routes = [{
   }, {
     path: 'notifications-and-sounds',
     component: function component() {
-      return __webpack_require__.e(/*! import() */ 11).then(__webpack_require__.bind(null, /*! ./components/views/settings/NotificationsAndSounds */ "./resources/js/components/views/settings/NotificationsAndSounds.vue"));
+      return __webpack_require__.e(/*! import() */ 12).then(__webpack_require__.bind(null, /*! ./components/views/settings/NotificationsAndSounds */ "./resources/js/components/views/settings/NotificationsAndSounds.vue"));
     }
   }]
 }];
