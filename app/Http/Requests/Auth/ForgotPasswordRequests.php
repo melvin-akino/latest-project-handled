@@ -2,7 +2,9 @@
 
 namespace App\Http\Requests\Auth;
 
+use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\ValidationException;
 
 class ForgotPasswordRequests extends FormRequest
 {
@@ -36,14 +38,21 @@ class ForgotPasswordRequests extends FormRequest
     public function messages()
     {
         return [
-            'email.required'   => "E-mail Address is required",
-            'email.email'      => "Please input a valid E-mail format",
-            'email.exists'     => "E-mail Address does not exist from our records",
+            'email.required'   => trans('validation.custom.email.required'),
+            'email.email'      => trans('validation.custom.email.valid'),
+            'email.exists'     => trans('validation.custom.email.exists'),
         ];
     }
 
-    public function response(array $error)
+    protected function failedValidation(Validator $validator)
     {
-        return compact('error');
+        $response = response()->json([
+            'status'           => false,
+            'status_code'      => 422,
+            'message'          => trans('validation.custom.error'),
+            'errors'           => $validator->errors(),
+        ], 422);
+
+        throw new ValidationException($validator, $response);
     }
 }

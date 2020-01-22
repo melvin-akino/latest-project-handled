@@ -18,30 +18,49 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
 });
 
 /**
- * User Authentication Routes
+ * API V1 Endpoints
  */
 Route::group([
-	'prefix' => 'auth',
+    'prefix' => 'v1',
 ], function () {
-	Route::post('login', 'AuthController@login');
-	Route::post('register', 'AuthController@register');
+    /**
+     * User Authentication Routes
+     */
+    Route::group([
+        'prefix' => 'auth',
+    ], function () {
+        Route::post('login', 'AuthController@login');
+        Route::post('register', 'AuthController@register');
 
-	Route::group([
-		'middleware' => 'auth:api',
-	], function() {
-		Route::get('logout', 'AuthController@logout');
-		Route::get('user', 'AuthController@user');
-	});
+        Route::group([
+            'middleware' => 'auth:api',
+        ], function() {
+            Route::get('logout', 'AuthController@logout');
+            Route::get('user', 'AuthController@user');
+        });
 
-	/**
-	 * Forgot Password and Reset
-	 */
-	Route::group([
-		'middleware'  => 'api',
-		'prefix'      => 'password',
-	], function() {
-		Route::post('create', 'AuthController@create');
-		Route::get('find/{token}', 'AuthController@find');
-		Route::post('reset', 'AuthController@reset');
-	});
+        /**
+         * Forgot Password and Reset
+         */
+        Route::group([
+            'middleware' => 'api',
+            'prefix'     => 'password',
+        ], function() {
+            Route::post('create', 'AuthController@create');
+            Route::get('find/{token}', 'AuthController@find');
+            Route::post('reset', 'AuthController@reset');
+        });
+    });
+
+    Route::group([
+        'prefix' => 'user',
+        'middleware' => 'auth:api',
+    ], function () {
+        Route::get('configuration/odds', 'UserController@sportOddConfigurations');
+    });
+
+    /**
+     * Resources Routes
+     */
+    Route::get('timezones', 'ResourceController@getTimezones');
 });

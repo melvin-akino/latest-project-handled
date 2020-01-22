@@ -3,40 +3,40 @@
         <form @submit.prevent="saveChanges">
             <div class="flex items-center mb-12">
                 <label class="relative flex items-center w-1/12">
-                    <input type="checkbox" class="appearance-none shadow border border-gray-400 rounded-full h-6 w-12 mr-4" value="1" v-model="tradePageCheckedSettings">
-                    <span class="absolute left-0 shadow shadow-inner w-6 h-6 rounded-full bg-orange-500"></span>
+                    <input type="checkbox" class="appearance-none shadow border border-gray-400 bg-gray-400 rounded-full h-3 w-12 mr-4" value="1" v-model="tradePageCheckedSettings">
+                    <span class="absolute left-0 shadow shadow-inner w-6 h-6 rounded-full bg-white"></span>
                 </label>
                 <span class="w-4/12 text-sm">Suggested competitions/events</span>
                 <p class="text-xs w-7/12 text-left">Mark competitions and events that provide good betting opportunities with a <i class="text-orange-500 fas fa-fire-alt"></i></p>
             </div>
             <div class="flex items-center mb-12">
                 <label class="relative flex items-center w-1/12">
-                    <input type="checkbox" class="appearance-none shadow border border-gray-400 rounded-full h-6 w-12 mr-4" value="2" v-model="tradePageCheckedSettings">
-                    <span class="absolute left-0 shadow shadow-inner w-6 h-6 rounded-full bg-orange-500"></span>
+                    <input type="checkbox" class="appearance-none shadow border border-gray-400 bg-gray-400 rounded-full h-3 w-12 mr-4" value="2" v-model="tradePageCheckedSettings">
+                    <span class="absolute left-0 shadow shadow-inner w-6 h-6 rounded-full bg-white"></span>
                 </label>
                 <span class="w-4/12 text-sm">Color trade market background</span>
                 <p class="text-xs w-7/12 text-left">Lightly tint the background of event markets</p>
             </div>
             <div class="flex items-center mb-12">
                 <label class="relative flex items-center w-1/12">
-                    <input type="checkbox" class="appearance-none shadow border border-gray-400 rounded-full h-6 w-12 mr-4" value="3" v-model="tradePageCheckedSettings">
-                    <span class="absolute left-0 shadow shadow-inner w-6 h-6 rounded-full bg-orange-500"></span>
+                    <input type="checkbox" class="appearance-none shadow border border-gray-400 bg-gray-400 rounded-full h-3 w-12 mr-4" value="3" v-model="tradePageCheckedSettings">
+                    <span class="absolute left-0 shadow shadow-inner w-6 h-6 rounded-full bg-white"></span>
                 </label>
                 <span class="w-4/12 text-sm">Hide competition names in favorites</span>
                 <p class="text-xs w-7/12 text-left">You can disable the competition names in the favorites market to save vertical space. If you do this they will automatically be sorted by time regardless of your normal trade sort.</p>
             </div>
             <div class="flex items-center mb-12">
                 <label class="relative flex items-center w-1/12">
-                    <input type="checkbox" class="appearance-none shadow border border-gray-400 rounded-full h-6 w-12 mr-4" value="4" v-model="tradePageCheckedSettings">
-                    <span class="absolute left-0 shadow shadow-inner w-6 h-6 rounded-full bg-orange-500"></span>
+                    <input type="checkbox" class="appearance-none shadow border border-gray-400 bg-gray-400 rounded-full h-3 w-12 mr-4" value="4" v-model="tradePageCheckedSettings">
+                    <span class="absolute left-0 shadow shadow-inner w-6 h-6 rounded-full bg-white"></span>
                 </label>
                 <span class="w-4/12 text-sm">Live position values</span>
                 <p class="text-xs w-7/12 text-left">Select to show Position button with current expected profit / loss based on live score. This will poll your current position and update live based on bets placed and score changes. Disabling this will restore the original position button.</p>
             </div>
             <div class="flex items-center mb-12">
                 <label class="relative flex items-center w-1/12">
-                    <input type="checkbox" class="appearance-none shadow border border-gray-400 rounded-full h-6 w-12 mr-4" value="5" v-model="tradePageCheckedSettings">
-                    <span class="absolute left-0 shadow shadow-inner w-6 h-6 rounded-full bg-orange-500"></span>
+                    <input type="checkbox" class="appearance-none shadow border border-gray-400 bg-gray-400 rounded-full h-3 w-12 mr-4" value="5" v-model="tradePageCheckedSettings">
+                    <span class="absolute left-0 shadow shadow-inner w-6 h-6 rounded-full bg-white"></span>
                 </label>
                 <span class="w-4/12 text-sm">Hide exchange only lines</span>
                 <p class="text-xs w-7/12 text-left">Hide markets and handicap lines that only use exchange offers. This will show only bookie backed prices.</p>

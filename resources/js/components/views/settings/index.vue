@@ -26,7 +26,7 @@
                 </div>
             </div>
             <div class="flex justify-evenly shadow border border-gray-400 bg-white w-full p-5 mb-6">
-                <button class="bg-red-600 text-white text-sm uppercase px-2 w-1/4 mr-5 hover:bg-red-700">Reset to default</button>
+                <button class="bg-red-600 text-white text-sm uppercase px-2 w-1/4 mr-5 hover:bg-red-700" @click="resetToDefaultSettings">Reset to default</button>
                 <p class="text-xs">Reset all your settings to platform default. You will lose saved history/bets views and all your trade and betslip options will be reverted to the basic ones.</p>
             </div>
         </div>
@@ -34,6 +34,7 @@
 </template>
 
 <script>
+import Swal from 'sweetalert2'
 export default {
     head:{
         title() {
@@ -46,6 +47,24 @@ export default {
         titlePageUri(){
             let titlePageUri = this.$route.path.split('/')
             return titlePageUri[titlePageUri.length - 1].replace(/-/g, ' ')
+        }
+    },
+    methods:{
+        resetToDefaultSettings() {
+            Swal.fire({
+                text: 'Are you sure you want to reset to default settings?',
+                showCancelButton: true,
+                confirmButtonText: 'Yes, reset to default settings',
+                cancelButtonText: 'Cancel',
+                confirmButtonColor: '#ed8936',
+                cancelButtonColor: '#e53e3e',
+                reverseButtons: true
+            })
+            .then(response => {
+                if(response.value) {
+                    /* reset to default settings */
+                }
+            })
         }
     }
 }

@@ -6618,7 +6618,7 @@ __webpack_require__.r(__webpack_exports__);
       var _this = this;
 
       var token = js_cookie__WEBPACK_IMPORTED_MODULE_2___default.a.get('access_token');
-      axios__WEBPACK_IMPORTED_MODULE_1___default.a.get('/auth/logout', {
+      axios__WEBPACK_IMPORTED_MODULE_1___default.a.get('/v1/auth/logout', {
         headers: {
           'Authorization': "Bearer ".concat(token)
         }
@@ -42699,7 +42699,7 @@ window._ = __webpack_require__(/*! lodash */ "./node_modules/lodash/lodash.js");
 
 window.axios = __webpack_require__(/*! axios */ "./node_modules/axios/index.js");
 window.axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
-window.axios.defaults.baseURL = "http://192.168.10.59:8000/api";
+window.axios.defaults.baseURL = "http://localhost:1215/api";
 var token = document.head.querySelector('meta[name="csrf-token"]');
 
 if (token) {
@@ -42903,13 +42903,13 @@ __webpack_require__.r(__webpack_exports__);
   var token = js_cookie__WEBPACK_IMPORTED_MODULE_1___default.a.get('access_token');
 
   if (token) {
-    axios__WEBPACK_IMPORTED_MODULE_2___default.a.get('/auth/user', {
+    axios__WEBPACK_IMPORTED_MODULE_2___default.a.get('/v1/auth/user', {
       headers: {
         'Authorization': "Bearer ".concat(token)
       }
     }).then(function (response) {
       _store__WEBPACK_IMPORTED_MODULE_3__["default"].commit('SET_IS_AUTHENTICATED', true);
-      _store__WEBPACK_IMPORTED_MODULE_3__["default"].commit('SET_AUTH_USER', response.data);
+      _store__WEBPACK_IMPORTED_MODULE_3__["default"].commit('SET_AUTH_USER', response.data.data);
 
       if (authRoutes.includes(to.matched[0].path)) {
         next('/');
@@ -42951,22 +42951,22 @@ vue__WEBPACK_IMPORTED_MODULE_0___default.a.use(vue_router__WEBPACK_IMPORTED_MODU
 var routes = [{
   path: '/login',
   component: function component() {
-    return Promise.all(/*! import() */[__webpack_require__.e(0), __webpack_require__.e(16), __webpack_require__.e(6)]).then(__webpack_require__.bind(null, /*! ./components/views/auth/Login */ "./resources/js/components/views/auth/Login.vue"));
+    return Promise.all(/*! import() */[__webpack_require__.e(0), __webpack_require__.e(16), __webpack_require__.e(8)]).then(__webpack_require__.bind(null, /*! ./components/views/auth/Login */ "./resources/js/components/views/auth/Login.vue"));
   }
 }, {
   path: '/register',
   component: function component() {
-    return Promise.all(/*! import() */[__webpack_require__.e(0), __webpack_require__.e(7)]).then(__webpack_require__.bind(null, /*! ./components/views/auth/Register */ "./resources/js/components/views/auth/Register.vue"));
+    return Promise.all(/*! import() */[__webpack_require__.e(0), __webpack_require__.e(9)]).then(__webpack_require__.bind(null, /*! ./components/views/auth/Register */ "./resources/js/components/views/auth/Register.vue"));
   }
 }, {
   path: '/forgot-password',
   component: function component() {
-    return Promise.all(/*! import() */[__webpack_require__.e(0), __webpack_require__.e(5)]).then(__webpack_require__.bind(null, /*! ./components/views/auth/ForgotPassword */ "./resources/js/components/views/auth/ForgotPassword.vue"));
+    return Promise.all(/*! import() */[__webpack_require__.e(0), __webpack_require__.e(7)]).then(__webpack_require__.bind(null, /*! ./components/views/auth/ForgotPassword */ "./resources/js/components/views/auth/ForgotPassword.vue"));
   }
 }, {
   path: '/reset-password/:token/:email',
   component: function component() {
-    return Promise.all(/*! import() */[__webpack_require__.e(0), __webpack_require__.e(8)]).then(__webpack_require__.bind(null, /*! ./components/views/auth/ResetPassword */ "./resources/js/components/views/auth/ResetPassword.vue"));
+    return Promise.all(/*! import() */[__webpack_require__.e(0), __webpack_require__.e(10)]).then(__webpack_require__.bind(null, /*! ./components/views/auth/ResetPassword */ "./resources/js/components/views/auth/ResetPassword.vue"));
   }
 }, {
   path: '/',
@@ -42976,17 +42976,17 @@ var routes = [{
 }, {
   path: '/settlement',
   component: function component() {
-    return __webpack_require__.e(/*! import() */ 4).then(__webpack_require__.bind(null, /*! ./components/views/Settlement */ "./resources/js/components/views/Settlement.vue"));
+    return __webpack_require__.e(/*! import() */ 6).then(__webpack_require__.bind(null, /*! ./components/views/Settlement */ "./resources/js/components/views/Settlement.vue"));
   }
 }, {
   path: '/open-orders',
   component: function component() {
-    return __webpack_require__.e(/*! import() */ 3).then(__webpack_require__.bind(null, /*! ./components/views/OpenOrders */ "./resources/js/components/views/OpenOrders.vue"));
+    return __webpack_require__.e(/*! import() */ 5).then(__webpack_require__.bind(null, /*! ./components/views/OpenOrders */ "./resources/js/components/views/OpenOrders.vue"));
   }
 }, {
   path: '/settings',
   component: function component() {
-    return __webpack_require__.e(/*! import() */ 15).then(__webpack_require__.bind(null, /*! ./components/views/settings */ "./resources/js/components/views/settings/index.vue"));
+    return Promise.all(/*! import() */[__webpack_require__.e(15), __webpack_require__.e(17)]).then(__webpack_require__.bind(null, /*! ./components/views/settings */ "./resources/js/components/views/settings/index.vue"));
   },
   children: [{
     path: 'general',
@@ -42996,7 +42996,7 @@ var routes = [{
   }, {
     path: 'profile',
     component: function component() {
-      return Promise.all(/*! import() */[__webpack_require__.e(0), __webpack_require__.e(2)]).then(__webpack_require__.bind(null, /*! ./components/views/settings/Profile */ "./resources/js/components/views/settings/Profile.vue"));
+      return Promise.all(/*! import() */[__webpack_require__.e(0), __webpack_require__.e(4)]).then(__webpack_require__.bind(null, /*! ./components/views/settings/Profile */ "./resources/js/components/views/settings/Profile.vue"));
     }
   }, {
     path: 'trade-page',
@@ -43006,17 +43006,17 @@ var routes = [{
   }, {
     path: 'bet-slip',
     component: function component() {
-      return __webpack_require__.e(/*! import() */ 10).then(__webpack_require__.bind(null, /*! ./components/views/settings/BetSlip */ "./resources/js/components/views/settings/BetSlip.vue"));
+      return __webpack_require__.e(/*! import() */ 11).then(__webpack_require__.bind(null, /*! ./components/views/settings/BetSlip */ "./resources/js/components/views/settings/BetSlip.vue"));
     }
   }, {
     path: 'bookies',
     component: function component() {
-      return __webpack_require__.e(/*! import() */ 11).then(__webpack_require__.bind(null, /*! ./components/views/settings/Bookies */ "./resources/js/components/views/settings/Bookies.vue"));
+      return __webpack_require__.e(/*! import() */ 3).then(__webpack_require__.bind(null, /*! ./components/views/settings/Bookies */ "./resources/js/components/views/settings/Bookies.vue"));
     }
   }, {
     path: 'bet-columns',
     component: function component() {
-      return __webpack_require__.e(/*! import() */ 9).then(__webpack_require__.bind(null, /*! ./components/views/settings/BetColumns */ "./resources/js/components/views/settings/BetColumns.vue"));
+      return __webpack_require__.e(/*! import() */ 2).then(__webpack_require__.bind(null, /*! ./components/views/settings/BetColumns */ "./resources/js/components/views/settings/BetColumns.vue"));
     }
   }, {
     path: 'notifications-and-sounds',

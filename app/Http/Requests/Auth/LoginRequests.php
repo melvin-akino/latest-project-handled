@@ -2,7 +2,9 @@
 
 namespace App\Http\Requests\Auth;
 
+use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\ValidationException;
 
 class LoginRequests extends FormRequest
 {
@@ -23,11 +25,8 @@ class LoginRequests extends FormRequest
      */
     public function rules()
     {
-        // EXISTS Ruling
-        // 'exists:<table>,<column_name>'
-
         return [
-            'email'                => 'required|min:6|max:32', // Additional validation: `email` must exist from `users` table
+            'email'                => 'required|min:6|max:32',
             'password'             => 'required|min:6|max:32',
             'remember_me'          => 'boolean',
         ];
@@ -41,22 +40,27 @@ class LoginRequests extends FormRequest
     public function messages()
     {
         return [
-            // USERNAME Input
-            'email.required'       => "Username is required",
-            'email.exists'         => "Username does not exist",
+            // GLOBAL
+            'required'              => trans('validation.custom.required'),
 
             // PASSWORD Input
-            'password.required'    => "Password is required",
-            'password.min'         => "Password must be at least 6 characters",
-            'password.max'         => "Password is only up to 32 characters",
+            'password.min'          => trans('validation.custom.password.min', ['count' => 6]),
+            'password.max'          => trans('validation.custom.password.max', ['count' => 32]),
 
             // REMEMBER ME Input
-            'remember_me.boolean'  => "Invalid input",
+            'remember_me.boolean'   => trans('validaiton.custom.remember_me.boolean'),
         ];
     }
 
-    public function response(array $error)
+    protected function failedValidation(Validator $validator)
     {
-        return compact('error');
+        $response = response()->json([
+            'status'                => false,
+            'status_code'           => 422,
+            'message'               => trans('validation.custom.error'),
+            'errors'                => $validator->errors(),
+        ], 422);
+
+        throw new ValidationException($validator, $response);
     }
 }
