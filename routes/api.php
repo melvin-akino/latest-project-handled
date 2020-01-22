@@ -51,4 +51,9 @@ Route::group([
             Route::post('reset', 'AuthController@reset');
         });
     });
+
+    /**
+     * Resources Routes
+     */
+    Route::get('timezones', 'ResourceController@getTimezones');
 });
