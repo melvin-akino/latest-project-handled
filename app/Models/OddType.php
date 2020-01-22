@@ -11,4 +11,9 @@ class OddType extends Model
     protected $fillable = [
         'type'
     ];
+
+    public function sports()
+    {
+        return $this->belongsToMany('App\Models\Sport');
+    }
 }

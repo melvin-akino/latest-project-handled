@@ -14,4 +14,9 @@ class Sport extends Model
         'priority',
         'is_enabled'
     ];
+
+    public function oddTypes()
+    {
+        return $this->belongsToMany('App\Models\OddType');
+    }
 }
