@@ -6,8 +6,8 @@ return [
             'sport_odd_type_id' => 1,
             'sport_id'          => 1, // SOCCER
             'sport'             => 'Soccer',
-            'type'              => 'FT 1X1',
-            'odd_type_id'       => 1, // FT 1X1
+            'type'              => 'FT 1X2',
+            'odd_type_id'       => 1, // FT 1X2
             'active'            => true
         ], [
             'sport_odd_type_id' => 2,
