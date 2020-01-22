@@ -43,13 +43,20 @@ Route::group([
          * Forgot Password and Reset
          */
         Route::group([
-            'middleware'  => 'api',
-            'prefix'      => 'password',
+            'middleware' => 'api',
+            'prefix'     => 'password',
         ], function() {
             Route::post('create', 'AuthController@create');
             Route::get('find/{token}', 'AuthController@find');
             Route::post('reset', 'AuthController@reset');
         });
+    });
+
+    Route::group([
+        'prefix' => 'user',
+        'middleware' => 'auth:api',
+    ], function () {
+        Route::get('configuration/odds', 'UserController@sportOddConfigurations');
     });
 
     /**
