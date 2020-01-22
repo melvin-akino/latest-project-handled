@@ -54,12 +54,9 @@ Route::group([
 
     Route::group([
         'prefix' => 'user',
+        'middleware' => 'auth:api',
     ], function () {
-        Route::group([
-            'middleware' => 'auth:api',
-        ], function () {
-            Route::get('configuration/odds', 'UserController@sportOddConfigurations');
-        });
+        Route::get('configuration/odds', 'UserController@sportOddConfigurations');
     });
 
     /**
