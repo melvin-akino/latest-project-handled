@@ -6,7 +6,7 @@ use Illuminate\Support\Facades\{Schema, Artisan};
 
 class CreateProvidersTable extends Migration
 {
-    protected $tablename = "sports";
+    protected $tablename = "providers";
 
     public function up()
     {
@@ -15,7 +15,6 @@ class CreateProvidersTable extends Migration
                 $table->integerIncrements('id');
                 $table->string('name', 20);
                 $table->string('alias', 10);
-                $table->string('region', 50);
                 $table->double('punter_percentage')->default(45);
                 $table->tinyInteger('priority')->default(1);
                 $table->boolean('is_enabled')->default(true);
