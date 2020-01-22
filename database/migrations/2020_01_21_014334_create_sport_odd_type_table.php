@@ -2,8 +2,7 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\Schema;
-use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\{Schema, Artisan};
 
 class CreateSportOddTypeTable extends Migration
 {
@@ -39,7 +38,9 @@ class CreateSportOddTypeTable extends Migration
     public function down()
     {
         if (Schema::hasTable($this->tablename)) {
+            Schema::disableForeignKeyConstraints();
             Schema::dropIfExists($this->tablename);
+            Schema::enableForeignKeyConstraints();
         }
     }
 }

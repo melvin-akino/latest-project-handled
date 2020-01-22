@@ -31,6 +31,8 @@ class RegistrationTest extends TestCase
             'phone_country_code',
             'odds_type',
             'currency_id',
+            'status',
+            'is_reset'
         ];
 
         collect($fields)

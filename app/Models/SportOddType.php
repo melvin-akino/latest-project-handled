@@ -10,8 +10,6 @@ class SportOddType extends Model
 
     protected $fillable = [
         'sport_id',
-        'odd_type_id',
-        'created_at',
-        'updated_at'
+        'odd_type_id'
     ];
 }
