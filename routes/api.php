@@ -55,5 +55,5 @@ Route::group([
     /**
      * Resources Routes
      */
-    Route::get('timezones', 'ResourcesController@getTimezones');
+    Route::get('timezones', 'ResourceController@getTimezones');
 });

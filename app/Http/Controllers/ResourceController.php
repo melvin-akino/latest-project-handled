@@ -5,9 +5,10 @@ namespace App\Http\Controllers;
 use App\Models\Timezones;
 use Illuminate\Http\Request;
 
-class ResourcesController extends Controller
+class ResourceController extends Controller
 {
-    public function getTimezones() {
+    public function getTimezones()
+    {
         $timezones = Timezones::getAll();
 
         return response()->json([

@@ -18,7 +18,8 @@ class Timezones extends Model
         'updated_at',
     ];
 
-    public static function getAll() {
+    public static function getAll()
+    {
         return self::all();
     }
 }
