@@ -34,7 +34,7 @@ Route::group([
 
         Route::group([
             'middleware' => 'auth:api',
-        ], function () {
+        ], function() {
             Route::get('logout', 'AuthController@logout');
             Route::get('user', 'AuthController@user');
         });
@@ -45,7 +45,7 @@ Route::group([
         Route::group([
             'middleware' => 'api',
             'prefix'     => 'password',
-        ], function () {
+        ], function() {
             Route::post('create', 'AuthController@create');
             Route::get('find/{token}', 'AuthController@find');
             Route::post('reset', 'AuthController@reset');
@@ -61,4 +61,9 @@ Route::group([
             Route::get('configuration/odds', 'UserController@sportOddConfigurations');
         });
     });
+
+    /**
+     * Resources Routes
+     */
+    Route::get('timezones', 'ResourceController@getTimezones');
 });
