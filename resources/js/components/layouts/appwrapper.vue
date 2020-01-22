@@ -7,7 +7,7 @@
                 <router-link to="/open-orders" class="text-gray-700 text-sm uppercase ml-5 sm:px-4 px-6 py-6">Open Orders</router-link>
                 <router-link to="/settings/general" class="text-gray-700 text-sm uppercase ml-5 sm:px-4 px-6 py-6">Settings</router-link>
             </div>
-            <div class="flex justify-center items-center w-2/12">
+            <div class="flex justify-center items-center" :class="[!$store.state.isAuthenticated ? 'w-full' : 'w-2/12']">
                 <img :src="logo" class="w-12 mt-2">
             </div>
             <div class="flex justify-end items-center w-5/12 mr-16"  v-if="$store.state.isAuthenticated">

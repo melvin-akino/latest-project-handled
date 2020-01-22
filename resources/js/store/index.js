@@ -12,7 +12,7 @@ const store = new Vuex.Store({
             state.isAuthenticated = data
         },
         SET_AUTH_USER: (state, data) => {
-          state.authUser = data
+            state.authUser = data
         }
     }
 })

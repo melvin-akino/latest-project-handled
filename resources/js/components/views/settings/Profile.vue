@@ -14,82 +14,97 @@
             <div class="mb-6 flex">
                 <div class="w-1/2 mr-6">
                     <label class="block capitalize text-gray-700 text-sm">First Name</label>
-                    <input type="text" id="firstName" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 text-sm leading-tight focus:outline-none" v-model="$v.profileSettingsForm.firstname.$model">
+                    <input type="text" id="firstName" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 text-sm leading-tight focus:outline-none" :class="{'border-red-600': $v.profileSettingsForm.firstname.$error}" v-model="$v.profileSettingsForm.firstname.$model">
                     <span v-if="$v.profileSettingsForm.firstname.$dirty && !$v.profileSettingsForm.firstname.required" class="text-xs text-red-600">Please type your first name.</span>
                 </div>
                 <div class="w-1/2">
                     <label class="block capitalize text-gray-700 text-sm">Last Name</label>
-                    <input type="text" id="lastname" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 text-sm leading-tight focus:outline-none" v-model="$v.profileSettingsForm.lastname.$model">
+                    <input type="text" id="lastname" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 text-sm leading-tight focus:outline-none" :class="{'border-red-600': $v.profileSettingsForm.lastname.$error}" v-model="$v.profileSettingsForm.lastname.$model">
                     <span v-if="$v.profileSettingsForm.lastname.$dirty && !$v.profileSettingsForm.lastname.required" class="text-xs text-red-600">Please type your last name.</span>
                 </div>
             </div>
             <div class="mb-6">
                 <label class="block capitalize text-gray-700 text-sm">Address</label>
-                <textarea class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 text-sm leading-tight focus:outline-none" id="address" v-model="$v.profileSettingsForm.address.$model"></textarea>
-                <span v-if="$v.profileSettingsForm.address.$dirty && !$v.profileSettingsForm.address.required" class="text-xs text-red-600">Please type your address.</span>
+                <textarea class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 text-sm leading-tight focus:outline-none" :class="{'border-red-600': $v.profileSettingsForm.address.$error}" id="address" v-model="$v.profileSettingsForm.address.$model"></textarea>
+                <span v-if="$v.profileSettingsForm.address.$dirty && !$v.profileSettingsForm.address.required" class="text-xs text-red-600">Address is required.</span>
             </div>
             <div class="mb-6 flex">
               <div class="w-1/3 mr-6">
                 <label class="block capitalize text-gray-700 text-sm">Country</label>
                 <div class="relative">
-                    <select class="shadow appearance-none border w-full rounded py-2 px-3 text-gray-700 text-sm leading-tight focus:outline-none" id="country" v-model="$v.profileSettingsForm.country.$model">
+                    <select class="shadow appearance-none border w-full rounded py-2 px-3 text-gray-700 text-sm leading-tight focus:outline-none" :class="{'border-red-600': $v.profileSettingsForm.country.$error}" id="country" v-model="$v.profileSettingsForm.country.$model" @change="resetStateAndCity">
+                        <option :value="null" disabled>Select Country</option>
                         <option v-for="country in countries" :key="country.id" :value="country.id" :selected="country.id === $store.state.authUser.country">{{country.country}}</option>
                     </select>
                     <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
                         <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
                     </div>
                 </div>
-                <span v-if="$v.profileSettingsForm.country.$dirty && !$v.profileSettingsForm.country.required" class="text-xs text-red-600">Please select a country.</span>
+                <span v-if="$v.profileSettingsForm.country.$dirty && !$v.profileSettingsForm.country.required" class="text-xs text-red-600">Country is required.</span>
+                <span v-if="$v.profileSettingsForm.country.$dirty && !$v.profileSettingsForm.country.inCountriesArray" class="text-xs text-red-600">Country is invalid.</span>
               </div>
               <div class="w-1/3 mr-6">
                 <label class="block capitalize text-gray-700 text-sm">State</label>
                 <div class="relative">
-                    <select class="shadow appearance-none border w-full rounded py-2 px-3 text-gray-700 text-sm leading-tight focus:outline-none" id="state" v-model="$v.profileSettingsForm.state.$model">
-                        <option v-for="state in states" :key="state.id" :value="state.id" :selected="state.id === $store.state.authUser.state">{{state.state}}</option>
+                    <select class="shadow appearance-none border w-full rounded py-2 px-3 text-gray-700 text-sm leading-tight focus:outline-none" :class="{'border-red-600': $v.profileSettingsForm.state.$error}" id="state" v-model="$v.profileSettingsForm.state.$model">
+                        <option :value="null" disabled>Select State</option>
+                        <option v-for="state in statesDropdown" :key="state.id" :value="state.id" :selected="state.id === $store.state.authUser.state">{{state.state}}</option>
                     </select>
                     <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
                         <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
                     </div>
                 </div>
-                <span v-if="$v.profileSettingsForm.state.$dirty && !$v.profileSettingsForm.state.required" class="text-xs text-red-600">Please select a state.</span>
+                <span v-if="$v.profileSettingsForm.state.$dirty && !$v.profileSettingsForm.state.required" class="text-xs text-red-600">State is required.</span>
+                <span v-if="$v.profileSettingsForm.state.$dirty && !$v.profileSettingsForm.state.inStatesArray" class="text-xs text-red-600">State is invalid.</span>
               </div>
               <div class="w-1/3">
                 <label class="block capitalize text-gray-700 text-sm">City</label>
                 <div class="relative">
-                    <select class="shadow appearance-none border w-full rounded py-2 px-3 text-gray-700 text-sm leading-tight focus:outline-none" id="city" v-model="$v.profileSettingsForm.city.$model">
-                         <option v-for="city in cities" :key="city.id" :value="city.id" :selected="city.id === $store.state.authUser.city">{{city.city}}</option>
+                    <select class="shadow appearance-none border w-full rounded py-2 px-3 text-gray-700 text-sm leading-tight focus:outline-none" :class="{'border-red-600': $v.profileSettingsForm.city.$error}" id="city" v-model="$v.profileSettingsForm.city.$model">
+                      <option :value="null" disabled>Select City</option>
+                      <option v-for="city in citiesDropdown" :key="city.id" :value="city.id" :selected="city.id === $store.state.authUser.city">{{city.city}}</option>
                     </select>
                     <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
                         <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
                     </div>
                 </div>
+                <span v-if="$v.profileSettingsForm.city.$dirty && !$v.profileSettingsForm.city.required" class="text-xs text-red-600">City is required.</span>
+                <span v-if="$v.profileSettingsForm.city.$dirty && !$v.profileSettingsForm.city.inCitiesArray" class="text-xs text-red-600">City is invalid.</span>
               </div>
             </div>
             <div class="mb-6 flex">
               <div class="w-1/3 mr-6">
                 <label class="block capitalize text-gray-700 text-sm">Post Code</label>
-                <input type="text" class="shadow appearance-none border w-full rounded py-2 px-3 text-gray-700 text-sm leading-tight focus:outline-none" id="postcode" v-model="$v.profileSettingsForm.postcode.$model">
+                <input type="text" class="shadow appearance-none border w-full rounded py-2 px-3 text-gray-700 text-sm leading-tight focus:outline-none" :class="{'border-red-600': $v.profileSettingsForm.postcode.$error}" id="postcode" v-model="$v.profileSettingsForm.postcode.$model">
+                <span v-if="$v.profileSettingsForm.postcode.$dirty && !$v.profileSettingsForm.postcode.required" class="text-xs text-red-600">Postcode is required.</span>
               </div>
               <div class="w-1/3 mr-6">
                 <label class="block capitalize text-gray-700 text-sm">Phone Country Code</label>
-                <input type="text" class="shadow appearance-none border w-full rounded py-2 px-3 text-gray-700 text-sm leading-tight focus:outline-none" id="phone_country_code" v-model="$v.profileSettingsForm.phone_country_code.$model">
+                <input type="text" class="shadow appearance-none border w-full rounded py-2 px-3 text-gray-700 text-sm leading-tight focus:outline-none" :class="{'border-red-600': $v.profileSettingsForm.phone_country_code.$error}" id="phone_country_code" v-model="$v.profileSettingsForm.phone_country_code.$model">
+                <span v-if="$v.profileSettingsForm.phone_country_code.$dirty && !$v.profileSettingsForm.phone_country_code.required" class="text-xs text-red-600">Phone country code is required.</span>
+                <span v-if="$v.profileSettingsForm.phone_country_code.$dirty && !$v.profileSettingsForm.phone_country_code.numeric" class="text-xs text-red-600">Phone country code should be numeric.</span>
               </div>
               <div class="w-1/3">
                 <label class="block capitalize text-gray-700 text-sm">Phone</label>
-                <input type="text" class="shadow appearance-none border w-full rounded py-2 px-3 text-gray-700 text-sm leading-tight focus:outline-none" id="phone" v-model="$v.profileSettingsForm.phone.$model">
+                <input type="text" class="shadow appearance-none border w-full rounded py-2 px-3 text-gray-700 text-sm leading-tight focus:outline-none" :class="{'border-red-600': $v.profileSettingsForm.phone.$error}" id="phone" v-model="$v.profileSettingsForm.phone.$model">
+                <span v-if="$v.profileSettingsForm.phone.$dirty && !$v.profileSettingsForm.phone.required" class="text-xs text-red-600">Phone is required.</span>
+                <span v-if="$v.profileSettingsForm.phone.$dirty && !$v.profileSettingsForm.phone.numeric" class="text-xs text-red-600">Phone should be numeric.</span>
               </div>
             </div>
             <div class="mb-6 flex">
                 <div class="w-1/3 mr-6">
                     <label class="block capitalize text-gray-700 text-sm">Currency</label>
                     <div class="relative">
-                        <select class="shadow appearance-none border w-full rounded py-2 px-3 text-gray-700 text-sm leading-tight focus:outline-none" id="currency_id" v-model="$v.profileSettingsForm.currency_id.$model">
+                        <select class="shadow appearance-none border w-full rounded py-2 px-3 text-gray-700 text-sm leading-tight focus:outline-none" :class="{'border-red-600': $v.profileSettingsForm.currency_id.$error}" id="currency_id" v-model="$v.profileSettingsForm.currency_id.$model">
+                            <option :value="null" disabled>Select Currency</option>
                             <option v-for="currency in currencies" :key="currency.id" :value="currency.id" :selected="currency.id === $store.state.authUser.currency_id">{{currency.currency}}</option>
                         </select>
                         <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
                             <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
                         </div>
                     </div>
+                    <span v-if="$v.profileSettingsForm.currency_id.$dirty && !$v.profileSettingsForm.currency_id.required" class="text-xs text-red-600">Currency is required.</span>
+                    <span v-if="$v.profileSettingsForm.currency_id.$dirty && !$v.profileSettingsForm.currency_id.inCurrenciesArray" class="text-xs text-red-600">Currency is invalid.</span>
                 </div>
                 <div class="w-2/3 mr-6"></div>
             </div>
@@ -134,6 +149,19 @@
 
 <script>
 import {required, numeric, minLength, maxLength, sameAs} from 'vuelidate/lib/validators'
+//Custom vuelidate validators
+function inCountriesArray(value) {
+  return this.countries.some(country => country.id === value)
+}
+function inStatesArray(value) {
+  return this.states.some(state => state.id === value)
+}
+function inCitiesArray(value) {
+  return this.cities.some(city => city.id === value)
+}
+function inCurrenciesArray(value) {
+  return this.currencies.some(currency => currency.id === value)
+}
 export default {
     data() {
         return {
@@ -147,7 +175,6 @@ export default {
                 postcode: this.$store.state.authUser.postcode,
                 phone_country_code: this.$store.state.authUser.phone_country_code,
                 phone: this.$store.state.authUser.phone,
-                odds_type:this.$store.state.authUser.odds_type,
                 currency_id:this.$store.state.authUser.currency_id
             },
             changePasswordForm:{
@@ -155,25 +182,34 @@ export default {
                 new_password:'',
                 confirm_new_password:''
             },
-            // mock data these should come from an API requests
+            // mock data these should come from API requests
             countries:[
                 { id:1, country:'Philippines' },
                 { id:2, country: 'USA' }
             ],
-            states:[
-                { id:1, state:'NCR' },
-                { id:2, state:'California' }
+            states: [
+              { id: 1, state: "NCR", country_id: 1 },
+              { id: 2, state: "California", country_id: 2 }
             ],
-            cities:[
-                { id:1, city:'Pasig City' },
-                { id:2, city:'Los Angeles' }
+            cities: [
+              { id: 1, city: "Pasig City", state_id: 1, country_id: 1 },
+              { id: 2, city: "Los Angeles", state_id: 2, country_id: 2 },
+              { id: 3, city: "Makati City", state_id: 1, country_id: 1 },
+              { id: 4, city: "San Francisco", state_id: 2, country_id: 2 },
             ],
             currencies:[
                 { id:1, currency:'CNY' },
                 { id:2, currency:'USD' }
-            ],
-
+            ]
         }
+    },
+    computed:{
+      statesDropdown() {
+        return this.states.filter(state => state.country_id === this.profileSettingsForm.country)
+      },
+      citiesDropdown() {
+        return this.cities.filter(city => city.state_id === this.profileSettingsForm.state && city.country_id === this.profileSettingsForm.country)
+      }
     },
     head:{
         title() {
@@ -182,21 +218,18 @@ export default {
             }
         }
     },
-    mounted() {
-        // console.log(this.countries.some(country => country.id === 1))
-    },
     validations: {
         profileSettingsForm:{
             firstname: {required},
             lastname: {required},
             address: {required},
-            country: {required},
-            state: {required},
-            city: {required},
+            country: {required, inCountriesArray},
+            state: {required, inStatesArray},
+            city: {required, inCitiesArray},
             postcode: {required},
             phone_country_code: {required, numeric},
             phone: {required, numeric},
-            currency_id:{required}
+            currency_id:{required, inCurrenciesArray}
         },
         changePasswordForm: {
             current_password:{required, minLength:minLength(6), maxLength:maxLength(32)},
@@ -205,16 +238,26 @@ export default {
         }
     },
     methods:{
+        resetStateAndCity() {
+          this.profileSettingsForm.state = null
+          this.profileSettingsForm.city = null
+        },
         saveChanges() {
-
+          if(!this.$v.profileSettingsForm.$invalid) {
+              /* api request here */
+          } else {
+            Object.keys(this.profileSettingsForm).forEach(field => {
+                this.$v.profileSettingsForm[field].$touch()
+            })
+          }
         },
         changePassword() {
           if(!this.$v.changePasswordForm.$invalid) {
               /* API request here */
           } else {
-            this.$v.changePasswordForm.current_password.$touch()
-            this.$v.changePasswordForm.new_password.$touch()
-            this.$v.changePasswordForm.confirm_new_password.$touch()
+            Object.keys(this.changePasswordForm).forEach(field => {
+                this.$v.changePasswordForm[field].$touch()
+            })
           }
         }
     }
