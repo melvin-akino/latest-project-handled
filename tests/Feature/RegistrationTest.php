@@ -30,9 +30,7 @@ class RegistrationTest extends TestCase
             'city',
             'phone_country_code',
             'odds_type',
-            'currency_id',
-            'status',
-            'is_reset'
+            'currency_id'
         ];
 
         collect($fields)
@@ -170,7 +168,7 @@ class RegistrationTest extends TestCase
     }
 
     /** Faker generated data */
-    private function data()
+    protected function data()
     {
         $password = $this->faker->text(16);
 

@@ -18,6 +18,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 
+use Exception;
+
 class AuthController extends Controller
 {
     /**
@@ -89,34 +91,42 @@ class AuthController extends Controller
      */
     public function login(LoginRequests $request)
     {
-        $credentials = request(['email', 'password']);
+        try {
+            $credentials = request(['email', 'password']);
 
-        if(!Auth::attempt($credentials)) {
+            if (!Auth::attempt($credentials)) {
+                return response()->json([
+                    'status'      => false,
+                    'status_code' => 401,
+                    'message'     => trans('auth.login.401'),
+                ], 401);
+            }
+
+            $user = $request->user();
+            $tokenResult = $user->createToken('Personal Access Token');
+            $token = $tokenResult->token;
+
+            if ($request->remember_me) {
+                $token->expires_at = Carbon::now()->addWeeks(1);
+            }
+
+            $token->save();
+
             return response()->json([
-                'status'        => false,
-                'status_code'   => 401,
-                'message'       => trans('auth.login.401'),
-            ], 401);
+                'status'       => true,
+                'status_code'  => 200,
+                'access_token' => $tokenResult->accessToken,
+                'expires_at'   => Carbon::parse($tokenResult->token->expires_at)->toDateTimeString(),
+                'message'      => trans('auth.login.success'),
+                'token_type'   => 'Bearer',
+            ]);
+        } catch (Exception $e) {
+            return response()->json([
+                'status'      => false,
+                'status_code' => 500,
+                'message'     => trans('generic.internal-server-error')
+            ]);
         }
-
-        $user = $request->user();
-        $tokenResult = $user->createToken('Personal Access Token');
-        $token = $tokenResult->token;
-
-        if ($request->remember_me) {
-            $token->expires_at = Carbon::now()->addWeeks(1);
-        }
-
-        $token->save();
-
-        return response()->json([
-            'status'            => true,
-            'status_code'       => 200,
-            'access_token'      => $tokenResult->accessToken,
-            'expires_at'        => Carbon::parse($tokenResult->token->expires_at)->toDateTimeString(),
-            'message'           => trans('auth.login.success'),
-            'token_type'        => 'Bearer',
-        ]);
     }
 
     /**
