@@ -13,17 +13,26 @@ class ProvidersSeeder extends Seeder
     public function run()
     {
         $providers = [
-            'PIN' => "Pinnacle",
-            'HG'  => "Singbet",
-            "ISN" => "ISN88"
+            1 => [
+                'alias' => 'HG',
+                'name'  => "Singbet"
+            ],
+            2 => [
+                'alias' => 'PIN',
+                'name'  => "Pinnacle"
+            ],
+            3 => [
+                'alias' => 'ISN',
+                'name'  => "ISN88"
+            ]
         ];
 
-        foreach ($providers as $alias => $name) {
+        foreach ($providers as $key => $provider) {
             ProviderModel::create([
-                'name'              => $name,
-                'alias'             => $alias,
+                'name'              => $provider['name'],
+                'alias'             => $provider['alias'],
                 'punter_percentage' => 45,
-                'priority'          => 1,
+                'priority'          => $key,
                 'is_enabled'        => true
             ]);
         }
