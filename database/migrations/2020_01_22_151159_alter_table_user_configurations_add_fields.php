@@ -16,7 +16,7 @@ class AlterTableUserConfigurationsAddFields extends Migration
     public function up()
     {
         Schema::table($this->tablename, function (Blueprint $table) {
-            $table->string('menu', 30);
+            $table->string('menu', 30)->nullable();
             $table->timestamps();
         });
     }
