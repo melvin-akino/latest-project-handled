@@ -13,8 +13,10 @@ return [
     |
     */
 
-    'save' => [
+    'save'  => [
         'success' => "Saved Successfully!",
     ],
-
+    'reset' => [
+        'success' => "Reset Settings Successful!"
+    ],
 ];

@@ -2,8 +2,8 @@
 
 return [
     'general'                       => [
-        'price_format'              => config('constants.price-format'),
-        'price_format_user'         => 1,
+        'price_formats'             => config('constants.price-format'),
+        'price_format'              => 1,
         'timezone'                  => 234,
     ],
     'trade-page'                    => [
@@ -12,10 +12,10 @@ return [
         'hide_comp_names_in_fav'    => false,
         'live_position_values'      => false,
         'hide_exchange_only'        => false,
-        'trade_layout'              => config('constants.trade-layout'),
-        'trade_layout_user'         => 1,
-        'sort_event'                => config('constants.sort-event'),
-        'sort_event_user'           => 1,
+        'trade_layouts'             => config('constants.trade-layout'),
+        'trade_layout'              => 1,
+        'sort_events'               => config('constants.sort-event'),
+        'sort_event'                => 1,
     ],
     'bet-slip'                      => [
         'use_equivalent_bets'       => false,
@@ -24,8 +24,8 @@ return [
         'bets_to_fav'               => false,
         'adv_betslip_info'          => false,
         'tint_bookies'              => false,
-        'adaptive_selection'        => config('constants.betslip-adaptive-selection'),
-        'adaptive_selection_user'   => 2,
+        'adaptive_selections'       => config('constants.betslip-adaptive-selection'),
+        'adaptive_selection'        => 2,
     ],
     'bookies'                       => [
         'disabled_bookies'          => []
@@ -53,6 +53,6 @@ return [
                 'value'             => "Spanish",
             ],
         ],
-        'language_user'             => 1,
+        'language'             => 1,
     ],
 ];
