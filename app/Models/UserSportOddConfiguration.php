@@ -28,7 +28,6 @@ class UserSportOddConfiguration extends Model
             DB::beginTransaction();
 
             $sportOddTypes = SportOddType::getEnabledSportOdds();
-
             $requestSportOddTypes = array_column($request, 'sport_odd_type_id');
 
             foreach ($sportOddTypes as $sportOddType) {
@@ -37,12 +36,12 @@ class UserSportOddConfiguration extends Model
 
                     self::updateOrCreate(
                         [
-                            'user_id' => auth()->user()->id,
-                            'sport_odd_type_id' => $request[$requestSportOddTypeKey]['sport_odd_type_id'],
+                            'user_id'               => auth()->user()->id,
+                            'sport_odd_type_id'     => $request[$requestSportOddTypeKey]['sport_odd_type_id'],
                         ],
                         [
-                            'active' => $request[$requestSportOddTypeKey]['active'],
-                            'updated_at' => Carbon::now()
+                            'active'                => $request[$requestSportOddTypeKey]['active'],
+                            'updated_at'            => Carbon::now()
                         ]
                     );
                 }
@@ -66,6 +65,7 @@ class UserSportOddConfiguration extends Model
                     JOIN sports as s ON s.id = sot.sport_id
                     JOIN odd_types as ot ON ot.id = sot.odd_type_id
                     WHERE usoc.user_id = ?";
+
         return DB::select($sql, [auth()->user()->id]);
     }
 

@@ -13,21 +13,21 @@ class UserController extends Controller
     {
         try {
             $userSportOddConfiguration = UserSportOddConfiguration::getSportOddConfiguration();
-
             $defaultUserSportOddConfig = config('constants.user-sport-odd-configuration');
             $userConfiguration = array_map(
                 function ($configuration) use ($userSportOddConfiguration) {
                     $userConfig = [];
+
                     array_map(
                         function ($config) use (&$userConfig, $configuration) {
                             if ($configuration['sport_odd_type_id'] == $config->sport_odd_type_id) {
                                 $userConfig = [
-                                    'sport_odd_type_id' => $config->sport_odd_type_id,
-                                    'odd_type_id' => $config->odd_type_id,
-                                    'sport_id' => $config->sport_id,
-                                    'sport' => $config->sport,
-                                    'type' => $config->type,
-                                    'active' => $config->active
+                                    'sport_odd_type_id'     => $config->sport_odd_type_id,
+                                    'odd_type_id'           => $config->odd_type_id,
+                                    'sport_id'              => $config->sport_id,
+                                    'sport'                 => $config->sport,
+                                    'type'                  => $config->type,
+                                    'active'                => $config->active
                                 ];
                             }
                         },
@@ -37,6 +37,7 @@ class UserController extends Controller
                     if (!empty($userConfig)) {
                         return $userConfig;
                     }
+
                     return $configuration;
                 },
                 $defaultUserSportOddConfig
@@ -44,18 +45,18 @@ class UserController extends Controller
 
             return response()->json(
                 [
-                    'status' => true,
-                    'status_code' => 200,
-                    'data' => $userConfiguration
+                    'status'        => true,
+                    'status_code'   => 200,
+                    'data'          => $userConfiguration
                 ],
                 200
             );
         } catch (Exception $e) {
             return response()->json(
                 [
-                    'status' => false,
-                    'status_code' => 500,
-                    'message' => trans('generic.internal-server-error')
+                    'status'        => false,
+                    'status_code'   => 500,
+                    'message'       => trans('generic.internal-server-error')
                 ],
                 500
             );
@@ -101,12 +102,12 @@ class UserController extends Controller
 
         return response()->json(
             [
-                'status' => true,
-                'status_code' => 200,
-                'data' => $request->user(),
-                'providers' => $providers,
-                'sport_odd_types' => $sportOddTypes,
-                'configuration' => $settings,
+                'status'            => true,
+                'status_code'       => 200,
+                'data'              => $request->user(),
+                'providers'         => $providers,
+                'sport_odd_types'   => $sportOddTypes,
+                'configuration'     => $settings,
             ]
         );
     }

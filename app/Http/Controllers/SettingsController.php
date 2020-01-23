@@ -26,16 +26,16 @@ class SettingsController extends Controller
             } else if ($type == 'profile') {
                 $response = User::find(auth()->user()->id)
                     ->update([
-                        'firstname' => $request->firstname,
-                        'lastname' => $request->lastname,
-                        'address' => $request->address,
-                        'country' => $request->country,
-                        'state' => $request->state,
-                        'city' => $request->city,
-                        'postcode' => $request->postcode,
-                        'phone_country_code' => $request->phone_country_code,
-                        'phone' => $request->phone,
-                        'currency_id' => $request->currency_id,
+                        'firstname'             => $request->firstname,
+                        'lastname'              => $request->lastname,
+                        'address'               => $request->address,
+                        'country'               => $request->country,
+                        'state'                 => $request->state,
+                        'city'                  => $request->city,
+                        'postcode'              => $request->postcode,
+                        'phone_country_code'    => $request->phone_country_code,
+                        'phone'                 => $request->phone,
+                        'currency_id'           => $request->currency_id,
                     ]);
             } else if ($type == 'change-password') {
                 $currentPassword = User::find(auth()->user()->id)->password;
@@ -83,20 +83,11 @@ class SettingsController extends Controller
     {
         try {
             foreach ($this->userConfig AS $config) {
-                $response = UserConfiguration::saveSettings($config, config('default_config.' . $config));
+                UserConfiguration::saveSettings($config, config('default_config.' . $config));
             }
 
-            foreach ($this->provConfig AS $config) {
-                $response = UserProviderConfiguration::saveSettings(config('default_config.' . $config));
-            }
-
-            foreach ($this->oddsConfig AS $config) {
-                $response = UserSportOddConfiguration::saveSettings(config('default_config.' . $config));
-            }
-
-            if (!$response) {
-                throw new ServerException("DB Transaction error");
-            }
+            UserProviderConfiguration::saveSettings(config('default_config.' . $config));
+            UserSportOddConfiguration::saveSettings(config('default_config.' . $config));
 
             return true;
         } catch (ServerException $e) {

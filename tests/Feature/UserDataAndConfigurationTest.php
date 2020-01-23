@@ -46,11 +46,12 @@ class UserDataAndConfigurationTest extends RegistrationTest
             null, 'Test Personal Access Client', env('API_URL')
         );
 
-        DB::table('oauth_personal_access_clients')->insert([
-                                                               'client_id'  => $client->id,
-                                                               'created_at' => Carbon::now(),
-                                                               'updated_at' => Carbon::now(),
-                                                           ]);
+        DB::table('oauth_personal_access_clients')
+            ->insert([
+               'client_id'  => $client->id,
+               'created_at' => Carbon::now(),
+               'updated_at' => Carbon::now(),
+           ]);
 
         $data = $this->data();
         $this->post('/api/v1/auth/register', $data);

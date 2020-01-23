@@ -36,11 +36,11 @@ class UserProviderConfiguration extends Model
 
                     self::updateOrCreate(
                         [
-                            'user_id' => auth()->user()->id,
-                            'provider_id' => $request[$requestProviderKey]['provider_id'],
+                            'user_id'       => auth()->user()->id,
+                            'provider_id'   => $request[$requestProviderKey]['provider_id'],
                         ],
                         [
-                            'active' => $request[$requestProviderKey]['active']
+                            'active'        => $request[$requestProviderKey]['active']
                         ]
                     );
                 }

@@ -31,8 +31,27 @@ class SettingsRequests extends FormRequest
             $priceFormats = implode(',', array_column(config('constants.price-format'), 'id'));
 
             return [
-                'price_format'  => 'required|numeric|in:' . $priceFormats,
-                'timezone'      => 'required|numeric|exists:timezones,id',
+                'price_format'              => 'required|numeric|in:' . $priceFormats,
+                'timezone'                  => 'required|numeric|exists:timezones,id',
+            ];
+        } else if ($type == 'profile') {
+            return [
+                'firstname'                 => 'required|string',
+                'lastname'                  => 'required|string',
+                'address'                   => 'required',
+                'postcode'                  => 'required|numeric',
+                'phone_country_code'        => 'required|numeric', // Additional validation: `phone_country_code`  must exist from `phone_country_code`  table
+                'country'                   => 'required|numeric', // Additional validation: `country`             must exist from `country`             table
+                'state'                     => 'required|numeric', // Additional validation: `state`               must exist from `state`               table
+                'city'                      => 'required|numeric', // Additional validation: `city`                must exist from `city`                table
+                'currency_id'               => 'required|numeric', // Additional validation: `currency_id`         must exist from `currency`            table
+                'phone'                     => 'required',
+            ];
+        } else if ($type == 'change-password') {
+            return [
+                'old_password'              => 'required|min:6|max:32',
+                'password'                  => 'required|confirmed|min:6|max:32',
+                'password_confirmation'     => 'required|same:password|min:6|max:32',
             ];
         } else if ($type == 'trade-page') {
             $tradeLayouts = implode(',', array_column(config('constants.trade-layout'), 'id'));
@@ -51,36 +70,40 @@ class SettingsRequests extends FormRequest
             $selections = implode(',', array_column(config('constants.betslip-adaptive-selection'), 'id'));
 
             return [
-                'use_equivalent_bets'   => 'required|boolean',
-                'offers_on_exchanges'   => 'required|boolean',
-                'adv_placement_opt'     => 'required|boolean',
-                'bets_to_fav'           => 'required|boolean',
-                'adv_betslip_info'      => 'required|boolean',
-                'tint_bookies'          => 'required|boolean',
-                'adaptive_selection'    => 'required|numeric|in:' . $selections,
+                'use_equivalent_bets'       => 'required|boolean',
+                'offers_on_exchanges'       => 'required|boolean',
+                'adv_placement_opt'         => 'required|boolean',
+                'bets_to_fav'               => 'required|boolean',
+                'adv_betslip_info'          => 'required|boolean',
+                'tint_bookies'              => 'required|boolean',
+                'adaptive_selection'        => 'required|numeric|in:' . $selections,
             ];
         } else if ($type == 'bookies') {
             return [
-                // 'disabled_bookies'      => 'array',
+                // 'disabled_bookies'          => 'array',
             ];
         } else if ($type == 'bet-columns') {
             return [
-                // 'disabled_columns'      => 'array',
+                // 'disabled_columns'          => 'array',
             ];
         } else if ($type == 'notifications-and-sounds') {
             return [
-                'bet_confirm'           => 'required|boolean',
-                'site_notifications'    => 'required|boolean',
-                'popup_notifications'   => 'required|boolean',
-                'order_notifications'   => 'required|boolean',
-                'event_sounds'          => 'required|boolean',
-                'order_sounds'          => 'required|boolean',
+                'bet_confirm'               => 'required|boolean',
+                'site_notifications'        => 'required|boolean',
+                'popup_notifications'       => 'required|boolean',
+                'order_notifications'       => 'required|boolean',
+                'event_sounds'              => 'required|boolean',
+                'order_sounds'              => 'required|boolean',
             ];
         } else if ($type == 'language') {
             $languages = implode(',', array_column(config('default_config.language.languages'), 'id'));
 
             return [
-                'language'              => 'required|numeric|in:' . $languages,
+                'language'                  => 'required|numeric|in:' . $languages,
+            ];
+        } else {
+            return [
+                //
             ];
         }
     }

@@ -69,8 +69,8 @@ class UserConfiguration extends Model
             DB::beginTransaction();
 
             $menus = [
-                'general' => ['price_format', 'timezone'],
-                'trade-page' => [
+                'general'                   => ['price_format', 'timezone'],
+                'trade-page'                => [
                     'suggested',
                     'trade_background',
                     'hide_comp_names_in_fav',
@@ -79,7 +79,7 @@ class UserConfiguration extends Model
                     'trade_layout',
                     'sort_event'
                 ],
-                'bet-slip' => [
+                'bet-slip'                  => [
                     'use_equivalent_bets',
                     'offers_on_exchanges',
                     'adv_placement_opt',
@@ -88,7 +88,7 @@ class UserConfiguration extends Model
                     'tint_bookies',
                     'adaptive_selection'
                 ],
-                'notifications-and-sounds' => [
+                'notifications-and-sounds'  => [
                     'bet_confirm',
                     'site_notifications',
                     'popup_notifications',
@@ -96,18 +96,18 @@ class UserConfiguration extends Model
                     'event_sounds',
                     'order_sounds'
                 ],
-                'language' => ['language'],
+                'language'                  => ['language'],
             ];
 
             foreach ($menus[$type] as $configType) {
                 self::updateOrCreate(
                     [
-                        'user_id' => auth()->user()->id,
-                        'type' => $configType,
-                        'menu' => $type
+                        'user_id'   => auth()->user()->id,
+                        'type'      => $configType,
+                        'menu'      => $type
                     ],
                     [
-                        'value' => $request[$configType]
+                        'value'     => $request[$configType]
                     ]
                 );
             }
