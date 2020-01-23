@@ -35,7 +35,7 @@ class SettingsController extends Controller
             } else if (in_array($type, $provConfig)) {
                 $response = UserProviderConfiguration::saveSettings($request->all());
             } else if (in_array($type, $oddsConfig)) {
-                $response = UserSportOddConfiguration::saveSettings($type, $request->all());
+                $response = UserSportOddConfiguration::saveSettings($request->all());
             } else if ($type == 'profile') {
                 $response = User::where('id', auth()->user()->id)
                     ->update();
