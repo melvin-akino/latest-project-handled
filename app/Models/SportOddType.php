@@ -23,7 +23,7 @@ class SportOddType extends Model
                     FROM sport_odd_type as sot
                     JOIN sports as s ON s.id = sot.sport_id
                     JOIN odd_types as ot ON ot.id = sot.odd_type_id
-                    WHERE s.is_enabled = true";
+                    WHERE s.is_enabled = '1'";
         return DB::select($sql);
     }
 }
