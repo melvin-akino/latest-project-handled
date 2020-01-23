@@ -34,7 +34,7 @@
                 <div class="relative">
                     <select class="shadow appearance-none border w-full rounded py-2 px-3 text-gray-700 text-sm leading-tight focus:outline-none" :class="{'border-red-600': $v.profileSettingsForm.country.$error}" id="country" v-model="$v.profileSettingsForm.country.$model" @change="resetStateAndCity">
                         <option :value="null" disabled>Select Country</option>
-                        <option v-for="country in countries" :key="country.id" :value="country.id" :selected="country.id === $store.state.authUser.country">{{country.country}}</option>
+                        <option v-for="country in countries" :key="country.id" :value="country.id" :selected="country.id === profileSettingsForm.country">{{country.country}}</option>
                     </select>
                     <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
                         <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
@@ -48,7 +48,7 @@
                 <div class="relative">
                     <select class="shadow appearance-none border w-full rounded py-2 px-3 text-gray-700 text-sm leading-tight focus:outline-none" :class="{'border-red-600': $v.profileSettingsForm.state.$error}" id="state" v-model="$v.profileSettingsForm.state.$model">
                         <option :value="null" disabled>Select State</option>
-                        <option v-for="state in statesDropdown" :key="state.id" :value="state.id" :selected="state.id === $store.state.authUser.state">{{state.state}}</option>
+                        <option v-for="state in statesDropdown" :key="state.id" :value="state.id" :selected="state.id === profileSettingsForm.state">{{state.state}}</option>
                     </select>
                     <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
                         <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
@@ -62,7 +62,7 @@
                 <div class="relative">
                     <select class="shadow appearance-none border w-full rounded py-2 px-3 text-gray-700 text-sm leading-tight focus:outline-none" :class="{'border-red-600': $v.profileSettingsForm.city.$error}" id="city" v-model="$v.profileSettingsForm.city.$model">
                       <option :value="null" disabled>Select City</option>
-                      <option v-for="city in citiesDropdown" :key="city.id" :value="city.id" :selected="city.id === $store.state.authUser.city">{{city.city}}</option>
+                      <option v-for="city in citiesDropdown" :key="city.id" :value="city.id" :selected="city.id === profileSettingsForm.city">{{city.city}}</option>
                     </select>
                     <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
                         <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
@@ -97,7 +97,7 @@
                     <div class="relative">
                         <select class="shadow appearance-none border w-full rounded py-2 px-3 text-gray-700 text-sm leading-tight focus:outline-none" :class="{'border-red-600': $v.profileSettingsForm.currency_id.$error}" id="currency_id" v-model="$v.profileSettingsForm.currency_id.$model">
                             <option :value="null" disabled>Select Currency</option>
-                            <option v-for="currency in currencies" :key="currency.id" :value="currency.id" :selected="currency.id === $store.state.authUser.currency_id">{{currency.currency}}</option>
+                            <option v-for="currency in currencies" :key="currency.id" :value="currency.id" :selected="currency.id === profileSettingsForm.currency_id">{{currency.currency}}</option>
                         </select>
                         <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
                             <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
@@ -148,6 +148,8 @@
 </template>
 
 <script>
+import Cookies from 'js-cookie'
+import Swal from 'sweetalert2'
 import {required, numeric, minLength, maxLength, sameAs} from 'vuelidate/lib/validators'
 //Custom vuelidate validators
 function inCountriesArray(value) {
@@ -200,7 +202,8 @@ export default {
             currencies:[
                 { id:1, currency:'CNY' },
                 { id:2, currency:'USD' }
-            ]
+            ],
+            profileFormSettingsError: []
         }
     },
     computed:{
@@ -244,7 +247,33 @@ export default {
         },
         saveChanges() {
           if(!this.$v.profileSettingsForm.$invalid) {
-              /* api request here */
+            let token = Cookies.get('access_token')
+             let data = {
+               firstname: this.profileSettingsForm.firstname,
+               lastname: this.profileSettingsForm.lastname,
+               address: this.profileSettingsForm.address,
+               country: this.profileSettingsForm.country,
+               state: this.profileSettingsForm.state,
+               city: this.profileSettingsForm.city,
+               postcode: this.profileSettingsForm.postcode,
+               phone_country_code: this.profileSettingsForm.phone_country_code,
+               phone: this.profileSettingsForm.phone,
+               currency_id: this.profileSettingsForm.currency_id
+             }
+            axios.post('/v1/user/settings/profile', data, { headers: { 'Authorization': `Bearer ${token}` } })
+            .then(response => {
+              Swal.fire({
+                icon:'success',
+                text: response.data.message
+              })
+            })
+            .catch(err => {
+              Object.values(err.response.data.errors).forEach(errorType => {
+                errorType.forEach(error => {
+                    this.profileFormSettingsError.push(error)
+                 })
+              })
+            })
           } else {
             Object.keys(this.profileSettingsForm).forEach(field => {
                 this.$v.profileSettingsForm[field].$touch()
@@ -253,7 +282,26 @@ export default {
         },
         changePassword() {
           if(!this.$v.changePasswordForm.$invalid) {
-              /* API request here */
+            let token = Cookies.get('access_token')
+            let data = {
+              old_password: this.changePasswordForm.current_password,
+              password: this.changePasswordForm.new_password,
+              password_confirmation: this.changePasswordForm.confirm_new_password
+            }
+            axios.post('/v1/user/settings/change-password', data, { headers: { 'Authorization': `Bearer ${token}` } })
+            .then(response => {
+              Swal.fire({
+                icon:'success',
+                text: response.data.message
+              })
+            })
+            .catch(err => {
+              Object.values(err.response.data.errors).forEach(errorType => {
+                errorType.forEach(error => {
+                    this.profileFormSettingsError.push(error)
+                 })
+              })
+            })
           } else {
             Object.keys(this.changePasswordForm).forEach(field => {
                 this.$v.changePasswordForm[field].$touch()

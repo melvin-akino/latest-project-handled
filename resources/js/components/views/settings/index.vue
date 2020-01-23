@@ -17,8 +17,9 @@
             <div class="shadow border border-gray-400 bg-white w-full p-5 mb-6">
                 <label class="block font-bold capitalize text-gray-700 text-sm mr-5">Select Language</label>
                 <div class="relative w-1/3 mt-4">
-                    <select class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 text-sm leading-tight focus:outline-none">
-                        <option value="1">English</option>
+                    <select class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 text-sm leading-tight focus:outline-none" @change="changeLanguage" v-model="language">
+                        <option :value="null">Select Language</option>
+                        <option v-for="language in languages" :key="language.id" :value="language.id" :selected="language.id === language">{{language.value}}</option>
                     </select>
                     <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
                         <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
@@ -34,8 +35,15 @@
 </template>
 
 <script>
+import Cookies from 'js-cookie'
 import Swal from 'sweetalert2'
 export default {
+    data() {
+      return {
+        languages:[],
+        language: this.$store.state.userConfig.language.language
+      }
+    },
     head:{
         title() {
             return {
@@ -49,7 +57,39 @@ export default {
             return titlePageUri[titlePageUri.length - 1].replace(/-/g, ' ')
         }
     },
+    mounted() {
+      this.languages = this.$store.state.userConfig.language.languages
+    },
     methods:{
+      saveChangedLanguage() {
+        let token = Cookies.get('access_token')
+          axios.post('/v1/user/settings/language', {language: this.language}, { headers: { 'Authorization': `Bearer ${token}` } })
+          .then(response => {
+            Swal.fire({
+                icon:'success',
+                text: response.data.message
+              })
+          })
+          .catch(err => {
+            console.log(err)
+          })
+        },
+        changeLanguage() {
+          Swal.fire({
+                text: 'Are you sure you want to change language?',
+                showCancelButton: true,
+                confirmButtonText: 'Confirm',
+                cancelButtonText: 'Cancel',
+                confirmButtonColor: '#ed8936',
+                cancelButtonColor: '#e53e3e',
+                reverseButtons: true
+            })
+            .then(response => {
+                if(response.value) {
+                    this.saveChangedLanguage()
+                }
+            })
+        },
         resetToDefaultSettings() {
             Swal.fire({
                 text: 'Are you sure you want to reset to default settings?',

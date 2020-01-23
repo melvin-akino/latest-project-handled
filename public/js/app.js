@@ -42903,13 +42903,16 @@ __webpack_require__.r(__webpack_exports__);
   var token = js_cookie__WEBPACK_IMPORTED_MODULE_1___default.a.get('access_token');
 
   if (token) {
-    axios__WEBPACK_IMPORTED_MODULE_2___default.a.get('/v1/auth/user', {
+    axios__WEBPACK_IMPORTED_MODULE_2___default.a.get('/v1/user', {
       headers: {
         'Authorization': "Bearer ".concat(token)
       }
     }).then(function (response) {
       _store__WEBPACK_IMPORTED_MODULE_3__["default"].commit('SET_IS_AUTHENTICATED', true);
       _store__WEBPACK_IMPORTED_MODULE_3__["default"].commit('SET_AUTH_USER', response.data.data);
+      _store__WEBPACK_IMPORTED_MODULE_3__["default"].commit('SET_USER_PROVIDERS', response.data.providers);
+      _store__WEBPACK_IMPORTED_MODULE_3__["default"].commit('SET_USER_SPORTS_ODD_TYPES', response.data.sport_odd_types);
+      _store__WEBPACK_IMPORTED_MODULE_3__["default"].commit('SET_USER_CONFIG', response.data.configuration);
 
       if (authRoutes.includes(to.matched[0].path)) {
         next('/');
@@ -42986,42 +42989,42 @@ var routes = [{
 }, {
   path: '/settings',
   component: function component() {
-    return Promise.all(/*! import() */[__webpack_require__.e(15), __webpack_require__.e(17)]).then(__webpack_require__.bind(null, /*! ./components/views/settings */ "./resources/js/components/views/settings/index.vue"));
+    return Promise.all(/*! import() */[__webpack_require__.e(24), __webpack_require__.e(15)]).then(__webpack_require__.bind(null, /*! ./components/views/settings */ "./resources/js/components/views/settings/index.vue"));
   },
   children: [{
     path: 'general',
     component: function component() {
-      return __webpack_require__.e(/*! import() */ 12).then(__webpack_require__.bind(null, /*! ./components/views/settings/General */ "./resources/js/components/views/settings/General.vue"));
+      return Promise.all(/*! import() */[__webpack_require__.e(24), __webpack_require__.e(18)]).then(__webpack_require__.bind(null, /*! ./components/views/settings/General */ "./resources/js/components/views/settings/General.vue"));
     }
   }, {
     path: 'profile',
     component: function component() {
-      return Promise.all(/*! import() */[__webpack_require__.e(0), __webpack_require__.e(4)]).then(__webpack_require__.bind(null, /*! ./components/views/settings/Profile */ "./resources/js/components/views/settings/Profile.vue"));
+      return Promise.all(/*! import() */[__webpack_require__.e(24), __webpack_require__.e(0), __webpack_require__.e(2)]).then(__webpack_require__.bind(null, /*! ./components/views/settings/Profile */ "./resources/js/components/views/settings/Profile.vue"));
     }
   }, {
     path: 'trade-page',
     component: function component() {
-      return __webpack_require__.e(/*! import() */ 14).then(__webpack_require__.bind(null, /*! ./components/views/settings/TradePage */ "./resources/js/components/views/settings/TradePage.vue"));
+      return Promise.all(/*! import() */[__webpack_require__.e(24), __webpack_require__.e(17)]).then(__webpack_require__.bind(null, /*! ./components/views/settings/TradePage */ "./resources/js/components/views/settings/TradePage.vue"));
     }
   }, {
     path: 'bet-slip',
     component: function component() {
-      return __webpack_require__.e(/*! import() */ 11).then(__webpack_require__.bind(null, /*! ./components/views/settings/BetSlip */ "./resources/js/components/views/settings/BetSlip.vue"));
+      return Promise.all(/*! import() */[__webpack_require__.e(24), __webpack_require__.e(12)]).then(__webpack_require__.bind(null, /*! ./components/views/settings/BetSlip */ "./resources/js/components/views/settings/BetSlip.vue"));
     }
   }, {
     path: 'bookies',
     component: function component() {
-      return __webpack_require__.e(/*! import() */ 3).then(__webpack_require__.bind(null, /*! ./components/views/settings/Bookies */ "./resources/js/components/views/settings/Bookies.vue"));
+      return Promise.all(/*! import() */[__webpack_require__.e(24), __webpack_require__.e(13)]).then(__webpack_require__.bind(null, /*! ./components/views/settings/Bookies */ "./resources/js/components/views/settings/Bookies.vue"));
     }
   }, {
     path: 'bet-columns',
     component: function component() {
-      return __webpack_require__.e(/*! import() */ 2).then(__webpack_require__.bind(null, /*! ./components/views/settings/BetColumns */ "./resources/js/components/views/settings/BetColumns.vue"));
+      return Promise.all(/*! import() */[__webpack_require__.e(24), __webpack_require__.e(3)]).then(__webpack_require__.bind(null, /*! ./components/views/settings/BetColumns */ "./resources/js/components/views/settings/BetColumns.vue"));
     }
   }, {
     path: 'notifications-and-sounds',
     component: function component() {
-      return __webpack_require__.e(/*! import() */ 13).then(__webpack_require__.bind(null, /*! ./components/views/settings/NotificationsAndSounds */ "./resources/js/components/views/settings/NotificationsAndSounds.vue"));
+      return Promise.all(/*! import() */[__webpack_require__.e(24), __webpack_require__.e(11)]).then(__webpack_require__.bind(null, /*! ./components/views/settings/NotificationsAndSounds */ "./resources/js/components/views/settings/NotificationsAndSounds.vue"));
     }
   }]
 }];
@@ -43050,7 +43053,10 @@ vue__WEBPACK_IMPORTED_MODULE_0___default.a.use(vuex__WEBPACK_IMPORTED_MODULE_1__
 var store = new vuex__WEBPACK_IMPORTED_MODULE_1__["default"].Store({
   state: {
     isAuthenticated: false,
-    authUser: ''
+    authUser: '',
+    userProviders: '',
+    userSportsOddTypes: '',
+    userConfig: ''
   },
   mutations: {
     SET_IS_AUTHENTICATED: function SET_IS_AUTHENTICATED(state, data) {
@@ -43058,6 +43064,15 @@ var store = new vuex__WEBPACK_IMPORTED_MODULE_1__["default"].Store({
     },
     SET_AUTH_USER: function SET_AUTH_USER(state, data) {
       state.authUser = data;
+    },
+    SET_USER_PROVIDERS: function SET_USER_PROVIDERS(state, data) {
+      state.userProviders = data;
+    },
+    SET_USER_SPORTS_ODD_TYPES: function SET_USER_SPORTS_ODD_TYPES(state, data) {
+      state.userSportsOddTypes = data;
+    },
+    SET_USER_CONFIG: function SET_USER_CONFIG(state, data) {
+      state.userConfig = data;
     }
   }
 });
