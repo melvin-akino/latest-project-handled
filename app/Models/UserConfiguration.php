@@ -29,51 +29,21 @@ class UserConfiguration extends Model
             ->where('menu', $menu)->get()->toArray();
 
         $excludeConfigForOverride = [
-            'price_format',
-            'price_format_user',
-            'trade_layout',
-            'trade_layout_user',
-            'sort_event',
-            'sort_event_user',
-            'adaptive_selection',
-            'adaptive_selection_user',
-            'disabled_bookies',
+            'price_formats',
+            'trade_layouts',
+            'sort_events',
+            'adaptive_selections',
             'languages',
-            'language_user'
         ];
 
-        $configTypes = array_column($userConfigurations, 'type');
-
-        switch ($menu) {
-            case 'general':
-                $configKey = array_search('price_format', $configTypes);
-                $settings[$menu]['price_format_user'] = $userConfigurations[$configKey]['value'];
-
-            case 'trade-page':
-                $configKey = array_search('trade_layout', $configTypes);
-                $settings[$menu]['trade_layout_user'] = $userConfigurations[$configKey]['value'];
-                $configKey = array_search('sort_event', $configTypes);
-                $settings[$menu]['sort_event_user'] = $userConfigurations[$configKey]['value'];
-
-            case 'bet-slip':
-                $configKey = array_search('adaptive_selection', $configTypes);
-                $settings[$menu]['adaptive_selection_user'] = $userConfigurations[$configKey]['value'];
-
-            case 'language':
-                $configKey = array_search('languages', $configTypes);
-                $settings[$menu]['language_user'] = $userConfigurations[$configKey]['value'];
-
-            default:
-                array_map(
-                    function ($userConfig) use (&$settings, $menu, $excludeConfigForOverride) {
-                        if (!in_array($userConfig['type'], $excludeConfigForOverride)) {
-                            $settings[$menu][$userConfig['type']] = $userConfig['value'];
-                        }
-                    },
-                    $userConfigurations
-                );
-                break;
-        }
+        array_map(
+            function ($userConfig) use (&$settings, $menu, $excludeConfigForOverride) {
+                if (!in_array($userConfig['type'], $excludeConfigForOverride)) {
+                    $settings[$menu][$userConfig['type']] = $userConfig['value'];
+                }
+            },
+            $userConfigurations
+        );
 
         return $settings;
     }
