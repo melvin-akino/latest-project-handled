@@ -113,7 +113,7 @@ class SettingsRequests extends FormRequest
                         }
                     },
                 ];
-                $rules[$key . '.'] = 'required|boolean';
+                $rules[$key . '.active'] = 'required|boolean';
             }
 
             return $rules;
