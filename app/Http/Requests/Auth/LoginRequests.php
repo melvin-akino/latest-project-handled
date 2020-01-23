@@ -26,7 +26,7 @@ class LoginRequests extends FormRequest
     public function rules()
     {
         return [
-            'email'                => 'required|min:6|max:32',
+            'email'                => 'required|email|min:6|max:32',
             'password'             => 'required|min:6|max:32',
             'remember_me'          => 'boolean',
         ];
@@ -41,6 +41,7 @@ class LoginRequests extends FormRequest
     {
         return [
             // GLOBAL
+            'email'                 => trans('validation.custom.email.valid'),
             'required'              => trans('validation.custom.required'),
 
             // PASSWORD Input
