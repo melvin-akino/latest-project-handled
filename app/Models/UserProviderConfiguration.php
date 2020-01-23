@@ -34,12 +34,15 @@ class UserProviderConfiguration extends Model
                 if (in_array($provider['id'], $requestProviders)) {
                     $requestProviderKey = array_search($provider['id'], $requestProviders);
 
-                    self::updateOrCreate([
-                        'user_id' => auth()->user()->id,
-                        'provider_id' => $request[$requestProviderKey]['provider_id'],
-                    ], [
-                        'active' => $request[$requestProviderKey]['active']
-                    ]);
+                    self::updateOrCreate(
+                        [
+                            'user_id' => auth()->user()->id,
+                            'provider_id' => $request[$requestProviderKey]['provider_id'],
+                        ],
+                        [
+                            'active' => $request[$requestProviderKey]['active']
+                        ]
+                    );
                 }
             }
 
@@ -51,5 +54,12 @@ class UserProviderConfiguration extends Model
 
             return false;
         }
+    }
+
+    public static function getInactiveProviders()
+    {
+        return self::where('active', false)
+            ->where('user_id', auth()->user()->id)
+            ->orderBy('provider_id', 'asc');
     }
 }

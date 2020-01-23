@@ -23,10 +23,44 @@ class UserConfiguration extends Model
         return self::where('user_id', $user_id);
     }
 
-    public static function getUserConfigByMenu($user_id, $menu)
+    public static function getUserConfigByMenu(int $user_id, string $menu, array &$settings)
     {
-        return self::where('user_id', $user_id)
-            ->where('menu', $menu);
+        $userConfigurations = self::where('user_id', $user_id)
+            ->where('menu', $menu)->get()->toArray();
+
+        $excludeConfigForOverride = [
+            'price_formats',
+            'trade_layouts',
+            'sort_events',
+            'adaptive_selections',
+            'languages',
+        ];
+
+        array_map(
+            function ($userConfig) use (&$settings, $menu, $excludeConfigForOverride) {
+                if (!in_array($userConfig['type'], $excludeConfigForOverride)) {
+                    $settings[$menu][$userConfig['type']] = $userConfig['value'];
+                }
+            },
+            $userConfigurations
+        );
+
+        return $settings;
+    }
+
+    public static function getUserConfigBookiesAndBetColumns(array &$settings): array
+    {
+        $getInactiveProviders = UserProviderConfiguration::getInactiveProviders()
+            ->get()
+            ->toArray();
+        $settings['bookies']['disabled_bookies'] = array_column($getInactiveProviders, 'provider_id');
+
+        $getInactiveProviders = UserSportOddConfiguration::getInactiveSportOdds()
+            ->get()
+            ->toArray();
+        $settings['bet-columns']['disabled_columns'] = array_column($getInactiveProviders, 'sport_odd_type_id');
+
+        return $settings;
     }
 
     public static function saveSettings(string $type, array $request): bool
@@ -66,13 +100,16 @@ class UserConfiguration extends Model
             ];
 
             foreach ($menus[$type] as $configType) {
-                self::updateOrCreate([
-                    'user_id' => auth()->user()->id,
-                    'type' => $configType,
-                    'menu' => $type
-                ], [
-                    'value' => $request[$configType]
-                ]);
+                self::updateOrCreate(
+                    [
+                        'user_id' => auth()->user()->id,
+                        'type' => $configType,
+                        'menu' => $type
+                    ],
+                    [
+                        'value' => $request[$configType]
+                    ]
+                );
             }
 
             DB::commit();
