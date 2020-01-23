@@ -87,8 +87,8 @@ class SettingsController extends Controller
                 UserConfiguration::saveSettings($config, config('default_config.' . $config));
             }
 
-            UserProviderConfiguration::saveSettings(config('default_config.' . $config));
-            UserSportOddConfiguration::saveSettings(config('default_config.' . $config));
+            UserProviderConfiguration::saveSettings(config('default_config.bookies.disabled_bookies'));
+            UserSportOddConfiguration::saveSettings(config('default_config.bet-columns.disabled_columns'));
 
             return true;
         } catch (ServerException $e) {

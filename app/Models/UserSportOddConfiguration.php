@@ -31,17 +31,30 @@ class UserSportOddConfiguration extends Model
             $requestSportOddTypes = array_column($request, 'sport_odd_type_id');
 
             foreach ($sportOddTypes as $sportOddType) {
-                if (in_array($sportOddType->id, $requestSportOddTypes)) {
-                    $requestSportOddTypeKey = array_search($sportOddType->id, $requestSportOddTypes);
+                if (!empty($request)) {
+                    if (in_array($sportOddType->id, $requestSportOddTypes)) {
+                        $requestSportOddTypeKey = array_search($sportOddType->id, $requestSportOddTypes);
 
+                        self::updateOrCreate(
+                            [
+                                'user_id' => auth()->user()->id,
+                                'sport_odd_type_id' => $request[$requestSportOddTypeKey]['sport_odd_type_id'],
+                            ],
+                            [
+                                'active' => $request[$requestSportOddTypeKey]['active'],
+                                'updated_at' => Carbon::now()
+                            ]
+                        );
+                    }
+                } else {
                     self::updateOrCreate(
                         [
-                            'user_id'               => auth()->user()->id,
-                            'sport_odd_type_id'     => $request[$requestSportOddTypeKey]['sport_odd_type_id'],
+                            'user_id' => auth()->user()->id,
+                            'sport_odd_type_id' => $sportOddType->id,
                         ],
                         [
-                            'active'                => $request[$requestSportOddTypeKey]['active'],
-                            'updated_at'            => Carbon::now()
+                            'active' => true,
+                            'updated_at' => Carbon::now()
                         ]
                     );
                 }
