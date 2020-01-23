@@ -7,6 +7,7 @@ use App\Http\Requests\SettingsRequests;
 
 use App\Models\{ UserConfiguration, UserProviderConfiguration, UserSportOddConfiguration };
 use App\User;
+use Hash;
 
 class SettingsController extends Controller
 {
@@ -40,7 +41,7 @@ class SettingsController extends Controller
             } else if ($type == 'change-password') {
                 $currentPassword = User::find(auth()->user()->id)->password;
 
-                if (\Hash::check($request->old_password, $currentPassword)) {
+                if (Hash::check($request->old_password, $currentPassword)) {
                     $response = User::find(auth()->user()->id)
                         ->update([ 'password' => bcrypt($request->password) ]);
                 } else {
