@@ -53,6 +53,6 @@ return [
                 'value'             => "Spanish",
             ],
         ],
-        'language'             => 1,
+        'language'                  => 1,
     ],
 ];
