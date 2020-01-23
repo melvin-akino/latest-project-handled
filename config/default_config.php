@@ -27,8 +27,12 @@ return [
         'adaptive_selection'        => config('constants.betslip-adaptive-selection'),
         'adaptive_selection_user'   => 2,
     ],
-    'bookies'                       => [],
-    'bet-columns'                   => [],
+    'bookies'                       => [
+        'disabled_bookies'          => []
+    ],
+    'bet-columns'                   => [
+        'disabled_columns'          => []
+    ],
     'notifications-and-sounds'      => [
         'bet_confirm'               => false,
         'site_notifications'        => false,
@@ -38,13 +42,12 @@ return [
         'order_sounds'              => false,
     ],
     'language'                      => [
-        'data'                      => [
+        'languages'                 => [
             [
                 'id'                => 1,
                 'key'               => "en",
                 'value'             => "English",
-            ],
-            [
+            ], [
                 'id'                => 2,
                 'key'               => "es",
                 'value'             => "Spanish",

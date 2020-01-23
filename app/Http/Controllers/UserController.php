@@ -2,10 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\{Provider, UserConfiguration, UserSportOddConfiguration};
+use App\Models\{Provider, SportOddType, UserConfiguration, UserSportOddConfiguration};
 
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Exception;
 
 class UserController extends Controller
@@ -16,38 +15,50 @@ class UserController extends Controller
             $userSportOddConfiguration = UserSportOddConfiguration::getSportOddConfiguration();
 
             $defaultUserSportOddConfig = config('constants.user-sport-odd-configuration');
-            $userConfiguration = array_map(function ($configuration) use ($userSportOddConfiguration) {
-                $userConfig = [];
-                array_map(function ($config) use (&$userConfig, $configuration) {
-                    if ($configuration['sport_odd_type_id'] == $config->sport_odd_type_id) {
-                        $userConfig = [
-                            'sport_odd_type_id' => $config->sport_odd_type_id,
-                            'odd_type_id'       => $config->odd_type_id,
-                            'sport_id'          => $config->sport_id,
-                            'sport'             => $config->sport,
-                            'type'              => $config->type,
-                            'active'            => $config->active
-                        ];
+            $userConfiguration = array_map(
+                function ($configuration) use ($userSportOddConfiguration) {
+                    $userConfig = [];
+                    array_map(
+                        function ($config) use (&$userConfig, $configuration) {
+                            if ($configuration['sport_odd_type_id'] == $config->sport_odd_type_id) {
+                                $userConfig = [
+                                    'sport_odd_type_id' => $config->sport_odd_type_id,
+                                    'odd_type_id' => $config->odd_type_id,
+                                    'sport_id' => $config->sport_id,
+                                    'sport' => $config->sport,
+                                    'type' => $config->type,
+                                    'active' => $config->active
+                                ];
+                            }
+                        },
+                        $userSportOddConfiguration
+                    );
+
+                    if (!empty($userConfig)) {
+                        return $userConfig;
                     }
-                }, $userSportOddConfiguration);
+                    return $configuration;
+                },
+                $defaultUserSportOddConfig
+            );
 
-                if (!empty($userConfig)) {
-                    return $userConfig;
-                }
-                return $configuration;
-            }, $defaultUserSportOddConfig);
-
-            return response()->json([
-                'status'      => true,
-                'status_code' => 200,
-                'data'        => $userConfiguration
-            ], 200);
+            return response()->json(
+                [
+                    'status' => true,
+                    'status_code' => 200,
+                    'data' => $userConfiguration
+                ],
+                200
+            );
         } catch (Exception $e) {
-            return response()->json([
-                'status'      => false,
-                'status_code' => 500,
-                'message'     => trans('generic.internal-server-error')
-            ], 500);
+            return response()->json(
+                [
+                    'status' => false,
+                    'status_code' => 500,
+                    'message' => trans('generic.internal-server-error')
+                ],
+                500
+            );
         }
     }
 
@@ -61,7 +72,8 @@ class UserController extends Controller
     public function user(Request $request)
     {
         $settings = [];
-        $menus = [
+
+        $configurations = [
             'general',
             'trade-page',
             'bet-slip',
@@ -75,17 +87,27 @@ class UserController extends Controller
             ->get()
             ->toArray();
 
-        foreach ($menus AS $menu) {
-            $query = UserConfiguration::getUserConfigByMenu(auth()->user()->id, $menu);
-            $settings[$menu] = $query->count() == 0 ? config('default_config.' . $menu) : $query;
+        $sportOddTypes = SportOddType::getEnabledSportOdds();
+
+        foreach ($configurations AS $config) {
+            $settings[$config] = config('default_config.' . $config);
+
+            if (in_array($config, ['general', 'trade-page', 'bet-slip', 'notifications-and-sounds', 'language'])) {
+                $settings = UserConfiguration::getUserConfigByMenu(auth()->user()->id, $config, $settings);
+            } else {
+                $settings = UserConfiguration::getUserConfigBookiesAndBetColumns($settings);
+            }
         }
 
-        return response()->json([
-            'status'            => true,
-            'status_code'       => 200,
-            'data'              => $request->user(),
-            'providers'         => $providers,
-            'configuration'     => $settings,
-        ]);
+        return response()->json(
+            [
+                'status' => true,
+                'status_code' => 200,
+                'data' => $request->user(),
+                'providers' => $providers,
+                'sport_odd_types' => $sportOddTypes,
+                'configuration' => $settings,
+            ]
+        );
     }
 }
