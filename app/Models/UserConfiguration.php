@@ -29,33 +29,47 @@ class UserConfiguration extends Model
             ->where('menu', $menu);
     }
 
-    public static function saveSettings($type, $request)
+    public static function saveSettings(string $type, array $request): bool
     {
         try {
             DB::beginTransaction();
 
             $menus = [
-                'general'                  => ['price_format', 'timezone'],
-                'trade-page'               => [
-                    'suggested', 'trade_background', 'hide_comp_names_in_fav', 'live_position_values',
-                    'hide_exchange_only', 'trade_layout', 'sort_event'
+                'general' => ['price_format', 'timezone'],
+                'trade-page' => [
+                    'suggested',
+                    'trade_background',
+                    'hide_comp_names_in_fav',
+                    'live_position_values',
+                    'hide_exchange_only',
+                    'trade_layout',
+                    'sort_event'
                 ],
-                'bet-slip'                 => [
-                    'use_equivalent_bets', 'offers_on_exchanges', 'adv_placement_opt', 'bets_to_fav',
-                    'adv_betslip_info', 'tint_bookies', 'adaptive_selection'
+                'bet-slip' => [
+                    'use_equivalent_bets',
+                    'offers_on_exchanges',
+                    'adv_placement_opt',
+                    'bets_to_fav',
+                    'adv_betslip_info',
+                    'tint_bookies',
+                    'adaptive_selection'
                 ],
                 'notifications-and-sounds' => [
-                    'bet_confirm', 'site_notifications', 'popup_notifications', 'order_notifications', 'event_sounds',
+                    'bet_confirm',
+                    'site_notifications',
+                    'popup_notifications',
+                    'order_notifications',
+                    'event_sounds',
                     'order_sounds'
                 ],
-                'language'                 => ['language'],
+                'language' => ['language'],
             ];
 
             foreach ($menus[$type] as $configType) {
                 self::updateOrCreate([
                     'user_id' => auth()->user()->id,
-                    'type'    => $configType,
-                    'menu'    => $type
+                    'type' => $configType,
+                    'menu' => $type
                 ], [
                     'value' => $request[$configType]
                 ]);

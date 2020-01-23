@@ -8,11 +8,6 @@ use App\Http\Requests\SettingsRequests;
 use App\Models\{ UserConfiguration, UserProviderConfiguration, UserSportOddConfiguration };
 use App\User;
 
-use Carbon\Carbon;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use Exception;
-
 class SettingsController extends Controller
 {
     public function postSettings($type, SettingsRequests $request)
@@ -38,7 +33,7 @@ class SettingsController extends Controller
             if (in_array($type, $userConfig)) {
                 $response = UserConfiguration::saveSettings($type, $request->all());
             } else if (in_array($type, $provConfig)) {
-                $response = UserProviderConfiguration::saveSettings($type, $request->all());
+                $response = UserProviderConfiguration::saveSettings($request->all());
             } else if (in_array($type, $oddsConfig)) {
                 $response = UserSportOddConfiguration::saveSettings($type, $request->all());
             } else if ($type == 'profile') {
