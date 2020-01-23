@@ -2,8 +2,11 @@
 
 namespace App\Http\Requests;
 
+use App\Models\Provider;
+use App\Models\SportOddType;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 
 class SettingsRequests extends FormRequest
@@ -79,13 +82,41 @@ class SettingsRequests extends FormRequest
                 'adaptive_selection'        => 'required|numeric|in:' . $selections,
             ];
         } else if ($type == 'bookies') {
-            return [
-                // 'disabled_bookies'          => 'array',
-            ];
+            $providers = Provider::getActiveProviders()->get()->toArray();
+            $rules = [];
+            foreach ($providers as $key => $provider) {
+                $rules[$key . '.provider_id'] = [
+                    'required',
+                    function ($attribute, $value, $fail) {
+                        $provider = Provider::where('id', $value)->where('is_enabled', 1)->first();
+
+                        if (!$provider) {
+                            $fail('Provider ID ' . $value . ' is invalid.');
+                        }
+                    },
+                ];
+                $rules[$key . '.active'] = 'required|boolean';
+            }
+
+            return $rules;
         } else if ($type == 'bet-columns') {
-            return [
-                // 'disabled_columns'          => 'array',
-            ];
+            $sportOddTypes = SportOddType::getEnabledSportOdds();
+            $rules = [];
+            foreach ($sportOddTypes as $key => $sportOddType) {
+                $rules[$key . '.sport_odd_type_id'] = [
+                    'required',
+                    function ($attribute, $value, $fail) {
+                        $provider = SportOddType::where('id', $value)->first();
+
+                        if (!$provider) {
+                            $fail('Sport Odd Type ID ' . $value . ' is invalid.');
+                        }
+                    },
+                ];
+                $rules[$key . '.'] = 'required|boolean';
+            }
+
+            return $rules;
         } else if ($type == 'notifications-and-sounds') {
             return [
                 'bet_confirm'               => 'required|boolean',
