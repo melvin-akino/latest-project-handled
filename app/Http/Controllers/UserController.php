@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\{ Provider, UserConfiguration };
+use App\Models\{Provider, UserConfiguration, UserSportOddConfiguration};
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -13,14 +13,7 @@ class UserController extends Controller
     public function sportOddConfigurations(Request $request)
     {
         try {
-            $user = $request->user();
-            $sql = "SELECT sport_odd_type_id, sport_id, sport, odd_type_id, type, active
-                    FROM user_sport_odd_configurations as usoc
-                    JOIN sport_odd_type as sot ON sot.id = usoc.sport_odd_type_id
-                    JOIN sports as s ON s.id = sot.sport_id
-                    JOIN odd_types as ot ON ot.id = sot.odd_type_id
-                    WHERE usoc.user_id = ?";
-            $userSportOddConfiguration = DB::select($sql, [$user->id]);
+            $userSportOddConfiguration = UserSportOddConfiguration::getSportOddConfiguration();
 
             $defaultUserSportOddConfig = config('constants.user-sport-odd-configuration');
             $userConfiguration = array_map(function ($configuration) use ($userSportOddConfiguration) {

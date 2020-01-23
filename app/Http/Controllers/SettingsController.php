@@ -2,65 +2,74 @@
 
 namespace App\Http\Controllers;
 
+use App\Exceptions\ServerException;
 use App\Http\Requests\SettingsRequests;
 
 use App\Models\{ UserConfiguration, UserProviderConfiguration, UserSportOddConfiguration };
 use App\User;
 
-use Carbon\Carbon;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-
 class SettingsController extends Controller
 {
     public function postSettings($type, SettingsRequests $request)
     {
-        $submenus = [
-            'general',
-            'profile',
-            'change-password',
-            'trade-page',
-            'bet-slip',
-            'bookies',
-            'bet-columns',
-            'notifications-and-sounds',
-            'language',
-            'reset',
-        ];
+        try {
+            $submenus = [
+                'general',
+                'profile',
+                'change-password',
+                'trade-page',
+                'bet-slip',
+                'bookies',
+                'bet-columns',
+                'notifications-and-sounds',
+                'language',
+                'reset',
+            ];
 
-        $odds_config = ['bet-columns'];
-        $prov_config = ['bookies'];
-        $user_config = ['general', 'trade-page', 'bet-slip', 'notifications-and-sounds', 'language'];
+            $oddsConfig = ['bet-columns'];
+            $provConfig = ['bookies'];
+            $userConfig = ['general', 'trade-page', 'bet-slip', 'notifications-and-sounds', 'language'];
 
-        if (in_array($type, $user_config)) {
-            $response = UserConfiguration::saveSettings($type, $request->all());
-        } else if (in_array($type, $prov_config)) {
-            $response = UserProviderConfiguration::saveSettings($type, $request->all());
-        } else if (in_array($type, $odds_config)) {
-            $response = UserSportOddConfiguration::saveSettings($type, $request->all());
-        } else if ($type == 'profile') {
-            $response = User::where('id', auth()->user()->id)
-                ->update();
-        } else if ($type == 'change-password') {
-            // CHECK PASSWORD LOGIC
+            if (in_array($type, $userConfig)) {
+                $response = UserConfiguration::saveSettings($type, $request->all());
+            } else if (in_array($type, $provConfig)) {
+                $response = UserProviderConfiguration::saveSettings($request->all());
+            } else if (in_array($type, $oddsConfig)) {
+                $response = UserSportOddConfiguration::saveSettings($request->all());
+            } else if ($type == 'profile') {
+                $response = User::where('id', auth()->user()->id)
+                    ->update();
+            } else if ($type == 'change-password') {
+                // CHECK PASSWORD LOGIC
 
-            $response = User::where('id', auth()->user()->id)
-                ->update([ 'password' => bcrypt($request->new_password) ]);
-        } else if ($type == 'reset') {
-            // $this->resetSettings();
-        } else {
+                $response = User::where('id', auth()->user()->id)
+                    ->update([ 'password' => bcrypt($request->new_password) ]);
+            } else if ($type == 'reset') {
+                // $this->resetSettings();
+            } else {
+                return response()->json([
+                    'status'        => false,
+                    'status_code'   => 404,
+                    'message'       => "URL does not exist",
+                ]);
+            }
+
+            if (!$response) {
+                throw new ServerException("DB Transaction error");
+            }
+
+            return response()->json([
+                'status'        => true,
+                'status_code'   => 200,
+                'message'       => trans('notifications.save.success'),
+            ]);
+        } catch (ServerException $e) {
             return response()->json([
                 'status'        => false,
-                'status_code'   => 404,
-                'message'       => "URL does not exist",
+                'status_code'   => 500,
+                'message'       => trans('generic.internal-server-error')
             ]);
         }
-
-        return response()->json([
-            'status'        => true,
-            'status_code'   => 200,
-            'message'       => trans('notifications.save.success'),
-        ]);
     }
 
     /** CONFIRM APPROACH */
