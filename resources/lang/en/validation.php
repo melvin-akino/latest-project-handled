@@ -181,6 +181,34 @@ return [
         'name'                      => "Username",
         'password'                  => "Password",
         'password_confirmation'     => "Confirm Password",
+        // GENERAL
+        'price_format'              => "Price Format",
+        'timezone'                  => "Timezone",
+        // TRADE PAGE
+        'suggested'                 => "Suggested Competitions/Events",
+        'trade_background'          => "Trade Background",
+        'hide_comp_names_in_fav'    => "Hide Competition Names in Favorites",
+        'live_position_values'      => "Live Position Values",
+        'hide_exchange_only'        => "Hide Exchange-only lines",
+        'trade_layout'              => "Trade Layout",
+        'sort_event'                => "Sort Events",
+        // BET SLIP
+        'use_equivalent_bets'       => "Use Equivalent Bets",
+        'offers_on_exchanges'       => "Put Offers on Exnchanges",
+        'adv_placement_opt'         => "Show Advance placement Options",
+        'bets_to_fav'               => "Add Bets to Favorite Events",
+        'adv_betslip_info'          => "Show Advance Bet Slip Information",
+        'tint_bookies'              => "Tint Bookies",
+        'adaptive_selection'        => "Adaptive Selection",
+        // NOTIFICATIONS AND SOUNDS
+        'bet_confirm'               => "Bet Placement Confirmation",
+        'site_notifications'        => "Show Website Notifications",
+        'popup_notifications'       => "Popup Event Notifications",
+        'order_notifications'       => "Popup Order Notifications",
+        'event_sounds'              => "Bet Event Sounds",
+        'order_sounds'              => "Play Order Status Sounds",
+        // LANGUAGE
+        'language'                  => "Language",
     ],
 
 ];

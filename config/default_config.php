@@ -1,0 +1,58 @@
+<?php
+
+return [
+    'general'                       => [
+        'price_formats'             => config('constants.price-format'),
+        'price_format'              => 1,
+        'timezone'                  => 234,
+    ],
+    'trade-page'                    => [
+        'suggested'                 => '0',
+        'trade_background'          => '0',
+        'hide_comp_names_in_fav'    => '0',
+        'live_position_values'      => '0',
+        'hide_exchange_only'        => '0',
+        'trade_layouts'             => config('constants.trade-layout'),
+        'trade_layout'              => 1,
+        'sort_events'               => config('constants.sort-event'),
+        'sort_event'                => 1,
+    ],
+    'bet-slip'                      => [
+        'use_equivalent_bets'       => '0',
+        'offers_on_exchanges'       => '0',
+        'adv_placement_opt'         => '0',
+        'bets_to_fav'               => '0',
+        'adv_betslip_info'          => '0',
+        'tint_bookies'              => '0',
+        'adaptive_selections'       => config('constants.betslip-adaptive-selection'),
+        'adaptive_selection'        => 2,
+    ],
+    'bookies'                       => [
+        'disabled_bookies'          => []
+    ],
+    'bet-columns'                   => [
+        'disabled_columns'          => []
+    ],
+    'notifications-and-sounds'      => [
+        'bet_confirm'               => '0',
+        'site_notifications'        => '0',
+        'popup_notifications'       => '0',
+        'order_notifications'       => '0',
+        'event_sounds'              => '0',
+        'order_sounds'              => '0',
+    ],
+    'language'                      => [
+        'languages'                 => [
+            [
+                'id'                => 1,
+                'key'               => "en",
+                'value'             => "English",
+            ], [
+                'id'                => 2,
+                'key'               => "es",
+                'value'             => "Spanish",
+            ],
+        ],
+        'language'                  => 1,
+    ],
+];

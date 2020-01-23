@@ -15,4 +15,15 @@ class Provider extends Model
         'priority',
         'is_enabled'
     ];
+
+    protected $hidden = [
+        'created_at',
+        'updated_at',
+    ];
+
+    public static function getActiveProviders()
+    {
+        return self::where('is_enabled', true)
+            ->orderBy('priority', 'asc');
+    }
 }

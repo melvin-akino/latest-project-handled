@@ -148,22 +148,6 @@ class AuthController extends Controller
     }
 
     /**
-     * Get the authenticated User
-     *
-     * @return [boolean]    status
-     * @return [integer]    status_code
-     * @return [json]       user object
-     */
-    public function user(Request $request)
-    {
-        return response()->json([
-            'status'        => true,
-            'status_code'   => 200,
-            'data'          => $request->user(),
-        ]);
-    }
-
-    /**
      * Create token password reset
      *
      * @param  [string]     email

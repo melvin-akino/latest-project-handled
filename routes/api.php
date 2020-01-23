@@ -36,7 +36,8 @@ Route::group([
             'middleware' => 'auth:api',
         ], function() {
             Route::get('logout', 'AuthController@logout');
-            Route::get('user', 'AuthController@user');
+
+            // ..
         });
 
         /**
@@ -52,11 +53,17 @@ Route::group([
         });
     });
 
+    /**
+     * Authenticated Routes :: User
+     */
     Route::group([
-        'prefix' => 'user',
-        'middleware' => 'auth:api',
+        'middleware'    => 'auth:api',
+        'prefix'        => 'user',
     ], function () {
+        Route::get('/', 'UserController@user');
         Route::get('configuration/odds', 'UserController@sportOddConfigurations');
+
+        Route::post('settings/{type}', 'SettingsController@postSettings');
     });
 
     /**

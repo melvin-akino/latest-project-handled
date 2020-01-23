@@ -2,7 +2,11 @@
 
 namespace App\Models;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
+
+use Exception;
+use Illuminate\Support\Facades\DB;
 
 class UserProviderConfiguration extends Model
 {
@@ -14,4 +18,60 @@ class UserProviderConfiguration extends Model
         'punter_percentage',
         'active'
     ];
+
+    /** NEW APPROACH */
+    public static function saveSettings(array $request): bool
+    {
+        try {
+            DB::beginTransaction();
+
+            $providers = Provider::getActiveProviders()
+                ->get()
+                ->toArray();
+
+            $requestProviders = array_column($request, 'provider_id');
+                foreach ($providers as $provider) {
+                    if (!empty($request)) {
+                        if (in_array($provider['id'], $requestProviders)) {
+                            $requestProviderKey = array_search($provider['id'], $requestProviders);
+                            self::updateOrCreate(
+                                [
+                                    'user_id' => auth()->user()->id,
+                                    'provider_id' => $request[$requestProviderKey]['provider_id'],
+                                ],
+                                [
+                                    'active' => $request[$requestProviderKey]['active'],
+                                    'updated_at' => Carbon::now()
+                                ]
+                            );
+                        }
+                    } else {
+                        self::updateOrCreate(
+                            [
+                                'user_id' => auth()->user()->id,
+                                'provider_id' => $provider['id'],
+                            ],
+                            [
+                                'active' => true,
+                                'updated_at' => Carbon::now()
+                            ]
+                        );
+                    }
+                }
+            DB::commit();
+
+            return true;
+        } catch (Exception $e) {
+            DB::rollBack();
+
+            return false;
+        }
+    }
+
+    public static function getInactiveProviders()
+    {
+        return self::where('active', false)
+            ->where('user_id', auth()->user()->id)
+            ->orderBy('provider_id', 'asc');
+    }
 }
