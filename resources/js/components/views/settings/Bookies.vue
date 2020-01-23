@@ -21,8 +21,8 @@ import Swal from 'sweetalert2'
 export default {
     data() {
         return {
-          bookies:[],
-          disabledBookies:[]
+            bookies:[],
+            disabledBookies:[]
         }
     },
     head:{
@@ -33,29 +33,29 @@ export default {
         }
     },
     mounted() {
-      this.bookies = this.$store.state.userProviders
-      this.disabledBookies = this.$store.state.userConfig.bookies.disabled_bookies
+        this.bookies = this.$store.state.userProviders
+        this.disabledBookies = this.$store.state.userConfig.bookies.disabled_bookies
     },
     methods:{
         saveChanges() {
-          let token = Cookies.get('access_token')
-          let data = this.bookies.map(bookie => {
-            return {
-              provider_id: bookie.id,
-              active: this.disabledBookies.includes(bookie.id) ? false : true
-            }
-          })
-          
-          axios.post('/v1/user/settings/bookies', data, { headers: { 'Authorization': `Bearer ${token}` } })
-          .then(response => {
-             Swal.fire({
-              icon:'success',
-              text: response.data.message
+            let token = Cookies.get('access_token')
+            let data = this.bookies.map(bookie => {
+                return {
+                    provider_id: bookie.id,
+                    active: this.disabledBookies.includes(bookie.id) ? false : true
+                }
             })
-          })
-          .catch(err => {
-            console.log(err)
-          })
+
+            axios.post('/v1/user/settings/bookies', data, { headers: { 'Authorization': `Bearer ${token}` } })
+            .then(response => {
+                Swal.fire({
+                    icon:'success',
+                    text: response.data.message
+                })
+            })
+            .catch(err => {
+                console.log(err)
+            })
         }
     }
 }

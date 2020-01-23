@@ -29,7 +29,7 @@ export default {
         return {
             betColumns:[],
             disabledBetColumns: [],
-            
+
         }
     },
     head:{
@@ -50,23 +50,23 @@ export default {
     },
     methods:{
         saveChanges() {
-          let token = Cookies.get('access_token')
-          let data = this.betColumns.map(betColumn => {
-            return {
-              sport_odd_type_id: betColumn.id,
-              active: this.disabledBetColumns.includes(betColumn.id) ? false : true
-            }
-          })
-          axios.post('/v1/user/settings/bet-columns', data, { headers: { 'Authorization': `Bearer ${token}` } })
-          .then(response => {
-             Swal.fire({
-              icon:'success',
-              text: response.data.message
+            let token = Cookies.get('access_token')
+            let data = this.betColumns.map(betColumn => {
+                return {
+                sport_odd_type_id: betColumn.id,
+                active: this.disabledBetColumns.includes(betColumn.id) ? false : true
+                }
             })
-          })
-          .catch(err => {
+            axios.post('/v1/user/settings/bet-columns', data, { headers: { 'Authorization': `Bearer ${token}` } })
+            .then(response => {
+                Swal.fire({
+                    icon:'success',
+                    text: response.data.message
+                })
+            })
+            .catch(err => {
             console.log(err)
-          })
+            })
         }
     }
 }

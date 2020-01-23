@@ -39,10 +39,10 @@ import Cookies from 'js-cookie'
 import Swal from 'sweetalert2'
 export default {
     data() {
-      return {
-        languages:[],
-        language: this.$store.state.userConfig.language.language
-      }
+        return {
+            languages:[],
+            language: this.$store.state.userConfig.language.language
+        }
     },
     head:{
         title() {
@@ -58,31 +58,31 @@ export default {
         }
     },
     mounted() {
-      this.languages = this.$store.state.userConfig.language.languages
+        this.languages = this.$store.state.userConfig.language.languages
     },
     methods:{
-      saveChangedLanguage() {
+        saveChangedLanguage() {
         let token = Cookies.get('access_token')
-          axios.post('/v1/user/settings/language', {language: this.language}, { headers: { 'Authorization': `Bearer ${token}` } })
-          .then(response => {
-            Swal.fire({
-                icon:'success',
-                text: response.data.message
-              })
-          })
-          .catch(err => {
-            console.log(err)
-          })
+        axios.post('/v1/user/settings/language', {language: this.language}, { headers: { 'Authorization': `Bearer ${token}` } })
+        .then(response => {
+                Swal.fire({
+                    icon:'success',
+                    text: response.data.message
+                })
+            })
+            .catch(err => {
+                console.log(err)
+            })
         },
         changeLanguage() {
-          Swal.fire({
+            Swal.fire({
                 text: 'Are you sure you want to change language?',
                 showCancelButton: true,
                 confirmButtonText: 'Confirm',
                 cancelButtonText: 'Cancel',
                 confirmButtonColor: '#ed8936',
                 cancelButtonColor: '#e53e3e',
-                reverseButtons: true
+                reverseButtons: true,
             })
             .then(response => {
                 if(response.value) {
@@ -102,14 +102,22 @@ export default {
             })
             .then(response => {
                 if(response.value) {
-                    /* reset to default settings */
+                    let token = Cookies.get('access_token')
+                    axios.post('/v1/user/settings/reset', null, { headers: { 'Authorization': `Bearer ${token}` } })
+                    .then(response => {
+                        this.$store.dispatch('fetchUserDataAfterReset')
+                        Swal.fire({
+                            icon:'success',
+                            text: response.data.message
+                        })
+                        location.reload()
+                    })
+                    .catch(err => {
+                        console.log(err)
+                    })
                 }
             })
         }
     }
 }
 </script>
-
-<style>
-
-</style>

@@ -41,8 +41,8 @@ export default {
     data() {
         return {
             generalSettingsForm: {
-              price_format: this.$store.state.userConfig.general.price_format,
-              timezone: this.$store.state.userConfig.general.timezone
+                price_format: this.$store.state.userConfig.general.price_format,
+                timezone: this.$store.state.userConfig.general.timezone
             },
             priceFormats:[],
             timezones:[]
@@ -60,28 +60,28 @@ export default {
         }
     },
     methods:{
-      getTimezones() {
-          axios.get('/v1/timezones')
-          .then(response => this.timezones = response.data.data)
-          .catch(err => console.log(err))
-      },
-      saveChanges() {
+        getTimezones() {
+            axios.get('/v1/timezones')
+            .then(response => this.timezones = response.data.data)
+            .catch(err => console.log(err))
+        },
+        saveChanges() {
         let token = Cookies.get('access_token')
         let data = {
-          price_format: this.generalSettingsForm.price_format,
-          timezone: this.generalSettingsForm.timezone
+            price_format: this.generalSettingsForm.price_format,
+            timezone: this.generalSettingsForm.timezone
         }
         axios.post('/v1/user/settings/general', data, { headers: { 'Authorization': `Bearer ${token}` } })
         .then(response => {
             Swal.fire({
-              icon:'success',
-              text: response.data.message
+                icon:'success',
+                text: response.data.message
             })
         })
         .catch(err => {
-          console.log(err)
+            console.log(err)
         })
-      }
+        }
     }
 }
 </script>

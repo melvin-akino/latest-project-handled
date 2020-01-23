@@ -3,7 +3,7 @@
         <form @submit.prevent="saveChanges">
             <div class="flex items-center mb-12">
                 <label class="relative flex items-center w-1/12">
-                    <input type="checkbox" class="appearance-none shadow border border-gray-400 bg-gray-400 rounded-full h-3 w-12 mr-4 focus:outline-none" :value="tradePageSettingsForm.suggested" @change="tradePageSettingsForm.suggested === '1' ? '0' : '1'">
+                    <input type="checkbox" class="appearance-none shadow border border-gray-400 bg-gray-400 rounded-full h-3 w-12 mr-4 focus:outline-none" :value="tradePageSettingsForm.suggested" @change="toggleTradeSettings(tradePageSettingsForm.suggested, 'suggested')">
                     <span class="absolute shadow shadow-inner w-6 h-6 rounded-full" :class="[tradePageSettingsForm.suggested === '1' ? 'on-switch bg-orange-500' :  'left-0 bg-white']"></span>
                 </label>
                 <span class="w-4/12 text-sm">Suggested competitions/events</span>
@@ -11,7 +11,7 @@
             </div>
             <div class="flex items-center mb-12">
                 <label class="relative flex items-center w-1/12">
-                    <input type="checkbox" class="appearance-none shadow border border-gray-400 bg-gray-400 rounded-full h-3 w-12 mr-4 focus:outline-none"  :value="tradePageSettingsForm.trade_background">
+                    <input type="checkbox" class="appearance-none shadow border border-gray-400 bg-gray-400 rounded-full h-3 w-12 mr-4 focus:outline-none"  :value="tradePageSettingsForm.trade_background" @change="toggleTradeSettings(tradePageSettingsForm.trade_background, 'trade_background')">
                     <span class="absolute shadow shadow-inner w-6 h-6 rounded-full" :class="[tradePageSettingsForm.trade_background === '1' ? 'on-switch bg-orange-500' :  'left-0 bg-white']"></span>
                 </label>
                 <span class="w-4/12 text-sm">Color trade market background</span>
@@ -19,7 +19,7 @@
             </div>
             <div class="flex items-center mb-12">
                 <label class="relative flex items-center w-1/12">
-                    <input type="checkbox" class="appearance-none shadow border border-gray-400 bg-gray-400 rounded-full h-3 w-12 mr-4 focus:outline-none"  :value="tradePageSettingsForm.hide_comp_names_in_fav">
+                    <input type="checkbox" class="appearance-none shadow border border-gray-400 bg-gray-400 rounded-full h-3 w-12 mr-4 focus:outline-none"  :value="tradePageSettingsForm.hide_comp_names_in_fav" @change="toggleTradeSettings(tradePageSettingsForm.hide_comp_names_in_fav, 'hide_comp_names_in_fav')">
                     <span class="absolute shadow shadow-inner w-6 h-6 rounded-full" :class="[tradePageSettingsForm.hide_comp_names_in_fav === '1' ? 'on-switch bg-orange-500' :  'left-0 bg-white']"></span>
                 </label>
                 <span class="w-4/12 text-sm">Hide competition names in favorites</span>
@@ -27,7 +27,7 @@
             </div>
             <div class="flex items-center mb-12">
                 <label class="relative flex items-center w-1/12">
-                    <input type="checkbox" class="appearance-none shadow border border-gray-400 bg-gray-400 rounded-full h-3 w-12 mr-4 focus:outline-none"  :value="tradePageSettingsForm.live_position_values">
+                    <input type="checkbox" class="appearance-none shadow border border-gray-400 bg-gray-400 rounded-full h-3 w-12 mr-4 focus:outline-none"  :value="tradePageSettingsForm.live_position_values" @change="toggleTradeSettings(tradePageSettingsForm.live_position_values, 'live_position_values')">
                     <span class="absolute shadow shadow-inner w-6 h-6 rounded-full" :class="[tradePageSettingsForm.live_position_values === '1' ? 'on-switch bg-orange-500' :  'left-0 bg-white']"></span>
                 </label>
                 <span class="w-4/12 text-sm">Live position values</span>
@@ -35,7 +35,7 @@
             </div>
             <div class="flex items-center mb-12">
                 <label class="relative flex items-center w-1/12">
-                    <input type="checkbox" class="appearance-none shadow border border-gray-400 bg-gray-400 rounded-full h-3 w-12 mr-4 focus:outline-none"  :value="tradePageSettingsForm.hide_exchange_only">
+                    <input type="checkbox" class="appearance-none shadow border border-gray-400 bg-gray-400 rounded-full h-3 w-12 mr-4 focus:outline-none"  :value="tradePageSettingsForm.hide_exchange_only" @change="toggleTradeSettings(tradePageSettingsForm.hide_exchange_only, 'hide_exchange_only')">
                     <span class="absolute shadow shadow-inner w-6 h-6 rounded-full" :class="[tradePageSettingsForm.hide_exchange_only === '1' ? 'on-switch bg-orange-500' :  'left-0 bg-white']"></span>
                 </label>
                 <span class="w-4/12 text-sm">Hide exchange only lines</span>
@@ -84,17 +84,17 @@ import Swal from 'sweetalert2'
 export default {
     data() {
         return {
-          tradePageSettingsForm: {
-            suggested: this.$store.state.userConfig["trade-page"].suggested,
-            trade_background: this.$store.state.userConfig["trade-page"].trade_background,
-            hide_comp_names_in_fav: this.$store.state.userConfig["trade-page"].hide_comp_names_in_fav,
-            live_position_values: this.$store.state.userConfig["trade-page"].live_position_values,
-            hide_exchange_only: this.$store.state.userConfig["trade-page"].hide_exchange_only,
-            trade_layout: this.$store.state.userConfig["trade-page"].trade_layout,
-            sort_event: this.$store.state.userConfig["trade-page"].sort_event,
-          },
-          tradeLayouts: [],
-          sortEvents: []
+            tradePageSettingsForm: {
+                suggested: this.$store.state.userConfig["trade-page"].suggested,
+                trade_background: this.$store.state.userConfig["trade-page"].trade_background,
+                hide_comp_names_in_fav: this.$store.state.userConfig["trade-page"].hide_comp_names_in_fav,
+                live_position_values: this.$store.state.userConfig["trade-page"].live_position_values,
+                hide_exchange_only: this.$store.state.userConfig["trade-page"].hide_exchange_only,
+                trade_layout: this.$store.state.userConfig["trade-page"].trade_layout,
+                sort_event: this.$store.state.userConfig["trade-page"].sort_event,
+            },
+            tradeLayouts: [],
+            sortEvents: []
         }
     },
     head:{
@@ -105,38 +105,45 @@ export default {
         }
     },
     mounted() {
-      this.tradeLayouts = this.$store.state.userConfig["trade-page"].trade_layouts
-      this.sortEvents = this.$store.state.userConfig["trade-page"].sort_events
+        this.tradeLayouts = this.$store.state.userConfig["trade-page"].trade_layouts
+        this.sortEvents = this.$store.state.userConfig["trade-page"].sort_events
     },
     methods:{
+        toggleTradeSettings(isActive, key) {
+            if(isActive === '1') {
+                this.tradePageSettingsForm[key] = '0'
+            } else {
+                this.tradePageSettingsForm[key] = '1'
+            }
+        },
         saveChanges() {
-          let token = Cookies.get('access_token')
-          let data = {
-            suggested: this.tradePageSettingsForm.suggested,
-            trade_background: this.tradePageSettingsForm.trade_background,
-            hide_comp_names_in_fav: this.tradePageSettingsForm.hide_comp_names_in_fav,
-            live_position_values: this.tradePageSettingsForm.live_position_values,
-            hide_exchange_only: this.tradePageSettingsForm.hide_exchange_only,
-            trade_layout: this.tradePageSettingsForm.trade_layout,
-            sort_event: this.tradePageSettingsForm.sort_event
-          }
-          axios.post('/v1/user/settings/trade-page', data, { headers: { 'Authorization': `Bearer ${token}` } })
-          .then(response => {
-             Swal.fire({
-              icon:'success',
-              text: response.data.message
+            let token = Cookies.get('access_token')
+            let data = {
+                suggested: this.tradePageSettingsForm.suggested,
+                trade_background: this.tradePageSettingsForm.trade_background,
+                hide_comp_names_in_fav: this.tradePageSettingsForm.hide_comp_names_in_fav,
+                live_position_values: this.tradePageSettingsForm.live_position_values,
+                hide_exchange_only: this.tradePageSettingsForm.hide_exchange_only,
+                trade_layout: this.tradePageSettingsForm.trade_layout,
+                sort_event: this.tradePageSettingsForm.sort_event
+            }
+            axios.post('/v1/user/settings/trade-page', data, { headers: { 'Authorization': `Bearer ${token}` } })
+            .then(response => {
+                Swal.fire({
+                    icon:'success',
+                    text: response.data.message
+                })
             })
-          })
-          .catch(err => {
-            console.log(err)
-          })
+            .catch(err => {
+                console.log(err)
+            })
         }
     }
 }
 </script>
 
 <style>
-  .on-switch {
-    left:24px;
-  }
+    .on-switch {
+        left:24px;
+    }
 </style>
