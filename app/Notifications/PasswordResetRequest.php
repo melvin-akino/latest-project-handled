@@ -18,7 +18,6 @@ class PasswordResetRequest extends Notification implements ShouldQueue {
 	 *
 	 * @return void
 	 */
-	public function __construct($token, $user) {
         $this->token = $token;
         $this->user = $user;
 	}
