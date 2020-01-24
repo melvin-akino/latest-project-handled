@@ -37,21 +37,22 @@
 <script>
 import Cookies from 'js-cookie'
 import Swal from 'sweetalert2'
+
 export default {
     data() {
         return {
-            languages:[],
+            languages: [],
             language: this.$store.state.userConfig.language.language
         }
     },
-    head:{
+    head: {
         title() {
             return {
                 inner: 'Settings'
             }
         }
     },
-    computed:{
+    computed: {
         titlePageUri(){
             let titlePageUri = this.$route.path.split('/')
             return titlePageUri[titlePageUri.length - 1].replace(/-/g, ' ')
@@ -60,13 +61,14 @@ export default {
     mounted() {
         this.languages = this.$store.state.userConfig.language.languages
     },
-    methods:{
+    methods: {
         saveChangedLanguage() {
-        let token = Cookies.get('access_token')
-        axios.post('/v1/user/settings/language', {language: this.language}, { headers: { 'Authorization': `Bearer ${token}` } })
-        .then(response => {
+            let token = Cookies.get('access_token')
+
+            axios.post('/v1/user/settings/language', { language: this.language }, { headers: { 'Authorization': `Bearer ${token}` } })
+            .then(response => {
                 Swal.fire({
-                    icon:'success',
+                    icon: 'success',
                     text: response.data.message
                 })
             })
@@ -81,12 +83,13 @@ export default {
                 confirmButtonText: 'Confirm',
                 cancelButtonText: 'Cancel',
                 confirmButtonColor: '#ed8936',
-                cancelButtonColor: '#e53e3e',
                 reverseButtons: true,
             })
             .then(response => {
-                if(response.value) {
+                if (response.value) {
                     this.saveChangedLanguage()
+                } else {
+                    this.language = this.$store.state.userConfig.language.language
                 }
             })
         },
@@ -97,17 +100,17 @@ export default {
                 confirmButtonText: 'Yes, reset to default settings',
                 cancelButtonText: 'Cancel',
                 confirmButtonColor: '#ed8936',
-                cancelButtonColor: '#e53e3e',
                 reverseButtons: true
             })
             .then(response => {
-                if(response.value) {
+                if (response.value) {
                     let token = Cookies.get('access_token')
+
                     axios.post('/v1/user/settings/reset', null, { headers: { 'Authorization': `Bearer ${token}` } })
                     .then(response => {
                         this.$store.dispatch('fetchUserDataAfterReset')
                         Swal.fire({
-                            icon:'success',
+                            icon: 'success',
                             text: response.data.message
                         })
                         location.reload()
@@ -121,3 +124,16 @@ export default {
     }
 }
 </script>
+
+<style>
+    .swal2-styled.swal2-cancel {
+        background-color: #ffffff;
+        color: #aaa;
+        border: solid #aaa 1px;
+    }
+
+    .swal2-styled.swal2-cancel:hover {
+        background-color: #aaa;
+        color: #ffffff;
+    }
+</style>

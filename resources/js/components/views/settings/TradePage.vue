@@ -81,23 +81,24 @@
 <script>
 import Cookies from 'js-cookie'
 import Swal from 'sweetalert2'
+
 export default {
     data() {
         return {
             tradePageSettingsForm: {
-                suggested: this.$store.state.userConfig["trade-page"].suggested,
-                trade_background: this.$store.state.userConfig["trade-page"].trade_background,
-                hide_comp_names_in_fav: this.$store.state.userConfig["trade-page"].hide_comp_names_in_fav,
-                live_position_values: this.$store.state.userConfig["trade-page"].live_position_values,
-                hide_exchange_only: this.$store.state.userConfig["trade-page"].hide_exchange_only,
-                trade_layout: this.$store.state.userConfig["trade-page"].trade_layout,
-                sort_event: this.$store.state.userConfig["trade-page"].sort_event,
+                suggested: this.$store.state.userConfig['trade-page'].suggested,
+                trade_background: this.$store.state.userConfig['trade-page'].trade_background,
+                hide_comp_names_in_fav: this.$store.state.userConfig['trade-page'].hide_comp_names_in_fav,
+                live_position_values: this.$store.state.userConfig['trade-page'].live_position_values,
+                hide_exchange_only: this.$store.state.userConfig['trade-page'].hide_exchange_only,
+                trade_layout: this.$store.state.userConfig['trade-page'].trade_layout,
+                sort_event: this.$store.state.userConfig['trade-page'].sort_event,
             },
             tradeLayouts: [],
             sortEvents: []
         }
     },
-    head:{
+    head: {
         title() {
             return {
                 inner: 'Settings - Trade Page'
@@ -105,12 +106,12 @@ export default {
         }
     },
     mounted() {
-        this.tradeLayouts = this.$store.state.userConfig["trade-page"].trade_layouts
-        this.sortEvents = this.$store.state.userConfig["trade-page"].sort_events
+        this.tradeLayouts = this.$store.state.userConfig['trade-page'].trade_layouts
+        this.sortEvents = this.$store.state.userConfig['trade-page'].sort_events
     },
-    methods:{
+    methods: {
         toggleTradeSettings(isActive, key) {
-            if(isActive === '1') {
+            if (isActive === '1') {
                 this.tradePageSettingsForm[key] = '0'
             } else {
                 this.tradePageSettingsForm[key] = '1'
@@ -127,10 +128,11 @@ export default {
                 trade_layout: this.tradePageSettingsForm.trade_layout,
                 sort_event: this.tradePageSettingsForm.sort_event
             }
+
             axios.post('/v1/user/settings/trade-page', data, { headers: { 'Authorization': `Bearer ${token}` } })
             .then(response => {
                 Swal.fire({
-                    icon:'success',
+                    icon: 'success',
                     text: response.data.message
                 })
             })
@@ -144,6 +146,6 @@ export default {
 
 <style>
     .on-switch {
-        left:24px;
+        left: 24px;
     }
 </style>

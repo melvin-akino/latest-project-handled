@@ -18,14 +18,15 @@
 <script>
 import Cookies from 'js-cookie'
 import Swal from 'sweetalert2'
+
 export default {
     data() {
         return {
-            bookies:[],
-            disabledBookies:[]
+            bookies: [],
+            disabledBookies: []
         }
     },
-    head:{
+    head: {
         title() {
             return {
                 inner: 'Settings - Bookies'
@@ -36,7 +37,7 @@ export default {
         this.bookies = this.$store.state.userProviders
         this.disabledBookies = this.$store.state.userConfig.bookies.disabled_bookies
     },
-    methods:{
+    methods: {
         saveChanges() {
             let token = Cookies.get('access_token')
             let data = this.bookies.map(bookie => {
@@ -49,7 +50,7 @@ export default {
             axios.post('/v1/user/settings/bookies', data, { headers: { 'Authorization': `Bearer ${token}` } })
             .then(response => {
                 Swal.fire({
-                    icon:'success',
+                    icon: 'success',
                     text: response.data.message
                 })
             })
@@ -63,6 +64,6 @@ export default {
 
 <style>
     .on-switch{
-        left:24px;
+        left: 24px;
     }
 </style>

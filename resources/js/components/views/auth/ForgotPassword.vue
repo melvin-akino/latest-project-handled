@@ -33,29 +33,30 @@
 
 <script>
 import { required, email } from 'vuelidate/lib/validators'
+
 export default {
-    name:'ForgotPassword',
+    name: 'ForgotPassword',
     data() {
         return {
-            email:'',
-            emailMessage:'',
-            isSending:false,
-            forgotPasswordErrors:[]
+            email: '',
+            emailMessage: '',
+            isSending: false,
+            forgotPasswordErrors: []
         }
     },
-    head:{
+    head: {
         title() {
             return {
                 inner: 'Forgot Password'
             }
         }
     },
-    validations:{
-        email:{required, email}
+    validations: {
+        email: { required, email }
     },
-    methods:{
+    methods: {
         sendEmailToResetPassword() {
-            if(!this.$v.email.$invalid) {
+            if (!this.$v.email.$invalid) {
                 this.isSending = true
                 axios.post('/v1/auth/password/create', { email: this.email })
                 .then(response => {
@@ -63,16 +64,16 @@ export default {
                     this.isSending = false
                 })
                 .catch(err => {
-                  this.isSending = false
-                  if(err.response.status===422) {
-                     Object.values(err.response.data.errors).forEach(errorType => {
-                        errorType.forEach(error => {
-                            this.forgotPasswordErrors.push(error)
+                    this.isSending = false
+                    if (err.response.status===422) {
+                        Object.values(err.response.data.errors).forEach(errorType => {
+                            errorType.forEach(error => {
+                                this.forgotPasswordErrors.push(error)
+                            })
                         })
-                    })
-                  } else if(err.response.status==404) {
-                    this.forgotPasswordErrors.push(err.response.data.message)
-                  }
+                    } else if (err.response.status==404) {
+                        this.forgotPasswordErrors.push(err.response.data.message)
+                    }
                 })
             } else {
                 this.$v.email.$touch()

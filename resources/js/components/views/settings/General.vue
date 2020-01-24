@@ -37,6 +37,7 @@
 <script>
 import Cookies from 'js-cookie'
 import Swal from 'sweetalert2'
+
 export default {
     data() {
         return {
@@ -44,43 +45,44 @@ export default {
                 price_format: this.$store.state.userConfig.general.price_format,
                 timezone: this.$store.state.userConfig.general.timezone
             },
-            priceFormats:[],
-            timezones:[]
+            priceFormats: [],
+            timezones: []
         }
     },
-    mounted() {
-        this.getTimezones()
-        this.priceFormats = this.$store.state.userConfig.general.price_formats
-    },
-    head:{
+    head: {
         title() {
             return {
                 inner: 'Settings - General'
             }
         }
     },
-    methods:{
+    mounted() {
+        this.getTimezones()
+        this.priceFormats = this.$store.state.userConfig.general.price_formats
+    },
+    methods: {
         getTimezones() {
             axios.get('/v1/timezones')
             .then(response => this.timezones = response.data.data)
             .catch(err => console.log(err))
         },
         saveChanges() {
-        let token = Cookies.get('access_token')
-        let data = {
-            price_format: this.generalSettingsForm.price_format,
-            timezone: this.generalSettingsForm.timezone
-        }
-        axios.post('/v1/user/settings/general', data, { headers: { 'Authorization': `Bearer ${token}` } })
-        .then(response => {
-            Swal.fire({
-                icon:'success',
-                text: response.data.message
+            let token = Cookies.get('access_token')
+            let data = {
+                price_format: this.generalSettingsForm.price_format,
+                timezone: this.generalSettingsForm.timezone
+            }
+
+            axios.post('/v1/user/settings/general', data, { headers: { 'Authorization': `Bearer ${token}` } })
+            .then(response => {
+                Swal.fire({
+                    icon: 'success',
+                    text: response.data.message
+                })
             })
-        })
-        .catch(err => {
-            console.log(err)
-        })
+            .catch(err => {
+                console.log(err)
+            })
         }
     }
 }

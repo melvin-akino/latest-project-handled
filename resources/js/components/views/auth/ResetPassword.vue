@@ -24,8 +24,8 @@
                 <div class="mb-4 flex justify-between">
                     <span class="text-sm text-red-600">{{resetPasswordFormError}}</span>
                     <button type="submit" class="bg-orange-400 text-white rounded-full font-bold sm:text-sm text-xs uppercase px-12 sm:py-5 py-2 hover:bg-orange-500 focus:outline-none">
-                      <span v-if="isResettingPassword">Changing Password...</span>
-                      <span v-else>Reset Password</span>
+                        <span v-if="isResettingPassword">Changing Password...</span>
+                        <span v-else>Reset Password</span>
                     </button>
                 </div>
             </form>
@@ -39,35 +39,36 @@
 
 <script>
 import {required, sameAs, minLength} from 'vuelidate/lib/validators'
+
 export default {
-    name:'ResetPassword',
+    name: 'ResetPassword',
     data() {
         return {
-            resetPasswordForm:{
-                password:'',
-                password_confirmation:'',
+            resetPasswordForm: {
+                password: '',
+                password_confirmation: '',
             },
-            resetPasswordFormError:'',
-            isResettingPassword:false,
+            resetPasswordFormError: '',
+            isResettingPassword: false,
             isResetPasswordSuccess: false
         }
     },
-    head:{
+    head: {
         title() {
             return {
                 inner: 'Reset Password'
             }
         }
     },
-    validations:{
+    validations: {
         resetPasswordForm: {
-            password:{required, minLength:minLength(6)},
-            password_confirmation:{sameAs:sameAs('password')}
+            password: { required, minLength:minLength(6) },
+            password_confirmation: { sameAs:sameAs('password') }
         }
     },
-    methods:{
+    methods: {
         resetPassword() {
-            if(!this.$v.resetPasswordForm.$invalid) {
+            if (!this.$v.resetPasswordForm.$invalid) {
                 this.isResettingPassword = true
                 axios.post('/v1/auth/password/reset/', { token: this.$route.params.token, email: this.$route.params.email, password: this.resetPasswordForm.password, password_confirmation: this.resetPasswordForm.password_confirmation })
                 .then(response => {
@@ -84,7 +85,7 @@ export default {
             }
         },
         clearPasswordResetFormError() {
-          this.resetPasswordFormError = ''
+            this.resetPasswordFormError = ''
         }
     }
 }

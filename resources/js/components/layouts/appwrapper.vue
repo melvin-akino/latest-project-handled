@@ -27,6 +27,7 @@
 import Logo from '../../../assets/images/icon.png'
 import axios from 'axios'
 import Cookies from 'js-cookie'
+
 export default {
     data() {
         return {
@@ -52,9 +53,9 @@ export default {
 </script>
 
 <style lang="scss">
-  .router-link-exact-active {
-    background-color:#ED8936;
-    color:#ffffff;
-    font-weight:bold;
-  }
+    .router-link-exact-active {
+        background-color: #ED8936;
+        color: #ffffff;
+        font-weight: bold;
+    }
 </style>

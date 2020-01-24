@@ -59,6 +59,7 @@
 <script>
 import Cookies from 'js-cookie'
 import Swal from 'sweetalert2'
+
 export default {
     data() {
         return {
@@ -72,16 +73,16 @@ export default {
             }
         }
     },
-    head:{
+    head: {
         title() {
             return {
                 inner: 'Settings - Notifications and Sounds'
             }
         }
     },
-    methods:{
+    methods: {
         toggleNotificationSettings(isActive, key) {
-            if(isActive === '1') {
+            if (isActive === '1') {
                 this.notificationSettingsForm[key] = '0'
             } else {
                 this.notificationSettingsForm[key] = '1'
@@ -97,10 +98,11 @@ export default {
                 event_sounds: this.notificationSettingsForm.event_sounds,
                 order_sounds: this.notificationSettingsForm.order_sounds
             }
+
             axios.post('/v1/user/settings/notifications-and-sounds', data, { headers: { 'Authorization': `Bearer ${token}` } })
             .then(response => {
                 Swal.fire({
-                    icon:'success',
+                    icon: 'success',
                     text: response.data.message
                 })
             })
@@ -114,6 +116,6 @@ export default {
 
 <style>
     .on-switch {
-        left:24px;
+        left: 24px;
     }
 </style>

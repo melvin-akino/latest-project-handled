@@ -6,7 +6,7 @@
 
 <script>
 export default {
-    head:{
+    head: {
         title() {
             return {
                 inner: 'Settlement'

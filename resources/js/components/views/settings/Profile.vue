@@ -164,10 +164,11 @@ function inCitiesArray(value) {
 function inCurrenciesArray(value) {
     return this.currencies.some(currency => currency.id === value)
 }
+
 export default {
     data() {
         return {
-            profileSettingsForm:{
+            profileSettingsForm: {
                 firstname: this.$store.state.authUser.firstname,
                 lastname: this.$store.state.authUser.lastname,
                 address: this.$store.state.authUser.address,
@@ -179,34 +180,34 @@ export default {
                 phone: this.$store.state.authUser.phone,
                 currency_id:this.$store.state.authUser.currency_id
             },
-            changePasswordForm:{
-                current_password:'',
-                new_password:'',
-                confirm_new_password:''
+            changePasswordForm: {
+                current_password: '',
+                new_password: '',
+                confirm_new_password: ''
             },
             // mock data these should come from API requests
-            countries:[
-                { id:1, country:'Philippines' },
-                { id:2, country: 'USA' }
+            countries: [
+                { id: 1, country: 'Philippines' },
+                { id: 2, country: 'USA' }
             ],
             states: [
-                { id: 1, state: "NCR", country_id: 1 },
-                { id: 2, state: "California", country_id: 2 }
+                { id: 1, state: 'NCR', country_id: 1 },
+                { id: 2, state: 'California', country_id: 2 }
             ],
             cities: [
-                { id: 1, city: "Pasig City", state_id: 1, country_id: 1 },
-                { id: 2, city: "Los Angeles", state_id: 2, country_id: 2 },
-                { id: 3, city: "Makati City", state_id: 1, country_id: 1 },
-                { id: 4, city: "San Francisco", state_id: 2, country_id: 2 },
+                { id: 1, city: 'Pasig City', state_id: 1, country_id: 1 },
+                { id: 2, city: 'Los Angeles', state_id: 2, country_id: 2 },
+                { id: 3, city: 'Makati City', state_id: 1, country_id: 1 },
+                { id: 4, city: 'San Francisco', state_id: 2, country_id: 2 },
             ],
-            currencies:[
-                { id:1, currency:'CNY' },
-                { id:2, currency:'USD' }
+            currencies: [
+                { id: 1, currency: 'CNY' },
+                { id: 2, currency: 'USD' }
             ],
             profileFormSettingsError: []
         }
     },
-    computed:{
+    computed: {
         statesDropdown() {
             return this.states.filter(state => state.country_id === this.profileSettingsForm.country)
         },
@@ -214,7 +215,7 @@ export default {
             return this.cities.filter(city => city.state_id === this.profileSettingsForm.state && city.country_id === this.profileSettingsForm.country)
         }
     },
-    head:{
+    head: {
         title() {
             return {
                 inner: 'Settings - Profile'
@@ -222,31 +223,31 @@ export default {
         }
     },
     validations: {
-        profileSettingsForm:{
-            firstname: {required},
-            lastname: {required},
-            address: {required},
-            country: {required, inCountriesArray},
-            state: {required, inStatesArray},
-            city: {required, inCitiesArray},
-            postcode: {required},
-            phone_country_code: {required, numeric},
-            phone: {required, numeric},
-            currency_id:{required, inCurrenciesArray}
+        profileSettingsForm: {
+            firstname: { required },
+            lastname: { required },
+            address: { required },
+            country: { required, inCountriesArray },
+            state: { required, inStatesArray },
+            city: { required, inCitiesArray },
+            postcode: { required },
+            phone_country_code: { required, numeric },
+            phone: { required, numeric },
+            currency_id: { required, inCurrenciesArray }
         },
         changePasswordForm: {
-            current_password:{required, minLength:minLength(6), maxLength:maxLength(32)},
-            new_password:{required, minLength:minLength(6), maxLength:maxLength(32)},
-            confirm_new_password:{sameAs:sameAs('new_password')}
+            current_password: { required, minLength:minLength(6), maxLength:maxLength(32) },
+            new_password: { required, minLength:minLength(6), maxLength:maxLength(32) },
+            confirm_new_password: { sameAs:sameAs('new_password') }
         }
     },
-    methods:{
+    methods: {
         resetStateAndCity() {
             this.profileSettingsForm.state = null
             this.profileSettingsForm.city = null
         },
         saveChanges() {
-            if(!this.$v.profileSettingsForm.$invalid) {
+            if (!this.$v.profileSettingsForm.$invalid) {
                 let token = Cookies.get('access_token')
                 let data = {
                     firstname: this.profileSettingsForm.firstname,
@@ -260,10 +261,11 @@ export default {
                     phone: this.profileSettingsForm.phone,
                     currency_id: this.profileSettingsForm.currency_id
                 }
+
                 axios.post('/v1/user/settings/profile', data, { headers: { 'Authorization': `Bearer ${token}` } })
                 .then(response => {
                     Swal.fire({
-                        icon:'success',
+                        icon: 'success',
                         text: response.data.message
                     })
                 })
@@ -274,7 +276,7 @@ export default {
                         })
                     })
                     Swal.fire({
-                        icon:'error',
+                        icon: 'error',
                         text: this.profileFormSettingsError.join(', ')
                     })
                 })
@@ -285,23 +287,24 @@ export default {
             }
         },
         changePassword() {
-            if(!this.$v.changePasswordForm.$invalid) {
+            if (!this.$v.changePasswordForm.$invalid) {
                 let token = Cookies.get('access_token')
                 let data = {
                     old_password: this.changePasswordForm.current_password,
                     password: this.changePasswordForm.new_password,
                     password_confirmation: this.changePasswordForm.confirm_new_password
                 }
+
                 axios.post('/v1/user/settings/change-password', data, { headers: { 'Authorization': `Bearer ${token}` } })
                 .then(response => {
-                    if(response.data.status_code === 400) {
+                    if (response.data.status_code === 400) {
                         Swal.fire({
-                            icon:'error',
+                            icon: 'error',
                             text: response.data.message
                         })
                     } else {
                         Swal.fire({
-                            icon:'success',
+                            icon: 'success',
                             text: response.data.message
                         })
                     }
@@ -313,7 +316,7 @@ export default {
                         })
                     })
                     Swal.fire({
-                        icon:'error',
+                        icon: 'error',
                         text: this.profileFormSettingsError.join(', ')
                     })
                 })
@@ -329,7 +332,7 @@ export default {
 
 <style>
     hr {
-        border-bottom:1px solid #aaaaaa;
-        height:0.5px;
+        border-bottom: 1px solid #aaaaaa;
+        height: 0.5px;
     }
 </style>

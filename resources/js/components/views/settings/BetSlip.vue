@@ -74,22 +74,23 @@
 <script>
 import Cookies from 'js-cookie'
 import Swal from 'sweetalert2'
+
 export default {
     data() {
         return {
-            betSlipSettingsForm:{
-                use_equivalent_bets: this.$store.state.userConfig["bet-slip"].use_equivalent_bets,
-                offers_on_exchanges: this.$store.state.userConfig["bet-slip"].offers_on_exchanges,
-                adv_placement_opt: this.$store.state.userConfig["bet-slip"].adv_placement_opt,
-                bets_to_fav: this.$store.state.userConfig["bet-slip"].bets_to_fav,
-                adv_betslip_info: this.$store.state.userConfig["bet-slip"].adv_betslip_info,
-                tint_bookies: this.$store.state.userConfig["bet-slip"].tint_bookies,
-                adaptive_selection: this.$store.state.userConfig["bet-slip"].adaptive_selection
+            betSlipSettingsForm: {
+                use_equivalent_bets: this.$store.state.userConfig['bet-slip'].use_equivalent_bets,
+                offers_on_exchanges: this.$store.state.userConfig['bet-slip'].offers_on_exchanges,
+                adv_placement_opt: this.$store.state.userConfig['bet-slip'].adv_placement_opt,
+                bets_to_fav: this.$store.state.userConfig['bet-slip'].bets_to_fav,
+                adv_betslip_info: this.$store.state.userConfig['bet-slip'].adv_betslip_info,
+                tint_bookies: this.$store.state.userConfig['bet-slip'].tint_bookies,
+                adaptive_selection: this.$store.state.userConfig['bet-slip'].adaptive_selection
             },
             adaptive_selections: []
         }
     },
-    head:{
+    head: {
         title() {
             return {
                 inner: 'Settings - Bet Slip'
@@ -97,11 +98,11 @@ export default {
         }
     },
     mounted() {
-        this.adaptive_selections = this.$store.state.userConfig["bet-slip"].adaptive_selections
+        this.adaptive_selections = this.$store.state.userConfig['bet-slip'].adaptive_selections
     },
-    methods:{
+    methods: {
         toggleBetSlipSettings(isActive, key) {
-            if(isActive === '1') {
+            if (isActive === '1') {
                 this.betSlipSettingsForm[key] = '0'
             } else {
                 this.betSlipSettingsForm[key] = '1'
@@ -122,7 +123,7 @@ export default {
             axios.post('/v1/user/settings/bet-slip', data, { headers: { 'Authorization': `Bearer ${token}` } })
             .then(response => {
                 Swal.fire({
-                    icon:'success',
+                    icon: 'success',
                     text: response.data.message
                 })
             })
@@ -136,6 +137,6 @@ export default {
 
 <style>
     .on-switch {
-        left:24px;
+        left: 24px;
     }
 </style>

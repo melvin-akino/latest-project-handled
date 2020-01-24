@@ -9,8 +9,10 @@ import App from './components/App'
 //Global Libraries
 import '@fortawesome/fontawesome-free/css/all.css';
 import '@fortawesome/fontawesome-free/js/all.js';
+
 import Vuelidate from 'vuelidate'
 Vue.use(Vuelidate)
+
 import VueHead from 'vue-head'
 Vue.use(VueHead)
 
@@ -18,7 +20,7 @@ const app = new Vue({
     el: '#app',
     router,
     store,
-    components:{
+    components: {
         App
     }
 });

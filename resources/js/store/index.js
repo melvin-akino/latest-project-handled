@@ -1,8 +1,10 @@
 import Vue from 'vue'
 import Vuex from 'vuex'
 Vue.use(Vuex)
+
 import axios from 'axios'
 import Cookies from 'js-cookie'
+
 const store = new Vuex.Store({
     state: {
         isAuthenticated: false,
@@ -31,6 +33,7 @@ const store = new Vuex.Store({
     actions: {
         fetchUserDataAfterReset(context) {
             let token = Cookies.get('access_token')
+            
             axios.get('/v1/user', { headers: { 'Authorization': `Bearer ${token}` } })
             .then(response => {
                 context.commit('SET_USER_CONFIG', response.data.configuration)

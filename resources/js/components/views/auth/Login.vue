@@ -51,44 +51,45 @@
 <script>
 import { required, email } from 'vuelidate/lib/validators'
 import Cookies from 'js-cookie'
+
 export default {
-    name:'Login',
+    name: 'Login',
     data() {
         return {
             loginForm: {
-                email:'',
-                password:''
+                email: '',
+                password: ''
             },
-            loginError:'',
-            isLoggingIn:false
+            loginError: '',
+            isLoggingIn: false
         }
     },
-    head:{
+    head: {
         title() {
             return {
                 inner: 'Login'
             }
         }
     },
-    validations:{
-        loginForm:{
-            email:{required, email},
-            password:{required}
+    validations: {
+        loginForm: {
+            email: { required, email },
+            password: { required }
         }
     },
-    methods:{
+    methods: {
         async login() {
-            if(!this.$v.loginForm.$invalid) {
+            if (!this.$v.loginForm.$invalid) {
                 this.isLoggingIn = true
                 try {
-                  const response = await axios.post('/v1/auth/login', { email: this.loginForm.email, password: this.loginForm.password })
-                  Cookies.set('access_token', response.data.access_token)
-                  await this.$router.push('/')
-                  this.$store.commit('SET_IS_AUTHENTICATED', true)
+                    const response = await axios.post('/v1/auth/login', { email: this.loginForm.email, password: this.loginForm.password })
+                    Cookies.set('access_token', response.data.access_token)
+                    await this.$router.push('/')
+                    this.$store.commit('SET_IS_AUTHENTICATED', true)
                 } catch(err) {
-                  console.log(err)
-                  this.isLoggingIn = false
-                  this.loginError = 'Invalid email or password.'
+                    console.log(err)
+                    this.isLoggingIn = false
+                    this.loginError = 'Invalid email or password.'
                 }
             } else {
                 this.$v.loginForm.email.$touch()

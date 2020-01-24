@@ -6,7 +6,7 @@ import store from './store'
 export default router.beforeEach((to, from, next) => {
     const authRoutes = ['/login', '/register', '/forgot-password', '/reset-password/:token/:email']
     const token = Cookies.get('access_token')
-    if(token) {
+    if (token) {
         axios.get('/v1/user', { headers: { 'Authorization': `Bearer ${token}` } })
         .then(response => {
             store.commit('SET_IS_AUTHENTICATED', true)
@@ -14,7 +14,8 @@ export default router.beforeEach((to, from, next) => {
             store.commit('SET_USER_PROVIDERS', response.data.providers)
             store.commit('SET_USER_SPORTS_ODD_TYPES', response.data.sport_odd_types)
             store.commit('SET_USER_CONFIG', response.data.configuration)
-            if(authRoutes.includes(to.matched[0].path)) {
+            
+            if (authRoutes.includes(to.matched[0].path)) {
                 next('/')
             } else {
                 next()
@@ -27,7 +28,7 @@ export default router.beforeEach((to, from, next) => {
             next('/login')
         })
     } else {
-        if(authRoutes.includes(to.matched[0].path)) {
+        if (authRoutes.includes(to.matched[0].path)) {
             next()
         } else {
             next('/login')

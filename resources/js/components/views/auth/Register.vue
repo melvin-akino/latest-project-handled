@@ -207,149 +207,150 @@
 
 <script>
 import { required, minLength, maxLength, alphaNum, sameAs, email, numeric } from 'vuelidate/lib/validators'
-export default {
-  name:'Register',
-  data() {
-    return {
-      step: 1,
-      totalSteps:3,
-      registerForm: {
-        step1: {
-          name: '',
-          firstname:'',
-          lastname:'',
-          email: '',
-          password: '',
-          password_confirmation: '',
-          birthdate:''
-        },
-        step2: {
-          address:'',
-          country: null,
-          state: null,
-          city: null,
-          postcode:'',
-          phone: '',
-          phone_country_code: null
-        },
-        step3: {
-          odds_type: null,
-          currency_id: null
-        }
-      },
-      successfulRegisterMessage:'',
-      isRegisterSuccessful: false,
-      registerErrors: []
-    }
-  },
-  head:{
-    title() {
-        return {
-            inner: 'Register'
-        }
-    }
-  },
-  validations: {
-    registerForm: {
-      step1: {
-        name: {required, minLength:minLength(6), maxLength:maxLength(32), alphaNum},
-        firstname:{required},
-        lastname:{required},
-        email: { required, email },
-        password: {required, minLength: minLength(6), maxLength:maxLength(32)},
-        password_confirmation: { sameAs: sameAs('password') }
-      },
-      step2: {
-        address: {required},
-        country: {required},
-        state: {required},
-        city: {required},
-        postcode: {required},
-        phone: {required, numeric},
-        phone_country_code: {required, numeric}
-      },
-      step3: {
-        odds_type: {required},
-        currency_id: {required}
-      }
-    }
-  },
-  computed:{
-    checkIfCurrentStepIsInvalid() {
-      return this.$v.registerForm[`step${this.step}`].$invalid
-    }
-  },
-  methods: {
-    triggerValidationErrors() {
-        if(this.$v.registerForm.step1.$invalid) {
-          this.$v.registerForm.step1.name.$touch()
-          this.$v.registerForm.step1.firstname.$touch()
-          this.$v.registerForm.step1.lastname.$touch()
-          this.$v.registerForm.step1.email.$touch()
-          this.$v.registerForm.step1.password.$touch()
-          this.$v.registerForm.step1.password_confirmation.$touch()
-        } else if(this.$v.registerForm.step2.$invalid) {
-          this.$v.registerForm.step2.address.$touch()
-          this.$v.registerForm.step2.country.$touch()
-          this.$v.registerForm.step2.state.$touch()
-          this.$v.registerForm.step2.city.$touch()
-          this.$v.registerForm.step2.postcode.$touch()
-          this.$v.registerForm.step2.phone_country_code.$touch()
-          this.$v.registerForm.step2.phone.$touch()
-        } else if(this.$v.registerForm.step3.$invalid){
-            this.$v.registerForm.step3.odds_type.$touch()
-            this.$v.registerForm.step3.currency_id.$touch()
-        }
-    },
-    prevStep() {
-      this.step--
-      this.registerErrors = []
-    },
-    nextStep() {
-      if(!this.checkIfCurrentStepIsInvalid) {
-        this.step++
-      } else {
-        this.triggerValidationErrors()
-      }
-      this.registerErrors = []
-    },
-    register() {
-      if (!this.$v.registerForm.$invalid) {
-        let data = {
-          name: this.registerForm.step1.name,
-          firstname: this.registerForm.step1.firstname,
-          lastname: this.registerForm.step1.lastname,
-          email: this.registerForm.step1.email,
-          password: this.registerForm.step1.password,
-          password_confirmation: this.registerForm.step1.password_confirmation,
-          birthdate: this.registerForm.step1.birthdate,
-          address: this.registerForm.step2.address,
-          country: this.registerForm.step2.country,
-          state: this.registerForm.step2.state,
-          city: this.registerForm.step2.city,
-          postcode: this.registerForm.step2.postcode,
-          phone_country_code: this.registerForm.step2.phone_country_code,
-          phone: this.registerForm.step2.phone,
-          odds_type: this.registerForm.step3.odds_type,
-          currency_id: this.registerForm.step3.currency_id,
-        }
 
-        axios.post('/v1/auth/register', data)
-        .then((response) => {
-          this.isRegisterSuccessful = true
-          this.successfulRegisterMessage = response.data.message
-        })
-        .catch(err => {
-            Object.values(err.response.data.errors).forEach(errorType => {
-                errorType.forEach(error => {
-                    this.registerErrors.push(error)
+export default {
+    name: 'Register',
+    data() {
+        return {
+            step: 1,
+            totalSteps: 3,
+            registerForm: {
+                step1: {
+                    name: '',
+                    firstname: '',
+                    lastname: '',
+                    email: '',
+                    password: '',
+                    password_confirmation: '',
+                    birthdate: ''
+                },
+                step2: {
+                    address: '',
+                    country: null,
+                    state: null,
+                    city: null,
+                    postcode: '',
+                    phone: '',
+                    phone_country_code: null
+                },
+                step3: {
+                    odds_type: null,
+                    currency_id: null
+                }
+            },
+            successfulRegisterMessage: '',
+            isRegisterSuccessful: false,
+            registerErrors: []
+        }
+    },
+    head: {
+        title() {
+            return {
+                inner: 'Register'
+            }
+        }
+    },
+    validations: {
+        registerForm: {
+            step1: {
+                name: { required, minLength:minLength(6), maxLength:maxLength(32), alphaNum },
+                firstname: { required },
+                lastname: { required },
+                email: { required, email },
+                password: { required, minLength: minLength(6), maxLength:maxLength(32) },
+                password_confirmation: { sameAs: sameAs('password') }
+            },
+            step2: {
+                address: { required },
+                country: { required },
+                state:  { required },
+                city: { required },
+                postcode: { required },
+                phone: { required, numeric },
+                phone_country_code: { required, numeric }
+            },
+            step3: {
+                odds_type: { required },
+                currency_id: { required }
+            }
+        }
+    },
+    computed: {
+        checkIfCurrentStepIsInvalid() {
+            return this.$v.registerForm[`step${this.step}`].$invalid
+        }
+    },
+    methods: {
+        triggerValidationErrors() {
+            if (this.$v.registerForm.step1.$invalid) {
+                this.$v.registerForm.step1.name.$touch()
+                this.$v.registerForm.step1.firstname.$touch()
+                this.$v.registerForm.step1.lastname.$touch()
+                this.$v.registerForm.step1.email.$touch()
+                this.$v.registerForm.step1.password.$touch()
+                this.$v.registerForm.step1.password_confirmation.$touch()
+            } else if (this.$v.registerForm.step2.$invalid) {
+                this.$v.registerForm.step2.address.$touch()
+                this.$v.registerForm.step2.country.$touch()
+                this.$v.registerForm.step2.state.$touch()
+                this.$v.registerForm.step2.city.$touch()
+                this.$v.registerForm.step2.postcode.$touch()
+                this.$v.registerForm.step2.phone_country_code.$touch()
+                this.$v.registerForm.step2.phone.$touch()
+            } else if (this.$v.registerForm.step3.$invalid) {
+                this.$v.registerForm.step3.odds_type.$touch()
+                this.$v.registerForm.step3.currency_id.$touch()
+            }
+        },
+        prevStep() {
+            this.step--
+            this.registerErrors = []
+        },
+        nextStep() {
+            if (!this.checkIfCurrentStepIsInvalid) {
+                this.step++
+            } else {
+                this.triggerValidationErrors()
+            }
+            this.registerErrors = []
+        },
+        register() {
+            if (!this.$v.registerForm.$invalid) {
+                let data = {
+                    name: this.registerForm.step1.name,
+                    firstname: this.registerForm.step1.firstname,
+                    lastname: this.registerForm.step1.lastname,
+                    email: this.registerForm.step1.email,
+                    password: this.registerForm.step1.password,
+                    password_confirmation: this.registerForm.step1.password_confirmation,
+                    birthdate: this.registerForm.step1.birthdate,
+                    address: this.registerForm.step2.address,
+                    country: this.registerForm.step2.country,
+                    state: this.registerForm.step2.state,
+                    city: this.registerForm.step2.city,
+                    postcode: this.registerForm.step2.postcode,
+                    phone_country_code: this.registerForm.step2.phone_country_code,
+                    phone: this.registerForm.step2.phone,
+                    odds_type: this.registerForm.step3.odds_type,
+                    currency_id: this.registerForm.step3.currency_id,
+                }
+
+                axios.post('/v1/auth/register', data)
+                .then(response => {
+                    this.isRegisterSuccessful = true
+                    this.successfulRegisterMessage = response.data.message
                 })
-            })
-        })
-      } else {
-        this.triggerValidationErrors()
-      }
+                .catch(err => {
+                    Object.values(err.response.data.errors).forEach(errorType => {
+                        errorType.forEach(error => {
+                            this.registerErrors.push(error)
+                        })
+                    })
+                })
+            } else {
+                this.triggerValidationErrors()
+            }
+        }
     }
-  }
 }
 </script>
