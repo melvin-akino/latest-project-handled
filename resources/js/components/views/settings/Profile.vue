@@ -77,6 +77,7 @@
                     <label class="block capitalize text-gray-700 text-sm">Post Code</label>
                     <input type="text" class="shadow appearance-none border w-full rounded py-2 px-3 text-gray-700 text-sm leading-tight focus:outline-none" :class="{'border-red-600': $v.profileSettingsForm.postcode.$error}" id="postcode" v-model="$v.profileSettingsForm.postcode.$model">
                     <span v-if="$v.profileSettingsForm.postcode.$dirty && !$v.profileSettingsForm.postcode.required" class="text-xs text-red-600">Postcode is required.</span>
+                    <span v-if="$v.profileSettingsForm.postcode.$dirty && !$v.profileSettingsForm.postcode.numeric" class="text-xs text-red-600">Postcode should be numeric.</span>
                 </div>
                 <div class="w-1/3 mr-6">
                     <label class="block capitalize text-gray-700 text-sm">Phone Country Code</label>
@@ -270,6 +271,7 @@ export default {
                     })
                 })
                 .catch(err => {
+                    this.profileFormSettingsError = []
                     Object.values(err.response.data.errors).forEach(errorType => {
                         errorType.forEach(error => {
                             this.profileFormSettingsError.push(error)
@@ -277,7 +279,7 @@ export default {
                     })
                     Swal.fire({
                         icon: 'error',
-                        text: this.profileFormSettingsError.join(', ')
+                        html: this.profileFormSettingsError.join('<br>')
                     })
                 })
             } else {
@@ -310,6 +312,7 @@ export default {
                     }
                 })
                 .catch(err => {
+                    this.profileFormSettingsError = []
                     Object.values(err.response.data.errors).forEach(errorType => {
                         errorType.forEach(error => {
                             this.profileFormSettingsError.push(error)
@@ -317,7 +320,7 @@ export default {
                     })
                     Swal.fire({
                         icon: 'error',
-                        text: this.profileFormSettingsError.join(', ')
+                        html: this.profileFormSettingsError.join('<br>')
                     })
                 })
             } else {
