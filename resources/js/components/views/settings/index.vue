@@ -18,7 +18,6 @@
                 <label class="block font-bold capitalize text-gray-700 text-sm mr-5">Select Language</label>
                 <div class="relative w-1/3 mt-4">
                     <select class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 text-sm leading-tight focus:outline-none" @change="changeLanguage" v-model="language">
-                        <option :value="null">Select Language</option>
                         <option v-for="language in languages" :key="language.id" :value="language.id" :selected="language.id === language">{{language.value}}</option>
                     </select>
                     <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
