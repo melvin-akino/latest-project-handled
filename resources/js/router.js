@@ -4,36 +4,66 @@ Vue.use(VueRouter)
 
 const routes = [
     {
-        path:'/login',
-        component:() => import('./components/views/auth/Login')
+        path: '/login',
+        component: () => import('./components/views/auth/Login')
     },
     {
-        path:'/register',
+        path: '/register',
         component:() => import('./components/views/auth/Register')
     },
     {
-        path:'/forgot-password',
-        component:() => import('./components/views/auth/ForgotPassword')
+        path: '/forgot-password',
+        component: () => import('./components/views/auth/ForgotPassword')
     },
     {
-        path:'/reset-password/:token/:email',
-        component:() => import('./components/views/auth/ResetPassword')
+        path: '/reset-password/:token/:email',
+        component: () => import('./components/views/auth/ResetPassword')
     },
     {
-        path:'/',
-        component:() => import('./components/views/Trade')
+        path: '/',
+        component: () => import('./components/views/Trade')
     },
     {
-        path:'/settlement',
-        component:() => import('./components/views/Settlement')
+        path: '/settlement',
+        component: () => import('./components/views/Settlement')
     },
     {
-        path:'/open-orders',
-        component:() => import('./components/views/OpenOrders')
+        path: '/open-orders',
+        component: () => import('./components/views/OpenOrders')
     },
     {
-        path:'/settings',
-        component:() => import('./components/views/Settings')
+        path: '/settings',
+        component: () => import('./components/views/settings'),
+        children: [
+            {
+                path: 'general',
+                component: () => import('./components/views/settings/General')
+            },
+            {
+                path: 'profile',
+                component: () => import('./components/views/settings/Profile')
+            },
+            {
+                path: 'trade-page',
+                component: () => import('./components/views/settings/TradePage')
+            },
+            {
+                path: 'bet-slip',
+                component: () => import('./components/views/settings/BetSlip')
+            },
+            {
+                path: 'bookies',
+                component: () => import('./components/views/settings/Bookies')
+            },
+            {
+                path: 'bet-columns',
+                component: () => import('./components/views/settings/BetColumns')
+            },
+            {
+                path: 'notifications-and-sounds',
+                component: () => import('./components/views/settings/NotificationsAndSounds')
+            }
+        ]
     },
 ];
 

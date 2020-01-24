@@ -1,4 +1,4 @@
-@import url(https://fonts.googleapis.com/css?family=Nunito);/*! normalize.css v8.0.1 | MIT License | github.com/necolas/normalize.css */
+@import url(https://fonts.googleapis.com/css?family=Nunito|Montserrat:100,300,400,600,700|Assistant:300,400,500,600,700);/*! normalize.css v8.0.1 | MIT License | github.com/necolas/normalize.css */
 
 /* Document
    ========================================================================== */
@@ -627,9 +627,9 @@ video {
   }
 }
 
-@media (min-width: 1280px){
+@media (min-width: 1367px){
   .container{
-    max-width: 1280px;
+    max-width: 1367px;
   }
 }
 
@@ -11417,6 +11417,10 @@ video {
 
 .z-auto{
   z-index: auto;
+}
+
+body {
+  font-family: "Assistant", sans-serif;
 }
 
 @media (min-width: 320px){
@@ -54571,7 +54575,7 @@ video {
   }
 }
 
-@media (min-width: 1280px){
+@media (min-width: 1367px){
   .xl\:sr-only{
     position: absolute;
     width: 1px;

@@ -1,23 +1,25 @@
 <template>
-    <div class="bg-gray-200 h-screen w-full sm:pb-0 pb-8" :class="{'flex flex-col items-center':!$store.state.isAuthenticated}">
-        <nav class="flex bg-white shadow-md w-full h-16" :class="{'mb-16':!$store.state.isAuthenticated}">
-            <div class="flex justify-start items-center w-full ml-16" v-if="$store.state.isAuthenticated">
-                <router-link to="/" class="text-gray-700 text-sm uppercase ml-5 p-6">Trade</router-link>
-                <router-link to="/settlement" class="text-gray-700 text-sm uppercase ml-5 p-6">Settlement</router-link>
-                <router-link to="/open-orders" class="text-gray-700 text-sm uppercase ml-5 p-6">Open Orders</router-link>
-                <router-link to="/settings" class="text-gray-700 text-sm uppercase ml-5 p-6">Settings</router-link>
+    <div class="w-full sm:pb-0 pb-8" :class="{'flex flex-col items-center':!$store.state.isAuthenticated}">
+        <nav class="flex bg-white shadow-md w-full h-16" :class="[!$store.state.isAuthenticated ? 'mb-16' : 'fixed z-10']">
+            <div class="flex justify-start items-center w-5/12 ml-16" v-if="$store.state.isAuthenticated">
+                <router-link to="/" class="text-gray-700 text-sm uppercase ml-5 sm:px-4 px-6 py-6">Trade</router-link>
+                <router-link to="/settlement" class="text-gray-700 text-sm uppercase ml-5 sm:px-4 px-6 py-6">Settlement</router-link>
+                <router-link to="/open-orders" class="text-gray-700 text-sm uppercase ml-5 sm:px-4 px-6 py-6">Open Orders</router-link>
+                <router-link to="/settings/general" class="text-gray-700 text-sm uppercase ml-5 sm:px-4 px-6 py-6">Settings</router-link>
             </div>
-            <div class="flex justify-center items-center w-full">
+            <div class="flex justify-center items-center" :class="[!$store.state.isAuthenticated ? 'w-full' : 'w-2/12']">
                 <img :src="logo" class="w-12 mt-2">
             </div>
-            <div class="flex justify-end items-center w-full mr-16"  v-if="$store.state.isAuthenticated">
+            <div class="flex justify-end items-center w-5/12 mr-16"  v-if="$store.state.isAuthenticated">
                 <a class="text-gray-700 text-sm uppercase ml-5" href="#" role="button">
                     {{$store.state.authUser.name}}
                 </a>
                 <a class="text-gray-700 text-sm uppercase ml-5 mr-5" href="#" role="button" @click="logout">Logout</a>
             </div>
         </nav>
-        <slot></slot>
+        <main class="pt-16">
+            <slot></slot>
+        </main>
     </div>
 </template>
 
@@ -25,6 +27,7 @@
 import Logo from '../../../assets/images/icon.png'
 import axios from 'axios'
 import Cookies from 'js-cookie'
+
 export default {
     data() {
         return {
@@ -50,8 +53,9 @@ export default {
 </script>
 
 <style lang="scss">
-  .router-link-exact-active {
-    background-color:#ED8936;
-    color:#ffffff;
-  }
+    .router-link-exact-active {
+        background-color: #ED8936;
+        color: #ffffff;
+        font-weight: bold;
+    }
 </style>
