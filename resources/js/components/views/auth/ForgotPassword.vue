@@ -65,6 +65,7 @@ export default {
                 })
                 .catch(err => {
                     this.isSending = false
+                    this.forgotPasswordErrors =  []
                     if (err.response.status===422) {
                         Object.values(err.response.data.errors).forEach(errorType => {
                             errorType.forEach(error => {

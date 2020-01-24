@@ -341,6 +341,7 @@ export default {
                     this.successfulRegisterMessage = response.data.message
                 })
                 .catch(err => {
+                    this.registerErrors = []
                     Object.values(err.response.data.errors).forEach(errorType => {
                         errorType.forEach(error => {
                             this.registerErrors.push(error)
