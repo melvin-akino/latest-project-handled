@@ -35,7 +35,7 @@ class RegistrationRequests extends FormRequest
             'email'                        => 'required|email|unique:users,email',
             'password'                     => 'required|confirmed|min:6|max:32',
             'password_confirmation'        => 'required|same:password|min:6|max:32',
-            'postcode'                     => 'required|numeric',
+            'postcode'                     => 'required|string|regex:/^[0-9]{3,7}$/|between:3,6',
             'phone_country_code'           => 'required|numeric', // Additional validation: `phone_country_code`  must exist from `phone_country_code`  table
             'country'                      => 'required|numeric', // Additional validation: `country`             must exist from `country`             table
             'state'                        => 'required|numeric', // Additional validation: `state`               must exist from `state`               table

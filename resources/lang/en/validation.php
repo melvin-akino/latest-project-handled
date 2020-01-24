@@ -181,6 +181,7 @@ return [
         'name'                      => "Username",
         'password'                  => "Password",
         'password_confirmation'     => "Confirm Password",
+        'postcode'                  => "Postal Code",
         // GENERAL
         'price_format'              => "Price Format",
         'timezone'                  => "Timezone",
