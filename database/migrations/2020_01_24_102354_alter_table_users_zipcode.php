@@ -35,6 +35,7 @@ class AlterTableUsersZipcode extends Migration
             $table->string('postcode', 6)->option()->default("");
         });
 
+        $zipcodes = User::select('id', 'zipcode')->get()->toArray();
         collect($zipcodes)
             ->each(function ($row) {
                 User::find($row['id'])->update([ 'postcode' => $row['zipcode'] ]);
