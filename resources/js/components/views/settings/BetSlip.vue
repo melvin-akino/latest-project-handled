@@ -54,7 +54,6 @@
                 <div class="flex justify-between items-center">
                     <div class="relative w-4/12 mt-4">
                         <select class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 text-sm leading-tight focus:outline-none" v-model="betSlipSettingsForm.adaptive_selection">
-                            <option :value="null" disabled>Select Adaptive Selection</option>
                             <option v-for="adaptive_selection in adaptive_selections" :key="adaptive_selection.id" :value="adaptive_selection.id">{{adaptive_selection.value}}</option>
                         </select>
                         <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
@@ -65,7 +64,7 @@
                 </div>
             </div>
             <div class="mt-4">
-                <button type="submit" class="bg-orange-500 hover:bg-orange-600 text-white text-sm uppercase px-12 py-4">Save Changes</button>
+                <button type="submit" class="bg-orange-500 hover:bg-orange-600 text-white text-sm uppercase px-4 py-2">Save Changes</button>
             </div>
         </form>
     </div>

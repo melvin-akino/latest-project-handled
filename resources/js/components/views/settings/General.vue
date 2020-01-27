@@ -5,7 +5,6 @@
                 <label class="text-sm">Price Format</label>
                 <div class="relative w-1/3">
                     <select class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 text-sm leading-tight focus:outline-none" v-model="generalSettingsForm.price_format">
-                        <option :value="null" disabled>Select Price Format</option>
                         <option v-for="priceFormat in priceFormats" :key="priceFormat.id"  :value="priceFormat.id" :selected="priceFormat.id === generalSettingsForm.price_format">{{priceFormat.value}}</option>
                     </select>
                     <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
@@ -28,7 +27,7 @@
                 </div>
             </div>
             <div class="mt-4">
-                <button type="submit" class="bg-orange-500 hover:bg-orange-600 text-white text-sm uppercase px-12 py-4">Save Changes</button>
+                <button type="submit" class="bg-orange-500 hover:bg-orange-600 text-white text-sm uppercase px-4 py-2">Save Changes</button>
             </div>
         </form>
     </div>

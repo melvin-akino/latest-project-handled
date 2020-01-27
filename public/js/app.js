@@ -25513,7 +25513,7 @@ var render = function() {
                     [
                       _vm._v(
                         "\n                " +
-                          _vm._s(_vm.$store.state.authUser.name) +
+                          _vm._s(_vm.$store.state.authUser.firstname) +
                           "\n            "
                       )
                     ]
@@ -42989,42 +42989,42 @@ var routes = [{
 }, {
   path: '/settings',
   component: function component() {
-    return Promise.all(/*! import() */[__webpack_require__.e(18), __webpack_require__.e(9)]).then(__webpack_require__.bind(null, /*! ./components/views/settings */ "./resources/js/components/views/settings/index.vue"));
+    return Promise.all(/*! import() */[__webpack_require__.e(7), __webpack_require__.e(9)]).then(__webpack_require__.bind(null, /*! ./components/views/settings */ "./resources/js/components/views/settings/index.vue"));
   },
   children: [{
     path: 'general',
     component: function component() {
-      return Promise.all(/*! import() */[__webpack_require__.e(18), __webpack_require__.e(16)]).then(__webpack_require__.bind(null, /*! ./components/views/settings/General */ "./resources/js/components/views/settings/General.vue"));
+      return Promise.all(/*! import() */[__webpack_require__.e(7), __webpack_require__.e(16)]).then(__webpack_require__.bind(null, /*! ./components/views/settings/General */ "./resources/js/components/views/settings/General.vue"));
     }
   }, {
     path: 'profile',
     component: function component() {
-      return Promise.all(/*! import() */[__webpack_require__.e(18), __webpack_require__.e(1), __webpack_require__.e(7)]).then(__webpack_require__.bind(null, /*! ./components/views/settings/Profile */ "./resources/js/components/views/settings/Profile.vue"));
+      return Promise.all(/*! import() */[__webpack_require__.e(7), __webpack_require__.e(0)]).then(__webpack_require__.bind(null, /*! ./components/views/settings/Profile */ "./resources/js/components/views/settings/Profile.vue"));
     }
   }, {
     path: 'trade-page',
     component: function component() {
-      return Promise.all(/*! import() */[__webpack_require__.e(18), __webpack_require__.e(8)]).then(__webpack_require__.bind(null, /*! ./components/views/settings/TradePage */ "./resources/js/components/views/settings/TradePage.vue"));
+      return Promise.all(/*! import() */[__webpack_require__.e(7), __webpack_require__.e(8)]).then(__webpack_require__.bind(null, /*! ./components/views/settings/TradePage */ "./resources/js/components/views/settings/TradePage.vue"));
     }
   }, {
     path: 'bet-slip',
     component: function component() {
-      return Promise.all(/*! import() */[__webpack_require__.e(18), __webpack_require__.e(4)]).then(__webpack_require__.bind(null, /*! ./components/views/settings/BetSlip */ "./resources/js/components/views/settings/BetSlip.vue"));
+      return Promise.all(/*! import() */[__webpack_require__.e(7), __webpack_require__.e(4)]).then(__webpack_require__.bind(null, /*! ./components/views/settings/BetSlip */ "./resources/js/components/views/settings/BetSlip.vue"));
     }
   }, {
     path: 'bookies',
     component: function component() {
-      return Promise.all(/*! import() */[__webpack_require__.e(18), __webpack_require__.e(5)]).then(__webpack_require__.bind(null, /*! ./components/views/settings/Bookies */ "./resources/js/components/views/settings/Bookies.vue"));
+      return Promise.all(/*! import() */[__webpack_require__.e(7), __webpack_require__.e(5)]).then(__webpack_require__.bind(null, /*! ./components/views/settings/Bookies */ "./resources/js/components/views/settings/Bookies.vue"));
     }
   }, {
     path: 'bet-columns',
     component: function component() {
-      return Promise.all(/*! import() */[__webpack_require__.e(18), __webpack_require__.e(3)]).then(__webpack_require__.bind(null, /*! ./components/views/settings/BetColumns */ "./resources/js/components/views/settings/BetColumns.vue"));
+      return Promise.all(/*! import() */[__webpack_require__.e(7), __webpack_require__.e(3)]).then(__webpack_require__.bind(null, /*! ./components/views/settings/BetColumns */ "./resources/js/components/views/settings/BetColumns.vue"));
     }
   }, {
     path: 'notifications-and-sounds',
     component: function component() {
-      return Promise.all(/*! import() */[__webpack_require__.e(18), __webpack_require__.e(6)]).then(__webpack_require__.bind(null, /*! ./components/views/settings/NotificationsAndSounds */ "./resources/js/components/views/settings/NotificationsAndSounds.vue"));
+      return Promise.all(/*! import() */[__webpack_require__.e(7), __webpack_require__.e(6)]).then(__webpack_require__.bind(null, /*! ./components/views/settings/NotificationsAndSounds */ "./resources/js/components/views/settings/NotificationsAndSounds.vue"));
     }
   }]
 }];
@@ -43079,6 +43079,12 @@ var store = new vuex__WEBPACK_IMPORTED_MODULE_1__["default"].Store({
     },
     SET_USER_CONFIG: function SET_USER_CONFIG(state, data) {
       state.userConfig = data;
+    },
+    SET_DEFAULT_LANGUAGE: function SET_DEFAULT_LANGUAGE(state, data) {
+      state.userConfig.language.language = data;
+    },
+    SET_NAME: function SET_NAME(state, data) {
+      state.authUser.firstname = data;
     }
   },
   actions: {

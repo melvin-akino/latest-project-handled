@@ -12,7 +12,7 @@
             </div>
             <div class="flex justify-end items-center w-5/12 mr-16"  v-if="$store.state.isAuthenticated">
                 <a class="text-gray-700 text-sm uppercase ml-5" href="#" role="button">
-                    {{$store.state.authUser.name}}
+                    {{$store.state.authUser.firstname}}
                 </a>
                 <a class="text-gray-700 text-sm uppercase ml-5 mr-5" href="#" role="button" @click="logout">Logout</a>
             </div>
