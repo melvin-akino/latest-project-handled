@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Exceptions\ServerException;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 
@@ -63,8 +64,7 @@ class UserProviderConfiguration extends Model
             return true;
         } catch (Exception $e) {
             DB::rollBack();
-
-            return false;
+            throw new ServerException(trans('generic.db-transaction-error'));
         }
     }
 
