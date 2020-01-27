@@ -12,4 +12,5 @@ npm-debug.log
 yarn-error.log
 /public/js/*.bundle.js
 /public/js/app.js
+/public/css/app.css
 .idea
