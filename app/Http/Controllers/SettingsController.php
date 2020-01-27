@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Exceptions\ServerException;
+use Throwable;
 use App\Http\Requests\SettingsRequests;
 
 use App\Models\{ UserConfiguration, UserProviderConfiguration, UserSportOddConfiguration };
@@ -19,13 +20,13 @@ class SettingsController extends Controller
     {
         try {
             if (in_array($type, $this->userConfig)) {
-                $response = UserConfiguration::saveSettings($type, $request->all());
+                UserConfiguration::saveSettings($type, $request->all());
             } else if (in_array($type, $this->provConfig)) {
-                $response = UserProviderConfiguration::saveSettings($request->all());
+                UserProviderConfiguration::saveSettings($request->all());
             } else if (in_array($type, $this->oddsConfig)) {
-                $response = UserSportOddConfiguration::saveSettings($request->all());
+                UserSportOddConfiguration::saveSettings($request->all());
             } else if ($type == 'profile') {
-                $response = User::find(auth()->user()->id)
+                User::find(auth()->user()->id)
                     ->update([
                         'firstname'             => $request->firstname,
                         'lastname'              => $request->lastname,
@@ -52,7 +53,7 @@ class SettingsController extends Controller
                     ]);
                 }
             } else if ($type == 'reset') {
-                $response = $this->resetSettings();
+                $this->resetSettings();
             } else {
                 return response()->json([
                     'status'        => false,
@@ -61,16 +62,12 @@ class SettingsController extends Controller
                 ], 404);
             }
 
-            if (!$response) {
-                throw new ServerException("DB Transaction error");
-            }
-
             return response()->json([
                 'status'        => true,
                 'status_code'   => 200,
                 'message'       => trans('notifications.save.success'),
             ], 200);
-        } catch (ServerException $e) {
+        } catch (Throwable $e) {
             return response()->json([
                 'status'        => false,
                 'status_code'   => 500,
@@ -80,19 +77,15 @@ class SettingsController extends Controller
     }
 
     /** CONFIRM APPROACH */
-    protected function resetSettings()
+    protected function resetSettings(): bool
     {
-        try {
-            foreach ($this->userConfig AS $config) {
-                UserConfiguration::saveSettings($config, config('default_config.' . $config));
-            }
-
-            UserProviderConfiguration::saveSettings(config('default_config.bookies.disabled_bookies'));
-            UserSportOddConfiguration::saveSettings(config('default_config.bet-columns.disabled_columns'));
-
-            return true;
-        } catch (ServerException $e) {
-            return false;
+        foreach ($this->userConfig AS $config) {
+            UserConfiguration::saveSettings($config, config('default_config.' . $config));
         }
+
+        UserProviderConfiguration::saveSettings(config('default_config.bookies.disabled_bookies'));
+        UserSportOddConfiguration::saveSettings(config('default_config.bet-columns.disabled_columns'));
+
+        return true;
     }
 }

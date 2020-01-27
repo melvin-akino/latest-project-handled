@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Exceptions\ServerException;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
 
@@ -118,7 +119,7 @@ class UserConfiguration extends Model
         } catch (Exception $e) {
             DB::rollBack();
 
-            return false;
+            throw new ServerException(trans('generic.db-transaction-error'));
         }
     }
 }
