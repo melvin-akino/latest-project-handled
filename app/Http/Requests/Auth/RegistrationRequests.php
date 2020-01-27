@@ -36,10 +36,9 @@ class RegistrationRequests extends FormRequest
             'password'                     => 'required|confirmed|min:6|max:32',
             'password_confirmation'        => 'required|same:password|min:6|max:32',
             'postcode'                     => 'required|string|regex:/^[0-9]{3,7}$/|between:3,6',
-            'phone_country_code'           => 'required|numeric', // Additional validation: `phone_country_code`  must exist from `phone_country_code`  table
-            'country'                      => 'required|numeric', // Additional validation: `country`             must exist from `country`             table
-            'state'                        => 'required|numeric', // Additional validation: `state`               must exist from `state`               table
-            'city'                         => 'required|numeric', // Additional validation: `city`                must exist from `city`                table
+            'country_id'                   => 'required|numeric|exists:countries,id',
+            'state_id'                     => 'required|numeric|exists:states,id',
+            'city_id'                      => 'required|numeric|exists:cities,id',
             'currency_id'                  => 'required|numeric', // Additional validation: `currency_id`         must exist from `currency`            table
             'odds_type'                    => 'required|numeric', // Additional validation: `odds_type`           must exist from `odds_type`           table
             'address'                      => 'required',
