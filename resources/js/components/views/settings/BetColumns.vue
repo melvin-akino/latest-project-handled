@@ -18,7 +18,7 @@
             </div>
             <div v-for="groupedBySportsBetColumns in groupedBySportsBetColumns.soccer" :key="groupedBySportsBetColumns">{{groupedBySportsBetColumns}}</div>
             <div class="mt-4">
-                <button type="submit" class="bg-orange-500 hover:bg-orange-600 text-white text-sm uppercase px-12 py-4">Save Changes</button>
+                <button type="submit" class="bg-orange-500 hover:bg-orange-600 text-white text-sm uppercase px-4 py-2">Save Changes</button>
             </div>
         </form>
     </div>

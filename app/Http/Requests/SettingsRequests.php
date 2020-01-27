@@ -40,7 +40,7 @@ class SettingsRequests extends FormRequest
         } else if ($type == 'profile') {
             return [
                 'firstname'                 => 'required|string|max:32',
-                'lastname'                  => 'required|string:max:32',
+                'lastname'                  => 'required|string|max:32',
                 'address'                   => 'required',
                 'postcode'                  => 'required|string|regex:/^[0-9]{3,7}$/|between:3,7',
                 'phone_country_code'        => 'required|numeric', // Additional validation: `phone_country_code`  must exist from `phone_country_code`  table

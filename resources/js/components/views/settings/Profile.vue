@@ -3,50 +3,38 @@
         <form @submit.prevent="saveChanges">
             <div class="mb-6 flex">
                 <div class="w-1/2 mr-6">
-                    <label class="block capitalize text-gray-700 text-sm">Username</label>
-                    <input type="text" id="name" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 text-sm leading-tight focus:outline-none" :value="$store.state.authUser.name" disabled>
-                </div>
-                <div class="w-1/2">
-                    <label class="block capitalize text-gray-700 text-sm">Email</label>
-                    <input type="text" id="email" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 text-sm leading-tight focus:outline-none" :value="$store.state.authUser.email" disabled>
-                </div>
-            </div>
-            <div class="mb-6 flex">
-                <div class="w-1/2 mr-6">
                     <label class="block capitalize text-gray-700 text-sm">First Name</label>
-                    <input type="text" id="firstName" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 text-sm leading-tight focus:outline-none" :class="{'border-red-600': $v.profileSettingsForm.firstname.$error}" v-model="$v.profileSettingsForm.firstname.$model">
-                    <span v-if="$v.profileSettingsForm.firstname.$dirty && !$v.profileSettingsForm.firstname.required" class="text-xs text-red-600">Please type your first name.</span>
+                    <input type="text" id="firstname" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 text-sm leading-tight focus:outline-none" :class="{'border-red-600': profileSettingsFormError.hasOwnProperty('firstname')}" v-model="profileSettingsForm.firstname">
+                    <span v-if="profileSettingsFormError.hasOwnProperty('firstname')" class="text-xs text-red-600">{{profileSettingsFormError.firstname[0]}}</span>
                 </div>
-                <div class="w-1/2">
+                <div class="w-1/2 mr-6">
                     <label class="block capitalize text-gray-700 text-sm">Last Name</label>
-                    <input type="text" id="lastname" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 text-sm leading-tight focus:outline-none" :class="{'border-red-600': $v.profileSettingsForm.lastname.$error}" v-model="$v.profileSettingsForm.lastname.$model">
-                    <span v-if="$v.profileSettingsForm.lastname.$dirty && !$v.profileSettingsForm.lastname.required" class="text-xs text-red-600">Please type your last name.</span>
+                    <input type="text" id="lastname" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 text-sm leading-tight focus:outline-none" :class="{'border-red-600': profileSettingsFormError.hasOwnProperty('lastname')}" v-model="profileSettingsForm.lastname">
+                    <span v-if="profileSettingsFormError.hasOwnProperty('lastname')" class="text-xs text-red-600">{{profileSettingsFormError.lastname[0]}}</span>
                 </div>
             </div>
             <div class="mb-6">
                 <label class="block capitalize text-gray-700 text-sm">Address</label>
-                <textarea class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 text-sm leading-tight focus:outline-none" :class="{'border-red-600': $v.profileSettingsForm.address.$error}" id="address" v-model="$v.profileSettingsForm.address.$model"></textarea>
-                <span v-if="$v.profileSettingsForm.address.$dirty && !$v.profileSettingsForm.address.required" class="text-xs text-red-600">Address is required.</span>
+                <textarea class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 text-sm leading-tight focus:outline-none" :class="{'border-red-600': profileSettingsFormError.hasOwnProperty('address')}" id="address" v-model="profileSettingsForm.address"></textarea>
+                <span v-if="profileSettingsFormError.hasOwnProperty('address')" class="text-xs text-red-600">{{profileSettingsFormError.address[0]}}</span>
             </div>
             <div class="mb-6 flex">
                 <div class="w-1/3 mr-6">
                     <label class="block capitalize text-gray-700 text-sm">Country</label>
                     <div class="relative">
-                        <select class="shadow appearance-none border w-full rounded py-2 px-3 text-gray-700 text-sm leading-tight focus:outline-none" :class="{'border-red-600': $v.profileSettingsForm.country.$error}" id="country" v-model="$v.profileSettingsForm.country.$model" @change="resetStateAndCity">
-                            <option :value="null" disabled>Select Country</option>
+                        <select class="shadow appearance-none border w-full rounded py-2 px-3 text-gray-700 text-sm leading-tight focus:outline-none" :class="{'border-red-600': profileSettingsFormError.hasOwnProperty('country')}" id="country" v-model="profileSettingsForm.country">
                             <option v-for="country in countries" :key="country.id" :value="country.id" :selected="country.id === profileSettingsForm.country">{{country.country}}</option>
                         </select>
                         <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
                             <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
                         </div>
                     </div>
-                    <span v-if="$v.profileSettingsForm.country.$dirty && !$v.profileSettingsForm.country.required" class="text-xs text-red-600">Country is required.</span>
-                    <span v-if="$v.profileSettingsForm.country.$dirty && !$v.profileSettingsForm.country.inCountriesArray" class="text-xs text-red-600">Country is invalid.</span>
+                    <span v-if="profileSettingsFormError.hasOwnProperty('country')" class="text-xs text-red-600">{{profileSettingsFormError.country[0]}}</span>
                 </div>
                 <div class="w-1/3 mr-6">
                     <label class="block capitalize text-gray-700 text-sm">State</label>
                     <div class="relative">
-                        <select class="shadow appearance-none border w-full rounded py-2 px-3 text-gray-700 text-sm leading-tight focus:outline-none" :class="{'border-red-600': $v.profileSettingsForm.state.$error}" id="state" v-model="$v.profileSettingsForm.state.$model">
+                        <select class="shadow appearance-none border w-full rounded py-2 px-3 text-gray-700 text-sm leading-tight focus:outline-none" :class="{'border-red-600': profileSettingsFormError.hasOwnProperty('state')}" id="state" v-model="profileSettingsForm.state">
                             <option :value="null" disabled>Select State</option>
                             <option v-for="state in statesDropdown" :key="state.id" :value="state.id" :selected="state.id === profileSettingsForm.state">{{state.state}}</option>
                         </select>
@@ -54,63 +42,56 @@
                             <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
                         </div>
                     </div>
-                    <span v-if="$v.profileSettingsForm.state.$dirty && !$v.profileSettingsForm.state.required" class="text-xs text-red-600">State is required.</span>
-                    <span v-if="$v.profileSettingsForm.state.$dirty && !$v.profileSettingsForm.state.inStatesArray" class="text-xs text-red-600">State is invalid.</span>
+                    <span v-if="profileSettingsFormError.hasOwnProperty('state')" class="text-xs text-red-600">{{profileSettingsFormError.state[0]}}</span>
                 </div>
                 <div class="w-1/3">
                     <label class="block capitalize text-gray-700 text-sm">City</label>
                     <div class="relative">
-                        <select class="shadow appearance-none border w-full rounded py-2 px-3 text-gray-700 text-sm leading-tight focus:outline-none" :class="{'border-red-600': $v.profileSettingsForm.city.$error}" id="city" v-model="$v.profileSettingsForm.city.$model">
-                            <option :value="null" disabled>Select City</option>
+                        <select class="shadow appearance-none border w-full rounded py-2 px-3 text-gray-700 text-sm leading-tight focus:outline-none" :class="{'border-red-600': profileSettingsFormError.hasOwnProperty('city')}" id="city" v-model="profileSettingsForm.city">
+                            <option :value="null">Select City</option>
                             <option v-for="city in citiesDropdown" :key="city.id" :value="city.id" :selected="city.id === profileSettingsForm.city">{{city.city}}</option>
                         </select>
                         <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
                             <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
                         </div>
                     </div>
-                    <span v-if="$v.profileSettingsForm.city.$dirty && !$v.profileSettingsForm.city.required" class="text-xs text-red-600">City is required.</span>
-                    <span v-if="$v.profileSettingsForm.city.$dirty && !$v.profileSettingsForm.city.inCitiesArray" class="text-xs text-red-600">City is invalid.</span>
+                    <span v-if="profileSettingsFormError.hasOwnProperty('city')" class="text-xs text-red-600">{{profileSettingsFormError.city[0]}}</span>
                 </div>
             </div>
             <div class="mb-6 flex">
                 <div class="w-1/3 mr-6">
                     <label class="block capitalize text-gray-700 text-sm">Post Code</label>
-                    <input type="text" class="shadow appearance-none border w-full rounded py-2 px-3 text-gray-700 text-sm leading-tight focus:outline-none" :class="{'border-red-600': $v.profileSettingsForm.postcode.$error}" id="postcode" v-model="$v.profileSettingsForm.postcode.$model">
-                    <span v-if="$v.profileSettingsForm.postcode.$dirty && !$v.profileSettingsForm.postcode.required" class="text-xs text-red-600">Postcode is required.</span>
-                    <span v-if="$v.profileSettingsForm.postcode.$dirty && !$v.profileSettingsForm.postcode.numeric" class="text-xs text-red-600">Postcode should be numeric.</span>
+                    <input type="text" class="shadow appearance-none border w-full rounded py-2 px-3 text-gray-700 text-sm leading-tight focus:outline-none" :class="{'border-red-600': profileSettingsFormError.hasOwnProperty('postcode')}" id="postcode" v-model="profileSettingsForm.postcode">
+                    <span v-if="profileSettingsFormError.hasOwnProperty('postcode')" class="text-xs text-red-600">{{profileSettingsFormError.postcode[0]}}</span>
                 </div>
                 <div class="w-1/3 mr-6">
                     <label class="block capitalize text-gray-700 text-sm">Phone Country Code</label>
-                    <input type="text" class="shadow appearance-none border w-full rounded py-2 px-3 text-gray-700 text-sm leading-tight focus:outline-none" :class="{'border-red-600': $v.profileSettingsForm.phone_country_code.$error}" id="phone_country_code" v-model="$v.profileSettingsForm.phone_country_code.$model">
-                    <span v-if="$v.profileSettingsForm.phone_country_code.$dirty && !$v.profileSettingsForm.phone_country_code.required" class="text-xs text-red-600">Phone country code is required.</span>
-                    <span v-if="$v.profileSettingsForm.phone_country_code.$dirty && !$v.profileSettingsForm.phone_country_code.numeric" class="text-xs text-red-600">Phone country code should be numeric.</span>
+                    <input type="text" class="shadow appearance-none border w-full rounded py-2 px-3 text-gray-700 text-sm leading-tight focus:outline-none" :class="{'border-red-600': profileSettingsFormError.hasOwnProperty('phone_country_code')}" id="phone_country_code" v-model="profileSettingsForm.phone_country_code" disabled>
+                    <span v-if="profileSettingsFormError.hasOwnProperty('phone_country_code')" class="text-xs text-red-600">{{profileSettingsFormError.phone_country_code[0]}}</span>
                 </div>
                 <div class="w-1/3">
                     <label class="block capitalize text-gray-700 text-sm">Phone</label>
-                    <input type="text" class="shadow appearance-none border w-full rounded py-2 px-3 text-gray-700 text-sm leading-tight focus:outline-none" :class="{'border-red-600': $v.profileSettingsForm.phone.$error}" id="phone" v-model="$v.profileSettingsForm.phone.$model">
-                    <span v-if="$v.profileSettingsForm.phone.$dirty && !$v.profileSettingsForm.phone.required" class="text-xs text-red-600">Phone is required.</span>
-                    <span v-if="$v.profileSettingsForm.phone.$dirty && !$v.profileSettingsForm.phone.numeric" class="text-xs text-red-600">Phone should be numeric.</span>
+                    <input type="text" class="shadow appearance-none border w-full rounded py-2 px-3 text-gray-700 text-sm leading-tight focus:outline-none" :class="{'border-red-600': profileSettingsFormError.hasOwnProperty('phone')}" id="phone" v-model="profileSettingsForm.phone">
+                    <span v-if="profileSettingsFormError.hasOwnProperty('phone')" class="text-xs text-red-600">{{profileSettingsFormError.phone[0]}}</span>
                 </div>
             </div>
             <div class="mb-6 flex">
                 <div class="w-1/3 mr-6">
                     <label class="block capitalize text-gray-700 text-sm">Currency</label>
                     <div class="relative">
-                        <select class="shadow appearance-none border w-full rounded py-2 px-3 text-gray-700 text-sm leading-tight focus:outline-none" :class="{'border-red-600': $v.profileSettingsForm.currency_id.$error}" id="currency_id" v-model="$v.profileSettingsForm.currency_id.$model">
-                            <option :value="null" disabled>Select Currency</option>
+                        <select class="shadow appearance-none border w-full rounded py-2 px-3 text-gray-700 text-sm leading-tight focus:outline-none" :class="{'border-red-600': profileSettingsFormError.hasOwnProperty('currency_id')}" id="currency_id" v-model="profileSettingsForm.currency_id">
                             <option v-for="currency in currencies" :key="currency.id" :value="currency.id" :selected="currency.id === profileSettingsForm.currency_id">{{currency.currency}}</option>
                         </select>
                         <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
                             <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
                         </div>
                     </div>
-                    <span v-if="$v.profileSettingsForm.currency_id.$dirty && !$v.profileSettingsForm.currency_id.required" class="text-xs text-red-600">Currency is required.</span>
-                    <span v-if="$v.profileSettingsForm.currency_id.$dirty && !$v.profileSettingsForm.currency_id.inCurrenciesArray" class="text-xs text-red-600">Currency is invalid.</span>
+                    <span v-if="profileSettingsFormError.hasOwnProperty('currency_id')" class="text-xs text-red-600">{{profileSettingsFormError.currency_id[0]}}</span>
                 </div>
                 <div class="w-2/3 mr-6"></div>
             </div>
             <div class="mt-4">
-                <button type="submit" class="bg-orange-500 hover:bg-orange-600 text-white text-sm uppercase px-12 py-4">Save Changes</button>
+                <button type="submit" class="bg-orange-500 hover:bg-orange-600 text-white text-sm uppercase px-4 py-2">Save Changes</button>
             </div>
         </form>
         <hr class="mt-12">
@@ -119,30 +100,26 @@
             <div class="mb-6">
                 <div class="w-1/3">
                     <label class="block capitalize text-gray-700 text-sm">Current Password</label>
-                    <input type="password" class="shadow appearance-none border w-full rounded py-2 px-3 text-gray-700 text-sm leading-tight focus:outline-none" :class="{'border-red-600': $v.changePasswordForm.current_password.$error}" id="current_password" v-model="$v.changePasswordForm.current_password.$model">
-                    <span v-if="$v.changePasswordForm.current_password.$dirty && !$v.changePasswordForm.current_password.required" class="text-xs text-red-600">Please type your password.</span>
-                    <span v-if="$v.changePasswordForm.current_password.$dirty && !$v.changePasswordForm.current_password.minLength" class="text-xs text-red-600">Password should have a minimum of 6 characters.</span>
-                    <span v-if="$v.changePasswordForm.current_password.$dirty && !$v.changePasswordForm.current_password.maxLength" class="text-xs text-red-600">Password should not exceed 32 characters.</span>
+                    <input type="password" class="shadow appearance-none border w-full rounded py-2 px-3 text-gray-700 text-sm leading-tight focus:outline-none" :class="{'border-red-600': profileSettingsFormError.hasOwnProperty('old_password')}" id="old_password" v-model="changePasswordForm.old_password">
+                    <span v-if="profileSettingsFormError.hasOwnProperty('old_password')" class="text-xs text-red-600">{{profileSettingsFormError.old_password[0]}}</span>
                 </div>
             </div>
             <div class="mb-6">
                 <div class="w-1/3">
                     <label class="block capitalize text-gray-700 text-sm">New Password</label>
-                    <input type="password" class="shadow appearance-none border w-full rounded py-2 px-3 text-gray-700 text-sm leading-tight focus:outline-none" :class="{'border-red-600': $v.changePasswordForm.new_password.$error}" id="new_password" v-model="$v.changePasswordForm.new_password.$model">
-                    <span v-if="$v.changePasswordForm.new_password.$dirty && !$v.changePasswordForm.new_password.required" class="text-xs text-red-600">Please type a new password.</span>
-                    <span v-if="$v.changePasswordForm.new_password.$dirty && !$v.changePasswordForm.new_password.minLength" class="text-xs text-red-600">Password should have a minimum of 6 characters.</span>
-                    <span v-if="$v.changePasswordForm.new_password.$dirty && !$v.changePasswordForm.new_password.maxLength" class="text-xs text-red-600">Password should not exceed 32 characters.</span>
+                    <input type="password" class="shadow appearance-none border w-full rounded py-2 px-3 text-gray-700 text-sm leading-tight focus:outline-none" :class="{'border-red-600': profileSettingsFormError.hasOwnProperty('password')}" id="password" v-model="changePasswordForm.password">
+                    <span v-if="profileSettingsFormError.hasOwnProperty('password')" class="text-xs text-red-600">{{profileSettingsFormError.password[0]}}</span>
                 </div>
             </div>
             <div class="mb-6">
                 <div class="w-1/3">
                     <label class="block capitalize text-gray-700 text-sm">Confirm New Password</label>
-                    <input type="password" class="shadow appearance-none border w-full rounded py-2 px-3 text-gray-700 text-sm leading-tight focus:outline-none" :class="{'border-red-600': $v.changePasswordForm.confirm_new_password.$error}" id="confirm_new_password" v-model="$v.changePasswordForm.confirm_new_password.$model">
-                    <span v-if="$v.changePasswordForm.confirm_new_password.$dirty && !$v.changePasswordForm.confirm_new_password.sameAs" class="text-xs text-red-600">Passwords do not match.</span>
+                    <input type="password" class="shadow appearance-none border w-full rounded py-2 px-3 text-gray-700 text-sm leading-tight focus:outline-none" :class="{'border-red-600': profileSettingsFormError.hasOwnProperty('password_confirmation')}" id="password_confirmation" v-model="changePasswordForm.password_confirmation">
+                    <span v-if="profileSettingsFormError.hasOwnProperty('password_confirmation')" class="text-xs text-red-600">{{profileSettingsFormError.password_confirmation[0]}}</span>
                 </div>
             </div>
             <div class="mt-4">
-                <button type="submit" class="bg-orange-500 hover:bg-orange-600 text-white text-sm uppercase px-12 py-4">Change Password</button>
+                <button type="submit" class="bg-orange-500 hover:bg-orange-600 text-white text-sm uppercase px-4 py-2">Change Password</button>
             </div>
         </form>
     </div>
@@ -151,20 +128,6 @@
 <script>
 import Cookies from 'js-cookie'
 import Swal from 'sweetalert2'
-import {required, numeric, minLength, maxLength, sameAs} from 'vuelidate/lib/validators'
-//Custom vuelidate validators
-function inCountriesArray(value) {
-    return this.countries.some(country => country.id === value)
-}
-function inStatesArray(value) {
-    return this.states.some(state => state.id === value)
-}
-function inCitiesArray(value) {
-    return this.cities.some(city => city.id === value)
-}
-function inCurrenciesArray(value) {
-    return this.currencies.some(currency => currency.id === value)
-}
 
 export default {
     data() {
@@ -182,9 +145,9 @@ export default {
                 currency_id:this.$store.state.authUser.currency_id
             },
             changePasswordForm: {
-                current_password: '',
-                new_password: '',
-                confirm_new_password: ''
+                old_password: '',
+                password: '',
+                password_confirmation: ''
             },
             // mock data these should come from API requests
             countries: [
@@ -205,7 +168,7 @@ export default {
                 { id: 1, currency: 'CNY' },
                 { id: 2, currency: 'USD' }
             ],
-            profileFormSettingsError: []
+            profileSettingsFormError: {}
         }
     },
     computed: {
@@ -223,111 +186,78 @@ export default {
             }
         }
     },
-    validations: {
-        profileSettingsForm: {
-            firstname: { required },
-            lastname: { required },
-            address: { required },
-            country: { required, inCountriesArray },
-            state: { required, inStatesArray },
-            city: { required, inCitiesArray },
-            postcode: { required },
-            phone_country_code: { required, numeric },
-            phone: { required, numeric },
-            currency_id: { required, inCurrenciesArray }
-        },
-        changePasswordForm: {
-            current_password: { required, minLength:minLength(6), maxLength:maxLength(32) },
-            new_password: { required, minLength:minLength(6), maxLength:maxLength(32) },
-            confirm_new_password: { sameAs:sameAs('new_password') }
-        }
-    },
     methods: {
         resetStateAndCity() {
             this.profileSettingsForm.state = null
             this.profileSettingsForm.city = null
         },
         saveChanges() {
-            if (!this.$v.profileSettingsForm.$invalid) {
-                let token = Cookies.get('access_token')
-                let data = {
-                    firstname: this.profileSettingsForm.firstname,
-                    lastname: this.profileSettingsForm.lastname,
-                    address: this.profileSettingsForm.address,
-                    country: this.profileSettingsForm.country,
-                    state: this.profileSettingsForm.state,
-                    city: this.profileSettingsForm.city,
-                    postcode: this.profileSettingsForm.postcode,
-                    phone_country_code: this.profileSettingsForm.phone_country_code,
-                    phone: this.profileSettingsForm.phone,
-                    currency_id: this.profileSettingsForm.currency_id
-                }
+            let token = Cookies.get('access_token')
+            let data = {
+                firstname: this.profileSettingsForm.firstname,
+                lastname: this.profileSettingsForm.lastname,
+                address: this.profileSettingsForm.address,
+                country: this.profileSettingsForm.country,
+                state: this.profileSettingsForm.state,
+                city: this.profileSettingsForm.city,
+                postcode: `${this.profileSettingsForm.postcode}`,
+                phone_country_code: this.profileSettingsForm.phone_country_code,
+                phone: this.profileSettingsForm.phone,
+                currency_id: this.profileSettingsForm.currency_id
+            }
 
-                axios.post('/v1/user/settings/profile', data, { headers: { 'Authorization': `Bearer ${token}` } })
-                .then(response => {
+            axios.post('/v1/user/settings/profile', data, { headers: { 'Authorization': `Bearer ${token}` } })
+            .then(response => {
+                this.profileSettingsFormError = {}
+                this.$store.commit('SET_NAME', this.profileSettingsForm.firstname)
+                Swal.fire({
+                    icon: 'success',
+                    text: response.data.message
+                })
+            })
+            .catch(err => {
+                this.profileSettingsFormError = err.response.data.errors
+                Swal.fire({
+                    icon: 'error',
+                    text: err.response.data.message
+                })
+            })
+        },
+        changePassword() {
+            let token = Cookies.get('access_token')
+            let data = {
+                old_password: this.changePasswordForm.old_password,
+                password: this.changePasswordForm.password,
+                password_confirmation: this.changePasswordForm.password_confirmation
+            }
+
+            axios.post('/v1/user/settings/change-password', data, { headers: { 'Authorization': `Bearer ${token}` } })
+            .then(response => {
+                this.profileSettingsFormError = {}
+                if (response.data.status_code === 400) {
+                    Swal.fire({
+                        icon: 'error',
+                        text: response.data.message
+                    })
+                } else {
                     Swal.fire({
                         icon: 'success',
                         text: response.data.message
                     })
-                })
-                .catch(err => {
-                    this.profileFormSettingsError = []
-                    Object.values(err.response.data.errors).forEach(errorType => {
-                        errorType.forEach(error => {
-                            this.profileFormSettingsError.push(error)
-                        })
+                    .then(() => {
+                        this.changePasswordForm.old_password = ''
+                        this.changePasswordForm.password = ''
+                        this.changePasswordForm.password_confirmation = ''
                     })
-                    Swal.fire({
-                        icon: 'error',
-                        html: this.profileFormSettingsError.join('<br>')
-                    })
-                })
-            } else {
-                Object.keys(this.profileSettingsForm).forEach(field => {
-                    this.$v.profileSettingsForm[field].$touch()
-                })
-            }
-        },
-        changePassword() {
-            if (!this.$v.changePasswordForm.$invalid) {
-                let token = Cookies.get('access_token')
-                let data = {
-                    old_password: this.changePasswordForm.current_password,
-                    password: this.changePasswordForm.new_password,
-                    password_confirmation: this.changePasswordForm.confirm_new_password
                 }
-
-                axios.post('/v1/user/settings/change-password', data, { headers: { 'Authorization': `Bearer ${token}` } })
-                .then(response => {
-                    if (response.data.status_code === 400) {
-                        Swal.fire({
-                            icon: 'error',
-                            text: response.data.message
-                        })
-                    } else {
-                        Swal.fire({
-                            icon: 'success',
-                            text: response.data.message
-                        })
-                    }
+            })
+            .catch(err => {
+                this.profileSettingsFormError = err.response.data.errors
+                Swal.fire({
+                    icon: 'error',
+                    text: err.response.data.message
                 })
-                .catch(err => {
-                    this.profileFormSettingsError = []
-                    Object.values(err.response.data.errors).forEach(errorType => {
-                        errorType.forEach(error => {
-                            this.profileFormSettingsError.push(error)
-                        })
-                    })
-                    Swal.fire({
-                        icon: 'error',
-                        html: this.profileFormSettingsError.join('<br>')
-                    })
-                })
-            } else {
-                Object.keys(this.changePasswordForm).forEach(field => {
-                    this.$v.changePasswordForm[field].$touch()
-                })
-            }
+            })
         }
     }
 }

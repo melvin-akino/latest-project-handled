@@ -66,6 +66,7 @@ export default {
 
             axios.post('/v1/user/settings/language', { language: this.language }, { headers: { 'Authorization': `Bearer ${token}` } })
             .then(response => {
+                this.$store.commit('SET_DEFAULT_LANGUAGE', this.language)
                 Swal.fire({
                     icon: 'success',
                     text: response.data.message
@@ -112,7 +113,9 @@ export default {
                             icon: 'success',
                             text: response.data.message
                         })
-                        location.reload()
+                        .then(() => {
+                            location.reload()
+                        })
                     })
                     .catch(err => {
                         console.log(err)

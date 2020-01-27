@@ -28,12 +28,18 @@ const store = new Vuex.Store({
         },
         SET_USER_CONFIG: (state, data) => {
             state.userConfig = data
+        },
+        SET_DEFAULT_LANGUAGE: (state, data) => {
+            state.userConfig.language.language = data
+        },
+        SET_NAME: (state, data) => {
+            state.authUser.firstname = data
         }
     },
     actions: {
         fetchUserDataAfterReset(context) {
             let token = Cookies.get('access_token')
-            
+
             axios.get('/v1/user', { headers: { 'Authorization': `Bearer ${token}` } })
             .then(response => {
                 context.commit('SET_USER_CONFIG', response.data.configuration)
