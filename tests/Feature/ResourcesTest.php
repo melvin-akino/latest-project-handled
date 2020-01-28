@@ -24,9 +24,23 @@ class ResourcesTest extends TestCase
     }
 
     /** @test */
+    public function statesInvalidRequestTest()
+    {
+        $response = $this->get('/api/v1/states/asd');
+        $response->assertStatus(400);
+    }
+
+    /** @test */
     public function citiesTest()
     {
         $response = $this->get('/api/v1/cities/1');
         $response->assertJson(['status_code' => 200]);
+    }
+
+    /** @test */
+    public function citiesInvalidRequestTest()
+    {
+        $response = $this->get('/api/v1/cities/asd');
+        $response->assertStatus(400);
     }
 }

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\{City, State, Timezones};
+use Throwable;
 use Exception;
 
 class ResourceController extends Controller
@@ -18,10 +19,13 @@ class ResourceController extends Controller
         ]);
     }
 
-    public function getStates(string $countryId)
+    public function getStates($countryId)
     {
         try {
-            $states = State::where('country_id', $countryId)
+            if (!is_numeric($countryId)) {
+                throw new Exception(trans('generic.bad-request'));
+            }
+            $states = State::select('id', 'state_name')->where('country_id', $countryId)
                 ->get();
 
             return response()->json([
@@ -29,19 +33,23 @@ class ResourceController extends Controller
                 'status_code' => 200,
                 'data'        => $states,
             ]);
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             return response()->json([
-                'status'      => true,
+                'status'      => false,
                 'status_code' => 400,
                 'message'     => trans('generic.bad-request'),
-            ]);
+            ], 400);
         }
     }
 
-    public function getCities(string $stateId)
+    public function getCities($stateId)
     {
         try {
-            $cities = City::where('state_id', $stateId)
+            if (!is_numeric($stateId)) {
+                throw new Exception(trans('generic.bad-request'));
+            }
+
+            $cities = City::select('id', 'city_name')->where('state_id', $stateId)
                 ->get();
 
             return response()->json([
@@ -49,12 +57,12 @@ class ResourceController extends Controller
                 'status_code' => 200,
                 'data'        => $cities,
             ]);
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             return response()->json([
-                'status'      => true,
+                'status'      => false,
                 'status_code' => 400,
                 'message'     => trans('generic.bad-request'),
-            ]);
+            ], 400);
         }
     }
 }
