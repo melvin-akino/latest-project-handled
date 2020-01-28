@@ -7,7 +7,7 @@ use Illuminate\Foundation\Testing\{RefreshDatabase, WithFaker};
 use Illuminate\Support\Facades\DB;
 use Laravel\Passport\ClientRepository;
 
-class UserConfigurationTest extends RegistrationTest
+class SportsOddsTest extends RegistrationTest
 {
     use RefreshDatabase, WithFaker;
 
@@ -16,7 +16,7 @@ class UserConfigurationTest extends RegistrationTest
     {
         $this->initialUser();
 
-        $response = $this->get('/api/v1/user/configuration/odds', [
+        $response = $this->get('/api/v1/sports/odds', [
             'Authorization' => 'Bearer ' . $this->loginJsonResponse->access_token
         ]);
 
@@ -28,9 +28,7 @@ class UserConfigurationTest extends RegistrationTest
     {
         $this->initialUser();
 
-        $response = $this->get('/api/v1/user/configuration/odds', [
-            'Content-Type'     => 'application/json',
-            'X-Requested-With' => 'XMLHttpRequest',
+        $response = $this->get('/api/v1/sports/odds', [
             'Authorization'    => 'Bearer ' . $this->faker->text(100)
         ]);
 
