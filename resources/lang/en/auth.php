@@ -16,6 +16,7 @@ return [
     'failed'            => 'These credentials do not match our records.',
     'login'             => [
         '401'           => "Unauthorized.",
+        '451'           => "User Account is Inactive.",
         'success'       => "Login Successful",
     ],
     'logout'            => [

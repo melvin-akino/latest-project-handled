@@ -63,7 +63,8 @@ class AuthController extends Controller
             'phone_country_code'    => $request->phone_country_code,
             'odds_type'             => $request->odds_type,
             'currency_id'           => $request->currency_id,
-            'birthdate'             => $request->birthdate
+            'birthdate'             => $request->birthdate,
+            'status'                => 1
         ]);
 
         $user->save();
@@ -102,8 +103,16 @@ class AuthController extends Controller
                 ], 401);
             }
 
+            if (User::activeUser(auth()->user()->id)->count() == 0) {
+                return response()->json([
+                    'status'      => false,
+                    'status_code' => 451,
+                    'message'     => trans('auth.login.451')
+                ], 451);
+            }
+
             $user = $request->user();
-            $tokenResult = $user->createToken('Personal Access Token');
+            $tokenResult = $user->createToken(env('PASSPORT_TOKEN', 'Multiline Authentication Token'));
             $token = $tokenResult->token;
 
             if ($request->remember_me) {
@@ -169,6 +178,14 @@ class AuthController extends Controller
             ], 404);
         }
 
+        if ($user->status == 0) {
+            return response()->json([
+                'status'      => false,
+                'status_code' => 451,
+                'message'     => trans('auth.login.451')
+            ], 451);
+        }
+
         $passwordReset = PasswordReset::updateOrCreate(
             ['email' => $user->email],
             [
@@ -211,6 +228,14 @@ class AuthController extends Controller
                 'status_code'   => 404,
                 'message'       => trans('auth.password_reset.token.404'),
             ], 404);
+        }
+
+        if (User::where('email', $passwordReset->email)->first()->status == 0) {
+            return response()->json([
+                'status'      => false,
+                'status_code' => 451,
+                'message'     => trans('auth.login.451')
+            ], 451);
         }
 
         if (Carbon::parse($passwordReset->updated_at)->addMinutes(720)->isPast()) {
@@ -267,6 +292,14 @@ class AuthController extends Controller
                 'status_code'   => 404,
                 'message'       => trans('auth.password_reset.email.404'),
             ], 404);
+        }
+
+        if ($user->status == 0) {
+            return response()->json([
+                'status'      => false,
+                'status_code' => 451,
+                'message'     => trans('auth.login.451')
+            ], 451);
         }
 
         $user->password = bcrypt($request->password);

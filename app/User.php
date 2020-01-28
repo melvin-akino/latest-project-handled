@@ -53,4 +53,9 @@ class User extends Authenticatable
     protected $casts = [
         'email_verified_at' => 'datetime',
     ];
+
+    public static function activeUser($userId)
+    {
+        return self::find($userId)->where('status', 1);
+    }
 }
