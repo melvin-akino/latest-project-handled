@@ -6,7 +6,7 @@ use App\Exceptions\ServerException;
 use Throwable;
 use App\Http\Requests\SettingsRequests;
 
-use App\Models\{ UserConfiguration, UserProviderConfiguration, UserSportOddConfiguration };
+use App\Models\{UserConfiguration, UserProviderConfiguration, UserSportOddConfiguration};
 use App\User;
 use Hash;
 
@@ -67,6 +67,31 @@ class SettingsController extends Controller
                 'status_code'   => 200,
                 'message'       => trans('notifications.save.success'),
             ], 200);
+        } catch (Throwable $e) {
+            return response()->json([
+                'status'        => false,
+                'status_code'   => 500,
+                'message'       => trans('generic.internal-server-error')
+            ], 500);
+        }
+    }
+
+    public function getSettings(string $type)
+    {
+        try {
+            $settings[$type] = config('default_config.' . $type);
+
+            if (in_array($type, ['general', 'trade-page', 'bet-slip', 'notifications-and-sounds', 'language'])) {
+                $settings = UserConfiguration::getUserConfigByMenu(auth()->user()->id, $type, $settings);
+            } else {
+                $settings = UserConfiguration::getUserConfigBookiesAndBetColumns($settings);
+            }
+
+            return response()->json([
+                'status'      => true,
+                'status_code' => 200,
+                'data'        => $settings[$type],
+            ]);
         } catch (Throwable $e) {
             return response()->json([
                 'status'        => false,

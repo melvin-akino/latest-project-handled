@@ -5,5 +5,6 @@ return [
     'forbidden'             => 'Forbidden',
     'method-not-allowed'    => 'Method Not Allowed',
     'unauthorized'          => 'Unauthorized',
-    'db-transaction-error'  => 'DB Transaction error'
+    'db-transaction-error'  => 'DB Transaction error',
+    'not-found'             => 'Not Found'
 ];
