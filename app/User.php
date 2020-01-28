@@ -54,8 +54,8 @@ class User extends Authenticatable
         'email_verified_at' => 'datetime',
     ];
 
-    public static function activeUser($user_id)
+    public static function activeUser($userId)
     {
-        return self::find($user_id)->where('status', 1);
+        return self::find($userId)->where('status', 1);
     }
 }
