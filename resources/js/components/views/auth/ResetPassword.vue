@@ -13,6 +13,7 @@
                     <input id="password" type="password" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none" v-model="$v.resetPasswordForm.password.$model" @keyup="clearPasswordResetFormError">
                     <span v-if="$v.resetPasswordForm.password.$dirty && !$v.resetPasswordForm.password.required" class="text-red-600 text-sm">Please type a new password.</span>
                     <span v-if="$v.resetPasswordForm.password.$dirty && !$v.resetPasswordForm.password.minLength" class="text-red-600 text-sm">Password must have a minimum of 6 characters.</span>
+                    <span v-if="$v.resetPasswordForm.password.$dirty && !$v.resetPasswordForm.password.maxLength" class="text-red-600 text-sm">Password must have a maximum of 32 characters.</span>
                 </div>
 
                 <div class="mb-4">
@@ -62,7 +63,7 @@ export default {
     },
     validations: {
         resetPasswordForm: {
-            password: { required, minLength:minLength(6) },
+            password: { required, minLength:minLength(6), maxLength:maxLength(32) },
             password_confirmation: { sameAs:sameAs('password') }
         }
     },
