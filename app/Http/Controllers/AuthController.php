@@ -108,7 +108,7 @@ class AuthController extends Controller
                     'status'      => false,
                     'status_code' => 451,
                     'message'     => trans('auth.login.451')
-                ]);
+                ], 451);
             }
 
             $user = $request->user();
@@ -183,7 +183,7 @@ class AuthController extends Controller
                 'status'      => false,
                 'status_code' => 451,
                 'message'     => trans('auth.login.451')
-            ]);
+            ], 451);
         }
 
         $passwordReset = PasswordReset::updateOrCreate(
@@ -235,7 +235,7 @@ class AuthController extends Controller
                 'status'      => false,
                 'status_code' => 451,
                 'message'     => trans('auth.login.451')
-            ]);
+            ], 451);
         }
 
         if (Carbon::parse($passwordReset->updated_at)->addMinutes(720)->isPast()) {
@@ -299,7 +299,7 @@ class AuthController extends Controller
                 'status'      => false,
                 'status_code' => 451,
                 'message'     => trans('auth.login.451')
-            ]);
+            ], 451);
         }
 
         $user->password = bcrypt($request->password);
