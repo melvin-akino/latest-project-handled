@@ -6,5 +6,6 @@ return [
     'method-not-allowed'    => 'Method Not Allowed',
     'unauthorized'          => 'Unauthorized',
     'db-transaction-error'  => 'DB Transaction error',
-    'not-found'             => 'Not Found'
+    'not-found'             => 'Not Found',
+    'bad-request'           => 'Bad Request'
 ];
