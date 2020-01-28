@@ -18,18 +18,18 @@ class CRMCurrencySeeder extends Seeder
     {
         $currency = [
             [
-                'id'     => 1,
-                'name'   => "Chinese Yuan",
-                'code'   => "CNY",
-                'symbol' => "CNY",
+                'id'         => 1,
+                'name'       => "Chinese Yuan",
+                'code'       => "CNY",
+                'symbol'     => "¥",
                 'created_at' => Carbon::now(),
                 'updated_at' => Carbon::now()
             ],
             [
-                'id'     => 2,
-                'name'   => "US Dollar",
-                'code'   => "USD",
-                'symbol' => "$",
+                'id'         => 2,
+                'name'       => "US Dollar",
+                'code'       => "USD",
+                'symbol'     => "$",
                 'created_at' => Carbon::now(),
                 'updated_at' => Carbon::now()
             ]
