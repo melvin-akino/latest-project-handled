@@ -42,7 +42,7 @@ class SettingsRequests extends FormRequest
                 'firstname'                 => 'required|string|max:32',
                 'lastname'                  => 'required|string|max:32',
                 'address'                   => 'required',
-                'postcode'                  => 'required|string|regex:/^[0-9]{3,7}$/|between:3,7',
+                'postcode'                  => 'required|string|regex:/^[0-9]{3,7}$/|between:3,6',
                 'country_id'                => 'required|numeric|exists:countries,id',
                 'state_id'                  => 'required|numeric|exists:states,id',
                 'city_id'                   => 'required|numeric|exists:cities,id',

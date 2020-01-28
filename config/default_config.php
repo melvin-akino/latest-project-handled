@@ -37,5 +37,7 @@ return [
         'event_sounds'              => '0',
         'order_sounds'              => '0',
     ],
-    'language'                      => 1
+    'language'                      => [
+        'language'                  => 1
+    ]
 ];
