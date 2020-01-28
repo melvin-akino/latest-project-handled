@@ -105,9 +105,9 @@ class AuthController extends Controller
 
             if (User::activeUser(auth()->user()->id)->count() == 0) {
                 return response()->json([
-                    'status' => false,
+                    'status'      => false,
                     'status_code' => 451,
-                    'message' => trans('auth.login.451')
+                    'message'     => trans('auth.login.451')
                 ]);
             }
 
@@ -180,9 +180,9 @@ class AuthController extends Controller
 
         if ($user->status == 0) {
             return response()->json([
-                'status' => false,
+                'status'      => false,
                 'status_code' => 451,
-                'message' => trans('auth.login.451')
+                'message'     => trans('auth.login.451')
             ]);
         }
 
@@ -232,9 +232,9 @@ class AuthController extends Controller
 
         if (User::where('email', $passwordReset->email)->first()->status == 0) {
             return response()->json([
-                'status' => false,
+                'status'      => false,
                 'status_code' => 451,
-                'message' => trans('auth.login.451')
+                'message'     => trans('auth.login.451')
             ]);
         }
 
@@ -296,9 +296,9 @@ class AuthController extends Controller
 
         if ($user->status == 0) {
             return response()->json([
-                'status' => false,
+                'status'      => false,
                 'status_code' => 451,
-                'message' => trans('auth.login.451')
+                'message'     => trans('auth.login.451')
             ]);
         }
 
