@@ -42,11 +42,10 @@ class SettingsRequests extends FormRequest
                 'firstname'                 => 'required|string|max:32',
                 'lastname'                  => 'required|string|max:32',
                 'address'                   => 'required',
-                'postcode'                  => 'required|string|regex:/^[0-9]{3,7}$/|between:3,7',
-                'phone_country_code'        => 'required|numeric', // Additional validation: `phone_country_code`  must exist from `phone_country_code`  table
-                'country'                   => 'required|numeric', // Additional validation: `country`             must exist from `country`             table
-                'state'                     => 'required|numeric', // Additional validation: `state`               must exist from `state`               table
-                'city'                      => 'required|numeric', // Additional validation: `city`                must exist from `city`                table
+                'postcode'                  => 'required|string|regex:/^[0-9]{3,7}$/|between:3,6',
+                'country_id'                => 'required|numeric|exists:countries,id',
+                'state_id'                  => 'required|numeric|exists:states,id',
+                'city_id'                   => 'required|numeric|exists:cities,id',
                 'currency_id'               => 'required|numeric', // Additional validation: `currency_id`         must exist from `currency`            table
                 'phone'                     => 'required',
             ];
@@ -147,7 +146,11 @@ class SettingsRequests extends FormRequest
     public function messages()
     {
         return [
-            //
+            'password.min'                 => trans('validation.custom.password.min', ['count' => 6]),
+            'password_confirmation.min'    => trans('validation.custom.password_confirmation.min', ['count' => 6]),
+            'password.max'                 => trans('validation.custom.password.max', ['count' => 32]),
+            'password_confirmation.max'    => trans('validation.custom.password_confirmation.max', ['count' => 32]),
+            'password_confirmation.same'   => trans('validation.custom.password_confirmation.same'),
         ];
     }
 
