@@ -15,6 +15,7 @@ class CreateTableCities extends Migration
      */
     public function up()
     {
+        ini_set('memory_limit', -1);
         Schema::create($this->tablename, function (Blueprint $table) {
             $table->bigIncrements('id');
             $table->string('city_name');
