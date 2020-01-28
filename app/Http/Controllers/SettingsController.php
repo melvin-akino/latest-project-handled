@@ -78,21 +78,27 @@ class SettingsController extends Controller
 
     public function getSettings(string $type)
     {
-        $settings[$type] = config('default_config.' . $type);
+        try {
+            $settings[$type] = config('default_config.' . $type);
 
-        if (in_array($type, ['general', 'trade-page', 'bet-slip', 'notifications-and-sounds', 'language'])) {
-            $settings = UserConfiguration::getUserConfigByMenu(auth()->user()->id, $type, $settings);
-        } else {
-            $settings = UserConfiguration::getUserConfigBookiesAndBetColumns($settings);
-        }
+            if (in_array($type, ['general', 'trade-page', 'bet-slip', 'notifications-and-sounds', 'language'])) {
+                $settings = UserConfiguration::getUserConfigByMenu(auth()->user()->id, $type, $settings);
+            } else {
+                $settings = UserConfiguration::getUserConfigBookiesAndBetColumns($settings);
+            }
 
-        return response()->json(
-            [
+            return response()->json([
                 'status'      => true,
                 'status_code' => 200,
                 'data'        => $settings[$type],
-            ]
-        );
+            ]);
+        } catch (Throwable $e) {
+            return response()->json([
+                'status'        => false,
+                'status_code'   => 500,
+                'message'       => trans('generic.internal-server-error')
+            ], 500);
+        }
     }
 
     /** CONFIRM APPROACH */
