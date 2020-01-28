@@ -6,7 +6,7 @@ use App\Exceptions\ServerException;
 use Throwable;
 use App\Http\Requests\SettingsRequests;
 
-use App\Models\{Provider, SportOddType, UserConfiguration, UserProviderConfiguration, UserSportOddConfiguration};
+use App\Models\{UserConfiguration, UserProviderConfiguration, UserSportOddConfiguration};
 use App\User;
 use Hash;
 
