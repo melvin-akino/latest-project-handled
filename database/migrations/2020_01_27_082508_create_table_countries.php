@@ -21,6 +21,11 @@ class CreateTableCountries extends Migration
             $table->char('country_code', 3);
             $table->string('phonecode', 10);
             $table->timestamps();
+
+            $table->index([
+                'country_name',
+                'country_code',
+            ]);
         });
 
         Artisan::call('db:seed', [

@@ -25,6 +25,11 @@ class CreateTableStates extends Migration
                 ->references('id')
                 ->on('countries')
                 ->onUpdate('cascade');
+
+            $table->index([
+                'state_name',
+                'country_id',
+            ]);
         });
 
         Artisan::call('db:seed', [
