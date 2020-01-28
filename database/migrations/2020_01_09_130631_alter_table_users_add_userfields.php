@@ -9,9 +9,9 @@ class AlterTableUsersAddUserfields extends Migration
     protected $tablename = "users";
     protected $str = [
         'firstname' => 32,
-        'lastname' => 32,
-        'phone' => 32,
-        'postcode' => 6,
+        'lastname'  => 32,
+        'phone'     => 32,
+        'postcode'  => 6,
     ];
     protected $text = [
         'address',
