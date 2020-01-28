@@ -6557,8 +6557,12 @@ __webpack_require__.r(__webpack_exports__);
 
 /* harmony default export */ __webpack_exports__["default"] = ({
   name: 'App',
+  props: ['settingsData'],
   components: {
     appwrapper: _layouts_appwrapper__WEBPACK_IMPORTED_MODULE_0__["default"]
+  },
+  mounted: function mounted() {
+    this.$store.commit('settings/getSettingsData', this.settingsData);
   }
 });
 
@@ -6618,7 +6622,7 @@ __webpack_require__.r(__webpack_exports__);
       var _this = this;
 
       var token = js_cookie__WEBPACK_IMPORTED_MODULE_2___default.a.get('access_token');
-      axios__WEBPACK_IMPORTED_MODULE_1___default.a.get('/v1/auth/logout', {
+      axios__WEBPACK_IMPORTED_MODULE_1___default.a.post('/v1/auth/logout', {
         headers: {
           'Authorization': "Bearer ".concat(token)
         }
@@ -25513,7 +25517,7 @@ var render = function() {
                     [
                       _vm._v(
                         "\n                " +
-                          _vm._s(_vm.$store.state.authUser.firstname) +
+                          _vm._s(_vm.$store.state.authUser.name) +
                           "\n            "
                       )
                     ]
@@ -42989,42 +42993,42 @@ var routes = [{
 }, {
   path: '/settings',
   component: function component() {
-    return Promise.all(/*! import() */[__webpack_require__.e(7), __webpack_require__.e(9)]).then(__webpack_require__.bind(null, /*! ./components/views/settings */ "./resources/js/components/views/settings/index.vue"));
+    return Promise.all(/*! import() */[__webpack_require__.e(0), __webpack_require__.e(9)]).then(__webpack_require__.bind(null, /*! ./components/views/settings */ "./resources/js/components/views/settings/index.vue"));
   },
   children: [{
     path: 'general',
     component: function component() {
-      return Promise.all(/*! import() */[__webpack_require__.e(7), __webpack_require__.e(16)]).then(__webpack_require__.bind(null, /*! ./components/views/settings/General */ "./resources/js/components/views/settings/General.vue"));
+      return Promise.all(/*! import() */[__webpack_require__.e(0), __webpack_require__.e(16)]).then(__webpack_require__.bind(null, /*! ./components/views/settings/General */ "./resources/js/components/views/settings/General.vue"));
     }
   }, {
     path: 'profile',
     component: function component() {
-      return Promise.all(/*! import() */[__webpack_require__.e(7), __webpack_require__.e(0)]).then(__webpack_require__.bind(null, /*! ./components/views/settings/Profile */ "./resources/js/components/views/settings/Profile.vue"));
+      return Promise.all(/*! import() */[__webpack_require__.e(0), __webpack_require__.e(7)]).then(__webpack_require__.bind(null, /*! ./components/views/settings/Profile */ "./resources/js/components/views/settings/Profile.vue"));
     }
   }, {
     path: 'trade-page',
     component: function component() {
-      return Promise.all(/*! import() */[__webpack_require__.e(7), __webpack_require__.e(8)]).then(__webpack_require__.bind(null, /*! ./components/views/settings/TradePage */ "./resources/js/components/views/settings/TradePage.vue"));
+      return Promise.all(/*! import() */[__webpack_require__.e(0), __webpack_require__.e(8)]).then(__webpack_require__.bind(null, /*! ./components/views/settings/TradePage */ "./resources/js/components/views/settings/TradePage.vue"));
     }
   }, {
     path: 'bet-slip',
     component: function component() {
-      return Promise.all(/*! import() */[__webpack_require__.e(7), __webpack_require__.e(4)]).then(__webpack_require__.bind(null, /*! ./components/views/settings/BetSlip */ "./resources/js/components/views/settings/BetSlip.vue"));
+      return Promise.all(/*! import() */[__webpack_require__.e(0), __webpack_require__.e(4)]).then(__webpack_require__.bind(null, /*! ./components/views/settings/BetSlip */ "./resources/js/components/views/settings/BetSlip.vue"));
     }
   }, {
     path: 'bookies',
     component: function component() {
-      return Promise.all(/*! import() */[__webpack_require__.e(7), __webpack_require__.e(5)]).then(__webpack_require__.bind(null, /*! ./components/views/settings/Bookies */ "./resources/js/components/views/settings/Bookies.vue"));
+      return Promise.all(/*! import() */[__webpack_require__.e(0), __webpack_require__.e(5)]).then(__webpack_require__.bind(null, /*! ./components/views/settings/Bookies */ "./resources/js/components/views/settings/Bookies.vue"));
     }
   }, {
     path: 'bet-columns',
     component: function component() {
-      return Promise.all(/*! import() */[__webpack_require__.e(7), __webpack_require__.e(3)]).then(__webpack_require__.bind(null, /*! ./components/views/settings/BetColumns */ "./resources/js/components/views/settings/BetColumns.vue"));
+      return Promise.all(/*! import() */[__webpack_require__.e(0), __webpack_require__.e(3)]).then(__webpack_require__.bind(null, /*! ./components/views/settings/BetColumns */ "./resources/js/components/views/settings/BetColumns.vue"));
     }
   }, {
     path: 'notifications-and-sounds',
     component: function component() {
-      return Promise.all(/*! import() */[__webpack_require__.e(7), __webpack_require__.e(6)]).then(__webpack_require__.bind(null, /*! ./components/views/settings/NotificationsAndSounds */ "./resources/js/components/views/settings/NotificationsAndSounds.vue"));
+      return Promise.all(/*! import() */[__webpack_require__.e(0), __webpack_require__.e(6)]).then(__webpack_require__.bind(null, /*! ./components/views/settings/NotificationsAndSounds */ "./resources/js/components/views/settings/NotificationsAndSounds.vue"));
     }
   }]
 }];
@@ -43051,9 +43055,11 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var axios__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(axios__WEBPACK_IMPORTED_MODULE_2__);
 /* harmony import */ var js_cookie__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! js-cookie */ "./node_modules/js-cookie/src/js.cookie.js");
 /* harmony import */ var js_cookie__WEBPACK_IMPORTED_MODULE_3___default = /*#__PURE__*/__webpack_require__.n(js_cookie__WEBPACK_IMPORTED_MODULE_3__);
+/* harmony import */ var _settings__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./settings */ "./resources/js/store/settings.js");
 
 
 vue__WEBPACK_IMPORTED_MODULE_0___default.a.use(vuex__WEBPACK_IMPORTED_MODULE_1__["default"]);
+
 
 
 var store = new vuex__WEBPACK_IMPORTED_MODULE_1__["default"].Store({
@@ -43082,9 +43088,6 @@ var store = new vuex__WEBPACK_IMPORTED_MODULE_1__["default"].Store({
     },
     SET_DEFAULT_LANGUAGE: function SET_DEFAULT_LANGUAGE(state, data) {
       state.userConfig.language.language = data;
-    },
-    SET_NAME: function SET_NAME(state, data) {
-      state.authUser.firstname = data;
     }
   },
   actions: {
@@ -43100,9 +43103,43 @@ var store = new vuex__WEBPACK_IMPORTED_MODULE_1__["default"].Store({
         console.log(err);
       });
     }
+  },
+  modules: {
+    settings: _settings__WEBPACK_IMPORTED_MODULE_4__["default"]
   }
 });
 /* harmony default export */ __webpack_exports__["default"] = (store);
+
+/***/ }),
+
+/***/ "./resources/js/store/settings.js":
+/*!****************************************!*\
+  !*** ./resources/js/store/settings.js ***!
+  \****************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var vue__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! vue */ "./node_modules/vue/dist/vue.common.js");
+/* harmony import */ var vue__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(vue__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var vuex__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! vuex */ "./node_modules/vuex/dist/vuex.esm.js");
+
+
+vue__WEBPACK_IMPORTED_MODULE_0___default.a.use(vuex__WEBPACK_IMPORTED_MODULE_1__["default"]);
+var state = {
+  settingsData: {}
+};
+var mutations = {
+  getSettingsData: function getSettingsData(state, data) {
+    state.settingsData = data;
+  }
+};
+/* harmony default export */ __webpack_exports__["default"] = ({
+  state: state,
+  mutations: mutations,
+  namespaced: true
+});
 
 /***/ }),
 

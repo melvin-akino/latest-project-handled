@@ -12,7 +12,7 @@
             </div>
             <div class="flex justify-end items-center w-5/12 mr-16"  v-if="$store.state.isAuthenticated">
                 <a class="text-gray-700 text-sm uppercase ml-5" href="#" role="button">
-                    {{$store.state.authUser.firstname}}
+                    {{$store.state.authUser.name}}
                 </a>
                 <a class="text-gray-700 text-sm uppercase ml-5 mr-5" href="#" role="button" @click="logout">Logout</a>
             </div>
@@ -37,7 +37,7 @@ export default {
     methods: {
         logout() {
             let token = Cookies.get('access_token')
-            axios.get('/v1/auth/logout', { headers: { 'Authorization': `Bearer ${token}` } })
+            axios.post('/v1/auth/logout', { headers: { 'Authorization': `Bearer ${token}` } })
             .then(response => {
                 this.$store.commit('SET_IS_AUTHENTICATED', false)
                 this.$store.commit('SET_AUTH_USER', '')

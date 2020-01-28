@@ -22,7 +22,7 @@
 </head>
 <body class="bg-gray-200">
     <div id="app">
-        <App></App>
+        <App :settings-data="{{json_encode($default_data)}}"></App>
     </div>
 </body>
 </html>

@@ -5,6 +5,8 @@ Vue.use(Vuex)
 import axios from 'axios'
 import Cookies from 'js-cookie'
 
+import settings from './settings'
+
 const store = new Vuex.Store({
     state: {
         isAuthenticated: false,
@@ -31,9 +33,6 @@ const store = new Vuex.Store({
         },
         SET_DEFAULT_LANGUAGE: (state, data) => {
             state.userConfig.language.language = data
-        },
-        SET_NAME: (state, data) => {
-            state.authUser.firstname = data
         }
     },
     actions: {
@@ -48,7 +47,10 @@ const store = new Vuex.Store({
                 console.log(err)
             })
         }
-    }
+    },
+    modules: {
+        settings
+    } 
 })
 
 export default store

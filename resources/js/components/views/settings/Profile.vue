@@ -23,7 +23,7 @@
                     <label class="block capitalize text-gray-700 text-sm">Country</label>
                     <div class="relative">
                         <select class="shadow appearance-none border w-full rounded py-2 px-3 text-gray-700 text-sm leading-tight focus:outline-none" :class="{'border-red-600': profileSettingsFormError.hasOwnProperty('country')}" id="country" v-model="profileSettingsForm.country">
-                            <option v-for="country in countries" :key="country.id" :value="country.id" :selected="country.id === profileSettingsForm.country">{{country.country}}</option>
+                            <option v-for="country in countries" :key="country.id" :value="country.id" :selected="country.id === profileSettingsForm.country">{{country.country_name}}</option>
                         </select>
                         <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
                             <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
@@ -149,26 +149,21 @@ export default {
                 password: '',
                 password_confirmation: ''
             },
-            // mock data these should come from API requests
-            countries: [
-                { id: 1, country: 'Philippines' },
-                { id: 2, country: 'USA' }
-            ],
-            states: [
-                { id: 1, state: 'NCR', country_id: 1 },
-                { id: 2, state: 'California', country_id: 2 }
-            ],
-            cities: [
-                { id: 1, city: 'Pasig City', state_id: 1, country_id: 1 },
-                { id: 2, city: 'Los Angeles', state_id: 2, country_id: 2 },
-                { id: 3, city: 'Makati City', state_id: 1, country_id: 1 },
-                { id: 4, city: 'San Francisco', state_id: 2, country_id: 2 },
-            ],
+            countries: [],
+            states: [],
+            cities: [],
             currencies: [
                 { id: 1, currency: 'CNY' },
                 { id: 2, currency: 'USD' }
             ],
             profileSettingsFormError: {}
+        }
+    },
+    head: {
+        title() {
+            return {
+                inner: 'Settings - Profile'
+            }
         }
     },
     computed: {
@@ -179,12 +174,8 @@ export default {
             return this.cities.filter(city => city.state_id === this.profileSettingsForm.state && city.country_id === this.profileSettingsForm.country)
         }
     },
-    head: {
-        title() {
-            return {
-                inner: 'Settings - Profile'
-            }
-        }
+    mounted() {
+        this.countries = this.$store.state.settings.settingsData.country
     },
     methods: {
         resetStateAndCity() {
@@ -209,7 +200,6 @@ export default {
             axios.post('/v1/user/settings/profile', data, { headers: { 'Authorization': `Bearer ${token}` } })
             .then(response => {
                 this.profileSettingsFormError = {}
-                this.$store.commit('SET_NAME', this.profileSettingsForm.firstname)
                 Swal.fire({
                     icon: 'success',
                     text: response.data.message

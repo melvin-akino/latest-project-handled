@@ -18,7 +18,7 @@
                 <label class="block font-bold capitalize text-gray-700 text-sm mr-5">Select Language</label>
                 <div class="relative w-1/3 mt-4">
                     <select class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 text-sm leading-tight focus:outline-none" @change="changeLanguage" v-model="language">
-                        <option v-for="language in languages" :key="language.id" :value="language.id" :selected="language.id === language">{{language.value}}</option>
+                        <option v-for="language in languages" :key="language.id" :value="language.id">{{language.value}}</option>
                     </select>
                     <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
                         <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
@@ -41,7 +41,7 @@ export default {
     data() {
         return {
             languages: [],
-            language: this.$store.state.userConfig.language.language
+            language: null
         }
     },
     head: {
@@ -58,9 +58,17 @@ export default {
         }
     },
     mounted() {
-        this.languages = this.$store.state.userConfig.language.languages
+        this.getUserLanguage()
+        this.languages = this.$store.state.settings.settingsData.language
     },
     methods: {
+        getUserLanguage() {
+            let token = Cookies.get('access_token')
+
+            axios.get('v1/user/settings/language', { headers: { 'Authorization': `Bearer ${token}` } })
+            .then(response => this.language = response.data.data.language)
+            .catch(err => console.log(err))
+        },
         saveChangedLanguage() {
             let token = Cookies.get('access_token')
 
@@ -89,7 +97,7 @@ export default {
                 if (response.value) {
                     this.saveChangedLanguage()
                 } else {
-                    this.language = this.$store.state.userConfig.language.language
+                    this.getUserLanguage()
                 }
             })
         },

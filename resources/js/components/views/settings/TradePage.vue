@@ -84,13 +84,13 @@ export default {
     data() {
         return {
             tradePageSettingsForm: {
-                suggested: this.$store.state.userConfig['trade-page'].suggested,
-                trade_background: this.$store.state.userConfig['trade-page'].trade_background,
-                hide_comp_names_in_fav: this.$store.state.userConfig['trade-page'].hide_comp_names_in_fav,
-                live_position_values: this.$store.state.userConfig['trade-page'].live_position_values,
-                hide_exchange_only: this.$store.state.userConfig['trade-page'].hide_exchange_only,
-                trade_layout: this.$store.state.userConfig['trade-page'].trade_layout,
-                sort_event: this.$store.state.userConfig['trade-page'].sort_event,
+                suggested: null,
+                trade_background: null,
+                hide_comp_names_in_fav: null,
+                live_position_values: null,
+                hide_exchange_only: null,
+                trade_layout: null,
+                sort_event: null
             },
             tradeLayouts: [],
             sortEvents: []
@@ -104,10 +104,24 @@ export default {
         }
     },
     mounted() {
-        this.tradeLayouts = this.$store.state.userConfig['trade-page'].trade_layouts
-        this.sortEvents = this.$store.state.userConfig['trade-page'].sort_events
+        this.tradeLayouts = this.$store.state.settings.settingsData['trade-layout']
+        this.sortEvents = this.$store.state.settings.settingsData['sort-event']
+        this.getUserConfig()
     },
     methods: {
+        getUserConfig() {
+            let token = Cookies.get('access_token')
+
+            axios.get('v1/user/settings/trade-page', { headers: { 'Authorization': `Bearer ${token}` } })
+            .then(response => {
+                Object.keys(this.tradePageSettingsForm).forEach(field => {
+                    this.tradePageSettingsForm[field] = response.data.data[field]
+                })
+            })
+            .catch(err => {
+                console.log(err)
+            })
+        },
         toggleTradeSettings(isActive, key) {
             if (isActive === '1') {
                 this.tradePageSettingsForm[key] = '0'

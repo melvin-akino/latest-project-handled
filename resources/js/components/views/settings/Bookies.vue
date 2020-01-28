@@ -35,9 +35,16 @@ export default {
     },
     mounted() {
         this.bookies = this.$store.state.userProviders
-        this.disabledBookies = this.$store.state.userConfig.bookies.disabled_bookies
+        this.getUserConfig()
     },
     methods: {
+        getUserConfig() {
+            let token = Cookies.get('access_token')
+
+            axios.get('v1/user/settings/bookies', { headers: { 'Authorization': `Bearer ${token}` }})
+            .then(response => this.disabledBookies = response.data.data.disabled_bookies)
+            .catch(err => console.log(err))
+        },
         saveChanges() {
             let token = Cookies.get('access_token')
             let data = this.bookies.map(bookie => {
