@@ -23,6 +23,7 @@ class UserController extends Controller
                 'status'            => true,
                 'status_code'       => 200,
                 'data'              => $request->user()->only([
+                    'name',
                     'email',
                     'firstname',
                     'lastname',
