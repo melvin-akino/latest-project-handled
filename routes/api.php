@@ -61,7 +61,11 @@ Route::group([
         'prefix'        => 'user',
     ], function () {
         Route::get('/', 'UserController@user');
-        Route::post('settings/{type}', 'SettingsController@postSettings');
+
+        Route::post('settings/{type}', 'SettingsController@postSettings')
+            ->where('type', '^(general|trade-page|bet-slip|notifications-and-sounds|language|bookies|bet-columns|profile|change-password|reset)$');
+        Route::get('settings/{type}', 'SettingsController@getSettings')
+            ->where('type', '^(general|trade-page|bet-slip|notifications-and-sounds|language|bookies|bet-columns)$');
     });
 
     /**
@@ -69,4 +73,12 @@ Route::group([
      */
     Route::get('timezones', 'ResourceController@getTimezones');
     Route::get('sports/odds', 'SportController@configurationOdds');
+});
+
+Route::fallback(function () {
+    return response()->json([
+        'status'      => true,
+        'status_code' => 404,
+        'message'     => trans('generic.not-found'),
+    ], 404);
 });
