@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\SportOddType};
+use App\Models\SportOddType;
 
 use Illuminate\Http\Request;
 use Exception;
