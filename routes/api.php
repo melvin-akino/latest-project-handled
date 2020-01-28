@@ -61,7 +61,6 @@ Route::group([
         'prefix'        => 'user',
     ], function () {
         Route::get('/', 'UserController@user');
-        Route::get('configuration/odds', 'UserController@sportOddConfigurations');
 
         Route::post('settings/{type}', 'SettingsController@postSettings')
             ->where('type', '^(general|trade-page|bet-slip|notifications-and-sounds|language|bookies|bet-columns|profile|change-password|reset)$');
@@ -73,6 +72,7 @@ Route::group([
      * Resources Routes
      */
     Route::get('timezones', 'ResourceController@getTimezones');
+    Route::get('sports/odds', 'SportController@configurationOdds');
 });
 
 Route::fallback(function () {
