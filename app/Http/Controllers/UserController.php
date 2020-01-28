@@ -9,57 +9,47 @@ use Exception;
 
 class UserController extends Controller
 {
-    public function sportOddConfigurations(Request $request)
+    public function sportOddConfigurations()
     {
         try {
             $userSportOddConfiguration = UserSportOddConfiguration::getSportOddConfiguration();
-            $defaultUserSportOddConfig = config('constants.user-sport-odd-configuration');
-            $userConfiguration = array_map(
-                function ($configuration) use ($userSportOddConfiguration) {
-                    $userConfig = [];
+            $userConfig = [];
+            $key = 0;
+            array_map(function ($config) use (&$userConfig, &$key) {
+                if (empty($userConfig[$key])) {
+                    $userConfig[$key] = [
+                        'sport_id' => $config->sport_id,
+                        'sport'    => $config->sport,
+                        'odds'     => [
+                            [
+                                "sport_odd_type_id" => $config->sport_odd_type_id,
+                                "odd_type_id"       => $config->odd_type_id,
+                                "type"              => $config->type,
+                            ]
+                        ]
+                    ];
+                } else if ($userConfig[$key]['sport_id'] == $config->sport_id) {
+                    $userConfig[$key]['odds'][] = [
+                        "sport_odd_type_id" => $config->sport_odd_type_id,
+                        "odd_type_id"       => $config->odd_type_id,
+                        "type"              => $config->type,
+                    ];
+                } else {
+                    $key++;
+                }
+            }, $userSportOddConfiguration);
 
-                    array_map(
-                        function ($config) use (&$userConfig, $configuration) {
-                            if ($configuration['sport_odd_type_id'] == $config->sport_odd_type_id) {
-                                $userConfig = [
-                                    'sport_odd_type_id'     => $config->sport_odd_type_id,
-                                    'odd_type_id'           => $config->odd_type_id,
-                                    'sport_id'              => $config->sport_id,
-                                    'sport'                 => $config->sport,
-                                    'type'                  => $config->type,
-                                    'active'                => $config->active
-                                ];
-                            }
-                        },
-                        $userSportOddConfiguration
-                    );
-
-                    if (!empty($userConfig)) {
-                        return $userConfig;
-                    }
-
-                    return $configuration;
-                },
-                $defaultUserSportOddConfig
-            );
-
-            return response()->json(
-                [
-                    'status'        => true,
-                    'status_code'   => 200,
-                    'data'          => $userConfiguration
-                ],
-                200
-            );
+            return response()->json([
+                'status'      => true,
+                'status_code' => 200,
+                'data'        => $userConfig
+            ]);
         } catch (Exception $e) {
-            return response()->json(
-                [
-                    'status'        => false,
-                    'status_code'   => 500,
-                    'message'       => trans('generic.internal-server-error')
-                ],
-                500
-            );
+            return response()->json([
+                'status'      => false,
+                'status_code' => 500,
+                'message'     => trans('generic.internal-server-error')
+            ], 500);
         }
     }
 
