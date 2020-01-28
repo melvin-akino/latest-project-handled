@@ -185,11 +185,10 @@ class RegistrationTest extends TestCase
             'address'                   => $this->faker->address,
             'postcode'                  => $this->faker->randomNumber(4),
 
-            'country'                   => $this->faker->randomDigit,
-            'state'                     => $this->faker->randomDigit,
-            'city'                      => $this->faker->randomDigit,
+            'country_id'                => $this->faker->randomDigit,
+            'state_id'                  => $this->faker->randomDigit,
+            'city_id'                   => $this->faker->randomDigit,
             'phone_country_code'        => $this->faker->randomDigit,
-            'odds_type'                 => $this->faker->randomDigit,
             'currency_id'               => $this->faker->randomDigit,
 
             'birthdate'                 => $this->faker->date('Y-m-d', '2000-01-01'),

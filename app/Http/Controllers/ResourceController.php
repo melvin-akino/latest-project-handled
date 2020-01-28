@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\{City, State, Timezones};
+use App\Models\{City, Provider, State, Timezones};
 use Throwable;
 use Exception;
 
@@ -57,6 +57,29 @@ class ResourceController extends Controller
                 'status_code' => 200,
                 'data'        => $cities,
             ]);
+        } catch (Throwable $e) {
+            return response()->json([
+                'status'      => false,
+                'status_code' => 400,
+                'message'     => trans('generic.bad-request'),
+            ], 400);
+        }
+    }
+
+    public function getProviders()
+    {
+        try {
+            $providers = Provider::getActiveProviders()->get([
+                'id',
+                'name',
+                'alias'
+            ]);
+
+            return response()->json([
+                'status'      => true,
+                'status_code' => 200,
+                'data'        => $providers
+            ], 200);
         } catch (Throwable $e) {
             return response()->json([
                 'status'      => false,
