@@ -61,8 +61,6 @@ Route::group([
         'prefix'        => 'user',
     ], function () {
         Route::get('/', 'UserController@user');
-        Route::get('configuration/odds', 'UserController@sportOddConfigurations');
-
         Route::post('settings/{type}', 'SettingsController@postSettings');
     });
 
@@ -70,4 +68,5 @@ Route::group([
      * Resources Routes
      */
     Route::get('timezones', 'ResourceController@getTimezones');
+    Route::get('sports/odds', 'SportController@configurationOdds');
 });
