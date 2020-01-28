@@ -8,9 +8,9 @@ class AlterTableUsersAddForeignKeys extends Migration
 {
     protected $tablename = "users";
     protected $fk = [
-        'country_id',
-        'state_id',
-        'city_id'
+        'country_id' => 'countries',
+        'state_id' => 'states',
+        'city_id' => 'cities'
     ];
 
     /**
@@ -21,10 +21,10 @@ class AlterTableUsersAddForeignKeys extends Migration
     public function up()
     {
         Schema::table($this->tablename, function (Blueprint $table) {
-            foreach ($this->fk AS $fk) {
-                $table->foreign($fk)
+            foreach ($this->fk AS $fkey => $rel) {
+                $table->foreign($fkey)
                     ->references('id')
-                    ->on('countries')
+                    ->on($rel)
                     ->onUpdate('cascade');
             }
         });
@@ -39,7 +39,7 @@ class AlterTableUsersAddForeignKeys extends Migration
     {
         Schema::table($this->tablename, function (Blueprint $table) {
             foreach ($this->fk AS $fk) {
-                $table->dropForeign($this->tablename . '_' . $fk . '_foreign');
+                $table->dropForeign([$fk]);
             }
         });
     }
