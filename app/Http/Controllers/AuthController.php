@@ -112,7 +112,7 @@ class AuthController extends Controller
             }
 
             $user = $request->user();
-            $tokenResult = $user->createToken('Personal Access Token');
+            $tokenResult = $user->createToken(env('PASSPORT_TOKEN', 'Multiline Authentication Token'));
             $token = $tokenResult->token;
 
             if ($request->remember_me) {
