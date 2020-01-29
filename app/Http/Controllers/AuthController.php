@@ -126,13 +126,13 @@ class AuthController extends Controller
                 'expires_at'   => Carbon::parse($tokenResult->token->expires_at)->toDateTimeString(),
                 'message'      => trans('auth.login.success'),
                 'token_type'   => 'Bearer',
-            ]);
+            ], 200);
         } catch (Exception $e) {
             return response()->json([
                 'status'      => false,
                 'status_code' => 500,
                 'message'     => trans('generic.internal-server-error')
-            ], 200);
+            ], 500);
         }
     }
 
