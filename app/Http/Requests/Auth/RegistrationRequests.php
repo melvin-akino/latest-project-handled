@@ -25,9 +25,6 @@ class RegistrationRequests extends FormRequest
      */
     public function rules()
     {
-        // EXISTS Ruling
-        // 'exists:<table>,<column_name>'
-
         return [
             'firstname'                    => 'required|string',
             'lastname'                     => 'required|string',
@@ -39,8 +36,7 @@ class RegistrationRequests extends FormRequest
             'country_id'                   => 'required|numeric|exists:countries,id',
             'state_id'                     => 'required|numeric|exists:states,id',
             'city_id'                      => 'required|numeric|exists:cities,id',
-            'currency_id'                  => 'required|numeric', // Additional validation: `currency_id`         must exist from `currency`            table
-            'odds_type'                    => 'required|numeric', // Additional validation: `odds_type`           must exist from `odds_type`           table
+            'currency_id'                  => 'required|numeric|exists:pgsql_crm.currency,id',
             'address'                      => 'required',
             'phone'                        => 'required',
             'birthdate'                    => 'date|nullable',
