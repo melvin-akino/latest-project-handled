@@ -12,14 +12,14 @@ class AlterTableUsersAddUserfields extends Migration
         'lastname'  => 32,
         'phone'     => 32,
         'postcode'  => 6,
+        'state'     => 100,
+        'city'      => 100,
     ];
     protected $text = [
         'address',
     ];
     protected $int = [
         'country_id',
-        'state_id',
-        'city_id',
         'phone_country_code',
         'currency_id',
     ];
