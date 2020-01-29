@@ -78,13 +78,13 @@ export default {
     data() {
         return {
             betSlipSettingsForm: {
-                use_equivalent_bets: this.$store.state.userConfig['bet-slip'].use_equivalent_bets,
-                offers_on_exchanges: this.$store.state.userConfig['bet-slip'].offers_on_exchanges,
-                adv_placement_opt: this.$store.state.userConfig['bet-slip'].adv_placement_opt,
-                bets_to_fav: this.$store.state.userConfig['bet-slip'].bets_to_fav,
-                adv_betslip_info: this.$store.state.userConfig['bet-slip'].adv_betslip_info,
-                tint_bookies: this.$store.state.userConfig['bet-slip'].tint_bookies,
-                adaptive_selection: this.$store.state.userConfig['bet-slip'].adaptive_selection
+                use_equivalent_bets: null,
+                offers_on_exchanges: null,
+                adv_placement_opt: null,
+                bets_to_fav: null,
+                adv_betslip_info: null,
+                tint_bookies: null,
+                adaptive_selection: null
             },
             adaptive_selections: []
         }
@@ -97,9 +97,23 @@ export default {
         }
     },
     mounted() {
-        this.adaptive_selections = this.$store.state.userConfig['bet-slip'].adaptive_selections
+        this.getUserConfig()
+        this.adaptive_selections = this.$store.state.settings.settingsData['betslip-adaptive-selection']    
     },
     methods: {
+        getUserConfig() {
+            let token = Cookies.get('access_token')
+
+            axios.get('v1/user/settings/bet-slip', { headers: { 'Authorization': `Bearer ${token}` } })
+            .then(response => {
+                Object.keys(this.betSlipSettingsForm).forEach(field => {
+                    this.betSlipSettingsForm[field] = response.data.data[field]
+                })
+            })
+            .catch(err => {
+                console.log(err)
+            })
+        },
         toggleBetSlipSettings(isActive, key) {
             if (isActive === '1') {
                 this.betSlipSettingsForm[key] = '0'

@@ -64,12 +64,12 @@ export default {
     data() {
         return {
             notificationSettingsForm: {
-                bet_confirm: this.$store.state.userConfig['notifications-and-sounds'].bet_confirm,
-                site_notifications: this.$store.state.userConfig['notifications-and-sounds'].site_notifications,
-                popup_notifications: this.$store.state.userConfig['notifications-and-sounds'].popup_notifications,
-                order_notifications: this.$store.state.userConfig['notifications-and-sounds'].order_notifications,
-                event_sounds: this.$store.state.userConfig['notifications-and-sounds'].event_sounds,
-                order_sounds: this.$store.state.userConfig['notifications-and-sounds'].order_sounds
+                bet_confirm: null,
+                site_notifications: null,
+                popup_notifications: null,
+                order_notifications: null,
+                event_sounds: null,
+                order_sounds: null
             }
         }
     },
@@ -80,7 +80,23 @@ export default {
             }
         }
     },
+    mounted() {
+        this.getUserConfig()
+    },
     methods: {
+        getUserConfig() {
+            let token = Cookies.get('access_token')
+
+            axios.get('v1/user/settings/notifications-and-sounds', { headers: { 'Authorization': `Bearer ${token}` } })
+            .then(response => {
+                Object.keys(this.notificationSettingsForm).forEach(field => {
+                    this.notificationSettingsForm[field] = response.data.data[field]
+                })
+            })
+            .catch(err => {
+                console.log(err)
+            })
+        },
         toggleNotificationSettings(isActive, key) {
             if (isActive === '1') {
                 this.notificationSettingsForm[key] = '0'

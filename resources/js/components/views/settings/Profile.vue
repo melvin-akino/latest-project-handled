@@ -22,39 +22,24 @@
                 <div class="w-1/3 mr-6">
                     <label class="block capitalize text-gray-700 text-sm">Country</label>
                     <div class="relative">
-                        <select class="shadow appearance-none border w-full rounded py-2 px-3 text-gray-700 text-sm leading-tight focus:outline-none" :class="{'border-red-600': profileSettingsFormError.hasOwnProperty('country')}" id="country" v-model="profileSettingsForm.country">
-                            <option v-for="country in countries" :key="country.id" :value="country.id" :selected="country.id === profileSettingsForm.country">{{country.country}}</option>
+                        <select class="shadow appearance-none border w-full rounded py-2 px-3 text-gray-700 text-sm leading-tight focus:outline-none" :class="{'border-red-600': profileSettingsFormError.hasOwnProperty('country_id')}" id="country" v-model="profileSettingsForm.country_id" @change="selectCountry">
+                            <option v-for="country in countries" :key="country.id" :value="country.id" :selected="country.id === profileSettingsForm.country_id">{{country.country_name}}</option>
                         </select>
                         <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
                             <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
                         </div>
                     </div>
-                    <span v-if="profileSettingsFormError.hasOwnProperty('country')" class="text-xs text-red-600">{{profileSettingsFormError.country[0]}}</span>
+                    <span v-if="profileSettingsFormError.hasOwnProperty('country_id')" class="text-xs text-red-600">{{profileSettingsFormError.country_id[0]}}</span>
                 </div>
                 <div class="w-1/3 mr-6">
                     <label class="block capitalize text-gray-700 text-sm">State</label>
-                    <div class="relative">
-                        <select class="shadow appearance-none border w-full rounded py-2 px-3 text-gray-700 text-sm leading-tight focus:outline-none" :class="{'border-red-600': profileSettingsFormError.hasOwnProperty('state')}" id="state" v-model="profileSettingsForm.state">
-                            <option :value="null" disabled>Select State</option>
-                            <option v-for="state in statesDropdown" :key="state.id" :value="state.id" :selected="state.id === profileSettingsForm.state">{{state.state}}</option>
-                        </select>
-                        <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
-                            <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
-                        </div>
-                    </div>
+                    <input type="text" id="state" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 text-sm leading-tight focus:outline-none" :class="{'border-red-600': profileSettingsFormError.hasOwnProperty('state')}" v-model="profileSettingsForm.state
+                    ">
                     <span v-if="profileSettingsFormError.hasOwnProperty('state')" class="text-xs text-red-600">{{profileSettingsFormError.state[0]}}</span>
                 </div>
                 <div class="w-1/3">
                     <label class="block capitalize text-gray-700 text-sm">City</label>
-                    <div class="relative">
-                        <select class="shadow appearance-none border w-full rounded py-2 px-3 text-gray-700 text-sm leading-tight focus:outline-none" :class="{'border-red-600': profileSettingsFormError.hasOwnProperty('city')}" id="city" v-model="profileSettingsForm.city">
-                            <option :value="null">Select City</option>
-                            <option v-for="city in citiesDropdown" :key="city.id" :value="city.id" :selected="city.id === profileSettingsForm.city">{{city.city}}</option>
-                        </select>
-                        <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
-                            <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
-                        </div>
-                    </div>
+                    <input type="text" id="city" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 text-sm leading-tight focus:outline-none" :class="{'border-red-600': profileSettingsFormError.hasOwnProperty('city')}" v-model="profileSettingsForm.city">
                     <span v-if="profileSettingsFormError.hasOwnProperty('city')" class="text-xs text-red-600">{{profileSettingsFormError.city[0]}}</span>
                 </div>
             </div>
@@ -136,8 +121,8 @@ export default {
                 firstname: this.$store.state.authUser.firstname,
                 lastname: this.$store.state.authUser.lastname,
                 address: this.$store.state.authUser.address,
-                country: this.$store.state.authUser.country,
-                state: this.$store.state.authUser.country,
+                country_id: this.$store.state.authUser.country_id,
+                state: this.$store.state.authUser.state,
                 city: this.$store.state.authUser.city,
                 postcode: this.$store.state.authUser.postcode,
                 phone_country_code: this.$store.state.authUser.phone_country_code,
@@ -149,34 +134,12 @@ export default {
                 password: '',
                 password_confirmation: ''
             },
-            // mock data these should come from API requests
-            countries: [
-                { id: 1, country: 'Philippines' },
-                { id: 2, country: 'USA' }
-            ],
-            states: [
-                { id: 1, state: 'NCR', country_id: 1 },
-                { id: 2, state: 'California', country_id: 2 }
-            ],
-            cities: [
-                { id: 1, city: 'Pasig City', state_id: 1, country_id: 1 },
-                { id: 2, city: 'Los Angeles', state_id: 2, country_id: 2 },
-                { id: 3, city: 'Makati City', state_id: 1, country_id: 1 },
-                { id: 4, city: 'San Francisco', state_id: 2, country_id: 2 },
-            ],
+            countries: [],
             currencies: [
                 { id: 1, currency: 'CNY' },
                 { id: 2, currency: 'USD' }
             ],
             profileSettingsFormError: {}
-        }
-    },
-    computed: {
-        statesDropdown() {
-            return this.states.filter(state => state.country_id === this.profileSettingsForm.country)
-        },
-        citiesDropdown() {
-            return this.cities.filter(city => city.state_id === this.profileSettingsForm.state && city.country_id === this.profileSettingsForm.country)
         }
     },
     head: {
@@ -186,10 +149,12 @@ export default {
             }
         }
     },
+    mounted() {
+        this.countries = this.$store.state.settings.settingsData.country
+    },
     methods: {
-        resetStateAndCity() {
-            this.profileSettingsForm.state = null
-            this.profileSettingsForm.city = null
+        selectCountry() {
+            this.profileSettingsForm.phone_country_code = this.countries.filter(country => country.id === this.profileSettingsForm.country_id).map(country => country.phonecode).join()
         },
         saveChanges() {
             let token = Cookies.get('access_token')
@@ -197,7 +162,7 @@ export default {
                 firstname: this.profileSettingsForm.firstname,
                 lastname: this.profileSettingsForm.lastname,
                 address: this.profileSettingsForm.address,
-                country: this.profileSettingsForm.country,
+                country_id: this.profileSettingsForm.country_id,
                 state: this.profileSettingsForm.state,
                 city: this.profileSettingsForm.city,
                 postcode: `${this.profileSettingsForm.postcode}`,
@@ -209,7 +174,6 @@ export default {
             axios.post('/v1/user/settings/profile', data, { headers: { 'Authorization': `Bearer ${token}` } })
             .then(response => {
                 this.profileSettingsFormError = {}
-                this.$store.commit('SET_NAME', this.profileSettingsForm.firstname)
                 Swal.fire({
                     icon: 'success',
                     text: response.data.message

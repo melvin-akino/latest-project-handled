@@ -5,7 +5,7 @@
                 <label class="text-sm relative flex items-center">
                     <input type="checkbox" class="appearance-none shadow border border-gray-400 bg-gray-400 rounded-full h-3 w-12 mr-4 focus:outline-none" :value="bookie.id" v-model="disabledBookies">
                     <span class="absolute shadow shadow-lg w-6 h-6 rounded-full" :class="[!disabledBookies.includes(bookie.id) ? 'on-switch bg-orange-500' : 'bg-white left-0']"></span>
-                    <div><span class="font-bold">{{bookie.alias}}</span> ({{bookie.name}})</div>
+                    <span>{{bookie.alias}}</span>
                 </label>
             </div>
             <div class="mt-4">
@@ -34,10 +34,24 @@ export default {
         }
     },
     mounted() {
-        this.bookies = this.$store.state.userProviders
-        this.disabledBookies = this.$store.state.userConfig.bookies.disabled_bookies
+        this.getBookies()
+        this.getUserConfig()
     },
     methods: {
+        getBookies() {
+            let token = Cookies.get('access_token')
+
+             axios.get('v1/bookies', { headers: { 'Authorization': `Bearer ${token}` }})
+            .then(response => this.bookies = response.data.data)
+            .catch(err => console.log(err))
+        },
+        getUserConfig() {
+            let token = Cookies.get('access_token')
+
+            axios.get('v1/user/settings/bookies', { headers: { 'Authorization': `Bearer ${token}` }})
+            .then(response => this.disabledBookies = response.data.data.disabled_bookies)
+            .catch(err => console.log(err))
+        },
         saveChanges() {
             let token = Cookies.get('access_token')
             let data = this.bookies.map(bookie => {
