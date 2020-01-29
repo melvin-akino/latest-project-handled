@@ -44,9 +44,9 @@ class SettingsRequests extends FormRequest
                 'address'                   => 'required',
                 'postcode'                  => 'required|string|regex:/^[0-9]{3,7}$/|between:3,6',
                 'country_id'                => 'required|numeric|exists:countries,id',
-                'state_id'                  => 'required|numeric|exists:states,id',
-                'city_id'                   => 'required|numeric|exists:cities,id',
-                'currency_id'               => 'required|numeric', // Additional validation: `currency_id`         must exist from `currency`            table
+                'state'                     => 'required|max:100',
+                'city'                      => 'required|max:100',
+                'currency_id'               => 'required|numeric|exists:pgsql_crm.currency,id',
                 'phone'                     => 'required',
             ];
         } else if ($type == 'change-password') {

@@ -31,7 +31,7 @@ class SettingsController extends Controller
                         'firstname'             => $request->firstname,
                         'lastname'              => $request->lastname,
                         'address'               => $request->address,
-                        'country'               => $request->country,
+                        'country_id'            => $request->country_id,
                         'state'                 => $request->state,
                         'city'                  => $request->city,
                         'postcode'              => $request->postcode,
