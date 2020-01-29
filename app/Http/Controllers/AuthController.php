@@ -132,7 +132,7 @@ class AuthController extends Controller
                 'status'      => false,
                 'status_code' => 500,
                 'message'     => trans('generic.internal-server-error')
-            ]);
+            ], 200);
         }
     }
 
@@ -151,7 +151,7 @@ class AuthController extends Controller
             'status'        => true,
             'status_code'   => 200,
             'message'       => trans('auth.logout.success'),
-        ]);
+        ], 200);
     }
 
     /**
@@ -202,7 +202,7 @@ class AuthController extends Controller
             'status'            => true,
             'status_code'       => 200,
             'message'           => trans('auth.password_reset.email.sent'),
-        ]);
+        ], 200);
     }
 
     /**
@@ -250,7 +250,7 @@ class AuthController extends Controller
             'status'            => true,
             'status_code'       => 200,
             'message'           => $passwordReset,
-        ]);
+        ], 200);
     }
 
     /**
@@ -309,9 +309,9 @@ class AuthController extends Controller
 
         return response()->json([
             'status'            => true,
-            'status_code'       => 404,
+            'status_code'       => 200,
             'data'              => $user,
             'message'           => trans('auth.password_reset.success'),
-        ]);
+        ], 200);
     }
 }
