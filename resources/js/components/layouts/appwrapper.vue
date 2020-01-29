@@ -37,7 +37,8 @@ export default {
     methods: {
         logout() {
             let token = Cookies.get('access_token')
-            axios.post('/v1/auth/logout', { headers: { 'Authorization': `Bearer ${token}` } })
+
+            axios.post('/v1/auth/logout', null, { headers: { 'Authorization': `Bearer ${token}` } })
             .then(response => {
                 this.$store.commit('SET_IS_AUTHENTICATED', false)
                 this.$store.commit('SET_AUTH_USER', '')

@@ -74,7 +74,6 @@ export default {
 
             axios.post('/v1/user/settings/language', { language: this.language }, { headers: { 'Authorization': `Bearer ${token}` } })
             .then(response => {
-                this.$store.commit('SET_DEFAULT_LANGUAGE', this.language)
                 Swal.fire({
                     icon: 'success',
                     text: response.data.message
@@ -116,7 +115,6 @@ export default {
 
                     axios.post('/v1/user/settings/reset', null, { headers: { 'Authorization': `Bearer ${token}` } })
                     .then(response => {
-                        this.$store.dispatch('fetchUserDataAfterReset')
                         Swal.fire({
                             icon: 'success',
                             text: response.data.message
