@@ -126,7 +126,7 @@ class SettingsRequests extends FormRequest
                 'order_sounds'              => 'required|boolean',
             ];
         } else if ($type == 'language') {
-            $languages = implode(',', array_column(config('default_config.language.languages'), 'id'));
+            $languages = implode(',', array_column(config('constants.language'), 'id'));
 
             return [
                 'language'                  => 'required|numeric|in:' . $languages,

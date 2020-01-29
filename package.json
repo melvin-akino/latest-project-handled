@@ -11,25 +11,25 @@
     },
     "devDependencies": {
         "@fortawesome/fontawesome-free": "^5.12.0",
-        "axios": "^0.19",
+        "axios": "^0.19.2",
         "babel-plugin-dynamic-import-webpack": "^1.1.0",
         "babel-plugin-syntax-dynamic-import": "^6.18.0",
         "cross-env": "^5.1",
         "laravel-mix": "^4.0.7",
         "lodash": "^4.17.13",
         "resolve-url-loader": "^2.3.1",
-        "sass": "^1.20.1",
+        "sass": "^1.25.0",
         "sass-loader": "7.*",
         "tailwindcss": "^1.1.4",
         "vue": "^2.5.17",
         "vue-head": "^2.2.0",
-        "vue-router": "^3.1.3",
+        "vue-router": "^3.1.5",
         "vue-template-compiler": "^2.6.10",
-        "vuelidate": "^0.7.4",
+        "vuelidate": "^0.7.5",
         "vuex": "^3.1.2"
     },
     "dependencies": {
         "js-cookie": "^2.2.1",
-        "sweetalert2": "^9.6.1"
+        "sweetalert2": "^9.7.1"
     }
 }
