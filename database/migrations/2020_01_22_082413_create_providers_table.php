@@ -6,12 +6,13 @@ use Illuminate\Support\Facades\{Schema, Artisan};
 
 class CreateProvidersTable extends Migration
 {
+    protected $connection = "pgsql_crm";
     protected $tablename = "providers";
 
     public function up()
     {
-        if (!Schema::hasTable($this->tablename)) {
-            Schema::create($this->tablename, function (Blueprint $table) {
+        if (!Schema::connection($this->connection)->hasTable($this->tablename)) {
+            Schema::connection($this->connection)->create($this->tablename, function (Blueprint $table) {
                 $table->integerIncrements('id');
                 $table->string('name', 20);
                 $table->string('alias', 10);
@@ -30,8 +31,8 @@ class CreateProvidersTable extends Migration
 
     public function down()
     {
-        if (Schema::hasTable($this->tablename)) {
-            Schema::dropIfExists($this->tablename);
+        if (Schema::connection($this->connection)->hasTable($this->tablename)) {
+            Schema::connection($this->connection)->dropIfExists($this->tablename);
         }
     }
 }

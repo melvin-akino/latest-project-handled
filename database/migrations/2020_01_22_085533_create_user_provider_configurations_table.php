@@ -24,10 +24,6 @@ class CreateUserProviderConfigurationsTable extends Migration
                     ->references('id')
                     ->on($this->userTableName)
                     ->onUpdate('cascade');
-                $table->foreign('provider_id')
-                    ->references('id')
-                    ->on($this->providersTableName)
-                    ->onUpdate('cascade');
             });
         }
     }
