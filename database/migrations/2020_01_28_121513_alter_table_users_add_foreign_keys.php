@@ -9,8 +9,8 @@ class AlterTableUsersAddForeignKeys extends Migration
     protected $tablename = "users";
     protected $fk = [
         'country_id' => 'countries',
-        'state_id' => 'states',
-        'city_id' => 'cities'
+        'state_id'   => 'states',
+        'city_id'    => 'cities'
     ];
 
     /**
