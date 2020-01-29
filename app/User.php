@@ -33,7 +33,6 @@ class User extends Authenticatable
         'phone_country_code',
         'currency_id',
         'birthdate',
-        'status',
     ];
 
     /**
