@@ -33,6 +33,7 @@ class User extends Authenticatable
         'odds_type',
         'currency_id',
         'birthdate',
+        'status',
     ];
 
     /**

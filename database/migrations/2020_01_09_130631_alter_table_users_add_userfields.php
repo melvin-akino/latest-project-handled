@@ -8,21 +8,19 @@ class AlterTableUsersAddUserfields extends Migration
 {
     protected $tablename = "users";
     protected $str = [
-        'firstname',
-        'lastname',
-        'phone',
+        'firstname' => 32,
+        'lastname'  => 32,
+        'phone'     => 32,
+        'postcode'  => 6,
     ];
     protected $text = [
         'address',
     ];
     protected $int = [
-        'country',
-        'status',
-        'state',
-        'city',
-        'postcode',
+        'country_id',
+        'state_id',
+        'city_id',
         'phone_country_code',
-        'odds_type',
         'currency_id',
     ];
     protected $date = [
@@ -33,8 +31,8 @@ class AlterTableUsersAddUserfields extends Migration
     {
         Schema::table($this->tablename, function (Blueprint $table) {
             // STRINGS
-            foreach ($this->str AS $row) {
-                $table->string($row)->nullable();
+            foreach ($this->str AS $column => $length) {
+                $table->string($column, $length)->nullable();
             }
 
             // TEXTS
@@ -58,8 +56,8 @@ class AlterTableUsersAddUserfields extends Migration
     {
         Schema::table($this->tablename, function (Blueprint $table) {
             // STRINGS
-            foreach ($this->str AS $row) {
-                $table->dropColumn($row);
+            foreach ($this->str AS $column => $length) {
+                $table->dropColumn($column);
             }
 
             // TEXTS

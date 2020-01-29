@@ -14,7 +14,7 @@ class UsersAdditionalFields extends Migration
             Schema::table($this->tablename, function (Blueprint $table) {
                 if (!Schema::hasColumn($this->tablename, 'status')) {
                     $table->smallInteger('status')
-                        ->default(0)
+                        ->default(1)
                         ->comment('0 - inactive, 1 - active');
                 }
 
