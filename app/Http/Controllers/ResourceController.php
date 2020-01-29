@@ -71,7 +71,6 @@ class ResourceController extends Controller
         try {
             $providers = Provider::getActiveProviders()->get([
                 'id',
-                'name',
                 'alias'
             ]);
 
