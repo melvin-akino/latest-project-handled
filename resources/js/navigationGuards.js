@@ -11,10 +11,7 @@ export default router.beforeEach((to, from, next) => {
         .then(response => {
             store.commit('SET_IS_AUTHENTICATED', true)
             store.commit('SET_AUTH_USER', response.data.data)
-            store.commit('SET_USER_PROVIDERS', response.data.providers)
-            store.commit('SET_USER_SPORTS_ODD_TYPES', response.data.sport_odd_types)
-            store.commit('SET_USER_CONFIG', response.data.configuration)
-            
+
             if (authRoutes.includes(to.matched[0].path)) {
                 next('/')
             } else {

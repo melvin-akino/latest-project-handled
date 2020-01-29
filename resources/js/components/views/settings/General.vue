@@ -41,8 +41,8 @@ export default {
     data() {
         return {
             generalSettingsForm: {
-                price_format: this.$store.state.userConfig.general.price_format,
-                timezone: this.$store.state.userConfig.general.timezone
+                price_format: null,
+                timezone: null
             },
             priceFormats: [],
             timezones: []
@@ -57,13 +57,26 @@ export default {
     },
     mounted() {
         this.getTimezones()
-        this.priceFormats = this.$store.state.userConfig.general.price_formats
+        this.getUserConfig()
+        this.priceFormats = this.$store.state.settings.settingsData['price-format']
     },
     methods: {
         getTimezones() {
             axios.get('/v1/timezones')
             .then(response => this.timezones = response.data.data)
             .catch(err => console.log(err))
+        },
+        getUserConfig() {
+            let token = Cookies.get('access_token')
+
+            axios.get('v1/user/settings/general', { headers: { 'Authorization': `Bearer ${token}` } })
+            .then(response => {
+                this.generalSettingsForm.price_format = response.data.data.price_format
+                this.generalSettingsForm.timezone = response.data.data.timezone
+            })
+            .catch(err => {
+                console.log(err)
+            })
         },
         saveChanges() {
             let token = Cookies.get('access_token')
