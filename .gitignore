@@ -15,3 +15,4 @@ yarn-error.log
 /public/css/app.css
 .idea
 /package-lock.json
+composer.lock
