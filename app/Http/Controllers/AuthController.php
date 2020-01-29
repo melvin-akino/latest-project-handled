@@ -32,13 +32,12 @@ class AuthController extends Controller
      * @param  [string]     firstname
      * @param  [string]     lastname
      * @param  [string]     address
-     * @param  [integer]    country
-     * @param  [integer]    state
-     * @param  [integer]    city
+     * @param  [integer]    country_id
+     * @param  [string]     state
+     * @param  [string]     city
      * @param  [string]     postcode
      * @param  [string]     phone
      * @param  [integer]    phone_country_code
-     * @param  [integer]    odds_type
      * @param  [integer]    currency_id
      * @param  [date]       birthdate
      *
@@ -55,13 +54,12 @@ class AuthController extends Controller
             'firstname'             => $request->firstname,
             'lastname'              => $request->lastname,
             'address'               => $request->address,
-            'country'               => $request->country,
+            'country_id'            => $request->country_id,
             'state'                 => $request->state,
             'city'                  => $request->city,
             'postcode'              => $request->postcode,
             'phone'                 => $request->phone,
             'phone_country_code'    => $request->phone_country_code,
-            'odds_type'             => $request->odds_type,
             'currency_id'           => $request->currency_id,
             'birthdate'             => $request->birthdate,
             'status'                => 1

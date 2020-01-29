@@ -7,11 +7,7 @@ use Illuminate\Support\Facades\Schema;
 class AlterTableUsersAddForeignKeys extends Migration
 {
     protected $tablename = "users";
-    protected $fk = [
-        'country_id' => 'countries',
-        'state_id'   => 'states',
-        'city_id'    => 'cities'
-    ];
+    protected $field = "country_id";
 
     /**
      * Run the migrations.
@@ -21,12 +17,10 @@ class AlterTableUsersAddForeignKeys extends Migration
     public function up()
     {
         Schema::table($this->tablename, function (Blueprint $table) {
-            foreach ($this->fk AS $fkey => $rel) {
-                $table->foreign($fkey)
-                    ->references('id')
-                    ->on($rel)
-                    ->onUpdate('cascade');
-            }
+            $table->foreign($this->field)
+                ->references('id')
+                ->on('countries')
+                ->onUpdate('cascade');
         });
     }
 
@@ -38,9 +32,7 @@ class AlterTableUsersAddForeignKeys extends Migration
     public function down()
     {
         Schema::table($this->tablename, function (Blueprint $table) {
-            foreach ($this->fk AS $fkey => $rel) {
-                $table->dropForeign([$fkey]);
-            }
+            $table->dropForeign([$this->field]);
         });
     }
 }
