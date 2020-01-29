@@ -20,7 +20,7 @@
                 </div>
                 <div class="mb-2">
                     <label class="block text-gray-700 text-sm mb-2 font-bold uppercase">
-                        <input class="mr-2 leading-tight" type="checkbox">
+                        <input class="mr-2 leading-tight" type="checkbox" v-model="loginForm.remember_me">
                         <span class="text-sm uppercase">Remember Me</span>
                     </label>
                 </div>
@@ -58,7 +58,8 @@ export default {
         return {
             loginForm: {
                 email: '',
-                password: ''
+                password: '',
+                remember_me: false
             },
             loginError: '',
             isLoggingIn: false
@@ -83,7 +84,13 @@ export default {
                 this.isLoggingIn = true
                 try {
                     const response = await axios.post('/v1/auth/login', { email: this.loginForm.email, password: this.loginForm.password })
-                    Cookies.set('access_token', response.data.access_token)
+
+                    if(this.loginForm.remember_me) {
+                        Cookies.set('access_token', response.data.access_token, { expires: 7 })
+                    } else {
+                        Cookies.set('access_token', response.data.access_token)
+                    }
+
                     await this.$router.push('/')
                     this.$store.commit('SET_IS_AUTHENTICATED', true)
                 } catch(err) {
