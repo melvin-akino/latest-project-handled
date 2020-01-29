@@ -32,7 +32,7 @@ class RegistrationRequests extends FormRequest
             'email'                        => 'required|email|unique:users,email',
             'password'                     => 'required|confirmed|min:6|max:32',
             'password_confirmation'        => 'required|same:password|min:6|max:32',
-            'postcode'                     => 'required|string|regex:/^[0-9]{3,7}$/|between:3,6',
+            'postcode'                     => 'required|string|regex:/^[0-9]{3,6}$/|min:100|max:999999',
             'country_id'                   => 'required|numeric|exists:countries,id',
             'state'                        => 'required|max:100',
             'city'                         => 'required|max:100',
