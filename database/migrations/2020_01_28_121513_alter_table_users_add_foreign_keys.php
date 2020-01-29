@@ -38,8 +38,8 @@ class AlterTableUsersAddForeignKeys extends Migration
     public function down()
     {
         Schema::table($this->tablename, function (Blueprint $table) {
-            foreach ($this->fk AS $fk) {
-                $table->dropForeign([$fk]);
+            foreach ($this->fk AS $fkey => $rel) {
+                $table->dropForeign([$fkey]);
             }
         });
     }
