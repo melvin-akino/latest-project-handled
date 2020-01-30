@@ -21,6 +21,7 @@ return [
     ],
     'logout'            => [
         'success'       => "Logout Successful",
+        'invalid-token' => "Something went wrong. Your Authentication Token is Invalid.",
     ],
     'password_reset'    => [
         'email'         => [
