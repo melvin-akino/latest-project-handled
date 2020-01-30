@@ -59,7 +59,6 @@ class AuthController extends Controller
             'city'                  => $request->city,
             'postcode'              => $request->postcode,
             'phone'                 => $request->phone,
-            'phone_country_code'    => $request->phone_country_code,
             'currency_id'           => $request->currency_id,
             'birthdate'             => $request->birthdate,
             'status'                => 1
@@ -310,7 +309,6 @@ class AuthController extends Controller
         return response()->json([
             'status'            => true,
             'status_code'       => 200,
-            'data'              => $user,
             'message'           => trans('auth.password_reset.success'),
         ], 200);
     }
