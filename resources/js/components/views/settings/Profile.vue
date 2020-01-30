@@ -22,7 +22,7 @@
                 <div class="w-1/3 mr-6">
                     <label class="block capitalize text-gray-700 text-sm">Country</label>
                     <div class="relative">
-                        <select class="shadow appearance-none border w-full rounded py-2 px-3 text-gray-700 text-sm leading-tight focus:outline-none" :class="{'border-red-600': profileSettingsFormError.hasOwnProperty('country_id')}" id="country" v-model="profileSettingsForm.country_id" @change="selectCountry">
+                        <select class="shadow appearance-none border w-full rounded py-2 px-3 text-gray-700 text-sm leading-tight focus:outline-none" :class="{'border-red-600': profileSettingsFormError.hasOwnProperty('country_id')}" id="country" v-model="profileSettingsForm.country_id">
                             <option v-for="country in countries" :key="country.id" :value="country.id" :selected="country.id === profileSettingsForm.country_id">{{country.country_name}}</option>
                         </select>
                         <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
@@ -50,26 +50,11 @@
                     <span v-if="profileSettingsFormError.hasOwnProperty('postcode')" class="text-xs text-red-600">{{profileSettingsFormError.postcode[0]}}</span>
                 </div>
                 <div class="w-1/3 mr-6">
-                    <label class="block capitalize text-gray-700 text-sm">Phone Country Code</label>
-                    <div class="relative">
-                        <select class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none" :class="{'border-red-600': profileSettingsFormError.hasOwnProperty('phone_country_code')}" id="phone_country_code" v-model="profileSettingsForm.phone_country_code">
-                            <option :value="null" disabled>Select Phone Country Code</option>
-                            <option v-for="phonecode in phonecodes" :key="phonecode.id">{{phonecode.phonecode}}</option>
-                        </select>
-                        <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
-                            <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
-                        </div>
-                    </div>
-                    <span v-if="profileSettingsFormError.hasOwnProperty('phone_country_code')" class="text-xs text-red-600">{{profileSettingsFormError.phone_country_code[0]}}</span>
-                </div>
-                <div class="w-1/3">
                     <label class="block capitalize text-gray-700 text-sm">Phone</label>
                     <input type="text" class="shadow appearance-none border w-full rounded py-2 px-3 text-gray-700 text-sm leading-tight focus:outline-none" :class="{'border-red-600': profileSettingsFormError.hasOwnProperty('phone')}" id="phone" v-model="profileSettingsForm.phone">
                     <span v-if="profileSettingsFormError.hasOwnProperty('phone')" class="text-xs text-red-600">{{profileSettingsFormError.phone[0]}}</span>
                 </div>
-            </div>
-            <div class="mb-6 flex">
-                <div class="w-1/3 mr-6">
+                <div class="w-1/3">
                     <label class="block capitalize text-gray-700 text-sm">Currency</label>
                     <div class="relative">
                         <select class="shadow appearance-none border w-full rounded py-2 px-3 text-gray-700 text-sm leading-tight focus:outline-none" :class="{'border-red-600': profileSettingsFormError.hasOwnProperty('currency_id')}" id="currency_id" v-model="profileSettingsForm.currency_id">
@@ -81,7 +66,6 @@
                     </div>
                     <span v-if="profileSettingsFormError.hasOwnProperty('currency_id')" class="text-xs text-red-600">{{profileSettingsFormError.currency_id[0]}}</span>
                 </div>
-                <div class="w-2/3 mr-6"></div>
             </div>
             <div class="mt-4">
                 <button type="submit" class="bg-orange-500 hover:bg-orange-600 text-white text-sm uppercase px-4 py-2">Save Changes</button>
@@ -133,7 +117,6 @@ export default {
                 state: this.$store.state.auth.authUser.state,
                 city: this.$store.state.auth.authUser.city,
                 postcode: this.$store.state.auth.authUser.postcode,
-                phone_country_code: this.$store.state.auth.authUser.phone_country_code,
                 phone: this.$store.state.auth.authUser.phone,
                 currency_id:this.$store.state.auth.authUser.currency_id
             },
@@ -143,7 +126,6 @@ export default {
                 password_confirmation: ''
             },
             countries: [],
-            phonecodes: [],
             currencies: [
                 { id: 1, currency: 'CNY' },
                 { id: 2, currency: 'USD' }
@@ -160,14 +142,8 @@ export default {
     },
     mounted() {
         this.countries = this.$store.state.settings.settingsData.country
-        this.phonecodes = this.$store.state.settings.settingsData.country.filter(country => country.phonecode.length != 0).map(country => {
-            return { id: country.id, phonecode: country.phonecode }
-        })
     },
     methods: {
-        selectCountry() {
-            this.profileSettingsForm.phone_country_code = this.countries.filter(country => country.id === this.profileSettingsForm.country_id).map(country => country.phonecode).join()
-        },
         saveChanges() {
             let token = Cookies.get('access_token')
             let data = {
@@ -178,7 +154,6 @@ export default {
                 state: this.profileSettingsForm.state,
                 city: this.profileSettingsForm.city,
                 postcode: `${this.profileSettingsForm.postcode}`,
-                phone_country_code: this.profileSettingsForm.phone_country_code,
                 phone: this.profileSettingsForm.phone,
                 currency_id: this.profileSettingsForm.currency_id
             }
