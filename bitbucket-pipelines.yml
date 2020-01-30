@@ -16,30 +16,20 @@ pipelines:
           - apt-get update && apt-get install -y unzip openssh-client libmcrypt-dev   libpq-dev postgresql-client nodejs npm
           - docker-php-ext-install pdo pdo_pgsql
           - curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
-          #- curl -sL https://deb.nodesource.com/setup_10.x |  -E bash -
-          #- apt install nodejs
-          #- npm install
           - composer install
           - cp .env.pipeline .env
-          #- createdb -h localhost -p 5432 postgres test_crm
           - psql -U "postgres" -h "localhost"  -p 5432 -c "CREATE DATABASE test_crm"
           - php artisan key:generate
           - php artisan view:clear
           - php artisan cache:clear
           - php artisan migrate
           - php artisan passport:install
-          - npm install 
+          - npm install
           - npm run dev
           - ./vendor/bin/phpunit
-          - mkdir -p ~/.ssh
-          #- cat my_known_hosts >> ~/.ssh/known_hosts
-          #- (umask  077 ; echo $DEVMACHINE_51 | base64 --decode > ~/.ssh/id_rsa)
-          #- ssh staging-web@ninepinetechnology-tmcrjvwbpr.dynamic-m.com -p 9911 'echo "connected " as $USER"'
-
-      
         services:
           - postgres
-         
+
 definitions:
       services:
         postgres:
@@ -48,5 +38,3 @@ definitions:
                 POSTGRES_USER: 'postgres'
                 POSTGRES_PASSWORD: 'testuser'
                 POSTGRES_DB: 'test'
-
-                
