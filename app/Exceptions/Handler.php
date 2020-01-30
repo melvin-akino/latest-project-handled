@@ -56,7 +56,7 @@ class Handler extends ExceptionHandler
             return response()->json([
                 'status'      => false,
                 'status_code' => 404,
-                'message'     => trans('auth.logout.invalid-token')
+                'message'     => trans('generic.not-found')
             ], 404);
         }
     }
