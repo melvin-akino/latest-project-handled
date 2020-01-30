@@ -11,8 +11,9 @@ class CreateProvidersTable extends Migration
 
     public function up()
     {
-        if (!Schema::connection($this->connection)->hasTable($this->tablename)) {
-            Schema::connection($this->connection)->create($this->tablename, function (Blueprint $table) {
+        $connection = config('database.crm_default');
+        if (!Schema::connection($connection)->hasTable($this->tablename)) {
+            Schema::connection($connection)->create($this->tablename, function (Blueprint $table) {
                 $table->integerIncrements('id');
                 $table->string('name', 20);
                 $table->string('alias', 10);
@@ -31,8 +32,9 @@ class CreateProvidersTable extends Migration
 
     public function down()
     {
-        if (Schema::connection($this->connection)->hasTable($this->tablename)) {
-            Schema::connection($this->connection)->dropIfExists($this->tablename);
+        $connection = config('database.crm_default');
+        if (Schema::connection($connection)->hasTable($this->tablename)) {
+            Schema::connection($connection)->dropIfExists($this->tablename);
         }
     }
 }

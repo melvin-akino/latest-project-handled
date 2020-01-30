@@ -52,7 +52,7 @@ class Handler extends ExceptionHandler
 
     public function unauthenticated($request, AuthenticationException $exception)
     {
-        if ($request->expectsJson()) {
+        if (auth()->guard('api')) {
             return response()->json([
                 'status'      => false,
                 'status_code' => 404,

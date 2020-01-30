@@ -6,7 +6,6 @@ use Illuminate\Support\Facades\Schema;
 
 class CreateTableCrmCurrency extends Migration
 {
-    protected $connection = "pgsql_crm";
     protected $tablename = "currency";
 
     /**
@@ -16,7 +15,7 @@ class CreateTableCrmCurrency extends Migration
      */
     public function up()
     {
-        Schema::connection($this->connection)->create($this->tablename, function (Blueprint $table) {
+        Schema::connection(config('database.crm_default'))->create($this->tablename, function (Blueprint $table) {
             $table->bigIncrements('id');
             $table->string('name', 50);
             $table->char('code', 5);
@@ -36,6 +35,6 @@ class CreateTableCrmCurrency extends Migration
      */
     public function down()
     {
-        Schema::connection($this->connection)->dropIfExists($this->tablename);
+        Schema::connection(config('database.crm_default'))->dropIfExists($this->tablename);
     }
 }

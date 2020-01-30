@@ -5,6 +5,14 @@ use App\Models\Provider as ProviderModel;
 
 class ProvidersSeeder extends Seeder
 {
+    protected $tablename = 'providers';
+    protected $connection;
+
+    public function __construct()
+    {
+        $this->connection = config('database.crm_default', 'pgsql_crm');
+    }
+
     /**
      * Seed the application's database.
      *
@@ -28,7 +36,7 @@ class ProvidersSeeder extends Seeder
         ];
 
         foreach ($providers as $key => $provider) {
-            ProviderModel::create([
+            DB::connection($this->connection)->table($this->tablename)->insert([
                 'name'              => $provider['name'],
                 'alias'             => $provider['alias'],
                 'punter_percentage' => 45,

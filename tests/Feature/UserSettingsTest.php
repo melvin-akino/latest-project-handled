@@ -2,6 +2,8 @@
 
 namespace Tests\Feature;
 
+use App\Models\Provider;
+use App\Models\SportOddType;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\{ RefreshDatabase, WithFaker };
 use Illuminate\Support\Facades\DB;
@@ -26,7 +28,10 @@ class UserSettingsTest extends RegistrationTest
                 $response = $this->post(
                     '/api/v1/user/settings/' . $type,
                     config('default_config.' . $type),
-                    [ 'Authorization' => 'Bearer ' . $this->loginJsonResponse->access_token ]
+                    [
+                        'X-Requested-With' => 'XMLHttpRequest',
+                        'Authorization' => 'Bearer ' . $this->loginJsonResponse->access_token
+                    ]
                 );
 
                 $response->assertJson(['status' => true]);
@@ -39,10 +44,21 @@ class UserSettingsTest extends RegistrationTest
     {
         $this->initialUser();
 
+        $providers = Provider::getActiveProviders()->get()->toArray();
+        $params = [];
+        foreach ($providers as $provider) {
+            $params[] = [
+                'provider_id' => $provider['id'],
+                'active' => true
+            ];
+        }
         $response = $this->post(
             '/api/v1/user/settings/bookies',
-            config('default_config.bookies'),
-            [ 'Authorization' => 'Bearer ' . $this->loginJsonResponse->access_token ]
+            $params,
+            [
+                'X-Requested-With' => 'XMLHttpRequest',
+                'Authorization' => 'Bearer ' . $this->loginJsonResponse->access_token
+            ]
         );
 
         $response->assertJson(['status' => true]);
@@ -54,10 +70,22 @@ class UserSettingsTest extends RegistrationTest
     {
         $this->initialUser();
 
+        $sportOddTypes = SportOddType::getEnabledSportOdds();
+        $params = [];
+        foreach ($sportOddTypes as $sportOddType) {
+            $params[] = [
+                'sport_odd_type_id' => $sportOddType->id,
+                'active' => true
+            ];
+        }
+
         $response = $this->post(
             '/api/v1/user/settings/bet-columns',
-            config('default_config.bet-columns'),
-            [ 'Authorization' => 'Bearer ' . $this->loginJsonResponse->access_token ]
+            $params,
+            [
+                'X-Requested-With' => 'XMLHttpRequest',
+                'Authorization' => 'Bearer ' . $this->loginJsonResponse->access_token
+            ]
         );
 
         $response->assertJson(['status' => true]);
@@ -72,7 +100,10 @@ class UserSettingsTest extends RegistrationTest
         $response = $this->post(
             '/api/v1/user/settings/reset',
             [],
-            [ 'Authorization' => 'Bearer ' . $this->loginJsonResponse->access_token ]
+            [
+                'X-Requested-With' => 'XMLHttpRequest',
+                'Authorization' => 'Bearer ' . $this->loginJsonResponse->access_token
+            ]
         );
 
         $response->assertJson(['status' => true]);

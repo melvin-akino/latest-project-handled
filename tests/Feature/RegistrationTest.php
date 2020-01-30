@@ -16,26 +16,25 @@ class RegistrationTest extends TestCase
     public function requiredFields()
     {
         $fields = [
+            'firstname',
+            'lastname',
             'email',
             'password',
             'password_confirmation',
-            'name',
-            'firstname',
-            'lastname',
-            'phone',
-            'address',
             'postcode',
-            'country',
+            'country_id',
             'state',
             'city',
-            'phone_country_code',
-            'odds_type',
-            'currency_id'
+            'currency_id',
+            'address',
+            'phone'
         ];
 
         collect($fields)
             ->each(function ($field) {
-                $response = $this->post('/api/v1/auth/register', array_merge($this->data(), [$field => '']));
+                $response = $this->post('/api/v1/auth/register', array_merge($this->data(), [$field => '']), [
+                    'X-Requested-With' => 'XMLHttpRequest'
+                ]);
 
                 /** MUST detect that response encounters a 422 HTTP Status error */
                 $response->assertStatus(422);
@@ -57,12 +56,10 @@ class RegistrationTest extends TestCase
         $ifTextRule = [
             'email'               => ['email'],
             'postcode'            => ['numeric'],
-            'phone_country_code'  => ['numeric'],
             'country'             => ['numeric'],
             'state'               => ['numeric'],
             'city'                => ['numeric'],
             'currency_id'         => ['numeric'],
-            'odds_type'           => ['numeric'],
             'birthdate'           => ['date'],
         ];
 
@@ -141,12 +138,10 @@ class RegistrationTest extends TestCase
 
         $ifIntRule = [
             'postcode'              => ['numeric'],
-            'phone_country_code'    => ['numeric'],
             'country'               => ['numeric'],
             'state'                 => ['numeric'],
             'city'                  => ['numeric'],
             'currency_id'           => ['numeric'],
-            'odds_type'             => ['numeric'],
         ];
 
         /** Field/s SHOULD accept valid `integer` input */
@@ -161,7 +156,9 @@ class RegistrationTest extends TestCase
     /** @test */
     public function register()
     {
-        $response = $this->post('/api/v1/auth/register', $this->data());
+        $response = $this->post('/api/v1/auth/register', $this->data(), [
+            'X-Requested-With' => 'XMLHttpRequest'
+        ]);
 
         /** Response SHOULD be able to submit data without errors occuring */
         $response->assertSessionHasNoErrors();
@@ -183,13 +180,12 @@ class RegistrationTest extends TestCase
 
             'phone'                     => $this->faker->phoneNumber,
             'address'                   => $this->faker->address,
-            'postcode'                  => $this->faker->randomNumber(4),
+            'postcode'                  => '123',
 
-            'country_id'                => $this->faker->randomDigit,
-            'state_id'                  => $this->faker->randomDigit,
-            'city_id'                   => $this->faker->randomDigit,
-            'phone_country_code'        => $this->faker->randomDigit,
-            'currency_id'               => $this->faker->randomDigit,
+            'country_id'                => 1,
+            'state'                     => $this->faker->state,
+            'city'                      => $this->faker->city,
+            'currency_id'               => 1,
 
             'birthdate'                 => $this->faker->date('Y-m-d', '2000-01-01'),
             'created_at'                => now(),
