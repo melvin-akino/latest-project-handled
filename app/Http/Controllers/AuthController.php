@@ -236,7 +236,7 @@ class AuthController extends Controller
             ], 451);
         }
 
-        if (Carbon::parse($passwordReset->updated_at)->addMinutes(720)->isPast()) {
+        if (Carbon::parse($passwordReset->updated_at)->addMinutes(60)->isPast()) {
             $passwordReset->delete();
 
             return response()->json([
