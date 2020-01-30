@@ -17,7 +17,7 @@ class UserDataAndConfigurationTest extends RegistrationTest
         $this->initialUser();
         $response = $this->get('/api/v1/user', [
             'X-Requested-With' => 'XMLHttpRequest',
-            'Authorization' => 'Bearer ' . $this->loginJsonResponse->access_token
+            'Authorization'    => 'Bearer ' . $this->loginJsonResponse->access_token
         ]);
 
         $response->assertJson(['status' => true]);
@@ -29,7 +29,7 @@ class UserDataAndConfigurationTest extends RegistrationTest
     {
         $response = $this->get('/api/v1/user', [
             'X-Requested-With' => 'XMLHttpRequest',
-            'Authorization' => 'Bearer XXX'
+            'Authorization'    => 'Bearer XXX'
         ]);
 
         $response->assertStatus(404);

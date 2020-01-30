@@ -30,7 +30,7 @@ class UserSettingsTest extends RegistrationTest
                     config('default_config.' . $type),
                     [
                         'X-Requested-With' => 'XMLHttpRequest',
-                        'Authorization' => 'Bearer ' . $this->loginJsonResponse->access_token
+                        'Authorization'    => 'Bearer ' . $this->loginJsonResponse->access_token
                     ]
                 );
 
@@ -57,7 +57,7 @@ class UserSettingsTest extends RegistrationTest
             $params,
             [
                 'X-Requested-With' => 'XMLHttpRequest',
-                'Authorization' => 'Bearer ' . $this->loginJsonResponse->access_token
+                'Authorization'    => 'Bearer ' . $this->loginJsonResponse->access_token
             ]
         );
 
@@ -84,7 +84,7 @@ class UserSettingsTest extends RegistrationTest
             $params,
             [
                 'X-Requested-With' => 'XMLHttpRequest',
-                'Authorization' => 'Bearer ' . $this->loginJsonResponse->access_token
+                'Authorization'    => 'Bearer ' . $this->loginJsonResponse->access_token
             ]
         );
 
@@ -102,7 +102,7 @@ class UserSettingsTest extends RegistrationTest
             [],
             [
                 'X-Requested-With' => 'XMLHttpRequest',
-                'Authorization' => 'Bearer ' . $this->loginJsonResponse->access_token
+                'Authorization'    => 'Bearer ' . $this->loginJsonResponse->access_token
             ]
         );
 
