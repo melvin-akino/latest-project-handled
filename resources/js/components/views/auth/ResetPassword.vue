@@ -5,7 +5,9 @@
                 <p class="text-gray-700 text-lg mb-2 font-bold uppercase">Reset Password</p>
                 <div class="mb-4">
                     <label for="email" class="block text-gray-700 text-sm mb-2 font-bold uppercase">Email</label>
-                    <input id="email" type="email" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none hover:cursor-not-allowed" :value="$route.params.email" disabled>
+                    <input id="email" type="email" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none hover:cursor-not-allowed" v-model="$v.resetPasswordForm.email.$model" disabled>
+                    <span v-if="$v.resetPasswordForm.email.$dirty && !$v.resetPasswordForm.email.required" class="text-red-600 text-sm">Email is required.</span>
+                    <span v-if="$v.resetPasswordForm.email.$dirty && !$v.resetPasswordForm.email.email" class="text-red-600 text-sm">Email must be valid.</span>
                 </div>
 
                 <div class="mb-4">
@@ -13,6 +15,7 @@
                     <input id="password" type="password" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none" v-model="$v.resetPasswordForm.password.$model" @keyup="clearPasswordResetFormError">
                     <span v-if="$v.resetPasswordForm.password.$dirty && !$v.resetPasswordForm.password.required" class="text-red-600 text-sm">Please type a new password.</span>
                     <span v-if="$v.resetPasswordForm.password.$dirty && !$v.resetPasswordForm.password.minLength" class="text-red-600 text-sm">Password must have a minimum of 6 characters.</span>
+                    <span v-if="$v.resetPasswordForm.password.$dirty && !$v.resetPasswordForm.password.maxLength" class="text-red-600 text-sm">Password must have a maximum of 32 characters.</span>
                 </div>
 
                 <div class="mb-4">
@@ -38,13 +41,14 @@
 </template>
 
 <script>
-import {required, sameAs, minLength} from 'vuelidate/lib/validators'
+import {required, email, sameAs, minLength, maxLength} from 'vuelidate/lib/validators'
 
 export default {
     name: 'ResetPassword',
     data() {
         return {
             resetPasswordForm: {
+                email: '',
                 password: '',
                 password_confirmation: '',
             },
@@ -62,15 +66,25 @@ export default {
     },
     validations: {
         resetPasswordForm: {
-            password: { required, minLength:minLength(6) },
+            email: { required, email },
+            password: { required, minLength:minLength(6), maxLength:maxLength(32) },
             password_confirmation: { sameAs:sameAs('password') }
         }
+    },
+    mounted() {
+        axios.get(`/v1/auth/password/find/${this.$route.params.token}`)
+        .then(response => {
+            this.resetPasswordForm.email = response.data.message.email
+        })
+        .catch(err => {
+            console.log(err)
+        })
     },
     methods: {
         resetPassword() {
             if (!this.$v.resetPasswordForm.$invalid) {
                 this.isResettingPassword = true
-                axios.post('/v1/auth/password/reset/', { token: this.$route.params.token, email: this.$route.params.email, password: this.resetPasswordForm.password, password_confirmation: this.resetPasswordForm.password_confirmation })
+                axios.post('/v1/auth/password/reset/', { token: this.$route.params.token, email: this.resetPasswordForm.email, password: this.resetPasswordForm.password, password_confirmation: this.resetPasswordForm.password_confirmation })
                 .then(response => {
                     this.isResetPasswordSuccess = true
                     this.isResettingPassword = false

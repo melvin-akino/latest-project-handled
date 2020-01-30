@@ -51,7 +51,15 @@
                 </div>
                 <div class="w-1/3 mr-6">
                     <label class="block capitalize text-gray-700 text-sm">Phone Country Code</label>
-                    <input type="text" class="shadow appearance-none border w-full rounded py-2 px-3 text-gray-700 text-sm leading-tight focus:outline-none" :class="{'border-red-600': profileSettingsFormError.hasOwnProperty('phone_country_code')}" id="phone_country_code" v-model="profileSettingsForm.phone_country_code" disabled>
+                    <div class="relative">
+                        <select class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none" :class="{'border-red-600': profileSettingsFormError.hasOwnProperty('phone_country_code')}" id="phone_country_code" v-model="profileSettingsForm.phone_country_code">
+                            <option :value="null" disabled>Select Phone Country Code</option>
+                            <option v-for="phonecode in phonecodes" :key="phonecode.id">{{phonecode.phonecode}}</option>
+                        </select>
+                        <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+                            <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
+                        </div>
+                    </div>
                     <span v-if="profileSettingsFormError.hasOwnProperty('phone_country_code')" class="text-xs text-red-600">{{profileSettingsFormError.phone_country_code[0]}}</span>
                 </div>
                 <div class="w-1/3">
@@ -135,6 +143,7 @@ export default {
                 password_confirmation: ''
             },
             countries: [],
+            phonecodes: [],
             currencies: [
                 { id: 1, currency: 'CNY' },
                 { id: 2, currency: 'USD' }
@@ -151,6 +160,9 @@ export default {
     },
     mounted() {
         this.countries = this.$store.state.settings.settingsData.country
+        this.phonecodes = this.$store.state.settings.settingsData.country.filter(country => country.phonecode.length != 0).map(country => {
+            return { id: country.id, phonecode: country.phonecode }
+        })
     },
     methods: {
         selectCountry() {

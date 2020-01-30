@@ -16,7 +16,7 @@ const routes = [
         component: () => import('./components/views/auth/ForgotPassword')
     },
     {
-        path: '/reset-password/:token/:email',
+        path: '/reset-password/:token',
         component: () => import('./components/views/auth/ResetPassword')
     },
     {
