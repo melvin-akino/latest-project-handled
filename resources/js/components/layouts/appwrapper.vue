@@ -1,18 +1,18 @@
 <template>
-    <div class="w-full sm:pb-0 pb-8" :class="{'flex flex-col items-center':!$store.state.isAuthenticated}">
-        <nav class="flex bg-white shadow-md w-full h-16" :class="[!$store.state.isAuthenticated ? 'mb-16' : 'fixed z-10']">
-            <div class="flex justify-start items-center w-5/12 ml-16" v-if="$store.state.isAuthenticated">
+    <div class="w-full sm:pb-0 pb-8" :class="{'flex flex-col items-center':!$store.state.auth.isAuthenticated}">
+        <nav class="flex bg-white shadow-md w-full h-16" :class="[!$store.state.auth.isAuthenticated ? 'mb-16' : 'fixed z-10']">
+            <div class="flex justify-start items-center w-5/12 ml-16" v-if="$store.state.auth.isAuthenticated">
                 <router-link to="/" class="text-gray-700 text-sm uppercase ml-5 sm:px-4 px-6 py-6">Trade</router-link>
                 <router-link to="/settlement" class="text-gray-700 text-sm uppercase ml-5 sm:px-4 px-6 py-6">Settlement</router-link>
                 <router-link to="/open-orders" class="text-gray-700 text-sm uppercase ml-5 sm:px-4 px-6 py-6">Open Orders</router-link>
                 <router-link to="/settings/general" class="text-gray-700 text-sm uppercase ml-5 sm:px-4 px-6 py-6">Settings</router-link>
             </div>
-            <div class="flex justify-center items-center" :class="[!$store.state.isAuthenticated ? 'w-full' : 'w-2/12']">
+            <div class="flex justify-center items-center" :class="[!$store.state.auth.isAuthenticated ? 'w-full' : 'w-2/12']">
                 <img :src="logo" class="w-12 mt-2">
             </div>
-            <div class="flex justify-end items-center w-5/12 mr-16"  v-if="$store.state.isAuthenticated">
+            <div class="flex justify-end items-center w-5/12 mr-16"  v-if="$store.state.auth.isAuthenticated">
                 <a class="text-gray-700 text-sm uppercase ml-5" href="#" role="button">
-                    {{$store.state.authUser.name}}
+                    {{$store.state.auth.authUser.name}}
                 </a>
                 <a class="text-gray-700 text-sm uppercase ml-5 mr-5" href="#" role="button" @click="logout">Logout</a>
             </div>
@@ -40,8 +40,8 @@ export default {
 
             axios.post('/v1/auth/logout', null, { headers: { 'Authorization': `Bearer ${token}` } })
             .then(response => {
-                this.$store.commit('SET_IS_AUTHENTICATED', false)
-                this.$store.commit('SET_AUTH_USER', '')
+                this.$store.commit('auth/SET_IS_AUTHENTICATED', false)
+                this.$store.commit('auth/SET_AUTH_USER', '')
                 Cookies.remove('access_token')
                 this.$router.push('/login')
             })

@@ -71,15 +71,6 @@ export default {
             password_confirmation: { sameAs:sameAs('password') }
         }
     },
-    mounted() {
-        axios.get(`/v1/auth/password/find/${this.$route.params.token}`)
-        .then(response => {
-            this.resetPasswordForm.email = response.data.message.email
-        })
-        .catch(err => {
-            console.log(err)
-        })
-    },
     methods: {
         resetPassword() {
             if (!this.$v.resetPasswordForm.$invalid) {

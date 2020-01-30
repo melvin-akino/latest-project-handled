@@ -3,7 +3,7 @@
         <div class="mx-auto sm:bg-white sm:shadow-lg md:w-160 sm:w-120 xs:w-100 w-full h-auto sm:px-12 px-4 sm:pt-8 pt-6 pb-4 mt-6">
             <form method="POST" v-if="!isRegisterSuccessful">
                 <div class="step1" v-if="step === 1">
-                    <h3 class="block text-gray-700 text-lg mb-2 font-bold uppercase">Register - Step 1 of 2</h3>
+                    <h3 class="block text-gray-700 text-lg mb-2 font-bold uppercase">Register - Step 1 of 3</h3>
                     <div class="mb-2">
                         <label class="block text-gray-700 text-sm mb-2 font-bold uppercase" for="name">Display Name</label>
                         <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none" :class="{'border-red-600': $v.registerForm.step1.name.$error}" id="name" type="text" placeholder="e.g. iampogi" v-model="$v.registerForm.step1.name.$model">
@@ -31,6 +31,7 @@
                         <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none" :class="{'border-red-600': $v.registerForm.step1.email.$error}" id="email" type="text" placeholder="e.g. iampogi@pogi.com" v-model="$v.registerForm.step1.email.$model">
                         <span v-if="$v.registerForm.step1.email.$dirty && !$v.registerForm.step1.email.required" class="text-red-600 text-sm">Please type an email.</span>
                         <span v-if="$v.registerForm.step1.email.$dirty && !$v.registerForm.step1.email.email" class="text-red-600 text-sm">Please type a valid email.</span>
+                        <span v-if="$v.registerForm.step1.email.$dirty && !$v.registerForm.step1.email.maxLength" class="text-red-600 text-sm">Email must have a maximum of 100 chracters.</span>
                     </div>
                     <div class="flex justify-evenly">
                         <div class="mb-2 mr-3 w-1/2">
@@ -53,7 +54,7 @@
                 </div>
 
                 <div class="step2" v-if="step === 2">
-                    <h3 class="block text-gray-700 text-lg mb-2 font-bold uppercase">Register - Step 2 of 2</h3>
+                    <h3 class="block text-gray-700 text-lg mb-2 font-bold uppercase">Register - Step 2 of 3</h3>
                     <div class="mb-2">
                         <label class="block text-gray-700 text-sm mb-2 font-bold uppercase" for="address">Address</label>
                         <textarea class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none" :class="{'border-red-600': $v.registerForm.step2.address.$error}" id="address" v-model="$v.registerForm.step2.address.$model"></textarea>
@@ -62,7 +63,7 @@
                     <div class="mb-2">
                         <label class="block text-gray-700 text-sm mb-2 font-bold uppercase" for="country">Country</label>
                         <div class="relative">
-                            <select class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none" :class="{'border-red-600': $v.registerForm.step2.country_id.$error}" id="country" v-model="$v.registerForm.step2.country_id.$model" @change="selectCountry">
+                            <select class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none" :class="{'border-red-600': $v.registerForm.step2.country_id.$error}" id="country" v-model="$v.registerForm.step2.country_id.$model">
                                 <option :value="null" disabled>Select Country</option>
                                 <option v-for="country in countries" :key="country.id" :value="country.id">{{country.country_name}}</option>
                             </select>
@@ -71,43 +72,35 @@
                             </div>
                         </div>
                         <span v-if="$v.registerForm.step2.country_id.$dirty && !$v.registerForm.step2.country_id.required" class="text-red-600 text-sm">Country is required.</span>
+                        <span v-if="$v.registerForm.step2.country_id.$dirty && !$v.registerForm.step2.country_id.numeric" class="text-red-600 text-sm">Country ID should be numeric.</span>
                     </div>
                     <div class="flex justify-evenly">
                         <div class="mb-2 mr-3 w-full">
                             <label class="block text-gray-700 text-sm mb-2 font-bold uppercase" for="state">State</label>
                             <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none" :class="{'border-red-600': $v.registerForm.step2.state.$error}" id="state" type="text" placeholder="State" v-model="$v.registerForm.step2.state.$model">
                             <span v-if="$v.registerForm.step2.state.$dirty && !$v.registerForm.step2.state.required" class="text-red-600 text-sm">State is required.</span>
+                            <span v-if="$v.registerForm.step2.state.$dirty && !$v.registerForm.step2.state.maxLength" class="text-red-600 text-sm">State must have a maximum of 100 characters.</span>
                         </div>
                         <div class="mb-2 w-full">
                             <label class="block text-gray-700 text-sm mb-2 font-bold uppercase" for="city">City</label>
                             <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none" :class="{'border-red-600': $v.registerForm.step2.city.$error}" id="city" type="text" placeholder="City" v-model="$v.registerForm.step2.city.$model">
                             <span v-if="$v.registerForm.step2.city.$dirty && !$v.registerForm.step2.city.required" class="text-red-600 text-sm">City is required.</span>
+                            <span v-if="$v.registerForm.step2.city.$dirty && !$v.registerForm.step2.city.maxLength" class="text-red-600 text-sm">City must have a maximum of 100 characters.</span>
                         </div>
-                    </div>
-                    <div class="mb-2">
-                        <label class="block text-gray-700 text-sm font-bold mb-2 uppercase" for="postcode">Post Code</label>
-                        <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none" :class="{'border-red-600': $v.registerForm.step2.postcode.$error}" id="postcode" type="text" placeholder="Post Code" v-model="$v.registerForm.step2.postcode.$model">
-                        <span v-if="$v.registerForm.step2.postcode.$dirty && !$v.registerForm.step2.postcode.required" class="text-red-600 text-sm">Postcode is required.</span>
                     </div>
                     <div class="flex justify-evenly">
                         <div class="mb-2 mr-3 w-full">
-                            <label class="block text-gray-700 text-sm font-bold mb-2 uppercase" for="phone_country_code">Phone Country Code</label>
-                            <div class="relative">
-                                <select class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none" :class="{'border-red-600': $v.registerForm.step2.phone_country_code.$error}" id="phone_country_code" v-model="$v.registerForm.step2.phone_country_code.$model">
-                                    <option :value="null" disabled>Select Phone Country Code</option>
-                                    <option v-for="phonecode in phonecodes" :key="phonecode.id">{{phonecode.phonecode}}</option>
-                                </select>
-                                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
-                                    <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
-                                </div>
-                            </div>
-                            <span v-if="$v.registerForm.step2.phone_country_code.$dirty && !$v.registerForm.step2.phone_country_code.required" class="text-red-600 text-sm">Phone country code is required.</span>
+                            <label class="block text-gray-700 text-sm font-bold mb-2 uppercase" for="postcode">Post Code</label>
+                            <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none" :class="{'border-red-600': $v.registerForm.step2.postcode.$error}" id="postcode" type="text" placeholder="Post Code" v-model="$v.registerForm.step2.postcode.$model">
+                            <span v-if="$v.registerForm.step2.postcode.$dirty && !$v.registerForm.step2.postcode.required" class="text-red-600 text-sm">Postcode is required.</span>
+                             <span v-if="$v.registerForm.step2.postcode.$dirty && !$v.registerForm.step2.postcode.minLength" class="text-red-600 text-sm">Postcode must have a minimum of 3 characters.</span>
+                             <span v-if="$v.registerForm.step2.postcode.$dirty && !$v.registerForm.step2.postcode.maxLength" class="text-red-600 text-sm">Postcode must have a maximum of 6 characters.</span>
                         </div>
                         <div class="mb-2 w-full">
                             <label class="block text-gray-700 text-sm font-bold mb-2 uppercase" for="phone">Phone</label>
-                            <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none" :class="{'border-red-600': $v.registerForm.step2.phone.$error}" id="phone" type="number" placeholder="Phone" v-model="$v.registerForm.step2.phone.$model">
+                            <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none" :class="{'border-red-600': $v.registerForm.step2.phone.$error}" id="phone" type="text" placeholder="Phone" v-model="$v.registerForm.step2.phone.$model">
                             <span v-if="$v.registerForm.step2.phone.$dirty && !$v.registerForm.step2.phone.required" class="text-red-600 text-sm">Phone is required.</span>
-                            <span v-if="$v.registerForm.step2.phone.$dirty && !$v.registerForm.step2.phone.numeric" class="text-red-600 text-sm">Phone should be numeric.</span>
+                            <span v-if="$v.registerForm.step2.phone.$dirty && !$v.registerForm.step2.phone.maxLength" class="text-red-600 text-sm">Phone must have a maximum length of 32 characters.</span>
                         </div>
                     </div>
                     <div class="mb-2">
@@ -122,7 +115,26 @@
                             </div>
                         </div>
                         <span v-if="$v.registerForm.step2.currency_id.$dirty && !$v.registerForm.step2.currency_id.required" class="text-red-600 text-sm">Currency is required.</span>
+                        <span v-if="$v.registerForm.step2.currency_id.$dirty && !$v.registerForm.step2.currency_id.numeric" class="text-red-600 text-sm">Currency ID should be numeric.</span>
                     </div>
+                </div>
+
+                <div class="step3" v-if="step===3">
+                    <h3 class="block text-gray-700 text-lg mb-2 font-bold uppercase">Register - Step 3 of 3</h3>
+                    <p class="text-sm mt-4">By clicking register you are automatically accepting out platform's terms and conditions.</p>
+                    <p class="text-sm">Please read through these documents carefully and understand them before proceeding.</p>
+                    <div class="mb-12">
+                        <ul class="list-disc ml-4 mt-4">
+                            <li><a href="#" class="text-sm text-orange-500">Terms of Use</a></li>
+                            <li><a href="#" class="text-sm text-orange-500">Privacy Policy</a></li>
+                            <li><a href="#" class="text-sm text-orange-500">Responsible Gambling</a></li>
+                        </ul>
+                    </div>
+                    <label class="block">
+                        <input class="mr-2 leading-tight" type="checkbox" v-model="$v.registerForm.step3.agreeToTermsAndConditions.$model">
+                        <span class="text-sm">Accept all these terms and conditions</span>
+                    </label>
+                    <span v-if="$v.registerForm.step3.agreeToTermsAndConditions.$dirty && !$v.registerForm.step3.agreeToTermsAndConditions.checked" class="text-red-600 text-sm">You must accept all terms and conditions.</span>
                 </div>
 
                 <div class="mb-2 flex justify-end mt-3">
@@ -154,7 +166,7 @@ export default {
     data() {
         return {
             step: 1,
-            totalSteps: 2,
+            totalSteps: 3,
             registerForm: {
                 step1: {
                     name: '',
@@ -172,15 +184,16 @@ export default {
                     city: '',
                     postcode: '',
                     phone: '',
-                    phone_country_code: null,
                     currency_id: null
+                },
+                step3: {
+                    agreeToTermsAndConditions: false
                 }
             },
             successfulRegisterMessage: '',
             isRegisterSuccessful: false,
             registerErrors: [],
             countries: [],
-            phonecodes: [],
             currencies: [
                 { id: 1, currency: 'CNY' },
                 { id: 2, currency: 'USD' }
@@ -200,20 +213,22 @@ export default {
                 name: { required, minLength:minLength(6), maxLength:maxLength(32), alphaNum },
                 firstname: { required, maxLength:maxLength(32) },
                 lastname: { required, maxLength:maxLength(32) },
-                email: { required, email },
+                email: { required, email, maxLength:maxLength(100) },
                 password: { required, minLength: minLength(6), maxLength:maxLength(32) },
                 password_confirmation: { sameAs: sameAs('password') },
                 birthdate: {  }
             },
             step2: {
                 address: { required },
-                country_id: { required },
-                state:  { required },
-                city: { required },
-                postcode: { required },
-                phone: { required, numeric },
-                phone_country_code: { required },
-                currency_id: { required }
+                country_id: { required, numeric },
+                state:  { required, maxLength:maxLength(100) },
+                city: { required, maxLength:maxLength(100) },
+                postcode: { required, minLength:minLength(3), maxLength:maxLength(6) },
+                phone: { required, maxLength:maxLength(32) },
+                currency_id: { required, numeric }
+            },
+            step3: {
+                agreeToTermsAndConditions: { checked: value => value === true  }
             }
         }
     },
@@ -224,9 +239,6 @@ export default {
     },
     mounted() {
         this.countries = this.$store.state.settings.settingsData.country
-        this.phonecodes = this.$store.state.settings.settingsData.country.filter(country => country.phonecode.length != 0).map(country => {
-            return { id: country.id, phonecode: country.phonecode }
-        })
     },
     methods: {
         triggerValidationErrors() {
@@ -237,6 +249,10 @@ export default {
             } else if (this.$v.registerForm.step2.$invalid) {
                 Object.keys(this.registerForm.step2).forEach(field => {
                     this.$v.registerForm.step2[field].$touch()
+                })
+            } else if (this.$v.registerForm.step3.$invalid) {
+                Object.keys(this.registerForm.step3).forEach(field => {
+                    this.$v.registerForm.step3[field].$touch()
                 })
             }
         },
@@ -251,9 +267,6 @@ export default {
                 this.triggerValidationErrors()
             }
             this.registerErrors = []
-        },
-        selectCountry() {
-            this.registerForm.step2.phone_country_code = this.countries.filter(country => country.id === this.registerForm.step2.country_id).map(country => country.phonecode).join()
         },
         register() {
             if (!this.$v.registerForm.$invalid) {
@@ -270,7 +283,6 @@ export default {
                     state: this.registerForm.step2.state,
                     city: this.registerForm.step2.city,
                     postcode: this.registerForm.step2.postcode,
-                    phone_country_code: this.registerForm.step2.phone_country_code,
                     phone: this.registerForm.step2.phone,
                     currency_id: this.registerForm.step2.currency_id,
                 }
