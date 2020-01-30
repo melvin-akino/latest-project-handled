@@ -14,7 +14,7 @@ class AppController extends Controller
             'sort-event'                 => config('constants.sort-event'),
             'betslip-adaptive-selection' => config('constants.betslip-adaptive-selection'),
             'language'                   => config('constants.language'),
-            'country'                    => Country::select('id', 'country_name', 'phonecode')->get()->toArray()
+            'country'                    => Country::select('id', 'country_name')->get()->toArray()
         ];
 
         return view('app', [

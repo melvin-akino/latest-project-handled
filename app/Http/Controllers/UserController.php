@@ -33,7 +33,6 @@ class UserController extends Controller
                     'state',
                     'city',
                     'postcode',
-                    'phone_country_code',
                     'currency_id',
                     'birthdate',
                 ])
