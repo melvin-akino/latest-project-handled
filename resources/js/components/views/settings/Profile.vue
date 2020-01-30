@@ -126,16 +126,16 @@ export default {
     data() {
         return {
             profileSettingsForm: {
-                firstname: this.$store.state.authUser.firstname,
-                lastname: this.$store.state.authUser.lastname,
-                address: this.$store.state.authUser.address,
-                country_id: this.$store.state.authUser.country_id,
-                state: this.$store.state.authUser.state,
-                city: this.$store.state.authUser.city,
-                postcode: this.$store.state.authUser.postcode,
-                phone_country_code: this.$store.state.authUser.phone_country_code,
-                phone: this.$store.state.authUser.phone,
-                currency_id:this.$store.state.authUser.currency_id
+                firstname: this.$store.state.auth.authUser.firstname,
+                lastname: this.$store.state.auth.authUser.lastname,
+                address: this.$store.state.auth.authUser.address,
+                country_id: this.$store.state.auth.authUser.country_id,
+                state: this.$store.state.auth.authUser.state,
+                city: this.$store.state.auth.authUser.city,
+                postcode: this.$store.state.auth.authUser.postcode,
+                phone_country_code: this.$store.state.auth.authUser.phone_country_code,
+                phone: this.$store.state.auth.authUser.phone,
+                currency_id:this.$store.state.auth.authUser.currency_id
             },
             changePasswordForm: {
                 old_password: '',

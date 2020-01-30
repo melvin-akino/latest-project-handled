@@ -51,6 +51,7 @@
 <script>
 import { required, email } from 'vuelidate/lib/validators'
 import Cookies from 'js-cookie'
+import Swal from 'sweetalert2'
 
 export default {
     name: 'Login',
@@ -78,6 +79,16 @@ export default {
             password: { required }
         }
     },
+    mounted() {
+        if(this.$store.state.auth.isResetPasswordTokenInvalid) {
+            Swal.fire({
+                icon: 'error',
+                text: this.$store.state.auth.resetPasswordInvalidTokenError
+            })
+            this.$store.commit('auth/SET_IS_RESET_PASSWORD_TOKEN_INVALID', false)
+            this.$store.commit('auth/SET_RESET_PASSWORD_INVALID_TOKEN_ERROR', '')
+        }
+    },
     methods: {
         async login() {
             if (!this.$v.loginForm.$invalid) {
@@ -92,7 +103,7 @@ export default {
                     }
 
                     await this.$router.push('/')
-                    this.$store.commit('SET_IS_AUTHENTICATED', true)
+                    this.$store.commit('auth/SET_IS_AUTHENTICATED', true)
                 } catch(err) {
                     console.log(err)
                     this.isLoggingIn = false
