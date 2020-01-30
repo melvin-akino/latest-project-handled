@@ -15,9 +15,9 @@ class UserDataAndConfigurationTest extends RegistrationTest
     public function withValidTokenTest()
     {
         $this->initialUser();
-
         $response = $this->get('/api/v1/user', [
-            'Authorization' => 'Bearer ' . $this->loginJsonResponse->access_token
+            'X-Requested-With' => 'XMLHttpRequest',
+            'Authorization'    => 'Bearer ' . $this->loginJsonResponse->access_token
         ]);
 
         $response->assertJson(['status' => true]);
@@ -27,16 +27,12 @@ class UserDataAndConfigurationTest extends RegistrationTest
     /** @test */
     public function withInvalidTokenTest()
     {
-        $this->initialUser();
-
         $response = $this->get('/api/v1/user', [
-            'Content-Type'     => 'application/json',
             'X-Requested-With' => 'XMLHttpRequest',
-            'Authorization'    => 'Bearer ' . $this->faker->text(100)
+            'Authorization'    => 'Bearer XXX'
         ]);
 
-        $response->assertRedirect('/');
-        $response->assertStatus(302);
+        $response->assertStatus(404);
     }
 
     private function initialUser()
@@ -54,11 +50,15 @@ class UserDataAndConfigurationTest extends RegistrationTest
            ]);
 
         $data = $this->data();
-        $this->post('/api/v1/auth/register', $data);
+        $this->post('/api/v1/auth/register', $data, [
+            'X-Requested-With' => 'XMLHttpRequest'
+        ]);
 
         $response = $this->post('/api/v1/auth/login', [
             'email'    => $data['email'],
             'password' => $data['password']
+        ], [
+            'X-Requested-With' => 'XMLHttpRequest'
         ]);
 
         $this->loginJsonResponse = json_decode($response->getContent(), false);

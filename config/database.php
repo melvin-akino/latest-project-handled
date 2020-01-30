@@ -16,6 +16,7 @@ return [
     */
 
     'default' => env('DB_CONNECTION', 'mysql'),
+    'crm_default' => env('DB_CRM_CONNECTION', 'pgsql_crm'),
 
     /*
     |--------------------------------------------------------------------------

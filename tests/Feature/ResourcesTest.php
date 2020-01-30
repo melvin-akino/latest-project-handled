@@ -15,4 +15,11 @@ class ResourcesTest extends TestCase
         $response = $this->get('/api/v1/timezones');
         $response->assertJson(['status_code' => 200]);
     }
+
+    public function sportsOddsTest()
+    {
+        $response = $this->get('/api/v1/sports/odds');
+
+        $response->assertJson(['status_code' => 200]);
+    }
 }

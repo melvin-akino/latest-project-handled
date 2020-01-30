@@ -6,8 +6,13 @@ use Illuminate\Support\Facades\DB;
 
 class CRMCurrencySeeder extends Seeder
 {
-    protected $connection = "pgsql_crm";
+    protected $connection;
     protected $tablename = "currency";
+
+    public function __construct()
+    {
+        $this->connection = config('database.crm_default', 'pgsql_crm');
+    }
 
     /**
      * Run the database seeds.
