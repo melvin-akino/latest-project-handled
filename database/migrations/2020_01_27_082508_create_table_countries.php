@@ -19,7 +19,6 @@ class CreateTableCountries extends Migration
             $table->bigIncrements('id');
             $table->string('country_name');
             $table->char('country_code', 3);
-            $table->string('phonecode', 10);
             $table->timestamps();
 
             $table->index([
