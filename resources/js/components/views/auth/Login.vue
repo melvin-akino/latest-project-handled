@@ -85,6 +85,7 @@ export default {
                 icon: 'error',
                 text: this.$store.state.auth.resetPasswordInvalidTokenError
             })
+            this.$store.commit('auth/SET_RESET_PASSWORD_EMAIL', '')
             this.$store.commit('auth/SET_IS_RESET_PASSWORD_TOKEN_INVALID', false)
             this.$store.commit('auth/SET_RESET_PASSWORD_INVALID_TOKEN_ERROR', '')
         }
