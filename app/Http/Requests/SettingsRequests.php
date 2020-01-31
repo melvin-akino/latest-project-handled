@@ -46,8 +46,8 @@ class SettingsRequests extends FormRequest
                 'country_id'                => 'required|numeric|exists:countries,id',
                 'state'                     => 'required|max:100',
                 'city'                      => 'required|max:100',
+                'phone'                     => 'required|numeric|max:32',
                 'currency_id'               => 'required|numeric|exists:' . config('database.crm_default') . '.currency,id',
-                'phone'                     => 'required|max:32',
             ];
         } else if ($type == 'change-password') {
             return [

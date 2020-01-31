@@ -93,14 +93,15 @@
                             <label class="block text-gray-700 text-sm font-bold mb-2 uppercase" for="postcode">Post Code</label>
                             <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none" :class="{'border-red-600': $v.registerForm.step2.postcode.$error}" id="postcode" type="text" placeholder="Post Code" v-model="$v.registerForm.step2.postcode.$model">
                             <span v-if="$v.registerForm.step2.postcode.$dirty && !$v.registerForm.step2.postcode.required" class="text-red-600 text-sm">Postcode is required.</span>
-                             <span v-if="$v.registerForm.step2.postcode.$dirty && !$v.registerForm.step2.postcode.minLength" class="text-red-600 text-sm">Postcode must have a minimum of 3 characters.</span>
-                             <span v-if="$v.registerForm.step2.postcode.$dirty && !$v.registerForm.step2.postcode.maxLength" class="text-red-600 text-sm">Postcode must have a maximum of 6 characters.</span>
+                            <span v-if="$v.registerForm.step2.postcode.$dirty && !$v.registerForm.step2.postcode.minLength" class="text-red-600 text-sm">Postcode must have a minimum of 3 characters.</span>
+                            <span v-if="$v.registerForm.step2.postcode.$dirty && !$v.registerForm.step2.postcode.maxLength" class="text-red-600 text-sm">Postcode must have a maximum of 6 characters.</span>
                         </div>
                         <div class="mb-2 w-full">
                             <label class="block text-gray-700 text-sm font-bold mb-2 uppercase" for="phone">Phone</label>
                             <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none" :class="{'border-red-600': $v.registerForm.step2.phone.$error}" id="phone" type="text" placeholder="Phone" v-model="$v.registerForm.step2.phone.$model">
-                            <span v-if="$v.registerForm.step2.phone.$dirty && !$v.registerForm.step2.phone.required" class="text-red-600 text-sm">Phone is required.</span>
-                            <span v-if="$v.registerForm.step2.phone.$dirty && !$v.registerForm.step2.phone.maxLength" class="text-red-600 text-sm">Phone must have a maximum length of 32 characters.</span>
+                            <span v-if="$v.registerForm.step2.phone.$dirty && !$v.registerForm.step2.phone.required" class="text-red-600 text-sm">Phone number is required.</span>
+                            <span v-if="$v.registerForm.step2.phone.$dirty && !$v.registerForm.step2.phone.numeric" class="text-red-600 text-sm">Phone number should be numeric.</span>
+                            <span v-if="$v.registerForm.step2.phone.$dirty && !$v.registerForm.step2.phone.maxLength" class="text-red-600 text-sm">Phone number must have a maximum length of 32 characters.</span>
                         </div>
                     </div>
                     <div class="mb-2">
@@ -224,7 +225,7 @@ export default {
                 state:  { required, maxLength:maxLength(100) },
                 city: { required, maxLength:maxLength(100) },
                 postcode: { required, minLength:minLength(3), maxLength:maxLength(6) },
-                phone: { required, maxLength:maxLength(32) },
+                phone: { required, numeric, maxLength:maxLength(32) },
                 currency_id: { required, numeric }
             },
             step3: {

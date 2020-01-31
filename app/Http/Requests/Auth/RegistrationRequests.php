@@ -38,7 +38,7 @@ class RegistrationRequests extends FormRequest
             'city'                         => 'required|max:100',
             'currency_id'                  => 'required|numeric|exists:' . config('database.crm_default') . '.currency,id',
             'address'                      => 'required',
-            'phone'                        => 'required|max:32',
+            'phone'                        => 'required|numeric|max:32',
             'birthdate'                    => 'date|nullable',
         ];
     }
