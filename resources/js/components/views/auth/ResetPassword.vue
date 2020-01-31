@@ -48,7 +48,7 @@ export default {
     data() {
         return {
             resetPasswordForm: {
-                email: '',
+                email: this.$store.state.auth.resetPasswordEmail,
                 password: '',
                 password_confirmation: '',
             },
