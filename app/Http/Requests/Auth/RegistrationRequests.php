@@ -38,7 +38,7 @@ class RegistrationRequests extends FormRequest
             'city'                         => 'required|max:100',
             'currency_id'                  => 'required|numeric|exists:' . config('database.crm_default') . '.currency,id',
             'address'                      => 'required',
-            'phone'                        => 'required|numeric|max:32',
+            'phone'                        => 'required|string|regex:/^[0-9]{1,32}$/',
             'birthdate'                    => 'date|nullable',
         ];
     }
@@ -75,6 +75,8 @@ class RegistrationRequests extends FormRequest
             'name.max'                     => trans('validation.custom.name.max', ['count' => 32]),
             'password.max'                 => trans('validation.custom.password.max', ['count' => 32]),
             'password_confirmation.max'    => trans('validation.custom.password_confirmation.max', ['count' => 32]),
+
+            'phone.regex'                  => trans('validation.custom.phone.regex'),
         ];
     }
 

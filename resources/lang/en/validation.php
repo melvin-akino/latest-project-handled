@@ -162,6 +162,9 @@ return [
         ],
         'required'                  => "This field is required.",
         'string'                    => "Invalid input. Field must be a string.",
+        'phone'                     => [
+            'regex'                 => "Invalid number format"
+        ]
     ],
 
     /*
