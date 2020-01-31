@@ -46,8 +46,8 @@ class SettingsRequests extends FormRequest
                 'country_id'                => 'required|numeric|exists:countries,id',
                 'state'                     => 'required|max:100',
                 'city'                      => 'required|max:100',
-                'currency_id'               => 'required|numeric|exists:pgsql_crm.currency,id',
                 'phone'                     => 'required|numeric|max:32',
+                'currency_id'               => 'required|numeric|exists:' . config('database.crm_default') . '.currency,id',
             ];
         } else if ($type == 'change-password') {
             return [

@@ -5,6 +5,7 @@ Vue.use(Vuex)
 const state = {
     isAuthenticated: false,
     authUser: '',
+    resetPasswordEmail: '',
     isResetPasswordTokenInvalid: false,
     resetPasswordInvalidTokenError: ''
 }
@@ -15,6 +16,9 @@ const mutations = {
     },
     SET_AUTH_USER: (state, data) => {
         state.authUser = data
+    },
+    SET_RESET_PASSWORD_EMAIL: (state, data) => {
+        state.resetPasswordEmail = data
     },
     SET_IS_RESET_PASSWORD_TOKEN_INVALID: (state, data) => {
         state.isResetPasswordTokenInvalid = data

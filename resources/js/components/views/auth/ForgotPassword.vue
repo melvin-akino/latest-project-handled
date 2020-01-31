@@ -56,6 +56,7 @@ export default {
     },
     methods: {
         sendEmailToResetPassword() {
+            this.emailMessage = ''
             if (!this.$v.email.$invalid) {
                 this.isSending = true
                 axios.post('/v1/auth/password/create', { email: this.email })

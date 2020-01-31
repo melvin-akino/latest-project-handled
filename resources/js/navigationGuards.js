@@ -27,7 +27,8 @@ export default router.beforeEach((to, from, next) => {
         if (authRoutes.includes(to.matched[0].path)) {
             if (to.matched[0].path === '/reset-password/:token') {
                 axios.get(`/v1/auth/password/find/${to.params.token}`)
-                .then(() => {
+                .then(response => {
+                    store.commit('auth/SET_RESET_PASSWORD_EMAIL', response.data.message.email)
                     next()
                 })
                 .catch(err => {
