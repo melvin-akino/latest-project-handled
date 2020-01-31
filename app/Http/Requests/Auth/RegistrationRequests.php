@@ -26,8 +26,8 @@ class RegistrationRequests extends FormRequest
     public function rules()
     {
         return [
-            'firstname'                    => 'required|string',
-            'lastname'                     => 'required|string',
+            'firstname'                    => 'required|string|max:32',
+            'lastname'                     => 'required|string|max:32',
             'name'                         => 'required|string|unique:users,name|min:6|max:32',
             'email'                        => 'required|email|max:100|unique:users,email',
             'password'                     => 'required|confirmed|min:6|max:32',
@@ -38,7 +38,7 @@ class RegistrationRequests extends FormRequest
             'city'                         => 'required|max:100',
             'currency_id'                  => 'required|numeric|exists:pgsql_crm.currency,id',
             'address'                      => 'required',
-            'phone'                        => 'required',
+            'phone'                        => 'required|max:32',
             'birthdate'                    => 'date|nullable',
         ];
     }
