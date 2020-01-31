@@ -37,7 +37,6 @@ class AuthController extends Controller
      * @param  [string]     city
      * @param  [string]     postcode
      * @param  [string]     phone
-     * @param  [integer]    phone_country_code
      * @param  [integer]    currency_id
      * @param  [date]       birthdate
      *

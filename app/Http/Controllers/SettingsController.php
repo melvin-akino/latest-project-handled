@@ -35,7 +35,6 @@ class SettingsController extends Controller
                         'state'                 => $request->state,
                         'city'                  => $request->city,
                         'postcode'              => $request->postcode,
-                        'phone_country_code'    => $request->phone_country_code,
                         'phone'                 => $request->phone,
                         'currency_id'           => $request->currency_id,
                     ]);
