@@ -173,12 +173,12 @@ class RegistrationTest extends TestCase
             'email'                     => $this->faker->email,
             'password'                  => $password,
             'password_confirmation'     => $password,
-            'name'                      => $this->faker->name,
+            'name'                      => $this->faker->lexify('??????????'),
 
             'firstname'                 => $this->faker->firstName,
             'lastname'                  => $this->faker->lastName,
 
-            'phone'                     => $this->faker->phoneNumber,
+            'phone'                     => $this->faker->numerify('############'),
             'address'                   => $this->faker->address,
             'postcode'                  => '123',
 
