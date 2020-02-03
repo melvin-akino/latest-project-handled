@@ -7,7 +7,7 @@ image: php:7.2-fpm
 
 pipelines:
   branches:
-    develop:
+    pipeline-ssh:
     - step:
         name: Development
         caches:
@@ -27,6 +27,10 @@ pipelines:
           - npm install
           - npm run dev
           - ./vendor/bin/phpunit
+          - mkdir -p ~/.ssh
+          - cat my_known_hosts >> ~/.ssh/known_hosts
+          - (umask  077 ; echo $pipelinetest3 | base64 --decode > ~/.ssh/id_rsa)
+          - ssh swoole@ninepinetechnology-tmcrjvwbpr.dynamic-m.com -p 9912 '. compile.sh'
         services:
           - postgres
 
