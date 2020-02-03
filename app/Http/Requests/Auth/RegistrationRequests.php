@@ -28,7 +28,7 @@ class RegistrationRequests extends FormRequest
         return [
             'firstname'                    => 'required|string|max:32',
             'lastname'                     => 'required|string|max:32',
-            'name'                         => 'required|string|unique:users,name|min:6|max:32',
+            'name'                         => 'required|string|regex:/^[a-zA-Z0-9]+$/|unique:users,name|min:6|max:32',
             'email'                        => 'required|email|max:100|unique:users,email',
             'password'                     => 'required|confirmed|min:6|max:32',
             'password_confirmation'        => 'required|same:password|min:6|max:32',
@@ -62,6 +62,9 @@ class RegistrationRequests extends FormRequest
             // UNIQUES
             'email.unique'                 => trans('validation.custom.email.unique'),
             'name.unique'                  => trans('validation.custom.name.unique'),
+
+            // REGEX
+            'name.regex'                  => trans('validation.custom.name.alphanumeric'),
 
             // SAME
             'password_confirmation.same'   => trans('validation.custom.password_confirmation.same'),
