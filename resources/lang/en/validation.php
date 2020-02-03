@@ -146,6 +146,7 @@ return [
             'min'                   => ":attribute must be at least :count characters.",
             'max'                   => ":attribute is only up to :count characters.",
             'unique'                => ":attribute already exists.",
+            'regex'                 => ":attribute only accepts alphanumeric characters (A-Z, a-z, 0-9).",
         ],
         'numeric'                   => "Invalid input. Field must be a number.",
         'password'                  => [
