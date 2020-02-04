@@ -74,6 +74,10 @@ Route::group([
     Route::get('timezones', 'ResourceController@getTimezones');
     Route::get('sports/odds', 'SportController@configurationOdds');
     Route::middleware('auth:api')->get('bookies', 'ResourceController@getProviders');
+
+    /**
+     * Game Data Routes
+     */
 });
 
 Route::fallback(function () {
