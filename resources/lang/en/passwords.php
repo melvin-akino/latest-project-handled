@@ -20,7 +20,11 @@ return [
     'user'          => "We can't find a user with that e-mail address.",
     'current'       => [
         'success'   => "",
-        'incorrect' => "Current Password is incorrect.",
+        'incorrect' => "Old Password is incorrect.",
+    ],
+    'change'        => [
+        'success'   => "",
+        'unique'    => "You cannot use your Old Password as your New Password.",
     ],
 
 ];
