@@ -18,12 +18,13 @@ pipelines:
           - curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
           - composer install
           - cp .env.pipeline .env
+          - psql -U "postgres" -h "localhost"  -p 5432 -c "CREATE DATABASE test_crm"
           - php artisan key:generate
           - php artisan view:clear
           - php artisan cache:clear
           - php artisan migrate
           - php artisan passport:install
-          - psql -U "postgres" -h "localhost"  -p 5432 -c "CREATE DATABASE test_crm"
+          
           - npm install
           - npm run dev
           #- ./vendor/bin/phpunit
@@ -33,6 +34,7 @@ pipelines:
           - storage/**
           - vendor/**
           - public/**
+          - node_modules/**
           - .env  
     - step:
         name: Unit test
