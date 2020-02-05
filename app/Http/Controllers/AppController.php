@@ -2,20 +2,29 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Country;
+use App\Models\{Country, Leagues};
+
+use Illuminate\Http\Request;
 
 class AppController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         $defaultData = [
-            'price-format'               => config('constants.price-format'),
-            'trade-layout'               => config('constants.trade-layout'),
-            'sort-event'                 => config('constants.sort-event'),
-            'betslip-adaptive-selection' => config('constants.betslip-adaptive-selection'),
-            'language'                   => config('constants.language'),
-            'country'                    => Country::select('id', 'country_name')->get()->toArray()
+            'country' => Country::select('id', 'country_name')->get()->toArray(),
         ];
+
+        if (array_key_exists('access_token', $request->cookie())) {
+            $defaultData = [
+                'price-format'               => config('constants.price-format'),
+                'trade-layout'               => config('constants.trade-layout'),
+                'sort-event'                 => config('constants.sort-event'),
+                'betslip-adaptive-selection' => config('constants.betslip-adaptive-selection'),
+                'language'                   => config('constants.language'),
+                'country'                    => Country::select('id', 'country_name')->get()->toArray(),
+                'leauge-data'                => Leagues::getLeagues(),
+            ];
+        }
 
         return view('app', [
             'default_data' => $defaultData

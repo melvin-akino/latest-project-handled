@@ -144,6 +144,7 @@ class AuthController extends Controller
     public function logout(Request $request)
     {
         $request->user()->token()->revoke();
+        deleteCookie('access_token');
 
         return response()->json([
             'status'        => true,
