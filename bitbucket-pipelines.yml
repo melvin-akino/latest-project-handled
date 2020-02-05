@@ -40,6 +40,8 @@ pipelines:
           - apt-get update && apt-get install -y libmcrypt-dev   libpq-dev postgresql-client
           - docker-php-ext-install pdo pdo_pgsql
           - ./vendor/bin/phpunit
+        services:
+          - postgres  
     - step:
         name: Deploy to developer machine
         script:
