@@ -29,7 +29,7 @@ pipelines:
           #- ./vendor/bin/phpunit
         services:
           - postgres
-    - steps:
+    - step:
         name: Deploy to developer machine
         script:
           - mkdir -p ~/.ssh
