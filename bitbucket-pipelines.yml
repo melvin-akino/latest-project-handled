@@ -24,7 +24,7 @@ pipelines:
           
     - parallel:
         - step:
-            name: artisan      
+            name: Testing       
             script:
               - apt-get install -y libmcrypt-dev   libpq-dev postgresql-client
               - docker-php-ext-install pdo pdo_pgsql
@@ -36,7 +36,7 @@ pipelines:
               - php artisan cache:clear
               - php artisan migrate
               - php artisan passport:install
-           services:
+            services:
               - postgres    
         #- step:
         #    name: npm package         
