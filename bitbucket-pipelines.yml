@@ -7,7 +7,7 @@ image: php:7.2-fpm
 
 pipelines:
   branches:
-    pipeline-ssh:
+    develop:
     - step:
         name: Develop 
         caches:
@@ -36,7 +36,7 @@ pipelines:
           - psql -U "postgres" -h "localhost"  -p 5432 -c "CREATE DATABASE test_crm"
           - php artisan migrate
           - php artisan passport:install
-          #- ./vendor/bin/phpunit
+          - ./vendor/bin/phpunit
         services:
           - postgres  
     - step:
