@@ -42,6 +42,14 @@ class SettingsController extends Controller
                 $currentPassword = User::find(auth()->user()->id)->password;
 
                 if (Hash::check($request->old_password, $currentPassword)) {
+                    if (Hash::check($request->password, $currentPassword)) {
+                        return response()->json([
+                            'status'      => false,
+                            'status_code' => 400,
+                            'message'     => trans('passwords.change.unique')
+                        ], 400);
+                    }
+
                     $response = User::find(auth()->user()->id)
                         ->update([ 'password' => bcrypt($request->password) ]);
                 } else {
@@ -57,7 +65,7 @@ class SettingsController extends Controller
                 return response()->json([
                     'status'        => false,
                     'status_code'   => 404,
-                    'message'       => "URL does not exist",
+                    'message'       => trans('generic.not-found'),
                 ], 404);
             }
 

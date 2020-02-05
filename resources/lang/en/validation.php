@@ -157,6 +157,7 @@ return [
             'min'                   => ":attribute must be at least :count characters.",
             'max'                   => ":attribute is only up to :count characters.",
             'same'                  => ":attribute must be the same with Password.",
+            'new-same'              => ":attribute must be the same as the New Password.",
         ],
         'remember_me'               => [
             'boolean'               => "Invalid input.",

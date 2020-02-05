@@ -150,7 +150,7 @@ class SettingsRequests extends FormRequest
             'password_confirmation.min'    => trans('validation.custom.password_confirmation.min', ['count' => 6]),
             'password.max'                 => trans('validation.custom.password.max', ['count' => 32]),
             'password_confirmation.max'    => trans('validation.custom.password_confirmation.max', ['count' => 32]),
-            'password_confirmation.same'   => trans('validation.custom.password_confirmation.same'),
+            'password_confirmation.same'   => trans('validation.custom.password_confirmation.new-same'),
         ];
     }
 
