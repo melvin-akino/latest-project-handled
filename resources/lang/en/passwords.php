@@ -19,11 +19,10 @@ return [
     'token'         => 'This password reset token is invalid.',
     'user'          => "We can't find a user with that e-mail address.",
     'current'       => [
-        'success'   => "",
         'incorrect' => "Old Password is incorrect.",
     ],
     'change'        => [
-        'success'   => "",
+        'success'   => "Change Password Successful!",
         'unique'    => "You cannot use your Old Password as your New Password.",
     ],
 
