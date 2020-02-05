@@ -7,7 +7,7 @@ image: php:7.2-fpm
 
 pipelines:
   branches:
-    develop:
+    pipeline-ssh:
     - step:
         name: Develop 
         caches:
@@ -40,11 +40,11 @@ pipelines:
         services:
           - postgres  
     - step:
-        name: Deploy to staging 
+        name: Deploy to develop 
         script:
           - apt-get update && apt-get install -y openssh-client
           - mkdir -p ~/.ssh
-          - cat my_known_hosts >> ~/.ssh/known_hosts
+          - cat .develop_hosts >> ~/.ssh/known_hosts
           - (umask  077 ; echo $mykey1 | base64 --decode > ~/.ssh/id_rsa)
           - ssh swoole@ninepinetechnology-tmcrjvwbpr.dynamic-m.com -p 9912 '. compile.sh'
 
