@@ -7,7 +7,7 @@
                     <label class="block text-gray-700 text-sm mb-2 font-bold uppercase" for="email">
                         <i class="far fa-user"></i> &nbsp; Email
                     </label>
-                    <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none" :class="{'border-red-600': $v.loginForm.email.$error}" id="email" type="text" placeholder="Email" v-model="$v.loginForm.email.$model" @keyup="clearLoginError">
+                    <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none" :class="{'border-red-600': $v.loginForm.email.$error}" id="email" type="text" placeholder="Email" v-model="$v.loginForm.email.$model" @keypress="clearLoginError">
                     <span v-if="$v.loginForm.email.$dirty && !$v.loginForm.email.required" class="text-red-600 text-sm">Please type your email.</span>
                     <span v-if="$v.loginForm.email.$dirty && !$v.loginForm.email.email" class="text-red-600 text-sm">Please type a valid email.</span>
                 </div>
@@ -15,7 +15,7 @@
                     <label class="block text-gray-700 text-sm font-bold mb-2 uppercase" for="password">
                         <i class="fas fa-key"></i> &nbsp; Password
                     </label>
-                    <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none" :class="{'border-red-600': $v.loginForm.password.$error}" id="password" type="password" placeholder="Password" v-model="$v.loginForm.password.$model" @keyup="clearLoginError">
+                    <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none" :class="{'border-red-600': $v.loginForm.password.$error}" id="password" type="password" placeholder="Password" v-model="$v.loginForm.password.$model" @keypress="clearLoginError">
                     <span v-if="$v.loginForm.password.$dirty && !$v.loginForm.password.required" class="text-red-600 text-sm">Please type your password.</span>
                 </div>
                 <div class="mb-2">
@@ -24,10 +24,10 @@
                         <span class="text-sm uppercase">Remember Me</span>
                     </label>
                 </div>
-                <div class="mb-4 flex justify-between">
-                    <span class="text-sm text-red-600">{{loginError}}</span>
+                <div class="mb-4 flex" :class="[hasLoginErrors ? 'justify-between' : 'justify-end']">
+                    <span class="text-sm text-red-600" v-if="hasLoginErrors">{{loginError}}</span>
                     <button type="submit" class="bg-orange-400 text-white rounded-full font-bold sm:text-sm text-xs uppercase px-12 sm:py-5 py-2 hover:bg-orange-500 focus:outline-none">
-                        <span v-if="isLoggingIn">Logging In</span>
+                        <span v-if="this.isLoggingIn">Logging In</span>
                         <span v-else>Login</span>
                     </button>
                 </div>
@@ -62,6 +62,7 @@ export default {
                 password: '',
                 remember_me: false
             },
+            hasLoginErrors: false,
             loginError: '',
             isLoggingIn: false
         }
@@ -103,12 +104,15 @@ export default {
                         Cookies.set('access_token', response.data.access_token)
                     }
 
-                    await this.$router.push('/')
-                    this.$store.commit('auth/SET_IS_AUTHENTICATED', true)
+                    await location.reload('/')
+                    setTimeout(() => {
+                        this.$store.commit('auth/SET_IS_AUTHENTICATED', true)
+                    }, 2000)
                 } catch(err) {
                     console.log(err)
                     this.isLoggingIn = false
-                    this.loginError = 'Invalid email or password.'
+                    this.hasLoginErrors = true
+                    this.loginError = err.response.data.message
                 }
             } else {
                 this.$v.loginForm.email.$touch()

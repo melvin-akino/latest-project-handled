@@ -3,6 +3,16 @@
         <form @submit.prevent="saveChanges">
             <div class="mb-6 flex">
                 <div class="w-1/2 mr-6">
+                    <label class="block capitalize text-gray-700 text-sm">Display Name</label>
+                    <input type="text" id="displayname" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 text-sm leading-tight focus:outline-none" :value="this.$store.state.auth.authUser.name" disabled>
+                </div>
+                <div class="w-1/2 mr-6">
+                    <label class="block capitalize text-gray-700 text-sm">Email</label>
+                    <input type="text" id="email" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 text-sm leading-tight focus:outline-none" :value="this.$store.state.auth.authUser.email" disabled>
+                </div>
+            </div>
+            <div class="mb-6 flex">
+                <div class="w-1/2 mr-6">
                     <label class="block capitalize text-gray-700 text-sm">First Name</label>
                     <input type="text" id="firstname" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 text-sm leading-tight focus:outline-none" :class="{'border-red-600': profileSettingsFormError.hasOwnProperty('firstname')}" v-model="profileSettingsForm.firstname">
                     <span v-if="profileSettingsFormError.hasOwnProperty('firstname')" class="text-xs text-red-600">{{profileSettingsFormError.firstname[0]}}</span>

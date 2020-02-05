@@ -40,10 +40,12 @@ export default {
 
             axios.post('/v1/auth/logout', null, { headers: { 'Authorization': `Bearer ${token}` } })
             .then(response => {
-                this.$store.commit('auth/SET_IS_AUTHENTICATED', false)
+                location.reload('/login')
                 this.$store.commit('auth/SET_AUTH_USER', '')
                 Cookies.remove('access_token')
-                this.$router.push('/login')
+                setTimeout(() => {
+                    this.$store.commit('auth/SET_IS_AUTHENTICATED', false)
+                }, 2000)
             })
             .catch(err => {
                 console.log(err)

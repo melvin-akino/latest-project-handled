@@ -1,16 +1,17 @@
 <template>
     <div class="register">
         <div class="mx-auto sm:bg-white sm:shadow-lg md:w-160 sm:w-120 xs:w-100 w-full h-auto sm:px-12 px-4 sm:pt-8 pt-6 pb-4 mt-6">
-            <form method="POST" v-if="!isRegisterSuccessful">
+            <form method="POST">
                 <div class="step1" v-if="step === 1">
                     <h3 class="block text-gray-700 text-lg mb-2 font-bold uppercase">Register - Step 1 of 3</h3>
                     <div class="mb-2">
                         <label class="block text-gray-700 text-sm mb-2 font-bold uppercase" for="name">Display Name</label>
-                        <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none" :class="{'border-red-600': $v.registerForm.step1.name.$error}" id="name" type="text" placeholder="e.g. iampogi" v-model="$v.registerForm.step1.name.$model">
+                        <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none" :class="{'border-red-600': $v.registerForm.step1.name.$error || registerErrors.hasOwnProperty('name')}" id="name" type="text" placeholder="e.g. iampogi" v-model="$v.registerForm.step1.name.$model" @keypress="removeError('name')">
                         <span v-if="$v.registerForm.step1.name.$dirty && !$v.registerForm.step1.name.required" class="text-red-600 text-sm">Please type a display name.</span>
                         <span v-if="$v.registerForm.step1.name.$dirty && !$v.registerForm.step1.name.alphaNum" class="text-red-600 text-sm">Username should only contain alphanumeric characters.</span>
                         <span v-if="$v.registerForm.step1.name.$dirty && !$v.registerForm.step1.name.minLength" class="text-red-600 text-sm">Username must have a minimum of 6 characters.</span>
                         <span v-if="$v.registerForm.step1.name.$dirty && !$v.registerForm.step1.name.maxLength" class="text-red-600 text-sm">Username must have a maximum of 32 characters.</span>
+                        <span v-if="registerErrors.hasOwnProperty('name')" class="text-red-600 text-sm">{{registerErrors.name[0]}}</span>
                     </div>
                     <div class="flex justify-evenly">
                         <div class="mb-2 mr-3 w-1/2">
@@ -28,10 +29,11 @@
                     </div>
                     <div class="mb-2">
                         <label class="block text-gray-700 text-sm mb-2 font-bold uppercase" for="email">Email</label>
-                        <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none" :class="{'border-red-600': $v.registerForm.step1.email.$error}" id="email" type="text" placeholder="e.g. iampogi@pogi.com" v-model="$v.registerForm.step1.email.$model">
+                        <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none" :class="{'border-red-600': $v.registerForm.step1.email.$error || registerErrors.hasOwnProperty('email')}" id="email" type="text" placeholder="e.g. iampogi@pogi.com" v-model="$v.registerForm.step1.email.$model" @keypress="removeError('email')">
                         <span v-if="$v.registerForm.step1.email.$dirty && !$v.registerForm.step1.email.required" class="text-red-600 text-sm">Please type an email.</span>
                         <span v-if="$v.registerForm.step1.email.$dirty && !$v.registerForm.step1.email.email" class="text-red-600 text-sm">Please type a valid email.</span>
                         <span v-if="$v.registerForm.step1.email.$dirty && !$v.registerForm.step1.email.maxLength" class="text-red-600 text-sm">Email must have a maximum of 100 chracters.</span>
+                        <span v-if="registerErrors.hasOwnProperty('email')" class="text-red-600 text-sm">{{registerErrors.email[0]}}</span>
                     </div>
                     <div class="flex justify-evenly">
                         <div class="mb-2 mr-3 w-1/2">
@@ -63,7 +65,7 @@
                     <div class="mb-2">
                         <label class="block text-gray-700 text-sm mb-2 font-bold uppercase" for="country">Country</label>
                         <div class="relative">
-                            <select class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none" :class="{'border-red-600': $v.registerForm.step2.country_id.$error}" id="country" v-model="$v.registerForm.step2.country_id.$model">
+                            <select class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none" :class="{'border-red-600': $v.registerForm.step2.country_id.$error || registerErrors.hasOwnProperty('country_id')}" id="country" v-model="$v.registerForm.step2.country_id.$model" @change="removeError('country_id')">
                                 <option :value="null" disabled>Select Country</option>
                                 <option v-for="country in countries" :key="country.id" :value="country.id">{{country.country_name}}</option>
                             </select>
@@ -73,6 +75,7 @@
                         </div>
                         <span v-if="$v.registerForm.step2.country_id.$dirty && !$v.registerForm.step2.country_id.required" class="text-red-600 text-sm">Country is required.</span>
                         <span v-if="$v.registerForm.step2.country_id.$dirty && !$v.registerForm.step2.country_id.numeric" class="text-red-600 text-sm">Country ID should be numeric.</span>
+                        <span v-if="registerErrors.hasOwnProperty('country_id')" class="text-red-600 text-sm">{{registerErrors.country_id[0]}}</span>
                     </div>
                     <div class="flex justify-evenly">
                         <div class="mb-2 mr-3 w-full">
@@ -93,6 +96,7 @@
                             <label class="block text-gray-700 text-sm font-bold mb-2 uppercase" for="postcode">Post Code</label>
                             <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none" :class="{'border-red-600': $v.registerForm.step2.postcode.$error}" id="postcode" type="text" placeholder="Post Code" v-model="$v.registerForm.step2.postcode.$model">
                             <span v-if="$v.registerForm.step2.postcode.$dirty && !$v.registerForm.step2.postcode.required" class="text-red-600 text-sm">Postcode is required.</span>
+                            <span v-if="$v.registerForm.step2.postcode.$dirty && !$v.registerForm.step2.postcode.numeric" class="text-red-600 text-sm">Postcode should be numeric.</span>
                             <span v-if="$v.registerForm.step2.postcode.$dirty && !$v.registerForm.step2.postcode.minLength" class="text-red-600 text-sm">Postcode must have a minimum of 3 characters.</span>
                             <span v-if="$v.registerForm.step2.postcode.$dirty && !$v.registerForm.step2.postcode.maxLength" class="text-red-600 text-sm">Postcode must have a maximum of 6 characters.</span>
                         </div>
@@ -107,7 +111,7 @@
                     <div class="mb-2">
                         <label class="block text-gray-700 text-sm mb-2 font-bold uppercase" for="currency_id">Currency</label>
                         <div class="relative">
-                            <select class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none" :class="{'border-red-600': $v.registerForm.step2.currency_id.$error}" id="currency_id" v-model="$v.registerForm.step2.currency_id.$model">
+                            <select class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none" :class="{'border-red-600': $v.registerForm.step2.currency_id.$error || registerErrors.hasOwnProperty('currency_id')}" id="currency_id" v-model="$v.registerForm.step2.currency_id.$model" @change="removeError('currency_id')">
                                 <option :value="null" disabled>Select Currency</option>
                                 <option v-for="currency in currencies" :key="currency.id" :value="currency.id">{{currency.currency}}</option>
                             </select>
@@ -117,6 +121,7 @@
                         </div>
                         <span v-if="$v.registerForm.step2.currency_id.$dirty && !$v.registerForm.step2.currency_id.required" class="text-red-600 text-sm">Currency is required.</span>
                         <span v-if="$v.registerForm.step2.currency_id.$dirty && !$v.registerForm.step2.currency_id.numeric" class="text-red-600 text-sm">Currency ID should be numeric.</span>
+                        <span v-if="registerErrors.hasOwnProperty('currency_id')" class="text-red-600 text-sm">{{registerErrors.currency_id[0]}}</span>
                     </div>
                 </div>
 
@@ -144,11 +149,6 @@
                     <button type="submit" v-if="step === totalSteps" class="bg-orange-400 text-white rounded-full font-bold sm:text-sm text-xs uppercase px-12 sm:py-5 py-2 ml-2 hover:bg-orange-500 focus:outline-none" @click.prevent="register">Create Account</button>
                 </div>
             </form>
-
-            <div class="h-20 w-full mr-12 text-gray-700 font-bold mb-2 uppercase flex flex-col justify-center items-center rounded-lg" v-if="isRegisterSuccessful">
-                <div class="text-green-400 text-2xl">{{successfulRegisterMessage}}!</div>
-                <div><router-link to="/login" class="underline">Login Here</router-link></div>
-            </div>
         </div>
         <div class="mt-6">
             <div class="flex justify-center sm:pb-0 pb-12">
@@ -161,6 +161,7 @@
 <script>
 import { required, minLength, maxLength, alphaNum, sameAs, email, numeric } from 'vuelidate/lib/validators'
 import Swal from 'sweetalert2'
+import Cookies from 'js-cookie'
 
 export default {
     name: 'Register',
@@ -191,14 +192,12 @@ export default {
                     agreeToTermsAndConditions: false
                 }
             },
-            successfulRegisterMessage: '',
-            isRegisterSuccessful: false,
-            registerErrors: [],
+            registerErrors: {},
             countries: [],
             currencies: [
                 { id: 1, currency: 'CNY' },
                 { id: 2, currency: 'USD' }
-            ],
+            ]
         }
     },
     head: {
@@ -224,7 +223,7 @@ export default {
                 country_id: { required, numeric },
                 state:  { required, maxLength:maxLength(100) },
                 city: { required, maxLength:maxLength(100) },
-                postcode: { required, minLength:minLength(3), maxLength:maxLength(6) },
+                postcode: { required, numeric, minLength:minLength(3), maxLength:maxLength(6) },
                 phone: { required, numeric, maxLength:maxLength(32) },
                 currency_id: { required, numeric }
             },
@@ -235,7 +234,7 @@ export default {
     },
     computed: {
         checkIfCurrentStepIsInvalid() {
-            return this.$v.registerForm[`step${this.step}`].$invalid
+            return this.$v.registerForm[`step${this.step}`].$invalid || Object.entries(this.registerErrors).length != 0
         }
     },
     mounted() {
@@ -259,7 +258,6 @@ export default {
         },
         prevStep() {
             this.step--
-            this.registerErrors = []
         },
         nextStep() {
             if (!this.checkIfCurrentStepIsInvalid) {
@@ -267,7 +265,23 @@ export default {
             } else {
                 this.triggerValidationErrors()
             }
-            this.registerErrors = []
+        },
+        loginAfterRegister() {
+            axios.post('/v1/auth/login', { email: this.registerForm.step1.email, password: this.registerForm.step1.password })
+            .then(response => {
+                Cookies.set('access_token', response.data.access_token)
+                location.reload('/')
+                setTimeout(() => {
+                    this.$store.commit('auth/SET_IS_AUTHENTICATED', true)
+                }, 2000)
+            })
+            .catch(err => {
+                console.log(err)
+                location.reload('/login')
+                setTimeout(() => {
+                    this.$store.commit('auth/SET_IS_AUTHENTICATED', false)
+                }, 2000)
+            })
         },
         register() {
             if (!this.$v.registerForm.$invalid) {
@@ -290,24 +304,33 @@ export default {
 
                 axios.post('/v1/auth/register', data)
                 .then(response => {
-                    this.isRegisterSuccessful = true
-                    this.successfulRegisterMessage = response.data.message
+                    Swal.fire({
+                        icon: 'success',
+                        html: `${response.data.message} <br> Logging In...`,
+                        timer: 3000
+                    })
+
+                    setTimeout(() => {
+                        this.loginAfterRegister()
+                    }, 3000)
                 })
                 .catch(err => {
-                    this.registerErrors = []
-                    Object.values(err.response.data.errors).forEach(errorType => {
-                        errorType.forEach(error => {
-                            this.registerErrors.push(error)
-                        })
+                    this.registerErrors = err.response.data.errors
+                    let errorFields = Object.keys(this.registerErrors).map(field => {
+                        return field
                     })
-                    Swal.fire({
-                        icon: 'error',
-                        html: this.registerErrors.join('<br>')
+                    Object.keys(this.registerForm).map(step => {
+                        if(this.registerForm[step].hasOwnProperty(errorFields[0])) {
+                            this.step = parseInt(step.split('')[step.length - 1])
+                        }
                     })
                 })
             } else {
                 this.triggerValidationErrors()
             }
+        },
+        removeError(field) {
+            delete this.registerErrors[field]
         }
     }
 }
