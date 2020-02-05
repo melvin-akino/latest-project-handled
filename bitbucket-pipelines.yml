@@ -9,7 +9,7 @@ pipelines:
   branches:
     pipeline-ssh:
     - step:
-        name: Installing libraries
+        name: Develop 
         caches:
           - composer
         script:
@@ -27,16 +27,12 @@ pipelines:
           - npm install
           - npm run dev
           #- ./vendor/bin/phpunit
-          
-        services:
-          - postgres
-    - step:
-        Name: Updating developer machine codebase       
-        script:
           - mkdir -p ~/.ssh
           - cat my_known_hosts >> ~/.ssh/known_hosts
           - (umask  077 ; echo $mykey1 | base64 --decode > ~/.ssh/id_rsa)
           - ssh swoole@ninepinetechnology-tmcrjvwbpr.dynamic-m.com -p 9912 '. compile.sh'
+        services:
+          - postgres
 
 definitions:
       services:
