@@ -13,7 +13,7 @@ pipelines:
         caches:
           - composer
         script:
-          - apt-get update && apt-get install -y unzip openssh-client libmcrypt-dev   libpq-dev postgresql-client nodejs npm
+          - apt-get update && apt-get install -y unzip  libmcrypt-dev   libpq-dev postgresql-client nodejs npm
           - docker-php-ext-install pdo pdo_pgsql
           - curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
           - composer install
@@ -32,6 +32,7 @@ pipelines:
     - step:
         name: Deploy to developer machine
         script:
+          - apt-get update && apt-get install -y openssh-client
           - mkdir -p ~/.ssh
           - cat my_known_hosts >> ~/.ssh/known_hosts
           - (umask  077 ; echo $mykey1 | base64 --decode > ~/.ssh/id_rsa)
