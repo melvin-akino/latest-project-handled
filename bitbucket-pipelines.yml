@@ -13,26 +13,41 @@ pipelines:
         caches:
           - composer
         script:
-          - apt-get update && apt-get install -y unzip openssh-client libmcrypt-dev   libpq-dev postgresql-client nodejs npm
-          - docker-php-ext-install pdo pdo_pgsql
+          - apt-get update && apt-get install -y unzip   nodejs npm
           - curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
           - composer install
           - cp .env.pipeline .env
-          - psql -U "postgres" -h "localhost"  -p 5432 -c "CREATE DATABASE test_crm"
           - php artisan key:generate
           - php artisan view:clear
           - php artisan cache:clear
-          - php artisan migrate
-          - php artisan passport:install
           - npm install
           - npm run dev
-          - ./vendor/bin/phpunit
+        artifacts:
+          - storage/**
+          - vendor/**
+          - public/**
+          - node_modules/**
+          - .env  
+    - step:
+        name: Unit test
+        script:
+          - apt-get update && apt-get install -y libmcrypt-dev   libpq-dev postgresql-client
+          - docker-php-ext-install pdo pdo_pgsql
+          - psql -U "postgres" -h "localhost"  -p 5432 -c "CREATE DATABASE test_crm"
+          - php artisan migrate
+          - php artisan passport:install
+        #  - ./vendor/bin/phpunit
+        services:
+          - postgres  
+    - step:
+        name: Deploy to staging 
+        script:
+          - apt-get update && apt-get install -y openssh-client
           - mkdir -p ~/.ssh
           - cat my_known_hosts >> ~/.ssh/known_hosts
           - (umask  077 ; echo $mykey1 | base64 --decode > ~/.ssh/id_rsa)
           - ssh swoole@ninepinetechnology-tmcrjvwbpr.dynamic-m.com -p 9912 '. compile.sh'
-        services:
-          - postgres
+
 
 definitions:
       services:
