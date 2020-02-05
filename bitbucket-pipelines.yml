@@ -19,6 +19,8 @@ pipelines:
           - composer install
           - cp .env.pipeline .env
           - psql -U "postgres" -h "localhost"  -p 5432 -c "CREATE DATABASE test_crm"
+        artifacts:
+          - dist/**  
         services:
           - postgres   
     - parallel:
