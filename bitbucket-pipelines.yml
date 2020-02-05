@@ -19,33 +19,20 @@ pipelines:
           - composer install
           - cp .env.pipeline .env
           - psql -U "postgres" -h "localhost"  -p 5432 -c "CREATE DATABASE test_crm"
-        artifacts:
-          - dist/**  
-        services:
-          - postgres   
-    - parallel:
-        - step:
-            name: artisan      
-            script:
-              - php artisan key:generate
-              - php artisan view:clear
-              - php artisan cache:clear
-              - php artisan migrate
-              - php artisan passport:install
-        - step:
-            name: npm package         
-            script:
-              - npm install
-              - npm run dev
+          - php artisan key:generate
+          - php artisan view:clear
+          - php artisan cache:clear
+          - php artisan migrate
+          - php artisan passport:install
+          - npm install
+          - npm run dev
           #- ./vendor/bin/phpunit
-        - step:  
-            name: Deploying
-            script:
-              - mkdir -p ~/.ssh
-              - cat my_known_hosts >> ~/.ssh/known_hosts
-              - (umask  077 ; echo $mykey1 | base64 --decode > ~/.ssh/id_rsa)
-              - ssh swoole@ninepinetechnology-tmcrjvwbpr.dynamic-m.com -p 9912 '. compile.sh'
-        
+          - mkdir -p ~/.ssh
+          - cat my_known_hosts >> ~/.ssh/known_hosts
+          - (umask  077 ; echo $mykey1 | base64 --decode > ~/.ssh/id_rsa)
+          - ssh swoole@ninepinetechnology-tmcrjvwbpr.dynamic-m.com -p 9912 '. compile.sh'
+        services:
+          - postgres
 
 definitions:
       services:
