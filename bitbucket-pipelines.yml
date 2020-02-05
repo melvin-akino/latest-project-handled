@@ -22,7 +22,6 @@ pipelines:
           - php artisan key:generate
           - php artisan view:clear
           - php artisan cache:clear
-          - php artisan migrate
           - php artisan passport:install
           
           - npm install
