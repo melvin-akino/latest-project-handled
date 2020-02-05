@@ -13,7 +13,7 @@ pipelines:
         caches:
           - composer
         script:
-          - apt-get update && apt-get install -y unzip openssh-client libmcrypt-dev   libpq-dev postgresql-client nodejs npm
+          - apt-get update && apt-get install -y unzip   nodejs npm
           - cp .env.pipeline .env
           
           - npm install
@@ -21,12 +21,12 @@ pipelines:
         artifacts:
           - ./**
           - .env 
-        services:
-          - postgres   
+          
     - parallel:
         - step:
             name: artisan      
             script:
+              - apt-get install -y libmcrypt-dev   libpq-dev postgresql-client
               - docker-php-ext-install pdo pdo_pgsql
               - psql -U "postgres" -h "localhost"  -p 5432 -c "CREATE DATABASE test_crm"
               - curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
@@ -36,6 +36,8 @@ pipelines:
               - php artisan cache:clear
               - php artisan migrate
               - php artisan passport:install
+           services:
+              - postgres    
         #- step:
         #    name: npm package         
         #    script:
@@ -45,6 +47,7 @@ pipelines:
         - step:  
             name: Deploying
             script:
+              - apt-get install openssh-client
               - mkdir -p ~/.ssh
               - cat my_known_hosts >> ~/.ssh/known_hosts
               - (umask  077 ; echo $mykey1 | base64 --decode > ~/.ssh/id_rsa)
