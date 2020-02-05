@@ -18,7 +18,6 @@ pipelines:
           - curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
           - composer install
           - cp .env.pipeline .env
-          - psql -U "postgres" -h "localhost"  -p 5432 -c "CREATE DATABASE test_crm"
           - php artisan key:generate
           - php artisan view:clear
           - php artisan cache:clear
@@ -39,6 +38,7 @@ pipelines:
         script:
           - apt-get update && apt-get install -y libmcrypt-dev   libpq-dev postgresql-client
           - docker-php-ext-install pdo pdo_pgsql
+          - psql -U "postgres" -h "localhost"  -p 5432 -c "CREATE DATABASE test_crm"
           - ./vendor/bin/phpunit
         services:
           - postgres  
