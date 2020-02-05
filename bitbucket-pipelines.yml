@@ -29,6 +29,14 @@ pipelines:
           #- ./vendor/bin/phpunit
         services:
           - postgres
+        artifacts:
+          - storage/**
+          - vendor/**
+          - public/**
+          - .env  
+    - step:
+        name: Unit test
+          - ./vendor/bin/phpunit
     - step:
         name: Deploy to developer machine
         script:
