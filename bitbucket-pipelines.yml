@@ -36,6 +36,7 @@ pipelines:
           - .env  
     - step:
         name: Unit test
+        script:
           - ./vendor/bin/phpunit
     - step:
         name: Deploy to developer machine
