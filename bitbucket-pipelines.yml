@@ -24,25 +24,25 @@ pipelines:
     - parallel:
         - step:
             name: artisan      
-                script:
-                  - php artisan key:generate
-                  - php artisan view:clear
-                  - php artisan cache:clear
-                  - php artisan migrate
-                  - php artisan passport:install
+            script:
+              - php artisan key:generate
+              - php artisan view:clear
+              - php artisan cache:clear
+              - php artisan migrate
+              - php artisan passport:install
         - step:
             name: npm package         
-                script:
-                  - npm install
-                  - npm run dev
+            script:
+              - npm install
+              - npm run dev
           #- ./vendor/bin/phpunit
         - step:  
             name: Deploying
-                script:
-                  - mkdir -p ~/.ssh
-                  - cat my_known_hosts >> ~/.ssh/known_hosts
-                  - (umask  077 ; echo $mykey1 | base64 --decode > ~/.ssh/id_rsa)
-                  - ssh swoole@ninepinetechnology-tmcrjvwbpr.dynamic-m.com -p 9912 '. compile.sh'
+            script:
+              - mkdir -p ~/.ssh
+              - cat my_known_hosts >> ~/.ssh/known_hosts
+              - (umask  077 ; echo $mykey1 | base64 --decode > ~/.ssh/id_rsa)
+              - ssh swoole@ninepinetechnology-tmcrjvwbpr.dynamic-m.com -p 9912 '. compile.sh'
         
 
 definitions:
