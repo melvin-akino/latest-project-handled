@@ -67,12 +67,10 @@ export default {
             .catch(err => console.log(err))
         },
         getUserConfig() {
-            let token = Cookies.get('access_token')
-
-            axios.get('v1/user/settings/general', { headers: { 'Authorization': `Bearer ${token}` } })
+            this.$store.dispatch('settings/getGeneralSettingsConfig')
             .then(response => {
-                this.generalSettingsForm.price_format = response.data.data.price_format
-                this.generalSettingsForm.timezone = response.data.data.timezone
+                this.generalSettingsForm.price_format = response.price_format
+                this.generalSettingsForm.timezone = response.timezone
             })
             .catch(err => {
                 console.log(err)

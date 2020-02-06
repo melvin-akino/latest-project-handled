@@ -4,11 +4,13 @@ Vue.use(Vuex)
 
 import auth from './auth'
 import settings from './settings'
+import trade from './trade'
 
 const store = new Vuex.Store({
     modules: {
         auth,
-        settings
+        settings,
+        trade
     }
 })
 
