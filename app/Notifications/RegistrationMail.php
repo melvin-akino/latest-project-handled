@@ -47,18 +47,25 @@ class RegistrationMail extends Notification
         return (new MailMessage)
             ->line('Hi ' . $this->userName . ',')
             ->line('Welcome to multiline.io!')
-            ->line('We offer you a genuinely unique online sports betting experience with a single click!')
-            ->line('Simutaneous Execution')
-            ->line('Multiline.io brings you real-time odds offered by multiple bookmakers and exchanges. Orders are matched simultaneously at all available prices that satisfy your requirements.')
-            ->line('Global Liquidity')
-            ->line('Multiline.io is integrated with many of the world’s biggest bookmakers and betting exchanges. This includes Singbet, ISN, PIN, ISC, SBC, and SBO.')
-            ->line('Market-based Prices')
-            ->line('Orders are matched in price descending order. ‘Top down execution’ ensures that you always get the best price available in the market.')
-            ->line('Comprehensive Coverage')
-            ->line('Early market, game day and in-running offers on Asian Handicaps and all other major markets for Football, Basketball, American Football, Baseball, and E-Sports.')
-            ->line('Speed')
-            ->line('Multiline.io is the fastest sports betting software of its kind. We continually invest in the latest technologies to deliver the fastest price retrieval and bet placement in the market.')
-            ->line('Thank you for using our application!');
+            // HEADER
+                ->line(trans('mail.registration.header'))
+            // SIMULTANEOUS EXECUTION
+                ->line(trans('mail.registration.simultaneous-execution.title'))
+                ->line(trans('mail.registration.simultaneous-execution.content'))
+            // GLOBAL LIQUIDITY
+                ->line(trans('mail.registration.global-liquidity.title'))
+                ->line(trans('mail.registration.global-liquidity.content'))
+            // MARKET-BASED PRICES
+                ->line(trans('mail.registration.market-based-prices.title'))
+                ->line(trans('mail.registration.market-based-prices.content'))
+            // COMPREHENSIVE COVERAGE
+                ->line(trans('mail.registration.comprehensive-coverage.title'))
+                ->line(trans('mail.registration.comprehensive-coverage.content'))
+            // SPEED
+                ->line(trans('mail.registration.speed.title'))
+                ->line(trans('mail.registration.speed.content'))
+            // FOOTER
+            ->line(trans('mail.registration.footer'));
     }
 
     /**
