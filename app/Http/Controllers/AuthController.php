@@ -5,13 +5,9 @@ namespace App\Http\Controllers;
 use App\User;
 use App\Auth\PasswordReset;
 
-use App\Http\Requests\Auth\LoginRequests;
-use App\Http\Requests\Auth\RegistrationRequests;
-use App\Http\Requests\Auth\ForgotPasswordRequests;
-use App\Http\Requests\Auth\ChangePasswordRequests;
+use App\Http\Requests\Auth\{ChangePasswordRequests, ForgotPasswordRequests, LoginRequests, RegistrationRequests};
 
-use App\Notifications\PasswordResetRequest;
-use App\Notifications\PasswordResetSuccess;
+use App\Notifications\{PasswordResetRequest, PasswordResetSuccess, RegistrationMail};
 
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -64,6 +60,9 @@ class AuthController extends Controller
         ]);
 
         $user->save();
+        $user->notify(
+            new RegistrationMail($request->firstname . " " . $request->lastname)
+        );
 
         return response()->json([
             'status'                => true,
