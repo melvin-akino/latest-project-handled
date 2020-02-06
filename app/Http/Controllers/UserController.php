@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\ProcessedOdds;
+use App\Jobs\ProcessScrapedData;
 use App\Models\{Provider, SportOddType, UserConfiguration, UserSportOddConfiguration};
 
 use Illuminate\Http\Request;
@@ -18,6 +20,9 @@ class UserController extends Controller
      */
     public function user(Request $request)
     {
+//        $sportOddType = SportOddType::findOrFail(1);
+//        $model = get();
+//        ProcessScrapedData::dispatch($model);
         return response()->json(
             [
                 'status'            => true,
