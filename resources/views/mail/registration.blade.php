@@ -12,7 +12,7 @@
     <div class="w-full pt-8 pb-2 px-10">
         Hi <strong>{{ $name }}</strong>,
         <br /><br />
-        Welcome to <span class="font-bold text-orange">MULTILINE.IO</span> !
+        {!! trans('mail.registration.intro') !!}
         <br />
         {{ trans('mail.registration.header') }}
     </div>

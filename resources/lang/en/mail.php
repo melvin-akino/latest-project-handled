@@ -13,6 +13,8 @@ return [
         ],
     ],
     'registration'                  => [
+        'subject'                   => "MULTILINE IO : Registration",
+        'intro'                     => "Welcome to <span class=\"font-bold text-orange\">MULTILINE.IO</span> !",
         'header'                    => "We offer you a genuinely unique online sports betting experience with a single click!",
         'simultaneous-execution'    => [
             'title'                 => "Simultaneous Execution",

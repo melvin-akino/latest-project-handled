@@ -61,7 +61,7 @@ class AuthController extends Controller
 
         $user->save();
         $user->notify(
-            new RegistrationMail($request->firstname . " " . $request->lastname)
+            new RegistrationMail($request->name)
         );
 
         return response()->json([

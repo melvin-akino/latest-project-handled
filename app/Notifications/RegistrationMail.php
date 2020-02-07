@@ -56,7 +56,7 @@ class RegistrationMail extends Notification
         ];
 
         return (new MailMessage)->markdown('mail.registration', $data)
-            ->subject('MULTILINE IO : Registration');
+            ->subject(trans('mail.registration.subject'));
     }
 
     /**
