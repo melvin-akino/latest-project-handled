@@ -23,12 +23,12 @@ class UserSportOddConfiguration extends Model
      * @param array $request
      * @return bool
      */
-    public static function saveSettings(array $request): bool
+    public static function saveSettings(int $sportId = null, array $request): bool
     {
         try {
             DB::beginTransaction();
 
-            $sportOddTypes = SportOddType::getEnabledSportOdds();
+            $sportOddTypes = is_null($sportId) ? SportOddType::getEnabledSportOdds() : SportOddType::getEnabledSportOdds($sportId);
             $requestSportOddTypes = array_column($request, 'sport_odd_type_id');
 
             foreach ($sportOddTypes as $sportOddType) {

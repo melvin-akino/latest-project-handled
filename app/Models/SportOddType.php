@@ -17,13 +17,18 @@ class SportOddType extends Model
     /**
      * @return array
      */
-    public static function getEnabledSportOdds()
+    public static function getEnabledSportOdds($sportId = null)
     {
         $sql = "SELECT sot.id, sport_id, sport, odd_type_id, type
                     FROM sport_odd_type as sot
                     JOIN sports as s ON s.id = sot.sport_id
                     JOIN odd_types as ot ON ot.id = sot.odd_type_id
                     WHERE s.is_enabled = '1'";
+
+        if (!is_null($sportId)) {
+            $sql .= " AND s.id = " . $sportId;
+        }
+
         return DB::select($sql);
     }
 }
