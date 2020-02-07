@@ -16,7 +16,7 @@ class SettingsController extends Controller
     protected $provConfig = ['bookies'];
     protected $userConfig = ['general', 'trade-page', 'bet-slip', 'notifications-and-sounds', 'language'];
 
-    public function postSettings($type, SettingsRequests $request)
+    public function postSettings($type, $sportId = null, SettingsRequests $request)
     {
         try {
             if (in_array($type, $this->userConfig)) {
@@ -24,7 +24,7 @@ class SettingsController extends Controller
             } else if (in_array($type, $this->provConfig)) {
                 UserProviderConfiguration::saveSettings($request->all());
             } else if (in_array($type, $this->oddsConfig)) {
-                UserSportOddConfiguration::saveSettings($request->all());
+                UserSportOddConfiguration::saveSettings($sportId, $request->all());
             } else if ($type == 'profile') {
                 User::find(auth()->user()->id)
                     ->update([

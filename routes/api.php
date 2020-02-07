@@ -64,6 +64,8 @@ Route::group([
 
         Route::post('settings/{type}', 'SettingsController@postSettings')
             ->where('type', '^(general|trade-page|bet-slip|notifications-and-sounds|language|bookies|bet-columns|profile|change-password|reset)$');
+        Route::post('settings/{type}/{sportId}', 'SettingsController@postSettings')
+            ->where('type', '^(bet-columns)$');
         Route::get('settings/{type}', 'SettingsController@getSettings')
             ->where('type', '^(general|trade-page|bet-slip|notifications-and-sounds|language|bookies|bet-columns)$');
     });
