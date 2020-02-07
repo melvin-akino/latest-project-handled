@@ -2,7 +2,9 @@
 
 namespace App\Providers;
 
-use App\Listeners\WebSocketSubscriber;
+use App\Events\ProcessedOdds;
+use App\Listeners\SaveOddsToDb;
+use App\Listeners\WebSocketOddsNotification;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Auth\Listeners\SendEmailVerificationNotification;
 use Illuminate\Foundation\Support\Providers\EventServiceProvider as ServiceProvider;
@@ -18,13 +20,10 @@ class EventServiceProvider extends ServiceProvider
         Registered::class => [
             SendEmailVerificationNotification::class,
         ],
-    ];
-
-    /**
-     * @var array
-     */
-    protected $subscribe = [
-        WebSocketSubscriber::class
+        ProcessedOdds::class => [
+            WebSocketOddsNotification::class,
+            SaveOddsToDb::class
+        ]
     ];
 
     /**

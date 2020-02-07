@@ -2,21 +2,23 @@
 
 namespace App\Events;
 
-use App\Models\SportOddType;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\Log;
+use RdKafka\Message;
 
 class ProcessedOdds
 {
     use SerializesModels;
 
-    public $test;
+    public $message;
 
     /**
      * ProcessedOdds constructor.
-     * @param SportOddType $sportOddType
+     * @param Message $message
      */
-    public function __construct(SportOddType $sportOddType)
+    public function __construct($message)
     {
-        $this->test = $sportOddType;
+        Log::info(json_encode($message));
+        $this->message = $message;
     }
 }

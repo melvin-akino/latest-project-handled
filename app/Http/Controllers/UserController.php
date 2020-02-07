@@ -8,6 +8,8 @@ use App\Models\{Provider, SportOddType, UserConfiguration, UserSportOddConfigura
 
 use Illuminate\Http\Request;
 use Exception;
+use RdKafka\Message;
+use SwooleTW\Http\Websocket\Facades\Websocket;
 
 class UserController extends Controller
 {
@@ -20,6 +22,7 @@ class UserController extends Controller
      */
     public function user(Request $request)
     {
+        Websocket::broadcast()->emit('changeOdds', (array) $processedOdds->message);
 //        $sportOddType = SportOddType::findOrFail(1);
 //        $model = get();
 //        ProcessScrapedData::dispatch($model);
