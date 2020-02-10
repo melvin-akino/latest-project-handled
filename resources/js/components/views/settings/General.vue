@@ -61,19 +61,24 @@ export default {
         this.priceFormats = this.$store.state.settings.settingsData['price-format']
     },
     methods: {
-        getTimezones() {
+        async getTimezones() {
             axios.get('/v1/timezones')
-            .then(response => this.timezones = response.data.data)
+            .then(response => {
+                this.timezones = response.data.data
+            })
             .catch(err => console.log(err))
         },
         getUserConfig() {
-            this.$store.dispatch('settings/getGeneralSettingsConfig')
+            let token = Cookies.get('access_token')
+
+            axios.get('v1/user/settings/general', { headers: { 'Authorization': `Bearer ${token}` } })
             .then(response => {
-                this.generalSettingsForm.price_format = response.price_format
-                this.generalSettingsForm.timezone = response.timezone
+                this.generalSettingsForm.price_format = response.data.data.price_format
+                this.generalSettingsForm.timezone = response.data.data.timezone
             })
             .catch(err => {
                 console.log(err)
+                this.$store.dispatch('auth/checkIfTokenIsValid', err.response.data.status)
             })
         },
         saveChanges() {
@@ -82,6 +87,8 @@ export default {
                 price_format: this.generalSettingsForm.price_format,
                 timezone: this.generalSettingsForm.timezone
             }
+
+            
 
             axios.post('/v1/user/settings/general', data, { headers: { 'Authorization': `Bearer ${token}` } })
             .then(response => {
@@ -92,6 +99,7 @@ export default {
             })
             .catch(err => {
                 console.log(err)
+                this.$store.dispatch('auth/checkIfTokenIsValid', err.response.data.status)
             })
         }
     }

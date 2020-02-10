@@ -120,6 +120,7 @@ export default {
             })
             .catch(err => {
                 console.log(err)
+                this.$store.dispatch('auth/checkIfTokenIsValid', err.response.data.status)
             })
         },
         toggleTradeSettings(isActive, key) {
@@ -150,6 +151,7 @@ export default {
             })
             .catch(err => {
                 console.log(err)
+                this.$store.dispatch('auth/checkIfTokenIsValid', err.response.data.status)
             })
         }
     }

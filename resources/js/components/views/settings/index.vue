@@ -67,7 +67,10 @@ export default {
 
             axios.get('v1/user/settings/language', { headers: { 'Authorization': `Bearer ${token}` } })
             .then(response => this.language = response.data.data.language)
-            .catch(err => console.log(err))
+            .catch(err => {
+                console.log(err)
+                this.$store.dispatch('auth/checkIfTokenIsValid', err.response.data.status)
+            })
         },
         saveChangedLanguage() {
             let token = Cookies.get('access_token')
@@ -81,6 +84,7 @@ export default {
             })
             .catch(err => {
                 console.log(err)
+                this.$store.dispatch('auth/checkIfTokenIsValid', err.response.data.status)
             })
         },
         changeLanguage() {
@@ -125,6 +129,7 @@ export default {
                     })
                     .catch(err => {
                         console.log(err)
+                        this.$store.dispatch('auth/checkIfTokenIsValid', err.response.data.status)
                     })
                 }
             })

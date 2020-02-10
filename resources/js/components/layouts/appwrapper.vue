@@ -11,8 +11,9 @@
                 <img :src="logo" class="w-12 mt-2">
             </div>
             <div class="flex justify-end items-center w-5/12 mr-16" v-if="$store.state.auth.isAuthenticated">
+                <p class="text-gray-700 text-sm capitalize">{{time}} | GMT {{defaultTimezone.timezone}} {{defaultTimezone.name}}</p>
                 <div class="username relative inline-block sm:px-4 px-6 navlink">
-                    <a href="#" class="text-gray-700 text-sm uppercase ml-5 mr-5">{{$store.state.auth.authUser.name}} <span class="text-xs text-gray-700 font-normal"><i class="fas fa-chevron-down"></i></span></a>
+                    <a href="#" class="text-gray-700 text-sm uppercase ml-5 mr-5">{{display_name}} <span class="text-xs text-gray-700 font-normal"><i class="fas fa-chevron-down"></i></span></a>
                     <div class="absolute mt-5 bg-gray-800 py-1 shadow-xl w-48 dropdown" v-if="!isLoggingOut">
                         <router-link to="/settings" class="text-white text-sm uppercase pl-6 pb-1 block hover:bg-orange-500">Settings</router-link>
                         <a class="text-white text-sm uppercase pl-6 block hover:bg-orange-500 logout" href="#" role="button" @click="logout">Logout</a>
@@ -37,24 +38,51 @@ export default {
     data() {
         return {
             logo: Logo,
-            isLoggingOut: false
+            isLoggingOut: false,
+            display_name: '',
+            time: '',
+            timezones: [],
+            timezone: {}
         }
     },
-    mounted() {
-        console.log(moment().tz().format())
-    },
     computed: {
-        ...mapState('settings', ['generalSettingsConfig'])
+        ...mapState('settings', ['defaultTimezone'])
+    },
+    mounted() {
+        this.setTime()
+        this.getDefaultTimezone()
+        this.display_name = Cookies.get('display_name')
     },
     methods: {
+        setTime() {
+            let timezone = JSON.parse(Cookies.get('default_timezone')).name
+            setInterval(() => {
+                this.time = moment().tz(timezone).format('hh:mm:ss')
+            }, 1000)
+        },
+        async getDefaultTimezone() {
+            try {
+                if (Cookies.get('default_timezone')) {
+                    this.$store.commit('settings/SET_DEFAULT_TIMEZONE', JSON.parse(Cookies.get('default_timezone')))
+                } else {
+                    let { timezone } = await this.$store.dispatch('settings/getUserSettingsConfig', 'general')
+                    let response = await axios.get('/v1/timezones')
+                    let defaultTimezone =  response.data.data.filter(zone => parseInt(zone.id) === parseInt(timezone))[0]
+                    this.$store.commit('settings/SET_DEFAULT_TIMEZONE', defaultTimezone)
+                    Cookies.set('default_timezone', JSON.stringify(defaultTimezone))
+                }
+            } catch(err) {
+                console.log(err)
+            }
+        },
         logout() {
             let token = Cookies.get('access_token')
 
             axios.post('/v1/auth/logout', null, { headers: { 'Authorization': `Bearer ${token}` } })
             .then(response => {
                 location.reload('/login')
-                this.$store.commit('auth/SET_AUTH_USER', '')
                 Cookies.remove('access_token')
+                Cookies.remove('display_name')
                 setTimeout(() => {
                     this.$store.commit('auth/SET_IS_AUTHENTICATED', false)
                 }, 2000)

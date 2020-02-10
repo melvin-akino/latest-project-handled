@@ -1,3 +1,5 @@
+import Cookies from 'js-cookie'
+
 const state = {
     isAuthenticated: false,
     authUser: '',
@@ -10,9 +12,6 @@ const mutations = {
     SET_IS_AUTHENTICATED: (state, data) => {
         state.isAuthenticated = data
     },
-    SET_AUTH_USER: (state, data) => {
-        state.authUser = data
-    },
     SET_RESET_PASSWORD_EMAIL: (state, data) => {
         state.resetPasswordEmail = data
     },
@@ -24,6 +23,20 @@ const mutations = {
     }
 }
 
+const actions = {
+    checkIfTokenIsValid: ({commit}, status) => {
+        let allowedStatuses = [200, 422]
+        if(!allowedStatuses.includes(status)) {
+            location.reload('/login')
+            Cookies.remove('access_token')
+            Cookies.remove('display_name')
+            setTimeout(() => {
+                commit('auth/SET_IS_AUTHENTICATED', false)
+            }, 2000)
+        }
+    }
+}
+
 export default {
-    state, mutations, namespaced: true
+    state, mutations, actions, namespaced: true
 }

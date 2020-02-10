@@ -7,22 +7,12 @@ export default router.beforeEach((to, from, next) => {
     const authRoutes = ['/login', '/register', '/forgot-password', '/reset-password/:token']
     const token = Cookies.get('access_token')
     if (token) {
-        axios.get('/v1/user', { headers: { 'Authorization': `Bearer ${token}` } })
-        .then(response => {
-            store.commit('auth/SET_IS_AUTHENTICATED', true)
-            store.commit('auth/SET_AUTH_USER', response.data.data)
-            if (authRoutes.includes(to.matched[0].path)) {
-                next('/')
-            } else {
-                next()
-            }
-        })
-        .catch(err => {
-            console.log(err)
-            Cookies.remove('access_token')
-            store.commit('auth/SET_IS_AUTHENTICATED', false)
-            next('/login')
-        })
+        store.commit('auth/SET_IS_AUTHENTICATED', true)
+        if (authRoutes.includes(to.matched[0].path)) {
+            next('/')
+        } else {
+            next()
+        }
     } else {
         if (authRoutes.includes(to.matched[0].path)) {
             if (to.matched[0].path === '/reset-password/:token') {
