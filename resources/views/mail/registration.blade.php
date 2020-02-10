@@ -39,6 +39,6 @@
     </div>
 
     <div class="w-full py-8 px-10 text-center">
-        <span class="text-sm">{{ trans('mail.registration.footer-rights') }}</span>
+        <span class="text-sm">{{ trans('mail.footer-rights') }}</span>
     </div>
 @endsection

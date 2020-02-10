@@ -182,6 +182,8 @@ return [
 
     'attributes' => [
         'date'                      => "Date",
+        'datetime'                  => "Datetime",
+        'ip_address'                => "IP Address",
         'email'                     => "E-mail Address",
         'name'                      => "Username",
         'password'                  => "Password",

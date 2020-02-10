@@ -2,6 +2,7 @@
 
 namespace App\Notifications;
 
+use App\User;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
@@ -44,12 +45,19 @@ class PasswordResetRequest extends Notification implements ShouldQueue
      * @return \Illuminate\Notifications\Messages\MailMessage
      */
     public function toMail($notifiable) {
-        $url = url('/#/reset-password/'.$this->token);
+        $name = User::where('email', $this->user)->first()->name;
+        $data = [
+            'url' => url('/#/reset-password/' . $this->token),
+            'name' => $name,
+        ];
 
-        return (new MailMessage)
-            ->line(trans('mail.password.request.body'))
-            ->action('Reset Password', url($url))
-            ->line(trans('mail.password.request.footer'));
+        return (new MailMessage)->markdown('mail.reset-request', $data)
+            ->subject(trans('mail.password.request.subject'));
+
+        // return (new MailMessage)
+        //     ->line(trans('mail.password.request.body'))
+        //     ->action('Reset Password', url($url))
+        //     ->line(trans('mail.password.request.footer'));
     }
 
     /**
