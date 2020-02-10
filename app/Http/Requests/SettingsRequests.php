@@ -29,6 +29,7 @@ class SettingsRequests extends FormRequest
     public function rules()
     {
         $type = $this->route('type');
+        $sportId = is_null($this->route('sportId')) ? null : $this->route('sportId');
 
         if ($type == 'general') {
             $priceFormats = implode(',', array_column(config('constants.price-format'), 'id'));
@@ -99,7 +100,7 @@ class SettingsRequests extends FormRequest
 
             return $rules;
         } else if ($type == 'bet-columns') {
-            $sportOddTypes = SportOddType::getEnabledSportOdds();
+            $sportOddTypes = SportOddType::getEnabledSportOdds($sportId);
             $rules = [];
             foreach ($sportOddTypes as $key => $sportOddType) {
                 $rules[$key . '.sport_odd_type_id'] = [
