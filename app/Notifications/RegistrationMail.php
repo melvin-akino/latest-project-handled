@@ -7,22 +7,20 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
-class PasswordResetRequest extends Notification implements ShouldQueue
+class RegistrationMail extends Notification
 {
     use Queueable;
 
-    protected $token;
-    protected $user;
+    protected $userName;
 
     /**
      * Create a new notification instance.
      *
      * @return void
      */
-    public function __construct($token, $user)
+    public function __construct($userName)
     {
-        $this->token = $token;
-        $this->user = $user;
+        $this->userName = $userName;
     }
 
     /**
@@ -32,7 +30,8 @@ class PasswordResetRequest extends Notification implements ShouldQueue
      *
      * @return array
      */
-    public function via($notifiable) {
+    public function via($notifiable)
+    {
         return ['mail'];
     }
 
@@ -43,13 +42,21 @@ class PasswordResetRequest extends Notification implements ShouldQueue
      *
      * @return \Illuminate\Notifications\Messages\MailMessage
      */
-    public function toMail($notifiable) {
-        $url = url('/#/reset-password/'.$this->token);
+    public function toMail($notifiable)
+    {
+        $data = [
+            'name'     => $this->userName,
+            'sections' => [
+                'simultaneous-execution',
+                'global-liquidity',
+                'market-based-prices',
+                'comprehensive-coverage',
+                'speed',
+            ],
+        ];
 
-        return (new MailMessage)
-            ->line(trans('mail.password.request.body'))
-            ->action('Reset Password', url($url))
-            ->line(trans('mail.password.request.footer'));
+        return (new MailMessage)->markdown('mail.registration', $data)
+            ->subject(trans('mail.registration.subject'));
     }
 
     /**
@@ -59,7 +66,8 @@ class PasswordResetRequest extends Notification implements ShouldQueue
      *
      * @return array
      */
-    public function toArray($notifiable) {
+    public function toArray($notifiable)
+    {
         return [
             //
         ];
