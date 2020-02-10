@@ -56,11 +56,6 @@ class PasswordResetSuccess extends Notification implements ShouldQueue
 
         return (new MailMessage)->markdown('mail.reset-success', $data)
             ->subject(trans('mail.password.reset.subject'));
-
-        // return (new MailMessage)
-        //     ->line(trans('mail.password.reset.success'))
-        //     ->line(trans('mail.password.reset.body'))
-        //     ->line(trans('mail.password.reset.footer'));
     }
 
     /**

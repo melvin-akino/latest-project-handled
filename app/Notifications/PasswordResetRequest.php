@@ -45,19 +45,13 @@ class PasswordResetRequest extends Notification implements ShouldQueue
      * @return \Illuminate\Notifications\Messages\MailMessage
      */
     public function toMail($notifiable) {
-        $name = User::where('email', $this->user)->first()->name;
         $data = [
             'url' => url('/#/reset-password/' . $this->token),
-            'name' => $name,
+            'name' => User::where('email', $this->user)->first()->name,
         ];
 
         return (new MailMessage)->markdown('mail.reset-request', $data)
             ->subject(trans('mail.password.request.subject'));
-
-        // return (new MailMessage)
-        //     ->line(trans('mail.password.request.body'))
-        //     ->action('Reset Password', url($url))
-        //     ->line(trans('mail.password.request.footer'));
     }
 
     /**
