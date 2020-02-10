@@ -18,13 +18,15 @@ class SettingsController extends Controller
 
     public function postSettings($type, $sportId = null, SettingsRequests $request)
     {
+        $response = true;
+
         try {
             if (in_array($type, $this->userConfig)) {
-                UserConfiguration::saveSettings($type, $request->all());
+                $response = UserConfiguration::saveSettings($type, $request->all());
             } else if (in_array($type, $this->provConfig)) {
-                UserProviderConfiguration::saveSettings($request->all());
+                $response = UserProviderConfiguration::saveSettings($request->all());
             } else if (in_array($type, $this->oddsConfig)) {
-                UserSportOddConfiguration::saveSettings($sportId, $request->all());
+                $response = UserSportOddConfiguration::saveSettings($request->all(), $sportId);
             } else if ($type == 'profile') {
                 User::find(auth()->user()->id)
                     ->update([
@@ -69,10 +71,18 @@ class SettingsController extends Controller
                 ], 404);
             }
 
+            if (!$response) {
+                return response()->json([
+                    'status'      => false,
+                    'status_code' => 400,
+                    'message'     => trans('generic.bad-request')
+                ]);
+            }
+
             return response()->json([
                 'status'        => true,
                 'status_code'   => 200,
-                'message'       => trans('notifications.save.success'),
+                'message'       => trans('notifications.save.success')
             ], 200);
         } catch (Throwable $e) {
             return response()->json([

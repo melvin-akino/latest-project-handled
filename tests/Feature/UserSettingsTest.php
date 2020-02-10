@@ -2,8 +2,7 @@
 
 namespace Tests\Feature;
 
-use App\Models\Provider;
-use App\Models\SportOddType;
+use App\Models\{Provider, Sport, SportOddType};
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\{ RefreshDatabase, WithFaker };
 use Illuminate\Support\Facades\DB;
@@ -133,5 +132,34 @@ class UserSettingsTest extends RegistrationTest
         ]);
 
         $this->loginJsonResponse = json_decode($response->getContent(), false);
+    }
+
+    /** @test */
+    public function updateColumnPerSportConfigWithValidTokenTest()
+    {
+        $this->initialUser();
+        $sportId = Sport::inRandomOrder()->first()->id;
+
+        $sportOddTypes = SportOddType::getEnabledSportOdds($sportId);
+        $params = [];
+
+        foreach ($sportOddTypes as $sportOddType) {
+            $params[] = [
+                'sport_odd_type_id' => $sportOddType->id,
+                'active' => true
+            ];
+        }
+
+        $response = $this->post(
+            '/api/v1/user/settings/bet-columns/' . $sportId,
+            $params,
+            [
+                'X-Requested-With' => 'XMLHttpRequest',
+                'Authorization'    => 'Bearer ' . $this->loginJsonResponse->access_token
+            ]
+        );
+
+        $response->assertJson(['status' => true]);
+        $response->assertJson(['status_code' => 200]);
     }
 }
