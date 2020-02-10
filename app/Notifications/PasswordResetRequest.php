@@ -23,7 +23,7 @@ class PasswordResetRequest extends Notification implements ShouldQueue
     public function __construct($token, $user)
     {
         $this->token = $token;
-        $this->user = $user;
+        $this->user  = $user;
     }
 
     /**
@@ -46,7 +46,7 @@ class PasswordResetRequest extends Notification implements ShouldQueue
      */
     public function toMail($notifiable) {
         $data = [
-            'url' => url('/#/reset-password/' . $this->token),
+            'url'  => url('/#/reset-password/' . $this->token),
             'name' => User::where('email', $this->user)->first()->name,
         ];
 
