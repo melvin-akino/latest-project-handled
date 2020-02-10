@@ -21,7 +21,7 @@ class AlterTableSportsAddColumnsSlugIcon extends Migration
     {
         Schema::table($this->tablename, function (Blueprint $table) {
             foreach ($this->strings AS $string => $default) {
-                $table->string($string, 30)->default($default)->nullable();
+                $table->string($string, 30)->default($default);
             }
         });
     }
