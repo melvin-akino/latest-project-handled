@@ -3,13 +3,16 @@
 return [
     'password'                      => [
         'request'                   => [
-            'body'                  => "You are receiving this email because we received a password reset request for your account.",
-            'footer'                => "If you did not request a password reset, no further action is required.",
+            'subject'               => "MULTILINE IO : Password Reset Request",
+            'body'                  => "You recently reqested to reset your password for your &nbsp; <a href=\"#\">multiline.io</a> &nbsp; account. Click the button below to reset it.",
+            'reset-button'          => "Reset your Password",
+            'footer'                => "If you did not request a password reset, please ignore this email or reply to let us know. This password reset is only valid for the next 30 minutes.",
         ],
         'reset' => [
-            'success'               => "You have changed your password successfully.",
+            'subject'               => "MULTILINE IO : Password Reset Success",
+            'success'               => "You have recently updated your password for the following account:",
             'body'                  => "If you did change your password, no further action is required.",
-            'footer'                => "If you did not change your password, protect your account.",
+            'footer'                => "If you did not request a password reset, please reply to this email to let us know.",
         ],
     ],
     'registration'                  => [
@@ -39,4 +42,5 @@ return [
         'footer'                    => "Thank you for using our application!",
     ],
     'footer-rights'                 => "All Rights Reserved 2020 &copy; Multiline IO",
+    'remarks'                       => "Thanks,<br /><a href=\"#\">multiline.io</a>",
 ];

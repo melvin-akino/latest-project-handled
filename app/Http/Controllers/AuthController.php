@@ -234,7 +234,7 @@ class AuthController extends Controller
             ], 451);
         }
 
-        if (Carbon::parse($passwordReset->updated_at)->addMinutes(60)->isPast()) {
+        if (Carbon::parse($passwordReset->updated_at)->addMinutes(30)->isPast()) {
             $passwordReset->delete();
 
             return response()->json([
@@ -303,7 +303,7 @@ class AuthController extends Controller
 
         $passwordReset->delete();
 
-        $user->notify(new PasswordResetSuccess($passwordReset));
+        $user->notify(new PasswordResetSuccess($passwordReset, $user));
 
         return response()->json([
             'status'            => true,
