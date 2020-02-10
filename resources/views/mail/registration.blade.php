@@ -39,6 +39,6 @@
     </div>
 
     <div class="w-full py-8 px-10 text-center">
-        <span class="text-sm">All Rights Reserved 2020 &copy; Multiline IO</span>
+        <span class="text-sm">{{ trans('mail.registration.footer-rights') }}</span>
     </div>
 @endsection

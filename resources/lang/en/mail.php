@@ -38,4 +38,5 @@ return [
         ],
         'footer'                    => "Thank you for using our application!",
     ],
+    'footer-rights'                 => "All Rights Reserved 2020 &copy; Multiline IO",
 ];
