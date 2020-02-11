@@ -3,11 +3,7 @@
         <div class="flex">
             <Sports></Sports>
             <div class="flex flex-col bg-gray-800 w-3/12 h-screen xl:w-2/12 fixed sidebar">
-                <div class="flex flex-col px-6 py-2">
-                    <Wallet wallet-title="Credit" wallet-data="$ 1,000.00"></Wallet>
-                    <Wallet wallet-title="PL" wallet-data="$ 500.00"></Wallet>
-                    <Wallet wallet-title="Open Orders" wallet-data="$ 100.00"></Wallet>
-                </div>
+                <Wallet></Wallet>
                 <div class="show-watchlist">
                     <div class="text-white text-center bg-orange-500 py-1">Watchlist <i class="fas fa-play text-xs"></i></div>
                 </div>
