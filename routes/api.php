@@ -82,6 +82,12 @@ Route::group([
     /**
      * Game Data Routes
      */
+    Route::group([
+        'middleware' => 'auth:api',
+        'prefix'     => 'trade',
+    ], function () {
+        Route::get('betbar', 'SportController@getUserBetbar');
+    });
 });
 
 Route::fallback(function () {
