@@ -68,6 +68,8 @@ Route::group([
             ->where('type', '^(bet-columns)$');
         Route::get('settings/{type}', 'SettingsController@getSettings')
             ->where('type', '^(general|trade-page|bet-slip|notifications-and-sounds|language|bookies|bet-columns)$');
+
+        Route::get('wallet', 'WalletController@userWallet');
     });
 
     /**

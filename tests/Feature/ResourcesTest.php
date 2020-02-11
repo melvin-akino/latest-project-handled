@@ -16,6 +16,7 @@ class ResourcesTest extends TestCase
         $response->assertJson(['status_code' => 200]);
     }
 
+    /** @test */
     public function sportsOddsTest()
     {
         $response = $this->get('/api/v1/sports/odds');
