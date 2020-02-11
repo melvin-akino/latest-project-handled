@@ -17,32 +17,31 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
     return $request->user();
 });
 
-/**
- * API V1 Endpoints
- */
+/*
+|--------------------------------------------------------------------------
+| API V1 Endpoints
+|--------------------------------------------------------------------------
+|
+| Multiline v2.0 API Endpoints
+| Registered route endpoints that are initially used by
+| the WEB application.
+|
+| Some API Endpoints registered below can be re-used upon
+| development of MOBILE application.
+|
+*/
 Route::group([
     'prefix' => 'v1',
 ], function () {
-    /**
-     * User Authentication Routes
-     */
+    /** User Authentication Route Endpoints*/
     Route::group([
         'prefix' => 'auth',
     ], function () {
         Route::post('login', 'AuthController@login');
         Route::post('register', 'AuthController@register');
+        Route::middleware('auth:api')->post('logout', 'AuthController@logout');
 
-        Route::group([
-            'middleware' => 'auth:api',
-        ], function() {
-            Route::post('logout', 'AuthController@logout');
-
-            // ..
-        });
-
-        /**
-         * Forgot Password and Reset
-         */
+        /** Forgot Password and Reset Route Endpoints */
         Route::group([
             'middleware' => 'api',
             'prefix'     => 'password',
@@ -53,15 +52,14 @@ Route::group([
         });
     });
 
-    /**
-     * Authenticated Routes :: User
-     */
+    /** Authenticated Routes :: User */
     Route::group([
         'middleware'    => 'auth:api',
         'prefix'        => 'user',
     ], function () {
         Route::get('/', 'UserController@user');
 
+        /** Authenticated User Settings Management Route Endpoints */
         Route::post('settings/{type}', 'SettingsController@postSettings')
             ->where('type', '^(general|trade-page|bet-slip|notifications-and-sounds|language|bookies|bet-columns|profile|change-password|reset)$');
         Route::post('settings/{type}/{sportId}', 'SettingsController@postSettings')
@@ -69,24 +67,29 @@ Route::group([
         Route::get('settings/{type}', 'SettingsController@getSettings')
             ->where('type', '^(general|trade-page|bet-slip|notifications-and-sounds|language|bookies|bet-columns)$');
 
+        /** Authenticated User Wallet Management Route Endpoints */
         Route::get('wallet', 'WalletController@userWallet');
     });
 
-    /**
-     * Resources Routes
-     */
+    /** Resources Route Endpoints */
     Route::get('timezones', 'ResourceController@getTimezones');
     Route::get('sports/odds', 'SportController@configurationOdds');
     Route::middleware('auth:api')->get('bookies', 'ResourceController@getProviders');
 
-    /**
-     * Game Data Routes
-     */
+    /** Game Data Route Endpoints*/
     Route::group([
         'middleware' => 'auth:api',
         'prefix'     => 'trade',
     ], function () {
+        /** User Bet bar Management Route Endpoints */
         Route::get('betbar', 'SportController@getUserBetbar');
+
+        /** User Watchlist Management Route Endpoints */
+        Route::prefix('watchlist')->group(function () {
+            Route::get('/', 'SportController@getUserWatchlist');
+            Route::post('add', 'SportController@postAddToWatchlist');
+            Route::post('remove', 'SportController@postRemoveToWatchlist');
+        });
     });
 });
 
