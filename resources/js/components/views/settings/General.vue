@@ -61,7 +61,7 @@ export default {
         this.priceFormats = this.$store.state.settings.settingsData['price-format']
     },
     methods: {
-        async getTimezones() {
+        getTimezones() {
             axios.get('/v1/timezones')
             .then(response => {
                 this.timezones = response.data.data
@@ -81,26 +81,25 @@ export default {
                 this.$store.dispatch('auth/checkIfTokenIsValid', err.response.data.status)
             })
         },
-        saveChanges() {
+        async saveChanges() {
             let token = Cookies.get('access_token')
             let data = {
                 price_format: this.generalSettingsForm.price_format,
                 timezone: this.generalSettingsForm.timezone
             }
 
-            
-
-            axios.post('/v1/user/settings/general', data, { headers: { 'Authorization': `Bearer ${token}` } })
-            .then(response => {
+            try {
+                let response = await axios.post('/v1/user/settings/general', data, { headers: { 'Authorization': `Bearer ${token}` } })
+                let defaultTimezone = await this.$store.dispatch('settings/getDefaultTimezone')
+                this.$store.commit('settings/SET_DEFAULT_TIMEZONE', defaultTimezone)
                 Swal.fire({
                     icon: 'success',
                     text: response.data.message
                 })
-            })
-            .catch(err => {
+            } catch(err) {
                 console.log(err)
                 this.$store.dispatch('auth/checkIfTokenIsValid', err.response.data.status)
-            })
+            }
         }
     }
 }

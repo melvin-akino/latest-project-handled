@@ -13,7 +13,7 @@
                         <span class="text-sm uppercase">{{filteredColumn.type}}</span>
                     </label>
                 </div>
-                <button class="bg-orange-500 hover:bg-orange-600 text-white text-sm uppercase px-4 py-2" @click="closeColumnModal">Close</button>
+                <button class="bg-orange-500 hover:bg-orange-600 text-white text-sm uppercase px-4 py-2" @click="closeColumnModal">Save & Close</button>
             </div>
         </div>
     </div>
@@ -22,6 +22,7 @@
 <script>
 import { mapState } from 'vuex'
 import Cookies from 'js-cookie'
+import Swal from 'sweetalert2'
 
 export default {
     data() {
@@ -44,6 +45,11 @@ export default {
         },
         closeColumnModal() {
             this.showToggleColumnsModal = false
+            this.saveColumns()
+            Swal.fire({
+                icon: 'success',
+                text: 'Saved Changes!'
+            })
         },
         async getBetColumns() {
             let token = Cookies.get('access_token')

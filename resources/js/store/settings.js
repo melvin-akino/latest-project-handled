@@ -4,7 +4,7 @@ const token = Cookies.get('access_token')
 const state = {
     settingsData: {},
     userSettingsConfig: {},
-    defaultTimezone: {}
+    defaultTimezone: ''
 }
 
 const mutations = {
@@ -30,6 +30,16 @@ const actions = {
                 reject(err)
             })
         })
+    },
+    async getDefaultTimezone({dispatch}) {
+        try {
+            let { timezone } = await dispatch('getUserSettingsConfig', 'general')
+            let response = await axios.get('/v1/timezones')
+            let defaultTimezone =  response.data.data.filter(zone => parseInt(zone.id) === parseInt(timezone))[0]
+            return defaultTimezone
+        } catch(err) {
+            console.log(err)
+        }
     }
 }
 

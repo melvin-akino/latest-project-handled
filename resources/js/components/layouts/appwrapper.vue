@@ -40,39 +40,37 @@ export default {
             logo: Logo,
             isLoggingOut: false,
             display_name: '',
-            time: '',
-            timezones: [],
-            timezone: {}
+            time: ''
         }
     },
     computed: {
         ...mapState('settings', ['defaultTimezone'])
     },
     mounted() {
-        this.setTime()
         this.getDefaultTimezone()
         this.display_name = Cookies.get('display_name')
     },
     methods: {
-        setTime() {
-            let timezone = JSON.parse(Cookies.get('default_timezone')).name
-            setInterval(() => {
-                this.time = moment().tz(timezone).format('hh:mm:ss')
-            }, 1000)
-        },
         async getDefaultTimezone() {
             try {
-                if (Cookies.get('default_timezone')) {
-                    this.$store.commit('settings/SET_DEFAULT_TIMEZONE', JSON.parse(Cookies.get('default_timezone')))
+                if (this.$store.state.auth.isAuthenticated) {
+                    if (!this.$store.state.settings.defaultTimezone) {
+                        this.$store.dispatch('settings/getDefaultTimezone')
+                        .then(response => {
+                            this.$store.commit('settings/SET_DEFAULT_TIMEZONE', response)
+                        })
+                    }
+                    setInterval(() => {
+                        this.time = moment().tz(this.defaultTimezone.name).format('hh:mm:ss')
+                    }, 1000)
                 } else {
-                    let { timezone } = await this.$store.dispatch('settings/getUserSettingsConfig', 'general')
-                    let response = await axios.get('/v1/timezones')
-                    let defaultTimezone =  response.data.data.filter(zone => parseInt(zone.id) === parseInt(timezone))[0]
-                    this.$store.commit('settings/SET_DEFAULT_TIMEZONE', defaultTimezone)
-                    Cookies.set('default_timezone', JSON.stringify(defaultTimezone))
+                    this.$store.commit('settings/SET_DEFAULT_TIMEZONE', '')
+                    this.timezone = {}
+                    this.time = ''
                 }
             } catch(err) {
                 console.log(err)
+                this.$store.dispatch('auth/checkIfTokenIsValid', err.response.data.status)
             }
         },
         logout() {
@@ -89,6 +87,7 @@ export default {
             })
             .catch(err => {
                 console.log(err)
+                this.$store.dispatch('auth/checkIfTokenIsValid', err.response.data.status)
             })
             this.isLoggingOut = true
         }
