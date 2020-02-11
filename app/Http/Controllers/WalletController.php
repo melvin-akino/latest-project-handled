@@ -17,11 +17,11 @@ class WalletController extends Controller
         return response()->json([
             'status'      => true,
             'status_code' => 200,
-            'walletData'  => [
+            'data'        => [
                 'currency'    => Currency::find(auth()->user()->currency_id),
-                'credit'      => 1000,
+                'credit'      => 800,
                 'profit_loss' => 0,
-                'orders'      => 0,
+                'orders'      => 200,
             ],
         ]);
     }

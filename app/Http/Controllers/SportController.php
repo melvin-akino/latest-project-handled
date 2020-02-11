@@ -52,4 +52,46 @@ class SportController extends Controller
             ], 500);
         }
     }
+
+    public function getUserBetbar()
+    {
+        $data = [
+            'status'      => true,
+            'status_code' => 200,
+            'data'        => [
+                [
+                    'league_name' => "FIFA Asia 2020",
+                    'home'        => "Vietnam",
+                    'away'        => "South Korea",
+                    'bet_info'    => [
+                        'home',
+                        'FT 1X2',
+                        '1.54',
+                        '120'
+                    ],
+                    'status'      => "Processing",
+                    'analytics'   => [],
+                    'tracker'     => [],
+                    'created_at'  => "2020-02-11 4:20 PM",
+                ],
+                [
+                    'league_name' => "FIFA Asia 2020",
+                    'home'        => "Philippines",
+                    'away'        => "India",
+                    'bet_info'    => [
+                        'away',
+                        'FT 1X2',
+                        '2.58',
+                        '80'
+                    ],
+                    'status'      => "Success",
+                    'analytics'   => [],
+                    'tracker'     => [],
+                    'created_at'  => "2020-02-11 4:10 PM",
+                ],
+            ],
+        ];
+
+        return response()->json($data, 200);
+    }
 }

@@ -179,4 +179,21 @@ class UserSettingsTest extends RegistrationTest
         $response->assertJson(['status' => true]);
         $response->assertJson(['status_code' => 200]);
     }
+
+    /** @test */
+    public function userBetbarTest()
+    {
+        $this->initialUser();
+
+        $response = $this->get(
+            '/api/v1/trade/betbar',
+            [
+                'X-Requested-With' => 'XMLHttpRequest',
+                'Authorization'    => 'Bearer ' . $this->loginJsonResponse->access_token
+            ]
+        );
+
+        $response->assertJson(['status' => true]);
+        $response->assertJson(['status_code' => 200]);
+    }
 }
