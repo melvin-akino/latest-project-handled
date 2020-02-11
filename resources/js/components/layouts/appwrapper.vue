@@ -69,7 +69,6 @@ export default {
                     this.time = ''
                 }
             } catch(err) {
-                console.log(err)
                 this.$store.dispatch('auth/checkIfTokenIsValid', err.response.data.status)
             }
         },
@@ -86,7 +85,6 @@ export default {
                 }, 2000)
             })
             .catch(err => {
-                console.log(err)
                 this.$store.dispatch('auth/checkIfTokenIsValid', err.response.data.status)
             })
             this.isLoggingOut = true

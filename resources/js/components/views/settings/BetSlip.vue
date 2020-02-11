@@ -111,7 +111,6 @@ export default {
                 })
             })
             .catch(err => {
-                console.log(err)
                 this.$store.dispatch('auth/checkIfTokenIsValid', err.response.data.status)
             })
         },
@@ -142,7 +141,6 @@ export default {
                 })
             })
             .catch(err => {
-                console.log(err)
                 this.$store.dispatch('auth/checkIfTokenIsValid', err.response.data.status)
             })
         }

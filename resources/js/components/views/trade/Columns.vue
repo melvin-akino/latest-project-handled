@@ -63,7 +63,6 @@ export default {
                 this.columnsToDisplay = this.filteredColumnsBySport.filter(column => !disabled_columns.includes(column.sport_odd_type_id))
                 this.checkedColumns = this.columnsToDisplay.map(column => column.sport_odd_type_id)
             } catch(err) {
-                console.log(err)
                 this.$store.dispatch('auth/checkIfTokenIsValid', err.response.data.status)
             }
         },
@@ -81,7 +80,6 @@ export default {
                 this.getBetColumns()
             })
             .catch(err => {
-                console.log(err)
                 this.$store.dispatch('auth/checkIfTokenIsValid', err.response.data.status)
             })
         }

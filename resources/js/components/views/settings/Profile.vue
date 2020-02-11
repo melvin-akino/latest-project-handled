@@ -153,7 +153,6 @@ export default {
                 this.profileSettingsForm = response.data.data
             })
             .catch(err => {
-                console.log(err)
                 this.$store.dispatch('auth/checkIfTokenIsValid', err.response.data.status)
             })
         },

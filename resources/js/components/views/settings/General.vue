@@ -77,7 +77,6 @@ export default {
                 this.generalSettingsForm.timezone = response.data.data.timezone
             })
             .catch(err => {
-                console.log(err)
                 this.$store.dispatch('auth/checkIfTokenIsValid', err.response.data.status)
             })
         },
@@ -97,7 +96,6 @@ export default {
                     text: response.data.message
                 })
             } catch(err) {
-                console.log(err)
                 this.$store.dispatch('auth/checkIfTokenIsValid', err.response.data.status)
             }
         }
