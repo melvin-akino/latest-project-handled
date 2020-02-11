@@ -1,26 +1,33 @@
 <template>
     <div class="w-full sm:pb-0 pb-8" :class="{'flex flex-col items-center':!$store.state.auth.isAuthenticated}">
-        <nav class="flex bg-white shadow-md w-full h-16" :class="[!$store.state.auth.isAuthenticated ? 'mb-16' : 'fixed z-10']">
-            <div class="flex justify-start items-center w-5/12 ml-16" v-if="$store.state.auth.isAuthenticated">
+        <nav class="flex bg-white shadow-md w-full h-16 fixed z-10" v-if="$store.state.auth.isAuthenticated">
+            <div class="flex justify-start items-center w-5/12 ml-16">
+                <img :src="logo" class="w-12 mt-2">
                 <router-link to="/" class="text-sm uppercase ml-5 sm:px-4 px-6 hover:bg-orange-500 hover:text-white navlink">Trade</router-link>
-                <router-link to="/settlement" class="text-sm uppercase ml-5 sm:px-4 px-6 hover:bg-orange-500 hover:text-white navlink">Settlement</router-link>
                 <router-link to="/open-orders" class="text-sm uppercase ml-5 sm:px-4 px-6 hover:bg-orange-500 hover:text-white navlink">Open Orders</router-link>
+                <router-link to="/settlement" class="text-sm uppercase ml-5 sm:px-4 px-6 hover:bg-orange-500 hover:text-white navlink">Settlement</router-link>
                 <router-link to="/analytics" class="text-sm uppercase ml-5 sm:px-4 px-6 hover:bg-orange-500 hover:text-white navlink">Analytics</router-link>
             </div>
-            <div class="flex justify-center items-center" :class="[!$store.state.auth.isAuthenticated ? 'w-full' : 'w-2/12']">
-                <img :src="logo" class="w-12 mt-2">
+            <div class="flex justify-center items-center w-1/12">
+
             </div>
-            <div class="flex justify-end items-center w-5/12 mr-16" v-if="$store.state.auth.isAuthenticated">
-                <p class="text-gray-700 text-sm capitalize">{{time}} | GMT {{defaultTimezone.timezone}} {{defaultTimezone.name}}</p>
+            <div class="flex justify-end items-center w-5/12 mr-16">
+                <p class="text-gray-600 text-sm capitalize">{{time}} | GMT {{defaultTimezone.timezone}} {{defaultTimezone.name}}</p>
                 <div class="username relative inline-block sm:px-4 px-6 navlink">
                     <a href="#" class="text-gray-700 text-sm uppercase ml-5 mr-5">{{display_name}} <span class="text-xs text-gray-700 font-normal"><i class="fas fa-chevron-down"></i></span></a>
                     <div class="absolute mt-5 bg-gray-800 py-1 shadow-xl w-48 dropdown" v-if="!isLoggingOut">
+                        <a class="text-white text-sm uppercase pl-6 pb-1 block hover:bg-orange-500" href="#" role="button">Balances</a>
                         <router-link to="/settings" class="text-white text-sm uppercase pl-6 pb-1 block hover:bg-orange-500">Settings</router-link>
-                        <a class="text-white text-sm uppercase pl-6 block hover:bg-orange-500 logout" href="#" role="button" @click="logout">Logout</a>
+                        <a class="text-white text-sm uppercase pl-6 pb-1 block hover:bg-orange-500" href="#" role="button">Help</a>
+                        <a class="text-white text-sm uppercase pl-6 pb-1 block hover:bg-orange-500" href="#" role="button">Feedback</a>
+                        <a class="text-white text-sm uppercase pl-6 pb-1 block hover:bg-orange-500 logout" href="#" role="button" @click="logout">Logout</a>
                     </div>
                 </div>
             </div>
         </nav>
+        <div v-if="!$store.state.auth.isAuthenticated">
+            <img :src="logo" class="w-48 mt-2">
+        </div>
         <main class="pt-16">
             <slot></slot>
         </main>
