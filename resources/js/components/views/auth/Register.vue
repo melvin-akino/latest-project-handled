@@ -266,22 +266,23 @@ export default {
                 this.triggerValidationErrors()
             }
         },
-        loginAfterRegister() {
-            axios.post('/v1/auth/login', { email: this.registerForm.step1.email, password: this.registerForm.step1.password })
-            .then(response => {
+        async loginAfterRegister() {
+            try {
+                const response = await axios.post('/v1/auth/login', { email: this.registerForm.step1.email, password: this.registerForm.step1.password })
+                const user = await axios.get('/v1/user', { headers: { 'Authorization': `Bearer ${response.data.access_token}` } })
+                Cookies.set('display_name', user.data.data.name)
                 Cookies.set('access_token', response.data.access_token)
-                location.reload('/')
+                await location.reload('/')
                 setTimeout(() => {
                     this.$store.commit('auth/SET_IS_AUTHENTICATED', true)
                 }, 2000)
-            })
-            .catch(err => {
+            } catch(err) {
                 console.log(err)
                 location.reload('/login')
                 setTimeout(() => {
                     this.$store.commit('auth/SET_IS_AUTHENTICATED', false)
                 }, 2000)
-            })
+            }
         },
         register() {
             if (!this.$v.registerForm.$invalid) {

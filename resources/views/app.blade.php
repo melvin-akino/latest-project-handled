@@ -9,7 +9,7 @@
     <meta name="app-url" content="{{ url('/') }}">
 
     <title>{{ config('app.name', 'Laravel') }}</title>
-    <link rel="icon" type="image/png" href="{{asset('images/logo-2.png')}}">
+    <link rel="icon" type="image/png" href="{{asset('images/icon.png')}}">
     <!-- Scripts -->
     <script src="{{ asset('js/app.js') }}" defer></script>
 
@@ -22,7 +22,7 @@
 </head>
 <body class="bg-gray-200">
     <div id="app">
-        <App :settings-data="{{json_encode($default_data)}}"></App>
+        <App :onload-data="{{json_encode($default_data)}}"></App>
     </div>
 </body>
 </html>

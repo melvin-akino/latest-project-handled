@@ -97,13 +97,13 @@ export default {
                 this.isLoggingIn = true
                 try {
                     const response = await axios.post('/v1/auth/login', { email: this.loginForm.email, password: this.loginForm.password })
-
+                    const user = await axios.get('/v1/user', { headers: { 'Authorization': `Bearer ${response.data.access_token}` } })
+                    Cookies.set('display_name', user.data.data.name)
                     if(this.loginForm.remember_me) {
                         Cookies.set('access_token', response.data.access_token, { expires: new Date(response.data.expires_at) })
                     } else {
                         Cookies.set('access_token', response.data.access_token)
                     }
-
                     await location.reload('/')
                     setTimeout(() => {
                         this.$store.commit('auth/SET_IS_AUTHENTICATED', true)

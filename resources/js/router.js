@@ -21,7 +21,7 @@ const routes = [
     },
     {
         path: '/',
-        component: () => import('./components/views/Trade')
+        component: () => import('./components/views/trade')
     },
     {
         path: '/settlement',
@@ -32,9 +32,17 @@ const routes = [
         component: () => import('./components/views/OpenOrders')
     },
     {
+        path: '/analytics',
+        component: () => import('./components/views/Analytics')
+    },
+    {
         path: '/settings',
         component: () => import('./components/views/settings'),
         children: [
+            {
+                path: '',
+                redirect: '/settings/general'
+            },
             {
                 path: 'general',
                 component: () => import('./components/views/settings/General')

@@ -98,7 +98,7 @@ export default {
     },
     mounted() {
         this.getUserConfig()
-        this.adaptive_selections = this.$store.state.settings.settingsData['betslip-adaptive-selection']    
+        this.adaptive_selections = this.$store.state.settings.settingsData['betslip-adaptive-selection']
     },
     methods: {
         getUserConfig() {
@@ -111,7 +111,7 @@ export default {
                 })
             })
             .catch(err => {
-                console.log(err)
+                this.$store.dispatch('auth/checkIfTokenIsValid', err.response.data.status)
             })
         },
         toggleBetSlipSettings(isActive, key) {
@@ -141,7 +141,7 @@ export default {
                 })
             })
             .catch(err => {
-                console.log(err)
+                this.$store.dispatch('auth/checkIfTokenIsValid', err.response.data.status)
             })
         }
     }

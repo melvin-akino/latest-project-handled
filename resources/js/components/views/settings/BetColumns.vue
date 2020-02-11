@@ -62,7 +62,9 @@ export default {
 
             axios.get('v1/user/settings/bet-columns', { headers: { 'Authorization': `Bearer ${token}` }})
             .then(response => this.disabledBetColumns = response.data.data.disabled_columns)
-            .catch(err => console.log(err))
+            .catch(err => {
+                this.$store.dispatch('auth/checkIfTokenIsValid', err.response.data.status)
+            })
         },
         getBetColumns() {
             let token = Cookies.get('access_token')
@@ -72,7 +74,9 @@ export default {
                 this.betColumns = response.data.data
                 response.data.data.filter(column => column.sport_id === 1).map(column => this.columnsToDisplay = column.odds)
             })
-            .catch(err => console.log(err))
+            .catch(err => {
+                this.$store.dispatch('auth/checkIfTokenIsValid', err.response.data.status)
+            })
         },
         saveChanges() {
             let token = Cookies.get('access_token')
@@ -83,7 +87,7 @@ export default {
                     active: this.disabledBetColumns.includes(odd.sport_odd_type_id) ? false : true
                 }
             })
-            
+
             axios.post('/v1/user/settings/bet-columns', data, { headers: { 'Authorization': `Bearer ${token}` } })
             .then(response => {
                 Swal.fire({
@@ -92,7 +96,7 @@ export default {
                 })
             })
             .catch(err => {
-                console.log(err)
+                this.$store.dispatch('auth/checkIfTokenIsValid', err.response.data.status)
             })
         }
     }

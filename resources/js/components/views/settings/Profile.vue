@@ -4,11 +4,11 @@
             <div class="mb-6 flex">
                 <div class="w-1/2 mr-6">
                     <label class="block capitalize text-gray-700 text-sm">Display Name</label>
-                    <input type="text" id="displayname" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 text-sm leading-tight focus:outline-none" :value="this.$store.state.auth.authUser.name" disabled>
+                    <input type="text" id="displayname" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 text-sm leading-tight focus:outline-none" :value="profileSettingsForm.name" disabled>
                 </div>
                 <div class="w-1/2 mr-6">
                     <label class="block capitalize text-gray-700 text-sm">Email</label>
-                    <input type="text" id="email" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 text-sm leading-tight focus:outline-none" :value="this.$store.state.auth.authUser.email" disabled>
+                    <input type="text" id="email" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 text-sm leading-tight focus:outline-none" :value="profileSettingsForm.email" disabled>
                 </div>
             </div>
             <div class="mb-6 flex">
@@ -119,17 +119,7 @@ import Swal from 'sweetalert2'
 export default {
     data() {
         return {
-            profileSettingsForm: {
-                firstname: this.$store.state.auth.authUser.firstname,
-                lastname: this.$store.state.auth.authUser.lastname,
-                address: this.$store.state.auth.authUser.address,
-                country_id: this.$store.state.auth.authUser.country_id,
-                state: this.$store.state.auth.authUser.state,
-                city: this.$store.state.auth.authUser.city,
-                postcode: this.$store.state.auth.authUser.postcode,
-                phone: this.$store.state.auth.authUser.phone,
-                currency_id:this.$store.state.auth.authUser.currency_id
-            },
+            profileSettingsForm: {},
             changePasswordForm: {
                 old_password: '',
                 password: '',
@@ -151,9 +141,21 @@ export default {
         }
     },
     mounted() {
+        this.getUser()
         this.countries = this.$store.state.settings.settingsData.country
     },
     methods: {
+        getUser() {
+            let token = Cookies.get('access_token')
+
+            axios.get('v1/user', { headers: { 'Authorization': `Bearer ${token}` } })
+            .then(response => {
+                this.profileSettingsForm = response.data.data
+            })
+            .catch(err => {
+                this.$store.dispatch('auth/checkIfTokenIsValid', err.response.data.status)
+            })
+        },
         saveChanges() {
             let token = Cookies.get('access_token')
             let data = {
@@ -177,6 +179,7 @@ export default {
                 })
             })
             .catch(err => {
+                this.$store.dispatch('auth/checkIfTokenIsValid', err.response.data.status)
                 this.profileSettingsFormError = err.response.data.errors
                 Swal.fire({
                     icon: 'error',
@@ -213,6 +216,7 @@ export default {
                 }
             })
             .catch(err => {
+                this.$store.dispatch('auth/checkIfTokenIsValid', err.response.data.status)
                 this.profileSettingsFormError = err.response.data.errors
                 Swal.fire({
                     icon: 'error',
