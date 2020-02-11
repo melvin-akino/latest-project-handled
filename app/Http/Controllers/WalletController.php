@@ -1,0 +1,28 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\Currency;
+use Illuminate\Http\Request;
+
+class WalletController extends Controller
+{
+    /**
+     * Fetch Authenticated User's Wallet Information
+     *
+     * @return json
+     */
+    public function userWallet()
+    {
+        return response()->json([
+            'status'      => true,
+            'status_code' => 200,
+            'walletData'  => [
+                'currency'    => Currency::find(auth()->user()->currency_id),
+                'credit'      => 1000,
+                'profit_loss' => 0,
+                'orders'      => 0,
+            ],
+        ]);
+    }
+}
