@@ -25,13 +25,7 @@
                 </div>
             </div>
         </div>
-        <div class="betbar flex flex-col w-full bg-gray-900 left-0 bottom-0 fixed z-10 overflow-y-scroll" :class="[isBetBarOpen ? 'h-48': 'h-10']">
-            <div class="text-center text-white h-10 pt-2 cursor-pointer" :class="{'border-b border-white': isBetBarOpen}" @click="isBetBarOpen = !isBetBarOpen">
-                Recent Orders
-                <span v-show="isBetBarOpen"><i class="fas fa-chevron-down"></i></span>
-                <span v-show="!isBetBarOpen"><i class="fas fa-chevron-up"></i></span>
-            </div>
-        </div>
+        <Betbar></Betbar>
     </div>
 </template>
 
@@ -43,6 +37,7 @@ import Sports from './Sports'
 import Leagues from './Leagues'
 import Columns from './Columns'
 import Games from './Games'
+import Betbar from './Betbar'
 
 export default {
     components: {
@@ -50,12 +45,8 @@ export default {
         Sports,
         Leagues,
         Columns,
-        Games
-    },
-    data() {
-        return {
-            isBetBarOpen: false
-        }
+        Games,
+        Betbar
     },
     head: {
         title() {
