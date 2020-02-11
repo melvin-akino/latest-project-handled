@@ -2,28 +2,25 @@
 
 namespace App\Notifications;
 
-use App\Auth\PasswordReset;
-use Carbon\Carbon;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
-use Request;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
-class PasswordResetSuccess extends Notification implements ShouldQueue
+class RegistrationMail extends Notification
 {
     use Queueable;
 
-    protected $user;
+    protected $userName;
 
     /**
      * Create a new notification instance.
      *
      * @return void
      */
-    public function __construct($passwordReset, $user)
+    public function __construct($userName)
     {
-        $this->user = $user;
+        $this->userName = $userName;
     }
 
     /**
@@ -48,14 +45,18 @@ class PasswordResetSuccess extends Notification implements ShouldQueue
     public function toMail($notifiable)
     {
         $data = [
-            'name'       => $this->user->name,
-            'email'      => $this->user->email,
-            'ip_address' => Request::ip(),
-            'datetime'   => Carbon::now()->format('jS \o\f F, Y g:i:s a')
+            'name'     => $this->userName,
+            'sections' => [
+                'simultaneous-execution',
+                'global-liquidity',
+                'market-based-prices',
+                'comprehensive-coverage',
+                'speed',
+            ],
         ];
 
-        return (new MailMessage)->markdown('mail.reset-success', $data)
-            ->subject(trans('mail.password.reset.subject'));
+        return (new MailMessage)->markdown('mail.registration', $data)
+            ->subject(trans('mail.registration.subject'));
     }
 
     /**

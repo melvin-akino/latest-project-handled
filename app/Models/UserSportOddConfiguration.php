@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Sport;
 use App\Exceptions\ServerException;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
@@ -23,10 +24,14 @@ class UserSportOddConfiguration extends Model
      * @param array $request
      * @return bool
      */
-    public static function saveSettings(int $sportId = null, array $request): bool
+    public static function saveSettings(array $request, $sportId = null): bool
     {
         try {
             DB::beginTransaction();
+
+            if (!is_null($sportId) && is_null(Sport::find($sportId))) {
+                return false;
+            }
 
             $sportOddTypes = is_null($sportId) ? SportOddType::getEnabledSportOdds() : SportOddType::getEnabledSportOdds($sportId);
             $requestSportOddTypes = array_column($request, 'sport_odd_type_id');

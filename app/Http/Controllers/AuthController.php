@@ -5,13 +5,9 @@ namespace App\Http\Controllers;
 use App\User;
 use App\Auth\PasswordReset;
 
-use App\Http\Requests\Auth\LoginRequests;
-use App\Http\Requests\Auth\RegistrationRequests;
-use App\Http\Requests\Auth\ForgotPasswordRequests;
-use App\Http\Requests\Auth\ChangePasswordRequests;
+use App\Http\Requests\Auth\{ChangePasswordRequests, ForgotPasswordRequests, LoginRequests, RegistrationRequests};
 
-use App\Notifications\PasswordResetRequest;
-use App\Notifications\PasswordResetSuccess;
+use App\Notifications\{PasswordResetRequest, PasswordResetSuccess, RegistrationMail};
 
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -64,6 +60,9 @@ class AuthController extends Controller
         ]);
 
         $user->save();
+        $user->notify(
+            new RegistrationMail($request->name)
+        );
 
         return response()->json([
             'status'                => true,
@@ -235,7 +234,7 @@ class AuthController extends Controller
             ], 451);
         }
 
-        if (Carbon::parse($passwordReset->updated_at)->addMinutes(60)->isPast()) {
+        if (Carbon::parse($passwordReset->updated_at)->addMinutes(30)->isPast()) {
             $passwordReset->delete();
 
             return response()->json([
@@ -304,7 +303,7 @@ class AuthController extends Controller
 
         $passwordReset->delete();
 
-        $user->notify(new PasswordResetSuccess($passwordReset));
+        $user->notify(new PasswordResetSuccess($passwordReset, $user));
 
         return response()->json([
             'status'            => true,

@@ -2,12 +2,14 @@
 
 namespace App\Notifications;
 
+use App\User;
 use Illuminate\Bus\Queueable;
-use Illuminate\Notifications\Notification;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
+use Illuminate\Notifications\Notification;
 
-class PasswordResetRequest extends Notification implements ShouldQueue {
+class PasswordResetRequest extends Notification implements ShouldQueue
+{
     use Queueable;
 
     protected $token;
@@ -21,7 +23,7 @@ class PasswordResetRequest extends Notification implements ShouldQueue {
     public function __construct($token, $user)
     {
         $this->token = $token;
-        $this->user = $user;
+        $this->user  = $user;
     }
 
     /**
@@ -43,12 +45,13 @@ class PasswordResetRequest extends Notification implements ShouldQueue {
      * @return \Illuminate\Notifications\Messages\MailMessage
      */
     public function toMail($notifiable) {
-        $url = url('/#/reset-password/'.$this->token);
+        $data = [
+            'url'  => url('/#/reset-password/' . $this->token),
+            'name' => User::where('email', $this->user)->first()->name,
+        ];
 
-        return (new MailMessage)
-            ->line(trans('mail.password.request.body'))
-            ->action('Reset Password', url($url))
-            ->line(trans('mail.password.request.footer'));
+        return (new MailMessage)->markdown('mail.reset-request', $data)
+            ->subject(trans('mail.password.request.subject'));
     }
 
     /**

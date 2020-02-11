@@ -84,6 +84,7 @@ class SettingsRequests extends FormRequest
         } else if ($type == 'bookies') {
             $providers = Provider::getActiveProviders()->get()->toArray();
             $rules = [];
+
             foreach ($providers as $key => $provider) {
                 $rules[$key . '.provider_id'] = [
                     'required',
@@ -102,6 +103,7 @@ class SettingsRequests extends FormRequest
         } else if ($type == 'bet-columns') {
             $sportOddTypes = SportOddType::getEnabledSportOdds($sportId);
             $rules = [];
+
             foreach ($sportOddTypes as $key => $sportOddType) {
                 $rules[$key . '.sport_odd_type_id'] = [
                     'required',
