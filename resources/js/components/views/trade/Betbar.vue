@@ -32,6 +32,9 @@ export default {
             betDatas: []
         }
     },
+    computed: {
+
+    },
     mounted() {
         this.getBetbarData()
     },
@@ -42,6 +45,9 @@ export default {
             axios.get('v1/trade/betbar', { headers: { 'Authorization': `Bearer ${token}` }})
             .then(response => {
                 this.betDatas = response.data.data
+                if(this.betDatas) {
+                    this.isBetBarOpen = true
+                }
             })
             .catch(err => {
                 this.$store.dispatch('auth/checkIfTokenIsValid', err.response.data.status)
