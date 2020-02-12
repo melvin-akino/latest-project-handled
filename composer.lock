@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "4de604faf3fc51bd0198b04423969130",
+    "content-hash": "79fe7e63f04d0e1c611595c5433697fc",
     "packages": [
         {
             "name": "defuse/php-encryption",
@@ -881,6 +881,79 @@
                 "url"
             ],
             "time": "2019-07-01T23:21:34+00:00"
+        },
+        {
+            "name": "hhxsv5/laravel-s",
+            "version": "v3.6.1",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/hhxsv5/laravel-s.git",
+                "reference": "f09d23b6e7c0683cc106ee521a5fedafd3943758"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/hhxsv5/laravel-s/zipball/f09d23b6e7c0683cc106ee521a5fedafd3943758",
+                "reference": "f09d23b6e7c0683cc106ee521a5fedafd3943758",
+                "shasum": ""
+            },
+            "require": {
+                "ext-json": "*",
+                "ext-pcntl": "*",
+                "php": ">=5.5.9",
+                "swoole/ide-helper": "@dev",
+                "symfony/console": ">=2.7.0"
+            },
+            "suggest": {
+                "ext-inotify": "Inotify, used to reload all worker processes when your code is modified.",
+                "ext-swoole": "Event-driven asynchronous & concurrent & coroutine networking engine with high performance for PHP, require >= 1.7.19."
+            },
+            "bin": [
+                "bin/fswatch"
+            ],
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "providers": [
+                        "Hhxsv5\\LaravelS\\Illuminate\\LaravelSServiceProvider"
+                    ]
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Hhxsv5\\LaravelS\\": "src"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Xie Biao",
+                    "email": "hhxsv5@sina.com"
+                }
+            ],
+            "description": "🚀LaravelS is like a glue that is used to quickly integrate Swoole into Laravel or Lumen, and then give them better performance and more possibilities.",
+            "homepage": "https://github.com/hhxsv5/laravel-s",
+            "keywords": [
+                "async",
+                "coroutine",
+                "http",
+                "inotify",
+                "laravel",
+                "laravel-s",
+                "lumen",
+                "performance",
+                "process",
+                "server",
+                "swoole",
+                "task",
+                "tcp",
+                "timer",
+                "udp",
+                "websocket"
+            ],
+            "time": "2020-01-05T13:06:07+00:00"
         },
         {
             "name": "jakub-onderka/php-console-color",
@@ -2806,83 +2879,38 @@
             "time": "2019-11-12T09:31:26+00:00"
         },
         {
-            "name": "swooletw/laravel-swoole",
-            "version": "v2.6.66",
+            "name": "swoole/ide-helper",
+            "version": "4.4.15",
             "source": {
                 "type": "git",
-                "url": "https://github.com/swooletw/laravel-swoole.git",
-                "reference": "e0e4c38b1ad4520da5fd31df3eb7596b97846427"
+                "url": "https://github.com/swoole/ide-helper.git",
+                "reference": "db5d83c0158054e9d4037d00e3d4e95c11d87932"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/swooletw/laravel-swoole/zipball/e0e4c38b1ad4520da5fd31df3eb7596b97846427",
-                "reference": "e0e4c38b1ad4520da5fd31df3eb7596b97846427",
+                "url": "https://api.github.com/repos/swoole/ide-helper/zipball/db5d83c0158054e9d4037d00e3d4e95c11d87932",
+                "reference": "db5d83c0158054e9d4037d00e3d4e95c11d87932",
                 "shasum": ""
             },
-            "require": {
-                "illuminate/console": "~5.4|~6.0",
-                "illuminate/contracts": "~5.4|~6.0",
-                "illuminate/http": "~5.4|~6.0",
-                "illuminate/support": "~5.4|~6.0",
-                "php": "^7.2",
-                "predis/predis": "^1.1"
-            },
             "require-dev": {
-                "codedungeon/phpunit-result-printer": "^0.14.0",
-                "laravel/lumen-framework": "~5.4|~6.0",
-                "mockery/mockery": "~1.0",
-                "php-coveralls/php-coveralls": "^2.1",
-                "php-mock/php-mock": "^2.0",
-                "phpunit/php-code-coverage": "^6.1",
-                "phpunit/phpunit": "^7.5",
-                "swoole/ide-helper": "@dev"
+                "guzzlehttp/guzzle": "~6.5.0",
+                "squizlabs/php_codesniffer": "~3.5.0",
+                "symfony/filesystem": "~4.3.0",
+                "zendframework/zend-code": "~3.3.0"
             },
             "type": "library",
-            "extra": {
-                "laravel": {
-                    "providers": [
-                        "SwooleTW\\Http\\LaravelServiceProvider"
-                    ],
-                    "aliases": {
-                        "Server": "SwooleTW\\Http\\Server\\Facades\\Server",
-                        "Table": "SwooleTW\\Http\\Server\\Facades\\Table",
-                        "Room": "SwooleTW\\Http\\Websocket\\Facades\\Room",
-                        "Websocket": "SwooleTW\\Http\\Websocket\\Facades\\Websocket"
-                    }
-                }
-            },
-            "autoload": {
-                "files": [
-                    "src/Server/helpers.php"
-                ],
-                "psr-4": {
-                    "SwooleTW\\Http\\": "src"
-                }
-            },
             "notification-url": "https://packagist.org/downloads/",
             "license": [
-                "MIT"
+                "Apache-2.0"
             ],
             "authors": [
                 {
-                    "name": "Albert Chen",
-                    "email": "albert@unisharp.com"
-                },
-                {
-                    "name": "Huang Yi",
-                    "email": "coodeer@163.com"
+                    "name": "Team Swoole",
+                    "email": "team@swoole.com"
                 }
             ],
-            "description": "High performance HTTP server based on Swoole. Speed up your Laravel and Lumen applications.",
-            "keywords": [
-                "http",
-                "laravel",
-                "lumen",
-                "performance",
-                "server",
-                "swoole"
-            ],
-            "time": "2019-12-01T08:34:33+00:00"
+            "description": "IDE help files for Swoole.",
+            "time": "2020-01-15T07:16:10+00:00"
         },
         {
             "name": "symfony/console",
@@ -6376,6 +6404,85 @@
             "description": "Library that helps with managing the version number of Git-hosted PHP projects",
             "homepage": "https://github.com/sebastianbergmann/version",
             "time": "2016-10-03T07:35:21+00:00"
+        },
+        {
+            "name": "swooletw/laravel-swoole",
+            "version": "v2.6.66",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/swooletw/laravel-swoole.git",
+                "reference": "e0e4c38b1ad4520da5fd31df3eb7596b97846427"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/swooletw/laravel-swoole/zipball/e0e4c38b1ad4520da5fd31df3eb7596b97846427",
+                "reference": "e0e4c38b1ad4520da5fd31df3eb7596b97846427",
+                "shasum": ""
+            },
+            "require": {
+                "illuminate/console": "~5.4|~6.0",
+                "illuminate/contracts": "~5.4|~6.0",
+                "illuminate/http": "~5.4|~6.0",
+                "illuminate/support": "~5.4|~6.0",
+                "php": "^7.2",
+                "predis/predis": "^1.1"
+            },
+            "require-dev": {
+                "codedungeon/phpunit-result-printer": "^0.14.0",
+                "laravel/lumen-framework": "~5.4|~6.0",
+                "mockery/mockery": "~1.0",
+                "php-coveralls/php-coveralls": "^2.1",
+                "php-mock/php-mock": "^2.0",
+                "phpunit/php-code-coverage": "^6.1",
+                "phpunit/phpunit": "^7.5",
+                "swoole/ide-helper": "@dev"
+            },
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "providers": [
+                        "SwooleTW\\Http\\LaravelServiceProvider"
+                    ],
+                    "aliases": {
+                        "Server": "SwooleTW\\Http\\Server\\Facades\\Server",
+                        "Table": "SwooleTW\\Http\\Server\\Facades\\Table",
+                        "Room": "SwooleTW\\Http\\Websocket\\Facades\\Room",
+                        "Websocket": "SwooleTW\\Http\\Websocket\\Facades\\Websocket"
+                    }
+                }
+            },
+            "autoload": {
+                "files": [
+                    "src/Server/helpers.php"
+                ],
+                "psr-4": {
+                    "SwooleTW\\Http\\": "src"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Albert Chen",
+                    "email": "albert@unisharp.com"
+                },
+                {
+                    "name": "Huang Yi",
+                    "email": "coodeer@163.com"
+                }
+            ],
+            "description": "High performance HTTP server based on Swoole. Speed up your Laravel and Lumen applications.",
+            "keywords": [
+                "http",
+                "laravel",
+                "lumen",
+                "performance",
+                "server",
+                "swoole"
+            ],
+            "time": "2019-12-01T08:34:33+00:00"
         },
         {
             "name": "theseer/tokenizer",

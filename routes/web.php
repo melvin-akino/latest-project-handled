@@ -15,4 +15,10 @@ use Illuminate\Support\Facades\Route;
 
 // Auth::routes();
 
+Route::middleware('auth:api')->get('/ws', function() {
+    return response()->json([
+        'status'      => true,
+        'status_code' => 200
+    ], 200);
+});
 Route::get('/{any}', 'AppController@index')->where('any', '^(?!api).*');
