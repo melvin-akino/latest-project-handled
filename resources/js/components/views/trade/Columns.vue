@@ -17,7 +17,7 @@
                 <button class="bg-orange-500 hover:bg-orange-600 text-white text-sm uppercase px-4 py-2" @click="closeColumnModal">Save & Close</button>
             </div>
         </div>
-        <!-- <button class="text-white bg-orange-500 px-4 py-1 hover:bg-orange-600 fixed right-0 z-20 modalBtn" @click="openColumnModal">Add <i class="fas fa-plus"></i></button> -->
+        <button class="text-white bg-orange-500 px-4 py-1 hover:bg-orange-600 fixed right-0 z-20 modalBtn" @click="openColumnModal">Add <i class="fas fa-plus"></i></button>
     </div>
 </template>
 
