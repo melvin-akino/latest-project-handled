@@ -8,7 +8,7 @@ image: php:7.2-fpm
 
 pipelines:
   branches:
-    pipeline-new-local-dev:
+    develop:
     - step:
         name: Develop 
         caches:
