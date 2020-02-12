@@ -63,6 +63,12 @@ return [
                                  ['name' => 'user_id', 'type' => \Swoole\Table::TYPE_INT, 'size' => 8],
                     ],
         ],
+        'testing' => [// The Key is table name, will add suffix "Table" to avoid naming conflicts. Here defined a table named "wsTable"
+                    'size'   => 102400,// The max size
+                    'column' => [// Define the columns
+                                 ['name' => 'value', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 12],
+                    ],
+        ],
     ],
     'register_providers'       => [
         \Laravel\Passport\PassportServiceProvider::class
@@ -100,8 +106,8 @@ return [
         'enable_coroutine'   => false,
         'http_compression'   => false,
 
-        'heartbeat_idle_time' => 600,
-        'heartbeat_check_interval' => 60,
+        'heartbeat_idle_time' => 60000,
+        'heartbeat_check_interval' => 60000,
 
         // Slow log
         // 'request_slowlog_timeout' => 2,

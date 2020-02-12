@@ -50,6 +50,9 @@ export default {
                 inner: 'Trade'
             }
         }
+    },
+    mounted() {
+        // this.$socket.emit('teasd')
     }
 }
 </script>

@@ -23,13 +23,14 @@ class WebSocketService implements WebSocketHandlerInterface
 
     public function onOpen(Server $server, Request $request)
     {
-        $a = $server->kafkaTable->get('message:565');
+//        $a = $server->kafkaTable->get('message:565');
+//
+//
+//        $user = $this->getUser($request->get['token']);
 
-
-        $user = $this->getUser($request->get['token']);
-
-        $server->push($request->fd, json_encode(['changeOdds' => ['user' => $user['id'], 'request' => $request->get]]));
-        $server->push($request->fd, json_encode([$a, Auth::user()]));
+//        $server->kafkaTable->set('testing', )
+//        $server->push($request->fd, json_encode(['changeOdds' => ['user' => $user['id'], 'request' => $request->get]]));
+//        $server->push($request->fd, json_encode([$a, Auth::user()]));
         $server->push($request->fd, 'Welcome to LaravelS');
 
 
@@ -37,8 +38,8 @@ class WebSocketService implements WebSocketHandlerInterface
 
     public function onMessage(Server $server, Frame $frame)
     {
-        Log::error("SDfsdf");
-        var_dump("SDfsdf");
+//        Log::error("SDfsdf");
+//        var_dump("SDfsdf");
 //        Log::error($frame);
         $server->push($frame->fd, date('Y-m-d H:i:s'));
     }
