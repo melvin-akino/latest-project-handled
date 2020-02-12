@@ -52,16 +52,16 @@ return [
     'events'                   => [],
     'swoole_tables'            => [
         'kafka' => [// The Key is table name, will add suffix "Table" to avoid naming conflicts. Here defined a table named "wsTable"
-             'size'   => 102400,// The max size
-             'column' => [// Define the columns
-                  ['name' => 'value', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 5000],
-             ],
+                    'size'   => 102400,// The max size
+                    'column' => [// Define the columns
+                                 ['name' => 'value', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 5000],
+                    ],
         ],
         'users' => [// The Key is table name, will add suffix "Table" to avoid naming conflicts. Here defined a table named "wsTable"
-            'size'   => 102400,// The max size
-            'column' => [// Define the columns
-                 ['name' => 'user_id', 'type' => \Swoole\Table::TYPE_INT, 'size' => 8],
-            ],
+                    'size'   => 102400,// The max size
+                    'column' => [// Define the columns
+                                 ['name' => 'user_id', 'type' => \Swoole\Table::TYPE_INT, 'size' => 8],
+                    ],
         ],
     ],
     'register_providers'       => [
@@ -99,6 +99,9 @@ return [
         'enable_reuse_port'  => true,
         'enable_coroutine'   => false,
         'http_compression'   => false,
+
+        'heartbeat_idle_time' => 600,
+        'heartbeat_check_interval' => 60,
 
         // Slow log
         // 'request_slowlog_timeout' => 2,
