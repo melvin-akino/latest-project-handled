@@ -18,7 +18,7 @@ pipelines:
           - cat .develop_hosts >> ~/.ssh/known_hosts
           - (umask  077 ; echo $devkey2 | base64 --decode > ~/.ssh/id_rsa)
 
-          - ssh multi-frontend@ninepinetechnology-tmcrjvwbpr.dynamic-m.com -p 9913 '. compile.sh'
+          - ssh multi-frontend@ninepinetechnology-tmcrjvwbpr.dynamic-m.com -p 9913 'bash -e compile.sh'
 
 
 definitions:
