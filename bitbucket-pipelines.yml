@@ -17,7 +17,7 @@ pipelines:
           - apt-get update && apt-get install -y unzip   nodejs npm
           - pecl install swoole
           - curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
-          #- docker-php-ext-install pcntl
+          - docker-php-ext-install pcntl
         # -docker-php-ext-install pdo pdo_pgsql  pcntl
         # -psql -U "postgres" -h "localhost"  -p 5432 -c "CREATE DATABASE test_crm"
           - echo "extension=swoole.so" > /usr/local/etc/php/conf.d/docker-php-swoole.ini
@@ -42,7 +42,7 @@ pipelines:
           - apt-get update && apt-get install -y libmcrypt-dev   libpq-dev postgresql-client
           - pecl install swoole
           - echo "extension=swoole.so" > /usr/local/etc/php/conf.d/docker-php-swoole.ini
-          - docker-php-ext-install pdo pdo_pgsql
+          - docker-php-ext-install pdo pdo_pgsql pcntl
           - psql -U "postgres" -h "localhost"  -p 5432 -c "CREATE DATABASE test_crm"
           - php artisan migrate
           - php artisan passport:install
