@@ -73,7 +73,15 @@ Route::group([
 
     /** Resources Route Endpoints */
     Route::get('timezones', 'ResourceController@getTimezones');
-    Route::get('sports/odds', 'SportController@configurationOdds');
+
+    Route::group([
+        'middleware' => 'auth:api',
+        'prefix'     => 'sports'
+    ], function () {
+        Route::get('/', 'SportController@getSports');
+        Route::get('odds', 'SportController@configurationOdds');
+    });
+
     Route::middleware('auth:api')->get('bookies', 'ResourceController@getProviders');
 
     /** Game Data Route Endpoints*/
