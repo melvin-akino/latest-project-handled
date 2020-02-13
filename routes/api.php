@@ -82,13 +82,13 @@ Route::group([
         'prefix'     => 'trade',
     ], function () {
         /** User Bet bar Management Route Endpoints */
-        Route::get('betbar', 'SportController@getUserBetbar');
+        Route::get('betbar', 'TradeController@getUserBetbar');
 
         /** User Watchlist Management Route Endpoints */
         Route::prefix('watchlist')->group(function () {
-            Route::get('/', 'SportController@getUserWatchlist');
-            Route::post('add', 'SportController@postAddToWatchlist');
-            Route::post('remove', 'SportController@postRemoveToWatchlist');
+            Route::get('/', 'TradeController@getUserWatchlist');
+            Route::post('add', 'TradeController@postAddToWatchlist');
+            Route::post('remove', 'TradeController@postRemoveToWatchlist');
         });
     });
 });
