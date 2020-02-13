@@ -8,7 +8,7 @@ image: php:7.2-fpm
 
 pipelines:
   branches:
-    develop:
+    feature/MV-293:
     - step:
         name: Develop
         caches:
@@ -16,8 +16,8 @@ pipelines:
         script:
           - apt-get update && apt-get install -y unzip   nodejs npm
           - curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
-          - docker-php-ext-install pcntl
-          - composer install
+          #- docker-php-ext-install pcntl
+          - composer install --ignore-platform-reqs
           - cp .env.pipeline .env
           - php artisan key:generate
           - php artisan view:clear
@@ -34,7 +34,7 @@ pipelines:
         name: Unit test
         script:
           - apt-get update && apt-get install -y libmcrypt-dev   libpq-dev postgresql-client
-          - docker-php-ext-install pdo pdo_pgsql pcntl
+          - docker-php-ext-install pdo pdo_pgsql 
           - psql -U "postgres" -h "localhost"  -p 5432 -c "CREATE DATABASE test_crm"
           - php artisan migrate
           - php artisan passport:install
