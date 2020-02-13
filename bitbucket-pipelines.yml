@@ -10,12 +10,13 @@ pipelines:
   branches:
     develop:
     - step:
-        name: Develop 
+        name: Develop
         caches:
           - composer
         script:
           - apt-get update && apt-get install -y unzip   nodejs npm
           - curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+          - docker-php-ext-install pcntl
           - composer install
           - cp .env.pipeline .env
           - php artisan key:generate
@@ -28,20 +29,20 @@ pipelines:
           - vendor/**
           - public/**
           - node_modules/**
-          - .env  
+          - .env
     - step:
         name: Unit test
         script:
           - apt-get update && apt-get install -y libmcrypt-dev   libpq-dev postgresql-client
-          - docker-php-ext-install pdo pdo_pgsql
+          - docker-php-ext-install pdo pdo_pgsql pcntl
           - psql -U "postgres" -h "localhost"  -p 5432 -c "CREATE DATABASE test_crm"
           - php artisan migrate
           - php artisan passport:install
           - ./vendor/bin/phpunit
         services:
-          - postgres  
+          - postgres
     - step:
-        name: Deploy to develop 
+        name: Deploy to develop
         script:
           - apt-get update && apt-get install -y openssh-client
           - mkdir -p ~/.ssh
