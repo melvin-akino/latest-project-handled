@@ -18,7 +18,7 @@ class WalletController extends Controller
             'status'      => true,
             'status_code' => 200,
             'data'        => [
-                'currency'    => Currency::find(auth()->user()->currency_id),
+                'currency'    => Currency::find(auth()->user()->currency_id)->symbol,
                 'credit'      => 800,
                 'profit_loss' => 0,
                 'orders'      => 200,
