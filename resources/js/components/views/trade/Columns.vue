@@ -67,14 +67,6 @@ export default {
                 let { disabled_columns } = settings
                 this.$store.commit('settings/FETCH_DISABLED_COLUMNS', disabled_columns)
                 betColumns.filter(column => column.sport_id === this.selectedSport).map(column => this.filteredColumnsBySport = column.odds)
-                // console.log(betColumns)
-                let test = {}
-                this.filteredColumnsBySport.map(column => {
-                        // test[this.selectedSport] = column.type
-                    console.log(column.type)
-                    test    
-                })
-                console.log(test)
                 this.columnsToDisplay = this.filteredColumnsBySport.filter(column => !this.disabledBetColumns.includes(column.sport_odd_type_id))
                 this.checkedColumns = this.columnsToDisplay.map(column => column.sport_odd_type_id)
             } catch(err) {

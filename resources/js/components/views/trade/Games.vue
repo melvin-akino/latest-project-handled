@@ -126,21 +126,7 @@ export default {
         ...mapState('trade', ['selectedSport']),
         ...mapState('settings', ['disabledBetColumns'])
     },
-    mounted() {
-        this.checkIfColumnIsDisabled()
-    },
     methods: {
-        async checkIfColumnIsDisabled() {
-            let token = Cookies.get('access_token')
-
-            try {
-                let response = await axios.get('v1/sports/odds', { headers: { 'Authorization': `Bearer ${token}` }})
-                // console.log(response.data.data)
-                // console.log(this.disabledBetColumns)
-            } catch(err) {
-                this.$store.dispatch('auth/checkIfTokenIsValid', err.response.data.status)
-            }
-        },
         toggleLeague(index) {
             if(this.closedLeagues.includes(index)) {
                 this.closedLeagues = this.closedLeagues.filter(league => index != league)
