@@ -1,10 +1,11 @@
 <template>
-    <div class="flex flex-wrap justify-around items-center h-8 pr-10 bg-gray-800 text-white text-xs">
-        <p>Description</p>
-        <p>Sport</p>
-        <p>Score & Schedule</p>
-        <p v-for="column in columnsToDisplay" :key="column.sport_odd_type_id">{{column.type}}</p>
-        <button class="bg-orange-500 px-4 py-1 hover:bg-orange-600 fixed right-0 mr-1" @click="openColumnModal">Add <i class="fas fa-plus"></i></button>
+    <div class="column">
+        <div class="flex flex-wrap justify-around items-center bg-gray-800 py-2 text-white text-xs fixed w-4/5">
+            <p class="w-3/12 px-4">Description</p>
+            <p class="w-1/12 text-center px-2">Sport</p>
+            <p class="w-1/12 text-center px-2">Score & <br>Schedule</p>
+            <p class="w-1/12 text-center px-2" v-for="column in columnsToDisplay" :key="column.sport_odd_type_id">{{column.type}}</p>
+        </div>
         <div class="flex justify-center items-center fixed z-20 w-full h-full top-0 left-0 modalWrapper" v-if="showToggleColumnsModal">
             <div class="bg-white w-64 p-8 modal">
                 <div class="mb-2" v-for="filteredColumn in filteredColumnsBySport" :key="filteredColumn.sport_odd_type_id">
@@ -16,6 +17,7 @@
                 <button class="bg-orange-500 hover:bg-orange-600 text-white text-sm uppercase px-4 py-2" @click="closeColumnModal">Save & Close</button>
             </div>
         </div>
+        <button class="text-white bg-orange-500 px-4 py-1 hover:bg-orange-600 fixed right-0 z-20 modalBtn" @click="openColumnModal">Add <i class="fas fa-plus"></i></button>
     </div>
 </template>
 
@@ -94,5 +96,10 @@ export default {
 
     .modal {
         height: 300px;
+    }
+
+    .modalBtn {
+        right: 10px;
+        bottom: 40px;
     }
 </style>
