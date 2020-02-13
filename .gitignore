@@ -18,3 +18,4 @@ yarn-error.log
 composer.lock
 /storage/laravels.json
 /storage/laravels.pid
+/storage/laravels-custom-processes.pid
