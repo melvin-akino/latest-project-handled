@@ -1,16 +1,18 @@
 <template>
-    <div class="flex flex-col px-6 py-4 my-4 ml-4 bg-white shadow-xl rounded-lg">
-        <div class="flex justify-between">
-            <span class="text-sm">Credit</span>
-            <span class="text-sm">{{currency.symbol}} {{credit}}</span>
-        </div>
-        <div class="flex justify-between">
-            <p class="text-sm">PL</p>
-            <p class="text-sm">{{currency.symbol}} {{profit_loss}}</p>
-        </div>
-        <div class="flex justify-between">
-            <p class="text-sm">Open Orders</p>
-            <p class="text-sm">{{currency.symbol}} {{orders}}</p>
+    <div class="flex flex-col pb-4 pt-2 my-2 ml-4 bg-white shadow-xl border-t-8 border-orange-500">
+        <div class="px-6">
+            <div class="flex justify-between">
+                <span class="text-sm">Credit</span>
+                <span class="text-sm">{{currency.symbol}} {{credit}}</span>
+            </div>
+            <div class="flex justify-between">
+                <p class="text-sm">Profit/Loss</p>
+                <p class="text-sm">{{currency.symbol}} {{profit_loss}}</p>
+            </div>
+            <div class="flex justify-between">
+                <p class="text-sm">Open Orders</p>
+                <p class="text-sm">{{currency.symbol}} {{orders}}</p>
+            </div>
         </div>
     </div>
 </template>

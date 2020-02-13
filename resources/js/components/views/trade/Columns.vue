@@ -1,12 +1,15 @@
 <template>
     <div class="column">
-        <div class="flex flex-wrap justify-around items-center bg-gray-800 py-2 text-white text-xs fixed w-4/5">
-            <p class="w-3/12 px-4">Description</p>
+        <div class="flex flex-wrap justify-around items-center bg-gray-800 py-2 px-4 text-white text-xs fixed z-10 w-5/6">
+            <p class="w-2/12 px-4"></p>
             <p class="w-1/12 text-center px-2">Sport</p>
             <p class="w-1/12 text-center px-2">Score & <br>Schedule</p>
+            <div class="w-1/12 flex justify-center">
+                <button class="w-8 text-white text-center bg-orange-500 px-2 py-1 hover:bg-orange-600" @click="openColumnModal"><i class="fas fa-plus"></i></button>
+            </div>
             <p class="w-1/12 text-center px-2" v-for="column in columnsToDisplay" :key="column.sport_odd_type_id">{{column.type}}</p>
         </div>
-        <div class="flex justify-center items-center fixed z-20 w-full h-full top-0 left-0 modalWrapper" v-if="showToggleColumnsModal">
+        <div class="flex justify-center items-center fixed w-full h-full top-0 left-0 modalWrapper" v-if="showToggleColumnsModal">
             <div class="bg-white w-64 p-8 modal">
                 <div class="mb-2" v-for="filteredColumn in filteredColumnsBySport" :key="filteredColumn.sport_odd_type_id">
                     <label class="block text-gray-700 text-sm mb-2 font-bold uppercase">
@@ -17,7 +20,6 @@
                 <button class="bg-orange-500 hover:bg-orange-600 text-white text-sm uppercase px-4 py-2" @click="closeColumnModal">Save & Close</button>
             </div>
         </div>
-        <button class="text-white bg-orange-500 px-4 py-1 hover:bg-orange-600 fixed right-0 z-20 modalBtn" @click="openColumnModal">Add <i class="fas fa-plus"></i></button>
     </div>
 </template>
 
@@ -33,10 +35,12 @@ export default {
             checkedColumns: [],
             filteredColumnsBySport: [],
             columnsToDisplay: [],
+            test: []
         }
     },
     computed: {
-        ...mapState('trade', ['selectedSport'])
+        ...mapState('trade', ['selectedSport']),
+        ...mapState('settings', ['disabledBetColumns'])
     },
     mounted() {
         this.getBetColumns()
@@ -61,14 +65,23 @@ export default {
                 let settings = await this.$store.dispatch('settings/getUserSettingsConfig', 'bet-columns')
                 let betColumns = response.data.data
                 let { disabled_columns } = settings
+                this.$store.commit('settings/FETCH_DISABLED_COLUMNS', disabled_columns)
                 betColumns.filter(column => column.sport_id === this.selectedSport).map(column => this.filteredColumnsBySport = column.odds)
-                this.columnsToDisplay = this.filteredColumnsBySport.filter(column => !disabled_columns.includes(column.sport_odd_type_id))
+                // console.log(betColumns)
+                let test = {}
+                this.filteredColumnsBySport.map(column => {
+                        // test[this.selectedSport] = column.type
+                    console.log(column.type)
+                    test    
+                })
+                console.log(test)
+                this.columnsToDisplay = this.filteredColumnsBySport.filter(column => !this.disabledBetColumns.includes(column.sport_odd_type_id))
                 this.checkedColumns = this.columnsToDisplay.map(column => column.sport_odd_type_id)
             } catch(err) {
                 this.$store.dispatch('auth/checkIfTokenIsValid', err.response.data.status)
             }
         },
-        saveColumns() {
+        saveColumns(sportId) {
             let token = Cookies.get('access_token')
             let data = this.filteredColumnsBySport.map(column => {
                 return {

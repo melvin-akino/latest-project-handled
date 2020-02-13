@@ -4,7 +4,8 @@ const token = Cookies.get('access_token')
 const state = {
     settingsData: {},
     userSettingsConfig: {},
-    defaultTimezone: ''
+    defaultTimezone: '',
+    disabledBetColumns: []
 }
 
 const mutations = {
@@ -16,6 +17,9 @@ const mutations = {
     },
     SET_DEFAULT_TIMEZONE: (state, timezone) => {
         state.defaultTimezone = timezone
+    },
+    FETCH_DISABLED_COLUMNS: (state, columns) => {
+        state.disabledBetColumns = columns
     }
 }
 
