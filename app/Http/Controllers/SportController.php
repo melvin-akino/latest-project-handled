@@ -62,7 +62,7 @@ class SportController extends Controller
                 'status'      => true,
                 'status_code' => 200,
                 'data'        => [
-                    [
+                    "bet_id_20"        => [
                         'league_name' => "FIFA Asia 2020",
                         'home'        => "Vietnam",
                         'away'        => "South Korea",
@@ -73,11 +73,9 @@ class SportController extends Controller
                             '120'
                         ],
                         'status'      => "Processing",
-                        'analytics'   => [],
-                        'tracker'     => [],
                         'created_at'  => "2020-02-11 4:20 PM",
                     ],
-                    [
+                    "bet_id_19"        => [
                         'league_name' => "FIFA Asia 2020",
                         'home'        => "Philippines",
                         'away'        => "India",
@@ -88,8 +86,6 @@ class SportController extends Controller
                             '80'
                         ],
                         'status'      => "Success",
-                        'analytics'   => [],
-                        'tracker'     => [],
                         'created_at'  => "2020-02-11 4:10 PM",
                     ],
                 ],
