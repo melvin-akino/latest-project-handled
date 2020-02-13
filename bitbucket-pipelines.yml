@@ -8,7 +8,7 @@ image: php:7.2-fpm
 
 pipelines:
   branches:
-    feature/MV-293:
+    develop:
     - step:
         name: Develop
         caches:
