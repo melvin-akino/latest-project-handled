@@ -20,6 +20,8 @@ pipelines:
           - docker-php-ext-install pcntl
         # -docker-php-ext-install pdo pdo_pgsql  pcntl
         # -psql -U "postgres" -h "localhost"  -p 5432 -c "CREATE DATABASE test_crm"
+          - php ---ini
+          - echo "extensions=extension=swoole.so" > /etc/php7.2/cli/conf.d/swoole.ini
           - composer install 
           - cp .env.pipeline .env
           - php artisan key:generate
