@@ -3,12 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Exceptions\ServerException;
-use Throwable;
 use App\Http\Requests\SettingsRequests;
-
 use App\Models\{UserConfiguration, UserProviderConfiguration, UserSportOddConfiguration};
+use App\Notifications\PasswordResetSuccess;
 use App\User;
 use Hash;
+use Throwable;
 
 class SettingsController extends Controller
 {
@@ -41,7 +41,8 @@ class SettingsController extends Controller
                         'currency_id'           => $request->currency_id,
                     ]);
             } else if ($type == 'change-password') {
-                $currentPassword = User::find(auth()->user()->id)->password;
+                $user = User::find(auth()->user()->id);
+                $currentPassword = $user->password;
 
                 if (Hash::check($request->old_password, $currentPassword)) {
                     if (Hash::check($request->password, $currentPassword)) {
@@ -52,13 +53,17 @@ class SettingsController extends Controller
                         ], 400);
                     }
 
-                    $response = User::find(auth()->user()->id)
+                    /** Update Authenticated User's Password with applied encryption */
+                    $response = User::find($user->id)
                         ->update([ 'password' => bcrypt($request->password) ]);
+
+                    /** Notify Authenticated User via e-mail that there has been an update with their password */
+                    $user->notify(new PasswordResetSuccess($user));
                 } else {
                     return response()->json([
                         'status'        => false,
                         'status_code'   => 400,
-                        'message'       => trans('passwords.current.incorrect'),
+                        'message'       => trans('passwords.current.incorrect')
                     ]);
                 }
             } else if ($type == 'reset') {
@@ -88,7 +93,8 @@ class SettingsController extends Controller
             return response()->json([
                 'status'        => false,
                 'status_code'   => 500,
-                'message'       => trans('generic.internal-server-error')
+                'message'       => trans('generic.internal-server-error'),
+                'data ' => $e->getMessage()
             ], 500);
         }
     }
