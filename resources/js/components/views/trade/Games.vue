@@ -36,71 +36,71 @@
                             </div>
                             <div class="w-1/12"></div>
                             <div class="flex flex-col items-center w-1/12 ft_1x2" :class="{'hidden': disabledBetColumns.includes(1)}">
-                                <p class="px-3 rounded-lg">{{game.ft_1x2.home}}</p>
-                                <p class="px-3 rounded-lg">{{game.ft_1x2.away}}</p>
-                                <p class="px-3 rounded-lg">{{game.ft_1x2.draw}}</p>
+                                <p class="px-2 rounded-lg bet-click">{{game.ft_1x2.home.toFixed(2)}}</p>
+                                <p class="px-2 rounded-lg bet-click">{{game.ft_1x2.away.toFixed(2)}}</p>
+                                <p class="px-2 rounded-lg bet-click">{{game.ft_1x2.draw.toFixed(2)}}</p>
                             </div>
                             <div class="flex flex-col items-center w-1/12 ft_hdp" :class="{'hidden': disabledBetColumns.includes(2)}">
-                                <p class="relative px-3 rounded-lg">
+                                <p class="relative">
                                     <span class="absolute text-gray-500 odds-label left-label">- 2.5</span>
-                                    <span class="bet-click">{{game.ft_hdp.home}}</span>
+                                    <span class="bet-click px-2 rounded-lg">{{game.ft_hdp.home.toFixed(2)}}</span>
                                 </p>
-                                <p class="relative px-3 rounded-lg">
-                                     <span class="absolute text-gray-500 odds-label left-label">2.5</span>
-                                    <span class="bet-click">{{game.ft_hdp.away}}</span>
+                                <p class="relative">
+                                    <span class="absolute text-gray-500 odds-label left-label">+ 2.5</span>
+                                    <span class="bet-click px-2 rounded-lg">{{game.ft_hdp.away.toFixed(2)}}</span>
                                 </p>
                             </div>
                             <div class="flex flex-col items-center w-1/12 ft_ou" :class="{'hidden': disabledBetColumns.includes(3)}">
-                                <p class="relative px-3 rounded-lg">
-                                     <span class="absolute text-gray-500 odds-label left-label">O</span>
-                                     <span class="bet-click">{{game.ft_ou.home}}</span>
-                                     <span class="absolute text-gray-500 odds-label right-label">2.5</span>
+                                <p class="relative">
+                                    <span class="absolute text-gray-500 odds-label left-label">O</span>
+                                    <span class="bet-click px-2 rounded-lg">{{game.ft_ou.home.toFixed(2)}}</span>
+                                    <span class="absolute text-gray-500 odds-label right-label">2.5</span>
                                 </p>
-                                <p class="relative px-3 rounded-lg">
-                                     <span class="absolute text-gray-500 odds-label left-label">U</span>
-                                     <span class="bet-click">{{game.ft_ou.away}}</span>
-                                     <span class="absolute text-gray-500 odds-label right-label">2.5</span>
+                                <p class="relative">
+                                    <span class="absolute text-gray-500 odds-label left-label">U</span>
+                                    <span class="bet-click px-2 rounded-lg">{{game.ft_ou.away.toFixed(2)}}</span>
+                                    <span class="absolute text-gray-500 odds-label right-label">2.5</span>
                                 </p>
                             </div>
                             <div class="flex flex-col items-center w-1/12 ft_oe" :class="{'hidden': disabledBetColumns.includes(4)}">
-                                <p class="relative px-3 rounded-lg">
+                                <p class="relative">
                                     <span class="absolute text-gray-500 odds-label left-label">O</span>
-                                    <span class="bet-click">{{game.ft_1x2.home}}</span>
+                                    <span class="bet-click px-2 rounded-lg">{{game.ft_1x2.home.toFixed(2)}}</span>
                                 </p>
-                                <p class="relative px-3 rounded-lg">
+                                <p class="relative">
                                     <span class="absolute text-gray-500 odds-label left-label">E</span>
-                                    <span class="bet-click">{{game.ft_1x2.away}}</span>
+                                    <span class="bet-click px-2 rounded-lg">{{game.ft_1x2.away.toFixed(2)}}</span>
                                 </p>
                             </div>
                             <div class="flex flex-col items-center w-1/12 1h_1x2" :class="{'hidden': disabledBetColumns.includes(5)}">
-                                <p class="px-3 rounded-lg">{{game.ft_1x2.home}}</p>
-                                <p class="px-3 rounded-lg">{{game.ft_1x2.away}}</p>
-                                <p class="px-3 rounded-lg">{{game.ft_1x2.draw}}</p>
+                                <p class="px-2 rounded-lg bet-click">{{game.ft_1x2.home.toFixed(2)}}</p>
+                                <p class="px-2 rounded-lg bet-click">{{game.ft_1x2.away.toFixed(2)}}</p>
+                                <p class="px-2 rounded-lg bet-click">{{game.ft_1x2.draw.toFixed(2)}}</p>
                             </div>
                             <div class="flex flex-col items-center w-1/12 1h_hdp" :class="{'hidden': disabledBetColumns.includes(6)}">
-                                <p class="relative px-3 rounded-lg">
+                                <p class="relative">
                                     <span class="absolute text-gray-500 odds-label left-label">- 2.5</span>
-                                    <span class="bet-click">{{game.ft_hdp.home}}</span>
+                                    <span class="bet-click px-2 rounded-lg">{{game.ft_hdp.home.toFixed(2)}}</span>
                                 </p>
-                                <p class="relative px-3 rounded-lg">
-                                     <span class="absolute text-gray-500 odds-label left-label">2.5</span>
-                                    <span class="bet-click">{{game.ft_hdp.away}}</span>
+                                <p class="relative">
+                                    <span class="absolute text-gray-500 odds-label left-label">+ 2.5</span>
+                                    <span class="bet-click px-2 rounded-lg">{{game.ft_hdp.away.toFixed(2)}}</span>
                                 </p>
                             </div>
                             <div class="flex flex-col items-center w-1/12 1h_ou" :class="{'hidden': disabledBetColumns.includes(7)}">
-                                <p class="relative px-3 rounded-lg">
-                                     <span class="absolute text-gray-500 odds-label left-label">O</span>
-                                     <span class="bet-click">{{game.ft_ou.home}}</span>
-                                     <span class="absolute text-gray-500 odds-label right-label">2.5</span>
+                                <p class="relative">
+                                    <span class="absolute text-gray-500 odds-label left-label">O</span>
+                                    <span class="bet-click px-2 rounded-lg">{{game.ft_ou.home.toFixed(2)}}</span>
+                                    <span class="absolute text-gray-500 odds-label right-label">2.5</span>
                                 </p>
-                                <p class="relative px-3 rounded-lg">
-                                     <span class="absolute text-gray-500 odds-label left-label">U</span>
-                                     <span class="bet-click">{{game.ft_ou.away}}</span>
-                                     <span class="absolute text-gray-500 odds-label right-label">2.5</span>
+                                <p class="relative">
+                                    <span class="absolute text-gray-500 odds-label left-label">U</span>
+                                    <span class="bet-click px-2 rounded-lg">{{game.ft_ou.away.toFixed(2)}}</span>
+                                    <span class="absolute text-gray-500 odds-label right-label">2.5</span>
                                 </p>
                             </div>
                             <div class="text-white">
-                                <i class="fas fa-star"></i>
+                                <span class="absolute eventStar"><i class="fas fa-star"></i></span>
                             </div>
                         </div>
                     </div>
@@ -164,6 +164,10 @@ export default {
         color: #fff200
     }
 
+    .eventStar {
+        right: 15px;
+    }
+
     .game:not(:last-child) {
         border-bottom: solid #edf2f7 1px;
     }
@@ -179,12 +183,12 @@ export default {
         width: 50px;
     }
         .left-label {
-            left: -55px;
+            left: -52px;
             text-align: right;
         }
 
         .right-label {
-            right: -55px;
+            right: -52px;
             text-align: left;
         }
 
