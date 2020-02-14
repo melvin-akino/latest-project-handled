@@ -1,20 +1,20 @@
 <template>
     <div class="trade">
         <div class="flex">
-            <div class="w-1/5">
-                <Sports></Sports>
-                <div class="h-screen fixed sidebar w-1/6 pr-3">
+            <div class="w-1/6">
+                <div class="h-screen fixed sidebar bg-gray-800 w-1/6 pr-4">
                     <Wallet></Wallet>
                     <Watchlist :watchlist="watchlist"></Watchlist>
+                    <Sports></Sports>
                     <Leagues></Leagues>
                 </div>
             </div>
 
-            <div class="w-4/5 h-full">
+            <div class="w-5/6 h-full">
                 <Columns></Columns>
-                <div class="gameScheds overflow-x-hidden overflow-y-scroll">
+                <div class="gameScheds">
                     <Games gameSchedType="watchlist" :games="watchlist"></Games>
-                    <Games gameSchedType="in-play"></Games>
+                    <Games gameSchedType="in-play" :games="watchlist"></Games>
                     <Games gameSchedType="today"></Games>
                     <Games gameSchedType="early"></Games>
                 </div>
@@ -73,10 +73,6 @@ export default {
 </script>
 
 <style lang="scss">
-    .sidebar {
-        margin-left: 63px;
-    }
-
     .betbar {
         transition: all 0.3s;
     }
