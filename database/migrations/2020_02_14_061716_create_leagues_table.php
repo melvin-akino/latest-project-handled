@@ -28,6 +28,7 @@ class CreateLeaguesTable extends Migration
                     ->on('sports')
                     ->onUpdate('cascade');
                 $table->index('league');
+                $table->index('provider_id');
             });
         }
     }
