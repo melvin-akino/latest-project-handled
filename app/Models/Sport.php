@@ -19,4 +19,9 @@ class Sport extends Model
     {
         return $this->belongsToMany('App\Models\OddType');
     }
+
+    public static function getActiveSports()
+    {
+        return self::orderBy('priority', 'asc');
+    }
 }

@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\SportOddType;
+use App\Models\{Sport, SportOddType};
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
@@ -51,6 +51,37 @@ class SportController extends Controller
                 'status'      => false,
                 'status_code' => 500,
                 'message'     => trans('generic.internal-server-error')
+            ], 500);
+        }
+    }
+
+    /**
+     * Fetch Active Sports Categories being catered by Multiline Application.
+     *
+     * @return json
+     */
+    public function getSports()
+    {
+        try {
+            $sports = Sport::getActiveSports()->get([
+                'id',
+                'is_enabled',
+                'icon',
+                'priority',
+                'sport'
+            ]);
+
+            return response()->json([
+                'status'      => true,
+                'status_code' => 200,
+                'data'        => $sports
+            ]);
+        } catch (Exception $e) {
+            return response()->json([
+                'status'      => false,
+                'status_code' => 500,
+                'message'     => trans('generic.internal-server-error'),
+                'data'        => $e->getMessage()
             ], 500);
         }
     }
