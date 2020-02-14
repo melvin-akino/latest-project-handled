@@ -40,7 +40,7 @@ export default {
     },
     methods: {
         getBetbarData() {
-            let token = Cookies.get('access_token')
+            let token = Cookies.get('mltoken')
 
             axios.get('v1/trade/betbar', { headers: { 'Authorization': `Bearer ${token}` }})
             .then(response => {
@@ -50,7 +50,7 @@ export default {
                 }
             })
             .catch(err => {
-                this.$store.dispatch('auth/checkIfTokenIsValid', err.response.data.status)
+                this.$store.dispatch('auth/checkIfTokenIsValid', err.response.data.status_code)
             })
         }
     }

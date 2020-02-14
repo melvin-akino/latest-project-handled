@@ -102,7 +102,7 @@ export default {
     },
     methods: {
         getUserConfig() {
-            let token = Cookies.get('access_token')
+            let token = Cookies.get('mltoken')
 
             axios.get('v1/user/settings/bet-slip', { headers: { 'Authorization': `Bearer ${token}` } })
             .then(response => {
@@ -111,7 +111,7 @@ export default {
                 })
             })
             .catch(err => {
-                this.$store.dispatch('auth/checkIfTokenIsValid', err.response.data.status)
+                this.$store.dispatch('auth/checkIfTokenIsValid', err.response.data.status_code)
             })
         },
         toggleBetSlipSettings(isActive, key) {
@@ -122,7 +122,7 @@ export default {
             }
         },
         saveChanges() {
-            let token = Cookies.get('access_token')
+            let token = Cookies.get('mltoken')
             let data = {
                 use_equivalent_bets: this.betSlipSettingsForm.use_equivalent_bets,
                 offers_on_exchanges: this.betSlipSettingsForm.offers_on_exchanges,
@@ -141,7 +141,7 @@ export default {
                 })
             })
             .catch(err => {
-                this.$store.dispatch('auth/checkIfTokenIsValid', err.response.data.status)
+                this.$store.dispatch('auth/checkIfTokenIsValid', err.response.data.status_code)
             })
         }
     }

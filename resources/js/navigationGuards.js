@@ -5,7 +5,7 @@ import store from './store'
 
 export default router.beforeEach((to, from, next) => {
     const authRoutes = ['/login', '/register', '/forgot-password', '/reset-password/:token']
-    const token = Cookies.get('access_token')
+    const token = Cookies.get('mltoken')
     if (token) {
         store.commit('auth/SET_IS_AUTHENTICATED', true)
         if (authRoutes.includes(to.matched[0].path)) {

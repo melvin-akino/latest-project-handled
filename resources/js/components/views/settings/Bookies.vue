@@ -39,25 +39,25 @@ export default {
     },
     methods: {
         getBookies() {
-            let token = Cookies.get('access_token')
+            let token = Cookies.get('mltoken')
 
             axios.get('v1/bookies', { headers: { 'Authorization': `Bearer ${token}` }})
             .then(response => this.bookies = response.data.data)
             .catch(err => {
-                this.$store.dispatch('auth/checkIfTokenIsValid', err.response.data.status)
+                this.$store.dispatch('auth/checkIfTokenIsValid', err.response.data.status_code)
             })
         },
         getUserConfig() {
-            let token = Cookies.get('access_token')
+            let token = Cookies.get('mltoken')
 
             axios.get('v1/user/settings/bookies', { headers: { 'Authorization': `Bearer ${token}` }})
             .then(response => this.disabledBookies = response.data.data.disabled_bookies)
             .catch(err => {
-                this.$store.dispatch('auth/checkIfTokenIsValid', err.response.data.status)
+                this.$store.dispatch('auth/checkIfTokenIsValid', err.response.data.status_code)
             })
         },
         saveChanges() {
-            let token = Cookies.get('access_token')
+            let token = Cookies.get('mltoken')
             let data = this.bookies.map(bookie => {
                 return {
                     provider_id: bookie.id,
@@ -73,7 +73,7 @@ export default {
                 })
             })
             .catch(err => {
-                this.$store.dispatch('auth/checkIfTokenIsValid', err.response.data.status)
+                this.$store.dispatch('auth/checkIfTokenIsValid', err.response.data.status_code)
             })
         }
     }

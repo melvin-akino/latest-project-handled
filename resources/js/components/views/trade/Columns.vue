@@ -58,7 +58,7 @@ export default {
             })
         },
         async getBetColumns() {
-            let token = Cookies.get('access_token')
+            let token = Cookies.get('mltoken')
 
             try {
                 let response = await axios.get('v1/sports/odds', { headers: { 'Authorization': `Bearer ${token}` }})
@@ -70,11 +70,11 @@ export default {
                 this.columnsToDisplay = this.filteredColumnsBySport.filter(column => !this.disabledBetColumns.includes(column.sport_odd_type_id))
                 this.checkedColumns = this.columnsToDisplay.map(column => column.sport_odd_type_id)
             } catch(err) {
-                this.$store.dispatch('auth/checkIfTokenIsValid', err.response.data.status)
+                this.$store.dispatch('auth/checkIfTokenIsValid', err.response.data.status_code)
             }
         },
         saveColumns(sportId) {
-            let token = Cookies.get('access_token')
+            let token = Cookies.get('mltoken')
             let data = this.filteredColumnsBySport.map(column => {
                 return {
                     sport_odd_type_id: column.sport_odd_type_id,
@@ -87,7 +87,7 @@ export default {
                 this.getBetColumns()
             })
             .catch(err => {
-                this.$store.dispatch('auth/checkIfTokenIsValid', err.response.data.status)
+                this.$store.dispatch('auth/checkIfTokenIsValid', err.response.data.status_code)
             })
         }
     }

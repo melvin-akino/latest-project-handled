@@ -63,16 +63,16 @@ export default {
     },
     methods: {
         getUserLanguage() {
-            let token = Cookies.get('access_token')
+            let token = Cookies.get('mltoken')
 
             axios.get('v1/user/settings/language', { headers: { 'Authorization': `Bearer ${token}` } })
             .then(response => this.language = response.data.data.language)
             .catch(err => {
-                this.$store.dispatch('auth/checkIfTokenIsValid', err.response.data.status)
+                this.$store.dispatch('auth/checkIfTokenIsValid', err.response.data.status_code)
             })
         },
         saveChangedLanguage() {
-            let token = Cookies.get('access_token')
+            let token = Cookies.get('mltoken')
 
             axios.post('/v1/user/settings/language', { language: this.language }, { headers: { 'Authorization': `Bearer ${token}` } })
             .then(response => {
@@ -82,7 +82,7 @@ export default {
                 })
             })
             .catch(err => {
-                this.$store.dispatch('auth/checkIfTokenIsValid', err.response.data.status)
+                this.$store.dispatch('auth/checkIfTokenIsValid', err.response.data.status_code)
             })
         },
         changeLanguage() {
@@ -113,7 +113,7 @@ export default {
             })
             .then(response => {
                 if (response.value) {
-                    let token = Cookies.get('access_token')
+                    let token = Cookies.get('mltoken')
 
                     axios.post('/v1/user/settings/reset', null, { headers: { 'Authorization': `Bearer ${token}` } })
                     .then(response => {
@@ -126,7 +126,7 @@ export default {
                         })
                     })
                     .catch(err => {
-                        this.$store.dispatch('auth/checkIfTokenIsValid', err.response.data.status)
+                        this.$store.dispatch('auth/checkIfTokenIsValid', err.response.data.status_code)
                     })
                 }
             })

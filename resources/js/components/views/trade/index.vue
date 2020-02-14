@@ -62,11 +62,11 @@ export default {
     },
     methods: {
         getWatchlistData() {
-            let token = Cookies.get('access_token')
+            let token = Cookies.get('mltoken')
 
             axios.get('v1/trade/watchlist', { headers: { 'Authorization': `Bearer ${token}` }})
             .then(response => this.watchlist = response.data.data)
-            .catch(err => this.$store.dispatch('auth/checkIfTokenIsValid', err.response.data.status))
+            .catch(err => this.$store.dispatch('auth/checkIfTokenIsValid', err.response.data.status_code))
         }
     }
 }
