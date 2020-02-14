@@ -25,10 +25,10 @@ const mutations = {
 
 const actions = {
     checkIfTokenIsValid: ({commit}, status) => {
-        let allowedStatuses = [200, 422]
-        if(!allowedStatuses.includes(status)) {
+        let allowedErrorStatuses = [422, 400]
+        if(!allowedErrorStatuses.includes(status)) {
             location.reload('/login')
-            Cookies.remove('access_token')
+            Cookies.remove('mltoken')
             Cookies.remove('display_name')
             setTimeout(() => {
                 commit('auth/SET_IS_AUTHENTICATED', false)

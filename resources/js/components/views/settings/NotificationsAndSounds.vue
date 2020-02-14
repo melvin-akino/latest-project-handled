@@ -85,7 +85,7 @@ export default {
     },
     methods: {
         getUserConfig() {
-            let token = Cookies.get('access_token')
+            let token = Cookies.get('mltoken')
 
             axios.get('v1/user/settings/notifications-and-sounds', { headers: { 'Authorization': `Bearer ${token}` } })
             .then(response => {
@@ -94,7 +94,7 @@ export default {
                 })
             })
             .catch(err => {
-                this.$store.dispatch('auth/checkIfTokenIsValid', err.response.data.status)
+                this.$store.dispatch('auth/checkIfTokenIsValid', err.response.data.status_code)
             })
         },
         toggleNotificationSettings(isActive, key) {
@@ -105,7 +105,7 @@ export default {
             }
         },
         saveChanges() {
-            let token = Cookies.get('access_token')
+            let token = Cookies.get('mltoken')
             let data = {
                 bet_confirm: this.notificationSettingsForm.bet_confirm,
                 site_notifications: this.notificationSettingsForm.site_notifications,
@@ -123,7 +123,7 @@ export default {
                 })
             })
             .catch(err => {
-                this.$store.dispatch('auth/checkIfTokenIsValid', err.response.data.status)
+                this.$store.dispatch('auth/checkIfTokenIsValid', err.response.data.status_code)
             })
         }
     }

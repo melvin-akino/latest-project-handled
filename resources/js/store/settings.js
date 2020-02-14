@@ -1,5 +1,5 @@
 import Cookies from 'js-cookie'
-const token = Cookies.get('access_token')
+const token = Cookies.get('mltoken')
 
 const state = {
     settingsData: {},

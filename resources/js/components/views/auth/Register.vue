@@ -271,7 +271,7 @@ export default {
                 const response = await axios.post('/v1/auth/login', { email: this.registerForm.step1.email, password: this.registerForm.step1.password })
                 const user = await axios.get('/v1/user', { headers: { 'Authorization': `Bearer ${response.data.access_token}` } })
                 Cookies.set('display_name', user.data.data.name)
-                Cookies.set('access_token', response.data.access_token)
+                Cookies.set('mltoken', response.data.access_token)
                 await location.reload('/')
                 setTimeout(() => {
                     this.$store.commit('auth/SET_IS_AUTHENTICATED', true)

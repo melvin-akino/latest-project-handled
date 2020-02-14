@@ -69,7 +69,7 @@ export default {
             .catch(err => console.log(err))
         },
         getUserConfig() {
-            let token = Cookies.get('access_token')
+            let token = Cookies.get('mltoken')
 
             axios.get('v1/user/settings/general', { headers: { 'Authorization': `Bearer ${token}` } })
             .then(response => {
@@ -77,11 +77,11 @@ export default {
                 this.generalSettingsForm.timezone = response.data.data.timezone
             })
             .catch(err => {
-                this.$store.dispatch('auth/checkIfTokenIsValid', err.response.data.status)
+                this.$store.dispatch('auth/checkIfTokenIsValid', err.response.data.status_code)
             })
         },
         async saveChanges() {
-            let token = Cookies.get('access_token')
+            let token = Cookies.get('mltoken')
             let data = {
                 price_format: this.generalSettingsForm.price_format,
                 timezone: this.generalSettingsForm.timezone
@@ -96,7 +96,7 @@ export default {
                     text: response.data.message
                 })
             } catch(err) {
-                this.$store.dispatch('auth/checkIfTokenIsValid', err.response.data.status)
+                this.$store.dispatch('auth/checkIfTokenIsValid', err.response.data.status_code)
             }
         }
     }

@@ -58,16 +58,16 @@ export default {
             this.betColumns.filter(column => column.sport_id === sport_id).map(column => this.columnsToDisplay = column.odds)
         },
         getUserConfig() {
-            let token = Cookies.get('access_token')
+            let token = Cookies.get('mltoken')
 
             axios.get('v1/user/settings/bet-columns', { headers: { 'Authorization': `Bearer ${token}` }})
             .then(response => this.disabledBetColumns = response.data.data.disabled_columns)
             .catch(err => {
-                this.$store.dispatch('auth/checkIfTokenIsValid', err.response.data.status)
+                this.$store.dispatch('auth/checkIfTokenIsValid', err.response.data.status_code)
             })
         },
         getBetColumns() {
-            let token = Cookies.get('access_token')
+            let token = Cookies.get('mltoken')
 
             axios.get('v1/sports/odds', { headers: { 'Authorization': `Bearer ${token}` }})
             .then(response => {
@@ -75,11 +75,11 @@ export default {
                 response.data.data.filter(column => column.sport_id === 1).map(column => this.columnsToDisplay = column.odds)
             })
             .catch(err => {
-                this.$store.dispatch('auth/checkIfTokenIsValid', err.response.data.status)
+                this.$store.dispatch('auth/checkIfTokenIsValid', err.response.data.status_code)
             })
         },
         saveChanges() {
-            let token = Cookies.get('access_token')
+            let token = Cookies.get('mltoken')
             let odds = this.betColumns.map(column => column.odds).reduce((prevOddGroup, nextOddGroup) => prevOddGroup.concat(nextOddGroup))
             let data = odds.map(odd => {
                 return {
@@ -96,7 +96,7 @@ export default {
                 })
             })
             .catch(err => {
-                this.$store.dispatch('auth/checkIfTokenIsValid', err.response.data.status)
+                this.$store.dispatch('auth/checkIfTokenIsValid', err.response.data.status_code)
             })
         }
     }

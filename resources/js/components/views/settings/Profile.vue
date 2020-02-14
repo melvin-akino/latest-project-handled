@@ -146,18 +146,18 @@ export default {
     },
     methods: {
         getUser() {
-            let token = Cookies.get('access_token')
+            let token = Cookies.get('mltoken')
 
             axios.get('v1/user', { headers: { 'Authorization': `Bearer ${token}` } })
             .then(response => {
                 this.profileSettingsForm = response.data.data
             })
             .catch(err => {
-                this.$store.dispatch('auth/checkIfTokenIsValid', err.response.data.status)
+                this.$store.dispatch('auth/checkIfTokenIsValid', err.response.data.status_code)
             })
         },
         saveChanges() {
-            let token = Cookies.get('access_token')
+            let token = Cookies.get('mltoken')
             let data = {
                 firstname: this.profileSettingsForm.firstname,
                 lastname: this.profileSettingsForm.lastname,
@@ -179,7 +179,7 @@ export default {
                 })
             })
             .catch(err => {
-                this.$store.dispatch('auth/checkIfTokenIsValid', err.response.data.status)
+                this.$store.dispatch('auth/checkIfTokenIsValid', err.response.data.status_code)
                 this.profileSettingsFormError = err.response.data.errors
                 Swal.fire({
                     icon: 'error',
@@ -188,7 +188,7 @@ export default {
             })
         },
         changePassword() {
-            let token = Cookies.get('access_token')
+            let token = Cookies.get('mltoken')
             let data = {
                 old_password: this.changePasswordForm.old_password,
                 password: this.changePasswordForm.password,
@@ -216,7 +216,7 @@ export default {
                 }
             })
             .catch(err => {
-                this.$store.dispatch('auth/checkIfTokenIsValid', err.response.data.status)
+                this.$store.dispatch('auth/checkIfTokenIsValid', err.response.data.status_code)
                 this.profileSettingsFormError = err.response.data.errors
                 Swal.fire({
                     icon: 'error',

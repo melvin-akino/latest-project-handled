@@ -16,12 +16,6 @@ Vue.use(Vuelidate)
 import VueHead from 'vue-head'
 Vue.use(VueHead)
 
-import io from 'socket.io-client'
-import VueSocketIO from 'vue-socket.io'
-Vue.use(new VueSocketIO({
-    connection: io('http://localhost:1215', {transports: ['websocket']})
-}))
-
 const app = new Vue({
     el: '#app',
     router,
