@@ -21,7 +21,7 @@ class PasswordResetSuccess extends Notification implements ShouldQueue
      *
      * @return void
      */
-    public function __construct($passwordReset, $user)
+    public function __construct($user)
     {
         $this->user = $user;
     }
