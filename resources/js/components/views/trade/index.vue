@@ -1,8 +1,8 @@
 <template>
     <div class="trade">
-        <div class="flex" :class="[isBetBarOpen ? 'pageWithPadding' : '']">
+        <div class="flex" v-adjust-trade-window-height="isBetBarOpen">
             <div class="w-1/6">
-                <div class="h-screen fixed sidebar bg-gray-800 w-1/6 pr-4">
+                <div class="fixed sidebar bg-gray-800 w-1/6 h-screen pr-4">
                     <Wallet></Wallet>
                     <Watchlist :watchlist="watchlist"></Watchlist>
                     <Sports></Sports>
@@ -10,9 +10,9 @@
                 </div>
             </div>
 
-            <div class="w-5/6 h-full">
+            <div class="w-5/6">
                 <Columns></Columns>
-                <div class="gameScheds">
+                <div class="gameScheds pb-4">
                     <Games gameSchedType="watchlist" :games="watchlist"></Games>
                     <Games gameSchedType="in-play" :games="watchlist"></Games>
                     <Games gameSchedType="today"></Games>
@@ -71,15 +71,23 @@ export default {
             .then(response => this.watchlist = response.data.data)
             .catch(err => this.$store.dispatch('auth/checkIfTokenIsValid', err.response.data.status_code))
         }
+    },
+    directives: {
+        adjustTradeWindowHeight: {
+            update(el, binding, vnode) {
+                if(binding.value) {
+                    el.style.height = 'calc(100vh - 256px)'
+                    el.style.overflowY = 'auto'
+                } else {
+                    el.style.height = 'calc(100vh - 104px)'
+                }
+            }
+        }
     }
 }
 </script>
 
 <style lang="scss">
-    .pageWithPadding {
-        padding-bottom: 192px;
-    }
-
     .betbar {
         transition: all 0.3s;
     }

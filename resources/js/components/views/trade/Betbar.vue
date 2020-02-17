@@ -1,11 +1,11 @@
 <template>
-    <div class="betbar flex flex-col w-full bg-gray-800 left-0 bottom-0 fixed overflow-y-scroll shadow-inner" :class="[isBetBarOpen ? 'h-48': 'h-8']">
+    <div class="betbar flex flex-col w-full bg-gray-800 left-0 bottom-0 fixed overflow-y-auto shadow-inner" :class="[isBetBarOpen ? 'openBetBar': 'closedBetBar']">
         <div class="text-center text-white h-10 pt-2 cursor-pointer bg-orange-500" @click="toggleBetBar()">
             Recent Orders
             <span v-show="isBetBarOpen"><i class="fas fa-chevron-down"></i></span>
             <span v-show="!isBetBarOpen"><i class="fas fa-chevron-up"></i></span>
         </div>
-        <div class="flex border-b text-white text-sm" v-for="(betData, index) in betDatas" :key="index">
+        <div class="flex border-b text-white text-sm" v-for="(betData, index) in betDatas" :key="index" v-show="isBetBarOpen">
             <div class="w-2/12 py-1 pl-16">{{betData.league_name}}</div>
             <div class="w-4/12 py-1">{{betData.home}} vs {{betData.away}}</div>
             <div class="w-3/12 py-1">
@@ -63,6 +63,13 @@ export default {
 </script>
 
 <style>
+    .openBetBar {
+        height: 192px;
+    }
+
+    .closedBetBar {
+        height: 40px;
+    }
     .success {
         background-color: #5cb85c;
     }
