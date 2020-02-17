@@ -1,25 +1,20 @@
 <template>
     <div class="flex justify-between items-center shadow-inner mb-2 ml-4">
         <div class="sport relative" v-for="sport in sports" :key="sport.id">
-            <button type="button" class="appearance-none text-xl px-3 py-1 rounded-lg focus:outline-none" :class="[selectedSport === sport.id ? 'bg-orange-500 text-white' : 'text-gray-500']" @click="selectSport(sport.id)" :disabled="!sport.isEnabled"><i :class="sport.icon"></i></button>
-            <div class="absolute text-white text-xs p-1 bg-gray-900 hidden sporttooltip z-10" :class="[sport.isEnabled ? 'availablesport' : 'unavailablesport']">{{sport.sport}} <span v-if="!sport.isEnabled">is not yet available.</span></div>
+            <button type="button" class="appearance-none text-xl px-3 py-1 rounded-lg focus:outline-none" :class="[selectedSport === sport.id ? 'bg-orange-500 text-white' : 'text-gray-500']" @click="selectSport(sport.id)" :disabled="!sport.is_enabled"><i class="fas" :class="sport.icon"></i></button>
+            <div class="absolute text-white text-xs p-1 bg-gray-900 hidden sporttooltip z-10" :class="[sport.is_enabled ? 'availablesport' : 'unavailablesport']">{{sport.sport}} <span v-if="!sport.is_enabled">is not yet available.</span></div>
         </div>
     </div>
 </template>
 
 <script>
 import { mapState } from 'vuex'
+import Cookies from 'js-cookie'
 
 export default {
     data() {
         return {
-            sports: [
-                { "id": 1, "sport": "Soccer", icon: "fas fa-futbol", isEnabled: true },
-                { "id": 2, "sport": "Basketball", icon: "fas fa-basketball-ball", isEnabled: false},
-                { "id": 3, "sport": "Football", icon: "fas fa-football-ball", isEnabled: false },
-                { "id": 4, "sport": "Baseball", icon: "fas fa-baseball-ball", isEnabled: false },
-                { "id": 5, "sport": "E-Sports", icon: "fab fa-steam", isEnabled: false },
-            ]
+            sports: []
         }
     },
     computed: {
@@ -27,10 +22,20 @@ export default {
     },
     mounted() {
         this.$store.commit('trade/SET_SELECTED_SPORT', 1)
+        this.getSports()
     },
     methods: {
         selectSport(sport) {
             this.$store.commit('trade/SET_SELECTED_SPORT', sport)
+        },
+        getSports() {
+            let token = Cookies.get('mltoken')
+
+            axios.get('v1/sports', { headers: { 'Authorization': `Bearer ${token}` } })
+            .then(response => this.sports = response.data.data)
+            .catch(err => {
+                this.$store.dispatch('auth/checkIfTokenIsValid', err.response.data.status_code)
+            })
         }
     }
 }

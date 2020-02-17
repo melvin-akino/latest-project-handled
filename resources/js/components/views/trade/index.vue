@@ -1,6 +1,6 @@
 <template>
     <div class="trade">
-        <div class="flex">
+        <div class="flex" :class="[isBetBarOpen ? 'pageWithPadding' : '']">
             <div class="w-1/6">
                 <div class="h-screen fixed sidebar bg-gray-800 w-1/6 pr-4">
                     <Wallet></Wallet>
@@ -57,6 +57,9 @@ export default {
             }
         }
     },
+    computed: {
+        ...mapState('trade', ['isBetBarOpen'])
+    },
     mounted() {
         this.getWatchlistData()
     },
@@ -73,6 +76,10 @@ export default {
 </script>
 
 <style lang="scss">
+    .pageWithPadding {
+        padding-bottom: 192px;
+    }
+
     .betbar {
         transition: all 0.3s;
     }
