@@ -9,7 +9,7 @@
             </div>
             <p class="w-1/12 text-center px-2" v-for="column in columnsToDisplay" :key="column.sport_odd_type_id">{{column.type}}</p>
         </div>
-        <div class="flex justify-center items-center fixed w-full h-full top-0 left-0 modalWrapper" v-if="showToggleColumnsModal">
+        <div class="flex justify-center items-center fixed w-full h-full top-0 left-0 modalWrapper z-40" v-if="showToggleColumnsModal">
             <div class="bg-white w-64 p-8 modal">
                 <div class="mb-2" v-for="filteredColumn in filteredColumnsBySport" :key="filteredColumn.sport_odd_type_id">
                     <label class="block text-gray-700 text-sm mb-2 font-bold uppercase">

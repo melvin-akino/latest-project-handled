@@ -69,6 +69,8 @@ return [
     ],
     'cleaners'                 => [
         // See LaravelS's built-in cleaners: https://github.com/hhxsv5/laravel-s/blob/master/Settings.md#cleaners
+        Hhxsv5\LaravelS\Illuminate\Cleaners\SessionCleaner::class,
+        Hhxsv5\LaravelS\Illuminate\Cleaners\AuthCleaner::class,
     ],
     'destroy_controllers'      => [
         'enable'        => false,

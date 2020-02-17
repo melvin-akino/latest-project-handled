@@ -3,7 +3,8 @@ const state = {
     leagues: [],
     selectedLeague: null,
     games: [],
-    leaguesData: {}
+    leaguesData: {},
+    isBetBarOpen: false
 }
 
 const mutations = {
@@ -24,6 +25,9 @@ const mutations = {
     },
     FETCH_GAMES: (state, games) => {
         state.games.push(games)
+    },
+    TOGGLE_BETBAR: (state, status) => {
+        state.isBetBarOpen = status
     }
 }
 
