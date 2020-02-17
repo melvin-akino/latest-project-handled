@@ -93,8 +93,7 @@ class SettingsController extends Controller
             return response()->json([
                 'status'        => false,
                 'status_code'   => 500,
-                'message'       => trans('generic.internal-server-error'),
-                'data ' => $e->getMessage()
+                'message'       => trans('generic.internal-server-error')
             ], 500);
         }
     }
