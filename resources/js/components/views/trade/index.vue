@@ -88,10 +88,6 @@ export default {
 </script>
 
 <style lang="scss">
-    .betbar {
-        transition: all 0.3s;
-    }
-
     .gameScheds {
         margin-top: 52px;
     }

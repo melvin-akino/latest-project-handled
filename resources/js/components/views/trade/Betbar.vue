@@ -1,5 +1,5 @@
 <template>
-    <div class="betbar flex flex-col w-full bg-gray-800 left-0 bottom-0 fixed overflow-y-auto shadow-inner" :class="[isBetBarOpen ? 'openBetBar': 'closedBetBar']">
+    <div class="betbar flex flex-col w-full bg-gray-800 left-0 bottom-0 fixed overflow-y-auto shadow-inner" :class="{'openBetBar': isBetBarOpen}">
         <div class="text-center text-white h-10 pt-2 cursor-pointer bg-orange-500" @click="toggleBetBar()">
             Recent Orders
             <span v-show="isBetBarOpen"><i class="fas fa-chevron-down"></i></span>
@@ -63,12 +63,13 @@ export default {
 </script>
 
 <style>
-    .openBetBar {
-        height: 192px;
+    .betbar {
+        transition: all 0.3s;
+        height: 40px;
     }
 
-    .closedBetBar {
-        height: 40px;
+    .openBetBar {
+        height: 192px !important;
     }
     .success {
         background-color: #5cb85c;
