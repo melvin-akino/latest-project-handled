@@ -55,8 +55,9 @@ pipelines:
           - apt-get update && apt-get install -y openssh-client
           - mkdir -p ~/.ssh
           - cat .develop_hosts >> ~/.ssh/known_hosts
-          - (umask  077 ; echo $mykey1 | base64 --decode > ~/.ssh/id_rsa)
-          - ssh swoole@ninepinetechnology-tmcrjvwbpr.dynamic-m.com -p 9912 '. compile.sh'
+          - (umask  077 ; echo $devkey2 | base64 --decode > ~/.ssh/id_rsa)
+          
+          - ssh $devuser36@ninepinetechnology-tmcrjvwbpr.dynamic-m.com -p 9913 'bash -i  "compile.sh"'
 
 
 definitions:
