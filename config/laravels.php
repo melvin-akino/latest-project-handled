@@ -40,9 +40,9 @@ return [
             // Two ways to configure parameters:
             // [\App\Jobs\XxxCronJob::class, [1000, true]], // Pass in parameters when registering
             // \App\Jobs\XxxCronJob::class, // Override the corresponding method to return the configuration
-            \App\Jobs\ScrapeInPlayRequest::class,
-            \App\Jobs\ScrapeTodayRequest::class,
-            \App\Jobs\ScrapeEarlyRequest::class,
+            App\Jobs\ScrapeInPlayRequest::class,
+            App\Jobs\ScrapeTodayRequest::class,
+            App\Jobs\ScrapeEarlyRequest::class,
         ],
         'max_wait_time' => 5,
     ],

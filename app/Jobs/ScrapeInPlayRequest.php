@@ -2,9 +2,12 @@
 
 namespace App\Jobs;
 
+use App\Tasks\ScrapeRequestJob;
+
 class ScrapeInPlayRequest extends ScrapeRequest
 {
     protected $scheduleType = 'inplay';
+    protected $providers;
 
     public function interval()
     {
@@ -21,21 +24,7 @@ class ScrapeInPlayRequest extends ScrapeRequest
         for ($i = 0; $i < 5; $i++) {
             usleep(200 * 1000);
             foreach ($this->providers as $provider) {
-                foreach ($this->sports as $sport) {
-                    $prePayload = [
-                        'request_uid' => uniqid(),
-                        'request_ts'  => $this->milliseconds(),
-                        'command'     => 'odd',
-                        'sub_command' => 'scrape',
-                    ];
-                    $prePayload['data'] = [
-                        'provider' => strtolower($provider->alias),
-                        'schedule' => $this->scheduleType,
-                        'sport'    => $sport->id
-                    ];
-
-                    $this->topic->produce(RD_KAFKA_PARTITION_UA, 0, json_encode($prePayload));
-                }
+                ScrapeRequestJob::dispatch($this->scheduleType, $provider);
             }
         }
     }
