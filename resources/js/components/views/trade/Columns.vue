@@ -1,6 +1,6 @@
 <template>
     <div class="column">
-        <div class="flex flex-wrap justify-around items-center bg-gray-800 py-2 px-4 text-white text-xs fixed z-10 w-5/6">
+        <div class="betColumns flex flex-wrap justify-around items-center bg-gray-800 py-2 pl-4 pr-6 text-white text-xs fixed z-10 w-5/6">
             <p class="w-2/12 px-4"></p>
             <p class="w-1/12 text-center px-2">Sport</p>
             <p class="w-1/12 text-center px-2">Score & <br>Schedule</p>
@@ -95,6 +95,10 @@ export default {
 </script>
 
 <style>
+    .betColumns {
+        right: 10px;
+    }
+    
     .modalWrapper {
         background-color: rgba(0, 0, 0, 0.5);
     }

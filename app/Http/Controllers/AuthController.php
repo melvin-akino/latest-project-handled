@@ -303,7 +303,7 @@ class AuthController extends Controller
 
         $passwordReset->delete();
 
-        $user->notify(new PasswordResetSuccess($passwordReset, $user));
+        $user->notify(new PasswordResetSuccess($user));
 
         return response()->json([
             'status'            => true,
