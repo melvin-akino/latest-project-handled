@@ -24,10 +24,9 @@ class ScrapeInPlayRequest extends ScrapeRequest
                 foreach ($this->sports as $sport) {
                     $prePayload = [
                         'request_uid' => uniqid(),
-                        'request_ts'  => time(),
+                        'request_ts'  => $this->milliseconds(),
                         'command'     => 'odd',
                         'sub_command' => 'scrape',
-
                     ];
                     $prePayload['data'] = [
                         'provider' => strtolower($provider->alias),

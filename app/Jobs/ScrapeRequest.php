@@ -39,10 +39,9 @@ abstract class ScrapeRequest extends CronJob
             foreach ($this->sports as $sport) {
                 $prePayload = [
                     'request_uid' => uniqid(),
-                    'request_ts'  => time(),
+                    'request_ts'  => $this->milliseconds(),
                     'command'     => 'odd',
                     'sub_command' => 'scrape',
-
                 ];
                 $prePayload['data'] = [
                     'provider' => strtolower($provider->alias),
@@ -70,5 +69,10 @@ abstract class ScrapeRequest extends CronJob
         // Automatically and periodically commit offsets in the background
         $conf->set('enable.auto.commit', 'false');
         return $conf;
+    }
+
+    protected function milliseconds() {
+        $mt = explode(' ', microtime());
+        return ((int)$mt[1]) * 1000 + ((int)round($mt[0] * 1000));
     }
 }
