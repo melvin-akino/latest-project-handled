@@ -31,15 +31,15 @@ abstract class ScrapeRequest extends CronJob
             foreach ($sports as $sport) {
                 $prePayload = [
                     'request_uid' => uniqid(),
-                    'request_ts' => time(),
-                    'command' => 'odd',
+                    'request_ts'  => time(),
+                    'command'     => 'odd',
                     'sub_command' => 'scrape',
 
                 ];
-                $prePayload['data'] =  [
+                $prePayload['data'] = [
                     'provider' => strtolower($provider->alias),
                     'schedule' => $this->scheduleType,
-                    'sport' => $sport->id
+                    'sport'    => $sport->id
                 ];
                 $topic->produce(RD_KAFKA_PARTITION_UA, 0, json_encode($prePayload));
             }
