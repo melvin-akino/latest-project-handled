@@ -257,7 +257,7 @@ class TradeController extends Controller
         foreach ($gameSchedules AS $row) {
             for ($i = 0; $i < rand(2, 12); $i++) {
                 $data[$row][] = [
-                    'name' => $faker->country . " " . $sportName,
+                    'name'        => $faker->country . " " . $sportName,
                     'match_count' => rand(1, 8),
                 ];
             }
