@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Support\Facades\Artisan;
 use App\Models\{Provider, SportOddType, UserConfiguration, UserSportOddConfiguration};
 
 use Illuminate\Http\Request;
@@ -18,6 +19,7 @@ class UserController extends Controller
      */
     public function user(Request $request)
     {
+//        Artisan::call('cache:clear');
         return response()->json(
             [
                 'status'            => true,

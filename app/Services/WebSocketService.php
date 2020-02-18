@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Jobs\WsLeagues;
 use Hhxsv5\LaravelS\Swoole\WebSocketHandlerInterface;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
@@ -19,6 +20,7 @@ class WebSocketService implements WebSocketHandlerInterface
 {
     public function __construct()
     {
+        $this->wsTable = app('swoole')->wsTable;
     }
 
     public function onOpen(Server $server, Request $request)
@@ -26,67 +28,50 @@ class WebSocketService implements WebSocketHandlerInterface
 //        $a = $server->kafkaTable->get('message:565');
 //
 //
-//        $user = $this->getUser($request->get['token']);
+        $user = $this->getUser($request->get['token']);
+        $userId = $user ? $user['id'] : 0;
 
 //        $server->kafkaTable->set('testing', )
 //        $server->push($request->fd, json_encode(['changeOdds' => ['user' => $user['id'], 'request' => $request->get]]));
 //        $server->push($request->fd, json_encode([$a, Auth::user()]));
-        $server->push($request->fd, 'Welcome to LaravelS');
+
+        $this->wsTable->set('uid:' . $userId, ['value' => $request->fd]);// Bind map uid to fd
+        $this->wsTable->set('fd:' . $request->fd, ['value' => $userId]);// Bind map fd to uid
+        $server->push($request->fd, "Welcome to LaravelS #{$request->fd}");
 
 
     }
 
     public function onMessage(Server $server, Frame $frame)
     {
-//        Log::error("SDfsdf");
-//        var_dump("SDfsdf");
-        Log::error("SDFdfsfsdfsdfsdf");
-//        $server->push($frame->fd, date('Y-m-d H:i:s'));
+        $commands = [
+            'getEarlyLeagues' => '\App\Jobs\WsLeagues',
+        ];
+        $commandFound = false;
+        foreach ($commands as $key => $value) {
+            $clientCommand = explode('_', $frame->data);
+            if ($clientCommand[0] == $key) {
+                $commandFound = true;
+                $job = $commands[$clientCommand[0]];
+                if (count($clientCommand) > 0) {
+                    $job::dispatch($clientCommand);
+                    Log::debug("WS Job Dispatched");
+                } else {
+                    $job::dispatch();
+                }
+                break;
+            }
+        }
+        if ($commandFound) {
+            wsEmit("Found");
+        }
     }
 
     public function onClose(Server $server, $fd, $reactorId)
     {
     }
 
-    public function onHandshake(Request $request, Response $response)
-    {
-        $secWebSocketKey = $request->header['sec-websocket-key'];
-        $patten = '#^[+/0-9A-Za-z]{21}[AQgw]==$#';
-
-        if (0 === preg_match($patten, $secWebSocketKey) || 16 !== strlen(base64_decode($secWebSocketKey))) {
-            $response->end();
-            return false;
-        }
-
-        echo $request->header['sec-websocket-key'];
-
-        $key = base64_encode(sha1($request->header['sec-websocket-key'] . '258EAFA5-E914-47DA-95CA-C5AB0DC85B11', true));
-
-        $headers = [
-            'Upgrade' => 'websocket',
-            'Connection' => 'Upgrade',
-            'Sec-WebSocket-Accept' => $key,
-            'Sec-WebSocket-Version' => '13',
-        ];
-
-        // WebSocket connection to 'ws://127.0.0.1:9502/'
-        // failed: Error during WebSocket handshake:
-        // Response must not include 'Sec-WebSocket-Protocol' header if not present in request: websocket
-        if (isset($request->header['sec-websocket-protocol'])) {
-            $headers['Sec-WebSocket-Protocol'] = $request->header['sec-websocket-protocol'];
-        }
-
-        foreach ($headers as $key => $val) {
-            $response->header($key, $val);
-        }
-
-        $response->status(101);
-        $response->end();
-        app('swoole')->push($request->fd, 'This is a handshake');
-        return true;
-    }
-
-    function getUser($bearerToken) {
+    private function getUser($bearerToken) {
         $tokenguard = new TokenGuard(
             resolve(ResourceServer::class),
             Auth::createUserProvider('users'),
@@ -96,6 +81,6 @@ class WebSocketService implements WebSocketHandlerInterface
         );
         $request = HttpRequest::create('/');
         $request->headers->set('Authorization', 'Bearer ' . $bearerToken);
-        return $tokenguard->user($request);
+        return ($tokenguard->user($request));
     }
 }

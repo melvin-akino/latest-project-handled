@@ -61,7 +61,15 @@ export default {
         ...mapState('trade', ['isBetBarOpen'])
     },
     mounted() {
-        this.getWatchlistData()
+        let ws = new WebSocket('ws://localhost/ws');
+        ws.onopen = function(e) {
+            console.log("getLeagues");
+            ws.send("getEarlyLeagues_1");
+        }
+
+        ws.onmessage = function(e) {
+            console.log("received");
+        };        this.getWatchlistData()
     },
     methods: {
         getWatchlistData() {

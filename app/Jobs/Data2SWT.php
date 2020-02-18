@@ -1,0 +1,37 @@
+<?php
+
+namespace App\Jobs;
+
+use Illuminate\Foundation\Bus\Dispatchable;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
+
+class Data2SWT
+{
+    use Dispatchable;
+
+    public function handle()
+    {
+        $providers = DB::connection(config('database.crm_default'))->table('providers')->get();
+
+        $providersTable = app('swoole')->providersTable;
+        array_map(function ($provider) use ($providersTable) {
+            $providersTable->set(strtolower($provider->alias), ['id' => $provider->id, 'alias' => $provider->alias]);
+        }, $providers->toArray());
+
+        //@TODO table source will be changed
+        $leagues = DB::table('leagues')->get();
+
+        $leaguesTable = app('swoole')->leaguesTable;
+        array_map(function ($league) use ($leaguesTable) {
+            $leaguesTable->set(implode(':', [$league->sport_id, $league->provider_id, Str::slug($league->league)]),
+                [
+                    'id'          => $league->id,
+                    'sport_id'    => $league->sport_id,
+                    'provider_id' => $league->provider_id,
+                    'league'      => $league->league
+                ]
+            );
+        }, $leagues->toArray());
+    }
+}

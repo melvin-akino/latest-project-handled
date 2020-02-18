@@ -5,19 +5,28 @@ return [
         [
             'id'    => 1,
             'value' => 'Decimal',
+            'alias' => 'Dec'
         ],
         [
             'id'    => 2,
             'value' => 'HongKong',
+            'alias' => 'HK'
         ],
         [
             'id'    => 3,
             'value' => 'United States',
+            'alias' => 'US'
         ],
         [
             'id'    => 4,
             'value' => 'Indo Odds',
+            'alias' => 'Indo'
         ],
+        [
+            'id'    => 5,
+            'value' => 'Malay',
+            'alias' => 'Malay'
+        ]
     ],
     'trade-layout'               => [
         [

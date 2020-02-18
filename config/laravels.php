@@ -26,10 +26,10 @@ return [
     'sockets'                  => [],
     'processes'                => [
         'kafka_consume' => [
-            'class' => \App\Processes\KafkaConsume::class,
+            'class'    => \App\Processes\KafkaConsume::class,
             'redirect' => false,
-            'pipe' => 0,
-            'enable' => true
+            'pipe'     => 0,
+            'enable'   => true
         ]
     ],
     'timer'                    => [
@@ -48,23 +48,65 @@ return [
     ],
     'events'                   => [],
     'swoole_tables'            => [
-        'kafka' => [// The Key is table name, will add suffix "Table" to avoid naming conflicts. Here defined a table named "wsTable"
-                    'size'   => 102400,// The max size
-                    'column' => [// Define the columns
-                                 ['name' => 'value', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 5000],
-                    ],
+        'ws' => [// The Key is table name, will add suffix "Table" to avoid naming conflicts. Here defined a table named "wsTable"
+             'size'   => 102400,// The max size
+             'column' => [// Define the columns
+                  ['name' => 'value', 'type' => \Swoole\Table::TYPE_INT, 'size' => 8],
+             ],
         ],
-        'users' => [// The Key is table name, will add suffix "Table" to avoid naming conflicts. Here defined a table named "wsTable"
-                    'size'   => 102400,// The max size
-                    'column' => [// Define the columns
-                                 ['name' => 'user_id', 'type' => \Swoole\Table::TYPE_INT, 'size' => 8],
-                    ],
+        'indexes'    => [// The Key is table name, will add suffix "Table" to avoid naming conflicts. Here defined a table named "wsTable"
+             'size'   => 102400,// The max size
+             'column' => [// Define the columns
+                  ['name' => 'value', 'type' => \Swoole\Table::TYPE_INT, 'size' => 100],
+             ],
         ],
-        'testing' => [// The Key is table name, will add suffix "Table" to avoid naming conflicts. Here defined a table named "wsTable"
-                    'size'   => 102400,// The max size
-                    'column' => [// Define the columns
-                                 ['name' => 'value', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 12],
-                    ],
+        'events'     => [// The Key is table name, will add suffix "Table" to avoid naming conflicts. Here defined a table named "wsTable"
+             'size'   => 102400,// The max size
+             'column' => [// Define the columns
+                  ['name' => 'uid',         'type' => \Swoole\Table::TYPE_STRING, 'size' => 30],
+                  ['name' => 'timestamp',   'type' => \Swoole\Table::TYPE_STRING, 'size' => 15],
+                  ['name' => 'payload',     'type' => \Swoole\Table::TYPE_STRING, 'size' => 5000],
+             ],
+        ],
+        'clients'    => [// The Key is table name, will add suffix "Table" to avoid naming conflicts. Here defined a table named "wsTable"
+             'size'   => 102400,// The max size
+             'column' => [// Define the columns
+                  ['name' => 'sid',     'type' => \Swoole\Table::TYPE_STRING, 'size' => 100],
+                  ['name' => 'user_id', 'type' => \Swoole\Table::TYPE_INT, 'size' => 999999],
+             ],
+        ],
+        'rooms'      => [// The Key is table name, will add suffix "Table" to avoid naming conflicts. Here defined a table named "wsTable"
+             'size'   => 102400,// The max size
+             'column' => [// Define the columns
+                  ['name' => 'room_name', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 100],
+             ],
+        ],
+        'clientRoom' => [// The Key is table name, will add suffix "Table" to avoid naming conflicts. Here defined a table named "wsTable"
+             'size'   => 102400,// The max size
+             'column' => [// Define the columns
+                  ['name' => 'sid',         'type' => \Swoole\Table::TYPE_STRING, 'size' => 100],
+                  ['name' => 'room_name',   'type' => \Swoole\Table::TYPE_STRING, 'size' => 100],
+             ],
+        ],
+        'leagues'    => [// The Key is table name, will add suffix "Table" to avoid naming conflicts. Here defined a table named "wsTable"
+             'size'   => 102400,// The max size
+             'column' => [// Define the columns
+                  ['name' => 'id',   'type' => \Swoole\Table::TYPE_INT],
+                  ['name' => 'sport_id',    'type' => \Swoole\Table::TYPE_INT],
+                  ['name' => 'provider_id', 'type' => \Swoole\Table::TYPE_INT],
+                  ['name' => 'league',      'type' => \Swoole\Table::TYPE_STRING, 'size' => 100],
+             ],
+        ],
+        'providers' => [// The Key is table name, will add suffix "Table" to avoid naming conflicts. Here defined a table named "wsTable"
+            'size'   => 500,// The max size
+            'column' => [// Define the columns
+                         ['name' => 'id',                'type' => \Swoole\Table::TYPE_INT],
+//                         ['name' => 'name',              'type' => \Swoole\Table::TYPE_STRING, 'size' => 30],
+                         ['name' => 'alias',             'type' => \Swoole\Table::TYPE_STRING, 'size' => 10],
+//                         ['name' => 'punter_percentage', 'type' => \Swoole\Table::TYPE_INT],
+//                         ['name' => 'priority',          'type' => \Swoole\Table::TYPE_INT],
+//                         ['name' => 'is_enabled',        'type' => \Swoole\Table::TYPE_STRING, 'size' => 5],
+            ],
         ],
     ],
     'register_providers'       => [
@@ -99,7 +141,7 @@ return [
         'buffer_output_size' => 2 * 1024 * 1024,
         'socket_buffer_size' => 128 * 1024 * 1024,
         'package_max_length' => 4 * 1024 * 1024,
-        'reload_async'       => true,
+        'reload_async'       => false,
         'max_wait_time'      => 60,
         'enable_reuse_port'  => true,
         'enable_coroutine'   => false,
