@@ -100,7 +100,7 @@
                                 </p>
                             </div>
                             <div class="text-white">
-                                <span class="absolute eventStar"><i class="fas fa-star"></i></span>
+                                <span class="eventStar"><i class="fas fa-star"></i></span>
                             </div>
                         </div>
                     </div>

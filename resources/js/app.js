@@ -16,6 +16,9 @@ Vue.use(Vuelidate)
 import VueHead from 'vue-head'
 Vue.use(VueHead)
 
+import VueNativeSock from 'vue-native-websocket'
+Vue.use(VueNativeSock, process.env.MIX_WEBSOCKET_URL, { reconnection: true })
+
 const app = new Vue({
     el: '#app',
     router,
