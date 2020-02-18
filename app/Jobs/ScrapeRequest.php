@@ -9,6 +9,20 @@ use RdKafka\Producer;
 
 abstract class ScrapeRequest extends CronJob
 {
+    protected $providers;
+    protected $sports;
+    protected $topic;
+
+    public function __construct()
+    {
+        parent::__construct();
+        $this->providers = DB::connection(config('database.crm_default'))->table('providers')->where('is_enabled',
+            true)->get()->toArray();
+        $this->sports = DB::table('sports')->where('is_enabled', true)->get()->toArray();
+        $kafka = new Producer($this->getConfig());
+        $this->topic = $kafka->newTopic(env('KAFKA_SCRAPE_REQUEST', 'scrape_req'));
+    }
+
     public function interval()
     {
         return 1000;
@@ -21,27 +35,21 @@ abstract class ScrapeRequest extends CronJob
 
     public function run()
     {
-        $providers = DB::connection(config('database.crm_default'))->table('providers')->where('is_enabled',
-            true)->get()->toArray();
-        $sports = DB::table('sports')->where('is_enabled', true)->get()->toArray();
-        $kafka = new Producer($this->getConfig());
-        $topic = $kafka->newTopic(env('KAFKA_SCRAPE_REQUEST', 'scrape-request'));
-
-        foreach ($providers as $provider) {
-            foreach ($sports as $sport) {
+        foreach ($this->providers as $provider) {
+            foreach ($this->sports as $sport) {
                 $prePayload = [
                     'request_uid' => uniqid(),
-                    'request_ts'  => time(),
+                    'request_ts'  => $this->milliseconds(),
                     'command'     => 'odd',
                     'sub_command' => 'scrape',
-
                 ];
                 $prePayload['data'] = [
                     'provider' => strtolower($provider->alias),
                     'schedule' => $this->scheduleType,
                     'sport'    => $sport->id
                 ];
-                $topic->produce(RD_KAFKA_PARTITION_UA, 0, json_encode($prePayload));
+
+                $this->topic->produce(RD_KAFKA_PARTITION_UA, 0, json_encode($prePayload));
             }
         }
     }
@@ -61,5 +69,10 @@ abstract class ScrapeRequest extends CronJob
         // Automatically and periodically commit offsets in the background
         $conf->set('enable.auto.commit', 'false');
         return $conf;
+    }
+
+    protected function milliseconds() {
+        $mt = explode(' ', microtime());
+        return ((int)$mt[1]) * 1000 + ((int)round($mt[0] * 1000));
     }
 }
