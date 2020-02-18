@@ -4,7 +4,7 @@
             <a href="#" class="text-sm uppercase py-2 px-3 leagueSchedule" :class="{'bg-orange-400 shadow-xl': selectedLeagueSchedMode === leagueSchedMode}" @click="selectLeagueSchedMode(leagueSchedMode)" v-for="(leagueSchedMode, index) in leagueSchedModes" :key="index">{{leagueSchedMode}} &nbsp; ({{leagues[leagueSchedMode].length}})</a>
         </div>
 
-        <div class="flex flex-col">
+        <div class="flex flex-col" v-adjust-leagues-height="isBetBarOpen" ref="leaguesList">
             <a href="#" class="text-sm capitalize py-1 px-6 w-full league" :class="{'bg-gray-900 shadow-xl text-white border-l-8 border-orange-500': selectedLeagues.includes(index)}" @click="selectLeague(index)" v-for="(league, index) in displayedLeagues" :key="index">{{league.league}} &nbsp; ({{league.gameCount}})</a>
         </div>
     </div>
@@ -24,7 +24,7 @@ export default {
         }
     },
     computed: {
-        ...mapState('trade', ['selectedLeague'])
+        ...mapState('trade', ['selectedLeague', 'isBetBarOpen'])
     },
     mounted() {
         this.filterLeaguesBySched(this.selectedLeagueSchedMode)
@@ -51,6 +51,22 @@ export default {
                 this.selectedLeagues = this.selectedLeagues.filter((selectedLeague, index) => index != league)
             } else {
                 this.selectedLeagues.push(league)
+            }
+        }
+    },
+    directives: {
+        adjustLeaguesHeight: {
+            update(el, binding, vnode) {
+                if (vnode.context.$refs.leaguesList.clientHeight >= 367) {
+                    if (binding.value) {
+                            el.style.height = '367px'
+                            el.style.overflowY = 'auto'
+                    } else {
+                        el.style.height = '521px'
+                    }
+                } else {
+                    el.style.height = '100%'
+                }
             }
         }
     }
