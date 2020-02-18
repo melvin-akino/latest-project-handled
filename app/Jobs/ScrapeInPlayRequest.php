@@ -18,7 +18,7 @@ class ScrapeInPlayRequest extends ScrapeRequest
 
     public function run()
     {
-        for ($i = 0; $i < 10; $i++) {
+        for ($i = 0; $i < 5; $i++) {
             usleep(200 * 1000);
             foreach ($this->providers as $provider) {
                 foreach ($this->sports as $sport) {
