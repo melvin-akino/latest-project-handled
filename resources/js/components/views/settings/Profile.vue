@@ -106,7 +106,10 @@
                 </div>
             </div>
             <div class="mt-4">
-                <button type="submit" class="bg-orange-500 hover:bg-orange-600 text-white text-sm uppercase px-4 py-2">Change Password</button>
+                <button type="submit" class="bg-orange-500 text-white text-sm uppercase px-4 py-2" :disabled="isChangingPassword">
+                    <span v-if="isChangingPassword">Changing Password...</span>
+                    <span v-else>Change Password</span>
+                </button>
             </div>
         </form>
     </div>
@@ -130,7 +133,8 @@ export default {
                 { id: 1, currency: 'CNY' },
                 { id: 2, currency: 'USD' }
             ],
-            profileSettingsFormError: {}
+            profileSettingsFormError: {},
+            isChangingPassword: false
         }
     },
     head: {
@@ -195,29 +199,28 @@ export default {
                 password_confirmation: this.changePasswordForm.password_confirmation
             }
 
+            this.isChangingPassword = true
+
             axios.post('/v1/user/settings/change-password', data, { headers: { 'Authorization': `Bearer ${token}` } })
             .then(response => {
+                this.isChangingPassword = false
                 this.profileSettingsFormError = {}
-                if (response.data.status_code === 400) {
-                    Swal.fire({
-                        icon: 'error',
-                        text: response.data.message
-                    })
-                } else {
-                    Swal.fire({
-                        icon: 'success',
-                        text: response.data.message
-                    })
-                    .then(() => {
-                        this.changePasswordForm.old_password = ''
-                        this.changePasswordForm.password = ''
-                        this.changePasswordForm.password_confirmation = ''
-                    })
-                }
+                Swal.fire({
+                    icon: 'success',
+                    text: response.data.message
+                })
+                .then(() => {
+                    this.changePasswordForm.old_password = ''
+                    this.changePasswordForm.password = ''
+                    this.changePasswordForm.password_confirmation = ''
+                })
             })
             .catch(err => {
+                this.isChangingPassword = false
                 this.$store.dispatch('auth/checkIfTokenIsValid', err.response.data.status_code)
-                this.profileSettingsFormError = err.response.data.errors
+                if(err.response.data.status_code === 422) {
+                    this.profileSettingsFormError = err.response.data.errors
+                }
                 Swal.fire({
                     icon: 'error',
                     text: err.response.data.message
