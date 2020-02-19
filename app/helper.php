@@ -45,46 +45,48 @@ function deleteCookie(string $cookieName)
  *
  * @author  Kevin Uy
  */
-function setUserDefault(string $type, array $data = null)
-{
-    $data = [];
-    $types = [
-        'sport',
-        'league',
-    ];
+if (!function_exists('setUserDefault')) {
+    function setUserDefault(string $type, array $data = null)
+    {
+        $data = [];
+        $types = [
+            'sport',
+            'league',
+        ];
 
-    if (in_array($type, $types)) {
-        switch ($type) {
-            case 'sport':
-                UserConfiguration::updateOrCreate(
-                    [
-                        'user_id' => auth()->user()->id,
-                        'type'    => "DEFAULT_SPORT",
-                        'menu'    => 'TRADE',
-                    ],
-                    [
-                        'value' => $data->sport_id
-                    ]
-                );
-            break;
+        if (in_array($type, $types)) {
+            switch ($type) {
+                case 'sport':
+                    UserConfiguration::updateOrCreate(
+                        [
+                            'user_id' => auth()->user()->id,
+                            'type'    => "DEFAULT_SPORT",
+                            'menu'    => 'TRADE',
+                        ],
+                        [
+                            'value' => $data->sport_id
+                        ]
+                    );
+                break;
 
-            case 'league':
-                //
-            break;
+                case 'league':
+                    //
+                break;
 
+                $data = [
+                    'status'  => true,
+                    'message' => trans('notifications.save.success')
+                ];
+            }
+        } else {
             $data = [
-                'status'  => true,
-                'message' => trans('notifications.save.success')
+                'status' => false,
+                'error'  => trans('generic.bad-request'),
             ];
         }
-    } else {
-        $data = [
-            'status' => false,
-            'error'  => trans('generic.bad-request'),
-        ];
-    }
 
-    return $data;
+        return $data;
+    }
 }
 
 /**
@@ -95,41 +97,43 @@ function setUserDefault(string $type, array $data = null)
  *
  * @author  Kevin Uy
  */
-function getUserDefault(string $type)
-{
-    $data = [];
-    $types = [
-        'sport',
-        'league',
-    ];
-
-    if (in_array($type, $types)) {
-        switch ($type) {
-            case 'sport':
-                $defaultSport = UserConfiguration::where('type', 'DEFAULT_SPORT')
-                    ->where('menu', 'TRADE')
-                    ->where('user_id', auth()->user()->id);
-
-                if ($defaultSport->count() == 0) {
-                    $defaultSport = Sport::getActiveSports();
-                }
-
-                $data = [
-                    'status'        => true,
-                    'default_sport' => $defaultSport->first()->id,
-                ];
-            break;
-
-            case 'league':
-                //
-            break;
-        }
-    } else {
-        $data = [
-            'status' => false,
-            'error'  => trans('generic.bad-request'),
+if (!function_exists('getUserDefault')) {
+    function getUserDefault(string $type)
+    {
+        $data = [];
+        $types = [
+            'sport',
+            'league',
         ];
-    }
 
-    return $data;
+        if (in_array($type, $types)) {
+            switch ($type) {
+                case 'sport':
+                    $defaultSport = UserConfiguration::where('type', 'DEFAULT_SPORT')
+                        ->where('menu', 'TRADE')
+                        ->where('user_id', auth()->user()->id);
+
+                    if ($defaultSport->count() == 0) {
+                        $defaultSport = Sport::getActiveSports();
+                    }
+
+                    $data = [
+                        'status'        => true,
+                        'default_sport' => $defaultSport->first()->id,
+                    ];
+                break;
+
+                case 'league':
+                    //
+                break;
+            }
+        } else {
+            $data = [
+                'status' => false,
+                'error'  => trans('generic.bad-request'),
+            ];
+        }
+
+        return $data;
+    }
 }
