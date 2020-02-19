@@ -39,11 +39,7 @@ class ScraperRequest extends Command
             true)->get()->toArray();
         $this->sports = DB::table('sports')->where('is_enabled', true)->get()->toArray();
 
-    }
-
-    public function handle()
-    {
-        $selectConfig = [
+        $this->selectConfig = [
             'inplay' => [
                 self::SCHEDULE_INPLAY_TIMER,
                 self::INTERVAL_REQ_PER_EXEC_INPLAY,
@@ -60,12 +56,14 @@ class ScraperRequest extends Command
                 self::NUM_OF_REQ_PER_EXECUTION_EARLY
             ]
         ];
+        $this->systemConfiguration = new SystemConfiguration();
 
-        $systemConfiguration = new SystemConfiguration();
+        $this->config();
+    }
 
-        $this->config($systemConfiguration, $selectConfig);
-
-        $i = 1;
+    public function handle()
+    {
+        $i = 0;
         while (true) {
             $variableConfig = [
                 self::SCHEDULE_INPLAY_TIMER           => 'timer',
@@ -80,11 +78,11 @@ class ScraperRequest extends Command
             ];
 
             if ($i % self::DB_CHECK_INTERVAL == 0) {
-                $this->config($systemConfiguration, $selectConfig);
+                $this->config();
             }
 
             $request = [];
-            foreach ($selectConfig as $key => $scheduleType) {
+            foreach ($this->selectConfig as $key => $scheduleType) {
                 foreach ($this->config as $conf) {
                     if (in_array($conf['type'], $scheduleType)) {
                         $request[$key][$variableConfig[$conf['type']]] = $conf['value'];
@@ -134,14 +132,14 @@ class ScraperRequest extends Command
         return ((int)$mt[1]) * 1000 + ((int)round($mt[0] * 1000));
     }
 
-    private function config($systemConfiguration, $selectConfig)
+    private function config()
     {
-        $systemConfiguration->where(true, true);
-        foreach ($selectConfig as $scheduleType) {
+        $this->systemConfiguration->where(true, true);
+        foreach ($this->selectConfig as $scheduleType) {
             foreach ($scheduleType as $where) {
-                $systemConfiguration->orWhere('type', $where);
+                $this->systemConfiguration->orWhere('type', $where);
             }
         }
-        $this->config = $systemConfiguration->select('type', 'value')->get()->toArray();
+        $this->config = $this->systemConfiguration->select('type', 'value')->get()->toArray();
     }
 }
