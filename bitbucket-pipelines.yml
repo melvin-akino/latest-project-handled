@@ -19,8 +19,8 @@ pipelines:
           - pecl install rdkafka
           - curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
           - docker-php-ext-install pcntl
-        # -docker-php-ext-install pdo pdo_pgsql  pcntl
-        # -psql -U "postgres" -h "localhost"  -p 5432 -c "CREATE DATABASE test_crm"
+          - docker-php-ext-install pdo pdo_pgsql  pcntl
+          - psql -U "postgres" -h "localhost"  -p 5432 -c "CREATE DATABASE test_crm"
           - echo "extension=swoole.so" > /usr/local/etc/php/conf.d/docker-php-swoole.ini
           - echo "extension=rdkafka.so" > /usr/local/etc/php/conf.d/docker-php-rdkafka.ini
           - composer install 

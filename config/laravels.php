@@ -29,7 +29,7 @@ return [
             'class' => \App\Processes\KafkaConsume::class,
             'redirect' => false,
             'pipe' => 0,
-            'enable' => false
+            'enable' => true
         ]
     ],
     'timer'                    => [
