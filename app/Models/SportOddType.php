@@ -19,7 +19,7 @@ class SportOddType extends Model
      */
     public static function getEnabledSportOdds($sportId = null)
     {
-        $sql = "SELECT sot.id, sport_id, sport, odd_type_id, type
+        $sql = "SELECT sot.id, sport_id, sport, odd_type_id, type, name, home_label, away_label
                     FROM sport_odd_type as sot
                     JOIN sports as s ON s.id = sot.sport_id
                     JOIN odd_types as ot ON ot.id = sot.odd_type_id

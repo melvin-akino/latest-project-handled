@@ -22,6 +22,7 @@ class Sport extends Model
 
     public static function getActiveSports()
     {
-        return self::orderBy('priority', 'asc');
+        return self::where('is_enabled', true)
+            ->orderBy('priority', 'asc');
     }
 }

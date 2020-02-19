@@ -27,6 +27,9 @@ class SportController extends Controller
                                 "sport_odd_type_id" => $config->id,
                                 "odd_type_id"       => $config->odd_type_id,
                                 "type"              => $config->type,
+                                'name'              => $config->name,
+                                'home_label'        => $config->home_label,
+                                'away_label'        => $config->away_label
                             ]
                         ]
                     ];
@@ -35,6 +38,9 @@ class SportController extends Controller
                         "sport_odd_type_id" => $config->id,
                         "odd_type_id"       => $config->odd_type_id,
                         "type"              => $config->type,
+                        'name'              => $config->name,
+                        'home_label'        => $config->home_label,
+                        'away_label'        => $config->away_label
                     ];
                 } else {
                     $key++;
@@ -63,13 +69,15 @@ class SportController extends Controller
     public function getSports()
     {
         try {
-            $sports = Sport::getActiveSports()->get([
-                'id',
-                'is_enabled',
-                'icon',
-                'priority',
-                'sport'
-            ]);
+            $sports = Sport::all()
+                ->orderBy('priority', 'asc')
+                ->get([
+                    'id',
+                    'is_enabled',
+                    'icon',
+                    'priority',
+                    'sport'
+                ]);
 
             return response()->json([
                 'status'      => true,

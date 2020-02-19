@@ -98,6 +98,9 @@ Route::group([
             Route::post('add', 'TradeController@postAddToWatchlist');
             Route::post('remove', 'TradeController@postRemoveToWatchlist');
         });
+
+        /** League List Route Endpoints for Initial Page Load */
+        Route::get('leagues', 'TradeController@getInitialLeagues');
     });
 });
 
