@@ -25,10 +25,11 @@ pipelines:
           - echo "extension=swoole.so" > /usr/local/etc/php/conf.d/docker-php-swoole.ini
           - echo "extension=rdkafka.so" > /usr/local/etc/php/conf.d/docker-php-rdkafka.ini
           - cp .env.pipeline .env
+          - composer install 
           - php artisan key:generate
           - php artisan view:clear
           - php artisan cache:clear
-          - composer install 
+          
           
           
           - npm install
