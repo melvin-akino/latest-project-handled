@@ -15,9 +15,15 @@ class ScraperRequest extends Command
 
     protected $description = 'Scraper Request';
 
-    private $schedule = [
-        'inplay', 'today', 'early'
-    ];
+    const SCHEDULE_INPLAY_TIMER = 'SCHEDULE_INPLAY_TIMER';
+    const INTERVAL_REQ_PER_EXEC_INPLAY = 'INTERVAL_REQ_PER_EXEC_INPLAY';
+    const NUM_OF_REQ_PER_EXECUTION_INPLAY = 'NUM_OF_REQ_PER_EXECUTION_INPLAY';
+    const SCHEDULE_TODAY_TIMER = 'SCHEDULE_TODAY_TIMER';
+    const INTERVAL_REQ_PER_EXEC_TODAY = 'INTERVAL_REQ_PER_EXEC_TODAY';
+    const NUM_OF_REQ_PER_EXECUTION_TODAY = 'NUM_OF_REQ_PER_EXECUTION_TODAY';
+    const SCHEDULE_EARLY_TIMER = 'SCHEDULE_EARLY_TIMER';
+    const INTERVAL_REQ_PER_EXEC_EARLY = 'INTERVAL_REQ_PER_EXEC_EARLY';
+    const NUM_OF_REQ_PER_EXECUTION_EARLY = 'NUM_OF_REQ_PER_EXECUTION_EARLY';
 
     public function __construct()
     {
@@ -36,40 +42,60 @@ class ScraperRequest extends Command
 
         $i = 1;
         while (true) {
-            //INPLAY
-            $timer = $systemConfiguration->where('type', 'SCHEDULE_INPLAY_TIMER')->first();
-            $requestInterval = $systemConfiguration->where('type', 'INTERVAL_REQ_PER_EXEC_INPLAY')->first();
-            $requestNumber = $systemConfiguration->where('type', 'NUM_OF_REQ_PER_EXECUTION_INPLAY')->first();
+            $selectConfig = [
+                'inplay' => [
+                    self::SCHEDULE_INPLAY_TIMER,
+                    self::INTERVAL_REQ_PER_EXEC_INPLAY,
+                    self::NUM_OF_REQ_PER_EXECUTION_INPLAY,
+                ],
+                'today'  => [
+                    self::SCHEDULE_TODAY_TIMER,
+                    self::INTERVAL_REQ_PER_EXEC_TODAY,
+                    self::NUM_OF_REQ_PER_EXECUTION_TODAY,
+                ],
+                'early'  => [
+                    self::SCHEDULE_EARLY_TIMER,
+                    self::INTERVAL_REQ_PER_EXEC_EARLY,
+                    self::NUM_OF_REQ_PER_EXECUTION_EARLY
+                ]
+            ];
 
-            if ($i % (int) $timer->value  == 0) {
-                $this->scheduleType = 'inplay';
-                for ($interval = 0; $interval < $requestNumber->value; $interval++) {
-                    $this->scrapeRequest();
-                    usleep($requestInterval->value * 1000);
+            $variableConfig = [
+                self::SCHEDULE_INPLAY_TIMER           => 'timer',
+                self::INTERVAL_REQ_PER_EXEC_INPLAY    => 'requestInterval',
+                self::NUM_OF_REQ_PER_EXECUTION_INPLAY => 'requestNumber',
+                self::SCHEDULE_TODAY_TIMER            => 'timer',
+                self::INTERVAL_REQ_PER_EXEC_TODAY     => 'requestInterval',
+                self::NUM_OF_REQ_PER_EXECUTION_TODAY  => 'requestNumber',
+                self::SCHEDULE_EARLY_TIMER            => 'timer',
+                self::INTERVAL_REQ_PER_EXEC_EARLY     => 'requestInterval',
+                self::NUM_OF_REQ_PER_EXECUTION_EARLY  => 'requestNumber',
+            ];
+
+            $systemConfiguration->where(true, true);
+            foreach ($selectConfig as $scheduleType) {
+                foreach ($scheduleType as $where) {
+                    $systemConfiguration->orWhere('type', $where);
+                }
+            }
+            $config = $systemConfiguration->select('type', 'value')->get()->toArray();
+
+            $request = [];
+            foreach ($selectConfig as $key => $scheduleType) {
+                foreach ($config as $conf) {
+                    if (in_array($conf['type'], $scheduleType)) {
+                        $request[$key][$variableConfig[$conf['type']]] = $conf['value'];
+                    }
                 }
             }
 
-            //TODAY
-            $timer = $systemConfiguration->where('type', 'SCHEDULE_TODAY_TIMER')->first();
-            $requestInterval = $systemConfiguration->where('type', 'INTERVAL_REQ_PER_EXEC_TODAY')->first();
-            $requestNumber = $systemConfiguration->where('type', 'NUM_OF_REQ_PER_EXECUTION_TODAY')->first();
-            if ($i % (int) $timer->value  == 0) {
-                $this->scheduleType = 'today';
-                for ($interval = 0; $interval < $requestNumber->value; $interval++) {
-                    $this->scrapeRequest();
-                    usleep($requestInterval->value * 1000);
-                }
-            }
-
-            //EARLY
-            $timer = $systemConfiguration->where('type', 'SCHEDULE_EARLY_TIMER')->first();
-            $requestInterval = $systemConfiguration->where('type', 'INTERVAL_REQ_PER_EXEC_EARLY')->first();
-            $requestNumber = $systemConfiguration->where('type', 'NUM_OF_REQ_PER_EXECUTION_EARLY')->first();
-            if ($i % (int) $timer->value  == 0) {
-                $this->scheduleType = 'early';
-                for ($interval = 0; $interval < $requestNumber->value; $interval++) {
-                    $this->scrapeRequest();
-                    usleep($requestInterval->value * 1000);
+            foreach ($request as $key => $req) {
+                $this->scheduleType = $key;
+                if ($i % (int)$req['timer'] == 0) {
+                    for ($interval = 0; $interval < $req['requestNumber']; $interval++) {
+                        $this->scrapeRequest();
+                        usleep($req['requestInterval'] * 1000);
+                    }
                 }
             }
 
