@@ -69,13 +69,15 @@ class SportController extends Controller
     public function getSports()
     {
         try {
-            $sports = Sport::getActiveSports()->get([
-                'id',
-                'is_enabled',
-                'icon',
-                'priority',
-                'sport'
-            ]);
+            $sports = Sport::all()
+                ->orderBy('priority', 'asc')
+                ->get([
+                    'id',
+                    'is_enabled',
+                    'icon',
+                    'priority',
+                    'sport'
+                ]);
 
             return response()->json([
                 'status'      => true,
