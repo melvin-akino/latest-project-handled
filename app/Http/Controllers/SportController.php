@@ -27,6 +27,9 @@ class SportController extends Controller
                                 "sport_odd_type_id" => $config->id,
                                 "odd_type_id"       => $config->odd_type_id,
                                 "type"              => $config->type,
+                                'name'              => $config->name,
+                                'home_label'        => $config->home_label,
+                                'away_label'        => $config->away_label
                             ]
                         ]
                     ];
@@ -35,6 +38,9 @@ class SportController extends Controller
                         "sport_odd_type_id" => $config->id,
                         "odd_type_id"       => $config->odd_type_id,
                         "type"              => $config->type,
+                        'name'              => $config->name,
+                        'home_label'        => $config->home_label,
+                        'away_label'        => $config->away_label
                     ];
                 } else {
                     $key++;
