@@ -37,7 +37,7 @@ class OddTypesUpdateSeeder extends Seeder
                     'id' => $key,
                 ],
                 [
-                    'type' => $type,
+                    'type'       => $type,
                     'updated_at' => Carbon::now()
                 ]
             );

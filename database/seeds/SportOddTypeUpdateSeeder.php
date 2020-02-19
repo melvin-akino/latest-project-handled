@@ -23,23 +23,23 @@ class SportOddTypeUpdateSeeder extends Seeder
     public function run()
     {
         $sportOddTypeNames = [
-            self::FT1X2 => ['FT 1X2', '', ''],
-            self::FTHANDICAP => ['FT HDP', 'A/1', 'A/2'],
-            self::FTOVERUNDER => ['FT O/U', 'O', 'U'],
-            self::FTODDEVEN => ['FT O/E', 'Odd', 'Even'],
-            self::ONEH1X2 => ['HT 1X2', '', ''],
-            self::ONEHHANDICAP => ['HT HDP', 'A/1', 'A/2'],
+            self::FT1X2         => ['FT 1X2', '', ''],
+            self::FTHANDICAP    => ['FT HDP', 'A/1', 'A/2'],
+            self::FTOVERUNDER   => ['FT O/U', 'O', 'U'],
+            self::FTODDEVEN     => ['FT O/E', 'Odd', 'Even'],
+            self::ONEH1X2       => ['HT 1X2', '', ''],
+            self::ONEHHANDICAP  => ['HT HDP', 'A/1', 'A/2'],
             self::ONEHOVERUNDER => ['HT O/U', 'O', 'U'],
-            self::HOMEGOALS => ['HOME GOALS', '1/O', '1/U'],
-            self::AWAYGOALS => ['AWAY GOALS', '2/O', '2/U']
+            self::HOMEGOALS     => ['HOME GOALS', '1/O', '1/U'],
+            self::AWAYGOALS     => ['AWAY GOALS', '2/O', '2/U']
         ];
 
         foreach ($sportOddTypeNames as $key => $sportOddTypeName) {
             SportOddType::updateOrCreate([
                 'odd_type_id' => $key,
-                'sport_id' => 1,
+                'sport_id'    => 1,
             ], [
-                'name' => $sportOddTypeName[0],
+                'name'       => $sportOddTypeName[0],
                 'home_label' => $sportOddTypeName[1],
                 'away_label' => $sportOddTypeName[2],
             ]);
