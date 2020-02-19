@@ -15,6 +15,8 @@ class ScraperRequest extends Command
 
     protected $description = 'Scraper Request';
 
+    protected $config;
+
     const SCHEDULE_INPLAY_TIMER = 'SCHEDULE_INPLAY_TIMER';
     const INTERVAL_REQ_PER_EXEC_INPLAY = 'INTERVAL_REQ_PER_EXEC_INPLAY';
     const NUM_OF_REQ_PER_EXECUTION_INPLAY = 'NUM_OF_REQ_PER_EXECUTION_INPLAY';
@@ -25,6 +27,8 @@ class ScraperRequest extends Command
     const INTERVAL_REQ_PER_EXEC_EARLY = 'INTERVAL_REQ_PER_EXEC_EARLY';
     const NUM_OF_REQ_PER_EXECUTION_EARLY = 'NUM_OF_REQ_PER_EXECUTION_EARLY';
 
+    const DB_CHECK_INTERVAL = 60 * 10;
+
     public function __construct()
     {
         parent::__construct();
@@ -34,32 +38,35 @@ class ScraperRequest extends Command
         $this->providers = DB::connection(config('database.crm_default'))->table('providers')->where('is_enabled',
             true)->get()->toArray();
         $this->sports = DB::table('sports')->where('is_enabled', true)->get()->toArray();
+
     }
 
     public function handle()
     {
+        $selectConfig = [
+            'inplay' => [
+                self::SCHEDULE_INPLAY_TIMER,
+                self::INTERVAL_REQ_PER_EXEC_INPLAY,
+                self::NUM_OF_REQ_PER_EXECUTION_INPLAY,
+            ],
+            'today'  => [
+                self::SCHEDULE_TODAY_TIMER,
+                self::INTERVAL_REQ_PER_EXEC_TODAY,
+                self::NUM_OF_REQ_PER_EXECUTION_TODAY,
+            ],
+            'early'  => [
+                self::SCHEDULE_EARLY_TIMER,
+                self::INTERVAL_REQ_PER_EXEC_EARLY,
+                self::NUM_OF_REQ_PER_EXECUTION_EARLY
+            ]
+        ];
+
         $systemConfiguration = new SystemConfiguration();
+
+        $this->config($systemConfiguration, $selectConfig);
 
         $i = 1;
         while (true) {
-            $selectConfig = [
-                'inplay' => [
-                    self::SCHEDULE_INPLAY_TIMER,
-                    self::INTERVAL_REQ_PER_EXEC_INPLAY,
-                    self::NUM_OF_REQ_PER_EXECUTION_INPLAY,
-                ],
-                'today'  => [
-                    self::SCHEDULE_TODAY_TIMER,
-                    self::INTERVAL_REQ_PER_EXEC_TODAY,
-                    self::NUM_OF_REQ_PER_EXECUTION_TODAY,
-                ],
-                'early'  => [
-                    self::SCHEDULE_EARLY_TIMER,
-                    self::INTERVAL_REQ_PER_EXEC_EARLY,
-                    self::NUM_OF_REQ_PER_EXECUTION_EARLY
-                ]
-            ];
-
             $variableConfig = [
                 self::SCHEDULE_INPLAY_TIMER           => 'timer',
                 self::INTERVAL_REQ_PER_EXEC_INPLAY    => 'requestInterval',
@@ -72,17 +79,13 @@ class ScraperRequest extends Command
                 self::NUM_OF_REQ_PER_EXECUTION_EARLY  => 'requestNumber',
             ];
 
-            $systemConfiguration->where(true, true);
-            foreach ($selectConfig as $scheduleType) {
-                foreach ($scheduleType as $where) {
-                    $systemConfiguration->orWhere('type', $where);
-                }
+            if ($i % self::DB_CHECK_INTERVAL == 0) {
+                $this->config($systemConfiguration, $selectConfig);
             }
-            $config = $systemConfiguration->select('type', 'value')->get()->toArray();
 
             $request = [];
             foreach ($selectConfig as $key => $scheduleType) {
-                foreach ($config as $conf) {
+                foreach ($this->config as $conf) {
                     if (in_array($conf['type'], $scheduleType)) {
                         $request[$key][$variableConfig[$conf['type']]] = $conf['value'];
                     }
@@ -91,7 +94,7 @@ class ScraperRequest extends Command
 
             foreach ($request as $key => $req) {
                 $this->scheduleType = $key;
-                if ($i % (int)$req['timer'] == 0) {
+                if ($i % $req['timer'] == 0) {
                     for ($interval = 0; $interval < $req['requestNumber']; $interval++) {
                         $this->scrapeRequest();
                         usleep($req['requestInterval'] * 1000);
@@ -129,5 +132,16 @@ class ScraperRequest extends Command
     {
         $mt = explode(' ', microtime());
         return ((int)$mt[1]) * 1000 + ((int)round($mt[0] * 1000));
+    }
+
+    private function config($systemConfiguration, $selectConfig)
+    {
+        $systemConfiguration->where(true, true);
+        foreach ($selectConfig as $scheduleType) {
+            foreach ($scheduleType as $where) {
+                $systemConfiguration->orWhere('type', $where);
+            }
+        }
+        $this->config = $systemConfiguration->select('type', 'value')->get()->toArray();
     }
 }
