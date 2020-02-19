@@ -15,7 +15,7 @@ pipelines:
         caches:
           - composer
         script:
-          - apt-get update && apt-get install -y unzip   nodejs npm librdkafka-dev
+          - apt-get update && apt-get install -y unzip   nodejs npm librdkafka-dev postgresql-client
           - pecl install swoole
           - pecl install rdkafka
           - curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
