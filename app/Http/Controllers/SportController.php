@@ -69,8 +69,7 @@ class SportController extends Controller
     public function getSports()
     {
         try {
-            $sports = Sport::all()
-                ->orderBy('priority', 'asc')
+            $sports = Sport::orderBy('priority', 'asc')
                 ->get([
                     'id',
                     'is_enabled',

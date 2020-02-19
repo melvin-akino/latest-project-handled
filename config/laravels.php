@@ -48,6 +48,12 @@ return [
     ],
     'events'                   => [],
     'swoole_tables'            => [
+        'ws' => [// The Key is table name, will add suffix "Table" to avoid naming conflicts. Here defined a table named "wsTable"
+                 'size'   => 102400,// The max size
+                 'column' => [// Define the columns
+                              ['name' => 'value', 'type' => \Swoole\Table::TYPE_INT, 'size' => 8],
+                 ],
+        ],
         'kafka' => [// The Key is table name, will add suffix "Table" to avoid naming conflicts. Here defined a table named "wsTable"
                     'size'   => 102400,// The max size
                     'column' => [// Define the columns

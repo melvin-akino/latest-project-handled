@@ -39,14 +39,15 @@ function deleteCookie(string $cookieName)
 /**
  * Save Authenticated User's Default Configuration by Type
  *
+ * @param   int        $userId
  * @param   string     $type
  * @param   array|null $data
  * @return  json
  *
- * @author  Kevin Uy
+ * @author  Kevin Uy, Alex Virtucio
  */
 if (!function_exists('setUserDefault')) {
-    function setUserDefault(string $type, array $data = null)
+    function setUserDefault(int $userId, string $type, array $data = null)
     {
         $data = [];
         $types = [
@@ -59,7 +60,7 @@ if (!function_exists('setUserDefault')) {
                 case 'sport':
                     UserConfiguration::updateOrCreate(
                         [
-                            'user_id' => auth()->user()->id,
+                            'user_id' => $userId,
                             'type'    => "DEFAULT_SPORT",
                             'menu'    => 'TRADE',
                         ],
@@ -92,13 +93,14 @@ if (!function_exists('setUserDefault')) {
 /**
  * Get Authenticated User's Default Configuration by Type
  *
+ * @param   int    $userId
  * @param   string $type
  * @return  $data
  *
  * @author  Kevin Uy
  */
 if (!function_exists('getUserDefault')) {
-    function getUserDefault(string $type)
+    function getUserDefault(int $userId, string $type)
     {
         $data = [];
         $types = [
@@ -111,7 +113,7 @@ if (!function_exists('getUserDefault')) {
                 case 'sport':
                     $defaultSport = UserConfiguration::where('type', 'DEFAULT_SPORT')
                         ->where('menu', 'TRADE')
-                        ->where('user_id', auth()->user()->id);
+                        ->where('user_id', $userId);
 
                     if ($defaultSport->count() == 0) {
                         $defaultSport = Sport::getActiveSports();
@@ -135,5 +137,25 @@ if (!function_exists('getUserDefault')) {
         }
 
         return $data;
+    }
+}
+
+/**
+ * Broadcast Emit
+ *
+ * @params array $content
+ *
+ * @author Alex Virtucio
+ */
+if (!function_exists('wsEmit')) {
+    function wsEmit($content)
+    {
+        $server = app('swoole');
+        $table = $server->wsTable;
+        foreach ($table as $key => $row) {
+            if (strpos($key, 'uid:') === 0 && $server->isEstablished($row['value'])) {
+                $server->push($row['value'], json_encode($content));
+            }
+        }
     }
 }
