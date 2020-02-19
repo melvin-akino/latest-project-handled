@@ -16,6 +16,9 @@ class ScraperRequest extends Command
     protected $description = 'Scraper Request';
 
     protected $config;
+    protected $variableConfig;
+    protected $selectConfig;
+    protected $systemConfiguration;
 
     const SCHEDULE_INPLAY_TIMER = 'SCHEDULE_INPLAY_TIMER';
     const INTERVAL_REQ_PER_EXEC_INPLAY = 'INTERVAL_REQ_PER_EXEC_INPLAY';
@@ -59,24 +62,24 @@ class ScraperRequest extends Command
         $this->systemConfiguration = new SystemConfiguration();
 
         $this->config();
+
+        $this->variableConfig = [
+            self::SCHEDULE_INPLAY_TIMER           => 'timer',
+            self::INTERVAL_REQ_PER_EXEC_INPLAY    => 'requestInterval',
+            self::NUM_OF_REQ_PER_EXECUTION_INPLAY => 'requestNumber',
+            self::SCHEDULE_TODAY_TIMER            => 'timer',
+            self::INTERVAL_REQ_PER_EXEC_TODAY     => 'requestInterval',
+            self::NUM_OF_REQ_PER_EXECUTION_TODAY  => 'requestNumber',
+            self::SCHEDULE_EARLY_TIMER            => 'timer',
+            self::INTERVAL_REQ_PER_EXEC_EARLY     => 'requestInterval',
+            self::NUM_OF_REQ_PER_EXECUTION_EARLY  => 'requestNumber',
+        ];
     }
 
     public function handle()
     {
         $i = 0;
         while (true) {
-            $variableConfig = [
-                self::SCHEDULE_INPLAY_TIMER           => 'timer',
-                self::INTERVAL_REQ_PER_EXEC_INPLAY    => 'requestInterval',
-                self::NUM_OF_REQ_PER_EXECUTION_INPLAY => 'requestNumber',
-                self::SCHEDULE_TODAY_TIMER            => 'timer',
-                self::INTERVAL_REQ_PER_EXEC_TODAY     => 'requestInterval',
-                self::NUM_OF_REQ_PER_EXECUTION_TODAY  => 'requestNumber',
-                self::SCHEDULE_EARLY_TIMER            => 'timer',
-                self::INTERVAL_REQ_PER_EXEC_EARLY     => 'requestInterval',
-                self::NUM_OF_REQ_PER_EXECUTION_EARLY  => 'requestNumber',
-            ];
-
             if ($i % self::DB_CHECK_INTERVAL == 0) {
                 $this->config();
             }
@@ -85,7 +88,7 @@ class ScraperRequest extends Command
             foreach ($this->selectConfig as $key => $scheduleType) {
                 foreach ($this->config as $conf) {
                     if (in_array($conf['type'], $scheduleType)) {
-                        $request[$key][$variableConfig[$conf['type']]] = $conf['value'];
+                        $request[$key][$this->variableConfig[$conf['type']]] = $conf['value'];
                     }
                 }
             }
