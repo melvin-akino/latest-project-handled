@@ -21,7 +21,7 @@
                         <div class="text-white"><i class="fas fa-star"></i></div>
                     </div>
                     <div class="gamesWrapper" :class="!closedLeagues.includes(index) ? 'h-full' : 'h-0 overflow-hidden'">
-                        <div class="flex justify-around py-4 px-4 game" :class="[index % 2 != 0 ? 'alternateEvent' : '']" v-for="(game, index) in league" :key="game.uid">
+                        <div class="asianLayout flex justify-around py-4 px-4 game" :class="[index % 2 != 0 ? 'alternateEvent' : '']" v-for="(game, index) in league" :key="game.uid" v-if="tradeLayout==='1'">
                             <div class="flex flex-col w-2/12">
                                 <div><span class="font-bold text-green-400 mr-2">H</span>{{game.home_team_name}}</div>
                                 <div><span class="font-bold text-red-600 mr-2">A</span>{{game.away_team_name}}</div>
@@ -72,12 +72,12 @@
                                     <span class="bet-click px-2 rounded-lg">{{game.ft_1x2.away.toFixed(2)}}</span>
                                 </p>
                             </div>
-                            <div class="flex flex-col items-center w-1/12 1h_1x2" :class="{'hidden': disabledBetColumns.includes(5)}">
+                            <div class="flex flex-col items-center w-1/12 ht_1x2" :class="{'hidden': disabledBetColumns.includes(5)}">
                                 <p class="px-2 rounded-lg bet-click">{{game.ft_1x2.home.toFixed(2)}}</p>
                                 <p class="px-2 rounded-lg bet-click">{{game.ft_1x2.away.toFixed(2)}}</p>
                                 <p class="px-2 rounded-lg bet-click">{{game.ft_1x2.draw.toFixed(2)}}</p>
                             </div>
-                            <div class="flex flex-col items-center w-1/12 1h_hdp" :class="{'hidden': disabledBetColumns.includes(6)}">
+                            <div class="flex flex-col items-center w-1/12 ht_hdp" :class="{'hidden': disabledBetColumns.includes(6)}">
                                 <p class="relative">
                                     <span class="absolute text-gray-500 odds-label left-label">- 2.5</span>
                                     <span class="bet-click px-2 rounded-lg">{{game.ft_hdp.home.toFixed(2)}}</span>
@@ -87,7 +87,7 @@
                                     <span class="bet-click px-2 rounded-lg">{{game.ft_hdp.away.toFixed(2)}}</span>
                                 </p>
                             </div>
-                            <div class="flex flex-col items-center w-1/12 1h_ou" :class="{'hidden': disabledBetColumns.includes(7)}">
+                            <div class="flex flex-col items-center w-1/12 ht_ou" :class="{'hidden': disabledBetColumns.includes(7)}">
                                 <p class="relative">
                                     <span class="absolute text-gray-500 odds-label left-label">O</span>
                                     <span class="bet-click px-2 rounded-lg">{{game.ft_ou.home.toFixed(2)}}</span>
@@ -101,6 +101,62 @@
                             </div>
                             <div class="text-white">
                                 <span class="eventStar"><i class="fas fa-star"></i></span>
+                            </div>
+                        </div>
+                        <div class="europeanLayout flex flex-col justify-around py-4 px-4 game" :class="[index % 2 != 0 ? 'alternateEvent' : '']" v-for="(game, index) in league" :key="game.uid" v-if="tradeLayout==='2'">
+                            <div class="flex justify-center pb-4">
+                                <span class="mr-2">{{game.home_team_name}}</span>
+                                <span class="font-bold text-green-400 mr-2">H</span>
+                                <span class="mr-2 text-base">2</span>
+                                <span class="mr-2">2 H : 58 M</span>
+                                <span class="mr-2 text-base">0</span>
+                                <span class="font-bold text-red-600 mr-2">A</span>
+                                <span class="mr-2">{{game.away_team_name}}</span>
+                            </div>
+                            <div class="flex justify-around">
+                                <div class="w-1/12"></div>
+                                <div class="w-1/12">
+                                    <div class="flex justify-between ft_1x2">
+                                        <span class="px-1 rounded-lg bet-click">{{game.ft_1x2.home.toFixed(2)}}</span>
+                                        <span class="px-1 rounded-lg bet-click">{{game.ft_1x2.draw.toFixed(2)}}</span>
+                                        <span class="px-1 rounded-lg bet-click">{{game.ft_1x2.away.toFixed(2)}}</span>
+                                    </div>
+                                </div>
+                                <div class="w-1/12">
+                                    <div class="flex justify-between ft_hdp">
+                                        <span class="text-gray-500 odds-label left-label">- 2.5</span>
+                                        <span class="bet-click px-1 rounded-lg">{{game.ft_hdp.home.toFixed(2)}}</span>
+                                        <span class="text-gray-500 odds-label left-label">+ 2.5</span>
+                                        <span class="bet-click px-1 rounded-lg">{{game.ft_hdp.away.toFixed(2)}}</span>
+                                    </div>
+                                </div>
+                                <div class="flex justify-between ft_ou">
+                                    <span class="text-gray-500 odds-label left-label">2.5</span>
+                                    <span class="bet-click px-1 rounded-lg">{{game.ft_ou.home.toFixed(2)}}</span>
+                                    <span class="text-gray-500 odds-label left-label">2.5</span>
+                                    <span class="bet-click px-1 rounded-lg">{{game.ft_ou.away.toFixed(2)}}</span>
+                                </div>
+                                <div class="flex justify-between ft_oe">
+                                    <span class="bet-click px-1 rounded-lg">{{game.ft_1x2.home.toFixed(2)}}</span>
+                                    <span class="bet-click px-1 rounded-lg">{{game.ft_1x2.away.toFixed(2)}}</span>
+                                </div>
+                                <div class="flex justify-between ht_1x2">
+                                    <span class="px-1 rounded-lg bet-click">{{game.ft_1x2.home.toFixed(2)}}</span>
+                                    <span class="px-1 rounded-lg bet-click">{{game.ft_1x2.draw.toFixed(2)}}</span>
+                                    <span class="px-1 rounded-lg bet-click">{{game.ft_1x2.away.toFixed(2)}}</span>
+                                </div>
+                                <div class="flex justify-between ht_hdp">
+                                    <span class="text-gray-500 odds-label left-label">- 2.5</span>
+                                    <span class="bet-click px-1 rounded-lg">{{game.ft_hdp.home.toFixed(2)}}</span>
+                                    <span class="text-gray-500 odds-label left-label">+ 2.5</span>
+                                    <span class="bet-click px-1 rounded-lg">{{game.ft_hdp.away.toFixed(2)}}</span>
+                                </div>
+                                <div class="flex justify-between ht_ou">
+                                    <span class="text-gray-500 odds-label left-label">- 2.5</span>
+                                    <span class="bet-click px-1 rounded-lg">{{game.ft_hdp.home.toFixed(2)}}</span>
+                                    <span class="text-gray-500 odds-label left-label">+ 2.5</span>
+                                    <span class="bet-click px-1 rounded-lg">{{game.ft_hdp.away.toFixed(2)}}</span>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -123,7 +179,7 @@ export default {
         }
     },
     computed: {
-        ...mapState('trade', ['selectedSport']),
+        ...mapState('trade', ['selectedSport', 'tradeLayout']),
         ...mapState('settings', ['disabledBetColumns'])
     },
     methods: {

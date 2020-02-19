@@ -1,8 +1,18 @@
 <template>
-    <div class="flex justify-between items-center shadow-inner mb-2 ml-4">
-        <div class="sport relative" v-for="sport in sports" :key="sport.id">
-            <button type="button" class="appearance-none text-xl px-3 py-1 rounded-lg focus:outline-none" :class="[selectedSport === sport.id ? 'bg-orange-500 text-white' : 'text-gray-500']" @click="selectSport(sport.id)" :disabled="!sport.is_enabled"><i class="fas" :class="sport.icon"></i></button>
-            <div class="absolute text-white text-xs p-1 bg-gray-900 hidden sporttooltip z-10" :class="[sport.is_enabled ? 'availablesport' : 'unavailablesport']">{{sport.sport}} <span v-if="!sport.is_enabled">is not yet available.</span></div>
+    <div class="text-white mb-2 pl-4 shadow-xl">
+        <div class="flex flex-col overflow-hidden">
+            <div class="text-center text-white text-sm cursor-pointer py-2 bg-orange-500">Sports</div>
+            <div class="sports overflow-y-auto flex flex-col bg-white text-gray-700">
+                <div class="sport" v-for="sport in sports" :key="sport.id">
+                    <div class="flex items-center w-full text-left text-sm py-1 px-6"  :class="[selectedSport === sport.id ? 'bg-gray-900 text-white' : '',  { 'text-gray-600' : !sport.is_enabled }]" >
+                        <i class="material-icons sportsIcon pr-2">{{sport.icon}}</i>
+                        <button type="button" class="focus:outline-none"@click="selectSport(sport.id)" :disabled="!sport.is_enabled"><span class="pb-1">{{sport.sport}}</span></button>
+                    </div>
+                    <div class="leagues" v-if="selectedSport === sport.id">
+                        <Leagues></Leagues>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </template>
@@ -10,12 +20,16 @@
 <script>
 import { mapState } from 'vuex'
 import Cookies from 'js-cookie'
+import Leagues from './Leagues'
 
 export default {
     data() {
         return {
-            sports: []
+            sports: [],
         }
+    },
+    components: {
+        Leagues
     },
     computed: {
         ...mapState('trade', ['selectedSport'])
@@ -42,30 +56,11 @@ export default {
 </script>
 
 <style>
-    .sporttooltip {
-        width: 70px;
-        text-align: center;
-        left: 24px;
-        top: 39px;
+    .sports {
+        max-height:420px;
     }
 
-    .availablesport {
-        width: 70px;
-    }
-
-    .unavailablesport {
-        width: 157px;
-    }
-
-    .sport:hover .sporttooltip {
-        display: block;
-    }
-
-    .comingsoonbadge {
-        font-size: 20px;
-        width: 64px;
-        transform: rotate(-45deg);
-        bottom: 15px;
-        left: 24px;
+    .sportsIcon {
+        font-size: 18px !important;
     }
 </style>

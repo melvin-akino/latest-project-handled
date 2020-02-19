@@ -16,8 +16,11 @@ Vue.use(Vuelidate)
 import VueHead from 'vue-head'
 Vue.use(VueHead)
 
+import Cookies from 'js-cookie'
+const token = Cookies.get('mltoken')
+
 import VueNativeSock from 'vue-native-websocket'
-Vue.use(VueNativeSock, process.env.MIX_WEBSOCKET_URL, { reconnection: true })
+Vue.use(VueNativeSock, `${process.env.MIX_WEBSOCKET_URL}?token=${token}`, { reconnection: true })
 
 const app = new Vue({
     el: '#app',
