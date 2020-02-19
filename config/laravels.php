@@ -94,7 +94,7 @@ return [
                   ['name' => 'id',   'type' => \Swoole\Table::TYPE_INT],
                   ['name' => 'sport_id',    'type' => \Swoole\Table::TYPE_INT],
                   ['name' => 'provider_id', 'type' => \Swoole\Table::TYPE_INT],
-                  ['name' => 'league',      'type' => \Swoole\Table::TYPE_STRING, 'size' => 100],
+                  ['name' => 'multi_league',      'type' => \Swoole\Table::TYPE_STRING, 'size' => 100],
              ],
         ],
         'providers' => [// The Key is table name, will add suffix "Table" to avoid naming conflicts. Here defined a table named "wsTable"

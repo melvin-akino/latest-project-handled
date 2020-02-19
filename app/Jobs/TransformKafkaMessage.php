@@ -32,8 +32,8 @@ class TransformKafkaMessage implements ShouldQueue
         $providersTable = $swoole->providersTable;
         $indexesTable = $swoole->indexesTable;
 
-        $leagueIndex = $indexesTable->exist('leagues') ? $indexesTable['leagues'] : 0;
-        $providerIndex = $indexesTable->exist('providers') ? $indexesTable['providers'] : 0;
+//        $leagueIndex = $indexesTable->exist('leagues') ? $indexesTable['leagues'] : 0;
+//        $providerIndex = $indexesTable->exist('providers') ? $indexesTable['providers'] : 0;
 
 
         $schedule = new DateTime($this->message->data->referenceSchedule);
@@ -78,6 +78,7 @@ class TransformKafkaMessage implements ShouldQueue
 
         $uid = implode('-', [$getDate, $leagueId, $this->message->data->events[0]->eventId_ft]);
 
+var_dump($uid);
 
 
 

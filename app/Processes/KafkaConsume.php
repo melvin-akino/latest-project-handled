@@ -19,7 +19,6 @@ class KafkaConsume implements CustomProcessInterface
      * @var bool Quit tag for Reload updates
      */
     private static $quit = false;
-    const KAFKA_TOPIC = 'alex-scraping';
 
     public static function callback(Server $swoole, Process $process)
     {
@@ -27,7 +26,7 @@ class KafkaConsume implements CustomProcessInterface
         TransformKafkaMessage::dispatch(self::testData());
 
         $kafkaConsumer = new KafkaConsumer(self::getConfig());
-        $kafkaConsumer->subscribe([self::KAFKA_TOPIC]);
+        $kafkaConsumer->subscribe([env('KAFKA_SCRAPE_ODDS')]);
         while (!self::$quit) {
             $message = $kafkaConsumer->consume(120 * 1000);
             if ($message->err == RD_KAFKA_RESP_ERR_NO_ERROR) {
