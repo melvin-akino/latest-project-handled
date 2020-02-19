@@ -15,7 +15,7 @@ pipelines:
         caches:
           - composer
         script:
-          - apt-get update && apt-get install -y unzip   nodejs npm
+          - apt-get update && apt-get install -y unzip   nodejs npm librdkafka-dev
           - pecl install swoole
           - curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
           - docker-php-ext-install pcntl
@@ -58,7 +58,7 @@ pipelines:
           - cat .develop_hosts >> ~/.ssh/known_hosts
           - (umask  077 ; echo $devkey2 | base64 --decode > ~/.ssh/id_rsa)
           
-          - ssh $devuser36@ninepinetechnology-tmcrjvwbpr.dynamic-m.com -p 9913 'bash -i  "compile.sh"'
+         # - ssh $devuser36@ninepinetechnology-tmcrjvwbpr.dynamic-m.com -p 9913 'bash -i  "compile.sh"'
 
 
 definitions:
