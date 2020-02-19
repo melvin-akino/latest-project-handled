@@ -25,25 +25,26 @@ class KafkaConsume implements CustomProcessInterface
         Data2SWT::dispatch();
         TransformKafkaMessage::dispatch(self::testData());
 
-        $kafkaConsumer = new KafkaConsumer(self::getConfig());
+        /*$kafkaConsumer = new KafkaConsumer(self::getConfig());
         $kafkaConsumer->subscribe([env('KAFKA_SCRAPE_ODDS')]);
         while (!self::$quit) {
             $message = $kafkaConsumer->consume(120 * 1000);
             if ($message->err == RD_KAFKA_RESP_ERR_NO_ERROR) {
-                /**
+                *
                  * @TODO Dispatch Jobs to do the transformation
                  * Log::debug(json_encode($message));
                  * $kafkaTable->set('message:' . $message->offset, ['value' => $message->payload]);
                  * Log::debug(json_encode($kafkaTable->get('message:' . $message->offset)));
-                 */
+
                 TransformKafkaMessage::dispatch($message);
 
                 $kafkaConsumer->commitAsync($message);
             } else {
                 Log::error(json_encode([$message]));
             }
-        }
+        }*/
     }
+
     // Requirements: LaravelS >= v3.4.0 & callback() must be async non-blocking program.
     public static function onReload(Server $swoole, Process $process)
     {
@@ -53,21 +54,27 @@ class KafkaConsume implements CustomProcessInterface
     private static function getConfig()
     {
         $conf = new KafkaConf();
+
         // Configure the group.id. All consumer with the same group.id will consume
         // different partitions.
         $conf->set('group.id', 'multiline');
+
         // Initial list of Kafka brokers
         $conf->set('metadata.broker.list', env('KAFKA_BROKERS', 'kafka:9092'));
+
         // Set where to start consuming messages when there is no initial offset in
         // offset store or the desired offset is out of range.
         // 'smallest': start from the beginning
         $conf->set('auto.offset.reset', 'smallest');
+
         // Automatically and periodically commit offsets in the background
         $conf->set('enable.auto.commit', 'false');
+
         return $conf;
     }
 
-    private static function testData() {
+    private static function testData()
+    {
         return json_encode(array (
             'provider' => 'hg',
             'command' => 'odd',
