@@ -6,7 +6,6 @@ use Hhxsv5\LaravelS\Swoole\WebSocketHandlerInterface;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Swoole\Http\Request;
-use Swoole\Http\Response;
 use Swoole\WebSocket\Frame;
 use Swoole\WebSocket\Server;
 use League\OAuth2\Server\ResourceServer;
@@ -26,8 +25,8 @@ class WebSocketService implements WebSocketHandlerInterface
         $user = $this->getUser($request->get['token']);
         $userId = $user ? $user['id'] : 0;
 
-        $server->wsTable->set('uid:' . $userId, ['value' => $request->fd]);// Bind map uid to fd
-        $server->wsTable->set('fd:' . $request->fd, ['value' => $userId]);// Bind map fd to uid
+        $server->wsTable->set('uid:' . $userId, ['value' => $request->fd]);
+        $server->wsTable->set('fd:' . $request->fd, ['value' => $userId]);
 
         $server->push($request->fd, 'Welcome to LaravelS');
     }
@@ -37,7 +36,10 @@ class WebSocketService implements WebSocketHandlerInterface
         $user = $server->wsTable->get('fd:' . $frame->fd);
 
         $commands = [
-            'getUserSport'  => 'App\Jobs\WsUserSport'
+            'getUserSport'         => 'App\Jobs\WsUserSport',
+            'getSelectedLeagues'   => 'App\Jobs\WsSelectedLeagues',
+            'getAdditionalLeagues' => 'App\Jobs\WsAdditionalLeagues',
+            'getForRemovalLeagues' => 'App\Jobs\WsForRemovalLeagues'
         ];
         $commandFound = false;
         foreach ($commands as $key => $value) {
@@ -63,45 +65,8 @@ class WebSocketService implements WebSocketHandlerInterface
     {
     }
 
-    public function onHandshake(Request $request, Response $response)
+    private function getUser($bearerToken)
     {
-        $secWebSocketKey = $request->header['sec-websocket-key'];
-        $patten = '#^[+/0-9A-Za-z]{21}[AQgw]==$#';
-
-        if (0 === preg_match($patten, $secWebSocketKey) || 16 !== strlen(base64_decode($secWebSocketKey))) {
-            $response->end();
-            return false;
-        }
-
-        echo $request->header['sec-websocket-key'];
-
-        $key = base64_encode(sha1($request->header['sec-websocket-key'] . '258EAFA5-E914-47DA-95CA-C5AB0DC85B11', true));
-
-        $headers = [
-            'Upgrade' => 'websocket',
-            'Connection' => 'Upgrade',
-            'Sec-WebSocket-Accept' => $key,
-            'Sec-WebSocket-Version' => '13',
-        ];
-
-        // WebSocket connection to 'ws://127.0.0.1:9502/'
-        // failed: Error during WebSocket handshake:
-        // Response must not include 'Sec-WebSocket-Protocol' header if not present in request: websocket
-        if (isset($request->header['sec-websocket-protocol'])) {
-            $headers['Sec-WebSocket-Protocol'] = $request->header['sec-websocket-protocol'];
-        }
-
-        foreach ($headers as $key => $val) {
-            $response->header($key, $val);
-        }
-
-        $response->status(101);
-        $response->end();
-        app('swoole')->push($request->fd, 'This is a handshake');
-        return true;
-    }
-
-    function getUser($bearerToken) {
         $tokenguard = new TokenGuard(
             resolve(ResourceServer::class),
             Auth::createUserProvider('users'),

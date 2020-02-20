@@ -20,7 +20,7 @@ return [
     ],
     'event_handlers'           => [],
     'websocket'                => [
-        'enable' => true,
+        'enable' => env('LARAVELS_WEBSOCKET', true),
         'handler' => \App\Services\WebSocketService::class,
     ],
     'sockets'                  => [],
@@ -29,7 +29,13 @@ return [
             'class' => \App\Processes\KafkaConsume::class,
             'redirect' => false,
             'pipe' => 0,
-            'enable' => true
+            'enable' => env('LARAVELS_KAFKA_CONSUME', true)
+        ],
+        'ws_subscriber_data' => [
+            'class' => \App\Processes\WsSubscriberData::class,
+            'redirect' => false,
+            'pipe' => 0,
+            'enable' => env('LARAVELS_WS_SUBSCRIBER_DATA', true)
         ]
     ],
     'timer'                    => [
@@ -49,6 +55,29 @@ return [
                  'size'   => 102400,// The max size
                  'column' => [// Define the columns
                               ['name' => 'value', 'type' => \Swoole\Table::TYPE_INT, 'size' => 8],
+                 ],
+        ],
+        'selectedLeagues' => [// The Key is table name, will add suffix "Table" to avoid naming conflicts. Here defined a table named "wsTable"
+                 'size'   => 102400,// The max size
+                 'column' => [// Define the columns
+                              ['name' => 'timestamp', 'type' => \Swoole\Table::TYPE_INT],
+                 ],
+        ],
+        'leagues'    => [// The Key is table name, will add suffix "Table" to avoid naming conflicts. Here defined a table named "wsTable"
+                 'size'   => 102400,// The max size
+                 'column' => [// Define the columns
+                              ['name' => 'id',           'type' => \Swoole\Table::TYPE_INT ],
+                              ['name' => 'sport_id',     'type' => \Swoole\Table::TYPE_INT ],
+                              ['name' => 'provider_id',  'type' => \Swoole\Table::TYPE_INT ],
+                              ['name' => 'multi_league', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 100 ],
+                              ['name' => 'timestamp',    'type' => \Swoole\Table::TYPE_INT ],
+                              ['name' => 'match_count',   'type' => \Swoole\Table::TYPE_INT ],
+                 ],
+        ],
+        'deletedLeagues'    => [// The Key is table name, will add suffix "Table" to avoid naming conflicts. Here defined a table named "wsTable"
+                 'size'   => 102400,// The max size
+                 'column' => [// Define the columns
+                              ['name' => 'value',           'type' => \Swoole\Table::TYPE_INT ],
                  ],
         ],
         'kafka' => [// The Key is table name, will add suffix "Table" to avoid naming conflicts. Here defined a table named "wsTable"
