@@ -209,7 +209,7 @@ class TradeController extends Controller
     {
         try {
             /** Get Authenticated User's Default Initial Sport : Last Sport visited */
-            $data = getUserDefault('sport');
+            $data = getUserDefault(auth()->user()->id, 'sport');
 
             /** Temporary Dummy Data */
             $leagues = $this->loopLeagues($data['default_sport']);
