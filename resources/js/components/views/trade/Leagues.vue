@@ -5,7 +5,7 @@
         </div>
 
         <div class="flex flex-col" v-adjust-leagues-height="isBetBarOpen" ref="leaguesList">
-            <a href="#" class="text-sm capitalize py-1 px-6 w-full league" :class="{'bg-gray-900 shadow-xl text-white selectedLeague': selectedLeagues.includes(index)}" @click="selectLeague(index)" v-for="(league, index) in displayedLeagues" :key="index">{{league.league}} &nbsp; ({{league.gameCount}})</a>
+            <a href="#" class="text-gray-700 text-sm capitalize py-1 px-6 w-full league" :class="{'bg-gray-900 shadow-xl text-white selectedLeague': selectedLeagues.includes(index)}" @click="selectLeague(index)" v-for="(league, index) in displayedLeagues" :key="index">{{league.league}} &nbsp; ({{league.gameCount}})</a>
         </div>
     </div>
 </template>
