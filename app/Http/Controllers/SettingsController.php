@@ -64,7 +64,7 @@ class SettingsController extends Controller
                         'status'        => false,
                         'status_code'   => 400,
                         'message'       => trans('passwords.current.incorrect')
-                    ]);
+                    ], 400);
                 }
             } else if ($type == 'reset') {
                 $this->resetSettings();
@@ -81,7 +81,7 @@ class SettingsController extends Controller
                     'status'      => false,
                     'status_code' => 400,
                     'message'     => trans('generic.bad-request')
-                ]);
+                ], 400);
             }
 
             return response()->json([
@@ -123,7 +123,6 @@ class SettingsController extends Controller
         }
     }
 
-    /** CONFIRM APPROACH */
     protected function resetSettings(): bool
     {
         foreach ($this->userConfig AS $config) {
