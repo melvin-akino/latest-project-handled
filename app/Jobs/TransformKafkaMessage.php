@@ -27,7 +27,11 @@ class TransformKafkaMessage implements ShouldQueue
         //@TODO Transformation
         $swoole         = app('swoole');
         $indexesTable   = $swoole->indexesTable;
+
+        /** DATABASE TABLES */
+        /** LOOK-UP TABLES */
         $providersTable = $swoole->providersTable;
+        $sportsTable    = $swoole->sportsTable;
         $leaguesTable   = $swoole->leaguesTable;
         $eventsTable    = $swoole->eventsTable;
         $teamsTable     = $swoole->teamsTable;
@@ -62,6 +66,7 @@ class TransformKafkaMessage implements ShouldQueue
         if ($leaguesTable->exist($leagueSwtId)) {
             $leagueId = $leaguesTable->get($leagueSwtId)['id'];
         } else {
+            /** Dispatch Job to do Database-related queries */
             $league = League::create([
                 'sport_id'    => $this->message->sportId,
                 'provider_id' => $providerId,
@@ -114,10 +119,10 @@ class TransformKafkaMessage implements ShouldQueue
             /** TODO: Insert to Events Database Table */
 
             /** `events` key from json data */
-            $array = $this->message->data->events;
+            $arrayEvents = $this->message->data->events;
 
             /** loop each `events` */
-            foreach ($array AS $event) {
+            foreach ($arrayEvents AS $event) {
                 /** object keys to be removed from each `events` */
                 $disregardEvents = [ 'gnum_h', 'gnum_c', 'odd_since', ];
 
@@ -167,14 +172,14 @@ class TransformKafkaMessage implements ShouldQueue
             }
 
             /** Logged complete `payload` to save to `events` swoole table */
-            \Log::info(json_encode($array));
+            \Log::info(json_encode($arrayEvents));
 
             $eventsTable->set($eventSwtId,
                 [
                     // 'uid'       => $uid, /** which one is correct? */
                     'uid'       => $this->message->request_uid, /** which one is correct? */
                     'timestamp' => $this->message->request_ts,
-                    'payload'   => json_encode($array),
+                    'payload'   => json_encode($arrayEvents),
                 ]
             );
         }

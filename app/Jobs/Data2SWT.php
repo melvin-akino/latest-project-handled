@@ -23,7 +23,7 @@ class Data2SWT
         $leagues = DB::table('master_leagues')
             ->join('master_league_links', 'master_leagues.id', 'master_league_links.master_league_id')
             ->join('leagues', 'leagues.id', 'master_league_links.master_league_id')
-            ->select('master_leagues.id', 'master_leagues.sport_id', 'multi_league', 'leagues.provider_id', 'leagues.league')
+            ->select('master_leagues.id', 'master_leagues.sport_id', 'multi_league', 'leagues.provider_id', 'leagues.league', 'master_leagues.updated_at')
             ->get();
 
         $leaguesTable = app('swoole')->leaguesTable;
@@ -33,7 +33,9 @@ class Data2SWT
                     'id'           => $league->id,
                     'sport_id'     => $league->sport_id,
                     'provider_id'  => $league->provider_id,
-                    'multi_league' => $league->multi_league
+                    'multi_league' => $league->multi_league,
+                    'updated_at'   => strtotime($league->updated_at),
+                    'match_count'  => 1, // query events
                 ]
             );
         }, $leagues->toArray());
