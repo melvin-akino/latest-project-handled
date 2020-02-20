@@ -10,7 +10,6 @@ use RdKafka\Producer;
 
 class ScraperRequest extends Command
 {
-
     protected $signature = 'scraper:request';
 
     protected $description = 'Scraper Request';
@@ -36,12 +35,6 @@ class ScraperRequest extends Command
     {
         parent::__construct();
 
-        $kafka = new Producer(kafkaConfig());
-        $this->topic = $kafka->newTopic(env('KAFKA_SCRAPE_REQUEST', 'scrape_req'));
-        $this->providers = DB::connection(config('database.crm_default'))->table('providers')->where('is_enabled',
-            true)->get()->toArray();
-        $this->sports = DB::table('sports')->where('is_enabled', true)->get()->toArray();
-
         $this->selectConfig = [
             'inplay' => [
                 self::SCHEDULE_INPLAY_TIMER,
@@ -59,9 +52,6 @@ class ScraperRequest extends Command
                 self::NUM_OF_REQ_PER_EXECUTION_EARLY
             ]
         ];
-        $this->systemConfiguration = new SystemConfiguration();
-
-        $this->config();
 
         $this->variableConfig = [
             self::SCHEDULE_INPLAY_TIMER           => 'timer',
@@ -78,6 +68,14 @@ class ScraperRequest extends Command
 
     public function handle()
     {
+        $kafka = new Producer(kafkaConfig());
+        $this->topic = $kafka->newTopic(env('KAFKA_SCRAPE_REQUEST', 'scrape_req'));
+        $this->providers = DB::connection(config('database.crm_default'))->table('providers')->where('is_enabled',
+            true)->get()->toArray();
+        $this->sports = DB::table('sports')->where('is_enabled', true)->get()->toArray();
+
+        $this->systemConfiguration = new SystemConfiguration();
+
         $i = 0;
         while (true) {
             if ($i % self::DB_CHECK_INTERVAL == 0) {
