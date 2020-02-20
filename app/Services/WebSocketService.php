@@ -23,25 +23,40 @@ class WebSocketService implements WebSocketHandlerInterface
 
     public function onOpen(Server $server, Request $request)
     {
-//        $a = $server->kafkaTable->get('message:565');
-//
-//
-//        $user = $this->getUser($request->get['token']);
+        $user = $this->getUser($request->get['token']);
+        $userId = $user ? $user['id'] : 0;
 
-//        $server->kafkaTable->set('testing', )
-//        $server->push($request->fd, json_encode(['changeOdds' => ['user' => $user['id'], 'request' => $request->get]]));
-//        $server->push($request->fd, json_encode([$a, Auth::user()]));
+        $server->wsTable->set('uid:' . $userId, ['value' => $request->fd]);// Bind map uid to fd
+        $server->wsTable->set('fd:' . $request->fd, ['value' => $userId]);// Bind map fd to uid
+
         $server->push($request->fd, 'Welcome to LaravelS');
-
-
     }
 
     public function onMessage(Server $server, Frame $frame)
     {
-//        Log::error("SDfsdf");
-//        var_dump("SDfsdf");
-        Log::error("SDFdfsfsdfsdfsdf");
-//        $server->push($frame->fd, date('Y-m-d H:i:s'));
+        $user = $server->wsTable->get('fd:' . $frame->fd);
+
+        $commands = [
+            'getUserSport'  => 'App\Jobs\WsUserSport'
+        ];
+        $commandFound = false;
+        foreach ($commands as $key => $value) {
+            $clientCommand = explode('_', $frame->data);
+            if ($clientCommand[0] == $key) {
+                $commandFound = true;
+                $job = $commands[$clientCommand[0]];
+                if (count($clientCommand) > 0) {
+                    $job::dispatch($user['value'], $clientCommand);
+                    Log::debug("WS Job Dispatched");
+                } else {
+                    $job::dispatch($user['value']);
+                }
+                break;
+            }
+        }
+        if ($commandFound) {
+            wsEmit("Found");
+        }
     }
 
     public function onClose(Server $server, $fd, $reactorId)
