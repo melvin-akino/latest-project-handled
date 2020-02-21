@@ -16,41 +16,27 @@ class SportController extends Controller
         try {
             $userSportOddConfiguration = SportOddType::getEnabledSportOdds();
             $userConfig = [];
-            $key = 0;
-            array_map(function ($config) use (&$userConfig, &$key) {
-                if (empty($userConfig[$key])) {
-                    $userConfig[$key] = [
+            array_map(function ($config) use (&$userConfig) {
+                if (empty($userConfig[$config->sport_id])) {
+                    $userConfig[$config->sport_id] = [
                         'sport_id' => $config->sport_id,
-                        'sport'    => $config->sport,
-                        'odds'     => [
-                            [
-                                "sport_odd_type_id" => $config->id,
-                                "odd_type_id"       => $config->odd_type_id,
-                                "type"              => $config->type,
-                                'name'              => $config->name,
-                                'home_label'        => $config->home_label,
-                                'away_label'        => $config->away_label
-                            ]
-                        ]
+                        'sport'    => $config->sport
                     ];
-                } else if ($userConfig[$key]['sport_id'] == $config->sport_id) {
-                    $userConfig[$key]['odds'][] = [
-                        "sport_odd_type_id" => $config->id,
-                        "odd_type_id"       => $config->odd_type_id,
-                        "type"              => $config->type,
-                        'name'              => $config->name,
-                        'home_label'        => $config->home_label,
-                        'away_label'        => $config->away_label
-                    ];
-                } else {
-                    $key++;
                 }
+                $userConfig[$config->sport_id]['odds'][] = [
+                    "sport_odd_type_id" => $config->id,
+                    "odd_type_id"       => $config->odd_type_id,
+                    "type"              => $config->type,
+                    'name'              => $config->name,
+                    'home_label'        => $config->home_label,
+                    'away_label'        => $config->away_label
+                ];
             }, $userSportOddConfiguration);
 
             return response()->json([
                 'status'      => true,
                 'status_code' => 200,
-                'data'        => $userConfig
+                'data'        => array_values($userConfig)
             ]);
         } catch (Exception $e) {
             return response()->json([
