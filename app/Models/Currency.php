@@ -6,8 +6,6 @@ use Illuminate\Database\Eloquent\Model;
 
 class Currency extends Model
 {
-    protected $connection = "pgsql_crm";
-
     protected $table = "currency";
 
     protected $hidden = [

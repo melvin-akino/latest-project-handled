@@ -6,7 +6,6 @@
                     <Wallet></Wallet>
                     <Watchlist :watchlist="watchlist"></Watchlist>
                     <Sports></Sports>
-                    <Leagues></Leagues>
                 </div>
             </div>
 
@@ -30,7 +29,6 @@ import Cookies from 'js-cookie'
 import Sports from './Sports'
 import Wallet from './Wallet'
 import Watchlist from './Watchlist'
-import Leagues from './Leagues'
 import Columns from './Columns'
 import Games from './Games'
 import Betbar from './Betbar'
@@ -40,7 +38,6 @@ export default {
         Sports,
         Wallet,
         Watchlist,
-        Leagues,
         Columns,
         Games,
         Betbar
@@ -70,8 +67,20 @@ export default {
         ws.onmessage = function(e) {
             console.log("received");
         };        this.getWatchlistData()
+
+        this.getWatchlistData()
+        this.getUserTradeLayout()
     },
     methods: {
+        getUserTradeLayout() {
+            this.$store.dispatch('settings/getUserSettingsConfig', 'trade-page')
+            .then(response => {
+                this.$store.commit('trade/SET_TRADE_LAYOUT', response.trade_layout)
+            })
+            .catch(err => {
+                this.$store.dispatch('auth/checkIfTokenIsValid', err.response.data.status_code)
+            })
+        },
         getWatchlistData() {
             let token = Cookies.get('mltoken')
 

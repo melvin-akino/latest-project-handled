@@ -20,7 +20,7 @@ return [
     ],
     'event_handlers'           => [],
     'websocket'                => [
-        'enable' => true,
+        'enable' => env('LARAVELS_WEBSOCKET', true),
         'handler' => \App\Services\WebSocketService::class,
     ],
     'sockets'                  => [],
@@ -28,37 +28,63 @@ return [
         'kafka_consume' => [
             'class'    => \App\Processes\KafkaConsume::class,
             'redirect' => false,
-            'pipe'     => 0,
-            'enable'   => true
+            'pipe' => 0,
+            'enable' => env('LARAVELS_KAFKA_CONSUME', true)
+        ],
+        'ws_subscriber_data' => [
+            'class' => \App\Processes\WsSubscriberData::class,
+            'redirect' => false,
+            'pipe' => 0,
+            'enable' => env('LARAVELS_WS_SUBSCRIBER_DATA', true)
         ]
     ],
     'timer'                    => [
-        'enable'        => env('LARAVELS_TIMER', true),
+        'enable'        => env('LARAVELS_TIMER', false),
         'jobs'          => [
             // Enable LaravelScheduleJob to run `php artisan schedule:run` every 1 minute, replace Linux Crontab
             //\Hhxsv5\LaravelS\Illuminate\LaravelScheduleJob::class,
             // Two ways to configure parameters:
             // [\App\Jobs\XxxCronJob::class, [1000, true]], // Pass in parameters when registering
             // \App\Jobs\XxxCronJob::class, // Override the corresponding method to return the configuration
-            \App\Jobs\ScrapeInPlayRequest::class,
-            \App\Jobs\ScrapeTodayRequest::class,
-            \App\Jobs\ScrapeEarlyRequest::class,
         ],
         'max_wait_time' => 5,
     ],
     'events'                   => [],
     'swoole_tables'            => [
         'ws' => [// The Key is table name, will add suffix "Table" to avoid naming conflicts. Here defined a table named "wsTable"
-             'size'   => 102400,// The max size
-             'column' => [// Define the columns
-                  ['name' => 'value', 'type' => \Swoole\Table::TYPE_INT, 'size' => 8],
-             ],
+                 'size'   => 102400,// The max size
+                 'column' => [// Define the columns
+                              ['name' => 'value', 'type' => \Swoole\Table::TYPE_INT, 'size' => 8],
+                 ],
         ],
-        'indexes'    => [// The Key is table name, will add suffix "Table" to avoid naming conflicts. Here defined a table named "wsTable"
-             'size'   => 102400,// The max size
-             'column' => [// Define the columns
-                  ['name' => 'value', 'type' => \Swoole\Table::TYPE_INT, 'size' => 100],
-             ],
+        'selectedLeagues' => [// The Key is table name, will add suffix "Table" to avoid naming conflicts. Here defined a table named "wsTable"
+                 'size'   => 102400,// The max size
+                 'column' => [// Define the columns
+                              ['name' => 'timestamp', 'type' => \Swoole\Table::TYPE_INT],
+                 ],
+        ],
+        'leagues'    => [// The Key is table name, will add suffix "Table" to avoid naming conflicts. Here defined a table named "wsTable"
+                 'size'   => 102400,// The max size
+                 'column' => [// Define the columns
+                              ['name' => 'id',           'type' => \Swoole\Table::TYPE_INT ],
+                              ['name' => 'sport_id',     'type' => \Swoole\Table::TYPE_INT ],
+                              ['name' => 'provider_id',  'type' => \Swoole\Table::TYPE_INT ],
+                              ['name' => 'multi_league', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 100 ],
+                              ['name' => 'timestamp',    'type' => \Swoole\Table::TYPE_INT ],
+                              ['name' => 'match_count',   'type' => \Swoole\Table::TYPE_INT ],
+                 ],
+        ],
+        'deletedLeagues'    => [// The Key is table name, will add suffix "Table" to avoid naming conflicts. Here defined a table named "wsTable"
+                 'size'   => 102400,// The max size
+                 'column' => [// Define the columns
+                              ['name' => 'value',           'type' => \Swoole\Table::TYPE_INT ],
+                 ],
+        ],
+        'kafka' => [// The Key is table name, will add suffix "Table" to avoid naming conflicts. Here defined a table named "wsTable"
+                    'size'   => 102400,// The max size
+                    'column' => [// Define the columns
+                                 ['name' => 'value', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 5000],
+                    ],
         ],
         'events'     => [// The Key is table name, will add suffix "Table" to avoid naming conflicts. Here defined a table named "wsTable"
              'size'   => 102400,// The max size
@@ -141,7 +167,7 @@ return [
         'buffer_output_size' => 2 * 1024 * 1024,
         'socket_buffer_size' => 128 * 1024 * 1024,
         'package_max_length' => 4 * 1024 * 1024,
-        'reload_async'       => false,
+        'reload_async'       => true,
         'max_wait_time'      => 60,
         'enable_reuse_port'  => true,
         'enable_coroutine'   => false,

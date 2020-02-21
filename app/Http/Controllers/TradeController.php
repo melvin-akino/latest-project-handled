@@ -2,7 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Sport;
+
 use Illuminate\Http\Request;
+use Faker\Factory AS Faker;
 
 class TradeController extends Controller
 {
@@ -195,5 +198,71 @@ class TradeController extends Controller
                 'message'     => trans('generic.internal-server-error')
             ], 500);
         }
+    }
+
+    /**
+     * Get Leagues per Authenticated User's default Sport
+     *
+     * @return json
+     */
+    public function getInitialLeagues()
+    {
+        try {
+            /** Get Authenticated User's Default Initial Sport : Last Sport visited */
+            $data = getUserDefault(auth()->user()->id, 'sport');
+
+            /** Temporary Dummy Data */
+            $leagues = $this->loopLeagues($data['default_sport']);
+
+            if (!$data['status']) {
+                return response()->json([
+                    'status'      => false,
+                    'status_code' => 400,
+                    'message'     => $data['error']
+                ]);
+            }
+
+            return response()->json([
+                'status'      => true,
+                'status_code' => 200,
+                'sport_id'    => $data['default_sport'],
+                'data'        => $leagues
+            ], 200);
+        } catch (Exception $e) {
+            return response()->json([
+                'status'      => false,
+                'status_code' => 500,
+                'message'     => trans('generic.internal-server-error')
+            ], 500);
+        }
+    }
+
+    /**
+     * Temporary produce dummy data for Multiline Leagues
+     *
+     * @param  int    $sportId
+     * @return json
+     */
+    private function loopLeagues(int $sportId)
+    {
+        $data = [];
+        $faker = Faker::create();
+        $sportName = Sport::find($sportId)->details;
+        $gameSchedules = [
+            'inplay',
+            'today',
+            'early'
+        ];
+
+        foreach ($gameSchedules AS $row) {
+            for ($i = 0; $i < rand(2, 12); $i++) {
+                $data[$row][] = [
+                    'name'        => $faker->country . " " . $sportName,
+                    'match_count' => rand(1, 8),
+                ];
+            }
+        }
+
+        return $data;
     }
 }
