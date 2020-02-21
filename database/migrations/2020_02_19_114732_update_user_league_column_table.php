@@ -17,14 +17,21 @@ class UpdateUserLeagueColumnTable extends Migration
     {
         if (Schema::hasTable($this->tablename)) {
             Schema::table($this->tablename, function (Blueprint $table) {
-                $table->dropColumn('uid');
-                $table->integer('master_league_id');
-                $table->integer('user_id');
+                $table->integer('master_league_id')->nullable();
+                $table->integer('user_id')->nullable();
                 $table->foreign('user_id')
                     ->references('id')
                     ->on('users')
                     ->onUpdate('cascade');
                 $table->unique('master_league_id');
+
+            });
+
+            Schema::table($this->tablename, function (Blueprint $table) {
+                $table->dropColumn('uid');
+            });
+
+            Schema::table($this->tablename, function (Blueprint $table) {
                 $table->dropColumn('flag');
             });
         }
@@ -39,12 +46,18 @@ class UpdateUserLeagueColumnTable extends Migration
     {
         if (Schema::hasTable($this->tablename)) {
             Schema::table($this->tablename, function (Blueprint $table) {
-                $table->dropColumn('master_league_id');
-                $table->dropColumn('user_id');
                 $table->string('uid', 100);
                 $table->unique('uid');
                 $table->tinyInteger('flag')
                     ->comment('0 - for deletion, 1 - selected, 2 - watchlist');
+            });
+
+            Schema::table($this->tablename, function (Blueprint $table) {
+                $table->dropColumn('master_league_id');
+            });
+
+            Schema::table($this->tablename, function (Blueprint $table) {
+                $table->dropColumn('user_id');
             });
         }
     }
