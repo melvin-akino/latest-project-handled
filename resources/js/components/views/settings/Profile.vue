@@ -206,7 +206,7 @@ export default {
                 this.isChangingPassword = false
                 this.profileSettingsFormError = {}
                 Swal.fire({
-                    icon: response.data.status_code === 400 ? 'error' : 'success',
+                    icon: 'success',
                     text: response.data.message
                 })
                 .then(() => {
