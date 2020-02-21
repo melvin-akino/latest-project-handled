@@ -39,15 +39,19 @@ export default {
     data() {
         return {
             showToggleColumnsModal: false,
-            checkedColumns: [],
-            filteredColumnsBySport: [],
-            columnsToDisplay: [],
-            test: []
         }
     },
     computed: {
-        ...mapState('trade', ['selectedSport', 'tradeLayout']),
-        ...mapState('settings', ['disabledBetColumns'])
+        ...mapState('trade', ['selectedSport', 'tradeLayout', 'filteredColumnsBySport', 'columnsToDisplay']),
+        ...mapState('settings', ['disabledBetColumns']),
+        checkedColumns: {
+            get() {
+                return this.$store.state.trade.checkedColumns
+            },
+            set(value) {
+                this.$store.commit('trade/SET_CHECKED_COLUMNS', value)
+            }
+        }
     },
     mounted() {
         this.getBetColumns()
@@ -64,21 +68,8 @@ export default {
                 text: 'Saved Changes!'
             })
         },
-        async getBetColumns() {
-            let token = Cookies.get('mltoken')
-
-            try {
-                let response = await axios.get('v1/sports/odds', { headers: { 'Authorization': `Bearer ${token}` }})
-                let settings = await this.$store.dispatch('settings/getUserSettingsConfig', 'bet-columns')
-                let betColumns = response.data.data
-                let { disabled_columns } = settings
-                this.$store.commit('settings/FETCH_DISABLED_COLUMNS', disabled_columns)
-                betColumns.filter(column => column.sport_id === this.selectedSport).map(column => this.filteredColumnsBySport = column.odds)
-                this.columnsToDisplay = this.filteredColumnsBySport.filter(column => !this.disabledBetColumns.includes(column.sport_odd_type_id))
-                this.checkedColumns = this.columnsToDisplay.map(column => column.sport_odd_type_id)
-            } catch(err) {
-                this.$store.dispatch('auth/checkIfTokenIsValid', err.response.data.status_code)
-            }
+        getBetColumns() {
+            this.$store.dispatch('trade/getBetColumns', this.selectedSport)
         },
         saveColumns() {
             let token = Cookies.get('mltoken')
@@ -112,7 +103,7 @@ export default {
     }
 
     .modal {
-        height: 350px;
+        overflow: auto;
     }
 
     .modalBtn {
