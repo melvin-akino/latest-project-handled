@@ -19,10 +19,11 @@ class Data2SWT
             $providersTable->set(strtolower($provider->alias), ['id' => $provider->id, 'alias' => $provider->alias]);
         }, $providers->toArray());
 
-        //@TODO table source will be changed
+        /** TODO: table source will be changed */
         $leagues = DB::table('master_leagues')
             ->join('master_league_links', 'master_leagues.id', 'master_league_links.master_league_id')
             ->join('leagues', 'leagues.id', 'master_league_links.master_league_id')
+            /** TODO: additional query statement for GROUP BY to select `match_count` per league */
             ->select('master_leagues.id', 'master_leagues.sport_id', 'multi_league', 'leagues.provider_id', 'leagues.league', 'master_leagues.updated_at')
             ->get();
 
@@ -35,7 +36,7 @@ class Data2SWT
                     'provider_id'  => $league->provider_id,
                     'multi_league' => $league->multi_league,
                     'updated_at'   => strtotime($league->updated_at),
-                    'match_count'  => 1, // query events
+                    'match_count'  => 1,
                 ]
             );
         }, $leagues->toArray());

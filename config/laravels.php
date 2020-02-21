@@ -174,7 +174,6 @@ return [
             'column' => [
                 [ 'name' => 'id',                      'type' => \Swoole\Table::TYPE_INT ],
                 [ 'name' => 'master_events_unique_id', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 30 ],
-                [ 'name' => 'sport_id',                'type' => \Swoole\Table::TYPE_INT ],
                 [ 'name' => 'odds_type_id',            'type' => \Swoole\Table::TYPE_INT ],
                 [ 'name' => 'odds',                    'type' => \Swoole\Table::TYPE_FLOAT ],
                 [ 'name' => 'odd_label',               'type' => \Swoole\Table::TYPE_STRING, 'size' => 10 ],
@@ -187,6 +186,7 @@ return [
             'size' => 102400,
             'column' => [
                 [ 'name' => 'id',                     'type' => \Swoole\Table::TYPE_INT ],
+                [ 'name' => 'sport_id',               'type' => \Swoole\Table::TYPE_INT ],
                 [ 'name' => 'master_event_unique_id', 'type' => \Swoole\Table::TYPE_INT ],
                 [ 'name' => 'master_league_id',       'type' => \Swoole\Table::TYPE_INT ],
                 [ 'name' => 'master_event_home_id',   'type' => \Swoole\Table::TYPE_INT ],
