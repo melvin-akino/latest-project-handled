@@ -1,41 +1,51 @@
 <template>
-    <div class="flex flex-col bg-white shadow-xl ml-4">
+    <div class="flex flex-col bg-white shadow-lg">
         <div class="flex justify-between bg-orange-500 text-white">
-            <a href="#" class="text-sm uppercase py-2 px-3 leagueSchedule" :class="{'bg-orange-400 shadow-xl': selectedLeagueSchedMode === leagueSchedMode}" @click="selectLeagueSchedMode(leagueSchedMode)" v-for="(leagueSchedMode, index) in leagueSchedModes" :key="index">{{leagueSchedMode}} &nbsp; ({{leagues[leagueSchedMode].length}})</a>
+            <a href="#" class="text-sm uppercase py-2 px-3 leagueSchedule" :class="{'bg-orange-400 shadow-xl': selectedLeagueSchedMode === leagueSchedMode}" @click="selectLeagueSchedMode(leagueSchedMode)" v-for="(leagueSchedMode, index) in leagueSchedModes" :key="index">{{leagueSchedMode}} &nbsp; <span v-if="leagues">({{leagues[leagueSchedMode].length}})</span></a>
         </div>
 
-        <div class="flex flex-col" v-adjust-leagues-height="isBetBarOpen" ref="leaguesList">
-            <a href="#" class="text-sm capitalize py-1 px-6 w-full league" :class="{'bg-gray-900 shadow-xl text-white border-l-8 border-orange-500': selectedLeagues.includes(index)}" @click="selectLeague(index)" v-for="(league, index) in displayedLeagues" :key="index">{{league.league}} &nbsp; ({{league.gameCount}})</a>
+        <div class="flex flex-col leaguesList">
+            <a href="#" class="text-sm capitalize py-1 px-3 w-full league" :class="[selectedLeagues.includes(index) ? 'bg-gray-900 shadow-xl text-white selectedLeague' : 'text-gray-700']" @click="selectLeague(index)" v-for="(league, index) in displayedLeagues" :key="index">{{league.name}} &nbsp; ({{league.match_count}})</a>
         </div>
     </div>
 </template>
 
 <script>
 import { mapState } from 'vuex'
+import Cookies from 'js-cookie'
 
 export default {
     data() {
         return {
-            leagueSchedModes: ['IN-PLAY', 'TODAY', 'EARLY'],
-            selectedLeagueSchedMode: 'TODAY',
-            leagues: this.$store.state.trade.leaguesData,
+            leagues: null,
+            leagueSchedModes: ['inplay', 'today', 'early'],
+            selectedLeagueSchedMode: 'today',
             displayedLeagues: [],
             selectedLeagues: []
         }
     },
     computed: {
-        ...mapState('trade', ['selectedLeague', 'isBetBarOpen'])
+        ...mapState('trade', ['selectedLeague'])
     },
     mounted() {
-        this.filterLeaguesBySched(this.selectedLeagueSchedMode)
+        this.getLeagues()
     },
     methods: {
+        getLeagues() {
+            let token = Cookies.get('mltoken')
+
+            axios.get('v1/trade/leagues', { headers: { 'Authorization': `Bearer ${token}` }})
+            .then(response => {
+                this.leagues = response.data.data
+                this.filterLeaguesBySched(this.selectedLeagueSchedMode)
+            })
+            .catch(err => {
+                this.$store.dispatch('auth/checkIfTokenIsValid', err.response.data.status_code)
+            })
+        },
         filterLeaguesBySched(schedMode) {
             this.displayedLeagues = this.leagues[schedMode].map(league => {
-                return {
-                    league: Object.keys(league).join(),
-                    gameCount: Object.values(league).join()
-                }
+                return league
             })
         },
         selectLeagueSchedMode(schedMode) {
@@ -53,26 +63,19 @@ export default {
                 this.selectedLeagues.push(league)
             }
         }
-    },
-    directives: {
-        adjustLeaguesHeight: {
-            update(el, binding, vnode) {
-                if (vnode.context.$refs.leaguesList.clientHeight >= 367) {
-                    if (binding.value) {
-                            el.style.height = '367px'
-                            el.style.overflowY = 'auto'
-                    } else {
-                        el.style.height = '521px'
-                    }
-                } else {
-                    el.style.height = '100%'
-                }
-            }
-        }
     }
 }
 </script>
 
 <style>
+    .selectedLeague {
+        -webkit-box-shadow: inset 8px 0px 0px 0px rgba(237,137,54,1);
+        -moz-box-shadow: inset 8px 0px 0px 0px rgba(237,137,54,1);
+        box-shadow: inset 8px 0px 0px 0px rgba(237,137,54,1);
+    }
 
+    .leaguesList {
+        max-height:380px;
+        overflow-y:auto;
+    }
 </style>

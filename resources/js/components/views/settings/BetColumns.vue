@@ -11,7 +11,7 @@
                         <label class="text-sm relative flex items-center">
                             <input type="checkbox" class="appearance-none shadow border border-gray-400 bg-gray-400 rounded-full h-3 w-12 mr-4 focus:outline-none" :value="column.sport_odd_type_id" v-model="disabledBetColumns">
                             <span class="absolute shadow shadow-lg w-6 h-6 rounded-full" :class="[!disabledBetColumns.includes(column.sport_odd_type_id) ? 'on-switch bg-orange-500' : 'left-0 bg-white']"></span>
-                            {{column.type}}
+                            {{column.name}}
                         </label>
                     </div>
                 </div>
