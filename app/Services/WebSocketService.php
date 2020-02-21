@@ -39,7 +39,9 @@ class WebSocketService implements WebSocketHandlerInterface
             'getUserSport'         => 'App\Jobs\WsUserSport',
             'getSelectedLeagues'   => 'App\Jobs\WsSelectedLeagues',
             'getAdditionalLeagues' => 'App\Jobs\WsAdditionalLeagues',
-            'getForRemovalLeagues' => 'App\Jobs\WsForRemovalLeagues'
+            'getForRemovalLeagues' => 'App\Jobs\WsForRemovalLeagues',
+            'getWatchlist'         => 'App\Jobs\WsWatchlist',
+            'getEvents'            => 'App\Jobs\WsEvents'
         ];
         $commandFound = false;
         foreach ($commands as $key => $value) {
