@@ -82,18 +82,18 @@ class TransformKafkaMessage implements ShouldQueue
 
             /** SWT : Teams */
 
-            $teamSwtId = implode(':', [
-                $this->message->sportId,
-                $providerId,
-                'teams',
-                Str::slug($this->message->data->homeTeam),
-                Str::slug($this->message->data->awayTeam),
-            ]);
-
             $competitors = [
                 'home' => $this->message->data->homeTeam,
                 'away' => $this->message->data->awayTeam,
             ];
+
+            $teamSwtId = implode(':', [
+                $this->message->sportId,
+                $providerId,
+                'teams',
+                Str::slug($competitors['home']),
+                Str::slug($competitors['away']),
+            ]);
 
             if ($teamsTable->exists($teamSwtId)) {
                 //
@@ -133,7 +133,7 @@ class TransformKafkaMessage implements ShouldQueue
 
                         $eventsTable->set($eventSwtId,
                             [
-                                'id'               => $events->id,
+                                'id'               => $eventsId,
                                 'league_id'        => $leagueId,
                                 'event_identifier' => $this->message->data->events[0]->eventId_ft
                             ]
@@ -145,7 +145,7 @@ class TransformKafkaMessage implements ShouldQueue
                             'team_id'   => $teams->id
                         ],
                         [
-                            'event_id'  => $this->message->data->events[0]->eventId_ft,
+                            'event_id'  => $eventsId,
                             'team_flag' => $key,
                         ]
                     );
