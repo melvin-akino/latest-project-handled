@@ -97,14 +97,14 @@ return [
         ],
         /** DATABASE TABLES */
         /** LOOK-UP TABLES */
-        'odd_types'       => [ // key format [oddType:$oddTypeId] => [id = $id, type = $type]
+        'oddTypes'       => [ // key format [oddType:$oddType] => [id = $id, type = $oddType]
             'size'   => 102400,
             'column' => [
                 [ 'name' => 'id',   'type' => \Swoole\Table::TYPE_INT ],
                 [ 'name' => 'type', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 20 ],
             ],
         ],
-        'providers'       => [
+        'providers'       => [ // key format [provider:strtolower($providerAlias)] => [id = $id, alias = $alias]
             'size'   => 500,
             'column' => [
                 ['name' => 'id',    'type' => \Swoole\Table::TYPE_INT],
@@ -125,7 +125,7 @@ return [
                 [ 'name' => 'sport_odd_type_id', 'type' => \Swoole\Table::TYPE_INT ],
             ],
         ],
-        'leagues'         => [
+        'leagues'         => [ // key format [sportId:$sportId:provider:strtolower($providerAlias):league:slug($league)] = [id = $multiLeagueId, ...]
             'size'   => 102400,
             'column' => [
                 [ 'name' => 'id',           'type' => \Swoole\Table::TYPE_INT ],
@@ -136,13 +136,20 @@ return [
                 [ 'name' => 'timestamp',    'type' => \Swoole\Table::TYPE_INT ],
             ],
         ],
-        'teams'           => [
+        'teams'           => [ //key format [multiTeam:$multiTeam] = [id = $teamId, team_name = $teamName]
             'size'   => 102400,
             'column' => [
                 [ 'name' => 'id',          'type' => \Swoole\Table::TYPE_INT ],
-                [ 'name' => 'team_name',   'type' => \Swoole\Table::TYPE_STRING, 'size' => 100 ],
-                [ 'name' => 'provider_id', 'type' => \Swoole\Table::TYPE_INT ],
+                [ 'name' => 'multi_team',   'type' => \Swoole\Table::TYPE_STRING, 'size' => 100 ],
             ],
+        ],
+        'rawTeams'           => [ //key format [provider:strtolower($provider)] = [id = $teamId, team_name = $teamName]
+                               'size'   => 102400,
+                               'column' => [
+                                   [ 'name' => 'id',          'type' => \Swoole\Table::TYPE_INT ],
+                                   [ 'name' => 'multi_team',   'type' => \Swoole\Table::TYPE_STRING, 'size' => 100 ],
+                                   [ 'name' => 'provider_id',   'type' => \Swoole\Table::TYPE_INT ],
+                               ],
         ],
         /** PIVOT TABLES */
         'event_team_links'    => [
