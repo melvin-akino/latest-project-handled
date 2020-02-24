@@ -35,12 +35,12 @@ class WsSubscriberData implements CustomProcessInterface
         $table = $swoole->wsTable;
         foreach ($table as $key => $row) {
             if (strpos($key, 'fd:') === 0) {
-                $sports = DB::table('sports')->where('is_enabled', true)->get()->toArray();
+                $sports = $swoole->sportsTable;
                 foreach ($sports as $sport) {
-                    $userAdditionalLeague = $swoole->wsTable->get('userAdditionalLeagues:' . $row['value'] . ':sportId:' . $sport->id);
+                    $userAdditionalLeague = $swoole->wsTable->get('userAdditionalLeagues:' . $row['value'] . ':sportId:' . $sport['value']);
                     $leagues = $swoole->leaguesTable;
                     foreach ($leagues as $key => $league) {
-                        if (strpos($key, $sport->id . ':') === 0) {
+                        if (strpos($key, $sport['value'] . ':') === 0) {
                             if ($league['timestamp'] > $userAdditionalLeague['value']) {
                                 $leaguesData[] = [
                                     'name'        => $league['multi_league'],
@@ -50,26 +50,34 @@ class WsSubscriberData implements CustomProcessInterface
                         }
                     }
                 }
-                $fd = $swoole->wsTable->get('uid:' . $row['value']);
-                $swoole->push($fd['value'], json_encode(['getAdditionalLeagues' => $leaguesData]));
+                if (!empty($leaguesData)) {
+                    $fd = $swoole->wsTable->get('uid:' . $row['value']);
+                    $swoole->push($fd['value'], json_encode(['getAdditionalLeagues' => $leaguesData]));
+                }
             }
         }
     }
 
     private static function getForRemovallLeagues($swoole)
     {
-        $leaguesData = [];
+        $leagues = [];
         $table = $swoole->wsTable;
         foreach ($table as $key => $row) {
             if (strpos($key, 'fd:') === 0) {
-                $deletedLeagues = $swoole->deletedLeaguesTable;
-                foreach ($deletedLeagues as $key => $league) {
-                    $leaguesData[] = [
-                        'league_id' => $league['value'],
-                    ];
+                $sports = $swoole->sportsTable;
+                foreach ($sports as $sport) {
+                    $deletedLeagues = $swoole->deletedLeaguesTable;
+                    foreach ($deletedLeagues as $key => $league) {
+                        $leagues[] = [
+                            'league' => str_replace('sportId:' . $sport['value'] . ':league:',
+                                '', $key)
+                        ];
+                    }
                 }
-                $fd = $swoole->wsTable->get('uid:' . $row['value']);
-                $swoole->push($fd['value'], json_encode(['getForRemovalLeagues' => $leaguesData]));
+                if (!empty($leagues)) {
+                    $fd = $swoole->wsTable->get('uid:' . $row['value']);
+                    $swoole->push($fd['value'], json_encode(['getForRemovalLeagues' => $leagues]));
+                }
             }
         }
     }
