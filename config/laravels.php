@@ -117,12 +117,13 @@ return [
                 [ 'name' => 'sport', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 50 ],
             ],
         ],
-        'sport_odd_types' => [
+        'sportOddTypes' => [ // key format [sportId:$sportId:oddType:$oddType] = [id = $id, ...]
             'size'   => 102400,
             'column' => [
                 [ 'name' => 'id',                'type' => \Swoole\Table::TYPE_INT ],
                 [ 'name' => 'sport_id',          'type' => \Swoole\Table::TYPE_INT ],
                 [ 'name' => 'sport_odd_type_id', 'type' => \Swoole\Table::TYPE_INT ],
+                [ 'name' => 'type',              'type' => \Swoole\Table::TYPE_STRING, 'size' => 20 ],
             ],
         ],
         'leagues'         => [ // key format [sportId:$sportId:provider:strtolower($providerAlias):league:slug($league)] = [id = $multiLeagueId, ...]
@@ -147,7 +148,7 @@ return [
                                'size'   => 102400,
                                'column' => [
                                    [ 'name' => 'id',          'type' => \Swoole\Table::TYPE_INT ],
-                                   [ 'name' => 'multi_team',   'type' => \Swoole\Table::TYPE_STRING, 'size' => 100 ],
+                                   [ 'name' => 'team',   'type' => \Swoole\Table::TYPE_STRING, 'size' => 100 ],
                                    [ 'name' => 'provider_id',   'type' => \Swoole\Table::TYPE_INT ],
                                ],
         ],

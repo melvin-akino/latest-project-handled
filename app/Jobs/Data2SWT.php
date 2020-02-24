@@ -22,7 +22,7 @@ class Data2SWT
             $providersTable->set('provider:' . strtolower($provider->alias), ['id' => $provider->id, 'alias' => $provider->alias]);
         }, $providers->toArray());
 
-        // Leagues
+        // Master Leagues
         /** TODO: table source will be changed */
         $leagues = DB::table('master_leagues')
             ->join('master_league_links', 'master_leagues.id', 'master_league_links.master_league_id')
@@ -71,31 +71,29 @@ class Data2SWT
         //Raw Teams
         $rawTeams = DB::table('teams')
             ->join('providers', 'providers.id', 'teams.provider_id')
-            /** TODO: additional query statement for GROUP BY to select `match_count` per league */
             ->select('teams.id', 'teams.team', 'providers.alias', 'teams.provider_id')
             ->get();
         $rawTeamsTable = app('swoole')->rawTeamsTable;
         array_map(function ($team) use ($rawTeamsTable) {
-            $rawTeamsTable->set('provider:' . Str::slug($team->alias), ['id' => $team->id, 'team' => $team->team, 'provider_id' => $team->provider_id]);
+            $rawTeamsTable->set('provider:' . Str::slug($team->alias). ':team:' . Str::slug($team->team), ['id' => $team->id, 'team' => $team->team, 'provider_id' => $team->provider_id]);
         }, $rawTeams->toArray());
 
-
-
-
-
-
-
-
-
-
-
+        $sportOddTypes = DB::table('sport_odd_type')
+            ->join('odd_types', 'odd_types.id', 'sport_odd_type.odd_type_id')
+            ->join('sports', 'sports.id', 'sport_odd_type.sport_id')
+            ->select('sport_odd_type.sport_id', 'sport_odd_type.odd_type_id', 'odd_types.type', 'sport_odd_type.id')
+            ->get();
+        $sportOddTypesTable = app('swoole')->sportOddTypesTable;
+        array_map(function ($sportOddType) use ($sportOddTypesTable) {
+            $sportOddTypesTable->set('sportId:' . Str::slug($sportOddType->sport_id). ':odd_type:' . Str::slug($sportOddType->type), ['id' => $sportOddType->id, 'sportId' => $sportOddType->sport_id, 'sport_odd_type_id' => $sportOddType->id, 'type' => $sportOddType->type]);
+        }, $sportOddTypes->toArray());
 
 
 //        $server = app('swoole');
-//        $table = $server->rawTeamsTable;
+//        $table = $server->sportOddTypesTable;
 //        foreach ($table as $key => $row) {
 //
 //            var_dump($row);
 //        }
-//    }
+    }
 }
