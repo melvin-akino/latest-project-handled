@@ -2,6 +2,8 @@
 
 namespace App\Jobs;
 
+use App\Models\OddType;
+use App\Models\Sport;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -40,5 +42,41 @@ class Data2SWT
                 ]
             );
         }, $leagues->toArray());
+
+        $sports = Sport::getActiveSports()->get();
+
+        $sportsTable = app('swoole')->sportsTable;
+        array_map(function ($sport) use ($sportsTable) {
+            $sportsTable->set('sportId:' . $sport['id'], ['sport' => $sport['sport']]);
+        }, $sports->toArray());
+
+
+        $oddTypes = DB::table('odd_types')->get();
+
+        $oddTypesTable = app('swoole')->odd_typesTable;
+        array_map(function ($oddType) use ($oddTypesTable) {var_dump($oddType);
+            $oddTypesTable->set('oddType:' . $oddType->id, ['id' => $oddType->id, 'type' => $oddType->type]);
+
+        }, $oddTypes->toArray());
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//        $server = app('swoole');
+//        $table = $server->leaguesTable;
+//        foreach ($table as $key => $row) {
+//
+//            var_dump($row);
+//        }
     }
 }

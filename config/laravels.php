@@ -63,23 +63,6 @@ return [
                               ['name' => 'value', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 30],
                  ],
         ],
-        'sports' => [ //key format [sportId:$sportId] = [value = $sportDetailsField]
-                      'size'   => 102400,// The max size
-                      'column' => [// Define the columns
-                                   ['name' => 'value', 'type' => \Swoole\Table::TYPE_INT],
-                      ],
-        ],
-        'leagues'    => [// The Key is table name, will add suffix "Table" to avoid naming conflicts. Here defined a table named "wsTable"
-                 'size'   => 102400,// The max size
-                 'column' => [// Define the columns
-                              ['name' => 'id',           'type' => \Swoole\Table::TYPE_INT ],
-                              ['name' => 'sport_id',     'type' => \Swoole\Table::TYPE_INT ],
-                              ['name' => 'provider_id',  'type' => \Swoole\Table::TYPE_INT ],
-                              ['name' => 'multi_league', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 100 ],
-                              ['name' => 'timestamp',    'type' => \Swoole\Table::TYPE_INT ],
-                              ['name' => 'match_count',  'type' => \Swoole\Table::TYPE_INT ],
-                 ],
-        ],
         'deletedLeagues'    => [// key format [sportId:1:league:multileaguename] => [value = multileaguename]
                  'size'   => 102400,// The max size
                  'column' => [// Define the columns
@@ -114,7 +97,7 @@ return [
         ],
         /** DATABASE TABLES */
         /** LOOK-UP TABLES */
-        'odd_types'       => [
+        'odd_types'       => [ // key format [oddType:$oddTypeId] => [id = $id, type = $type]
             'size'   => 102400,
             'column' => [
                 [ 'name' => 'id',   'type' => \Swoole\Table::TYPE_INT ],
@@ -128,10 +111,9 @@ return [
                 ['name' => 'alias', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 10],
             ],
         ],
-        'sports'          => [
+        'sports'          => [ //key format [sportId:$sportId] = [value = $sport]
             'size'   => 102400,
             'column' => [
-                [ 'name' => 'id',    'type' => \Swoole\Table::TYPE_INT ],
                 [ 'name' => 'sport', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 50 ],
             ],
         ],
