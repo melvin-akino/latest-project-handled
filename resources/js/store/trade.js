@@ -7,6 +7,7 @@ const state = {
     isBetBarOpen: false,
     tradeLayout: null,
     filteredColumnsBySport: [],
+    oddsTypeBySport: [],
     columnsToDisplay: [],
     checkedColumns: []
 }
@@ -45,6 +46,7 @@ const actions = {
             commit('settings/FETCH_DISABLED_COLUMNS', disabled_columns, { root:true })
             betColumns.filter(column => column.sport_id === selectedSport).map(column => state.filteredColumnsBySport = column.odds)
             state.columnsToDisplay = state.filteredColumnsBySport.filter(column => !rootState.settings.disabledBetColumns.includes(column.sport_odd_type_id))
+            state.oddsTypeBySport = state.filteredColumnsBySport.filter(column => !rootState.settings.disabledBetColumns.includes(column.sport_odd_type_id)).map(column => column.type)
             state.checkedColumns = state.columnsToDisplay.map(column => column.sport_odd_type_id)
         } catch(err) {
             dispatch('auth/checkIfTokenIsValid', err.response.data.status_code,  { root: true })

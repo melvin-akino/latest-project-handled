@@ -9,7 +9,7 @@
             <p class="text-sm text-gray-500 text-center pt-2 noeventspanel" v-if="games.length === 0">No competitions watched in this market.</p>
             <div v-else>
                 <div class="bg-white text-white text-sm text-gray-700" v-for="(league, index) in games" :key="index">
-                    <div class="flex justify-between py-1 pl-4 pr-4 font-bold border-t border-orange-500 leaguePanel">
+                    <div class="flex justify-between py-2 px-4 font-bold border-t border-orange-500 leaguePanel">
                         <div>
                             <button type="button" class="mt-1 pr-1 text-red-600 focus:outline-none"><i class="fas fa-times-circle"></i></button>
                             <button type="button" class="mt-1 pr-1 text-orange-500 focus:outline-none" @click="toggleLeague(index)">
@@ -22,7 +22,7 @@
                     </div>
                     <div class="gamesWrapper" :class="!closedLeagues.includes(index) ? 'h-full' : 'h-0 overflow-hidden'">
                         <div class="asianLayout"  v-if="tradeLayout==='1'">
-                            <div class="flex justify-around py-4 px-4 game" :class="[index % 2 != 0 ? 'alternateEvent' : '']" v-for="(game, index) in league" :key="game.uid">
+                            <div class="flex py-4 px-4 game" :class="[index % 2 != 0 ? 'alternateEvent' : '']" v-for="(game, index) in league" :key="game.uid">
                                 <div class="w-2/12 flex flex-col">
                                     <div><span class="font-bold text-green-400 mr-2">H</span>{{game.home_team_name}}</div>
                                     <div><span class="font-bold text-red-600 mr-2">A</span>{{game.away_team_name}}</div>
@@ -36,72 +36,14 @@
                                     <span>2 H : 58 M</span>
                                 </div>
                                 <div class="w-1/12"></div>
-                                <div class="w-1/12 flex flex-col items-center 1x2" :class="{'hidden': disabledBetColumns.includes(1)}">
-                                    <p class="px-2 rounded-lg bet-click">{{game['1X2'].home.odds.toFixed(2)}}</p>
-                                    <p class="px-2 rounded-lg bet-click">{{game['1X2'].away.odds.toFixed(2)}}</p>
-                                    <p class="px-2 rounded-lg bet-click">{{game['1X2'].draw.odds.toFixed(2)}}</p>
-                                </div>
-                                <div class="w-1/12 flex flex-col items-center HDP" :class="{'hidden': disabledBetColumns.includes(2)}">
-                                    <p class="relative">
-                                        <span class="absolute text-gray-500 odds-label left-label">- 2.5</span>
-                                        <span class="bet-click px-2 rounded-lg">{{game.HDP.home.odds.toFixed(2)}}</span>
-                                    </p>
-                                    <p class="relative">
-                                        <span class="absolute text-gray-500 odds-label left-label">+ 2.5</span>
-                                        <span class="bet-click px-2 rounded-lg">{{game.HDP.away.odds.toFixed(2)}}</span>
+                                <div class="w-1/12 flex flex-col items-center" :class="column" v-for="(column, index) in oddsTypeBySport" :key="index">
+                                    <p class="relative" :class="[{'order-1' : index==='home'}, {'order-2' : index==='away'}, {'order-3': index==='draw'}]" v-for="(odd, index) in game[column]" :key="odd.bet_id">
+                                        <span class="absolute text-gray-500 odds-label left-label">{{odd.points}}</span>
+                                        <span class="bet-click px-2 rounded-lg" v-adjust-odd-color="odd.odds.toFixed(2)">{{odd.odds.toFixed(2)}}</span>
                                     </p>
                                 </div>
-                                <div class="w-1/12 flex flex-col items-center OU" :class="{'hidden': disabledBetColumns.includes(3)}">
-                                    <p class="relative">
-                                        <span class="absolute text-gray-500 odds-label left-label">O</span>
-                                        <span class="bet-click px-2 rounded-lg">{{game.OU.home.odds.toFixed(2)}}</span>
-                                        <span class="absolute text-gray-500 odds-label right-label">2.5</span>
-                                    </p>
-                                    <p class="relative">
-                                        <span class="absolute text-gray-500 odds-label left-label">U</span>
-                                        <span class="bet-click px-2 rounded-lg">{{game.OU.away.odds.toFixed(2)}}</span>
-                                        <span class="absolute text-gray-500 odds-label right-label">2.5</span>
-                                    </p>
-                                </div>
-                                <div class="w-1/12 flex flex-col items-center OE" :class="{'hidden': disabledBetColumns.includes(4)}">
-                                    <p class="relative">
-                                        <span class="absolute text-gray-500 odds-label left-label">O</span>
-                                        <span class="bet-click px-2 rounded-lg">{{game['1X2'].home.odds.toFixed(2)}}</span>
-                                    </p>
-                                    <p class="relative">
-                                        <span class="absolute text-gray-500 odds-label left-label">E</span>
-                                        <span class="bet-click px-2 rounded-lg">{{game['1X2'].away.odds.toFixed(2)}}</span>
-                                    </p>
-                                </div>
-                                <div class="w-1/12 flex flex-col items-center HT_1X2" :class="{'hidden': disabledBetColumns.includes(5)}">
-                                    <p class="px-2 rounded-lg bet-click">{{game['1X2'].home.odds.toFixed(2)}}</p>
-                                    <p class="px-2 rounded-lg bet-click">{{game['1X2'].away.odds.toFixed(2)}}</p>
-                                    <p class="px-2 rounded-lg bet-click">{{game['1X2'].draw.odds.toFixed(2)}}</p>
-                                </div>
-                                <div class="w-1/12 flex flex-col items-center HT_HDP" :class="{'hidden': disabledBetColumns.includes(6)}">
-                                    <p class="relative">
-                                        <span class="absolute text-gray-500 odds-label left-label">- 2.5</span>
-                                        <span class="bet-click px-2 rounded-lg">{{game.HDP.home.odds.toFixed(2)}}</span>
-                                    </p>
-                                    <p class="relative">
-                                        <span class="absolute text-gray-500 odds-label left-label">+ 2.5</span>
-                                        <span class="bet-click px-2 rounded-lg">{{game.HDP.away.odds.toFixed(2)}}</span>
-                                    </p>
-                                </div>
-                                <div class="w-1/12 flex flex-col items-center HT_OU" :class="{'hidden': disabledBetColumns.includes(7)}">
-                                    <p class="relative">
-                                        <span class="absolute text-gray-500 odds-label left-label">O</span>
-                                        <span class="bet-click px-2 rounded-lg">{{game.OU.home.odds.toFixed(2)}}</span>
-                                        <span class="absolute text-gray-500 odds-label right-label">2.5</span>
-                                    </p>
-                                    <p class="relative">
-                                        <span class="absolute text-gray-500 odds-label left-label">U</span>
-                                        <span class="bet-click px-2 rounded-lg">{{game.OU.away.odds.toFixed(2)}}</span>
-                                        <span class="absolute text-gray-500 odds-label right-label">2.5</span>
-                                    </p>
-                                </div>
-                                <div class="text-white">
-                                    <span class="eventStar"><i class="fas fa-star"></i></span>
+                                <div class="text-white absolute eventStar">
+                                    <span><i class="fas fa-star"></i></span>
                                 </div>
                             </div>
                         </div>
@@ -115,64 +57,16 @@
                                     <span class="gameColumn text-lg text-center">0</span>
                                     <span class="gameColumn font-bold text-red-600 text-center">A</span>
                                     <span class="gameColumn teamColumn">{{game.away_team_name}}</span>
-                                    <div class="absolute text-white european-game-star">
-                                        <span class="eventStar"><i class="fas fa-star"></i></span>
+                                    <div class="absolute text-white european-event-star">
+                                        <span><i class="fas fa-star"></i></span>
                                     </div>
                                 </div>
-                                <div class="flex justify-around">
+                                <div class="flex">
                                     <div class="w-1/12"></div>
-                                    <div class="w-1/12 flex justify-between ft_1x2">
-                                        <span class="px-1 rounded-lg bet-click">{{game['1X2'].home.odds.toFixed(2)}}</span>
-                                        <span class="px-1 rounded-lg bet-click">{{game['1X2'].draw.odds.toFixed(2)}}</span>
-                                        <span class="px-1 rounded-lg bet-click">{{game['1X2'].away.odds.toFixed(2)}}</span>
-                                    </div>
-                                    <div class="w-1/12 flex justify-between ft_hdp">
-                                        <p class="relative">
-                                            <span class="absolute text-gray-500 text-center odds-label european-left-label">- 2.5</span>
-                                            <span class="bet-click px-1 rounded-lg">{{game.HDP.home.odds.toFixed(2)}}</span>
-                                        </p>
-                                        <p class="relative">
-                                            <span class="absolute text-gray-500 text-center odds-label european-left-label">+ 2.5</span>
-                                            <span class="bet-click px-1 rounded-lg">{{game.HDP.away.odds.toFixed(2)}}</span>
-                                        </p>
-                                    </div>
-                                    <div class="w-1/12 flex justify-between ft_ou">
-                                        <p class="relative">
-                                            <span class="absolute text-gray-500 text-center odds-label european-left-label">2.5</span>
-                                            <span class="bet-click px-1 rounded-lg">{{game.OU.home.odds.toFixed(2)}}</span>
-                                        </p>
-                                        <p class="relative">
-                                            <span class="absolute text-gray-500 text-center odds-label european-left-label">2.5</span>
-                                            <span class="bet-click px-1 rounded-lg">{{game.OU.away.odds.toFixed(2)}}</span>
-                                        </p>
-                                    </div>
-                                    <div class="w-1/12 flex justify-between ft_oe">
-                                        <span class="px-1 rounded-lg bet-click">{{game['1X2'].home.odds.toFixed(2)}}</span>
-                                        <span class="px-1 rounded-lg bet-click">{{game['1X2'].away.odds.toFixed(2)}}</span>
-                                    </div>
-                                    <div class="w-1/12 flex justify-between ht_1x2">
-                                        <span class="px-1 rounded-lg bet-click">{{game['1X2'].home.odds.toFixed(2)}}</span>
-                                        <span class="px-1 rounded-lg bet-click">{{game['1X2'].draw.odds.toFixed(2)}}</span>
-                                        <span class="px-1 rounded-lg bet-click">{{game['1X2'].away.odds.toFixed(2)}}</span>
-                                    </div>
-                                    <div class="w-1/12 flex justify-between ht_hdp">
-                                        <p class="relative">
-                                            <span class="absolute text-gray-500 text-center odds-label european-left-label">- 2.5</span>
-                                            <span class="bet-click px-1 rounded-lg">{{game.HDP.home.odds.toFixed(2)}}</span>
-                                        </p>
-                                        <p class="relative">
-                                            <span class="absolute text-gray-500 text-center odds-label european-left-label">+ 2.5</span>
-                                            <span class="bet-click px-1 rounded-lg">{{game.HDP.away.odds.toFixed(2)}}</span>
-                                        </p>
-                                    </div>
-                                    <div class="w-1/12 flex justify-between ht_ou">
-                                        <p class="relative">
-                                            <span class="absolute text-gray-500 text-center odds-label european-left-label">2.5</span>
-                                            <span class="bet-click px-1 rounded-lg">{{game.OU.home.odds.toFixed(2)}}</span>
-                                        </p>
-                                        <p class="relative">
-                                            <span class="absolute text-gray-500 text-center odds-label european-left-label">2.5</span>
-                                            <span class="bet-click px-1 rounded-lg">{{game.OU.away.odds.toFixed(2)}}</span>
+                                    <div class="w-1/12 flex justify-between mr-10" :class="column" v-for="(column, index) in oddsTypeBySport" :key="index">
+                                        <p class="relative" :class="[{'order-1' : index==='home'}, {'order-2' : index==='draw'}, {'order-3': index==='away'}]" v-for="(odd, index) in game[column]" :key="odd.bet_id">
+                                            <span class="absolute text-gray-500 odds-label left-label">{{odd.points}}</span>
+                                            <span class="bet-click px-2 rounded-lg" v-adjust-odd-color="odd.odds.toFixed(2)">{{odd.odds.toFixed(2)}}</span>
                                         </p>
                                     </div>
                                 </div>
@@ -198,7 +92,7 @@ export default {
         }
     },
     computed: {
-        ...mapState('trade', ['selectedSport', 'tradeLayout']),
+        ...mapState('trade', ['selectedSport', 'tradeLayout', 'oddsTypeBySport']),
         ...mapState('settings', ['disabledBetColumns'])
     },
     methods: {
@@ -207,6 +101,17 @@ export default {
                 this.closedLeagues = this.closedLeagues.filter(league => index != league)
             } else {
                 this.closedLeagues.push(index)
+            }
+        }
+    },
+    directives: {
+        adjustOddColor: {
+            componentUpdated(el, binding, vnode) {
+                if (binding.value > binding.oldValue) {
+                    el.classList.add('ping-success')
+                } else if (binding.value < binding.oldValue) {
+                    el.classList.add('ping-danger')
+                }
             }
         }
     }
@@ -251,7 +156,7 @@ export default {
         right: 15px;
     }
 
-    .european-game-star {
+    .european-event-star {
         right:-17px;
     }
 

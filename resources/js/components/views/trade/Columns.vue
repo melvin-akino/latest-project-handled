@@ -1,13 +1,13 @@
 <template>
     <div class="column">
-        <div class="betColumns flex justify-around bg-gray-800 text-white text-xs fixed z-10 w-5/6 pl-6 pr-8" :class="[tradeLayout === '1' ? 'items-center py-2' : 'py-1']">
+        <div class="betColumns flex bg-gray-800 text-white text-xs fixed z-10 w-5/6 pl-6 pr-8" :class="[tradeLayout === '1' ? 'items-center py-2' : 'py-1']">
             <div class="w-2/12" v-if="tradeLayout==='1'"></div>
             <div class="w-1/12 text-center" v-if="tradeLayout==='1'">Sport</div>
             <div class="w-1/12 text-center" v-if="tradeLayout==='1'">Score & <br>Schedule</div>
             <div class="w-1/12 py-1 flex justify-center">
                 <button class="w-8 text-white text-center bg-orange-500 px-1 py-2 hover:bg-orange-600" @click="openColumnModal"><i class="fas fa-plus"></i></button>
             </div>
-            <div class="flex w-1/12 px-2" :class="[tradeLayout==='2' ? 'flex-col' : 'justify-center']" v-for="column in columnsToDisplay" :key="column.sport_odd_type_id">
+            <div class="flex w-1/12" :class="[tradeLayout==='2' ? 'flex-col mr-10 px-2' : 'justify-center pl-2']" v-for="column in columnsToDisplay" :key="column.sport_odd_type_id">
                 <span class="text-center">{{column.name}}</span>
                 <div class="flex justify-between" v-if="tradeLayout==='2'">
                     <span>{{column.home_label}}</span>
@@ -18,13 +18,15 @@
         </div>
         <div class="flex justify-center items-center fixed w-full h-full top-0 left-0 modalWrapper z-40" v-if="showToggleColumnsModal">
             <div class="bg-white w-64 p-8 modal">
-                <div class="mb-2" v-for="filteredColumn in filteredColumnsBySport" :key="filteredColumn.sport_odd_type_id">
-                    <label class="block text-gray-700 text-sm mb-2 font-bold uppercase">
-                        <input class="mr-2 leading-tight" type="checkbox" :value="filteredColumn.sport_odd_type_id" v-model="checkedColumns" @change="saveColumns()">
-                        <span class="text-sm uppercase">{{filteredColumn.name}}</span>
-                    </label>
-                </div>
-                <button class="bg-orange-500 hover:bg-orange-600 text-white text-sm uppercase px-4 py-2" @click="closeColumnModal">Save & Close</button>
+                <form @submit.prevent="saveColumns()">
+                    <div class="mb-2" v-for="filteredColumn in filteredColumnsBySport" :key="filteredColumn.sport_odd_type_id">
+                        <label class="block text-gray-700 text-sm mb-2 font-bold uppercase">
+                            <input class="mr-2 leading-tight" type="checkbox" :value="filteredColumn.sport_odd_type_id" v-model="checkedColumns">
+                            <span class="text-sm uppercase">{{filteredColumn.name}}</span>
+                        </label>
+                    </div>
+                    <button class="bg-orange-500 hover:bg-orange-600 text-white text-sm uppercase px-4 py-2" @click="closeColumnModal">Save & Close</button>
+                </form>
             </div>
         </div>
     </div>
@@ -42,7 +44,7 @@ export default {
         }
     },
     computed: {
-        ...mapState('trade', ['selectedSport', 'tradeLayout', 'filteredColumnsBySport', 'columnsToDisplay']),
+        ...mapState('trade', ['selectedSport', 'tradeLayout', 'filteredColumnsBySport', 'columnsToDisplay', 'oddsTypeBySport']),
         ...mapState('settings', ['disabledBetColumns']),
         checkedColumns: {
             get() {
@@ -94,7 +96,6 @@ export default {
 
 <style>
     .betColumns {
-        right: 10px;
         height: 52px;
     }
 
