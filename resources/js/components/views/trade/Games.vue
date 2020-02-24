@@ -38,8 +38,8 @@
                                 <div class="w-1/12"></div>
                                 <div class="w-1/12 flex flex-col items-center" :class="column" v-for="(column, index) in oddsTypeBySport" :key="index">
                                     <p class="relative" :class="[{'order-1' : index==='home'}, {'order-2' : index==='away'}, {'order-3': index==='draw'}]" v-for="(odd, index) in game[column]" :key="odd.bet_id">
-                                        <span class="absolute text-gray-500 odds-label left-label">{{odd.points}}</span>
-                                        <span class="bet-click px-2 rounded-lg" v-adjust-odd-color="odd.odds.toFixed(2)">{{odd.odds.toFixed(2)}}</span>
+                                        <span class="absolute text-gray-500 odds-label" :class="[odd.odds != '' ? 'left-label' : 'empty-left-label']">{{odd.points}}</span>
+                                        <span class="px-2 rounded-lg" :class="{'bet-click' : odd.odds != ''}" v-adjust-odd-color="odd.odds">{{odd.odds | formatOdds}}</span>
                                     </p>
                                 </div>
                                 <div class="text-white absolute eventStar">
@@ -65,8 +65,8 @@
                                     <div class="w-1/12"></div>
                                     <div class="w-1/12 flex justify-between mr-10" :class="column" v-for="(column, index) in oddsTypeBySport" :key="index">
                                         <p class="relative" :class="[{'order-1' : index==='home'}, {'order-2' : index==='draw'}, {'order-3': index==='away'}]" v-for="(odd, index) in game[column]" :key="odd.bet_id">
-                                            <span class="absolute text-gray-500 odds-label left-label">{{odd.points}}</span>
-                                            <span class="bet-click px-2 rounded-lg" v-adjust-odd-color="odd.odds.toFixed(2)">{{odd.odds.toFixed(2)}}</span>
+                                            <span class="absolute text-gray-500 odds-label" :class="[odd.odds != '' ? 'left-label' : 'empty-left-label']">{{odd.points}}</span>
+                                            <span class="px-2 rounded-lg" :class="{'bet-click' : odd.odds != ''}" v-adjust-odd-color="odd.odds">{{odd.odds | formatOdds}}</span>
                                         </p>
                                     </div>
                                 </div>
@@ -112,6 +112,15 @@ export default {
                 } else if (binding.value < binding.oldValue) {
                     el.classList.add('ping-danger')
                 }
+            }
+        }
+    },
+    filters: {
+        formatOdds(value) {
+            if(typeof(value)==='number') {
+                return value.toFixed(2)
+            } else {
+                return
             }
         }
     }
@@ -182,6 +191,11 @@ export default {
 
         .left-label {
             left: -52px;
+            text-align: right;
+        }
+
+        .empty-left-label {
+            left: -63px;
             text-align: right;
         }
 
