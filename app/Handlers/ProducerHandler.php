@@ -89,12 +89,8 @@ class ProducerHandler
         
         $topic = $this->producer->newTopic($this->getTopic());
 
-        // RD_KAFKA_PARTITION_UA, lets librdkafka choose the partition.
-        // Messages with the same "$key" will be in the same topic partition.
-        // This ensure that messages are consumed in order.
         $topic->produce(RD_KAFKA_PARTITION_UA, 0, $this->payload, $key);
 
-        // pull for any events
         $this->producer->poll(0);
 
         $this->flush();

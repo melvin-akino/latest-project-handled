@@ -17,9 +17,15 @@ class ProducerServiceProvider extends ServiceProvider
     {
         $conf = new Conf();
 
-        $conf->set('metadata.broker.list', env('KAFKA_BROKERS', '127.0.0.1'));
+        $conf->set('group.id', 'multiline');
+
+        $conf->set('metadata.broker.list', env('KAFKA_BROKERS', 'kafka:9092'));
 
         $conf->set('compression.type', 'snappy');
+
+        $conf->set('auto.offset.reset', 'smallest');
+
+        $conf->set('enable.auto.commit', 'false');
 
         if (env('KAFKA_DEBUG', false)) {
             $conf->set('log_level', LOG_DEBUG);
