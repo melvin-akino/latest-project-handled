@@ -137,14 +137,14 @@ return [
                 [ 'name' => 'timestamp',    'type' => \Swoole\Table::TYPE_INT ],
             ],
         ],
-        'teams'           => [ //key format [multiTeam:$multiTeam] = [id = $teamId, team_name = $teamName]
+        'teams'           => [ //key format [provider:strtolower($provider):team:slug($team)] = [id = $teamId, team_name = $teamName]
             'size'   => 102400,
             'column' => [
                 [ 'name' => 'id',          'type' => \Swoole\Table::TYPE_INT ],
                 [ 'name' => 'multi_team',   'type' => \Swoole\Table::TYPE_STRING, 'size' => 100 ],
             ],
         ],
-        'rawTeams'           => [ //key format [provider:strtolower($provider)] = [id = $teamId, team_name = $teamName]
+        'rawTeams'           => [ //key format [provider:strtolower($provider):team:slug($team)] = [id = $teamId, team_name = $teamName]
                                'size'   => 102400,
                                'column' => [
                                    [ 'name' => 'id',          'type' => \Swoole\Table::TYPE_INT ],
