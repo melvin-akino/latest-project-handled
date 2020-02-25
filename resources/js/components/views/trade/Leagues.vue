@@ -25,12 +25,11 @@ export default {
             leagues: null,
             leagueSchedModes: ['inplay', 'today', 'early'],
             selectedLeagueSchedMode: 'today',
-            displayedLeagues: [],
-            selectedLeagues: []
+            displayedLeagues: []
         }
     },
     computed: {
-        ...mapState('trade', ['selectedLeague', 'selectedSport'])
+        ...mapState('trade', ['selectedLeagues', 'selectedSport'])
     },
     mounted() {
         this.getLeagues()
@@ -69,7 +68,7 @@ export default {
                     if(getSocketValue(response.data, 'getSelectedLeagues') != '') {
                         let selectedLeagues = getSocketValue(response.data, 'getSelectedLeagues')
                         selectedLeagues.map(league => {
-                            this.selectedLeagues.push(league)
+                            this.$store.commit('trade/SET_SELECTED_LEAGUES', league)
                         })
                     }
                 } else if (getSocketKey(response.data) === 'getForRemovalLeagues') {
@@ -88,17 +87,14 @@ export default {
             }
         },
         selectLeagueSchedMode(schedMode) {
-            this.$store.commit('trade/SET_SELECTED_LEAGUE', null)
             this.selectedLeagueSchedMode = schedMode
             this.filterLeaguesBySched(schedMode)
         },
         selectLeague(league) {
-            this.$store.commit('trade/SET_SELECTED_LEAGUE', league)
-
             if(this.selectedLeagues.includes(league)) {
-                this.selectedLeagues = this.selectedLeagues.filter((selectedLeague, index) => index != league)
+                this.$store.commit('trade/REMOVE_SELECTED_LEAGUE', league)
             } else {
-                this.selectedLeagues.push(league)
+                this.$store.commit('trade/SET_SELECTED_LEAGUES', league)
             }
         }
     }

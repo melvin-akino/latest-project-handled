@@ -70,145 +70,457 @@ class TradeController extends Controller
         try {
             /** TO DO: Include Logic for fetching User Watchlist game events */
 
+
             $data = [
-                "Football League A" => [
-                    [
-                        "uid"            => "20200312-1-1",
-                        "game_schedule"  => "3",
-                        "home_team_name" => "Los Angeles Lakers",
-                        "away_team_name" => "Los Angeles Clippers",
-                        "1X2"         => [
-                            "home" => [
-                                'odds' => 1.37,
-                                'bet_id' => 'EFUWIHXIUEH'
+                [
+                    "uid" => "asdasd",
+                    "sport_id" => 1,
+                    "sport" => "Soccer",
+                    "provider_id" => 1,
+                    "game_schedule" => "inplay",
+                    "league_name" => "English Football League",
+                    "home" => [
+                        "name" => "Glenorchy Knights",
+                        "score" => 0,
+                        "redcard" => 0
+                    ],
+                    "away" => [
+                        "name" => "Kingborough Lions United",
+                        "score" => 0,
+                        "redcard" => 1
+                    ],
+                    "ref_schedule" => "2020-02-13 08:00:00",
+                    "running_time" => "2H 20:58",
+                    "market_odds" => [
+                        "main" => [
+                            "1X2" => [
+                                "home" => [
+                                    "odds" => 1.23,
+                                    "market_id" => "asd123"
+                                ],
+                                "away" => [
+                                    "odds" => 2.23,
+                                    "market_id" => "asd123"
+                                ],
+                                "draw" => [
+                                    "odds" => 3.23,
+                                    "market_id" => "asd123"
+                                ]
                             ],
-                            "away" => [
-                                'odds' => 1.43,
-                                'bet_id' => 'GFGRESDSDSD'
+                            "HDP" => [
+                                "home" => [
+                                    "odds" => 4.23,
+                                    "points" => "-2.5",
+                                    "market_id" => "asd123"
+                                ],
+                                "away" => [
+                                    "odds" => 5.23,
+                                    "points" => "+2.5",
+                                    "market_id" => "asd123"
+                                ]
                             ],
-                            "draw" => [
-                                'odds' => 3.73,
-                                'bet_id' => 'TEUIYUDHJFF'
+                            "OU" => [
+                                "home" => [
+                                    "odds" => 6.23,
+                                    "points" => "O 2.5",
+                                    "market_id" => "asd123"
+                                ],
+                                "away" => [
+                                    "odds" => 7.23,
+                                    "points" => "U 2.5",
+                                    "market_id" => "asd123"
+                                ]
                             ],
-                        ],
-                        "HDP"         => [
-                            "home" => [
-                                'odds' => 3.32,
-                                'points' => 2,
-                                'bet_id' => 'XIJHJGLKJLKD'
+                            "OE" => [
+                                "home" => [
+                                    "odds" => 8.23,
+                                    "points" => "O",
+                                    "market_id" => "asd123"
+                                ],
+                                "away" => [
+                                    "odds" => 9.23,
+                                    "points" => "E",
+                                    "market_id" => "asd123"
+                                ]
                             ],
-                            "away" => [
-                                'odds' => 1.74,
-                                'points' => 2.5,
-                                'bet_id' => 'TEIOUWIENKDS'
-                            ]
-                        ],
-                        "OU"          => [
-                            "home" => [
-                                'odds' => 2.65,
-                                'points' => 'O 1.5',
-                                'bet_id' => 'GDSDKDJLKSDJ'
+                            "HT 1X2" => [
+                                "home" => [
+                                    "odds" => 1.23,
+                                    "market_id" => "asd123"
+                                ],
+                                "away" => [
+                                    "odds" => 2.23,
+                                    "market_id" => "asd123"
+                                ],
+                                "draw" => [
+                                    "odds" => 3.23,
+                                    "market_id" => "asd123"
+                                ]
                             ],
-                            "away" => [
-                                'odds' => 1.74,
-                                'points' => 'U 2.5',
-                                'bet_id' => 'FDFDAEFDFDSD'
+                            "HT HDP" => [
+                                "home" => [
+                                    "odds" => 4.23,
+                                    "points" => "-2.5",
+                                    "market_id" => "asd123"
+                                ],
+                                "away" => [
+                                    "odds" => 5.23,
+                                    "points" => "+2.5",
+                                    "market_id" => "asd123"
+                                ]
+                            ],
+                            "HT OU" => [
+                                "home" => [
+                                    "odds" => 6.23,
+                                    "points" => "O 2.5",
+                                    "market_id" => "asd123"
+                                ],
+                                "away" => [
+                                    "odds" => 7.23,
+                                    "points" => "U 2.5",
+                                    "market_id" => "asd123"
+                                ]
                             ]
                         ]
-                    ],
-                    [
-                        "uid"            => "20200312-1-2",
-                        "game_schedule"  => "3",
-                        "home_team_name" => "Cleveland Cavaliers",
-                        "away_team_name" => "Indiana Pacers",
-                        "1X2"         => [
-                            "home" => [
-                                'odds' => 1.11,
-                                'bet_id' => 'EFUWIHXIUEH'
-                            ],
-                            "away" => [
-                                'odds' => 1.23,
-                                'bet_id' => 'GFGRESDSDSD'
-                            ],
-                            "draw" => [
-                                'odds' => 2.87,
-                                'bet_id' => 'TEUIYUDHJFF'
-                            ],
-                        ],
-                        "HDP"         => [
-                            "home" => [
-                                'odds' => 1.45,
-                                'points' => 2,
-                                'bet_id' => 'XIJHJGLKJLKD'
-                            ],
-                            "away" => [
-                                'odds' => 4.34,
-                                'points' => 2.5,
-                                'bet_id' => 'TEIOUWIENKDS'
-                            ]
-                        ],
-                        "OU"          => [
-                            "home" => [
-                                'odds' => 2.76,
-                                'points' => 'O 1.5',
-                                'bet_id' => 'GDSDKDJLKSDJ'
-                            ],
-                            "away" => [
-                                'odds' => 1.74,
-                                'points' => 'U 2.5',
-                                'bet_id' => 'FDFDAEFDFDSD'
-                            ]
-                        ]
-                    ],
+                    ]
                 ],
-                "Football League B" => [
-                    [
-                        "uid"            => "20200312-2-1",
-                        "game_schedule"  => "2",
-                        "home_team_name" => "Chicago Bulls",
-                        "away_team_name" => "Miami Heat",
-                        "1X2"         => [
-                            "home" => [
-                                'odds' => 1.32,
-                                'bet_id' => 'EFUWIHXIUEH'
+                [
+                    "uid" => "123123",
+                    "sport_id" => 1,
+                    "sport" => "Soccer",
+                    "provider_id" => 1,
+                    "game_schedule" => "inplay",
+                    "league_name" => "Football League A",
+                    "home" => [
+                        "name" => "Brazil",
+                        "score" => 0,
+                        "redcard" => 0
+                    ],
+                    "away" => [
+                        "name" => "Argentina",
+                        "score" => 0,
+                        "redcard" => 1
+                    ],
+                    "ref_schedule" => "2020-02-13 08:00:00",
+                    "running_time" => "2H 20:58",
+                    "market_odds" => [
+                        "main" => [
+                            "1X2" => [
+                                "home" => [
+                                    "odds" => 1.23,
+                                    "market_id" => "asd123"
+                                ],
+                                "away" => [
+                                    "odds" => 2.23,
+                                    "market_id" => "asd123"
+                                ],
+                                "draw" => [
+                                    "odds" => 3.23,
+                                    "market_id" => "asd123"
+                                ]
                             ],
-                            "away" => [
-                                'odds' => 1.34,
-                                'bet_id' => 'GFGRESDSDSD'
+                            "HDP" => [
+                                "home" => [
+                                    "odds" => 4.23,
+                                    "points" => "-2.5",
+                                    "market_id" => "asd123"
+                                ],
+                                "away" => [
+                                    "odds" => 5.23,
+                                    "points" => "+2.5",
+                                    "market_id" => "asd123"
+                                ]
                             ],
-                            "draw" => [
-                                'odds' => 2.12,
-                                'bet_id' => 'TEUIYUDHJFF'
+                            "OU" => [
+                                "home" => [
+                                    "odds" => 6.23,
+                                    "points" => "O 2.5",
+                                    "market_id" => "asd123"
+                                ],
+                                "away" => [
+                                    "odds" => 7.23,
+                                    "points" => "U 2.5",
+                                    "market_id" => "asd123"
+                                ]
                             ],
-                        ],
-                        "HDP"         => [
-                            "home" => [
-                                'odds' => 4.45,
-                                'points' => 2,
-                                'bet_id' => 'XIJHJGLKJLKD'
+                            "OE" => [
+                                "home" => [
+                                    "odds" => 8.23,
+                                    "points" => "O",
+                                    "market_id" => "asd123"
+                                ],
+                                "away" => [
+                                    "odds" => 9.23,
+                                    "points" => "E",
+                                    "market_id" => "asd123"
+                                ]
                             ],
-                            "away" => [
-                                'odds' => 2.34,
-                                'points' => 2.5,
-                                'bet_id' => 'TEIOUWIENKDS'
+                            "HT 1X2" => [
+                                "home" => [
+                                    "odds" => 1.23,
+                                    "market_id" => "asd123"
+                                ],
+                                "away" => [
+                                    "odds" => 2.23,
+                                    "market_id" => "asd123"
+                                ],
+                                "draw" => [
+                                    "odds" => 3.23,
+                                    "market_id" => "asd123"
+                                ]
+                            ],
+                            "HT HDP" => [
+                                "home" => [
+                                    "odds" => 4.23,
+                                    "points" => "-2.5",
+                                    "market_id" => "asd123"
+                                ],
+                                "away" => [
+                                    "odds" => 5.23,
+                                    "points" => "+2.5",
+                                    "market_id" => "asd123"
+                                ]
+                            ],
+                            "HT OU" => [
+                                "home" => [
+                                    "odds" => 6.23,
+                                    "points" => "O 2.5",
+                                    "market_id" => "asd123"
+                                ],
+                                "away" => [
+                                    "odds" => 7.23,
+                                    "points" => "U 2.5",
+                                    "market_id" => "asd123"
+                                ]
                             ]
-                        ],
-                        "OU"          => [
-                            "home" => [
-                                'odds' => 6.76,
-                                'points' => 'O 1.5',
-                                'bet_id' => 'GDSDKDJLKSDJ'
+                        ]
+                    ]
+                ],
+                [
+                    "uid" => "696969",
+                    "sport_id" => 1,
+                    "sport" => "Soccer",
+                    "provider_id" => 1,
+                    "game_schedule" => "inplay",
+                    "league_name" => "Football League A",
+                    "home" => [
+                        "name" => "England",
+                        "score" => 0,
+                        "redcard" => 0
+                    ],
+                    "away" => [
+                        "name" => "Germany",
+                        "score" => 0,
+                        "redcard" => 1
+                    ],
+                    "ref_schedule" => "2020-02-13 08:00:00",
+                    "running_time" => "2H 20:58",
+                    "market_odds" => [
+                        "main" => [
+                            "1X2" => [
+                                "home" => [
+                                    "odds" => 8.23,
+                                    "market_id" => "asd123"
+                                ],
+                                "away" => [
+                                    "odds" => 9.23,
+                                    "market_id" => "asd123"
+                                ],
+                                "draw" => [
+                                    "odds" => 1.23,
+                                    "market_id" => "asd123"
+                                ]
                             ],
-                            "away" => [
-                                'odds' => 2.74,
-                                'points' => 'U 2.5',
-                                'bet_id' => 'FDFDAEFDFDSD'
+                            "HDP" => [
+                                "home" => [
+                                    "odds" => 2.23,
+                                    "points" => "-2.5",
+                                    "market_id" => "asd123"
+                                ],
+                                "away" => [
+                                    "odds" => 3.23,
+                                    "points" => "+2.5",
+                                    "market_id" => "asd123"
+                                ]
+                            ],
+                            "OU" => [
+                                "home" => [
+                                    "odds" => 4.23,
+                                    "points" => "O 2.5",
+                                    "market_id" => "asd123"
+                                ],
+                                "away" => [
+                                    "odds" => 5.23,
+                                    "points" => "U 2.5",
+                                    "market_id" => "asd123"
+                                ]
+                            ],
+                            "OE" => [
+                                "home" => [
+                                    "odds" => 6.23,
+                                    "points" => "O",
+                                    "market_id" => "asd123"
+                                ],
+                                "away" => [
+                                    "odds" => 7.23,
+                                    "points" => "E",
+                                    "market_id" => "asd123"
+                                ]
+                            ],
+                            "HT 1X2" => [
+                                "home" => [
+                                    "odds" => 8.23,
+                                    "market_id" => "asd123"
+                                ],
+                                "away" => [
+                                    "odds" => 9.23,
+                                    "market_id" => "asd123"
+                                ],
+                                "draw" => [
+                                    "odds" => 1.23,
+                                    "market_id" => "asd123"
+                                ]
+                            ],
+                            "HT HDP" => [
+                                "home" => [
+                                    "odds" => 2.23,
+                                    "points" => "-2.5",
+                                    "market_id" => "asd123"
+                                ],
+                                "away" => [
+                                    "odds" => 3.23,
+                                    "points" => "+2.5",
+                                    "market_id" => "asd123"
+                                ]
+                            ],
+                            "HT OU" => [
+                                "home" => [
+                                    "odds" => 4.23,
+                                    "points" => "O 2.5",
+                                    "market_id" => "asd123"
+                                ],
+                                "away" => [
+                                    "odds" => 5.23,
+                                    "points" => "U 2.5",
+                                    "market_id" => "asd123"
+                                ]
+                            ]
+                        ]
+                    ]
+                ],
+                [
+                    "uid" => "420420",
+                    "sport_id" => 1,
+                    "sport" => "Soccer",
+                    "provider_id" => 1,
+                    "game_schedule" => "inplay",
+                    "league_name" => "FIFA",
+                    "home" => [
+                        "name" => "Malaysia",
+                        "score" => 0,
+                        "redcard" => 0
+                    ],
+                    "away" => [
+                        "name" => "Japan",
+                        "score" => 0,
+                        "redcard" => 1
+                    ],
+                    "ref_schedule" => "2020-02-13 08:00:00",
+                    "running_time" => "2H 20:58",
+                    "market_odds" => [
+                        "main" => [
+                            "1X2" => [
+                                "home" => [
+                                    "odds" => 6.23,
+                                    "market_id" => "asd123"
+                                ],
+                                "away" => [
+                                    "odds" => 7.23,
+                                    "market_id" => "asd123"
+                                ],
+                                "draw" => [
+                                    "odds" => 8.23,
+                                    "market_id" => "asd123"
+                                ]
+                            ],
+                            "HDP" => [
+                                "home" => [
+                                    "odds" => 9.23,
+                                    "points" => "-2.5",
+                                    "market_id" => "asd123"
+                                ],
+                                "away" => [
+                                    "odds" => 1.23,
+                                    "points" => "+2.5",
+                                    "market_id" => "asd123"
+                                ]
+                            ],
+                            "OU" => [
+                                "home" => [
+                                    "odds" => 2.23,
+                                    "points" => "O 2.5",
+                                    "market_id" => "asd123"
+                                ],
+                                "away" => [
+                                    "odds" => 3.23,
+                                    "points" => "U 2.5",
+                                    "market_id" => "asd123"
+                                ]
+                            ],
+                            "OE" => [
+                                "home" => [
+                                    "odds" => 4.23,
+                                    "points" => "O",
+                                    "market_id" => "asd123"
+                                ],
+                                "away" => [
+                                    "odds" => 5.23,
+                                    "points" => "E",
+                                    "market_id" => "asd123"
+                                ]
+                            ],
+                            "HT 1X2" => [
+                                "home" => [
+                                    "odds" => 6.23,
+                                    "market_id" => "asd123"
+                                ],
+                                "away" => [
+                                    "odds" => 7.23,
+                                    "market_id" => "asd123"
+                                ],
+                                "draw" => [
+                                    "odds" => 8.23,
+                                    "market_id" => "asd123"
+                                ]
+                            ],
+                            "HT HDP" => [
+                                "home" => [
+                                    "odds" => 9.23,
+                                    "points" => "-2.5",
+                                    "market_id" => "asd123"
+                                ],
+                                "away" => [
+                                    "odds" => 1.23,
+                                    "points" => "+2.5",
+                                    "market_id" => "asd123"
+                                ]
+                            ],
+                            "HT OU" => [
+                                "home" => [
+                                    "odds" => 2.23,
+                                    "points" => "O 2.5",
+                                    "market_id" => "asd123"
+                                ],
+                                "away" => [
+                                    "odds" => 3.23,
+                                    "points" => "U 2.5",
+                                    "market_id" => "asd123"
+                                ]
                             ]
                         ]
                     ]
                 ]
             ];
-            
             return response()->json([
                 'status'      => true,
                 'status_code' => 200,

@@ -25,6 +25,7 @@
 
 <script>
 import { mapState } from 'vuex'
+import _ from 'lodash'
 import Cookies from 'js-cookie'
 import Sports from './Sports'
 import Wallet from './Wallet'
@@ -33,6 +34,7 @@ import Columns from './Columns'
 import Games from './Games'
 import Betbar from './Betbar'
 
+import { getSocketKey, getSocketValue } from '../../../helpers/socket'
 export default {
     components: {
         Sports,
@@ -65,6 +67,17 @@ export default {
     mounted() {
         this.getWatchlistData()
         this.getUserTradeLayout()
+        this.$socket.send('getEvents')
+        this.$options.sockets.onmessage = ((response) => {
+            if(getSocketKey(response.data) === 'getEvents') {
+                let receivedEvents = getSocketValue(response.data, 'getEvents')
+                console.log(receivedEvents)
+                //TODO: Transform events grouped by schedule and league
+                // Object.keys(getSocketValue(response.data, 'getEvents')).forEach(sched => {
+                //     // this.events[sched] = receivedEvents[sched]
+                // })
+            }
+        })
     },
     methods: {
         getUserTradeLayout() {
@@ -80,7 +93,21 @@ export default {
             let token = Cookies.get('mltoken')
 
             axios.get('v1/trade/watchlist', { headers: { 'Authorization': `Bearer ${token}` }})
-            .then(response => this.events.watchlist = response.data.data)
+            .then(response => {
+                let watchListLeagues = _.uniq(response.data.data.map(event => event.league_name))
+                let watchListObject = {}
+                watchListLeagues.map(league => {
+                    response.data.data.map(event => {
+                        if(event.league_name === league) {
+                            if(typeof(watchListObject[league]) == "undefined") {
+                                watchListObject[league] = []
+                            }
+                            watchListObject[league].push(event)
+                        }
+                    })
+                })
+                this.events.watchlist = watchListObject
+            })
             .catch(err => this.$store.dispatch('auth/checkIfTokenIsValid', err.response.data.status_code))
         }
     },
