@@ -211,6 +211,20 @@ return [
                 [ 'name' => 'reference_schedule', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 30 ],
             ],
         ],
+        'events'     => [
+            'size'   => 102400,
+            'column' => [
+                [ 'name' => 'id',                       'type' => \Swoole\Table::TYPE_INT ],
+                [ 'name' => 'master_league_id',         'type' => \Swoole\Table::TYPE_INT ],
+                [ 'name' => 'master_event_unique_id',   'type' => \Swoole\Table::TYPE_STRING, 'size' => 30 ],
+                [ 'name' => 'sport_id',                 'type' => \Swoole\Table::TYPE_INT ],
+                [ 'name' => 'master_team_home_id',      'type' => \Swoole\Table::TYPE_INT ],
+                [ 'name' => 'master_team_away_id',      'type' => \Swoole\Table::TYPE_INT ],
+                [ 'name' => 'provider_id',              'type' => \Swoole\Table::TYPE_INT ],
+                [ 'name' => 'reference_schedule',       'type' => \Swoole\Table::TYPE_STRING, 'size' => 30 ],
+                [ 'name' => 'multi_league',             'type' => \Swoole\Table::TYPE_STRING, 'size' => 100 ],
+            ],
+        ],
         'event_markets' => [
             'size'   => 102400,
             'column' => [
