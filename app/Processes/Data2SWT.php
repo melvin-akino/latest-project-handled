@@ -229,7 +229,7 @@ class Data2SWT implements CustomProcessInterface
                 'event_markets.odd_label', 'event_markets.bet_identifier', 'event_markets.is_main',
                 'event_markets.market_flag', 'events.event_identifier')
             ->get();
-        $eventMarketsTable = $swoole->eventMarketsTable;
+        $eventMarketsTable = $swoole->rawEventMarketsTable;
         array_map(function ($eventMarket) use ($eventMarketsTable) {
             $eventMarketsTable->set('lId:' . $eventMarket->league_id . ':pId:' . $eventMarket->provider_id . ':eId:' . $eventMarket->event_id,
                 [
@@ -264,7 +264,7 @@ class Data2SWT implements CustomProcessInterface
                 'event_markets.odds', 'event_markets.odd_label', 'event_markets.bet_identifier',
                 'event_markets.is_main', 'event_markets.market_flag', 'events.event_identifier')
             ->get();
-        $masterEventMarketsTable = $swoole->masterEventMarketsTable;
+        $masterEventMarketsTable = $swoole->eventMarketsTable;
         array_map(function ($eventMarket) use ($masterEventMarketsTable) {
             $masterEventMarketsTable->set(
                 'pId:' . $eventMarket->provider_id .

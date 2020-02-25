@@ -24,35 +24,44 @@ class TransformKafkaMessage implements ShouldQueue
 
     public function handle()
     {
-        $toInsert = [];
+        $toInsert    = [];
         $toTransform = true;
+        $updated     = false;
 
-        //@TODO Transformation
         $swoole         = app('swoole');
         $indexesTable   = $swoole->indexesTable;
 
         /** DATABASE TABLES */
         /** LOOK-UP TABLES */
-        $providersTable = $swoole->providersTable;
-        $sportsTable    = $swoole->sportsTable;
-        $leaguesTable   = $swoole->leaguesTable;
-        $eventsTable    = $swoole->eventsTable;
-        $teamsTable     = $swoole->teamsTable;
-        $marketsTable   = $swoole->marketsTable;
-        /** TODO: UPDATE COMPLETE LISTS OF SWOOLE TABLES TO BE USED */
+        $providersTable       = $swoole->providersTable;
+        $sportsTable          = $swoole->sportsTable;
+        $rawLeaguesTable      = $swoole->rawLeaguesTable;
+        $leaguesTable         = $swoole->leaguesTable;
+        $rawTeamsTable        = $swoole->rawTeamsTable;
+        $teamsTable           = $swoole->teamsTable;
+        $rawEventsTable       = $swoole->rawEventsTable;
+        $eventsTable          = $swoole->eventsTable;
+        $oddTypesTable        = $swoole->oddTypesTable;
+        $sportOddTypesTable   = $swoole->sportOddTypesTable;
+        $rawEventMarketsTable = $swoole->rawEventMarketsTable;
+        $eventMarketsTable    = $swoole->eventMarketsTable;
+        $transformedTable     = $swoole->transformedTable;
+
+        $arrayOddTypes = [];
 
         /**
          * PROVIDERS Swoole Table
          *
          * @ref config.laravels.providers
+         *
          * @var $providersTable  swoole_table
-         *      $providerSwtId   swoole_table_key    "provider:<strtolower($provider)>"
-         *      $provider        swoole_table_value  string
+         *      $providerSwtId   swoole_table_key    "providerAlias:<strtolower($provider)>"
+         *      $providerId      swoole_table_value  int
          */
-        $providerSwtId = "provider:" . strtolower($this->message->data->provider);
+        $providerSwtId = "providerAlias:" . strtolower($this->message->data->provider);
 
         if ($providersTable->exist($providerSwtId)) {
-            $provider = strtolower($providersTable->get($providerSwtId)['alias']);
+            $providerId = $providersTable->get($providerSwtId)['id'];
         } else {
             throw new Exception("Provider doesn't exist");
         }
@@ -61,14 +70,16 @@ class TransformKafkaMessage implements ShouldQueue
          * SPORTS Swoole Table
          *
          * @ref config.laravels.sports
+         *
          * @var $sportsTable  swoole_table
-         *      $sportSwtId   swoole_table_key    "sport:<$sportId>"
+         *      $sportSwtId   swoole_table_key    "sId:<$sportId>"
          *      $sportId      swoole_table_value  int
          */
-        $sportSwtId = "sport:" . $this->message->data->sportId;
+        $sportSwtId = "sId:" . $this->message->data->sportId;
 
         if ($sportsTable->exists($sportSwtId)) {
-            $sportId = $sportsTable->get($sportSwtId)['id'];
+            $sportId   = $sportsTable->get($sportSwtId)['id'];
+            $sportName = $sportsTable->get($sportSwtId)['sport'];
         } else {
             throw new Exception("Sport doesn't exist");
         }
@@ -79,19 +90,19 @@ class TransformKafkaMessage implements ShouldQueue
          * @ref config.laravels.rawLeagues
          *
          * @var $rawLeaguesTable  swoole_table
-         *      $rawLeagueSwtId   swoole_table_key    "sport:<$sportId>,provider:<strtolower($provider)>,league:<slug($leagueName)>"
-         *      $rawLeagueName    swoole_table_value  string
+         *      $rawLeagueSwtId   swoole_table_key    "sId:<$sportId>:pId:<$providerId>:league:<slug($leagueName)>"
+         *      $rawLeagueId      swoole_table_value  int
          */
         $rawLeagueSwtId = implode(':', [
-            "sport:"    . $sportId,
-            "provider:" . $provider,
+            "sId:"      . $sportId,
+            "provider:" . $providerId,
             "league:"   . Str::slug($this->message->data->leagueName)
         ]);
 
         if ($rawLeaguesTable->exist($rawLeagueSwtId)) {
-            $rawLeagueName = $rawLeaguesTable->get($rawLeagueSwtId)['league'];
+            $rawLeagueId = $rawLeaguesTable->get($rawLeagueSwtId)['id'];
         } else {
-            /** TO INSERT */
+            /** TODO: Insert to DB */
             $toInsert['raw_leagues'] = [];
             $toTransform             = false;
         }
@@ -101,11 +112,24 @@ class TransformKafkaMessage implements ShouldQueue
          *
          * @ref config.laravels.leagues
          *
-         * @var $leaguesTable  swoole_table
-         *      $leagueSwtId   swoole_table_key    "sport:<$sportId>,provider:<strtolower($provider)>,league:<slug($leagueName)>"
-         *      $multiLeague   swoole_table_value  string
+         * @var $leaguesTable    swoole_table
+         *      $leagueSwtId     swoole_table_key    "sId:<$sportId>:pId:<$providerId>:lId:<$rawLeagueId>"
+         *      $multiLeagueId   swoole_table_value  int
          */
-        // TODO: LEAGUES (MASTER) LOGIC
+        $leagueSwtId = implode(':', [
+            "sId:" . $sportId,
+            "pId:" . $providerId,
+            "lId:" . $rawLeagueId
+        ]);
+
+        if ($leaguesTable->exists($leagueSwtId)) {
+            $multiLeagueId   = $leaguesTable->get($leagueSwtId)['id'];
+            $multiLeagueName = $leaguesTable->get($leagueSwtId)['multi_league'];
+        } else {
+            /** TODO: Insert to DB */
+            $toInsert['master_leagues'] = [];
+            $toTransform = false;
+        }
 
         /**
          * TEAMS (RAW) Swoole Table
@@ -114,24 +138,25 @@ class TransformKafkaMessage implements ShouldQueue
          *
          * @var $competitors    array               Contains both `HOME` and `AWAY` team names
          *      $rawTeamsTable  swoole_table
-         *      $rawTeamSwtId   swoole_table_key    "provider:<strtolower($provider)>,team:<slug($homeTeam|$awayTeam)>"
+         *      $rawTeamSwtId   swoole_table_key    "pId:<$providerId>:team:<slug($homeTeam|$awayTeam)>"
          *      $rawTeamName    swoole_table_value  string
          */
+        $multiTeam = [];
         $competitors = [
             'home' => $this->message->data->homeTeam,
             'away' => $this->message->data->awayTeam,
         ];
 
         foreach ($competitors AS $key => $row) {
-            $rawTeamSwtId = implode(',', [
-                "provider:" . $provider,
-                "teams:"    . Str::slug($competitors[$key])
+            $rawTeamSwtId = implode(':', [
+                "pId:"   . $providerId,
+                "teams:" . Str::slug($competitors[$key])
             ]);
 
             if ($rawTeamsTable->exists($rawTeamSwtId)) {
                 $rawTeamName = $rawTeamstable->get($rawTeamSwtId)['team'];
             } else {
-                /** TO INSERT */
+                /** TODO: Insert to DB */
                 $toInsert['raw_teams'][] = [];
                 $toTransform             = false;
             }
@@ -142,12 +167,17 @@ class TransformKafkaMessage implements ShouldQueue
              * @ref config.laravels.teams
              *
              * @var $teamsTable  swoole_table
-             *      $teamSwtId   swoole_table_key    "multiTeam:<slug($rawTeamName)>"
+             *      $teamSwtId   swoole_table_key    "pId:<$providerId>:multiTeam:<slug($rawTeamName)>"
              */
-            $teamSwtId = "multiTeam:" . Str::slug($rawTeamName);
+            $teamSwtId = implode(':', [
+                "pId:"       . $providerId,
+                "multiTeam:" . Str::slug($rawTeamName)
+            ]);
 
-            if (!$teamsTable->exists($teamSwtId)) {
-                /** TO INSERT */
+            if ($teamsTable->exists($teamSwtId)) {
+                $multiTeam[$key] = $teamsTable->get($teamSwtId)['multi_team'];
+            } else {
+                /** TODO: Insert to DB */
                 $toInsert['master_teams'][] = [];
                 $toTransform                = false;
             }
@@ -159,20 +189,19 @@ class TransformKafkaMessage implements ShouldQueue
          * @ref config.laravels.rawEvents
          *
          * @var $rawEventsTable  swoole_table
-         *      $rawEventSwtId   swoole_table_key    "sport:<$sportId>,provider:<strtolower($provider)>,league:<slug($rawLeagueName)>,eventIdentifier:<$events[]->eventId>"
-         *      $rawEvent        swoole_table_value  string
+         *      $rawEventSwtId   swoole_table_key    "pId:<$providerId>:lId:<$rawLeagueId>:eId:<$events[]->eventId>"
+         *      $rawEventId      swoole_table_value  int
          */
-        $rawEventSwtId = implode(',', [
-            "sport:"           . $sportId,
-            "provider:"        . $provider,
-            "league:"          . $rawLeagueName,
-            "eventIdentifier:" . $this->message->data->events[0]->eventId
+        $rawEventSwtId = implode(':', [
+            "pId:" . $providerId,
+            "lId:" . $rawLeagueId,
+            "eId:" . $this->message->data->events[0]->eventId
         ]);
 
         if ($rawEventsTable->exists($rawEventSwtId)) {
-            // TODO: EVENTS (RAW) LOGIC
+            $rawEventId = $rawEventsTable->get($rawEventSwtId)['id'];
         } else {
-            /** TO INSERT */
+            /** TODO: Insert to DB */
             $toInsert['raw_events'] = [];
             $toTransform            = false;
         }
@@ -184,10 +213,30 @@ class TransformKafkaMessage implements ShouldQueue
          *
          * @var $arrayEvents  array               Contains Event information extracted from game data json
          *      $eventsTable  swoole_table
-         *      $eventSwtId   swoole_table_key    ""
+         *      $eventSwtId   swoole_table_key    "sId:<$sportId>:pId:<$providerId>:eId:<$rawEventId>"
          *      $event        swoole_table_value  string
          */
-        // TODO: EVENTS (MASTER) LOGIC
+        $eventSwtId = implode(':', [
+            "sId:" . $sportId,
+            "pId:" . $providerId,
+            "eId:" . $rawEventId
+        ]);
+
+        if ($eventsTable->exists($eventSwtId)) {
+            $eventId = $eventsTable->get($eventSwtId)['id'];
+            $uid     = $eventsTable->get($eventSwtId)['master_event_unique_id'];
+        } else {
+            /** TODO: Insert to DB */
+            $toInsert['master_events'] = [];
+            $toTransform               = false;
+
+            $uid = implode('-', [
+                date("Ymd", strtotime($this->message->data->referenceSchedule)),
+                $sportId,
+                $multiLeagueId,
+                $this->message->data->events[0]->eventId
+            ]);
+        }
 
         /** `events` key from json data */
         $arrayEvents = $this->message->data->events;
@@ -219,17 +268,19 @@ class TransformKafkaMessage implements ShouldQueue
                  * @ref config.laravels.sportOddType
                  *
                  * @var $sportOddTypesTable  swoole_table
-                 *      $sportOddTypeSwtId   swoole_table_key    "sport:<$sportId>,oddTypeId:<$oddTypeId>"
+                 *      $sportOddTypeSwtId   swoole_table_key    "sId:<$sportId>:oddTypeId:<$oddTypeId>"
                  *      $sportOddTypeId      swoole_table_value  int
                  */
-                $sportOddTypeSwtId = implode(',', [
-                    "sport:"     . $sportId,
+                $sportOddTypeSwtId = implode(':', [
+                    "sId:"       . $sportId,
                     "oddTypeId:" . $oddTypeId
                 ]);
 
                 if (!$sportOddTypesTable->exist($sportOddTypeSwtId)) {
                     throw new Exception("Sport Odds Type doesn't exist");
                 }
+
+                $arrayOddTypes[] = $columns->oddsType;
 
                 /** loop each `marketSelection` from each `market_odds` */
                 foreach ($columns->marketSelection AS $markets) {
@@ -239,15 +290,20 @@ class TransformKafkaMessage implements ShouldQueue
                      * @ref config.laravels.rawEventMarkets
                      *
                      * @var $rawEventMarketsTable  swoole_table
-                     *      $rawEventMarketSwtId   swoole_table_key    "sport:<$sportId>,leagueName:<slug($leagueName)>,eventIdentifier:<$events[]->eventId>"
-                     *      $rawEventMarket        swoole_table_value  string|hash
+                     *      $rawEventMarketSwtId   swoole_table_key    "lId:<$rawLeagueId>:pId:<$providerId>:eId:<$events[]->eventId>"
+                     *      $rawEventMarket        swoole_table_value  string
                      */
-                    $rawEventMarketSwtId = implode(':', []);
+                    $rawEventMarketSwtId = implode(':', [
+                        "lId:" . $rawLeagueId,
+                        "pId:" . $providerId,
+                        "eId:" . $this->message->data->events[0]->eventId
+                    ]);
 
                     if ($rawEventMarketsTable->exists($rawEventMarketSwtId)) {
-                        /** TODO: EVENT MARKET ODDS (RAW) LOGIC */
+                        $rawEventMarketId   = $rawEventMarketsTable->get($rawEventMarketSwtId)['id'];
+                        $rawEventMarketOdds = $rawEventMarketsTable->get($rawEventMarketSwtId)['odds'];
                     } else {
-                        /** TO INSERT */
+                        /** TODO: Insert to DB */
                         $toInsert['raw_event_markets'] = [];
                         $toTransform                   = false;
                     }
@@ -258,254 +314,141 @@ class TransformKafkaMessage implements ShouldQueue
                      * @ref config.laravels.eventMarkets
                      *
                      * @var $eventMarketsTable  swoole_table
-                     *      $eventMarketSwtId   swoole_table_key    "sport:<$sportId>,masterLeagueNameId:<$masterLeagueNameId>,masterEventIdentifier:<$masterEventIdentifierId>"
-                     *      $eventMarket        swoole_table_value  string|hash
+                     *      $eventMarketSwtId   swoole_table_key    "pId:<$providerId>:meUniqueId:<$masterEventUniqueId>:memUniqueId:<$masterEventMarketUniqueId>"
+                     *      $eventMarket        swoole_table_value  string
                      */
-                    $eventMarketSwtId = implode(':', [
-                        "sport:"                 . $sportId,
-                        "masterLeagueName:"      . $masterLeagueNameId,
-                        "masterEventIdentifier:" . $masterEventIdentifierId
-                    ]);
+                    $found = false;
 
-                    if ($eventMarketsTable->exists($eventMarketSwtId)) {
-                        /** TODO: EVENT MARKET ODDS (MASTER) LOGIC */
-                    } else {
-                        /** TO INSERT */
+                    foreach ($eventMarketsTable AS $key => $row) {
+                        if ($row['event_market_id'] == $rawEventMarketId) {
+                            if ($row['master_event_unique_id'] == $uid) {
+                                $found = true;
+
+                                if ($row['odds'] != $rawEventMarketOdds) {
+                                    $eventMarketsTable[$key]['odds'] = $rawEventMarketOdds;
+                                    $updated                         = true;
+                                }
+
+                                break;
+                            }
+                        }
+                    }
+
+                    if (!$found) {
+                        $memUID                    = uniqid();
                         $toInsert['event_markets'] = [];
                         $toTransform               = false;
+
+                        $eventMarketSwtId = implode(':', [
+                            "pId:"         . $providerId,
+                            "meUniqueId:"  . $uid,
+                            "memUniqueId:" . $memUID
+                        ]);
+
+                        /** TODO: Insert to DB */
+
+                        $eventMarketsTable->set($eventMarketSwtId, [
+                            'id'                            => $id,
+                            'event_id'                      => $eventId,
+                            'odd_type_id'                   => $oddTypeId,
+                            'master_event_market_unique_id' => $memUID,
+                            'master_event_unique_id'        => $uid,
+                            'event_market_id'               => $rawEventMarketId,
+                            'provider_id'                   => $providerId,
+                            'odds'                          => $markets->odds,
+                            'odd_label'                     => array_key_exists('points', $markets) ? $markets->points : "",
+                            'bet_identifier'                => $markets->market_id,
+                            'is_main'                       => $event->market_type == 1 ? true : false,
+                            'market_flag'                   => strtoupper($markets->indicator),
+                        ];
                     }
                 }
             }
         }
 
-        /** Data Insertions */
-        if (!is_null($toInsert)) {
-            /** TODO: Data Insertions */
-        }
-
         /** Data Transformation */
-        if ($toTransform) {
-            /** TODO: TRANSFORMATION */
-            /**
-                GOAL JSON FORMAT (SOCCER)
-                [
-                    'requested_uid' => 123456789,
-                    'requested_ts'  => 987654321,
-                    'provider_id'   => 1,
-                    'event_id'      => "qwe123",
-                    'game_schedule' => "early",
-                    'league_name'   => "Australia Tasmania Summer Cup",
-                    'home'          => [
-                        'name'    => "Glenorchy Knights",
-                        'score'   => 1,
-                        'redcard' => 0
-                    ],
-                    'away'          => [
-                        'name'    => "Kingborough Lions United",
-                        'score'   => 0,
-                        'redcard' => 1
-                    ],
-                    'ref_schedule'  => "2020-02-13 08:00:00",
-                    'market_odds'   => [
-                        'main'  => [
-                            '1X2'    => [
-                                'home' => [
-                                    'odds'      => 1.23,
-                                    'market_id' => "asd123"
-                                ],
-                                'away' => [
-                                    'odds'      => 1.23,
-                                    'market_id' => "asd123"
-                                ],
-                                'draw' => [
-                                    'odds'      => 1.23,
-                                    'market_id' => "asd123"
-                                ],
-                            ],
-                            'HDP'    => [
-                                'home' => [
-                                    'odds'      => 1.23,
-                                    'points'    => '-2.5',
-                                    'market_id' => "asd123"
-                                ],
-                                'away' => [
-                                    'odds'      => 1.23,
-                                    'points'    => '+2.5',
-                                    'market_id' => "asd123"
-                                ],
-                            ],
-                            'OU'     => [
-                                'home' => [
-                                    'odds'      => 1.23,
-                                    'points'    => 'O 2.5',
-                                    'market_id' => "asd123"
-                                ],
-                                'away' => [
-                                    'odds'      => 1.23,
-                                    'points'    => 'U 2.5',
-                                    'market_id' => "asd123"
-                                ],
-                            ],
-                            'OE'     => [
-                                'home' => [
-                                    'odds'      => "O 1.23",
-                                    'market_id' => "asd123"
-                                ],
-                                'away' => [
-                                    'odds'      => "E 1.23",
-                                    'market_id' => "asd123"
-                                ],
-                            ],
-                            'HT 1X2' => [
-                                'home' => [
-                                    'odds'      => 1.23,
-                                    'market_id' => "asd123"
-                                ],
-                                'away' => [
-                                    'odds'      => 1.23,
-                                    'market_id' => "asd123"
-                                ],
-                                'draw' => [
-                                    'odds'      => 1.23,
-                                    'market_id' => "asd123"
-                                ],
-                            ],
-                            'HT HDP' => [
-                                'home' => [
-                                    'odds'      => 1.23,
-                                    'points'    => '-2.5',
-                                    'market_id' => "asd123"
-                                ],
-                                'away' => [
-                                    'odds'      => 1.23,
-                                    'points'    => '+2.5',
-                                    'market_id' => "asd123"
-                                ],
-                            ],
-                            'HT OU'  => [
-                                'home' => [
-                                    'odds'      => 1.23,
-                                    'points'    => 'O 2.5',
-                                    'market_id' => "asd123"
-                                ],
-                                'away' => [
-                                    'odds'      => 1.23,
-                                    'points'    => 'U 2.5',
-                                    'market_id' => "asd123"
-                                ],
-                            ],
-                        ],
-                        'other' => [
-                            [
-                                '1X2'    => [],
-                                'HDP'    => [
-                                    'home' => [
-                                        'odds'      => 1.23,
-                                        'points'    => '-1.5',
-                                        'market_id' => "asd123"
-                                    ],
-                                    'away' => [
-                                        'odds'      => 1.23,
-                                        'points'    => '+1.5',
-                                        'market_id' => "asd123"
-                                    ],
-                                ],
-                                'OU'     => [
-                                    'home' => [
-                                        'odds'      => 1.23,
-                                        'points'    => 'O 1.5',
-                                        'market_id' => "asd123"
-                                    ],
-                                    'away' => [
-                                        'odds'      => 1.23,
-                                        'points'    => 'U 1.5',
-                                        'market_id' => "asd123"
-                                    ],
-                                ],
-                                'OE'     => [],
-                                'HT 1X2' => [],
-                                'HT HDP' => [
-                                    'home' => [
-                                        'odds'      => 1.23,
-                                        'points'    => '-1.5',
-                                        'market_id' => "asd123"
-                                    ],
-                                    'away' => [
-                                        'odds'      => 1.23,
-                                        'points'    => '+1.5',
-                                        'market_id' => "asd123"
-                                    ],
-                                ],
-                                'HT OU'  => [
-                                    'home' => [
-                                        'odds'      => 1.23,
-                                        'points'    => 'O 1.5',
-                                        'market_id' => "asd123"
-                                    ],
-                                    'away' => [
-                                        'odds'      => 1.23,
-                                        'points'    => 'U 1.5',
-                                        'market_id' => "asd123"
-                                    ],
-                                ],
-                            ],
-                            [
-                                '1X2'    => [],
-                                'HDP'    => [
-                                    'home' => [
-                                        'odds'      => 1.23,
-                                        'points'    => '-0.5',
-                                        'market_id' => "asd123"
-                                    ],
-                                    'away' => [
-                                        'odds'      => 1.23,
-                                        'points'    => '+0.5',
-                                        'market_id' => "asd123"
-                                    ],
-                                ],
-                                'OU'     => [
-                                    'home' => [
-                                        'odds'      => 1.23,
-                                        'points'    => 'O 0.5',
-                                        'market_id' => "asd123"
-                                    ],
-                                    'away' => [
-                                        'odds'      => 1.23,
-                                        'points'    => 'U 0.5',
-                                        'market_id' => "asd123"
-                                    ],
-                                ],
-                                'OE'     => [],
-                                'HT 1X2' => [],
-                                'HT HDP' => [
-                                    'home' => [
-                                        'odds'      => 1.23,
-                                        'points'    => '-0.5',
-                                        'market_id' => "asd123"
-                                    ],
-                                    'away' => [
-                                        'odds'      => 1.23,
-                                        'points'    => '+0.5',
-                                        'market_id' => "asd123"
-                                    ],
-                                ],
-                                'HT OU'  => [
-                                    'home' => [
-                                        'odds'      => 1.23,
-                                        'points'    => 'O 0.5',
-                                        'market_id' => "asd123"
-                                    ],
-                                    'away' => [
-                                        'odds'      => 1.23,
-                                        'points'    => 'U 0.5',
-                                        'market_id' => "asd123"
-                                    ],
-                                ],
-                            ],
-                        ],
-                    ],
-                ];
-            **/
+        if ($toTransform && !$updated) {
+            $transformedJSON = [
+                'uid'           => $uid,
+                'sport_id'      => $sportId,
+                'sport'         => $sport,
+                'provider_id'   => $providerId,
+                'game_schedule' => $this->message->data->type,
+                'league_name'   => $multiLeagueName,
+                'home'          => [
+                    'name'    => $multiTeam['home'],
+                    'score'   => $this->message->data->home_score,
+                    'redcard' => $this->message->data->home_redcard
+                ],
+                'away'          => [
+                    'name'    => $multiTeam['away'],
+                    'score'   => $this->message->data->away_score,
+                    'redcard' => $this->message->data->away_redcard
+                ],
+                'ref_schedule'  => date("Y-m-d H:i:s", strtotime($this->message->data->referenceSchedule)),
+                'running_time'  => $this->message->data->running_time,
+                'market_odds'   => [],
+            ];
+
+            /** Forming Main Markets */
+            foreach ($this->message->data->events[0]->market_odds AS $columns) {
+                if (in_array($columns->oddsType, $arrayOddTypes)) {
+                    foreach ($columns->marketSelections AS $_market) {
+                        $_marketOdds   = $_market->odds;
+                        $_marketPoints = $_market->points;
+
+                        if (gettype($_market->odds) == 'string') {
+                            $_marketOdds   = explode(' ', $_market->odds);
+                            $_marketPoints = $_marketOdds[0];
+                            $_marketOdds   = $_marketOdds[1];
+                        }
+
+                        $transformedJSON['market_odds']['main'][$columns->oddsType][strtolower($_market->indicator)] = [
+                            'odds'      => (float) $_marketOdds,
+                            'market_id' => $_market->market_id
+                        ];
+
+                        if (array_key_exists('points', $_market)) {
+                            $transformedJSON['market_odds']['main'][$columns->oddsType][strtolower($_market->indicator)]['points'] = $_marketPoints;
+                        }
+                    }
+                }
+            }
+
+            /** Forming Other Markets */
+            $i = 0;
+
+            foreach ($this->message->data->events[1]->market_odds AS $columns) {
+                if (in_array($columns->oddsType, $arrayOddTypes)) {
+                    foreach ($columns->marketSelections AS $_market) {
+                        $_marketOdds   = $_market->odds;
+                        $_marketPoints = $_market->points;
+
+                        if (gettype($_market->odds) == 'string') {
+                            $_marketOdds   = explode(' ', $_market->odds);
+                            $_marketPoints = $_marketOdds[0];
+                            $_marketOdds   = $_marketOdds[1];
+                        }
+
+                        $transformedJSON['market_odds']['main'][$columns->oddsType][strtolower($_market->indicator)] = [
+                            'odds'      => (float) $_marketOdds,
+                            'market_id' => $_market->market_id
+                        ];
+
+                        if (array_key_exists('points', $_market)) {
+                            $transformedJSON['market_odds']['other'][$i][$columns->oddsType][strtolower($_market->indicator)]['points'] = $_marketPoints;
+                        }
+                    }
+
+                    $i++;
+                }
+            }
+
+            $transformedSwtId = "uid:" . $uid;
+
+            if (!$transformedTable->exists($transformedSwtId)) {
+                $transformedTable->set($transformedSwtId, json_encode($transformedJSON));
+            }
         }
     }
 }
