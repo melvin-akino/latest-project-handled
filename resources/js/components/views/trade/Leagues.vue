@@ -30,7 +30,7 @@ export default {
         }
     },
     computed: {
-        ...mapState('trade', ['selectedLeague'])
+        ...mapState('trade', ['selectedLeague', 'selectedSport'])
     },
     mounted() {
         this.getLeagues()
@@ -50,9 +50,9 @@ export default {
             })
         },
         modifyLeaguesFromSocket() {
-            this.$socket.send('getAdditionalLeagues')
-            this.$socket.send('getSelectedLeagues')
-            this.$socket.send('getForRemovalLeagues')
+            this.$socket.send(`getAdditionalLeagues_${this.selectedSport}`)
+            this.$socket.send(`getSelectedLeagues_${this.selectedSport}`)
+            this.$socket.send(`getForRemovalLeagues_${this.selectedSport}`)
             this.$options.sockets.onmessage = (response) => {
                 if (getSocketKey(response.data) === 'getAdditionalLeagues') {
                     if(getSocketValue(response.data, 'getAdditionalLeagues') != '') {
