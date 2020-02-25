@@ -36,7 +36,13 @@ return [
             'redirect' => false,
             'pipe' => 0,
             'enable' => env('LARAVELS_WS_SUBSCRIBER_DATA', true)
-        ]
+        ],
+        'data2swt' => [
+            'class'    => \App\Processes\Data2SWT::class,
+            'redirect' => false,
+            'pipe' => 0,
+            'enable' => env('LARAVELS_DATA2SWT', true)
+        ],
     ],
     'timer'                    => [
         'enable'        => env('LARAVELS_TIMER', false),

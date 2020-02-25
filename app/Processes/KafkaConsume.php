@@ -22,7 +22,6 @@ class KafkaConsume implements CustomProcessInterface
 
     public static function callback(Server $swoole, Process $process)
     {
-        Data2SWT::dispatch();
         TransformKafkaMessage::dispatch(self::testData());
 
         /*$kafkaConsumer = new KafkaConsumer(self::getConfig());

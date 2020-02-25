@@ -1,37 +1,72 @@
 <?php
 
-namespace App\Jobs;
+namespace App\Processes;
 
-use App\Models\OddType;
 use App\Models\Sport;
-use App\Models\Teams;
-use Illuminate\Foundation\Bus\Dispatchable;
+use Hhxsv5\LaravelS\Swoole\Process\CustomProcessInterface;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Swoole\Http\Server;
+use Swoole\Process;
 
-class Data2SWT
+class Data2SWT implements CustomProcessInterface
 {
-    use Dispatchable;
+    private static $quit = false;
 
-    public function handle()
+    public static function callback(Server $swoole, Process $process)
     {
         // Providers
-        $providers = DB::connection(config('database.crm_default'))->table('providers')->get();
-        $providersTable = app('swoole')->providersTable;
-        array_map(function ($provider) use ($providersTable) {
-            $providersTable->set('provider:' . strtolower($provider->alias), ['id' => $provider->id, 'alias' => $provider->alias]);
-        }, $providers->toArray());
+        $swooleProcesses = [
+            'Providers',
+            'MasterLeagues',
+            'Leagues',
+            'Sports',
+            'MasterTeams',
+            'Teams',
+            'SportOddTypes'
+        ];
+        foreach ($swooleProcesses as $process) {
+            $method = "db2Swt" . $process;
+            self::{$method}($swoole);
+        }
 
-        // Master Leagues
+        $server = $swoole;
+        $table = $server->rawLeaguesTable;
+        foreach ($table as $key => $row) {
+            var_dump($row);
+        }
+
+        self::$quit = true;
+    }
+
+    // Requirements: LaravelS >= v3.4.0 & callback() must be async non-blocking program.
+    public static function onReload(Server $swoole, Process $process)
+    {
+        self::$quit = true;
+    }
+
+    private static function db2SwtProviders(Server $swoole)
+    {
+        $providers = DB::connection(config('database.crm_default'))->table('providers')->get();
+        $providersTable = $swoole->providersTable;
+        array_map(function ($provider) use ($providersTable) {
+            $providersTable->set('provider:' . strtolower($provider->alias),
+                ['id' => $provider->id, 'alias' => $provider->alias]);
+        }, $providers->toArray());
+    }
+
+    private static function db2SwtMasterLeagues(Server $swoole)
+    {
         /** TODO: table source will be changed */
         $leagues = DB::table('master_leagues')
             ->join('master_league_links', 'master_leagues.id', 'master_league_links.master_league_id')
             ->join('leagues', 'leagues.id', 'master_league_links.master_league_id')
             ->join('providers', 'providers.id', 'leagues.provider_id')
             /** TODO: additional query statement for GROUP BY to select `match_count` per league */
-            ->select('master_leagues.id', 'master_leagues.sport_id', 'multi_league', 'providers.alias', 'leagues.provider_id', 'leagues.league', 'master_leagues.updated_at')
+            ->select('master_leagues.id', 'master_leagues.sport_id', 'multi_league', 'providers.alias',
+                'leagues.provider_id', 'leagues.league', 'master_leagues.updated_at')
             ->get();
-        $leaguesTable = app('swoole')->leaguesTable;
+        $leaguesTable = $swoole->leaguesTable;
         array_map(function ($league) use ($leaguesTable) {
             $leaguesTable->set('sportId:' . $league->sport_id . ':provider:' . strtolower($league->alias) . ':league:' . Str::slug($league->league),
                 [
@@ -44,86 +79,87 @@ class Data2SWT
                 ]
             );
         }, $leagues->toArray());
+    }
 
-        // Raw Leagues
+    private static function db2SwtLeagues(Server $swoole)
+    {
         $leagues = DB::table('leagues')
             ->join('providers', 'providers.id', 'leagues.provider_id')
             ->join('sports', 'sports.id', 'leagues.sport_id')
             ->select('providers.alias', 'leagues.league', 'leagues.sport_id', 'leagues.provider_id', 'leagues.id')
             ->get();
-        $leaguesTable = app('swoole')->rawLeaguesTable;
+        $leaguesTable = $swoole->rawLeaguesTable;
         array_map(function ($league) use ($leaguesTable) {
             $leaguesTable->set('sportId:' . $league->sport_id . ':provider:' . strtolower($league->alias) . 'league:' . Str::slug($league->league),
                 [
-                    'id' => $league->id,
+                    'id'          => $league->id,
                     'provider_id' => $league->provider_id,
-                    'sport_id' => $league->sport_id,
-                    'league' => $league->league
+                    'sport_id'    => $league->sport_id,
+                    'league'      => $league->league
                 ]);
         }, $leagues->toArray());
+    }
 
-        // Sports
+    private static function db2SwtSports(Server $swoole)
+    {
         $sports = Sport::getActiveSports()->get();
-        $sportsTable = app('swoole')->sportsTable;
+        $sportsTable = $swoole->sportsTable;
         array_map(function ($sport) use ($sportsTable) {
             $sportsTable->set('sportId:' . $sport['id'], ['sport' => $sport['sport']]);
         }, $sports->toArray());
 
         // Odd Types
         $oddTypes = DB::table('odd_types')->get();
-        $oddTypesTable = app('swoole')->oddTypesTable;
+        $oddTypesTable = $swoole->oddTypesTable;
         array_map(function ($oddType) use ($oddTypesTable) {
             $oddTypesTable->set('oddType:' . $oddType->type, ['id' => $oddType->id, 'type' => $oddType->type]);
-
         }, $oddTypes->toArray());
+    }
 
-        // Master Teams
+    private static function db2SwtMasterTeams(Server $swoole)
+    {
         $teams = DB::table('master_teams')
             ->join('master_team_links', 'master_team_links.master_team_id', 'master_teams.id')
             ->join('teams', 'teams.id', 'master_team_links.team_id')
             ->join('providers', 'providers.id', 'teams.provider_id')
             ->select('providers.alias', 'teams.team', 'master_teams.multi_team', 'master_teams.id')
             ->get();
-        $teamsTable = app('swoole')->teamsTable;
+        $teamsTable = $swoole->teamsTable;
         array_map(function ($team) use ($teamsTable) {
-            $teamsTable->set('provider:' . strtolower($team->alias) . 'team:' . Str::slug($team->team), ['id' => $team->id, 'multi_team' => $team->multi_team]);
+            $teamsTable->set('provider:' . strtolower($team->alias) . 'team:' . Str::slug($team->team),
+                ['id' => $team->id, 'multi_team' => $team->multi_team]);
         }, $teams->toArray());
+    }
 
-        //Raw Teams
+    private static function db2SwtTeams(Server $swoole)
+    {
         $rawTeams = DB::table('teams')
             ->join('providers', 'providers.id', 'teams.provider_id')
             ->select('teams.id', 'teams.team', 'providers.alias', 'teams.provider_id')
             ->get();
-        $rawTeamsTable = app('swoole')->rawTeamsTable;
+        $rawTeamsTable = $swoole->rawTeamsTable;
         array_map(function ($team) use ($rawTeamsTable) {
-            $rawTeamsTable->set('provider:' . Str::slug($team->alias). ':team:' . Str::slug($team->team), ['id' => $team->id, 'team' => $team->team, 'provider_id' => $team->provider_id]);
+            $rawTeamsTable->set('provider:' . Str::slug($team->alias) . ':team:' . Str::slug($team->team),
+                ['id' => $team->id, 'team' => $team->team, 'provider_id' => $team->provider_id]);
         }, $rawTeams->toArray());
+    }
 
-        // Sport Odd Types
+    private static function db2SwtSportOddTypes(Server $swoole)
+    {
         $sportOddTypes = DB::table('sport_odd_type')
             ->join('odd_types', 'odd_types.id', 'sport_odd_type.odd_type_id')
             ->join('sports', 'sports.id', 'sport_odd_type.sport_id')
             ->select('sport_odd_type.sport_id', 'sport_odd_type.odd_type_id', 'odd_types.type', 'sport_odd_type.id')
             ->get();
-        $sportOddTypesTable = app('swoole')->sportOddTypesTable;
+        $sportOddTypesTable = $swoole->sportOddTypesTable;
         array_map(function ($sportOddType) use ($sportOddTypesTable) {
-            $sportOddTypesTable->set('sportId:' . Str::slug($sportOddType->sport_id). ':odd_type:' . Str::slug($sportOddType->type), ['id' => $sportOddType->id, 'sportId' => $sportOddType->sport_id, 'sport_odd_type_id' => $sportOddType->id, 'type' => $sportOddType->type]);
+            $sportOddTypesTable->set('sportId:' . Str::slug($sportOddType->sport_id) . ':odd_type:' . Str::slug($sportOddType->type),
+                [
+                    'id'                => $sportOddType->id,
+                    'sportId'           => $sportOddType->sport_id,
+                    'sport_odd_type_id' => $sportOddType->id,
+                    'type'              => $sportOddType->type
+                ]);
         }, $sportOddTypes->toArray());
-
-
-
-
-
-
-
-
-
-
-
-        $server = app('swoole');
-        $table = $server->rawLeaguesTable;
-        foreach ($table as $key => $row) {
-            var_dump($row);
-        }
     }
 }
