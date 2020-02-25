@@ -3,8 +3,8 @@
         <div class="flex flex-col overflow-hidden">
             <div class="sports overflow-y-auto flex flex-col bg-white text-gray-700">
                 <div class="sport" v-for="(sport, index) in sportsList" :key="sport.id">
-                    <div class="flex text-left text-sm py-1 px-6"  :class="[selectedSport === sport.id ? 'bg-gray-900 text-white' : '',  { 'text-gray-600' : !sport.is_enabled }]" >
-                        <button type="button" class="flex justify-between items-center w-full focus:outline-none" @click="selectSport(sport.id)" :disabled="!sport.is_enabled">
+                    <div class="flex text-left text-sm py-1 px-6"  :class="[selectedSport === sport.id ? 'bg-gray-900 text-white' : '']" >
+                        <button type="button" class="flex justify-between items-center w-full focus:outline-none" @click="selectSport(sport.id)">
                             <div class="sportBtn">
                                 <i class="material-icons sportsIcon pr-2">{{sport.icon}}</i>
                                 <span>{{sport.sport}}</span>
@@ -28,6 +28,7 @@
 import { mapState } from 'vuex'
 import Cookies from 'js-cookie'
 import Leagues from './Leagues'
+import { getSocketKey, getSocketValue } from '../../../helpers/socket.js'
 
 export default {
     data() {
@@ -54,12 +55,20 @@ export default {
         }
     },
     mounted() {
-        this.$store.commit('trade/SET_SELECTED_SPORT', 1)
         this.getSports()
+        this.$socket.send('getUserSport')
+        this.$options.sockets.onmessage = (response) => {
+            if (getSocketKey(response.data) === 'getUserSport') {
+                let defaultSport = getSocketValue(response.data, 'getUserSport')
+                this.$store.commit('trade/SET_SELECTED_SPORT', defaultSport.sport_id)
+                this.$store.dispatch('trade/getBetColumns', this.selectedSport)
+            }
+        }
     },
     methods: {
         selectSport(sport) {
             this.$store.commit('trade/SET_SELECTED_SPORT', sport)
+            this.$store.dispatch('trade/getBetColumns', this.selectedSport)
             this.isSportsListOpen = !this.isSportsListOpen
         },
         getSports() {
