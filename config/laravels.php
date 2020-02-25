@@ -31,12 +31,6 @@ return [
             'pipe' => 0,
             'enable' => env('LARAVELS_KAFKA_CONSUME', true)
         ],
-        'ws_subscriber_data' => [
-            'class' => \App\Processes\WsSubscriberData::class,
-            'redirect' => false,
-            'pipe' => 0,
-            'enable' => env('LARAVELS_WS_SUBSCRIBER_DATA', true)
-        ],
         'data2swt' => [
             'class'    => \App\Processes\Data2SWT::class,
             'redirect' => false,
@@ -95,10 +89,11 @@ return [
                 ['name' => 'alias', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 10],
             ],
         ],
-        'sports'          => [ //key format [sId:$sportId] = [value = $sport]
+        'sports'          => [ //key format [sId:$sportId] = [name = $sport]
             'size'   => 102400,
             'column' => [
                 [ 'name' => 'sport', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 50 ],
+                [ 'name' => 'id', 'type' => \Swoole\Table::TYPE_INT ],
             ],
         ],
         'sportOddTypes' => [ // key format [sId:$sportId:oddType:slug($oddType)] = [id = $id, ...]

@@ -15,34 +15,32 @@ class Data2SWT implements CustomProcessInterface
 
     public static function callback(Server $swoole, Process $process)
     {
-        while (!self::$quit) {
-            // Providers
-            $swooleProcesses = [
-                'Providers',
-                'MasterLeagues',
-                'Leagues',
-                'Sports',
-                'MasterTeams',
-                'Teams',
-                'SportOddTypes',
-                'Events',
-                'MasterEvents',
-                'EventMarkets',
-                'MasterEventMarkets'
-            ];
-            foreach ($swooleProcesses as $process) {
-                $method = "db2Swt" . $process;
-                self::{$method}($swoole);
-            }
-
-            $server = $swoole;
-            $table = $server->rawLeaguesTable;
-            foreach ($table as $key => $row) {
-                var_dump($key);
-                var_dump($row);
-            }
-            self::$quit = true;
+        // Providers
+        $swooleProcesses = [
+            'Providers',
+            'MasterLeagues',
+            'Leagues',
+            'Sports',
+            'MasterTeams',
+            'Teams',
+            'SportOddTypes',
+            'Events',
+            'MasterEvents',
+            'EventMarkets',
+            'MasterEventMarkets'
+        ];
+        foreach ($swooleProcesses as $process) {
+            $method = "db2Swt" . $process;
+            self::{$method}($swoole);
         }
+
+        $server = $swoole;
+        $table = $server->sportsTable;
+        foreach ($table as $key => $row) {
+            var_dump($key);
+            var_dump($row);
+        }
+        while (!self::$quit) {}
     }
 
     // Requirements: LaravelS >= v3.4.0 & callback() must be async non-blocking program.
@@ -56,7 +54,7 @@ class Data2SWT implements CustomProcessInterface
         $sports = Sport::getActiveSports()->get();
         $sportsTable = $swoole->sportsTable;
         array_map(function ($sport) use ($sportsTable) {
-            $sportsTable->set('sId:' . $sport['id'], ['sport' => $sport['sport']]);
+            $sportsTable->set('sId:' . $sport['id'], ['sport' => $sport['sport'], 'id' => $sport['id']]);
         }, $sports->toArray());
 
         // Odd Types
