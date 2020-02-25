@@ -1,4 +1,5 @@
 import Cookies from 'js-cookie'
+const token = Cookies.get('mltoken')
 
 const state = {
     selectedSport: null,
@@ -9,7 +10,8 @@ const state = {
     filteredColumnsBySport: [],
     oddsTypeBySport: [],
     columnsToDisplay: [],
-    checkedColumns: []
+    checkedColumns: [],
+    initialLeagues: []
 }
 
 const mutations = {
@@ -30,14 +32,15 @@ const mutations = {
     },
     SET_CHECKED_COLUMNS: (state, columns) => {
         state.checkedColumns = columns
+    },
+    SET_INITIAL_LEAGUES: (state, leagues) => {
+        state.initialLeagues = leagues
     }
 
 }
 
 const actions = {
     async getBetColumns({commit, dispatch, state, rootState}, selectedSport) {
-        let token = Cookies.get('mltoken')
-
         try {
             let response = await axios.get('v1/sports/odds', { headers: { 'Authorization': `Bearer ${token}` }})
             let settings = await dispatch('settings/getUserSettingsConfig', 'bet-columns',  { root: true })
@@ -51,6 +54,21 @@ const actions = {
         } catch(err) {
             dispatch('auth/checkIfTokenIsValid', err.response.data.status_code,  { root: true })
         }
+    },
+    getInitialLeagues({commit, dispatch, state}) {
+        return new Promise((resolve, reject) => {
+            axios.get('v1/trade/leagues', { headers: { 'Authorization': `Bearer ${token}` }})
+            .then(response => {
+                if(response.data.sport_id === state.selectedSport) {
+                    commit('SET_INITIAL_LEAGUES', response.data.data)
+                    resolve(state.initialLeagues)
+                }
+            })
+            .catch(err => {
+                dispatch('auth/checkIfTokenIsValid', err.response.data.status_code,  { root: true })
+                reject(err)
+            })
+        })
     }
 }
 
