@@ -137,6 +137,15 @@ return [
                 [ 'name' => 'timestamp',    'type' => \Swoole\Table::TYPE_INT ],
             ],
         ],
+        'rawLeagues'         => [ // key format [sportId:$sportId:provider:strtolower($providerAlias):league:slug($league)] = [id = $multiLeagueId, ...]
+               'size'   => 102400,
+               'column' => [
+                   [ 'name' => 'id',           'type' => \Swoole\Table::TYPE_INT ],
+                   [ 'name' => 'provider_id',  'type' => \Swoole\Table::TYPE_INT ],
+                   [ 'name' => 'sport_id',     'type' => \Swoole\Table::TYPE_INT ],
+                   [ 'name' => 'league', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 100 ],
+               ],
+        ],
         'teams'           => [ //key format [provider:strtolower($provider):team:slug($team)] = [id = $teamId, team_name = $teamName]
             'size'   => 102400,
             'column' => [

@@ -33,8 +33,7 @@ class Data2SWT
             ->get();
         $leaguesTable = app('swoole')->leaguesTable;
         array_map(function ($league) use ($leaguesTable) {
-            $leaguesTable->set(
-                implode(':', ['sportId:' . $league->sport_id, 'provider:' . strtolower($league->alias),  'league' . Str::slug($league->league)]),
+            $leaguesTable->set('sportId:' . $league->sport_id . ':provider:' . strtolower($league->alias) . ':league:' . Str::slug($league->league),
                 [
                     'id'           => $league->id,
                     'sport_id'     => $league->sport_id,
@@ -44,6 +43,23 @@ class Data2SWT
                     'match_count'  => 1,
                 ]
             );
+        }, $leagues->toArray());
+
+        // Raw Leagues
+        $leagues = DB::table('leagues')
+            ->join('providers', 'providers.id', 'leagues.provider_id')
+            ->join('sports', 'sports.id', 'leagues.sport_id')
+            ->select('providers.alias', 'leagues.league', 'leagues.sport_id', 'leagues.provider_id', 'leagues.id')
+            ->get();
+        $leaguesTable = app('swoole')->rawLeaguesTable;
+        array_map(function ($league) use ($leaguesTable) {
+            $leaguesTable->set('sportId:' . $league->sport_id . ':provider:' . strtolower($league->alias) . 'league:' . Str::slug($league->league),
+                [
+                    'id' => $league->id,
+                    'provider_id' => $league->provider_id,
+                    'sport_id' => $league->sport_id,
+                    'league' => $league->league
+                ]);
         }, $leagues->toArray());
 
         // Sports
@@ -94,8 +110,18 @@ class Data2SWT
             $sportOddTypesTable->set('sportId:' . Str::slug($sportOddType->sport_id). ':odd_type:' . Str::slug($sportOddType->type), ['id' => $sportOddType->id, 'sportId' => $sportOddType->sport_id, 'sport_odd_type_id' => $sportOddType->id, 'type' => $sportOddType->type]);
         }, $sportOddTypes->toArray());
 
+
+
+
+
+
+
+
+
+
+
         $server = app('swoole');
-        $table = $server->teamsTable;
+        $table = $server->rawLeaguesTable;
         foreach ($table as $key => $row) {
             var_dump($row);
         }
