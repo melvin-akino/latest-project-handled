@@ -77,18 +77,43 @@ class TradeController extends Controller
                         "game_schedule"  => "3",
                         "home_team_name" => "Los Angeles Lakers",
                         "away_team_name" => "Los Angeles Clippers",
-                        "ft_1x2"         => [
-                            "home" => 1.37,
-                            "away" => 4.90,
-                            "draw" => 5.24
+                        "1X2"         => [
+                            "home" => [
+                                'odds' => 1.37,
+                                'bet_id' => 'EFUWIHXIUEH'
+                            ],
+                            "away" => [
+                                'odds' => 1.43,
+                                'bet_id' => 'GFGRESDSDSD'
+                            ],
+                            "draw" => [
+                                'odds' => 3.73,
+                                'bet_id' => 'TEUIYUDHJFF'
+                            ],
                         ],
-                        "ft_hdp"         => [
-                            "home" => 1.63,
-                            "away" => 1.13
+                        "HDP"         => [
+                            "home" => [
+                                'odds' => 3.32,
+                                'points' => 2,
+                                'bet_id' => 'XIJHJGLKJLKD'
+                            ],
+                            "away" => [
+                                'odds' => 1.74,
+                                'points' => 2.5,
+                                'bet_id' => 'TEIOUWIENKDS'
+                            ]
                         ],
-                        "ft_ou"          => [
-                            "home" => 5.41,
-                            "away" => 3.31
+                        "OU"          => [
+                            "home" => [
+                                'odds' => 2.65,
+                                'points' => 'O 1.5',
+                                'bet_id' => 'GDSDKDJLKSDJ'
+                            ],
+                            "away" => [
+                                'odds' => 1.74,
+                                'points' => 'U 2.5',
+                                'bet_id' => 'FDFDAEFDFDSD'
+                            ]
                         ]
                     ],
                     [
@@ -96,18 +121,43 @@ class TradeController extends Controller
                         "game_schedule"  => "3",
                         "home_team_name" => "Cleveland Cavaliers",
                         "away_team_name" => "Indiana Pacers",
-                        "ft_1x2"         => [
-                            "home" => 3.15,
-                            "away" => 0.55,
-                            "draw" => 1.25
+                        "1X2"         => [
+                            "home" => [
+                                'odds' => 1.11,
+                                'bet_id' => 'EFUWIHXIUEH'
+                            ],
+                            "away" => [
+                                'odds' => 1.23,
+                                'bet_id' => 'GFGRESDSDSD'
+                            ],
+                            "draw" => [
+                                'odds' => 2.87,
+                                'bet_id' => 'TEUIYUDHJFF'
+                            ],
                         ],
-                        "ft_hdp"         => [
-                            "home" => 0.19,
-                            "away" => 0.81
+                        "HDP"         => [
+                            "home" => [
+                                'odds' => 1.45,
+                                'points' => 2,
+                                'bet_id' => 'XIJHJGLKJLKD'
+                            ],
+                            "away" => [
+                                'odds' => 4.34,
+                                'points' => 2.5,
+                                'bet_id' => 'TEIOUWIENKDS'
+                            ]
                         ],
-                        "ft_ou"          => [
-                            "home" => 3.85,
-                            "away" => 1.23
+                        "OU"          => [
+                            "home" => [
+                                'odds' => 2.76,
+                                'points' => 'O 1.5',
+                                'bet_id' => 'GDSDKDJLKSDJ'
+                            ],
+                            "away" => [
+                                'odds' => 1.74,
+                                'points' => 'U 2.5',
+                                'bet_id' => 'FDFDAEFDFDSD'
+                            ]
                         ]
                     ],
                 ],
@@ -117,23 +167,48 @@ class TradeController extends Controller
                         "game_schedule"  => "2",
                         "home_team_name" => "Chicago Bulls",
                         "away_team_name" => "Miami Heat",
-                        "ft_1x2"         => [
-                            "home" => 1.85,
-                            "away" => 0.33,
-                            "draw" => 2.70
+                        "1X2"         => [
+                            "home" => [
+                                'odds' => 1.32,
+                                'bet_id' => 'EFUWIHXIUEH'
+                            ],
+                            "away" => [
+                                'odds' => 1.34,
+                                'bet_id' => 'GFGRESDSDSD'
+                            ],
+                            "draw" => [
+                                'odds' => 2.12,
+                                'bet_id' => 'TEUIYUDHJFF'
+                            ],
                         ],
-                        "ft_hdp"         => [
-                            "home" => 3.70,
-                            "away" => 5.94
+                        "HDP"         => [
+                            "home" => [
+                                'odds' => 4.45,
+                                'points' => 2,
+                                'bet_id' => 'XIJHJGLKJLKD'
+                            ],
+                            "away" => [
+                                'odds' => 2.34,
+                                'points' => 2.5,
+                                'bet_id' => 'TEIOUWIENKDS'
+                            ]
                         ],
-                        "ft_ou"          => [
-                            "home" => 3.84,
-                            "away" => 4.96
+                        "OU"          => [
+                            "home" => [
+                                'odds' => 6.76,
+                                'points' => 'O 1.5',
+                                'bet_id' => 'GDSDKDJLKSDJ'
+                            ],
+                            "away" => [
+                                'odds' => 2.74,
+                                'points' => 'U 2.5',
+                                'bet_id' => 'FDFDAEFDFDSD'
+                            ]
                         ]
                     ]
                 ]
             ];
-
+            
             return response()->json([
                 'status'      => true,
                 'status_code' => 200,

@@ -1,13 +1,13 @@
 <template>
     <div class="column">
-        <div class="betColumns flex justify-around bg-gray-800 text-white text-xs fixed z-10 w-5/6 pl-6 pr-8" :class="[tradeLayout === '1' ? 'items-center py-2' : 'py-1']">
+        <div class="betColumns flex bg-gray-800 text-white text-xs fixed z-10 w-5/6 pl-6 pr-8" :class="[tradeLayout === '1' ? 'items-center py-2' : 'py-1']">
             <div class="w-2/12" v-if="tradeLayout==='1'"></div>
             <div class="w-1/12 text-center" v-if="tradeLayout==='1'">Sport</div>
             <div class="w-1/12 text-center" v-if="tradeLayout==='1'">Score & <br>Schedule</div>
             <div class="w-1/12 py-1 flex justify-center">
                 <button class="w-8 text-white text-center bg-orange-500 px-1 py-2 hover:bg-orange-600" @click="openColumnModal"><i class="fas fa-plus"></i></button>
             </div>
-            <div class="flex w-1/12 px-2" :class="[tradeLayout==='2' ? 'flex-col' : 'justify-center']" v-for="column in columnsToDisplay" :key="column.sport_odd_type_id">
+            <div class="flex w-1/12" :class="[tradeLayout==='2' ? 'flex-col mr-10 px-2' : 'justify-center pl-2']" v-for="column in columnsToDisplay" :key="column.sport_odd_type_id">
                 <span class="text-center">{{column.name}}</span>
                 <div class="flex justify-between" v-if="tradeLayout==='2'">
                     <span>{{column.home_label}}</span>
@@ -18,13 +18,15 @@
         </div>
         <div class="flex justify-center items-center fixed w-full h-full top-0 left-0 modalWrapper z-40" v-if="showToggleColumnsModal">
             <div class="bg-white w-64 p-8 modal">
-                <div class="mb-2" v-for="filteredColumn in filteredColumnsBySport" :key="filteredColumn.sport_odd_type_id">
-                    <label class="block text-gray-700 text-sm mb-2 font-bold uppercase">
-                        <input class="mr-2 leading-tight" type="checkbox" :value="filteredColumn.sport_odd_type_id" v-model="checkedColumns" @change="saveColumns()">
-                        <span class="text-sm uppercase">{{filteredColumn.name}}</span>
-                    </label>
-                </div>
-                <button class="bg-orange-500 hover:bg-orange-600 text-white text-sm uppercase px-4 py-2" @click="closeColumnModal">Save & Close</button>
+                <form @submit.prevent="saveColumns()">
+                    <div class="mb-2" v-for="filteredColumn in filteredColumnsBySport" :key="filteredColumn.sport_odd_type_id">
+                        <label class="block text-gray-700 text-sm mb-2 font-bold uppercase">
+                            <input class="mr-2 leading-tight" type="checkbox" :value="filteredColumn.sport_odd_type_id" v-model="checkedColumns">
+                            <span class="text-sm uppercase">{{filteredColumn.name}}</span>
+                        </label>
+                    </div>
+                    <button class="bg-orange-500 hover:bg-orange-600 text-white text-sm uppercase px-4 py-2" @click="closeColumnModal">Save & Close</button>
+                </form>
             </div>
         </div>
     </div>
@@ -39,15 +41,19 @@ export default {
     data() {
         return {
             showToggleColumnsModal: false,
-            checkedColumns: [],
-            filteredColumnsBySport: [],
-            columnsToDisplay: [],
-            test: []
         }
     },
     computed: {
-        ...mapState('trade', ['selectedSport', 'tradeLayout']),
-        ...mapState('settings', ['disabledBetColumns'])
+        ...mapState('trade', ['selectedSport', 'tradeLayout', 'filteredColumnsBySport', 'columnsToDisplay', 'oddsTypeBySport']),
+        ...mapState('settings', ['disabledBetColumns']),
+        checkedColumns: {
+            get() {
+                return this.$store.state.trade.checkedColumns
+            },
+            set(value) {
+                this.$store.commit('trade/SET_CHECKED_COLUMNS', value)
+            }
+        }
     },
     mounted() {
         this.getBetColumns()
@@ -64,21 +70,8 @@ export default {
                 text: 'Saved Changes!'
             })
         },
-        async getBetColumns() {
-            let token = Cookies.get('mltoken')
-
-            try {
-                let response = await axios.get('v1/sports/odds', { headers: { 'Authorization': `Bearer ${token}` }})
-                let settings = await this.$store.dispatch('settings/getUserSettingsConfig', 'bet-columns')
-                let betColumns = response.data.data
-                let { disabled_columns } = settings
-                this.$store.commit('settings/FETCH_DISABLED_COLUMNS', disabled_columns)
-                betColumns.filter(column => column.sport_id === this.selectedSport).map(column => this.filteredColumnsBySport = column.odds)
-                this.columnsToDisplay = this.filteredColumnsBySport.filter(column => !this.disabledBetColumns.includes(column.sport_odd_type_id))
-                this.checkedColumns = this.columnsToDisplay.map(column => column.sport_odd_type_id)
-            } catch(err) {
-                this.$store.dispatch('auth/checkIfTokenIsValid', err.response.data.status_code)
-            }
+        getBetColumns() {
+            this.$store.dispatch('trade/getBetColumns', this.selectedSport)
         },
         saveColumns() {
             let token = Cookies.get('mltoken')
@@ -103,7 +96,6 @@ export default {
 
 <style>
     .betColumns {
-        right: 10px;
         height: 52px;
     }
 
@@ -112,7 +104,7 @@ export default {
     }
 
     .modal {
-        height: 350px;
+        overflow: auto;
     }
 
     .modalBtn {

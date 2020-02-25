@@ -4,7 +4,7 @@
             <div class="w-1/6">
                 <div class="fixed sidebar bg-gray-800 w-1/6 h-screen pr-4">
                     <Wallet></Wallet>
-                    <Watchlist :watchlist="watchlist"></Watchlist>
+                    <Watchlist :watchlist="events.watchlist"></Watchlist>
                     <Sports></Sports>
                 </div>
             </div>
@@ -12,10 +12,10 @@
             <div class="w-5/6">
                 <Columns></Columns>
                 <div class="gameScheds pb-4">
-                    <Games gameSchedType="watchlist" :games="watchlist"></Games>
-                    <Games gameSchedType="in-play" :games="watchlist"></Games>
-                    <Games gameSchedType="today"></Games>
-                    <Games gameSchedType="early"></Games>
+                    <Games gameSchedType="watchlist" :games="events.watchlist"></Games>
+                    <Games gameSchedType="in-play" :games="events.inplay"></Games>
+                    <Games gameSchedType="today" :games="events.today"></Games>
+                    <Games gameSchedType="early" :games="events.early"></Games>
                 </div>
             </div>
         </div>
@@ -44,7 +44,12 @@ export default {
     },
     data () {
         return {
-            watchlist: []
+            events: {
+                watchlist: [],
+                inplay: [],
+                today: [],
+                early: []
+            }
         }
     },
     head: {
@@ -85,7 +90,7 @@ export default {
             let token = Cookies.get('mltoken')
 
             axios.get('v1/trade/watchlist', { headers: { 'Authorization': `Bearer ${token}` }})
-            .then(response => this.watchlist = response.data.data)
+            .then(response => this.events.watchlist = response.data.data)
             .catch(err => this.$store.dispatch('auth/checkIfTokenIsValid', err.response.data.status_code))
         }
     },
