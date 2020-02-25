@@ -15,31 +15,32 @@ class Data2SWT implements CustomProcessInterface
 
     public static function callback(Server $swoole, Process $process)
     {
-        // Providers
-        $swooleProcesses = [
-            'Providers',
-            'MasterLeagues',
-            'Leagues',
-            'Sports',
-            'MasterTeams',
-            'Teams',
-            'SportOddTypes',
-            'Events',
-            'MasterEvents'
-        ];
-        foreach ($swooleProcesses as $process) {
-            $method = "db2Swt" . $process;
-            self::{$method}($swoole);
-        }
+        while (!self::$quit) {
+            // Providers
+            $swooleProcesses = [
+                'Providers',
+                'MasterLeagues',
+                'Leagues',
+                'Sports',
+                'MasterTeams',
+                'Teams',
+                'SportOddTypes',
+                'Events',
+                'MasterEvents'
+            ];
+            foreach ($swooleProcesses as $process) {
+                $method = "db2Swt" . $process;
+                self::{$method}($swoole);
+            }
 
-        $server = $swoole;
-        $table = $server->eventsTable;
-        foreach ($table as $key => $row) {
-            var_dump($key);
-            var_dump($row);
+            $server = $swoole;
+            $table = $server->eventsTable;
+            foreach ($table as $key => $row) {
+                var_dump($key);
+                var_dump($row);
+            }
+            self::$quit = true;
         }
-
-        self::$quit = true;
     }
 
     // Requirements: LaravelS >= v3.4.0 & callback() must be async non-blocking program.
@@ -208,7 +209,7 @@ class Data2SWT implements CustomProcessInterface
             ->get();
         $masterEventsTable = $swoole->eventsTable;
         array_map(function ($event) use ($masterEventsTable) {
-            $masterEventsTable->set('provider:' . strtolower($event->alias) . ':eventIdentifier:' . $event->event_identifier,
+            $masterEventsTable->set('sportId:' . $event->sport_id . ':provider:' . strtolower($event->alias) . ':eventIdentifier:' . $event->event_identifier,
                 [
                     'id'                     => $event->id,
                     'master_league_id'       => $event->master_league_id,
@@ -218,7 +219,8 @@ class Data2SWT implements CustomProcessInterface
                     'master_team_away_id'    => $event->master_team_away_id,
                     'provider_id'            => $event->provider_id,
                     'reference_schedule'     => $event->reference_schedule,
-                    'multi_league'           => $event->multi_league
+                    'multi_league'           => $event->multi_league,
+                    'event_identifier'       => $event->event_identifier
                 ]);
         }, $masterEvents->toArray());
     }
