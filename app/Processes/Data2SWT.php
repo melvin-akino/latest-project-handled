@@ -23,7 +23,8 @@ class Data2SWT implements CustomProcessInterface
             'Sports',
             'MasterTeams',
             'Teams',
-            'SportOddTypes'
+            'SportOddTypes',
+            'Events'
         ];
         foreach ($swooleProcesses as $process) {
             $method = "db2Swt" . $process;
@@ -31,8 +32,9 @@ class Data2SWT implements CustomProcessInterface
         }
 
         $server = $swoole;
-        $table = $server->rawLeaguesTable;
+        $table = $server->rawEventsTable;
         foreach ($table as $key => $row) {
+            var_dump($key);
             var_dump($row);
         }
 
@@ -161,5 +163,29 @@ class Data2SWT implements CustomProcessInterface
                     'type'              => $sportOddType->type
                 ]);
         }, $sportOddTypes->toArray());
+    }
+
+    private static function db2SwtEvents(Server $swoole)
+    {
+        $events = DB::table('events')
+            ->join('providers', 'providers.id', 'events.provider_id')
+            ->join('sports', 'sports.id', 'events.sport_id')
+            ->join('leagues', 'leagues.id', 'events.league_id')
+            ->select('events.id', 'events.event_identifier', 'events.provider_id', 'providers.alias', 'events.league_id', 'events.sport_id', 'events.reference_schedule', 'events.team_home_id', 'events.team_away_id', 'leagues.league')
+            ->get();
+        $rawEventsTable = $swoole->rawEventsTable;
+        array_map(function ($event) use ($rawEventsTable) {
+            $rawEventsTable->set('provider:' . strtolower($event->alias) . ':league:' . Str::slug($event->league) . ':eventIdentifier:' . $event->event_identifier,
+                [
+                    'id'                 => $event->id,
+                    'league_id'          => $event->league_id,
+                    'event_identifier'   => $event->event_identifier,
+                    'sport_id'           => $event->sport_id,
+                    'team_home_id'       => $event->team_home_id,
+                    'team_away_id'       => $event->team_away_id,
+                    'provider_id'        => $event->provider_id,
+                    'reference_schedule' => $event->reference_schedule
+                ]);
+        }, $events->toArray());
     }
 }

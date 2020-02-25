@@ -198,12 +198,17 @@ return [
             ],
         ],
         /** COLLECTED TABLES */
-        'events'     => [
+        'rawEvents'     => [
             'size'   => 102400,
             'column' => [
-                [ 'name' => 'id',               'type' => \Swoole\Table::TYPE_INT ],
-                [ 'name' => 'league_id',        'type' => \Swoole\Table::TYPE_INT ],
-                [ 'name' => 'event_identifier', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 20 ],
+                [ 'name' => 'id',                 'type' => \Swoole\Table::TYPE_INT ],
+                [ 'name' => 'league_id',          'type' => \Swoole\Table::TYPE_INT ],
+                [ 'name' => 'event_identifier',   'type' => \Swoole\Table::TYPE_STRING, 'size' => 20 ],
+                [ 'name' => 'sport_id',           'type' => \Swoole\Table::TYPE_INT ],
+                [ 'name' => 'team_home_id',       'type' => \Swoole\Table::TYPE_INT ],
+                [ 'name' => 'team_away_id',       'type' => \Swoole\Table::TYPE_INT ],
+                [ 'name' => 'provider_id',        'type' => \Swoole\Table::TYPE_INT ],
+                [ 'name' => 'reference_schedule', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 30 ],
             ],
         ],
         'event_markets' => [
