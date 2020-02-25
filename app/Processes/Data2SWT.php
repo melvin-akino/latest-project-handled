@@ -26,7 +26,8 @@ class Data2SWT implements CustomProcessInterface
                 'Teams',
                 'SportOddTypes',
                 'Events',
-                'MasterEvents'
+                'MasterEvents',
+                'EventMarkets'
             ];
             foreach ($swooleProcesses as $process) {
                 $method = "db2Swt" . $process;
@@ -34,7 +35,7 @@ class Data2SWT implements CustomProcessInterface
             }
 
             $server = $swoole;
-            $table = $server->eventsTable;
+            $table = $server->eventMarketsTable;
             foreach ($table as $key => $row) {
                 var_dump($key);
                 var_dump($row);
@@ -223,5 +224,33 @@ class Data2SWT implements CustomProcessInterface
                     'event_identifier'       => $event->event_identifier
                 ]);
         }, $masterEvents->toArray());
+    }
+
+    private static function db2SwtEventMarkets(Server $swoole)
+    {
+        $eventMarkets = DB::table('event_markets')
+            ->join('events', 'events.id', 'event_markets.event_id')
+            ->join('providers', 'providers.id', 'events.provider_id')
+            ->join('odd_types', 'odd_types.id', 'event_markets.odd_type_id')
+            ->select('event_markets.id', 'event_markets.event_id', 'event_markets.odd_type_id',
+                'events.provider_id', 'providers.alias', 'event_markets.odds',
+                'event_markets.odd_label', 'event_markets.bet_identifier', 'event_markets.is_main',
+                'event_markets.market_flag', 'events.event_identifier')
+            ->get();
+        $eventMarketsTable = $swoole->eventMarketsTable;
+        array_map(function ($eventMarket) use ($eventMarketsTable) {
+            $eventMarketsTable->set('provider:' . strtolower($eventMarket->alias) . ':eventIdentifier:' . $eventMarket->event_identifier,
+                [
+                    'id'             => $eventMarket->id,
+                    'event_id'       => $eventMarket->event_id,
+                    'odd_type_id'    => $eventMarket->odd_type_id,
+                    'provider_id'    => $eventMarket->provider_id,
+                    'odds'           => $eventMarket->odds,
+                    'odd_label'      => $eventMarket->odd_label,
+                    'bet_identifier' => $eventMarket->bet_identifier,
+                    'is_main'        => $eventMarket->is_main,
+                    'market_flag'    => $eventMarket->market_flag,
+                ]);
+        }, $eventMarkets->toArray());
     }
 }

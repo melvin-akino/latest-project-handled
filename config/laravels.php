@@ -81,28 +81,6 @@ return [
                                  ['name' => 'value', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 5000],
                     ],
         ],
-        'clients'    => [// The Key is table name, will add suffix "Table" to avoid naming conflicts. Here defined a table named "wsTable"
-             'size'   => 102400,// The max size
-             'column' => [// Define the columns
-                  ['name' => 'sid',     'type' => \Swoole\Table::TYPE_STRING, 'size' => 100],
-                  ['name' => 'user_id', 'type' => \Swoole\Table::TYPE_INT, 'size' => 999999],
-             ],
-        ],
-        'rooms'      => [// The Key is table name, will add suffix "Table" to avoid naming conflicts. Here defined a table named "wsTable"
-             'size'   => 102400,// The max size
-             'column' => [// Define the columns
-                  ['name' => 'room_name', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 100],
-             ],
-        ],
-        'clientRoom' => [// The Key is table name, will add suffix "Table" to avoid naming conflicts. Here defined a table named "wsTable"
-             'size'   => 102400,// The max size
-             'column' => [// Define the columns
-                  ['name' => 'sid',       'type' => \Swoole\Table::TYPE_STRING, 'size' => 100],
-                  ['name' => 'room_name', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 100],
-             ],
-        ],
-        /** DATABASE TABLES */
-        /** LOOK-UP TABLES */
         'oddTypes'       => [ // key format [oddType:$oddType] => [id = $id, type = $oddType]
             'size'   => 102400,
             'column' => [
@@ -160,44 +138,13 @@ return [
             ],
         ],
         'rawTeams'           => [ //key format [provider:strtolower($provider):team:slug($team)] = [id = $teamId, team_name = $teamName]
-                               'size'   => 102400,
-                               'column' => [
-                                   [ 'name' => 'id',          'type' => \Swoole\Table::TYPE_INT ],
-                                   [ 'name' => 'team',   'type' => \Swoole\Table::TYPE_STRING, 'size' => 100 ],
-                                   [ 'name' => 'provider_id',   'type' => \Swoole\Table::TYPE_INT ],
-                               ],
+           'size'   => 102400,
+           'column' => [
+               [ 'name' => 'id',          'type' => \Swoole\Table::TYPE_INT ],
+               [ 'name' => 'team',   'type' => \Swoole\Table::TYPE_STRING, 'size' => 100 ],
+               [ 'name' => 'provider_id',   'type' => \Swoole\Table::TYPE_INT ],
+           ],
         ],
-        /** PIVOT TABLES */
-        'event_team_links'    => [
-            'size'   => 102400,
-            'column' => [
-                [ 'name' => 'team_id',   'type' => \Swoole\Table::TYPE_INT ],
-                [ 'name' => 'event_id',  'type' => \Swoole\Table::TYPE_INT ],
-                [ 'name' => 'team_flag', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 4 ],
-            ],
-        ],
-        'master_event_links'  => [
-            'size' => 102400,
-            'column' => [
-                [ 'name' => 'event_id',            'type' => \Swoole\Table::TYPE_INT ],
-                [ 'name' => 'event_match_link_id', 'type' => \Swoole\Table::TYPE_INT ],
-            ],
-        ],
-        'master_league_links' => [
-            'size'   => 102400,
-            'column' => [
-                [ 'name' => 'league_id',        'type' => \Swoole\Table::TYPE_INT ],
-                [ 'name' => 'master_league_id', 'type' => \Swoole\Table::TYPE_INT ],
-            ],
-        ],
-        'master_team_links'   => [
-            'size' => 102400,
-            'column' => [
-                [ 'name' => 'team_id',        'type' => \Swoole\Table::TYPE_INT ],
-                [ 'name' => 'master_team_id', 'type' => \Swoole\Table::TYPE_INT ],
-            ],
-        ],
-        /** COLLECTED TABLES */
         'rawEvents'     => [ //key format [provider:strtolower($provider):league:slug($league):eventIdentifier:$eventIdentifier] = [id = $id, ...]
             'size'   => 102400,
             'column' => [
@@ -225,17 +172,18 @@ return [
                 [ 'name' => 'multi_league',             'type' => \Swoole\Table::TYPE_STRING, 'size' => 100 ],
             ],
         ],
-        'event_markets' => [
+        'eventMarkets' => [
             'size'   => 102400,
             'column' => [
-                [ 'name' => 'id',                      'type' => \Swoole\Table::TYPE_INT ],
-                [ 'name' => 'master_events_unique_id', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 30 ],
-                [ 'name' => 'odds_type_id',            'type' => \Swoole\Table::TYPE_INT ],
-                [ 'name' => 'odds',                    'type' => \Swoole\Table::TYPE_FLOAT ],
-                [ 'name' => 'odd_label',               'type' => \Swoole\Table::TYPE_STRING, 'size' => 10 ],
-                [ 'name' => 'bet_identifier',          'type' => \Swoole\Table::TYPE_STRING, 'size' => 30 ],
-                [ 'name' => 'is_main',                 'type' => \Swoole\Table::TYPE_INT,    'size' => 1 ],
-                [ 'name' => 'market_flag',             'type' => \Swoole\Table::TYPE_STRING, 'size' => 5 ],
+                [ 'name' => 'id',                       'type' => \Swoole\Table::TYPE_INT ],
+                [ 'name' => 'event_id',                 'type' => \Swoole\Table::TYPE_INT ],
+                [ 'name' => 'odd_type_id',              'type' => \Swoole\Table::TYPE_INT ],
+                [ 'name' => 'provider_id',              'type' => \Swoole\Table::TYPE_FLOAT ],
+                [ 'name' => 'odds',                     'type' => \Swoole\Table::TYPE_FLOAT ],
+                [ 'name' => 'odd_label',                'type' => \Swoole\Table::TYPE_STRING, 'size' => 10 ],
+                [ 'name' => 'bet_identifier',           'type' => \Swoole\Table::TYPE_INT,    'size' => 30 ],
+                [ 'name' => 'is_main',                  'type' => \Swoole\Table::TYPE_INT,    'size' => 1 ],
+                [ 'name' => 'market_flag',              'type' => \Swoole\Table::TYPE_STRING, 'size' => 5 ],
             ],
         ],
         'master_events'  => [
@@ -249,21 +197,76 @@ return [
                 [ 'name' => 'master_event_away_id',   'type' => \Swoole\Table::TYPE_INT ],
             ],
         ],
-        'master_leagues' => [
-            'size' => 102400,
-            'column' => [
-                [ 'name' => 'id',           'type' => \Swoole\Table::TYPE_INT ],
-                [ 'name' => 'multi_league', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 100 ],
-                [ 'name' => 'sport_id',     'type' => \Swoole\Table::TYPE_INT ],
-            ],
-        ],
-        'master_teams'   => [
-            'size' => 102400,
-            'column' => [
-                [ 'name' => 'id',             'type' => \Swoole\Table::TYPE_INT ],
-                [ 'name' => 'multi_teamname', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 100 ],
-            ],
-        ],
+        /** PIVOT TABLES */
+//        'event_team_links'    => [
+//            'size'   => 102400,
+//            'column' => [
+//                [ 'name' => 'team_id',   'type' => \Swoole\Table::TYPE_INT ],
+//                [ 'name' => 'event_id',  'type' => \Swoole\Table::TYPE_INT ],
+//                [ 'name' => 'team_flag', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 4 ],
+//            ],
+//        ],
+//        'master_event_links'  => [
+//            'size' => 102400,
+//            'column' => [
+//                [ 'name' => 'event_id',            'type' => \Swoole\Table::TYPE_INT ],
+//                [ 'name' => 'event_match_link_id', 'type' => \Swoole\Table::TYPE_INT ],
+//            ],
+//        ],
+//        'master_league_links' => [
+//            'size'   => 102400,
+//            'column' => [
+//                [ 'name' => 'league_id',        'type' => \Swoole\Table::TYPE_INT ],
+//                [ 'name' => 'master_league_id', 'type' => \Swoole\Table::TYPE_INT ],
+//            ],
+//        ],
+//        'master_team_links'   => [
+//            'size' => 102400,
+//            'column' => [
+//                [ 'name' => 'team_id',        'type' => \Swoole\Table::TYPE_INT ],
+//                [ 'name' => 'master_team_id', 'type' => \Swoole\Table::TYPE_INT ],
+//            ],
+//        ],
+        /** COLLECTED TABLES */
+//        'event_markets' => [
+//            'size'   => 102400,
+//            'column' => [
+//                [ 'name' => 'id',                      'type' => \Swoole\Table::TYPE_INT ],
+//                [ 'name' => 'master_events_unique_id', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 30 ],
+//                [ 'name' => 'odds_type_id',            'type' => \Swoole\Table::TYPE_INT ],
+//                [ 'name' => 'odds',                    'type' => \Swoole\Table::TYPE_FLOAT ],
+//                [ 'name' => 'odd_label',               'type' => \Swoole\Table::TYPE_STRING, 'size' => 10 ],
+//                [ 'name' => 'bet_identifier',          'type' => \Swoole\Table::TYPE_STRING, 'size' => 30 ],
+//                [ 'name' => 'is_main',                 'type' => \Swoole\Table::TYPE_INT,    'size' => 1 ],
+//                [ 'name' => 'market_flag',             'type' => \Swoole\Table::TYPE_STRING, 'size' => 5 ],
+//            ],
+//        ],
+//        'master_events'  => [
+//            'size' => 102400,
+//            'column' => [
+//                [ 'name' => 'id',                     'type' => \Swoole\Table::TYPE_INT ],
+//                [ 'name' => 'sport_id',               'type' => \Swoole\Table::TYPE_INT ],
+//                [ 'name' => 'master_event_unique_id', 'type' => \Swoole\Table::TYPE_INT ],
+//                [ 'name' => 'master_league_id',       'type' => \Swoole\Table::TYPE_INT ],
+//                [ 'name' => 'master_event_home_id',   'type' => \Swoole\Table::TYPE_INT ],
+//                [ 'name' => 'master_event_away_id',   'type' => \Swoole\Table::TYPE_INT ],
+//            ],
+//        ],
+//        'master_leagues' => [
+//            'size' => 102400,
+//            'column' => [
+//                [ 'name' => 'id',           'type' => \Swoole\Table::TYPE_INT ],
+//                [ 'name' => 'multi_league', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 100 ],
+//                [ 'name' => 'sport_id',     'type' => \Swoole\Table::TYPE_INT ],
+//            ],
+//        ],
+//        'master_teams'   => [
+//            'size' => 102400,
+//            'column' => [
+//                [ 'name' => 'id',             'type' => \Swoole\Table::TYPE_INT ],
+//                [ 'name' => 'multi_teamname', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 100 ],
+//            ],
+//        ],
         /** /DATABASE TABLES */
     ],
     'register_providers'       => [
