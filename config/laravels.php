@@ -198,7 +198,7 @@ return [
             ],
         ],
         /** COLLECTED TABLES */
-        'rawEvents'     => [
+        'rawEvents'     => [ //key format [provider:strtolower($provider):league:slug($league):eventIdentifier:$eventIdentifier] = [id = $id, ...]
             'size'   => 102400,
             'column' => [
                 [ 'name' => 'id',                 'type' => \Swoole\Table::TYPE_INT ],
@@ -211,7 +211,7 @@ return [
                 [ 'name' => 'reference_schedule', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 30 ],
             ],
         ],
-        'events'     => [
+        'events'     => [ //key format [provider:strtolower($provider):eventIdentifier:$eventIdentifier] = [id = $id, ...]
             'size'   => 102400,
             'column' => [
                 [ 'name' => 'id',                       'type' => \Swoole\Table::TYPE_INT ],
