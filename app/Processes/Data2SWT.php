@@ -34,11 +34,11 @@ class Data2SWT implements CustomProcessInterface
             self::{$method}($swoole);
         }
 
-        $table = app('swoole')->eventsTable;
-        foreach ($table as $key => $row) {
-            var_dump($key);
-            var_dump($row);
-        }
+//        $table = app('swoole')->rawLeaguesTable;
+//        foreach ($table as $key => $row) {
+//            var_dump(['testing' => $key]);
+//            var_dump($row);
+//        }
         while (!self::$quit) {}
     }
 
