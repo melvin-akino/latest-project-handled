@@ -89,7 +89,7 @@ class OddsRequestCommand extends Command
     {
         foreach ($this->providers as $provider) {
             foreach ($this->sports as $sport) {
-                $uid = uniqid()
+                $uid = uniqid();
 
                 $payload = [
                     'request_uid' => $uid,

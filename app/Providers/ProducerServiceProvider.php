@@ -21,8 +21,6 @@ class ProducerServiceProvider extends ServiceProvider
 
         $conf->set('metadata.broker.list', env('KAFKA_BROKERS', 'kafka:9092'));
 
-        $conf->set('compression.type', 'snappy');
-
         $conf->set('auto.offset.reset', 'smallest');
 
         $conf->set('enable.auto.commit', 'false');
