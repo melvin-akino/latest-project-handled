@@ -106,7 +106,7 @@ class OddsRequestCommand extends Command
                     'sport'    => $sport->id
                 ];
 
-                $this->pushToKafka($payload, $uid, $provider->alias);
+                $this->pushToKafka($payload, $uid, strtolower($provider->alias) . $this->kafkaTopic);
             }
         }
     }
@@ -145,10 +145,10 @@ class OddsRequestCommand extends Command
      * @param  string $key
      * @return void
      */
-    private function pushToKafka(array $message = [], string $key, string $provider = 'hg')
+    private function pushToKafka(array $message = [], string $key, string $kafkaTopic)
     {
         try {
-            $this->producerHandler->setTopic(strtolower($provider) . $this->kafkaTopic)
+            $this->producerHandler->setTopic( $kafkaTopic)
                 ->send(json_encode($message), $key);
         } catch (Exception $e) {
             Log::critical(self::PUBLISH_ERROR_MESSAGE, [
