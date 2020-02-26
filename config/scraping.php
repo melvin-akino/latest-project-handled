@@ -9,7 +9,7 @@ return [
     |
     |
     */
-    'schedule_mapping' => [
+    'scheduleMapping' => [
         'inplay' => [
             'SCHEDULE_INPLAY_TIMER',
             'INTERVAL_REQ_PER_EXEC_INPLAY',
@@ -27,18 +27,18 @@ return [
         ],
     ],
 
-    'schedule_mapping_field' => [
-        'SCHEDULE_INPLAY_TIMER' => 'timer',
-        'INTERVAL_REQ_PER_EXEC_INPLAY' => 'requestInterval',
+    'scheduleMappingField' => [
+        'SCHEDULE_INPLAY_TIMER'           => 'timer',
+        'INTERVAL_REQ_PER_EXEC_INPLAY'    => 'requestInterval',
         'NUM_OF_REQ_PER_EXECUTION_INPLAY' => 'requestNumber',
-        'SCHEDULE_TODAY_TIMER' => 'timer',
-        'INTERVAL_REQ_PER_EXEC_TODAY' => 'requestInterval',
-        'NUM_OF_REQ_PER_EXECUTION_TODAY' => 'requestNumber',
-        'SCHEDULE_EARLY_TIMER' => 'timer',
-        'INTERVAL_REQ_PER_EXEC_EARLY' => 'requestInterval',
-        'NUM_OF_REQ_PER_EXECUTION_EARLY' => 'requestNumber',
+        'SCHEDULE_TODAY_TIMER'            => 'timer',
+        'INTERVAL_REQ_PER_EXEC_TODAY'     => 'requestInterval',
+        'NUM_OF_REQ_PER_EXECUTION_TODAY'  => 'requestNumber',
+        'SCHEDULE_EARLY_TIMER'            => 'timer',
+        'INTERVAL_REQ_PER_EXEC_EARLY'     => 'requestInterval',
+        'NUM_OF_REQ_PER_EXECUTION_EARLY'  => 'requestNumber',
     ],
 
-    'refresh_db_interval' => 60 * 10,
+    'refreshDBInterval' => 60 * 10,
 
 ];
