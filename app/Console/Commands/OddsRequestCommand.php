@@ -31,9 +31,11 @@ class OddsRequestCommand extends Command
      */
     protected $producerHandler;
 
-    private $select;
+    private $scheduleMapping;
 
-    private $variable;
+    private $scheduleMappingField;
+
+    private $refreshDBInterval;
 
     public function __construct(ProducerHandler $producerHandler)
     {
@@ -49,23 +51,23 @@ class OddsRequestCommand extends Command
 
         $this->systemConfiguration = new SystemConfiguration();
 
-        $this->schedule_mapping = config('scraping.schedule_mapping');
+        $this->scheduleMapping = config('scraping.scheduleMapping');
 
-        $this->schedule_mapping_field = config('scraping.schedule_mapping_field');
+        $this->scheduleMappingField = config('scraping.scheduleMappingField');
 
-        $refresh_db_interval = config('scraping.refresh_db_interval');
+        $refreshDBInterval = config('scraping.refreshDBInterval');
 
         $i = 0;
         while (true) {
-            if ($i % $refresh_db_interval == 0) {
+            if ($i % $refreshDBInterval == 0) {
                 $this->refresh_db_config();
             }
 
             $request = [];
-            foreach ($this->schedule_mapping as $key => $scheduleType) {
+            foreach ($this->scheduleMapping as $key => $scheduleType) {
                 foreach ($this->config as $conf) {
                     if (in_array($conf['type'], $scheduleType)) {
-                        $request[$key][$this->schedule_mapping_field[$conf['type']]] = $conf['value'];
+                        $request[$key][$this->scheduleMappingField[$conf['type']]] = $conf['value'];
                     }
                 }
             }
@@ -127,7 +129,7 @@ class OddsRequestCommand extends Command
     private function refresh_db_config()
     {
         $this->systemConfiguration->where(true, true);
-        foreach ($this->schedule_mapping as $scheduleType) {
+        foreach ($this->scheduleMapping as $scheduleType) {
             foreach ($scheduleType as $where) {
                 $this->systemConfiguration->orWhere('type', $where);
             }
