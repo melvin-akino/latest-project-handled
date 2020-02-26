@@ -25,17 +25,17 @@ return [
     ],
     'sockets'                  => [],
     'processes'                => [
-        'kafka_consume' => [
-            'class'    => \App\Processes\KafkaConsume::class,
-            'redirect' => false,
-            'pipe' => 0,
-            'enable' => env('LARAVELS_KAFKA_CONSUME', true)
-        ],
         'data2swt' => [
             'class'    => \App\Processes\Data2SWT::class,
             'redirect' => false,
             'pipe' => 0,
             'enable' => env('LARAVELS_DATA2SWT', true)
+        ],
+        'kafka_consume' => [
+            'class'    => \App\Processes\KafkaConsume::class,
+            'redirect' => false,
+            'pipe' => 0,
+            'enable' => env('LARAVELS_KAFKA_CONSUME', true)
         ],
     ],
     'timer'                    => [
@@ -105,7 +105,7 @@ return [
                 [ 'name' => 'type',              'type' => \Swoole\Table::TYPE_STRING, 'size' => 20 ],
             ],
         ],
-        'leagues'         => [ // key format [sId:$sportId:pId:$providerId:lId:$leagueId] = [id = $multiLeagueId, ...]
+        'leagues'         => [ // key format [sId:$sportId:pId:$providerId:league:$rawLeague] = [id = $multiLeagueId, ...]
             'size'   => 102400,
             'column' => [
                 [ 'name' => 'id',           'type' => \Swoole\Table::TYPE_INT ],

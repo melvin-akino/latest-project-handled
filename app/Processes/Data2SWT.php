@@ -34,7 +34,7 @@ class Data2SWT implements CustomProcessInterface
             self::{$method}($swoole);
         }
 
-//        $table = $swoole->sportsTable;
+//        $table = app('swoole')->rawLeaguesTable;
 //        foreach ($table as $key => $row) {
 //            var_dump($key);
 //            var_dump($row);
@@ -104,7 +104,7 @@ class Data2SWT implements CustomProcessInterface
             ->get();
         $leaguesTable = $swoole->leaguesTable;
         array_map(function ($league) use ($leaguesTable) {
-            $leaguesTable->set('sId:' . $league->sport_id . ':pId:' . $league->provider_id . ':lId:' . $league->league_id,
+            $leaguesTable->set('sId:' . $league->sport_id . ':pId:' . $league->provider_id . ':league:' . Str::slug($league->league),
                 [
                     'id'           => $league->id,
                     'sport_id'     => $league->sport_id,

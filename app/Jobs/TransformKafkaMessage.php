@@ -100,8 +100,15 @@ class TransformKafkaMessage implements ShouldQueue
         ]);
 
         if ($rawLeaguesTable->exist($rawLeagueSwtId)) {
-            $rawLeagueId = $rawLeaguesTable->get($rawLeagueSwtId)['id'];
+            $rawLeagueId = $rawLeaguesTable->get($rawLeagueSwtId)['id'];var_dump($rawLeagueId);
         } else {
+            $leagueModel = League::create([
+                'sport_id' => $sportId,
+                'provider_id' => $providerId,
+                'league' => $this->message->data->leagueName
+            ]);
+            $rawLeagueId = $leagueModel->id;
+
             /** TODO: Insert to DB */
             $toInsert['raw_leagues'] = [];
             $toTransform             = false;
@@ -113,21 +120,19 @@ class TransformKafkaMessage implements ShouldQueue
          * @ref config.laravels.leagues
          *
          * @var $leaguesTable    swoole_table
-         *      $leagueSwtId     swoole_table_key    "sId:<$sportId>:pId:<$providerId>:lId:<$rawLeagueId>"
+         *      $leagueSwtId     swoole_table_key    "sId:<$sportId>:pId:<$providerId>:league:<slug($rawLeague)>"
          *      $multiLeagueId   swoole_table_value  int
          */
         $leagueSwtId = implode(':', [
             "sId:" . $sportId,
             "pId:" . $providerId,
-            "lId:" . $rawLeagueId
+            "league:" . Str::slug($this->message->data->leagueName)
         ]);
 
         if ($leaguesTable->exists($leagueSwtId)) {
             $multiLeagueId   = $leaguesTable->get($leagueSwtId)['id'];
             $multiLeagueName = $leaguesTable->get($leagueSwtId)['multi_league'];
         } else {
-            /** TODO: Insert to DB */
-            $toInsert['master_leagues'] = [];
             $toTransform = false;
         }
 
@@ -171,7 +176,7 @@ class TransformKafkaMessage implements ShouldQueue
              */
             $teamSwtId = implode(':', [
                 "pId:"       . $providerId,
-                "team:" . Str::slug($rawTeamName)
+                "team:" . Str::slug($competitors[$key])
             ]);
 
             if ($teamsTable->exists($teamSwtId)) {
