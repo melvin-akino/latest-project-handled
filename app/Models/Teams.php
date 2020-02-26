@@ -9,7 +9,7 @@ class Teams extends Model
     protected $table = "teams";
 
     protected $fillable = [
-        'teams',
+        'team',
         'provider_id',
     ];
 

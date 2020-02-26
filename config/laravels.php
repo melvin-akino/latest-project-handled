@@ -164,7 +164,6 @@ return [
                 [ 'name' => 'sport_id',               'type' => \Swoole\Table::TYPE_INT ],
                 [ 'name' => 'master_team_home_id',    'type' => \Swoole\Table::TYPE_INT ],
                 [ 'name' => 'master_team_away_id',    'type' => \Swoole\Table::TYPE_INT ],
-                [ 'name' => 'provider_id',            'type' => \Swoole\Table::TYPE_INT ],
                 [ 'name' => 'reference_schedule',     'type' => \Swoole\Table::TYPE_STRING, 'size' => 30 ],
                 [ 'name' => 'multi_league',           'type' => \Swoole\Table::TYPE_STRING, 'size' => 100 ],
             ],
