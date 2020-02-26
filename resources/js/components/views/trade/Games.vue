@@ -224,20 +224,24 @@ export default {
 
     @keyframes ping-danger{
         from{
-            color: rgba(227, 52, 47, 1);
+            color:#ffffff;
+            background-color: #d9534f;
             font-weight: 700;
         } to{
             color: rgba(50, 50, 50, 1);
+            background-color: none;
             font-weight: normal;
         }
     }
 
     @keyframes ping-success{
-        from{
-            color: rgba(56, 193, 114, 1);
+        from {
+            color:#ffffff;
+            background-color: #5cb85c;
             font-weight: 700;
         } to{
             color: rgba(50, 50, 50, 1);
+            background-color:none;
             font-weight: normal;
         }
     }

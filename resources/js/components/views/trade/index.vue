@@ -51,7 +51,8 @@ export default {
                 inplay: [],
                 today: [],
                 early: []
-            }
+            },
+            eventsList: []
         }
     },
     head: {
@@ -62,12 +63,13 @@ export default {
         }
     },
     computed: {
-        ...mapState('trade', ['isBetBarOpen'])
+        ...mapState('trade', ['isBetBarOpen', 'oddsTypeBySport'])
     },
     mounted() {
         this.getWatchlistData()
         this.getUserTradeLayout()
         this.getEvents()
+        this.getUpdatedOdds()
     },
     methods: {
         getUserTradeLayout() {
@@ -104,6 +106,7 @@ export default {
             this.$options.sockets.onmessage = ((response) => {
                 if(getSocketKey(response.data) === 'getEvents') {
                     let receivedEvents = getSocketValue(response.data, 'getEvents')
+                    this.eventsList = receivedEvents
                     let eventsSchedule = _.uniq(receivedEvents.map(event => event.game_schedule))
                     let eventsLeague = _.uniq(receivedEvents.map(event => event.league_name))
                     let eventObject = {}
@@ -125,6 +128,27 @@ export default {
                     })
                     Object.keys(eventObject).map(schedule => {
                         this.events[schedule] = eventObject[schedule]
+                    })
+                }
+            })
+        },
+        getUpdatedOdds() {
+            this.$options.sockets.onmessage = (response => {
+                if(getSocketKey(response.data) === 'getUpdatedOdds') {
+                    let updatedOdd = getSocketValue(response.data, 'getUpdatedOdds')
+                    let team = ['home', 'away', 'draw']
+                    this.eventsList.map(event => {
+                        this.oddsTypeBySport.map(oddType => {
+                            team.map(team => {
+                                if(team in event.market_odds.main[oddType]) {
+                                    if(event.market_odds.main[oddType][team].market_id === updatedOdd.market_id) {
+                                        if(event.market_odds.main[oddType][team].odds != updatedOdd.odds) {
+                                            event.market_odds.main[oddType][team].odds = updatedOdd.odds
+                                        }
+                                    }
+                                }
+                            })
+                        })
                     })
                 }
             })
