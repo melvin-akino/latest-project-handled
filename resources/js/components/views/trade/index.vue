@@ -33,8 +33,8 @@ import Watchlist from './Watchlist'
 import Columns from './Columns'
 import Games from './Games'
 import Betbar from './Betbar'
-
 import { getSocketKey, getSocketValue } from '../../../helpers/socket'
+
 export default {
     components: {
         Sports,
