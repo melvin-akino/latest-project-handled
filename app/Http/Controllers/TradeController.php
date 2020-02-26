@@ -2,8 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Sport;
+use App\Models\{MasterLeague, Sport, UserSelectedLeague};
 
+use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 use Faker\Factory AS Faker;
 
@@ -536,49 +537,63 @@ class TradeController extends Controller
     }
 
     /**
-     * Add to Authenticated User's Lists of Favorite League Events
+     * Add/Remove to Authenticated User's Lists of Favorite Leagues/Events
      *
+     * @param  $action  "add|remove"
+     * @param  $request \Illuminate\Http\Request
      * @return json
      */
-    public function postAddToWatchlist(Request $request)
+    public function postManageWatchlist($action, Request $request)
     {
+        DB::transaction();
+
         try {
             /** TO DO: Include Logic for adding game events to User Watchlist */
-
             $data = [];
+            $lang = "";
+
+            switch ($request->type) {
+                case 'league':
+                    $leagueId       = MasterLeague::getIdByName($request->data);
+                    $masterEventIds = MasterEvents::getActiveEvents('master_league_id', '=', $leagueId)->get('id')->toArray();
+                    break;
+
+                case 'event':
+                    $masterEventIds = MasterEvents::getActiveEvents('master_event_unique_id', '=', $request->data)->get('id')->toArray();
+                    break;
+            }
+
+            if ($action == "add") {
+                $lang = "added";
+
+                foreach ($masterEventIds AS $row) {
+                    UserWatchlist::create(
+                        [
+                            'user_id'         => auth()->user()->id,
+                            'master_event_id' => $row
+                        ]
+                    );
+                }
+            }
+
+            if ($action == "remove") {
+                $lang = "removed";
+
+                UserWatchlist::where('user_id', auth()->user()->id)
+                    ->whereIn('master_event_id', $masterEventIds)
+                    ->delete();
+            }
+
+            DB::commit();
 
             return response()->json([
                 'status'      => true,
                 'status_code' => 200,
-                'message'     => trans('game.watchlist.success')
+                'message'     => trans('game.watchlist.' . $lang)
             ], 200);
         } catch (Exception $e) {
-            return response()->json([
-                'status'      => false,
-                'status_code' => 500,
-                'message'     => trans('generic.internal-server-error')
-            ], 500);
-        }
-    }
+            DB::rollback();
 
-    /**
-     * Remove to Authenticated User's Lists of Favorite League Events
-     *
-     * @return json
-     */
-    public function postRemoveToWatchlist(Request $request)
-    {
-        try {
-            /** TO DO: Include Logic for removing game events to User Watchlist */
-
-            $data = [];
-
-            return response()->json([
-                'status'      => true,
-                'status_code' => 200,
-                'message'     => trans('game.watchlist.removed')
-            ], 200);
-        } catch (Exception $e) {
             return response()->json([
                 'status'      => false,
                 'status_code' => 500,
@@ -651,5 +666,43 @@ class TradeController extends Controller
         }
 
         return $data;
+    }
+
+    /**
+     * Add/Remove Authenticated User's Selected Sidebar Leagues
+     *
+     * @param  $request \Illuminate\Http\Request
+     * @return json
+     */
+    public function postManageSidebarLeagues(Request $request)
+    {
+        try {
+            $leagueId   = MasterLeague::getIdByName($request->data);
+            $checkTable = UserSelectedLeague::where('user_id', auth()->user()->id)
+                ->where('master_league_id', $leagueId);
+
+            if ($checkTable->count() == 0) {
+                UserSelectedLeague::create(
+                    [
+                        'user_id'          => auth()->user()->id,
+                        'master_league_id' => $leagueId
+                    ]
+                );
+            } else {
+                $checktable->delete();
+            }
+
+            return response()->json([
+                'status'      => true,
+                'status_code' => 200,
+                'message'     => trans('notifications.save.success')
+            ], 200);
+        } catch (Exception $e) {
+            return response()->json([
+                'status'      => false,
+                'status_code' => 500,
+                'message'     => trans('generic.internal-server-error')
+            ], 500);
+        }
     }
 }
