@@ -44,7 +44,7 @@ pipelines:
           - echo "extension=swoole.so" > /usr/local/etc/php/conf.d/docker-php-swoole.ini
           - docker-php-ext-install pdo pdo_pgsql pcntl
           - psql -U "postgres" -h "localhost"  -p 5432 -c "CREATE DATABASE test_crm"
-          - php artisan migrate --seed
+          - php artisan migrate
           - php artisan passport:install
           - ./vendor/bin/phpunit
         services:
@@ -65,4 +65,6 @@ definitions:
         postgres:
             image: postgres
             environment:
-                POSTGRES_USER: 'postgres'  
+                POSTGRES_USER: 'postgres'
+                POSTGRES_PASSWORD: 'testuser'
+                POSTGRES_DB: 'test'
