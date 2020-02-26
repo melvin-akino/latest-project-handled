@@ -24,23 +24,24 @@ class KafkaConsume implements CustomProcessInterface
     {
 //        TransformKafkaMessage::dispatch(self::testData());
 
-//        $kafkaConsumer = new KafkaConsumer(self::getConfig());
-//        $kafkaConsumer->subscribe([env('KAFKA_SCRAPE_ODDS')]);
+        $kafkaTable = $swoole->kafkaTable;
+
+        $kafkaConsumer = new KafkaConsumer(self::getConfig());
+        $kafkaConsumer->subscribe([env('KAFKA_SCRAPE_ODDS')]);
         while (!self::$quit) {
-//            $message = $kafkaConsumer->consume(120 * 1000);
-//            if ($message->err == RD_KAFKA_RESP_ERR_NO_ERROR) {
-//                *
-//                 * @TODO Dispatch Jobs to do the transformation
-//                 * Log::debug(json_encode($message));
-//                 * $kafkaTable->set('message:' . $message->offset, ['value' => $message->payload]);
-//                 * Log::debug(json_encode($kafkaTable->get('message:' . $message->offset)));
-//
-//                TransformKafkaMessage::dispatch($message);
-//
-//                $kafkaConsumer->commitAsync($message);
-//            } else {
-//                Log::error(json_encode([$message]));
-//            }
+            $message = $kafkaConsumer->consume(120 * 1000);
+            if ($message->err == RD_KAFKA_RESP_ERR_NO_ERROR) {
+
+                 Log::debug(json_encode($message));
+                 $kafkaTable->set('message:' . $message->offset, ['value' => $message->payload]);
+                 Log::debug(json_encode($kafkaTable->get('message:' . $message->offset)));
+
+                TransformKafkaMessage::dispatch($message);
+
+                $kafkaConsumer->commitAsync($message);
+            } else {
+                Log::error(json_encode([$message]));
+            }
 
 
             self::getAdditionalLeagues($swoole);

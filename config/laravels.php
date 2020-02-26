@@ -142,7 +142,7 @@ return [
                 [ 'name' => 'provider_id', 'type' => \Swoole\Table::TYPE_INT ],
             ],
         ],
-        'rawEvents'     => [ //key format [lId:$leagueId:pId:$providerId:eId:$eventId] = [id = $id, ...]
+        'rawEvents'     => [ //key format [lId:$leagueId:pId:$providerId:eventIdentifier:$eventIdentifier] = [id = $id, ...]
             'size'   => 102400,
             'column' => [
                 [ 'name' => 'id',                 'type' => \Swoole\Table::TYPE_INT ],
