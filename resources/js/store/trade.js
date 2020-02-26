@@ -3,7 +3,7 @@ const token = Cookies.get('mltoken')
 
 const state = {
     selectedSport: null,
-    selectedLeague: null,
+    selectedLeagues: [],
     leaguesData: {},
     isBetBarOpen: false,
     tradeLayout: null,
@@ -21,8 +21,11 @@ const mutations = {
     SET_SELECTED_SPORT: (state, selectedSport) => {
         state.selectedSport = selectedSport
     },
-    SET_SELECTED_LEAGUE: (state, selectedLeague) => {
-        state.selectedLeague = selectedLeague
+    SET_SELECTED_LEAGUES: (state, selectedLeague) => {
+        state.selectedLeagues.push(selectedLeague)
+    },
+    REMOVE_SELECTED_LEAGUE: (state, removedLeague) => {
+        state.selectedLeagues = state.selectedLeagues.filter(league => league != removedLeague)
     },
     TOGGLE_BETBAR: (state, status) => {
         state.isBetBarOpen = status

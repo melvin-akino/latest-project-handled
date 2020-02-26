@@ -22,22 +22,22 @@
                     </div>
                     <div class="gamesWrapper" :class="!closedLeagues.includes(index) ? 'h-full' : 'h-0 overflow-hidden'">
                         <div class="asianLayout"  v-if="tradeLayout==='1'">
-                            <div class="flex py-4 px-4 game" :class="[index % 2 != 0 ? 'alternateEvent' : '']" v-for="(game, index) in league" :key="game.uid">
+                            <div class="relative flex py-4 px-4 game" :class="[index % 2 != 0 ? 'alternateEvent' : '']" v-for="(game, index) in league" :key="game.uid">
                                 <div class="w-2/12 flex flex-col">
-                                    <div><span class="font-bold text-green-400 mr-2">H</span>{{game.home_team_name}}</div>
-                                    <div><span class="font-bold text-red-600 mr-2">A</span>{{game.away_team_name}}</div>
+                                    <div><span class="font-bold text-green-400 mr-2">H</span>{{game.home.name}}</div>
+                                    <div><span class="font-bold text-red-600 mr-2">A</span>{{game.away.name}}</div>
                                     <div><span class="mr-3">&nbsp;</span>Draw</div>
                                 </div>
                                 <div class="w-1/12 flex justify-center">
-                                    <span>Soccer</span>
+                                    <span>{{game.sport}}</span>
                                 </div>
                                 <div class="w-1/12 flex flex-col items-center">
-                                    <span>2 - 0</span>
-                                    <span>2 H : 58 M</span>
+                                    <span>{{game.home.score}} - {{game.away.score}}</span>
+                                    <span>{{game.running_time}}</span>
                                 </div>
                                 <div class="w-1/12"></div>
                                 <div class="w-1/12 flex flex-col items-center" :class="column" v-for="(column, index) in oddsTypeBySport" :key="index">
-                                    <p class="relative" :class="[{'order-1' : index==='home'}, {'order-2' : index==='away'}, {'order-3': index==='draw'}]" v-for="(odd, index) in game[column]" :key="odd.bet_id">
+                                    <p class="relative" :class="[{'order-1' : index==='home'}, {'order-2' : index==='away'}, {'order-3': index==='draw'}]" v-for="(odd, index) in game.market_odds.main[column]" :key="odd.market_id">
                                         <span class="absolute text-gray-500 odds-label" :class="[odd.odds != '' ? 'left-label' : 'empty-left-label']">{{odd.points}}</span>
                                         <span class="px-2 rounded-lg" :class="{'bet-click' : odd.odds != ''}" v-adjust-odd-color="odd.odds">{{odd.odds | formatOdds}}</span>
                                     </p>
@@ -50,13 +50,13 @@
                         <div class="europeanLayout" v-if="tradeLayout==='2'">
                             <div class="flex flex-col justify-around pl-4 pr-8 py-4 game" :class="[index % 2 != 0 ? 'alternateEvent' : '']" v-for="(game, index) in league" :key="game.uid">
                                 <div class="relative flex justify-center pb-4">
-                                    <span class="gameColumn teamColumn">{{game.home_team_name}}</span>
+                                    <span class="gameColumn teamColumn">{{game.home.name}}</span>
                                     <span class="gameColumn font-bold text-green-400 text-center">H</span>
-                                    <span class="gameColumn text-lg text-center">2</span>
-                                    <span class="gameColumn text-center">2 H : 58 M</span>
-                                    <span class="gameColumn text-lg text-center">0</span>
+                                    <span class="gameColumn text-lg text-center">{{game.home.score}}</span>
+                                    <span class="gameColumn text-center">{{game.running_time}}</span>
+                                    <span class="gameColumn text-lg text-center">{{game.away.score}}</span>
                                     <span class="gameColumn font-bold text-red-600 text-center">A</span>
-                                    <span class="gameColumn teamColumn">{{game.away_team_name}}</span>
+                                    <span class="gameColumn teamColumn">{{game.away.name}}</span>
                                     <div class="absolute text-white european-event-star">
                                         <span><i class="fas fa-star"></i></span>
                                     </div>
@@ -64,7 +64,7 @@
                                 <div class="flex">
                                     <div class="w-1/12"></div>
                                     <div class="w-1/12 flex justify-between mr-10" :class="column" v-for="(column, index) in oddsTypeBySport" :key="index">
-                                        <p class="relative" :class="[{'order-1' : index==='home'}, {'order-2' : index==='draw'}, {'order-3': index==='away'}]" v-for="(odd, index) in game[column]" :key="odd.bet_id">
+                                        <p class="relative" :class="[{'order-1' : index==='home'}, {'order-2' : index==='draw'}, {'order-3': index==='away'}]" v-for="(odd, index) in game.market_odds.main[column]" :key="odd.market_id">
                                             <span class="absolute text-gray-500 odds-label" :class="[odd.odds != '' ? 'left-label' : 'empty-left-label']">{{odd.points}}</span>
                                             <span class="px-2 rounded-lg" :class="{'bet-click' : odd.odds != ''}" v-adjust-odd-color="odd.odds">{{odd.odds | formatOdds}}</span>
                                         </p>
@@ -109,8 +109,14 @@ export default {
             componentUpdated(el, binding, vnode) {
                 if (binding.value > binding.oldValue) {
                     el.classList.add('ping-success')
+                    setTimeout(() => {
+                        el.classList.remove('ping-success')
+                    }, 1000)
                 } else if (binding.value < binding.oldValue) {
                     el.classList.add('ping-danger')
+                    setTimeout(() => {
+                        el.classList.remove('ping-danger')
+                    }, 1000)
                 }
             }
         }
@@ -218,11 +224,9 @@ export default {
 
     @keyframes ping-danger{
         from{
-            box-shadow: 0px 0px 0px 2px rgba(227, 52, 47, 1);
             color: rgba(227, 52, 47, 1);
             font-weight: 700;
         } to{
-            box-shadow: none;
             color: rgba(50, 50, 50, 1);
             font-weight: normal;
         }
@@ -230,11 +234,9 @@ export default {
 
     @keyframes ping-success{
         from{
-            box-shadow: 0px 0px 0px 2px rgba(56, 193, 114, 1);
             color: rgba(56, 193, 114, 1);
             font-weight: 700;
         } to{
-            box-shadow: none;
             color: rgba(50, 50, 50, 1);
             font-weight: normal;
         }

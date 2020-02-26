@@ -9,7 +9,7 @@
                 </div>
             </div>
 
-            <div class="w-5/6">
+            <div class="w-5/6 gameWindow">
                 <Columns></Columns>
                 <div class="gameScheds pb-4">
                     <Games gameSchedType="watchlist" :games="events.watchlist"></Games>
@@ -25,6 +25,7 @@
 
 <script>
 import { mapState } from 'vuex'
+import _ from 'lodash'
 import Cookies from 'js-cookie'
 import Sports from './Sports'
 import Wallet from './Wallet'
@@ -33,6 +34,7 @@ import Columns from './Columns'
 import Games from './Games'
 import Betbar from './Betbar'
 
+import { getSocketKey, getSocketValue } from '../../../helpers/socket'
 export default {
     components: {
         Sports,
@@ -75,6 +77,7 @@ export default {
 
         this.getWatchlistData()
         this.getUserTradeLayout()
+        this.getEvents()
     },
     methods: {
         getUserTradeLayout() {
@@ -90,8 +93,51 @@ export default {
             let token = Cookies.get('mltoken')
 
             axios.get('v1/trade/watchlist', { headers: { 'Authorization': `Bearer ${token}` }})
-            .then(response => this.events.watchlist = response.data.data)
+            .then(response => {
+                let watchListLeagues = _.uniq(response.data.data.map(event => event.league_name))
+                let watchListObject = {}
+                watchListLeagues.map(league => {
+                    response.data.data.map(event => {
+                        if(event.league_name === league) {
+                            if(typeof(watchListObject[league]) == "undefined") {
+                                watchListObject[league] = []
+                            }
+                            watchListObject[league].push(event)
+                        }
+                    })
+                })
+                this.events.watchlist = watchListObject
+            })
             .catch(err => this.$store.dispatch('auth/checkIfTokenIsValid', err.response.data.status_code))
+        },
+        getEvents() {
+            this.$options.sockets.onmessage = ((response) => {
+                if(getSocketKey(response.data) === 'getEvents') {
+                    let receivedEvents = getSocketValue(response.data, 'getEvents')
+                    let eventsSchedule = _.uniq(receivedEvents.map(event => event.game_schedule))
+                    let eventsLeague = _.uniq(receivedEvents.map(event => event.league_name))
+                    let eventObject = {}
+                    eventsSchedule.map(schedule => {
+                        eventsLeague.map(league => {
+                            receivedEvents.map(event => {
+                                if(event.game_schedule === schedule && event.league_name === league) {
+                                    if(typeof(eventObject[schedule]) == "undefined") {
+                                        eventObject[schedule] = {}
+                                    }
+
+                                    if(typeof(eventObject[schedule][league]) == "undefined") {
+                                        eventObject[schedule][league] = []
+                                    }
+                                    eventObject[schedule][league].push(event)
+                                }
+                            })
+                        })
+                    })
+                    Object.keys(eventObject).map(schedule => {
+                        this.events[schedule] = eventObject[schedule]
+                    })
+                }
+            })
         }
     },
     directives: {
@@ -110,6 +156,11 @@ export default {
 </script>
 
 <style lang="scss">
+    .gameWindow {
+        position: relative;
+        overflow-x: hidden;
+    }
+
     .gameScheds {
         margin-top: 52px;
     }

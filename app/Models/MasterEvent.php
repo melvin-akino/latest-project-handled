@@ -4,20 +4,30 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class Events extends Model
+class MasterEvent extends Model
 {
-    protected $table = "events";
+    protected $table = "master_events";
 
     protected $fillable = [
         'master_event_unique_id',
         'master_league_id',
         'master_team_home_id',
-        'master_team_away_id',
-        'sport_id'
+        'master_team_away_id'
     ];
 
     protected $hidden = [
         'created_at',
         'updated_at',
     ];
+
+    public static function getActiveEvents(string $field = null, string $operator = null, string $value = null)
+    {
+        $return = self::where('deleted_at', null);
+
+        if (!empty($field)) {
+            $return = $return->where($field, $operator, $value);
+        }
+
+        return $return;
+    }
 }
