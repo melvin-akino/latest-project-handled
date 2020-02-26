@@ -22,7 +22,7 @@ class OddsRequestCommand extends Command
     /**
      * Topic name
      */
-    const KAFKA_TOPIC = 'odds_scrape_request';
+    protected $kafkaTopic;
 
     /**
      * Kafka producer
@@ -42,11 +42,12 @@ class OddsRequestCommand extends Command
         parent::__construct();
 
         $this->producerHandler = $producerHandler;
+        $this->kafkaTopic = env('KAFKA_SCRAPE_REQUEST_POSTFIX', '_req');
     }
 
     public function handle()
     {
-        $this->provid = DB::table('providers')->where('is_enabled', true)->get()->toArray();
+        $this->providers = DB::table('providers')->where('is_enabled', true)->get()->toArray();
         $this->sports = DB::table('sports')->where('is_enabled', true)->get()->toArray();
 
         $this->systemConfiguration = new SystemConfiguration();
@@ -105,7 +106,7 @@ class OddsRequestCommand extends Command
                     'sport'    => $sport->id
                 ];
 
-                $this->pushToKafka($payload, $uid);
+                $this->pushToKafka($payload, $uid, $provider->alias);
             }
         }
     }
@@ -144,10 +145,10 @@ class OddsRequestCommand extends Command
      * @param  string $key
      * @return void
      */
-    private function pushToKafka(array $message = [], string $key)
+    private function pushToKafka(array $message = [], string $key, string $provider = 'hg')
     {
         try {
-            $this->producerHandler->setTopic(self::KAFKA_TOPIC)
+            $this->producerHandler->setTopic(strtolower($provider) . $this->kafkaTopic)
                 ->send(json_encode($message), $key);
         } catch (Exception $e) {
             Log::critical(self::PUBLISH_ERROR_MESSAGE, [
