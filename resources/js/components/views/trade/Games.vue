@@ -37,7 +37,7 @@
                                 </div>
                                 <div class="w-1/12"></div>
                                 <div class="w-1/12 flex flex-col items-center" :class="column" v-for="(column, index) in oddsTypeBySport" :key="index">
-                                    <p class="relative" :class="[{'order-1' : index==='home'}, {'order-2' : index==='away'}, {'order-3': index==='draw'}]" v-for="(odd, index) in game.market_odds.main[column]" :key="odd.bet_id">
+                                    <p class="relative" :class="[{'order-1' : index==='home'}, {'order-2' : index==='away'}, {'order-3': index==='draw'}]" v-for="(odd, index) in game.market_odds.main[column]" :key="odd.market_id">
                                         <span class="absolute text-gray-500 odds-label" :class="[odd.odds != '' ? 'left-label' : 'empty-left-label']">{{odd.points}}</span>
                                         <span class="px-2 rounded-lg" :class="{'bet-click' : odd.odds != ''}" v-adjust-odd-color="odd.odds">{{odd.odds | formatOdds}}</span>
                                     </p>
@@ -64,7 +64,7 @@
                                 <div class="flex">
                                     <div class="w-1/12"></div>
                                     <div class="w-1/12 flex justify-between mr-10" :class="column" v-for="(column, index) in oddsTypeBySport" :key="index">
-                                        <p class="relative" :class="[{'order-1' : index==='home'}, {'order-2' : index==='draw'}, {'order-3': index==='away'}]" v-for="(odd, index) in game.market_odds.main[column]" :key="odd.bet_id">
+                                        <p class="relative" :class="[{'order-1' : index==='home'}, {'order-2' : index==='draw'}, {'order-3': index==='away'}]" v-for="(odd, index) in game.market_odds.main[column]" :key="odd.market_id">
                                             <span class="absolute text-gray-500 odds-label" :class="[odd.odds != '' ? 'left-label' : 'empty-left-label']">{{odd.points}}</span>
                                             <span class="px-2 rounded-lg" :class="{'bet-click' : odd.odds != ''}" v-adjust-odd-color="odd.odds">{{odd.odds | formatOdds}}</span>
                                         </p>
@@ -109,8 +109,14 @@ export default {
             componentUpdated(el, binding, vnode) {
                 if (binding.value > binding.oldValue) {
                     el.classList.add('ping-success')
+                    setTimeout(() => {
+                        el.classList.remove('ping-success')
+                    }, 1000)
                 } else if (binding.value < binding.oldValue) {
                     el.classList.add('ping-danger')
+                    setTimeout(() => {
+                        el.classList.remove('ping-danger')
+                    }, 1000)
                 }
             }
         }
@@ -218,11 +224,9 @@ export default {
 
     @keyframes ping-danger{
         from{
-            box-shadow: 0px 0px 0px 2px rgba(227, 52, 47, 1);
             color: rgba(227, 52, 47, 1);
             font-weight: 700;
         } to{
-            box-shadow: none;
             color: rgba(50, 50, 50, 1);
             font-weight: normal;
         }
@@ -230,11 +234,9 @@ export default {
 
     @keyframes ping-success{
         from{
-            box-shadow: 0px 0px 0px 2px rgba(56, 193, 114, 1);
             color: rgba(56, 193, 114, 1);
             font-weight: 700;
         } to{
-            box-shadow: none;
             color: rgba(50, 50, 50, 1);
             font-weight: normal;
         }

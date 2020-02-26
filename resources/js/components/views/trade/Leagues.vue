@@ -56,7 +56,7 @@ export default {
                 if (getSocketKey(response.data) === 'getAdditionalLeagues') {
                     if(getSocketValue(response.data, 'getAdditionalLeagues') != '') {
                         let additionalLeagues = getSocketValue(response.data, 'getAdditionalLeagues')
-                        this.leagueSchedModes.forEach(sched => {
+                        this.leagueSchedModes.map(sched => {
                             if(sched in additionalLeagues) {
                                 additionalLeagues[sched].map(league => {
                                     this.leagues[sched].push(league)
@@ -70,11 +70,12 @@ export default {
                         selectedLeagues.map(league => {
                             this.$store.commit('trade/SET_SELECTED_LEAGUES', league)
                         })
+                        this.selectedLeagues.map(league => this.$socket.send(`getEvents_${league}`))
                     }
                 } else if (getSocketKey(response.data) === 'getForRemovalLeagues') {
                     if(getSocketValue(response.data, 'getForRemovalLeagues') != '') {
                         let removalLeagues = getSocketValue(response.data, 'getForRemovalLeagues')
-                        this.leagueSchedModes.forEach(sched => {
+                        this.leagueSchedModes.map(sched => {
                             if(sched in removalLeagues) {
                                 removalLeagues[sched].map(removalLeague => {
                                     this.leagues[sched] = this.leagues[sched].filter(league => league.name != removalLeague)
@@ -95,6 +96,7 @@ export default {
                 this.$store.commit('trade/REMOVE_SELECTED_LEAGUE', league)
             } else {
                 this.$store.commit('trade/SET_SELECTED_LEAGUES', league)
+                this.$socket.send(`getEvents_${league}`)
             }
         }
     }

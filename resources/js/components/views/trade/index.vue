@@ -9,7 +9,7 @@
                 </div>
             </div>
 
-            <div class="w-5/6">
+            <div class="w-5/6 gameWindow">
                 <Columns></Columns>
                 <div class="gameScheds pb-4">
                     <Games gameSchedType="watchlist" :games="events.watchlist"></Games>
@@ -67,17 +67,7 @@ export default {
     mounted() {
         this.getWatchlistData()
         this.getUserTradeLayout()
-        this.$socket.send('getEvents')
-        this.$options.sockets.onmessage = ((response) => {
-            if(getSocketKey(response.data) === 'getEvents') {
-                let receivedEvents = getSocketValue(response.data, 'getEvents')
-                console.log(receivedEvents)
-                //TODO: Transform events grouped by schedule and league
-                // Object.keys(getSocketValue(response.data, 'getEvents')).forEach(sched => {
-                //     // this.events[sched] = receivedEvents[sched]
-                // })
-            }
-        })
+        this.getEvents()
     },
     methods: {
         getUserTradeLayout() {
@@ -109,6 +99,35 @@ export default {
                 this.events.watchlist = watchListObject
             })
             .catch(err => this.$store.dispatch('auth/checkIfTokenIsValid', err.response.data.status_code))
+        },
+        getEvents() {
+            this.$options.sockets.onmessage = ((response) => {
+                if(getSocketKey(response.data) === 'getEvents') {
+                    let receivedEvents = getSocketValue(response.data, 'getEvents')
+                    let eventsSchedule = _.uniq(receivedEvents.map(event => event.game_schedule))
+                    let eventsLeague = _.uniq(receivedEvents.map(event => event.league_name))
+                    let eventObject = {}
+                    eventsSchedule.map(schedule => {
+                        eventsLeague.map(league => {
+                            receivedEvents.map(event => {
+                                if(event.game_schedule === schedule && event.league_name === league) {
+                                    if(typeof(eventObject[schedule]) == "undefined") {
+                                        eventObject[schedule] = {}
+                                    }
+
+                                    if(typeof(eventObject[schedule][league]) == "undefined") {
+                                        eventObject[schedule][league] = []
+                                    }
+                                    eventObject[schedule][league].push(event)
+                                }
+                            })
+                        })
+                    })
+                    Object.keys(eventObject).map(schedule => {
+                        this.events[schedule] = eventObject[schedule]
+                    })
+                }
+            })
         }
     },
     directives: {
@@ -127,6 +146,11 @@ export default {
 </script>
 
 <style lang="scss">
+    .gameWindow {
+        position: relative;
+        overflow-x: hidden;
+    }
+
     .gameScheds {
         margin-top: 52px;
     }

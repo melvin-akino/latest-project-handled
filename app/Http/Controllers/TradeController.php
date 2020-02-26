@@ -96,89 +96,89 @@ class TradeController extends Controller
                             "1X2" => [
                                 "home" => [
                                     "odds" => 1.23,
-                                    "market_id" => "asd123"
+                                    "market_id" => "asd1231"
                                 ],
                                 "away" => [
                                     "odds" => 2.23,
-                                    "market_id" => "asd123"
+                                    "market_id" => "asd1232"
                                 ],
                                 "draw" => [
                                     "odds" => 3.23,
-                                    "market_id" => "asd123"
+                                    "market_id" => "asd1233"
                                 ]
                             ],
                             "HDP" => [
                                 "home" => [
                                     "odds" => 4.23,
                                     "points" => "-2.5",
-                                    "market_id" => "asd123"
+                                    "market_id" => "asd1234"
                                 ],
                                 "away" => [
                                     "odds" => 5.23,
                                     "points" => "+2.5",
-                                    "market_id" => "asd123"
+                                    "market_id" => "asd1235"
                                 ]
                             ],
                             "OU" => [
                                 "home" => [
                                     "odds" => 6.23,
                                     "points" => "O 2.5",
-                                    "market_id" => "asd123"
+                                    "market_id" => "asd1236"
                                 ],
                                 "away" => [
                                     "odds" => 7.23,
                                     "points" => "U 2.5",
-                                    "market_id" => "asd123"
+                                    "market_id" => "asd1237"
                                 ]
                             ],
                             "OE" => [
                                 "home" => [
                                     "odds" => 8.23,
                                     "points" => "O",
-                                    "market_id" => "asd123"
+                                    "market_id" => "asd1238"
                                 ],
                                 "away" => [
                                     "odds" => 9.23,
                                     "points" => "E",
-                                    "market_id" => "asd123"
+                                    "market_id" => "asd1239"
                                 ]
                             ],
                             "HT 1X2" => [
                                 "home" => [
                                     "odds" => 1.23,
-                                    "market_id" => "asd123"
+                                    "market_id" => "asd12310"
                                 ],
                                 "away" => [
                                     "odds" => 2.23,
-                                    "market_id" => "asd123"
+                                    "market_id" => "asd12311"
                                 ],
                                 "draw" => [
                                     "odds" => 3.23,
-                                    "market_id" => "asd123"
+                                    "market_id" => "asd12312"
                                 ]
                             ],
                             "HT HDP" => [
                                 "home" => [
                                     "odds" => 4.23,
                                     "points" => "-2.5",
-                                    "market_id" => "asd123"
+                                    "market_id" => "asd12313"
                                 ],
                                 "away" => [
                                     "odds" => 5.23,
                                     "points" => "+2.5",
-                                    "market_id" => "asd123"
+                                    "market_id" => "asd12314"
                                 ]
                             ],
                             "HT OU" => [
                                 "home" => [
                                     "odds" => 6.23,
                                     "points" => "O 2.5",
-                                    "market_id" => "asd123"
+                                    "market_id" => "asd12315"
                                 ],
                                 "away" => [
                                     "odds" => 7.23,
                                     "points" => "U 2.5",
-                                    "market_id" => "asd123"
+                                    "market_id" => "asd12316"
                                 ]
                             ]
                         ]
@@ -208,89 +208,89 @@ class TradeController extends Controller
                             "1X2" => [
                                 "home" => [
                                     "odds" => 1.23,
-                                    "market_id" => "asd123"
+                                    "market_id" => "asd12317"
                                 ],
                                 "away" => [
                                     "odds" => 2.23,
-                                    "market_id" => "asd123"
+                                    "market_id" => "asd12318"
                                 ],
                                 "draw" => [
                                     "odds" => 3.23,
-                                    "market_id" => "asd123"
+                                    "market_id" => "asd12319"
                                 ]
                             ],
                             "HDP" => [
                                 "home" => [
                                     "odds" => 4.23,
                                     "points" => "-2.5",
-                                    "market_id" => "asd123"
+                                    "market_id" => "asd12320"
                                 ],
                                 "away" => [
                                     "odds" => 5.23,
                                     "points" => "+2.5",
-                                    "market_id" => "asd123"
+                                    "market_id" => "asd12321"
                                 ]
                             ],
                             "OU" => [
                                 "home" => [
                                     "odds" => 6.23,
                                     "points" => "O 2.5",
-                                    "market_id" => "asd123"
+                                    "market_id" => "asd12322"
                                 ],
                                 "away" => [
                                     "odds" => 7.23,
                                     "points" => "U 2.5",
-                                    "market_id" => "asd123"
+                                    "market_id" => "asd12323"
                                 ]
                             ],
                             "OE" => [
                                 "home" => [
                                     "odds" => 8.23,
                                     "points" => "O",
-                                    "market_id" => "asd123"
+                                    "market_id" => "asd12324"
                                 ],
                                 "away" => [
                                     "odds" => 9.23,
                                     "points" => "E",
-                                    "market_id" => "asd123"
+                                    "market_id" => "asd12325"
                                 ]
                             ],
                             "HT 1X2" => [
                                 "home" => [
                                     "odds" => 1.23,
-                                    "market_id" => "asd123"
+                                    "market_id" => "asd12326"
                                 ],
                                 "away" => [
                                     "odds" => 2.23,
-                                    "market_id" => "asd123"
+                                    "market_id" => "asd12327"
                                 ],
                                 "draw" => [
                                     "odds" => 3.23,
-                                    "market_id" => "asd123"
+                                    "market_id" => "asd12328"
                                 ]
                             ],
                             "HT HDP" => [
                                 "home" => [
                                     "odds" => 4.23,
                                     "points" => "-2.5",
-                                    "market_id" => "asd123"
+                                    "market_id" => "asd12329"
                                 ],
                                 "away" => [
                                     "odds" => 5.23,
                                     "points" => "+2.5",
-                                    "market_id" => "asd123"
+                                    "market_id" => "asd12330"
                                 ]
                             ],
                             "HT OU" => [
                                 "home" => [
                                     "odds" => 6.23,
                                     "points" => "O 2.5",
-                                    "market_id" => "asd123"
+                                    "market_id" => "asd12331"
                                 ],
                                 "away" => [
                                     "odds" => 7.23,
                                     "points" => "U 2.5",
-                                    "market_id" => "asd123"
+                                    "market_id" => "asd12332"
                                 ]
                             ]
                         ]
@@ -320,89 +320,89 @@ class TradeController extends Controller
                             "1X2" => [
                                 "home" => [
                                     "odds" => 8.23,
-                                    "market_id" => "asd123"
+                                    "market_id" => "asd12333"
                                 ],
                                 "away" => [
                                     "odds" => 9.23,
-                                    "market_id" => "asd123"
+                                    "market_id" => "asd12334"
                                 ],
                                 "draw" => [
                                     "odds" => 1.23,
-                                    "market_id" => "asd123"
+                                    "market_id" => "asd12335"
                                 ]
                             ],
                             "HDP" => [
                                 "home" => [
                                     "odds" => 2.23,
                                     "points" => "-2.5",
-                                    "market_id" => "asd123"
+                                    "market_id" => "asd12336"
                                 ],
                                 "away" => [
                                     "odds" => 3.23,
                                     "points" => "+2.5",
-                                    "market_id" => "asd123"
+                                    "market_id" => "asd12337"
                                 ]
                             ],
                             "OU" => [
                                 "home" => [
                                     "odds" => 4.23,
                                     "points" => "O 2.5",
-                                    "market_id" => "asd123"
+                                    "market_id" => "asd12338"
                                 ],
                                 "away" => [
                                     "odds" => 5.23,
                                     "points" => "U 2.5",
-                                    "market_id" => "asd123"
+                                    "market_id" => "asd12339"
                                 ]
                             ],
                             "OE" => [
                                 "home" => [
                                     "odds" => 6.23,
                                     "points" => "O",
-                                    "market_id" => "asd123"
+                                    "market_id" => "asd12340"
                                 ],
                                 "away" => [
                                     "odds" => 7.23,
                                     "points" => "E",
-                                    "market_id" => "asd123"
+                                    "market_id" => "asd12341"
                                 ]
                             ],
                             "HT 1X2" => [
                                 "home" => [
                                     "odds" => 8.23,
-                                    "market_id" => "asd123"
+                                    "market_id" => "asd12342"
                                 ],
                                 "away" => [
                                     "odds" => 9.23,
-                                    "market_id" => "asd123"
+                                    "market_id" => "asd12343"
                                 ],
                                 "draw" => [
                                     "odds" => 1.23,
-                                    "market_id" => "asd123"
+                                    "market_id" => "asd12344"
                                 ]
                             ],
                             "HT HDP" => [
                                 "home" => [
                                     "odds" => 2.23,
                                     "points" => "-2.5",
-                                    "market_id" => "asd123"
+                                    "market_id" => "asd12345"
                                 ],
                                 "away" => [
                                     "odds" => 3.23,
                                     "points" => "+2.5",
-                                    "market_id" => "asd123"
+                                    "market_id" => "asd12346"
                                 ]
                             ],
                             "HT OU" => [
                                 "home" => [
                                     "odds" => 4.23,
                                     "points" => "O 2.5",
-                                    "market_id" => "asd123"
+                                    "market_id" => "asd12347"
                                 ],
                                 "away" => [
                                     "odds" => 5.23,
                                     "points" => "U 2.5",
-                                    "market_id" => "asd123"
+                                    "market_id" => "asd12348"
                                 ]
                             ]
                         ]
@@ -432,89 +432,89 @@ class TradeController extends Controller
                             "1X2" => [
                                 "home" => [
                                     "odds" => 6.23,
-                                    "market_id" => "asd123"
+                                    "market_id" => "asd12349"
                                 ],
                                 "away" => [
                                     "odds" => 7.23,
-                                    "market_id" => "asd123"
+                                    "market_id" => "asd12350"
                                 ],
                                 "draw" => [
                                     "odds" => 8.23,
-                                    "market_id" => "asd123"
+                                    "market_id" => "asd12351"
                                 ]
                             ],
                             "HDP" => [
                                 "home" => [
                                     "odds" => 9.23,
                                     "points" => "-2.5",
-                                    "market_id" => "asd123"
+                                    "market_id" => "asd12352"
                                 ],
                                 "away" => [
                                     "odds" => 1.23,
                                     "points" => "+2.5",
-                                    "market_id" => "asd123"
+                                    "market_id" => "asd12353"
                                 ]
                             ],
                             "OU" => [
                                 "home" => [
                                     "odds" => 2.23,
                                     "points" => "O 2.5",
-                                    "market_id" => "asd123"
+                                    "market_id" => "asd12354"
                                 ],
                                 "away" => [
                                     "odds" => 3.23,
                                     "points" => "U 2.5",
-                                    "market_id" => "asd123"
+                                    "market_id" => "asd12355"
                                 ]
                             ],
                             "OE" => [
                                 "home" => [
                                     "odds" => 4.23,
                                     "points" => "O",
-                                    "market_id" => "asd123"
+                                    "market_id" => "asd12356"
                                 ],
                                 "away" => [
                                     "odds" => 5.23,
                                     "points" => "E",
-                                    "market_id" => "asd123"
+                                    "market_id" => "asd12357"
                                 ]
                             ],
                             "HT 1X2" => [
                                 "home" => [
                                     "odds" => 6.23,
-                                    "market_id" => "asd123"
+                                    "market_id" => "asd12358"
                                 ],
                                 "away" => [
                                     "odds" => 7.23,
-                                    "market_id" => "asd123"
+                                    "market_id" => "asd12359"
                                 ],
                                 "draw" => [
                                     "odds" => 8.23,
-                                    "market_id" => "asd123"
+                                    "market_id" => "asd12360"
                                 ]
                             ],
                             "HT HDP" => [
                                 "home" => [
                                     "odds" => 9.23,
                                     "points" => "-2.5",
-                                    "market_id" => "asd123"
+                                    "market_id" => "asd12361"
                                 ],
                                 "away" => [
                                     "odds" => 1.23,
                                     "points" => "+2.5",
-                                    "market_id" => "asd123"
+                                    "market_id" => "asd12362"
                                 ]
                             ],
                             "HT OU" => [
                                 "home" => [
                                     "odds" => 2.23,
                                     "points" => "O 2.5",
-                                    "market_id" => "asd123"
+                                    "market_id" => "asd12363"
                                 ],
                                 "away" => [
                                     "odds" => 3.23,
                                     "points" => "U 2.5",
-                                    "market_id" => "asd123"
+                                    "market_id" => "asd12364"
                                 ]
                             ]
                         ]
