@@ -27,6 +27,16 @@ class CreateEventsTable extends Migration
                 $table->string('ref_schedule');
                 $table->string('game_schedule');
                 $table->timestamps();
+
+                $table->foreign('sport_id')
+                    ->references('id')
+                    ->on('sports')
+                    ->onUpdate('cascade');
+
+                $table->foreign('provider_id')
+                    ->references('id')
+                    ->on('providers')
+                    ->onUpdate('cascade');
             });
         }
     }

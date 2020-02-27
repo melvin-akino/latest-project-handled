@@ -25,6 +25,11 @@ class CreateMasterLeaguePivotTable extends Migration
                 $table->softDeletes();
                 $table->timestamps();
 
+                $table->foreign('sport_id')
+                    ->references('id')
+                    ->on('sports')
+                    ->onUpdate('cascade');
+
                 $table->foreign('master_league_id')
                     ->references('id')
                     ->on('master_leagues')
