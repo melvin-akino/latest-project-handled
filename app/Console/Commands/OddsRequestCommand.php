@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\DB;
 use App\Handlers\ProducerHandler;
 use Exception;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 
 class OddsRequestCommand extends Command
 {
@@ -92,11 +93,12 @@ class OddsRequestCommand extends Command
     {
         foreach ($this->providers as $provider) {
             foreach ($this->sports as $sport) {
-                $uid = uniqid();
+                $uid = Str::uuid();
+                $requestTs = $this->milliseconds();
 
                 $payload = [
                     'request_uid' => $uid,
-                    'request_ts'  => $this->milliseconds(),
+                    'request_ts'  => $requestTs,
                     'command'     => 'odd',
                     'sub_command' => 'scrape',
                 ];
