@@ -26,6 +26,7 @@ class CreateEventsTable extends Migration
                 $table->string('away_team_name');
                 $table->string('ref_schedule');
                 $table->string('game_schedule');
+                $table->softDeletes();
                 $table->timestamps();
 
                 $table->foreign('sport_id')
