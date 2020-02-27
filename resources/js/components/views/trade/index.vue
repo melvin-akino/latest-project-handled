@@ -139,11 +139,9 @@ export default {
                     this.eventsList.map(event => {
                         this.oddsTypeBySport.map(oddType => {
                             team.map(team => {
-                                if(team in event.market_odds.main[oddType]) {
-                                    if(event.market_odds.main[oddType][team].market_id === updatedOdd.market_id) {
-                                        if(event.market_odds.main[oddType][team].odds != updatedOdd.odds) {
-                                            event.market_odds.main[oddType][team].odds = updatedOdd.odds
-                                        }
+                                if(oddType in event.market_odds.main && team in event.market_odds.main[oddType]) {
+                                    if(event.market_odds.main[oddType][team].market_id === updatedOdd.market_id && event.market_odds.main[oddType][team].odds != updatedOdd.odds) {
+                                        event.market_odds.main[oddType][team].odds = updatedOdd.odds
                                     }
                                 }
                             })
