@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\{MasterLeague, Sport, UserSelectedLeague};
+use App\Models\{MasterEvent, MasterLeague, Sport, UserSelectedLeague};
 
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
@@ -545,8 +545,6 @@ class TradeController extends Controller
      */
     public function postManageWatchlist($action, Request $request)
     {
-        DB::transaction();
-
         try {
             /** TO DO: Include Logic for adding game events to User Watchlist */
             $data = [];
@@ -555,11 +553,11 @@ class TradeController extends Controller
             switch ($request->type) {
                 case 'league':
                     $leagueId       = MasterLeague::getIdByName($request->data);
-                    $masterEventIds = MasterEvents::getActiveEvents('master_league_id', '=', $leagueId)->get('id')->toArray();
+                    $masterEventIds = MasterEvent::getActiveEvents('master_league_id', '=', $leagueId)->get('id')->toArray();
                     break;
 
                 case 'event':
-                    $masterEventIds = MasterEvents::getActiveEvents('master_event_unique_id', '=', $request->data)->get('id')->toArray();
+                    $masterEventIds = MasterEvent::getActiveEvents('master_event_unique_id', '=', $request->data)->get('id')->toArray();
                     break;
             }
 
@@ -584,16 +582,12 @@ class TradeController extends Controller
                     ->delete();
             }
 
-            DB::commit();
-
             return response()->json([
                 'status'      => true,
                 'status_code' => 200,
                 'message'     => trans('game.watchlist.' . $lang)
             ], 200);
         } catch (Exception $e) {
-            DB::rollback();
-
             return response()->json([
                 'status'      => false,
                 'status_code' => 500,
