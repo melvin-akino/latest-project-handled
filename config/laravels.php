@@ -136,7 +136,6 @@ return [
                 [ 'name' => 'master_away_team_name',  'type' => \Swoole\Table::TYPE_STRING, 'size' => 100 ],
                 [ 'name' => 'game_schedule',          'type' => \Swoole\Table::TYPE_STRING, 'size' => 30 ],
                 [ 'name' => 'ref_schedule',           'type' => \Swoole\Table::TYPE_STRING, 'size' => 30 ],
-                [ 'name' => 'ref_schedule',           'type' => \Swoole\Table::TYPE_STRING, 'size' => 30 ],
             ],
         ],
         'eventMarkets'  => [ //key format [pId:$providerId:meUniqueId:$masterEventUniqueId:memUniqueId:$masterEventMarketUniqueId] = [id = $id, ...]

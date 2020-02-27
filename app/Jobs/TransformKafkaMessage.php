@@ -4,7 +4,7 @@ namespace App\Jobs;
 
 use Carbon\Carbon;
 use Illuminate\Support\Str;
-use App\Models\{Events, League, Provider, Teams};
+use App\Models\{Events, MasterEventMarket, MasterLeague, Provider, Teams};
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use DateTime;
@@ -20,6 +20,7 @@ class TransformKafkaMessage implements ShouldQueue
     public function __construct($message)
     {
         $this->message = json_decode($message->payload);
+        var_dump($this->message);
     }
 
     public function handle()
@@ -38,15 +39,15 @@ class TransformKafkaMessage implements ShouldQueue
         /** LOOK-UP TABLES */
         $providersTable = $swoole->providersTable;
         $sportsTable = $swoole->sportsTable;
-        $rawLeaguesTable = $swoole->rawLeaguesTable;
+        // $rawLeaguesTable = $swoole->rawLeaguesTable;
         $leaguesTable = $swoole->leaguesTable;
-        $rawTeamsTable = $swoole->rawTeamsTable;
+        // $rawTeamsTable = $swoole->rawTeamsTable;
         $teamsTable = $swoole->teamsTable;
-        $rawEventsTable = $swoole->rawEventsTable;
+        // $rawEventsTable = $swoole->rawEventsTable;
         $eventsTable = $swoole->eventsTable;
         $oddTypesTable = $swoole->oddTypesTable;
         $sportOddTypesTable = $swoole->sportOddTypesTable;
-        $rawEventMarketsTable = $swoole->rawEventMarketsTable;
+        // $rawEventMarketsTable = $swoole->rawEventMarketsTable;
         $eventMarketsTable = $swoole->eventMarketsTable;
         $transformedTable = $swoole->transformedTable;
 
@@ -94,33 +95,33 @@ class TransformKafkaMessage implements ShouldQueue
          *      $rawLeagueSwtId   swoole_table_key    "sId:<$sportId>:pId:<$providerId>:league:<slug($leagueName)>"
          *      $rawLeagueId      swoole_table_value  int
          */
-        $rawLeagueSwtId = implode(':', [
-            "sId:" . $sportId,
-            "pId:" . $providerId,
-            "league:" . Str::slug($this->message->data->leagueName)
-        ]);
+        // $rawLeagueSwtId = implode(':', [
+        //     "sId:" . $sportId,
+        //     "pId:" . $providerId,
+        //     "league:" . Str::slug($this->message->data->leagueName)
+        // ]);
 
-        if ($rawLeaguesTable->exist($rawLeagueSwtId)) {
-            $rawLeagueId = $rawLeaguesTable->get($rawLeagueSwtId)['id'];
-        } else {
-            $leaguesTable->set($rawLeagueSwtId,
-                [
-                    'provider_id' => $providerId,
-                    'sport_id'    => $sportId,
-                    'league'      => $this->message->data->leagueName
-                ]);
+        // if ($rawLeaguesTable->exist($rawLeagueSwtId)) {
+        //     $rawLeagueId = $rawLeaguesTable->get($rawLeagueSwtId)['id'];
+        // } else {
+        //     $leaguesTable->set($rawLeagueSwtId,
+        //         [
+        //             'provider_id' => $providerId,
+        //             'sport_id'    => $sportId,
+        //             'league'      => $this->message->data->leagueName
+        //         ]);
 
-            $leagueModel = League::create([
-                'sport_id'    => $sportId,
-                'provider_id' => $providerId,
-                'league'      => $this->message->data->leagueName
-            ]);
-            $rawLeagueId = $leagueModel->id;
+        //     $leagueModel = League::create([
+        //         'sport_id'    => $sportId,
+        //         'provider_id' => $providerId,
+        //         'league'      => $this->message->data->leagueName
+        //     ]);
+        //     $rawLeagueId = $leagueModel->id;
 
-            $leaguesTable[$rawLeagueSwtId]['id'] = $rawLeagueId;
+        //     $leaguesTable[$rawLeagueSwtId]['id'] = $rawLeagueId;
 
-            $toTransform = false;
-        }
+        //     $toTransform = false;
+        // }
 
         /**
          * LEAGUES (MASTER) Swoole Table
@@ -138,8 +139,8 @@ class TransformKafkaMessage implements ShouldQueue
         ]);
 
         if ($leaguesTable->exists($leagueSwtId)) {
-            $multiLeagueId = $leaguesTable->get($leagueSwtId)['id'];
-            $multiLeagueName = $leaguesTable->get($leagueSwtId)['multi_league'];
+            $multiLeagueId    = $leaguesTable->get($leagueSwtId)['id'];
+            $masterLeagueName = $leaguesTable->get($leagueSwtId)['master_league_name'];
         } else {
             $toTransform = false;
         }
@@ -162,28 +163,28 @@ class TransformKafkaMessage implements ShouldQueue
         ];
 
         foreach ($competitors AS $key => $row) {
-            $rawTeamSwtId = implode(':', [
-                "pId:" . $providerId,
-                "team:" . Str::slug($competitors[$key])
-            ]);
+            // $rawTeamSwtId = implode(':', [
+            //     "pId:" . $providerId,
+            //     "team:" . Str::slug($competitors[$key])
+            // ]);
 
-            if ($rawTeamsTable->exists($rawTeamSwtId)) {
-                $rawTeamName = $rawTeamsTable->get($rawTeamSwtId)['team'];
-                $rawTeams[$key]['id'] = $rawTeamsTable->get($rawTeamSwtId)['id'];
-            } else {
-                $rawTeamsTable->set('pId:' . $providerId . ':team:' . Str::slug($competitors[$key]),
-                    ['team' => $competitors[$key], 'provider_id' => $providerId]);
+            // if ($rawTeamsTable->exists($rawTeamSwtId)) {
+            //     $rawTeamName = $rawTeamsTable->get($rawTeamSwtId)['team'];
+            //     $rawTeams[$key]['id'] = $rawTeamsTable->get($rawTeamSwtId)['id'];
+            // } else {
+            //     $rawTeamsTable->set('pId:' . $providerId . ':team:' . Str::slug($competitors[$key]),
+            //         ['team' => $competitors[$key], 'provider_id' => $providerId]);
 
-                $teamsModel = Teams::create([
-                    'team' => $competitors[$key],
-                    'provider_id' => $providerId
-                ]);
+            //     $teamsModel = Teams::create([
+            //         'team' => $competitors[$key],
+            //         'provider_id' => $providerId
+            //     ]);
 
-                $rawTeamsTable['pId:' . $providerId . ':team:' . Str::slug($competitors[$key])]['id'] = $teamsModel->id;
+            //     $rawTeamsTable['pId:' . $providerId . ':team:' . Str::slug($competitors[$key])]['id'] = $teamsModel->id;
 
-                $rawTeams[$key]['id'] = $teamsModel->id;
-                $toTransform = false;
-            }
+            //     $rawTeams[$key]['id'] = $teamsModel->id;
+            //     $toTransform = false;
+            // }
 
             /**
              * TEAMS (MASTER) Swoole Table
@@ -199,7 +200,8 @@ class TransformKafkaMessage implements ShouldQueue
             ]);
 
             if ($teamsTable->exists($teamSwtId)) {
-                $multiTeam[$key]['id'] = $teamsTable->get($teamSwtId)['id'];
+                $multiTeam[$key]['id']   = $teamsTable->get($teamSwtId)['id'];
+                $multiTeam[$key]['name'] = $teamsTable->get($teamSwtId)['team_name'];
             } else {
                 $toTransform = false;
             }
@@ -214,43 +216,36 @@ class TransformKafkaMessage implements ShouldQueue
          *      $rawEventSwtId   swoole_table_key    "pId:<$providerId>:lId:<$rawLeagueId>:eventIdentifier:<$events[]->eventId>"
          *      $rawEventId      swoole_table_value  int
          */
-        $rawEventSwtId = implode(':', [
-            "pId:" . $providerId,
-            "lId:" . $rawLeagueId,
-            "eventIdentifier:" . $this->message->data->events[0]->eventId
-        ]);
+        // $rawEventSwtId = implode(':', [
+        //     "sId:" . $sportId,
+        //     "pId:" . $providerId,
+        //     "eId:" . $this->message->data->events[0]->eventId
+        // ]);
 
-        if ($rawEventsTable->exists($rawEventSwtId)) {
-            $rawEventId = $rawEventsTable->get($rawEventSwtId)['id'];
-        } else {
-            $rawEventsTable->set('lId:' . $rawLeagueId . ':pId:' . $providerId .  ':eventIdentifier:' . $this->message->data->events[0]->eventId,
-            [
-                'league_id'          => $rawLeagueId,
-                'event_identifier'   => $this->message->data->events[0]->eventId,
-                'sport_id'           => $sportId,
-                'team_home_id'       => $rawTeams['home']['id'],
-                'team_away_id'       => $rawTeams['away']['id'],
-                'provider_id'        => $providerId,
-                'reference_schedule' => date("Y-m-d H:i:s", strtotime($this->message->data->referenceSchedule))
-            ]);
+        // if ($rawEventsTable->exists($rawEventSwtId)) {
+        //     $rawEventId = $rawEventsTable->get($rawEventSwtId)['id'];
+        // } else {
+        //     $array = [
+        //         'event_identifier'   => $this->message->data->events[0]->eventId,
+        //         'sport_id'           => $sportId,
+        //         'provider_id'        => $providerId,
+        //         'league_name'        => $this->message->data->leagueName,
+        //         'home_team_name'     => $this->message->data->homeTeam,
+        //         'away_team_name'     => $this->message->data->awayTeam,
+        //         'game_schedule'      => $this->message->data->schedule,
+        //         'ref_schedule'       => date("Y-m-d H:i:s", strtotime($this->message->data->referenceSchedule))
+        //     ];
 
-            $eventModel = Events::create([
-                'league_id'        => $rawLeagueId,
-                'event_identifier' => $this->message->data->events[0]->eventId,
-                'team_home_id'     => $rawTeams['home']['id'],
-                'team_away_id'     => $rawTeams['away']['id'],
-                'provider_id'      => $providerId,
-                'sport_id'         => $sportId
-            ]);
+        //     $eventModel  = Events::create($array);
+        //     $rawEventId  = $eventModel->id;
+        //     $array['id'] = $eventModel->id;
 
-            $rawEventId = $eventModel->id;
+        //     $rawEventsTable->set($rawEventSwtId, $array);
 
-            $rawEventsTable['lId:' . $rawLeagueId . ':pId:' . $providerId .  ':eventIdentifier:' . $this->message->data->events[0]->eventId]['id'] = $rawEventId;
+        //     $toTransform = false;
+        // }
 
-            $toTransform = false;
-        }
-
-        if (!empty($multiLeagueName) && !empty($multiTeam)) {
+        if (!empty($masterLeagueName) && !empty($multiTeam)) {
             /**
              * EVENTS (MASTER) Swoole Table
              *
@@ -263,16 +258,20 @@ class TransformKafkaMessage implements ShouldQueue
              */
             $eventSwtId = implode(':', [
                 "sId:" . $sportId,
-                "masterLeagueId:" . $multiLeagueId,
-                "eId:" . $rawEventId
+                "pId:" . $providerId,
+                "eventIdentifier:" . $this->message->data->events[0]->eventId
             ]);
 
             if ($eventsTable->exists($eventSwtId)) {
-                $eventId = $eventsTable->get($eventSwtId)['id'];
-                $uid = $eventsTable->get($eventSwtId)['master_event_unique_id'];
-                $masterTeamHomeId = $eventsTable->get($eventSwtId)['master_team_home_id'];
-                $masterTeamAwayId = $eventsTable->get($eventSwtId)['master_team_away_id'];
+                $eventId            = $eventsTable->get($eventSwtId)['id'];
+                $uid                = $eventsTable->get($eventSwtId)['master_event_unique_id'];
+                $masterTeamHomeName = $eventsTable->get($eventSwtId)['master_team_home_name'];
+                $masterTeamAwayName = $eventsTable->get($eventSwtId)['master_team_away_name'];
             } else {
+                $toTransform    = false;
+                $masterTeamHome = $multiTeam['home']['name'];
+                $masterTeamAway = $multiTeam['away']['name'];
+
                 $uid = implode('-', [
                     date("Ymd", strtotime($this->message->data->referenceSchedule)),
                     $sportId,
@@ -280,27 +279,25 @@ class TransformKafkaMessage implements ShouldQueue
                     $this->message->data->events[0]->eventId
                 ]);
 
-                /** TODO: Insert to DB */
-                $toInsert['master_events'] = [];
-
-                $masterTeamHomeId = $multiTeam['home']['id'];
-                $masterTeamAwayId = $multiTeam['away']['id'];
-
-                $eventsTable->set($eventSwtId, [
-//                    'id'                     => $event->id, @TODO insert again the ID after DB insert
-                    'master_league_id'       => $multiLeagueId,
-                    'master_event_unique_id' => $uid,
+                $array = [
+                    'event_identifier'       => $this->message->data->events[0]->eventId,
                     'sport_id'               => $sportId,
-                    'master_team_home_id'    => $masterTeamHomeId,
-                    'master_team_away_id'    => $masterTeamAwayId,
-                    'reference_schedule'     => date("Y-m-d H:i:s", strtotime($this->message->data->referenceSchedule)),
-                    'multi_league'           => $multiLeagueName,
-                    'event_identifier'       => $this->message->data->events[0]->eventId
-                ]);
+                    'master_event_unique_id' => $uid,
+                    'master_league_name'     => $masterLeagueName,
+                    'master_home_team_name'  => $masterTeamHome,
+                    'master_away_team_name'  => $masterTeamAway,
+                    'game_schedule'          => $this->message->data->schedule,
+                    'ref_schedule'           => date("Y-m-d H:i:s", strtotime($this->message->data->referenceSchedule))
+                ];
+
+                $eventsTable->set($rawEventSwtId, $array);
+
+                $eventModel = MasterEvent::create($array);
+                $rawEventId = $eventModel->id;
+
+                $eventsTable[$rawEventSwtId]['id'] = $rawEventId;
             }
         }
-
-
 
         if (!empty($uid)) {
             $arrayEvents = $this->message->data->events;
@@ -360,35 +357,33 @@ class TransformKafkaMessage implements ShouldQueue
                          *      $rawEventMarketSwtId   swoole_table_key    "lId:<$rawLeagueId>:pId:<$providerId>:eId:<$events[]->eventId>"
                          *      $rawEventMarket        swoole_table_value  string
                          */
-                        $rawEventMarketSwtId = implode(':', [
-                            "lId:" . $rawLeagueId,
-                            "pId:" . $providerId,
-                            "eId:" . $rawEventId
-                        ]);
+                        // $rawEventMarketSwtId = implode(':', [
+                        //     "lId:" . $rawLeagueId,
+                        //     "pId:" . $providerId,
+                        //     "eId:" . $rawEventId
+                        // ]);
 
-                        if ($rawEventMarketsTable->exists($rawEventMarketSwtId)) {
-                            $rawEventMarketId = $rawEventMarketsTable->get($rawEventMarketSwtId)['id'];
-                            $rawEventMarketOdds = $rawEventMarketsTable->get($rawEventMarketSwtId)['odds'];
-                        } else {
-                            /** TODO: Insert to DB */
-                            $toInsert['raw_event_markets'] = [];
+                        // if ($rawEventMarketsTable->exists($rawEventMarketSwtId)) {
+                        //     $rawEventMarketId = $rawEventMarketsTable->get($rawEventMarketSwtId)['id'];
+                        //     $rawEventMarketOdds = $rawEventMarketsTable->get($rawEventMarketSwtId)['odds'];
+                        // } else {
+                        //     $toInsert['raw_event_markets'] = [];
 
-                            $rawEventMarketsTable->set($eventSwtId, [
-                                //                'id'                     => $event->id, @TODO insert again the ID after DB insert
-                                'league_id'       => $rawLeagueId,
-                                'event_id' => $rawEventId,
-                                'odd_type_id'               => $oddTypeId,
-                                'provider_id'    => $providerId,
-                                'odds'    => $markets->odds,
+                        //     $rawEventMarketsTable->set($eventSwtId, [
+                        //         'league_id'      => $rawLeagueId,
+                        //         'event_id'       => $rawEventId,
+                        //         'odd_type_id'    => $oddTypeId,
+                        //         'provider_id'    => $providerId,
+                        //         'odds'           => $markets->odds,
+                        //         'bet_identifier' => $markets->market_id,
+                        //         'is_main'        => $keyEvent == 0 ? 1 : 0,
+                        //         'market_flag'    => strtoupper($markets->indicator)
+                        //     ]);
 
-                                'bet_identifier'           => $markets->market_id,
-                                'is_main'       => $keyEvent == 0 ? 1 : 0,
-                                'market_flag'   => strtoupper($markets->indicator)
-                            ]);
-                            if (!empty($markets->points)) {
-                                $rawEventMarketsTable[$eventSwtId] = ['odd_label' => $markets->points];
-                            }
-                        }
+                        //     if (!empty($markets->points)) {
+                        //         $rawEventMarketsTable[$eventSwtId] = ['odd_label' => $markets->points];
+                        //     }
+                        // }
 
                         /**
                          * EVENT MARKETS (MASTER) Swoole Table
@@ -406,8 +401,8 @@ class TransformKafkaMessage implements ShouldQueue
                                 if ($row['event_market_id'] == $rawEventMarketId) {
                                     $found = true;
 
-                                    if ($row['odds'] != $rawEventMarketOdds) {
-                                        $eventMarketsTable[$key]['odds'] = $rawEventMarketOdds;
+                                    if ($row['odds'] != $markets->odds) {
+                                        $eventMarketsTable[$key]['odds'] = $markets->odds;
                                         $updated = true;
                                     }
 
@@ -417,21 +412,15 @@ class TransformKafkaMessage implements ShouldQueue
                         }
 
                         if (!$found) {
-                            $memUID = uniqid();
-                            $toInsert['event_markets'] = [];
-                            $toTransform = false;
-
+                            $memUID           = uniqid();
+                            $toTransform      = false;
                             $eventMarketSwtId = implode(':', [
                                 "pId:" . $providerId,
                                 "meUniqueId:" . $uid,
                                 "memUniqueId:" . $memUID
                             ]);
 
-                            /** TODO: Insert to DB */
-
-                            $eventMarketsTable->set($eventMarketSwtId, [
-    //                            'id'                     => $id, @TODO insert again the ID after DB insert
-                                'event_id'                      => $eventId,
+                            $array = [
                                 'odd_type_id'                   => $oddTypeId,
                                 'master_event_market_unique_id' => $memUID,
                                 'master_event_unique_id'        => $uid,
@@ -442,7 +431,14 @@ class TransformKafkaMessage implements ShouldQueue
                                 'bet_identifier'                => $markets->market_id,
                                 'is_main'                       => $event->market_type == 1 ? true : false,
                                 'market_flag'                   => strtoupper($markets->indicator),
-                            ]);
+                            ];
+
+                            $eventMarketsTable->set($eventMarketSwtId, $array);
+
+                            $eventModel = MasterEventMarket::create($array);
+                            $id         = $eventModel->id;
+
+                            $eventMarketsTable[$eventMarketSwtId]['id'] = $id;
                         }
                     }
                 }
