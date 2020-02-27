@@ -103,7 +103,7 @@ class TransformKafkaMessage implements ShouldQueue
         if ($rawLeaguesTable->exist($rawLeagueSwtId)) {
             $rawLeagueId = $rawLeaguesTable->get($rawLeagueSwtId)['id'];
         } else {
-            $leaguesTable->set('sId:' . $sportId . ':pId:' . $providerId . ':league:' . Str::slug($this->message->data->leagueName),
+            $leaguesTable->set($rawLeagueSwtId,
                 [
                     'provider_id' => $providerId,
                     'sport_id'    => $sportId,
@@ -117,7 +117,7 @@ class TransformKafkaMessage implements ShouldQueue
             ]);
             $rawLeagueId = $leagueModel->id;
 
-            $leaguesTable['sId:' . $sportId . ':pId:' . $providerId . ':league:' . Str::slug($this->message->data->leagueName)]['id'] = $rawLeagueId;
+            $leaguesTable[$rawLeagueSwtId]['id'] = $rawLeagueId;
 
             $toTransform = false;
         }
