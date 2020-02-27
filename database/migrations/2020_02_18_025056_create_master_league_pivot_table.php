@@ -21,7 +21,7 @@ class CreateMasterLeaguePivotTable extends Migration
                 $table->integer('sport_id');
                 $table->integer('master_league_id');
                 $table->integer('provider_id');
-                $table->integer('league_name');
+                $table->string('league_name');
                 $table->softDeletes();
                 $table->timestamps();
 

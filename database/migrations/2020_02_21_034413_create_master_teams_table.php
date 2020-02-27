@@ -19,7 +19,7 @@ class CreateMasterTeamsTable extends Migration
             Schema::create($this->tablename, function (Blueprint $table) {
                 $table->integerIncrements('id');
                 $table->integer('sport_id');
-                $table->string('multi_team', 100)->index();
+                $table->string('master_team_name', 100)->index();
                 $table->timestamps();
 
                 $table->foreign('sport_id')
