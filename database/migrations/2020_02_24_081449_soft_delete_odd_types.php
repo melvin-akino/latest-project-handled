@@ -4,12 +4,10 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class AlterTablesOddTypesMasterLeaguesMasterTeams extends Migration
+class SoftDeleteOddTypes extends Migration
 {
     protected $tables = [
         'odd_types',
-        'master_leagues',
-        'master_teams',
     ];
 
     /**

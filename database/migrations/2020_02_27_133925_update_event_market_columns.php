@@ -3,10 +3,12 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\DB;
 
-class UpdateMasterEventLinksTable extends Migration
+class UpdateEventMarketColumns extends Migration
 {
-    protected $tableName = 'master_event_links';
+    protected $tableName = 'event_markets';
+
     /**
      * Run the migrations.
      *
@@ -16,7 +18,11 @@ class UpdateMasterEventLinksTable extends Migration
     {
         if (Schema::hasTable($this->tableName)) {
             Schema::table($this->tableName, function (Blueprint $table) {
-                $table->renameColumn('event_match_link_id', 'master_event_id');
+                $table->integer('provider_id');
+                $table->foreign('provider_id')
+                    ->references('id')
+                    ->on('providers')
+                    ->onUpdate('cascade');
             });
         }
     }
@@ -30,7 +36,7 @@ class UpdateMasterEventLinksTable extends Migration
     {
         if (Schema::hasTable($this->tableName)) {
             Schema::table($this->tableName, function (Blueprint $table) {
-                $table->renameColumn('master_event_id', 'event_match_link_id');
+                $table->dropColumn('provider_id');
             });
         }
     }

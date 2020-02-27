@@ -23,14 +23,14 @@ class Data2SWT implements CustomProcessInterface
             'MasterTeams',
             'SportOddTypes',
             'MasterEvents',
-//            'MasterEventMarkets'
+            'MasterEventMarkets'
         ];
         foreach ($swooleProcesses as $process) {
             $method = "db2Swt" . $process;
             self::{$method}($swoole);
         }
 
-        $table = app('swoole')->eventsTable;
+        $table = app('swoole')->eventMarketsTable;
         foreach ($table as $key => $row) {
             var_dump(['testing' => $key]);
             var_dump($row);
@@ -133,32 +133,6 @@ class Data2SWT implements CustomProcessInterface
         }, $sportOddTypes->toArray());
     }
 
-    private static function db2SwtEvents(Server $swoole)
-    {
-        $events = DB::table('events')
-            ->join('sports', 'sports.id', 'events.sport_id')
-            ->join('master_league_links', 'master_league_links.league_name', 'events.league_name')
-            ->select('events.id', 'events.event_identifier', 'events.provider_id',
-                'events.sport_id', 'events.ref_schedule', 'events.game_schedule', 'events.home_team_name',
-                'events.away_team_name', 'events.league_name')
-            ->get();
-        $rawEventsTable = $swoole->rawEventsTable;
-        array_map(function ($event) use ($rawEventsTable) {
-            $rawEventsTable->set('sId:' . $event->sport_id . ':pId:' . $event->provider_id . ':eventIdentifier:' . $event->event_identifier,
-                [
-                    'id'               => $event->id,
-                    'league_name'      => $event->league_name,
-                    'event_identifier' => $event->event_identifier,
-                    'sport_id'         => $event->sport_id,
-                    'home_team_name'   => $event->home_team_name,
-                    'away_team_name'   => $event->away_team_name,
-                    'provider_id'      => $event->provider_id,
-                    'ref_schedule'     => $event->ref_schedule,
-                    'game_schedule'    => $event->game_schedule
-                ]);
-        }, $events->toArray());
-    }
-
     private static function db2SwtMasterEvents(Server $swoole)
     {
         $masterEvents = DB::table('master_events')
@@ -194,17 +168,16 @@ class Data2SWT implements CustomProcessInterface
         $masterEventMarkets = DB::table('master_event_markets')
             ->join('master_event_market_links', 'master_event_market_links.master_event_market_id',
                 'master_event_markets.id')
+            ->join('event_markets', 'event_markets.id', 'master_event_market_links.event_market_id')
             ->join('master_events', 'master_events.master_event_unique_id',
                 'master_event_markets.master_event_unique_id')
-            ->join('event_markets', 'event_markets.id', 'master_event_market_links.event_market_id')
-            ->join('events', 'events.id', 'event_markets.event_id')
-            ->join('odd_types', 'odd_types.id', 'event_markets.odd_type_id')
+            ->join('odd_types', 'odd_types.id', 'master_event_markets.odd_type_id')
             ->select('event_markets.id', 'master_event_markets.master_event_unique_id',
                 'master_event_markets.master_event_market_unique_id',
                 'master_event_market_links.event_market_id',
-                'event_markets.event_id', 'event_markets.odd_type_id', 'events.provider_id',
+                'event_markets.odd_type_id', 'event_markets.provider_id',
                 'event_markets.odds', 'event_markets.odd_label', 'event_markets.bet_identifier',
-                'event_markets.is_main', 'event_markets.market_flag', 'events.event_identifier')
+                'event_markets.is_main', 'event_markets.market_flag')
             ->get();
         $masterEventMarketsTable = $swoole->eventMarketsTable;
         array_map(function ($eventMarket) use ($masterEventMarketsTable) {
@@ -217,7 +190,6 @@ class Data2SWT implements CustomProcessInterface
                     'master_event_unique_id'        => $eventMarket->master_event_unique_id,
                     'event_market_id'               => $eventMarket->event_market_id,
                     'master_event_market_unique_id' => $eventMarket->master_event_market_unique_id,
-                    'event_id'                      => $eventMarket->event_id,
                     'odd_type_id'                   => $eventMarket->odd_type_id,
                     'provider_id'                   => $eventMarket->provider_id,
                     'odds'                          => $eventMarket->odds,
