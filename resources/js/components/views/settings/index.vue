@@ -6,8 +6,8 @@
                 <router-link to="/settings/profile" class="py-3 px-8 bg-white border border-gray-400 text-sm">Profile</router-link>
                 <router-link to="/settings/trade-page" class="py-3 px-8 bg-white border border-gray-400 text-sm">Trade Page</router-link>
                 <router-link to="/settings/bet-slip" class="py-3 px-8 bg-white border border-gray-400 text-sm">Bet Slip</router-link>
-                <router-link to="/settings/bookies" class="py-3 px-8 bg-white border border-gray-400 text-sm">Bookies</router-link>
-                <router-link to="/settings/bet-columns" class="py-3 px-8 bg-white border border-gray-400 text-sm">Bet Columns</router-link>
+                <router-link to="/settings/bookmakers" class="py-3 px-8 bg-white border border-gray-400 text-sm">Bookmakers</router-link>
+                <router-link to="/settings/market-types" class="py-3 px-8 bg-white border border-gray-400 text-sm">Market Types</router-link>
                 <router-link to="/settings/notifications-and-sounds" class="py-3 px-8 bg-white border border-gray-400 text-sm">Notifications & Sounds</router-link>
             </div>
         </div>

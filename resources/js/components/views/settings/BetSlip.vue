@@ -1,7 +1,7 @@
 <template>
     <div class="mt-12 mb-12">
         <form @submit.prevent="saveChanges">
-            <div class="flex items-center mb-12">
+            <!-- <div class="flex items-center mb-12">
                 <label class="relative flex items-center w-1/12">
                     <input type="checkbox" class="appearance-none shadow border border-gray-400 bg-gray-400 rounded-full h-3 w-12 mr-4 focus:outline-none" :value="betSlipSettingsForm.use_equivalent_bets" @change="toggleBetSlipSettings(betSlipSettingsForm.use_equivalent_bets, 'use_equivalent_bets')">
                     <span class="absolute shadow shadow-inner w-6 h-6 rounded-full" :class="[betSlipSettingsForm.use_equivalent_bets === '1' ? 'on-switch bg-orange-500' : 'left-0 bg-white']"></span>
@@ -16,7 +16,7 @@
                 </label>
                 <span class="w-4/12 text-sm">Allow putting offers on exchanges</span>
                 <p class="text-xs w-7/12 text-left">If an exchange account is selected and no liquidity is available, we will attempt to put up an offer on that exchange</p>
-            </div>
+            </div> -->
             <div class="flex items-center mb-12">
                 <label class="relative flex items-center w-1/12">
                     <input type="checkbox" class="appearance-none shadow border border-gray-400 bg-gray-400 rounded-full h-3 w-12 mr-4 focus:outline-none" :value="betSlipSettingsForm.adv_placement_opt"  @change="toggleBetSlipSettings(betSlipSettingsForm.adv_placement_opt, 'adv_placement_opt')">
@@ -41,14 +41,14 @@
                 <span class="w-4/12 text-sm">Show advanced betslip information</span>
                 <p class="text-xs w-7/12 text-left">Select to show expected returns, average price, and minimum & maximum order</p>
             </div>
-            <div class="flex items-center mb-12">
+            <!-- <div class="flex items-center mb-12">
                 <label class="relative flex items-center w-1/12">
                     <input type="checkbox" class="appearance-none shadow border border-gray-400 bg-gray-400 rounded-full h-3 w-12 mr-4 focus:outline-none" :value="betSlipSettingsForm.tint_bookies"  @change="toggleBetSlipSettings(betSlipSettingsForm.tint_bookies, 'tint_bookies')">
                     <span class="absolute shadow shadow-inner w-6 h-6 rounded-full" :class="[betSlipSettingsForm.tint_bookies === '1' ? 'on-switch bg-orange-500' : 'left-0 bg-white']"></span>
                 </label>
                 <span class="w-4/12 text-sm">Tint bookies</span>
                 <p class="text-xs w-7/12 text-left">Lightly tint bookie account backgrounds</p>
-            </div>
+            </div> -->
             <div class="mb-12">
                 <label class="text-sm">Adaptive Selection</label>
                 <div class="flex justify-between items-center">

@@ -1,7 +1,7 @@
 <template>
     <div class="mt-12 mb-12">
         <form @submit.prevent="saveChanges">
-            <div class="flex items-center mb-12">
+            <!-- <div class="flex items-center mb-12">
                 <label class="relative flex items-center w-1/12">
                     <input type="checkbox" class="appearance-none shadow border border-gray-400 bg-gray-400 rounded-full h-3 w-12 mr-4 focus:outline-none" :value="tradePageSettingsForm.suggested" @change="toggleTradeSettings(tradePageSettingsForm.suggested, 'suggested')">
                     <span class="absolute shadow shadow-inner w-6 h-6 rounded-full" :class="[tradePageSettingsForm.suggested === '1' ? 'on-switch bg-orange-500' :  'left-0 bg-white']"></span>
@@ -24,7 +24,7 @@
                 </label>
                 <span class="w-4/12 text-sm">Hide competition names in favorites</span>
                 <p class="text-xs w-7/12 text-left">You can disable the competition names in the favorites market to save vertical space. If you do this they will automatically be sorted by time regardless of your normal trade sort.</p>
-            </div>
+            </div> -->
             <div class="flex items-center mb-12">
                 <label class="relative flex items-center w-1/12">
                     <input type="checkbox" class="appearance-none shadow border border-gray-400 bg-gray-400 rounded-full h-3 w-12 mr-4 focus:outline-none"  :value="tradePageSettingsForm.live_position_values" @change="toggleTradeSettings(tradePageSettingsForm.live_position_values, 'live_position_values')">
@@ -33,14 +33,14 @@
                 <span class="w-4/12 text-sm">Live position values</span>
                 <p class="text-xs w-7/12 text-left">Select to show Position button with current expected profit / loss based on live score. This will poll your current position and update live based on bets placed and score changes. Disabling this will restore the original position button.</p>
             </div>
-            <div class="flex items-center mb-12">
+            <!-- <div class="flex items-center mb-12">
                 <label class="relative flex items-center w-1/12">
                     <input type="checkbox" class="appearance-none shadow border border-gray-400 bg-gray-400 rounded-full h-3 w-12 mr-4 focus:outline-none"  :value="tradePageSettingsForm.hide_exchange_only" @change="toggleTradeSettings(tradePageSettingsForm.hide_exchange_only, 'hide_exchange_only')">
                     <span class="absolute shadow shadow-inner w-6 h-6 rounded-full" :class="[tradePageSettingsForm.hide_exchange_only === '1' ? 'on-switch bg-orange-500' :  'left-0 bg-white']"></span>
                 </label>
                 <span class="w-4/12 text-sm">Hide exchange only lines</span>
                 <p class="text-xs w-7/12 text-left">Hide markets and handicap lines that only use exchange offers. This will show only bookie backed prices.</p>
-            </div>
+            </div> -->
             <div class="mb-12">
                 <label class="text-sm">Trade Layout</label>
                 <div class="flex justify-between items-center">
