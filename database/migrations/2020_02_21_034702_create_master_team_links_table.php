@@ -18,9 +18,9 @@ class CreateMasterTeamLinksTable extends Migration
         if (!Schema::hasTable($this->tablename)) {
             Schema::create($this->tablename, function (Blueprint $table) {
                 $table->integerIncrements('id');
-                $table->integer('sport_id');
                 $table->integer('master_team_id');
                 $table->integer('provider_id');
+                $table->string('team_name');
                 $table->softDeletes();
                 $table->timestamps();
 
