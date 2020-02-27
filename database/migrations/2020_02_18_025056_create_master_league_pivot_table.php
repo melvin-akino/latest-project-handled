@@ -18,17 +18,16 @@ class CreateMasterLeaguePivotTable extends Migration
         if (!Schema::hasTable($this->tablename)) {
             Schema::create($this->tablename, function (Blueprint $table) {
                 $table->integerIncrements('id');
+                $table->integer('sport_id');
                 $table->integer('master_league_id');
-                $table->integer('league_id');
-
+                $table->integer('provider_id');
+                $table->integer('league_name');
+                $table->softDeletes();
                 $table->timestamps();
+
                 $table->foreign('master_league_id')
                     ->references('id')
                     ->on('master_leagues')
-                    ->onUpdate('cascade');
-                $table->foreign('league_id')
-                    ->references('id')
-                    ->on('leagues')
                     ->onUpdate('cascade');
             });
         }

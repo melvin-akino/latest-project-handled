@@ -17,18 +17,19 @@ class CreateEventMatchLinksTable extends Migration
     {
         if (!Schema::hasTable($this->tablename)) {
             Schema::create($this->tablename, function (Blueprint $table) {
-                $table->integerIncrements('id');
-                $table->integer('event_match_link_id');
                 $table->integer('event_id');
-                $table->foreign('event_match_link_id')
+                $table->integer('master_event_id');
+                $table->timestamps();
+
+                $table->foreign('master_event_id')
                     ->references('id')
-                    ->on('event_match_links')
+                    ->on('master_events')
                     ->onUpdate('cascade');
+
                 $table->foreign('event_id')
                     ->references('id')
                     ->on('events')
                     ->onUpdate('cascade');
-                $table->timestamps();
             });
         }
     }

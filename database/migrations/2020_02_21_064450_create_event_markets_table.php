@@ -26,11 +26,11 @@ class CreateEventMarketsTable extends Migration
         if (!Schema::hasTable($this->tablename)) {
             Schema::create($this->tablename, function (Blueprint $table) {
                 $table->integerIncrements('id');
-                $table->string('master_event_unique_id', 30);
-                $table->integer('odd_type_id');
+                $table->string('master_event_unique_id', 30)->unique();
+                $table->integer('odd_type_id')->index();
                 $table->double('odds');
                 $table->string('odd_label', 10);
-                $table->string('bet_identifier', 100);
+                $table->string('bet_identifier', 100)->index();
                 $table->boolean('is_main')->default(true);
                 $table->enum('market_flag', [
                     'HOME',
@@ -38,17 +38,16 @@ class CreateEventMarketsTable extends Migration
                     'AWAY'
                 ]);
                 $table->timestamps();
+
                 $table->foreign('master_event_unique_id')
                     ->references('master_event_unique_id')
                     ->on('master_events')
                     ->onUpdate('cascade');
+
                 $table->foreign('odd_type_id')
                     ->references('id')
                     ->on('odd_types')
                     ->onUpdate('cascade');
-                $table->unique('master_event_unique_id');
-                $table->index('odd_type_id');
-                $table->index('bet_identifier');
             });
         }
     }
