@@ -18,14 +18,26 @@ class CreateEventsTable extends Migration
         if (!Schema::hasTable($this->tablename)) {
             Schema::create($this->tablename, function (Blueprint $table) {
                 $table->integerIncrements('id');
-                $table->integer('league_id');
-                $table->integer('event_id');
+                $table->integer('event_identifier');
+                $table->integer('sport_id');
+                $table->integer('provider_id');
+                $table->string('league_name');
+                $table->string('home_team_name');
+                $table->string('away_team_name');
+                $table->string('ref_schedule');
+                $table->string('game_schedule');
+                $table->softDeletes();
                 $table->timestamps();
-                $table->foreign('league_id')
+
+                $table->foreign('sport_id')
                     ->references('id')
-                    ->on('leagues')
+                    ->on('sports')
                     ->onUpdate('cascade');
-                $table->index('event_id');
+
+                $table->foreign('provider_id')
+                    ->references('id')
+                    ->on('providers')
+                    ->onUpdate('cascade');
             });
         }
     }
