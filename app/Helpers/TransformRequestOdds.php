@@ -3,7 +3,7 @@
 namespace App\Helpers;
 
 use Illuminate\Support\Str;
-
+use Swoole\Table;
 
 class TransformRequestOdds
 {
@@ -15,7 +15,7 @@ class TransformRequestOdds
      * @param Swoole\Table $table
      * @return boolean
      */
-    public function isValidRequest(array $message = [], Swoole\Table $table)
+    public function isValidRequest(array $message = [], Table $table)
     {
         $requestId = $message->request_uid;
         $requestTs = $message->request_ts;
@@ -35,7 +35,7 @@ class TransformRequestOdds
             throw new Exception("Invalid sub command");
         }
 
-        $requestKey = "sId:".$sport.":pId:".strtolower($provider).":rId:".$requestId.":schedule:".$schedule;
+        $requestKey = "sId:".$sport.":provider:".strtolower($provider).":rId:".$requestId.":schedule:".$schedule;
 
         $currentTs = $table->get($requestKey);
 
@@ -59,24 +59,20 @@ class TransformRequestOdds
     /**
      * Get the current provider
      *
-     * @param array $message
+     * @param string $provider
      * @param Swoole\Table $table
      * @return integer $providerId
      */
-    public function getProvider(array $message = [], Swoole\Table $table)
+    public function getProvider(string $provider, Table $table)
     {        
-        $provider = $message->data->provider;
+        $data = $table->get(strtolower($provider));
 
-        $requestKey = strtolower($provider);
-
-        $providerId = $table->get($requestKey);
-
-        if ($providerId === false)
+        if (($data === false) || (!isset($data['id'])))
         {
             throw new Exception("Provider doesn't exist");
         }
 
-        return $providerId;
+        return $data['id'];
     }
 
     /**
@@ -86,7 +82,7 @@ class TransformRequestOdds
      * @param Swoole\Table $table
      * @return void
      */
-    public function getSport(string $sport, Swoole\Table $table)
+    public function getSport(string $sport, Table $table)
     {        
         if (!$table->exist($sport))
         {
@@ -102,12 +98,12 @@ class TransformRequestOdds
      * @param Swoole\Table $table
      * @return array
      */
-    public function getLeague(array $message = [], integer $providerId, Swoole\Table $table)
+    public function getLeague(array $message = [], integer $providerId, Table $table)
     {
         $sport = $message->data->sport;
         $league = $message->data->leagueName;
 
-        $requestKey = "sId:1:pId:".$providerId.":league:".Str::slug($league);
+        $requestKey = "sId:".$sport.":pId:".$providerId.":league:".Str::slug($league);
 
         $data = $table->get($requestKey);
 
@@ -128,7 +124,7 @@ class TransformRequestOdds
      * @param Swoole\Table $table
      * @return array
      */
-    public function getTeam(array $message = [], integer $providerId, string $type, Swoole\Table $table)
+    public function getTeam(array $message = [], integer $providerId, string $type, Table $table)
     {
         $sport = $message->data->sport;
         $team = $message->data->homeTeam;
@@ -137,7 +133,7 @@ class TransformRequestOdds
             $team = $message->data->awayTeam;
         }
 
-        $requestKey = "sId:1:pId:".$providerId.":team:".Str::slug($team);
+        $requestKey = "sId:".$sport.":pId:".$providerId.":team:".Str::slug($team);
 
         $data = $table->get($requestKey);
 
@@ -156,7 +152,7 @@ class TransformRequestOdds
      * @param Swoole\Table $table
      * @return void
      */
-    public function get(string $key, Swoole\Table $table)
+    public function get(string $key, Table $table)
     {
         $table->get($key);
     }
@@ -169,7 +165,7 @@ class TransformRequestOdds
      * @param Swoole\Table $table
      * @return void
      */
-    public function store(string $key, array $data, Swoole\Table $table)
+    public function store(string $key, array $data, Table $table)
     {
         $table->set($requestKey, $data);
     }
@@ -181,7 +177,7 @@ class TransformRequestOdds
      * @param Swoole\Table $table
      * @return void
      */
-    public function delete(string $key, Swoole\Table $table)
+    public function delete(string $key, Table $table)
     {
         $table->del($key);
     }
@@ -193,7 +189,7 @@ class TransformRequestOdds
      * @param Swoole\Table $table
      * @return void
      */
-    public function find(string $key, Swoole\Table $table)
+    public function find(string $key, Table $table)
     {
         return $table->exist($key);
     }
