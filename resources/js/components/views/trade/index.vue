@@ -33,8 +33,8 @@ import Watchlist from './Watchlist'
 import Columns from './Columns'
 import Games from './Games'
 import Betbar from './Betbar'
-
 import { getSocketKey, getSocketValue } from '../../../helpers/socket'
+
 export default {
     components: {
         Sports,
@@ -51,7 +51,8 @@ export default {
                 inplay: [],
                 today: [],
                 early: []
-            }
+            },
+            eventsList: []
         }
     },
     head: {
@@ -62,12 +63,13 @@ export default {
         }
     },
     computed: {
-        ...mapState('trade', ['isBetBarOpen'])
+        ...mapState('trade', ['isBetBarOpen', 'oddsTypeBySport'])
     },
     mounted() {
-        this.getWatchlistData()
+        this.getWatchlist()
         this.getUserTradeLayout()
         this.getEvents()
+        this.getUpdatedOdds()
     },
     methods: {
         getUserTradeLayout() {
@@ -79,31 +81,31 @@ export default {
                 this.$store.dispatch('auth/checkIfTokenIsValid', err.response.data.status_code)
             })
         },
-        getWatchlistData() {
-            let token = Cookies.get('mltoken')
-
-            axios.get('v1/trade/watchlist', { headers: { 'Authorization': `Bearer ${token}` }})
-            .then(response => {
-                let watchListLeagues = _.uniq(response.data.data.map(event => event.league_name))
-                let watchListObject = {}
-                watchListLeagues.map(league => {
-                    response.data.data.map(event => {
-                        if(event.league_name === league) {
-                            if(typeof(watchListObject[league]) == "undefined") {
-                                watchListObject[league] = []
+        getWatchlist() {
+            this.$options.sockets.onmessage = (response => {
+                if(getSocketKey(response.data) ===  'getWatchlist') {
+                    let watchlist = getSocketValue(response.data, 'getWatchlist')
+                    let watchlistLeagues = _.uniq(watchlist.map(event => event.league_name))
+                    let watchlistObject = {}
+                    watchlistLeagues.map(league => {
+                        watchlist.map(event => {
+                            if(event.league_name === league) {
+                                if(typeof(watchlistObject[league]) == "undefined") {
+                                    watchlistObject[league] = []
+                                }
+                                watchlistObject[league].push(event)
                             }
-                            watchListObject[league].push(event)
-                        }
+                        })
                     })
-                })
-                this.events.watchlist = watchListObject
+                    this.events.watchlist = watchlistObject
+                }
             })
-            .catch(err => this.$store.dispatch('auth/checkIfTokenIsValid', err.response.data.status_code))
         },
         getEvents() {
-            this.$options.sockets.onmessage = ((response) => {
+            this.$options.sockets.onmessage = (response => {
                 if(getSocketKey(response.data) === 'getEvents') {
                     let receivedEvents = getSocketValue(response.data, 'getEvents')
+                    this.eventsList = receivedEvents
                     let eventsSchedule = _.uniq(receivedEvents.map(event => event.game_schedule))
                     let eventsLeague = _.uniq(receivedEvents.map(event => event.league_name))
                     let eventObject = {}
@@ -125,6 +127,27 @@ export default {
                     })
                     Object.keys(eventObject).map(schedule => {
                         this.events[schedule] = eventObject[schedule]
+                    })
+                }
+            })
+        },
+        getUpdatedOdds() {
+            this.$options.sockets.onmessage = (response => {
+                if(getSocketKey(response.data) === 'getUpdatedOdds') {
+                    let updatedOdd = getSocketValue(response.data, 'getUpdatedOdds')
+                    let team = ['home', 'away', 'draw']
+                    this.eventsList.map(event => {
+                        this.oddsTypeBySport.map(oddType => {
+                            team.map(team => {
+                                if(team in event.market_odds.main[oddType]) {
+                                    if(event.market_odds.main[oddType][team].market_id === updatedOdd.market_id) {
+                                        if(event.market_odds.main[oddType][team].odds != updatedOdd.odds) {
+                                            event.market_odds.main[oddType][team].odds = updatedOdd.odds
+                                        }
+                                    }
+                                }
+                            })
+                        })
                     })
                 }
             })
