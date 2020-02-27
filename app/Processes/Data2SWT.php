@@ -145,7 +145,7 @@ class Data2SWT implements CustomProcessInterface
             ->get();
         $rawEventsTable = $swoole->rawEventsTable;
         array_map(function ($event) use ($rawEventsTable) {
-            $rawEventsTable->set('leagueName:' . $event->league_name . ':pId:' . $event->provider_id . ':eventIdentifier:' . $event->event_identifier,
+            $rawEventsTable->set('sId:' . $event->sport_id . ':pId:' . $event->provider_id . ':eventIdentifier:' . $event->event_identifier,
                 [
                     'id'               => $event->id,
                     'league_name'      => $event->league_name,

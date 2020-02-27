@@ -124,7 +124,7 @@ return [
                 [ 'name' => 'provider_id', 'type' => \Swoole\Table::TYPE_INT ],
             ],
         ],
-        'rawEvents'     => [ //key format [lId:$leagueId:pId:$providerId:eventIdentifier:$eventIdentifier] = [id = $id, ...]
+        'rawEvents'     => [ //key format [sId:$sportId:pId:$providerId:eventIdentifier:$eventIdentifier] = [id = $id, ...]
             'size'   => 102400,
             'column' => [
                 [ 'name' => 'id',                 'type' => \Swoole\Table::TYPE_INT ],
@@ -138,7 +138,7 @@ return [
                 [ 'name' => 'ref_schedule', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 30 ],
             ],
         ],
-            'events'     => [ //key format [sId:$sportId:pId:$providerId:eId:$eventId] = [id = $id, ...]
+        'events'     => [ //key format [sId:$sportId:pId:$providerId:eId:$eventId] = [id = $id, ...]
             'size'   => 102400,
             'column' => [
                 [ 'name' => 'id',                     'type' => \Swoole\Table::TYPE_INT ],
