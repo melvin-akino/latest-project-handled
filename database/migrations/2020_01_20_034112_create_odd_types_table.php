@@ -15,6 +15,7 @@ class CreateOddTypesTable extends Migration
             Schema::create($this->tablename, function (Blueprint $table) {
                 $table->integerIncrements('id');
                 $table->string('type', 30);
+
                 $table->timestamps();
             });
 

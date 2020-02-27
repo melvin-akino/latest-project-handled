@@ -11,8 +11,6 @@ class SystemConfigurationSeeder extends Seeder
      */
     public function run()
     {
-        $connection = config('database.crm_default', 'pgsql_crm');
-
         $scheduleTimers = [
             'SCHEDULE_INPLAY_TIMER'           => 1,
             'SCHEDULE_TODAY_TIMER'            => 5,
@@ -26,7 +24,7 @@ class SystemConfigurationSeeder extends Seeder
         ];
 
         foreach ($scheduleTimers as $key => $scheduleTimer) {
-            DB::connection($connection)->table('system_configurations')->insert([
+            DB::table('system_configurations')->insert([
                 'type'  => $key,
                 'value' => $scheduleTimer,
             ]);
