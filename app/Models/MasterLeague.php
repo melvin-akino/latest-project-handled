@@ -20,8 +20,12 @@ class MasterLeague extends Model
 
     public static function getIdByName($name)
     {
-        return self::where('multi_league', $name)
-            ->first()
-            ->id;
+        $query = self::where('multi_league', $name);
+
+        if ($query->count() == 0) {
+            return false;
+        }
+
+        return $query->first()->id;
     }
 }

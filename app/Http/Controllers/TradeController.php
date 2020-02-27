@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\{MasterEvent, MasterLeague, Sport, UserSelectedLeague};
+use App\Models\{MasterEvent, MasterLeague, Sport, UserSelectedLeague, UserWatchlist};
 
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
@@ -552,8 +552,17 @@ class TradeController extends Controller
 
             switch ($request->type) {
                 case 'league':
-                    $leagueId       = MasterLeague::getIdByName($request->data);
-                    $masterEventIds = MasterEvent::getActiveEvents('master_league_id', '=', $leagueId)->get('id')->toArray();
+                    $leagueId = MasterLeague::getIdByName($request->data);
+
+                    if ($leagueId) {
+                        $masterEventIds = MasterEvent::getActiveEvents('master_league_id', '=', $leagueId)->get('id')->toArray();
+                    } else {
+                        return response()->json([
+                            'status'      => false,
+                            'status_code' => 404,
+                            'message'     => trans('generic.not-found')
+                        ], 404);
+                    }
                     break;
 
                 case 'event':
