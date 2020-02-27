@@ -29,7 +29,7 @@ class AlterTableMasterEventsAddSoftDelete extends Migration
     public function down()
     {
         Schema::table($this->tablename, function (Blueprint $table) {
-            $tbale->dropColumn('game_schedule');
+            $table->dropColumn('game_schedule');
             $table->dropSoftDeletes();
         });
     }

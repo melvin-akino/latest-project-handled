@@ -16,7 +16,9 @@ class CreateSportsTable extends Migration
                 $table->integerIncrements('id');
                 $table->string('sport', 50);
                 $table->string('details', 50);
-                $table->tinyInteger('priority')->default(1);
+                $table->string('slug', 30);
+                $table->string('icon', 30);
+                $table->tinyInteger('priority');
                 $table->boolean('is_enabled')->default(true);
                 $table->timestamps();
             });

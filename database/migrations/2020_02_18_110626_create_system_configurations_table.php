@@ -10,9 +10,8 @@ class CreateSystemConfigurationsTable extends Migration
 
     public function up()
     {
-        $connection = config('database.crm_default');
-        if (!Schema::connection($connection)->hasTable($this->tablename)) {
-            Schema::connection($connection)->create($this->tablename, function (Blueprint $table) {
+        if (!Schema::hasTable($this->tablename)) {
+            Schema::create($this->tablename, function (Blueprint $table) {
                 $table->integerIncrements('id');
                 $table->string('type', 100);
                 $table->string('value', 100);
@@ -28,7 +27,6 @@ class CreateSystemConfigurationsTable extends Migration
 
     public function down()
     {
-        $connection = config('database.crm_default');
-        Schema::connection($connection)->dropIfExists($this->tablename);
+        Schema::dropIfExists($this->tablename);
     }
 }
