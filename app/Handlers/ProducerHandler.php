@@ -83,10 +83,10 @@ class ProducerHandler
      * @param array $headers
      * @return void
      */
-    public function send(string $message, $key = null, array $headers = [])
+    public function send(array $message, $key = null)
     {
-        $this->buildPayload($message, $headers);
-        
+        $this->buildPayload($message);
+
         $topic = $this->producer->newTopic($this->getTopic());
 
         $topic->produce(RD_KAFKA_PARTITION_UA, 0, $this->payload, $key);
@@ -116,14 +116,10 @@ class ProducerHandler
      * Build kafka message payload
      *
      * @param string $message
-     * @param array $headers
      * @return void
      */
-    protected function buildPayload(string $message, array $headers = [])
+    protected function buildPayload(array $message)
     {
-        $this->payload = json_encode([
-            'body' => $message,
-            'headers' => $headers
-        ]);
+        $this->payload = json_encode($message);
     }
 }
