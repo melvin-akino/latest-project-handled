@@ -149,7 +149,7 @@ class OddsRequestCommand extends Command
     {
         try {
             $this->producerHandler->setTopic( $kafkaTopic)
-                ->send(json_encode($message), $key);
+                ->send($message);
         } catch (Exception $e) {
             Log::critical(self::PUBLISH_ERROR_MESSAGE, [
                 'error' => $e->getMessage(),

@@ -17,10 +17,4 @@ class SystemConfiguration extends Model
         'created_at',
         'updated_at',
     ];
-
-    public function __construct()
-    {
-        parent::__construct();
-        $this->setConnection(config('database.crm_default', 'pgsql_crm'));
-    }
 }
