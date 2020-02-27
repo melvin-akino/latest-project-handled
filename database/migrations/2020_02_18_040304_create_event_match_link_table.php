@@ -6,7 +6,7 @@ use Illuminate\Support\Facades\Schema;
 
 class CreateEventMatchLinkTable extends Migration
 {
-    protected $tablename = 'event_match_links';
+    protected $tablename = 'master_events';
 
     /**
      * Run the migrations.
@@ -18,17 +18,19 @@ class CreateEventMatchLinkTable extends Migration
         if (!Schema::hasTable($this->tablename)) {
             Schema::create($this->tablename, function (Blueprint $table) {
                 $table->integerIncrements('id');
-                $table->string('uid');
-                $table->integer('master_league_id');
-                $table->string('home_team');
-                $table->string('away_team');
+                $table->integer('sport_id');
+                $table->string('master_event_unique_id');
+                $table->string('master_league_name')->index();
+                $table->string('master_home_team_name')->index();
+                $table->string('master_away_team_name')->index();
+                $table->string('game_schedule', 10)->default('early');
+                $table->softDeletes();
                 $table->timestamps();
-                $table->foreign('master_league_id')
+
+                $table->foreign('sport_id')
                     ->references('id')
-                    ->on('master_leagues')
+                    ->on('sports')
                     ->onUpdate('cascade');
-                $table->index('home_team');
-                $table->index('away_team');
             });
         }
     }

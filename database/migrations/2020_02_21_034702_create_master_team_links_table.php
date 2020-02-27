@@ -17,10 +17,17 @@ class CreateMasterTeamLinksTable extends Migration
     {
         if (!Schema::hasTable($this->tablename)) {
             Schema::create($this->tablename, function (Blueprint $table) {
-                $table->integer('team_id');
+                $table->integerIncrements('id');
+                $table->integer('sport_id');
                 $table->integer('master_team_id');
-                $table->index('team_id');
-                $table->index('master_team_id');
+                $table->integer('provider_id');
+                $table->softDeletes();
+                $table->timestamps();
+
+                $table->foreign('master_team_id')
+                    ->references('id')
+                    ->on('master_teams')
+                    ->onUpdate('cascade');
             });
         }
     }
