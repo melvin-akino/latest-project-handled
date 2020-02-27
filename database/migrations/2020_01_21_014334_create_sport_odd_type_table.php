@@ -17,6 +17,9 @@ class CreateSportOddTypeTable extends Migration
                 $table->integerIncrements('id');
                 $table->integer('sport_id');
                 $table->integer('odd_type_id');
+                $table->string('name', 30)->default('');
+                $table->string('home_label', 30)->default('');
+                $table->string('away_label', 30)->default('');
                 $table->timestamps();
                 $table->foreign('sport_id')
                     ->references('id')
@@ -26,6 +29,7 @@ class CreateSportOddTypeTable extends Migration
                     ->references('id')
                     ->on($this->oddTypesTableName)
                     ->onUpdate('cascade');
+                $table->index('name');
                 $table->unique(['sport_id', 'odd_type_id']);
             });
 

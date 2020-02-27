@@ -60,12 +60,12 @@ const routes = [
                 component: () => import('./components/views/settings/BetSlip')
             },
             {
-                path: 'bookies',
-                component: () => import('./components/views/settings/Bookies')
+                path: 'bookmakers',
+                component: () => import('./components/views/settings/Bookmakers')
             },
             {
-                path: 'bet-columns',
-                component: () => import('./components/views/settings/BetColumns')
+                path: 'market-types',
+                component: () => import('./components/views/settings/MarketTypes')
             },
             {
                 path: 'notifications-and-sounds',

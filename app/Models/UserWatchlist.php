@@ -4,17 +4,17 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class SystemConfiguration extends Model
+class UserWatchlist extends Model
 {
-    protected $table = 'system_configurations';
+    protected $table = "user_watchlist";
 
     protected $fillable = [
-        'type',
-        'value',
+        'user_id',
+        'master_event_id'
     ];
 
     protected $hidden = [
         'created_at',
-        'updated_at',
+        'updated_at'
     ];
 }

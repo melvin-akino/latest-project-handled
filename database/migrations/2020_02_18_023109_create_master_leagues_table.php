@@ -19,13 +19,14 @@ class CreateMasterLeaguesTable extends Migration
             Schema::create($this->tablename, function (Blueprint $table) {
                 $table->integerIncrements('id');
                 $table->integer('sport_id');
-                $table->string('multi_league');
+                $table->string('master_league_name', 100)->index();
+                $table->softDeletes();
                 $table->timestamps();
+
                 $table->foreign('sport_id')
                     ->references('id')
                     ->on('sports')
                     ->onUpdate('cascade');
-                $table->index('multi_league');
             });
         }
     }

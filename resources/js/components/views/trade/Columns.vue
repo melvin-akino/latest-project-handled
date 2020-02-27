@@ -1,15 +1,15 @@
 <template>
     <div class="column">
-        <div class="betColumns flex bg-gray-800 text-white text-xs fixed z-10 w-5/6 pl-6 pr-8" :class="[tradeLayout === '1' ? 'items-center py-2' : 'py-1']">
-            <div class="w-2/12" v-if="tradeLayout==='1'"></div>
-            <div class="w-1/12 text-center" v-if="tradeLayout==='1'">Sport</div>
-            <div class="w-1/12 text-center" v-if="tradeLayout==='1'">Score & <br>Schedule</div>
+        <div class="betColumns flex bg-gray-800 text-white text-xs fixed z-10 w-5/6 pl-6 pr-12" :class="[tradeLayout==1 ? 'items-center py-2' : 'py-1']">
+            <div class="w-2/12" v-if="tradeLayout==1"></div>
+            <div class="w-1/12 text-center" v-if="tradeLayout==1">Sport</div>
+            <div class="w-1/12 text-center" v-if="tradeLayout==1">Score & <br>Schedule</div>
             <div class="w-1/12 py-1 flex justify-center">
                 <button class="w-8 text-white text-center bg-orange-500 px-1 py-2 hover:bg-orange-600" @click="openColumnModal"><i class="fas fa-plus"></i></button>
             </div>
-            <div class="flex w-1/12" :class="[tradeLayout==='2' ? 'flex-col mr-10 px-2' : 'justify-center pl-2']" v-for="column in columnsToDisplay" :key="column.sport_odd_type_id">
+            <div class="flex w-1/12" :class="[tradeLayout==2 ? 'flex-col mr-10 px-2' : 'justify-center pl-2']" v-for="column in columnsToDisplay" :key="column.sport_odd_type_id">
                 <span class="text-center">{{column.name}}</span>
-                <div class="flex justify-between" v-if="tradeLayout==='2'">
+                <div class="flex justify-between" v-if="tradeLayout==2">
                     <span>{{column.home_label}}</span>
                     <span v-if="column.odd_type_id===1 || column.odd_type_id===5">X</span>
                     <span>{{column.away_label}}</span>
@@ -25,7 +25,7 @@
                             <span class="text-sm uppercase">{{filteredColumn.name}}</span>
                         </label>
                     </div>
-                    <button class="bg-orange-500 hover:bg-orange-600 text-white text-sm uppercase px-4 py-2" @click="closeColumnModal">Save & Close</button>
+                    <button type="submit" class="bg-orange-500 hover:bg-orange-600 text-white text-sm uppercase px-4 py-2">Save & Close</button>
                 </form>
             </div>
         </div>
@@ -62,18 +62,11 @@ export default {
         openColumnModal() {
             this.showToggleColumnsModal = true
         },
-        closeColumnModal() {
-            this.showToggleColumnsModal = false
-            this.saveColumns()
-            Swal.fire({
-                icon: 'success',
-                text: 'Saved Changes!'
-            })
-        },
         getBetColumns() {
             this.$store.dispatch('trade/getBetColumns', this.selectedSport)
         },
         saveColumns() {
+            this.showToggleColumnsModal = false
             let token = Cookies.get('mltoken')
             let data = this.filteredColumnsBySport.map(column => {
                 return {
@@ -85,6 +78,10 @@ export default {
             axios.post(`/v1/user/settings/bet-columns/${this.selectedSport}`, data, { headers: { 'Authorization': `Bearer ${token}` } })
             .then(() => {
                 this.getBetColumns()
+                Swal.fire({
+                    icon: 'success',
+                    text: 'Saved Changes!'
+                })
             })
             .catch(err => {
                 this.$store.dispatch('auth/checkIfTokenIsValid', err.response.data.status_code)

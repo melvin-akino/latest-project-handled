@@ -9,7 +9,7 @@
                 </div>
             </div>
 
-            <div class="w-5/6">
+            <div class="w-5/6 gameWindow">
                 <Columns></Columns>
                 <div class="gameScheds pb-4">
                     <Games gameSchedType="watchlist" :games="events.watchlist"></Games>
@@ -25,6 +25,7 @@
 
 <script>
 import { mapState } from 'vuex'
+import _ from 'lodash'
 import Cookies from 'js-cookie'
 import Sports from './Sports'
 import Wallet from './Wallet'
@@ -32,6 +33,7 @@ import Watchlist from './Watchlist'
 import Columns from './Columns'
 import Games from './Games'
 import Betbar from './Betbar'
+import { getSocketKey, getSocketValue } from '../../../helpers/socket'
 
 export default {
     components: {
@@ -49,7 +51,8 @@ export default {
                 inplay: [],
                 today: [],
                 early: []
-            }
+            },
+            eventsList: []
         }
     },
     head: {
@@ -60,11 +63,13 @@ export default {
         }
     },
     computed: {
-        ...mapState('trade', ['isBetBarOpen'])
+        ...mapState('trade', ['isBetBarOpen', 'oddsTypeBySport'])
     },
     mounted() {
-        this.getWatchlistData()
+        this.getWatchlist()
         this.getUserTradeLayout()
+        this.getEvents()
+        this.getUpdatedOdds()
     },
     methods: {
         getUserTradeLayout() {
@@ -76,12 +81,74 @@ export default {
                 this.$store.dispatch('auth/checkIfTokenIsValid', err.response.data.status_code)
             })
         },
-        getWatchlistData() {
-            let token = Cookies.get('mltoken')
+        getWatchlist() {
+            this.$options.sockets.onmessage = (response => {
+                if(getSocketKey(response.data) ===  'getWatchlist') {
+                    let watchlist = getSocketValue(response.data, 'getWatchlist')
+                    let watchlistLeagues = _.uniq(watchlist.map(event => event.league_name))
+                    let watchlistObject = {}
+                    watchlistLeagues.map(league => {
+                        watchlist.map(event => {
+                            if(event.league_name === league) {
+                                if(typeof(watchlistObject[league]) == "undefined") {
+                                    watchlistObject[league] = []
+                                }
+                                watchlistObject[league].push(event)
+                            }
+                        })
+                    })
+                    this.events.watchlist = watchlistObject
+                }
+            })
+        },
+        getEvents() {
+            this.$options.sockets.onmessage = (response => {
+                if(getSocketKey(response.data) === 'getEvents') {
+                    let receivedEvents = getSocketValue(response.data, 'getEvents')
+                    this.eventsList = receivedEvents
+                    let eventsSchedule = _.uniq(receivedEvents.map(event => event.game_schedule))
+                    let eventsLeague = _.uniq(receivedEvents.map(event => event.league_name))
+                    let eventObject = {}
+                    eventsSchedule.map(schedule => {
+                        eventsLeague.map(league => {
+                            receivedEvents.map(event => {
+                                if(event.game_schedule === schedule && event.league_name === league) {
+                                    if(typeof(eventObject[schedule]) == "undefined") {
+                                        eventObject[schedule] = {}
+                                    }
 
-            axios.get('v1/trade/watchlist', { headers: { 'Authorization': `Bearer ${token}` }})
-            .then(response => this.events.watchlist = response.data.data)
-            .catch(err => this.$store.dispatch('auth/checkIfTokenIsValid', err.response.data.status_code))
+                                    if(typeof(eventObject[schedule][league]) == "undefined") {
+                                        eventObject[schedule][league] = []
+                                    }
+                                    eventObject[schedule][league].push(event)
+                                }
+                            })
+                        })
+                    })
+                    Object.keys(eventObject).map(schedule => {
+                        this.events[schedule] = eventObject[schedule]
+                    })
+                }
+            })
+        },
+        getUpdatedOdds() {
+            this.$options.sockets.onmessage = (response => {
+                if(getSocketKey(response.data) === 'getUpdatedOdds') {
+                    let updatedOdd = getSocketValue(response.data, 'getUpdatedOdds')
+                    let team = ['home', 'away', 'draw']
+                    this.eventsList.map(event => {
+                        this.oddsTypeBySport.map(oddType => {
+                            team.map(team => {
+                                if(oddType in event.market_odds.main && team in event.market_odds.main[oddType]) {
+                                    if(event.market_odds.main[oddType][team].market_id === updatedOdd.market_id && event.market_odds.main[oddType][team].odds != updatedOdd.odds) {
+                                        event.market_odds.main[oddType][team].odds = updatedOdd.odds
+                                    }
+                                }
+                            })
+                        })
+                    })
+                }
+            })
         }
     },
     directives: {
@@ -100,6 +167,11 @@ export default {
 </script>
 
 <style lang="scss">
+    .gameWindow {
+        position: relative;
+        overflow-x: hidden;
+    }
+
     .gameScheds {
         margin-top: 52px;
     }

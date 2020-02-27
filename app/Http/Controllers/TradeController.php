@@ -2,8 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Sport;
+use App\Models\{MasterEvent, MasterLeague, Sport, UserSelectedLeague, UserWatchlist};
 
+use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 use Faker\Factory AS Faker;
 
@@ -61,210 +62,64 @@ class TradeController extends Controller
     }
 
     /**
-     * Fetch Authenticated User's Lists of Favorite League Events
+     * Add/Remove to Authenticated User's Lists of Favorite Leagues/Events
      *
+     * @param  $action  "add|remove"
+     * @param  $request \Illuminate\Http\Request
      * @return json
      */
-    public function getUserWatchlist()
-    {
-        try {
-            /** TO DO: Include Logic for fetching User Watchlist game events */
-
-            $data = [
-                "Football League A" => [
-                    [
-                        "uid"            => "20200312-1-1",
-                        "game_schedule"  => "3",
-                        "home_team_name" => "Los Angeles Lakers",
-                        "away_team_name" => "Los Angeles Clippers",
-                        "1X2"         => [
-                            "home" => [
-                                'odds' => 1.37,
-                                'bet_id' => 'EFUWIHXIUEH'
-                            ],
-                            "away" => [
-                                'odds' => 1.43,
-                                'bet_id' => 'GFGRESDSDSD'
-                            ],
-                            "draw" => [
-                                'odds' => 3.73,
-                                'bet_id' => 'TEUIYUDHJFF'
-                            ],
-                        ],
-                        "HDP"         => [
-                            "home" => [
-                                'odds' => 3.32,
-                                'points' => 2,
-                                'bet_id' => 'XIJHJGLKJLKD'
-                            ],
-                            "away" => [
-                                'odds' => 1.74,
-                                'points' => 2.5,
-                                'bet_id' => 'TEIOUWIENKDS'
-                            ]
-                        ],
-                        "OU"          => [
-                            "home" => [
-                                'odds' => 2.65,
-                                'points' => 'O 1.5',
-                                'bet_id' => 'GDSDKDJLKSDJ'
-                            ],
-                            "away" => [
-                                'odds' => 1.74,
-                                'points' => 'U 2.5',
-                                'bet_id' => 'FDFDAEFDFDSD'
-                            ]
-                        ]
-                    ],
-                    [
-                        "uid"            => "20200312-1-2",
-                        "game_schedule"  => "3",
-                        "home_team_name" => "Cleveland Cavaliers",
-                        "away_team_name" => "Indiana Pacers",
-                        "1X2"         => [
-                            "home" => [
-                                'odds' => 1.11,
-                                'bet_id' => 'EFUWIHXIUEH'
-                            ],
-                            "away" => [
-                                'odds' => 1.23,
-                                'bet_id' => 'GFGRESDSDSD'
-                            ],
-                            "draw" => [
-                                'odds' => 2.87,
-                                'bet_id' => 'TEUIYUDHJFF'
-                            ],
-                        ],
-                        "HDP"         => [
-                            "home" => [
-                                'odds' => 1.45,
-                                'points' => 2,
-                                'bet_id' => 'XIJHJGLKJLKD'
-                            ],
-                            "away" => [
-                                'odds' => 4.34,
-                                'points' => 2.5,
-                                'bet_id' => 'TEIOUWIENKDS'
-                            ]
-                        ],
-                        "OU"          => [
-                            "home" => [
-                                'odds' => 2.76,
-                                'points' => 'O 1.5',
-                                'bet_id' => 'GDSDKDJLKSDJ'
-                            ],
-                            "away" => [
-                                'odds' => 1.74,
-                                'points' => 'U 2.5',
-                                'bet_id' => 'FDFDAEFDFDSD'
-                            ]
-                        ]
-                    ],
-                ],
-                "Football League B" => [
-                    [
-                        "uid"            => "20200312-2-1",
-                        "game_schedule"  => "2",
-                        "home_team_name" => "Chicago Bulls",
-                        "away_team_name" => "Miami Heat",
-                        "1X2"         => [
-                            "home" => [
-                                'odds' => 1.32,
-                                'bet_id' => 'EFUWIHXIUEH'
-                            ],
-                            "away" => [
-                                'odds' => 1.34,
-                                'bet_id' => 'GFGRESDSDSD'
-                            ],
-                            "draw" => [
-                                'odds' => 2.12,
-                                'bet_id' => 'TEUIYUDHJFF'
-                            ],
-                        ],
-                        "HDP"         => [
-                            "home" => [
-                                'odds' => 4.45,
-                                'points' => 2,
-                                'bet_id' => 'XIJHJGLKJLKD'
-                            ],
-                            "away" => [
-                                'odds' => 2.34,
-                                'points' => 2.5,
-                                'bet_id' => 'TEIOUWIENKDS'
-                            ]
-                        ],
-                        "OU"          => [
-                            "home" => [
-                                'odds' => 6.76,
-                                'points' => 'O 1.5',
-                                'bet_id' => 'GDSDKDJLKSDJ'
-                            ],
-                            "away" => [
-                                'odds' => 2.74,
-                                'points' => 'U 2.5',
-                                'bet_id' => 'FDFDAEFDFDSD'
-                            ]
-                        ]
-                    ]
-                ]
-            ];
-            
-            return response()->json([
-                'status'      => true,
-                'status_code' => 200,
-                'data'        => $data
-            ], 200);
-        } catch (Exception $e) {
-            return response()->json([
-                'status'      => false,
-                'status_code' => 500,
-                'message'     => trans('generic.internal-server-error')
-            ], 500);
-        }
-    }
-
-    /**
-     * Add to Authenticated User's Lists of Favorite League Events
-     *
-     * @return json
-     */
-    public function postAddToWatchlist(Request $request)
+    public function postManageWatchlist($action, Request $request)
     {
         try {
             /** TO DO: Include Logic for adding game events to User Watchlist */
-
             $data = [];
+            $lang = "";
+
+            switch ($request->type) {
+                case 'league':
+                    $leagueId = MasterLeague::getIdByName($request->data);
+
+                    if ($leagueId) {
+                        $masterEventIds = MasterEvent::getActiveEvents('master_league_id', '=', $leagueId)->get('id')->toArray();
+                    } else {
+                        return response()->json([
+                            'status'      => false,
+                            'status_code' => 404,
+                            'message'     => trans('generic.not-found')
+                        ], 404);
+                    }
+                    break;
+
+                case 'event':
+                    $masterEventIds = MasterEvent::getActiveEvents('master_event_unique_id', '=', $request->data)->get('id')->toArray();
+                    break;
+            }
+
+            if ($action == "add") {
+                $lang = "added";
+
+                foreach ($masterEventIds AS $row) {
+                    UserWatchlist::create(
+                        [
+                            'user_id'         => auth()->user()->id,
+                            'master_event_id' => $row
+                        ]
+                    );
+                }
+            }
+
+            if ($action == "remove") {
+                $lang = "removed";
+
+                UserWatchlist::where('user_id', auth()->user()->id)
+                    ->whereIn('master_event_id', $masterEventIds)
+                    ->delete();
+            }
 
             return response()->json([
                 'status'      => true,
                 'status_code' => 200,
-                'message'     => trans('game.watchlist.success')
-            ], 200);
-        } catch (Exception $e) {
-            return response()->json([
-                'status'      => false,
-                'status_code' => 500,
-                'message'     => trans('generic.internal-server-error')
-            ], 500);
-        }
-    }
-
-    /**
-     * Remove to Authenticated User's Lists of Favorite League Events
-     *
-     * @return json
-     */
-    public function postRemoveToWatchlist(Request $request)
-    {
-        try {
-            /** TO DO: Include Logic for removing game events to User Watchlist */
-
-            $data = [];
-
-            return response()->json([
-                'status'      => true,
-                'status_code' => 200,
-                'message'     => trans('game.watchlist.removed')
+                'message'     => trans('game.watchlist.' . $lang)
             ], 200);
         } catch (Exception $e) {
             return response()->json([
@@ -339,5 +194,43 @@ class TradeController extends Controller
         }
 
         return $data;
+    }
+
+    /**
+     * Add/Remove Authenticated User's Selected Sidebar Leagues
+     *
+     * @param  $request \Illuminate\Http\Request
+     * @return json
+     */
+    public function postManageSidebarLeagues(Request $request)
+    {
+        try {
+            $leagueId   = MasterLeague::getIdByName($request->data);
+            $checkTable = UserSelectedLeague::where('user_id', auth()->user()->id)
+                ->where('master_league_id', $leagueId);
+
+            if ($checkTable->count() == 0) {
+                UserSelectedLeague::create(
+                    [
+                        'user_id'          => auth()->user()->id,
+                        'master_league_id' => $leagueId
+                    ]
+                );
+            } else {
+                $checktable->delete();
+            }
+
+            return response()->json([
+                'status'      => true,
+                'status_code' => 200,
+                'message'     => trans('notifications.save.success')
+            ], 200);
+        } catch (Exception $e) {
+            return response()->json([
+                'status'      => false,
+                'status_code' => 500,
+                'message'     => trans('generic.internal-server-error')
+            ], 500);
+        }
     }
 }
