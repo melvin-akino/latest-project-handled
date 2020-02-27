@@ -98,6 +98,12 @@ return [
                                  ['name' => 'value', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 12],
                     ],
         ],
+        'providerRequest' => [// key format [provider:strtolowe($provider):reqId:$requestId:sId:$sportid:type:$type] = [timestamp = $timestamp]
+                    'size'   => 102400,// The max size
+                    'column' => [// Define the columns
+                                 ['name' => 'timestamp', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 12],
+                    ],
+        ],
     ],
     'register_providers'       => [
         \Laravel\Passport\PassportServiceProvider::class
