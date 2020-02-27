@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\DB;
 use App\Handlers\ProducerHandler;
 use Exception;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 
 class OddsRequestCommand extends Command
 {
@@ -92,8 +93,7 @@ class OddsRequestCommand extends Command
     {
         foreach ($this->providers as $provider) {
             foreach ($this->sports as $sport) {
-                $requestId = Str::uuid()->toString();
-
+                $requestId = Str::uuid();
                 $requestTs = $this->milliseconds();
 
                 $payload = [
@@ -109,7 +109,7 @@ class OddsRequestCommand extends Command
                 ];
 
                 // publish message to kafka
-                $this->pushToKafka($payload, $uid, strtolower($provider->alias) . $this->kafkaTopic);
+                $this->pushToKafka($payload, $requestId, strtolower($provider->alias) . $this->kafkaTopic);
             }
         }
     }
@@ -152,7 +152,7 @@ class OddsRequestCommand extends Command
     {
         try {
             $this->producerHandler->setTopic( $kafkaTopic)
-                ->send(json_encode($message), $key);
+                ->send($message, $key);
         } catch (Exception $e) {
             Log::critical(self::PUBLISH_ERROR_MESSAGE, [
                 'error' => $e->getMessage(),

@@ -1,5 +1,9 @@
 const getSocketKey = (socketMessage) => {
-    return Object.keys(JSON.parse(socketMessage))[0]
+    try {
+        return Object.keys(JSON.parse(socketMessage))[0]
+    } catch(e) {
+        return false
+    }
 }
 
 const getSocketValue = (socketMessage, socketKey) => {

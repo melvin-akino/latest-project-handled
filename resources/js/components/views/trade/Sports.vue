@@ -69,6 +69,7 @@ export default {
         selectSport(sport) {
             this.$store.commit('trade/SET_SELECTED_SPORT', sport)
             this.$store.dispatch('trade/getBetColumns', this.selectedSport)
+            this.$socket.send(`getSelectedLeagues_${sport}`)
             this.isSportsListOpen = !this.isSportsListOpen
         },
         getSports() {
