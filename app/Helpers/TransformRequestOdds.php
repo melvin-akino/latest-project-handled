@@ -82,14 +82,12 @@ class TransformRequestOdds
     /**
      * Get the current sport
      *
-     * @param array $message
+     * @param string $sport
      * @param Swoole\Table $table
      * @return void
      */
-    public function getSport(array $message = [], Swoole\Table $table)
+    public function getSport(string $sport, Swoole\Table $table)
     {        
-        $sport = $message->data->sport;
-
         if (!$table->exist($sport))
         {
             throw new Exception("Sport doesn't exist");
