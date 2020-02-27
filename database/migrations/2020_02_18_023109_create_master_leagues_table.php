@@ -20,6 +20,7 @@ class CreateMasterLeaguesTable extends Migration
                 $table->integerIncrements('id');
                 $table->integer('sport_id');
                 $table->string('master_league_name', 100)->index();
+                $table->softDeletes();
                 $table->timestamps();
 
                 $table->foreign('sport_id')
