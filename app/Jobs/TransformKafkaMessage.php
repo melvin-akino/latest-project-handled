@@ -21,7 +21,6 @@ class TransformKafkaMessage implements ShouldQueue
     public function __construct($message)
     {
         $this->message = json_decode($message->payload);
-//        var_dump($this->message);
     }
 
     public function handle()
@@ -29,13 +28,6 @@ class TransformKafkaMessage implements ShouldQueue
         if (empty((array) $this->message->data)) {
             return;
         }
-        var_dump($this->message->data->provider);
-        var_dump($this->message->data->schedule);
-        var_dump($this->message->data->sport);
-        var_dump($this->message->data->leagueName);
-        var_dump($this->message->data->homeTeam);
-        var_dump($this->message->data->awayTeam);
-        var_dump("------------------------------------");
 
         $toInsert = [];
         $toTransform = true;
@@ -72,10 +64,6 @@ class TransformKafkaMessage implements ShouldQueue
 
         if ($providersTable->exist($providerSwtId)) {
             $providerId = $providersTable->get($providerSwtId)['id'];
-            if (env('APP_DEBUG')) {
-                Log::debug('SWT ProvidersTable Key - ' . $providerSwtId);
-                Log::debug('SWT ProvidersTable Provider ID - ' . $providerId);
-            }
         } else {
             throw new Exception("Provider doesn't exist");
         }
@@ -94,10 +82,6 @@ class TransformKafkaMessage implements ShouldQueue
         if ($sportsTable->exists($sportSwtId)) {
             $sportId = $sportsTable->get($sportSwtId)['id'];
             $sportName = $sportsTable->get($sportSwtId)['sport'];
-            if (env('APP_DEBUG')) {
-                Log::debug('SWT SportsTable Key - ' . $sportSwtId);
-                Log::debug('SWT SportsTable Sport ID - ' . $sportId);
-            }
         } else {
             throw new Exception("Sport doesn't exist");
         }
@@ -157,11 +141,6 @@ class TransformKafkaMessage implements ShouldQueue
         if ($leaguesTable->exists($leagueSwtId)) {
             $multiLeagueId    = $leaguesTable->get($leagueSwtId)['id'];
             $masterLeagueName = $leaguesTable->get($leagueSwtId)['master_league_name'];
-            if (env('APP_DEBUG')) {
-                Log::debug('SWT LeaguesTable Key - ' . $leagueSwtId);
-                Log::debug('SWT LeaguesTable League ID - ' . $multiLeagueId);
-                Log::debug('SWT LeaguesTable League Name - ' . $masterLeagueName);
-            }
         } else {
             $toTransform = false;
         }
@@ -219,15 +198,10 @@ class TransformKafkaMessage implements ShouldQueue
                 "pId:" . $providerId,
                 "teamName:" . Str::slug($competitors[$key])
             ]);
-var_dump($teamSwtId);
+
             if ($teamsTable->exists($teamSwtId)) {
                 $multiTeam[$key]['id']   = $teamsTable->get($teamSwtId)['id'];
                 $multiTeam[$key]['name'] = $teamsTable->get($teamSwtId)['team_name'];
-                if (env('APP_DEBUG')) {
-                    Log::debug('SWT TeamsTable Key - ' . $teamSwtId);
-                    Log::debug('SWT TeamsTable Team ID - ' . $multiTeam[$key]['id']);
-                    Log::debug('SWT TeamsTable Team Name - ' . $multiTeam[$key]['name']);
-                }
             } else {
                 $toTransform = false;
             }
@@ -317,10 +291,6 @@ var_dump($teamSwtId);
                 ];
 
                 $eventsTable->set($eventSwtId, $array);
-                if (env('APP_DEBUG')) {
-                    Log::debug('SWT eventsTable Key - ' . $eventSwtId);
-                    Log::debug('SWT eventsTable Values - ' . json_encode($array));
-                }
 
                 $eventModel = MasterEvent::create($array);
                 $rawEventId = $eventModel->id;
@@ -427,17 +397,17 @@ var_dump($teamSwtId);
                         $found = false;
 
                         foreach ($eventMarketsTable AS $key => $row) {
-                            if (strpos($key, 'pId:' . $providerId . ':meUniqueId:' . $uid . ':memUniqueId:') == 0) {
-//                                if ($row['event_market_id'] == $rawEventMarketId) {
-                                    $found = true;
+                            if (strpos($key, 'pId:' . $providerId . ':meUID:' . $uid . ':memUID:') == 0) {
+                                $found = true;
 
+                                if ($row['bet_identifier'] == $markets->market_id) {
                                     if ($row['odds'] != $markets->odds) {
                                         $eventMarketsTable[$key]['odds'] = $markets->odds;
                                         $updated = true;
                                     }
+                                }
 
-                                    break;
-//                                }
+                                break;
                             }
                         }
 
@@ -446,15 +416,14 @@ var_dump($teamSwtId);
                             $toTransform      = false;
                             $eventMarketSwtId = implode(':', [
                                 "pId:" . $providerId,
-                                "meUniqueId:" . $uid,
-                                "memUniqueId:" . $memUID
+                                "meUID:" . $uid,
+                                "memUID:" . $memUID
                             ]);
 
                             $array = [
                                 'odd_type_id'                   => $oddTypeId,
                                 'master_event_market_unique_id' => $memUID,
                                 'master_event_unique_id'        => $uid,
-                                'event_market_id'               => $rawEventMarketId,
                                 'provider_id'                   => $providerId,
                                 'odds'                          => $markets->odds,
                                 'odd_label'                     => array_key_exists('points', $markets) ? $markets->points : "",
@@ -482,17 +451,17 @@ var_dump($teamSwtId);
                 'timestamp'     => $this->message->request_ts,
                 'uid'           => $uid,
                 'sport_id'      => $sportId,
-                'sport'         => $sportId,
+                'sport'         => $sportName,
                 'provider_id'   => $providerId,
-                'game_schedule' => $this->message->data->type,
-                'league_name'   => $multiLeagueName,
+                'game_schedule' => $this->message->data->schedule,
+                'league_name'   => $masterLeagueName,
                 'home'          => [
-                    'name'    => $multiTeam['home'],
+                    'name'    => $multiTeam['home']['name'],
                     'score'   => $this->message->data->home_score,
                     'redcard' => $this->message->data->home_redcard
                 ],
                 'away'          => [
-                    'name'    => $multiTeam['away'],
+                    'name'    => $multiTeam['away']['name'],
                     'score'   => $this->message->data->away_score,
                     'redcard' => $this->message->data->away_redcard
                 ],
@@ -504,14 +473,17 @@ var_dump($teamSwtId);
             /** Forming Main Markets */
             foreach ($this->message->data->events[0]->market_odds AS $columns) {
                 if (in_array($columns->oddsType, $arrayOddTypes)) {
-                    foreach ($columns->marketSelections AS $_market) {
+                    foreach ($columns->marketSelection AS $_market) {
                         $_marketOdds = $_market->odds;
-                        $_marketPoints = $_market->points;
+                        $_marketPoints = "";
 
                         if (gettype($_market->odds) == 'string') {
-                            $_marketOdds   = explode(' ', $_market->odds);
-                            $_marketPoints = $_marketOdds[0];
-                            $_marketOdds   = $_marketOdds[1];
+                            $_marketOdds = explode(' ', $_market->odds);
+
+                            if (count($_marketOdds) > 1) {
+                                $_marketPoints = $_marketOdds[0];
+                                $_marketOdds   = $_marketOdds[1];
+                            }
                         }
 
                         $transformedJSON['market_odds']['main'][$columns->oddsType][strtolower($_market->indicator)] = [
@@ -520,7 +492,8 @@ var_dump($teamSwtId);
                         ];
 
                         if (array_key_exists('points', $_market)) {
-                            $transformedJSON['market_odds']['main'][$columns->oddsType][strtolower($_market->indicator)]['points'] = $_marketPoints;
+                            $_marketPoints = $_market->points;
+                            $transformedJSON['market_odds']['main'][$i][$columns->oddsType][strtolower($_market->indicator)]['points'] = $_marketPoints;
                         }
                     }
                 }
@@ -531,14 +504,17 @@ var_dump($teamSwtId);
 
             foreach ($this->message->data->events[1]->market_odds AS $columns) {
                 if (in_array($columns->oddsType, $arrayOddTypes)) {
-                    foreach ($columns->marketSelections AS $_market) {
+                    foreach ($columns->marketSelection AS $_market) {
                         $_marketOdds = $_market->odds;
-                        $_marketPoints = $_market->points;
+                        $_marketPoints = "";
 
                         if (gettype($_market->odds) == 'string') {
-                            $_marketOdds   = explode(' ', $_market->odds);
-                            $_marketPoints = $_marketOdds[0];
-                            $_marketOdds   = $_marketOdds[1];
+                            $_marketOdds = explode(' ', $_market->odds);
+
+                            if (count($_marketOdds) > 1) {
+                                $_marketPoints = $_marketOdds[0];
+                                $_marketOdds   = $_marketOdds[1];
+                            }
                         }
 
                         $transformedJSON['market_odds']['other'][$columns->oddsType][strtolower($_market->indicator)] = [
@@ -547,6 +523,7 @@ var_dump($teamSwtId);
                         ];
 
                         if (array_key_exists('points', $_market)) {
+                            $_marketPoints = $_market->points;
                             $transformedJSON['market_odds']['other'][$i][$columns->oddsType][strtolower($_market->indicator)]['points'] = $_marketPoints;
                         }
                     }
@@ -558,12 +535,10 @@ var_dump($teamSwtId);
             $transformedSwtId = "uid:" . $uid;
 
             if (!$transformedTable->exists($transformedSwtId)) {
-                $transformedTable->set($transformedSwtId, json_encode($transformedJSON));
-                if (env('APP_DEBUG')) {
-                    Log::debug('TransformedTable Key - ' . $transformedSwtId);
-                    Log::debug('TransformedTable VALUE - ' . $transformedJSON);
-                }
+                $transformedTable->set($transformedSwtId, $transformedJSON);
             }
+
+            var_dump($transformedJSON);
         }
     }
 }

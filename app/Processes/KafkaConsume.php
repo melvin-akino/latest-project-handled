@@ -48,7 +48,7 @@ class KafkaConsume implements CustomProcessInterface
 
             self::getAdditionalLeagues($swoole);
             self::getForRemovallLeagues($swoole);
-            sleep(10);
+            sleep(3);
         }
     }
 

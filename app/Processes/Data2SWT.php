@@ -32,10 +32,10 @@ class Data2SWT implements CustomProcessInterface
         }
 
         $table = app('swoole')->sportOddTypesTable;
-        foreach ($table as $key => $row) {
-            var_dump($key);
+        // foreach ($table as $key => $row) {
+            // var_dump($key);
 //            var_dump($row);
-        }
+        // }
         while (!self::$quit) {
         }
     }
@@ -184,12 +184,12 @@ class Data2SWT implements CustomProcessInterface
         array_map(function ($eventMarket) use ($masterEventMarketsTable) {
             $masterEventMarketsTable->set(
                 'pId:' . $eventMarket->provider_id .
-                ':meUniqueId:' . $eventMarket->master_event_unique_id .
-                ':memUniqueId:' . $eventMarket->master_event_market_unique_id,
+                ':meUID:' . $eventMarket->master_event_unique_id .
+                ':memUID:' . $eventMarket->master_event_market_unique_id,
                 [
                     'id'                            => $eventMarket->id,
                     'master_event_unique_id'        => $eventMarket->master_event_unique_id,
-                    'event_market_id'               => $eventMarket->event_market_id,
+                    // 'event_market_id'               => $eventMarket->event_market_id,
                     'master_event_market_unique_id' => $eventMarket->master_event_market_unique_id,
                     'odd_type_id'                   => $eventMarket->odd_type_id,
                     'provider_id'                   => $eventMarket->provider_id,
