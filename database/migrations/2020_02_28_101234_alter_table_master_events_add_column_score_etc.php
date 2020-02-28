@@ -7,6 +7,14 @@ use Illuminate\Support\Facades\Schema;
 class AlterTableMasterEventsAddColumnScoreEtc extends Migration
 {
     protected $tablename = "master_events";
+    protected $strings   = [
+        'score',
+        'running_time',
+    ];
+    protected $integers  = [
+        'home_penalty',
+        'away_penalty',
+    ];
 
     /**
      * Run the migrations.
@@ -16,10 +24,13 @@ class AlterTableMasterEventsAddColumnScoreEtc extends Migration
     public function up()
     {
         Schema::table($this->tablename, function (Blueprint $table) {
-            $table->string('score')->nullable();
-            $table->integer('home_penalty')->nullable();
-            $table->integer('away_penalty')->nullable();
-            $table->string('running_time')->nullable();
+            foreach ($this->strings AS $string) {
+                $table->string($string)->nullable();
+            }
+
+            foreach ($this->integers AS $integer) {
+                $table->integer($integer)->nullable();
+            }
         });
     }
 
@@ -31,10 +42,13 @@ class AlterTableMasterEventsAddColumnScoreEtc extends Migration
     public function down()
     {
         Schema::table($this->tablename, function (Blueprint $table) {
-            $table->string('score')->nullable();
-            $table->integer('home_penalty')->nullable();
-            $table->integer('away_penalty')->nullable();
-            $table->string('running_time')->nullable();
+            foreach ($this->strings AS $string) {
+                $table->dropColumn($string);
+            }
+
+            foreach ($this->integers AS $integer) {
+                $table->dropColumn($integer);
+            }
         });
     }
 }
