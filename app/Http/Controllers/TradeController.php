@@ -148,7 +148,7 @@ class TradeController extends Controller
 
             /** Temporary Dummy Data */
 
-            $leaguesQuery = DB::table('master_leagues')->get();
+            $leaguesQuery = DB::table('master_leagues')->whereNull('deleted_at')->get();
             $dataSchedule = [
                 'inplay' => [],
                 'today' => [],
