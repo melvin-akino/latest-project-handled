@@ -3,8 +3,9 @@
 namespace App\Jobs;
 
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
-use App\Models\{Events, MasterEventMarket, MasterLeague, Provider, Teams};
+use App\Models\{Events, MasterEvent, MasterEventMarket, MasterLeague, Provider, Teams};
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use DateTime;
@@ -20,7 +21,7 @@ class TransformKafkaMessage implements ShouldQueue
     public function __construct($message)
     {
         $this->message = json_decode($message->payload);
-        var_dump($this->message);
+//        var_dump($this->message);
     }
 
     public function handle()
@@ -28,6 +29,13 @@ class TransformKafkaMessage implements ShouldQueue
         if (empty((array) $this->message->data)) {
             return;
         }
+        var_dump($this->message->data->provider);
+        var_dump($this->message->data->schedule);
+        var_dump($this->message->data->sport);
+        var_dump($this->message->data->leagueName);
+        var_dump($this->message->data->homeTeam);
+        var_dump($this->message->data->awayTeam);
+        var_dump("------------------------------------");
 
         $toInsert = [];
         $toTransform = true;
@@ -64,6 +72,10 @@ class TransformKafkaMessage implements ShouldQueue
 
         if ($providersTable->exist($providerSwtId)) {
             $providerId = $providersTable->get($providerSwtId)['id'];
+            if (env('APP_DEBUG')) {
+                Log::debug('SWT ProvidersTable Key - ' . $providerSwtId);
+                Log::debug('SWT ProvidersTable Provider ID - ' . $providerId);
+            }
         } else {
             throw new Exception("Provider doesn't exist");
         }
@@ -77,11 +89,15 @@ class TransformKafkaMessage implements ShouldQueue
          *      $sportSwtId   swoole_table_key    "sId:<$sportId>"
          *      $sportId      swoole_table_value  int
          */
-        $sportSwtId = "sId:" . $this->message->data->sportId;
+        $sportSwtId = "sId:" . $this->message->data->sport;
 
         if ($sportsTable->exists($sportSwtId)) {
             $sportId = $sportsTable->get($sportSwtId)['id'];
             $sportName = $sportsTable->get($sportSwtId)['sport'];
+            if (env('APP_DEBUG')) {
+                Log::debug('SWT SportsTable Key - ' . $sportSwtId);
+                Log::debug('SWT SportsTable Sport ID - ' . $sportId);
+            }
         } else {
             throw new Exception("Sport doesn't exist");
         }
@@ -141,6 +157,11 @@ class TransformKafkaMessage implements ShouldQueue
         if ($leaguesTable->exists($leagueSwtId)) {
             $multiLeagueId    = $leaguesTable->get($leagueSwtId)['id'];
             $masterLeagueName = $leaguesTable->get($leagueSwtId)['master_league_name'];
+            if (env('APP_DEBUG')) {
+                Log::debug('SWT LeaguesTable Key - ' . $leagueSwtId);
+                Log::debug('SWT LeaguesTable League ID - ' . $multiLeagueId);
+                Log::debug('SWT LeaguesTable League Name - ' . $masterLeagueName);
+            }
         } else {
             $toTransform = false;
         }
@@ -192,16 +213,21 @@ class TransformKafkaMessage implements ShouldQueue
              * @ref config.laravels.teams
              *
              * @var $teamsTable  swoole_table
-             *      $teamSwtId   swoole_table_key    "pId:<$providerId>:team:<slug($rawTeamName)>"
+             *      $teamSwtId   swoole_table_key    "pId:<$providerId>:teamName:<slug($rawTeamName)>"
              */
             $teamSwtId = implode(':', [
                 "pId:" . $providerId,
-                "team:" . Str::slug($competitors[$key])
+                "teamName:" . Str::slug($competitors[$key])
             ]);
-
+var_dump($teamSwtId);
             if ($teamsTable->exists($teamSwtId)) {
                 $multiTeam[$key]['id']   = $teamsTable->get($teamSwtId)['id'];
                 $multiTeam[$key]['name'] = $teamsTable->get($teamSwtId)['team_name'];
+                if (env('APP_DEBUG')) {
+                    Log::debug('SWT TeamsTable Key - ' . $teamSwtId);
+                    Log::debug('SWT TeamsTable Team ID - ' . $multiTeam[$key]['id']);
+                    Log::debug('SWT TeamsTable Team Name - ' . $multiTeam[$key]['name']);
+                }
             } else {
                 $toTransform = false;
             }
@@ -290,12 +316,16 @@ class TransformKafkaMessage implements ShouldQueue
                     'ref_schedule'           => date("Y-m-d H:i:s", strtotime($this->message->data->referenceSchedule))
                 ];
 
-                $eventsTable->set($rawEventSwtId, $array);
+                $eventsTable->set($eventSwtId, $array);
+                if (env('APP_DEBUG')) {
+                    Log::debug('SWT eventsTable Key - ' . $eventSwtId);
+                    Log::debug('SWT eventsTable Values - ' . json_encode($array));
+                }
 
                 $eventModel = MasterEvent::create($array);
                 $rawEventId = $eventModel->id;
 
-                $eventsTable[$rawEventSwtId]['id'] = $rawEventId;
+                $eventsTable[$eventSwtId]['id'] = $rawEventId;
             }
         }
 
@@ -529,6 +559,10 @@ class TransformKafkaMessage implements ShouldQueue
 
             if (!$transformedTable->exists($transformedSwtId)) {
                 $transformedTable->set($transformedSwtId, json_encode($transformedJSON));
+                if (env('APP_DEBUG')) {
+                    Log::debug('TransformedTable Key - ' . $transformedSwtId);
+                    Log::debug('TransformedTable VALUE - ' . $transformedJSON);
+                }
             }
         }
     }

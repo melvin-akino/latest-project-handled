@@ -21,9 +21,10 @@ class WsWatchlist implements ShouldQueue
 
         $watchlist = [];
         // Id format for watchlistTable = 'userWatchlist:' . $userId . ':league:' . $league
-        foreach ($server->watchlistTable as $key => $row) {
+        $wsTable = $server->wsTable;
+        foreach ($wsTable as $key => $row) {
             if (strpos($key, 'userWatchlist:' . $this->userId) === 0) {
-                $watchlist[str_replace('userWatchlist:' . $this->userId . ':league:', '', $key)] = json_decode($row['value']);
+                $watchlist[str_replace('userWatchlist:' . $this->userId . ':masterEventUniqueId:', '', $key)] = $row['value'];
             }
         }
 

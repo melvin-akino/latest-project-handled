@@ -9,10 +9,13 @@ class MasterEvent extends Model
     protected $table = "master_events";
 
     protected $fillable = [
+        'sport_id',
         'master_event_unique_id',
-        'master_league_id',
+        'master_league_name',
         'master_team_home_id',
-        'master_team_away_id'
+        'master_team_away_id',
+        'ref_schedule',
+        'game_schedule'
     ];
 
     protected $hidden = [

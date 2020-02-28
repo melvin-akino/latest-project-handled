@@ -23,17 +23,18 @@ class Data2SWT implements CustomProcessInterface
             'MasterTeams',
             'SportOddTypes',
             'MasterEvents',
-            'MasterEventMarkets'
+            'MasterEventMarkets',
+            'UserWatchlist'
         ];
         foreach ($swooleProcesses as $process) {
             $method = "db2Swt" . $process;
             self::{$method}($swoole);
         }
 
-        $table = app('swoole')->eventMarketsTable;
+        $table = app('swoole')->teamsTable;
         foreach ($table as $key => $row) {
-            var_dump(['testing' => $key]);
-            var_dump($row);
+            var_dump($key);
+//            var_dump($row);
         }
         while (!self::$quit) {
         }
@@ -199,5 +200,18 @@ class Data2SWT implements CustomProcessInterface
                     'market_flag'                   => $eventMarket->market_flag,
                 ]);
         }, $masterEventMarkets->toArray());
+    }
+
+    private static function db2SwtUserWatchlist(Server $swoole)
+    {
+        $userWatchlist = DB::table('user_watchlist')
+            ->get();
+        $wsTable = $swoole->wsTable;
+        array_map(function ($watchlist) use ($wsTable) {
+            $wsTable->set(
+                'userWatchlist:' . $watchlist->user_id .
+                ':masterEventUniqueId:' . $watchlist->master_event_unique_id,
+                ['value' => $watchlist->id]);
+        }, $userWatchlist->toArray());
     }
 }

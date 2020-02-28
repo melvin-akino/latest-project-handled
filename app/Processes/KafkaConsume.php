@@ -26,27 +26,29 @@ class KafkaConsume implements CustomProcessInterface
 
         sleep(1);
 
+
         $kafkaConsumer = new KafkaConsumer(self::getConfig());
         $kafkaConsumer->subscribe([env('KAFKA_SCRAPE_ODDS')]);
         while (!self::$quit) {
-            $message = $kafkaConsumer->consume(120 * 1000);
-            if ($message->err == RD_KAFKA_RESP_ERR_NO_ERROR) {
-
-                 Log::debug(json_encode($message));
-                 $kafkaTable->set('message:' . $message->offset, ['value' => $message->payload]);
-                 Log::debug(json_encode($kafkaTable->get('message:' . $message->offset)));
-
-                TransformKafkaMessage::dispatch($message);
-
-                $kafkaConsumer->commitAsync($message);
-            } else {
-                Log::error(json_encode([$message]));
-            }
+            TransformKafkaMessage::dispatch((object) ['payload' => self::testData()]);
+//            $message = $kafkaConsumer->consume(120 * 1000);
+//            if ($message->err == RD_KAFKA_RESP_ERR_NO_ERROR) {
+//
+//                 Log::debug(json_encode($message));
+//                 $kafkaTable->set('message:' . $message->offset, ['value' => $message->payload]);
+//                 Log::debug(json_encode($kafkaTable->get('message:' . $message->offset)));
+//
+//                TransformKafkaMessage::dispatch($message);
+//
+//                $kafkaConsumer->commitAsync($message);
+//            } else {
+//                Log::error(json_encode([$message]));
+//            }
 
 
             self::getAdditionalLeagues($swoole);
             self::getForRemovallLeagues($swoole);
-            sleep(1);
+            sleep(10);
         }
     }
 
@@ -135,177 +137,6 @@ class KafkaConsume implements CustomProcessInterface
 
     private static function testData()
     {
-        return json_encode([
-            'request_uid' => '0eb7273d-07bc-4773-a4a2-1e193c9ac92e',
-            'request_ts'  => '1378761833768',
-            'command'     => 'odd',
-            'sub_command' => 'transform',
-            'data'        => [
-                'provider'          => 'hg',
-                'type'              => 'inplay',
-                'sportId'           => 1,
-                'leagueName'        => 'Australia Tasmania Summer Cup',
-                'homeTeam'          => 'Glenorchy Knights',
-                'awayTeam'          => 'Kingborough Lions United',
-                'referenceSchedule' => '2020-02-13T00:30:00.000+04:00',
-                'running_time'      => '2H 20:58',
-                'home_score'        => '0',
-                'away_score'        => '0',
-                'home_redcard'      => '0',
-                'away_redcard'      => '0',
-                'id'                => 8,
-                'events'            => [
-                    [
-                        'eventId'     => '4044820',
-                        'market_type' => 1,
-                        'market_odds' => [
-                            [
-                                'oddsType'        => '1X2',
-                                'marketSelection' => [
-                                    [
-                                        'market_id' => 'RMH4044819',
-                                        'indicator' => 'Home',
-                                        'odds'      => '2.19',
-                                    ],
-                                    [
-                                        'market_id' => 'RMC4044819',
-                                        'indicator' => 'Away',
-                                        'odds'      => '4.35',
-                                    ],
-                                    [
-                                        'market_id' => 'RMN4044819',
-                                        'indicator' => 'Draw',
-                                        'odds'      => '2.31',
-                                    ],
-                                ],
-                            ],
-                            [
-                                'oddsType'        => 'HDP',
-                                'marketSelection' => [
-                                    [
-                                        'market_id' => 'REH4044819',
-                                        'indicator' => 'Home',
-                                        'odds'      => '0.810',
-                                        'points'    => '-0.25',
-                                    ],
-                                    [
-                                        'market_id' => 'REC4044819',
-                                        'indicator' => 'Away',
-                                        'odds'      => '1.010',
-                                        'points'    => '+0.25',
-                                    ],
-                                ],
-                            ],
-                            [
-                                'oddsType'        => 'OU',
-                                'marketSelection' => [
-                                    [
-                                        'market_id' => 'ROUC4044819',
-                                        'indicator' => 'Home',
-                                        'odds'      => '1.020',
-                                        'points'    => '1.25',
-                                    ],
-                                    [
-                                        'market_id' => 'ROUH4044819',
-                                        'indicator' => 'Away',
-                                        'odds'      => '0.780',
-                                        'points'    => '1.25',
-                                    ],
-                                ],
-                            ],
-                            [
-                                'oddsType'        => 'OE',
-                                'marketSelection' => [
-                                    [
-                                        'market_id' => 'EOO4044819',
-                                        'indicator' => 'Home',
-                                        'odds'      => '2.04',
-                                    ],
-                                    [
-                                        'market_id' => 'EOE4044819',
-                                        'indicator' => 'Away',
-                                        'odds'      => '1.82',
-                                    ],
-                                ],
-                            ],
-                            [
-                                'oddsType'        => 'HT 1X2',
-                                'marketSelection' => [],
-                            ],
-                            [
-                                'oddsType'        => 'HT HDP',
-                                'marketSelection' => [],
-                            ],
-                            [
-                                'oddsType'        => 'HT OU',
-                                'marketSelection' => [],
-                            ],
-                        ],
-                    ],
-                    [
-                        [
-                            'eventId'     => '4044822',
-                            'market_type' => 2,
-                            'market_odds' => [
-                                [
-                                    'oddsType'        => '1X2',
-                                    'marketSelection' => [],
-                                ],
-                                [
-                                    'oddsType'        => 'HDP',
-                                    'marketSelection' => [
-                                        [
-                                            'market_id' => 'REH4044821',
-                                            'indicator' => 'Home',
-                                            'odds'      => '1.150',
-                                            'points'    => '-0.5',
-                                        ],
-                                        [
-                                            'market_id' => 'REC4044821',
-                                            'indicator' => 'Away',
-                                            'odds'      => '0.670',
-                                            'points'    => '+0.5',
-                                        ],
-                                    ],
-                                ],
-                                [
-                                    'oddsType'        => 'OU',
-                                    'marketSelection' => [
-                                        [
-                                            'market_id' => 'ROUC4044821',
-                                            'indicator' => 'Home',
-                                            'odds'      => '0.610',
-                                            'points'    => '1.0',
-                                        ],
-                                        [
-                                            'market_id' => 'ROUH4044821',
-                                            'indicator' => 'Away',
-                                            'odds'      => '1.190',
-                                            'points'    => '1.0',
-                                        ],
-                                    ],
-                                ],
-                                [
-                                    'oddsType'        => 'OE',
-                                    'marketSelection' => [],
-                                ],
-                                [
-                                    'oddsType'        => 'HT 1X2',
-                                    'marketSelection' => [],
-                                ],
-                                [
-                                    'oddsType'        => 'HT HDP',
-                                    'marketSelection' => [],
-                                ],
-                                [
-                                    'oddsType'        => 'HT OU',
-                                    'marketSelection' => [],
-                                ],
-                            ],
-                        ],
-                    ],
-                ],
-            ],
-        ]);
+        return "{\"request_uid\": \"77f61545-6756-4463-97a1-b7d8b3824cd9\", \"request_ts\": \"1573708436\", \"command\": \"odd\", \"sub_command\": \"transform\", \"data\": {\"provider\": \"hg\", \"schedule\": \"inplay\", \"sport\": 1, \"leagueName\": \"CONCACAF Champions League\", \"homeTeam\": \"Seattle Sounders\", \"awayTeam\": \"CD Olimpia\", \"referenceSchedule\": \"2020-02-27T19:00:00.000+04:00\", \"running_time\": \"2H 07:23\", \"home_score\": \"1\", \"away_score\": \"1\", \"home_redcard\": \"0\", \"away_redcard\": \"0\", \"id\": 2, \"events\": [{\"eventId\": \"4052313\", \"market_type\": 1, \"market_odds\": [{\"oddsType\": \"1X2\", \"marketSelection\": [{\"market_id\": \"RMH4052313\", \"indicator\": \"Home\", \"odds\": \"1.93\"}, {\"market_id\": \"RMC4052313\", \"indicator\": \"Away\", \"odds\": \"4.90\"}, {\"market_id\": \"RMN4052313\", \"indicator\": \"Draw\", \"odds\": \"2.50\"}]}, {\"oddsType\": \"HDP\", \"marketSelection\": [{\"market_id\": \"REH4052313\", \"indicator\": \"Home\", \"odds\": \"0.940\", \"points\": \"-0.5\"}, {\"market_id\": \"REC4052313\", \"indicator\": \"Away\", \"odds\": \"0.880\", \"points\": \"+0.5\"}]}, {\"oddsType\": \"OU\", \"marketSelection\": [{\"market_id\": \"ROUC4052313\", \"indicator\": \"Home\", \"odds\": \"0.880\", \"points\": \"O 3.25\"}, {\"market_id\": \"ROUH4052313\", \"indicator\": \"Away\", \"odds\": \"0.920\", \"points\": \"U 3.25\"}]}, {\"oddsType\": \"OE\", \"marketSelection\": [{\"market_id\": \"RODD4052313\", \"indicator\": \"Home\", \"odds\": \"O 2.03\"}, {\"market_id\": \"REVEN4052313\", \"indicator\": \"Away\", \"odds\": \"E 1.83\"}]}, {\"oddsType\": \"HT 1X2\", \"marketSelection\": [{\"market_id\": \"HRMH4052314\", \"indicator\": \"Home\", \"odds\": \"\"}, {\"market_id\": \"HRMC4052314\", \"indicator\": \"Away\", \"odds\": \"\"}, {\"market_id\": \"HRMC4052314\", \"indicator\": \"Draw\", \"odds\": \"\"}]}, {\"oddsType\": \"HT HDP\", \"marketSelection\": [{\"market_id\": \"HREH4052314\", \"indicator\": \"Home\", \"odds\": \"\", \"points\": \"\"}, {\"market_id\": \"HREC4052314\", \"indicator\": \"Away\", \"odds\": \"\", \"points\": \"\"}]}, {\"oddsType\": \"HT OU\", \"marketSelection\": [{\"market_id\": \"HROUC4052314\", \"indicator\": \"Home\", \"odds\": \"\", \"points\": \"\"}, {\"market_id\": \"HROUH4052314\", \"indicator\": \"Away\", \"odds\": \"\", \"points\": \"\"}]}]}, {\"eventId\": \"4052315\", \"market_type\": 2, \"market_odds\": [{\"oddsType\": \"1X2\", \"marketSelection\": [{\"market_id\": \"RMH4052315\", \"indicator\": \"Home\", \"odds\": \"\"}, {\"market_id\": \"RMC4052315\", \"indicator\": \"Away\", \"odds\": \"\"}, {\"market_id\": \"RMN4052315\", \"indicator\": \"Draw\", \"odds\": \"\"}]}, {\"oddsType\": \"HDP\", \"marketSelection\": [{\"market_id\": \"REH4052315\", \"indicator\": \"Home\", \"odds\": \"0.610\", \"points\": \"-0.25\"}, {\"market_id\": \"REC4052315\", \"indicator\": \"Away\", \"odds\": \"1.210\", \"points\": \"+0.25\"}]}, {\"oddsType\": \"OU\", \"marketSelection\": [{\"market_id\": \"ROUC4052315\", \"indicator\": \"Home\", \"odds\": \"1.150\", \"points\": \"O 3.5\"}, {\"market_id\": \"ROUH4052315\", \"indicator\": \"Away\", \"odds\": \"0.650\", \"points\": \"U 3.5\"}]}, {\"oddsType\": \"OE\", \"marketSelection\": [{\"market_id\": \"RODD4052315\", \"indicator\": \"Home\", \"odds\": \"\"}, {\"market_id\": \"REVEN4052315\", \"indicator\": \"Away\", \"odds\": \"\"}]}, {\"oddsType\": \"HT 1X2\", \"marketSelection\": [{\"market_id\": \"HRMH4052316\", \"indicator\": \"Home\", \"odds\": \"\"}, {\"market_id\": \"HRMC4052316\", \"indicator\": \"Away\", \"odds\": \"\"}, {\"market_id\": \"HRMC4052316\", \"indicator\": \"Draw\", \"odds\": \"\"}]}, {\"oddsType\": \"HT HDP\", \"marketSelection\": [{\"market_id\": \"HREH4052316\", \"indicator\": \"Home\", \"odds\": \"\", \"points\": \"\"}, {\"market_id\": \"HREC4052316\", \"indicator\": \"Away\", \"odds\": \"\", \"points\": \"\"}]}, {\"oddsType\": \"HT OU\", \"marketSelection\": [{\"market_id\": \"HROUC4052316\", \"indicator\": \"Home\", \"odds\": \"\", \"points\": \"\"}, {\"market_id\": \"HROUH4052316\", \"indicator\": \"Away\", \"odds\": \"\", \"points\": \"\"}]}]}]}}";
     }
 }
