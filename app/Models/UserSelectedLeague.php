@@ -10,7 +10,7 @@ class UserSelectedLeague extends Model
 
     protected $fillable = [
         'user_id',
-        'master_league_id'
+        'master_league_name'
     ];
 
     protected $hidden = [

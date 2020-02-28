@@ -10,7 +10,7 @@ class UserWatchlist extends Model
 
     protected $fillable = [
         'user_id',
-        'master_event_id'
+        'master_event_unique_id'
     ];
 
     protected $hidden = [

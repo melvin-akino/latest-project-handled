@@ -5,14 +5,13 @@ namespace App\Jobs;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 
-class WsSelectedLeagues implements ShouldQueue
+class WsEvents implements ShouldQueue
 {
     use Dispatchable;
 
-    public function __construct($userId, $params)
+    public function __construct($userId)
     {
         $this->userId = $userId;
-        $this->sportId = $params[1];
     }
 
     public function handle()
@@ -20,16 +19,16 @@ class WsSelectedLeagues implements ShouldQueue
         $server = app('swoole');
         $fd = $server->wsTable->get('uid:' . $this->userId);
 
-        $leagues = [];
-        // Id format for selectedLeaguesTable = 'userSelectedLeagues:' . $userId . ':sId:' . $sportId . ':uniqueId:' . uniqid()
+        $watchlist = [];
+        // Id format for watchlistTable = 'userSportLeagueEvents:' . $userId . ':league:' . $league
         foreach ($server->wsTable as $key => $row) {
-            if (strpos($key, 'userSelectedLeagues:' . $this->userId) === 0) {
-                $leagues[] = $row['value'];
+            if (strpos($key, 'userSportLeagueEvents:' . $this->userId) === 0) {
+                $watchlist[str_replace('userSportLeagueEvents:' . $this->userId . ':league:', '', $key)] = json_decode($row['value']);
             }
         }
 
         $server->push($fd['value'], json_encode([
-            'getSelectedLeagues' => $leagues
+            'getWatchlist' => $watchlist
         ]));
     }
 }
