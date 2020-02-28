@@ -342,9 +342,7 @@ class TransformKafkaMessage implements ShouldQueue
                         throw new Exception("Sport Odds Type doesn't exist");
                     }
 
-                    if (empty($arrayOddTypes)) {
-                        $arrayOddTypes[] = $columns->oddsType;
-                    }
+                    $arrayOddTypes[] = $columns->oddsType;
 
                     /** loop each `marketSelection` from each `market_odds` */
                     foreach ($columns->marketSelection AS $markets) {
@@ -493,7 +491,7 @@ class TransformKafkaMessage implements ShouldQueue
 
                         if (array_key_exists('points', $_market)) {
                             $_marketPoints = $_market->points;
-                            $transformedJSON['market_odds']['main'][$i][$columns->oddsType][strtolower($_market->indicator)]['points'] = $_marketPoints;
+                            $transformedJSON['market_odds']['main'][$columns->oddsType][strtolower($_market->indicator)]['points'] = $_marketPoints;
                         }
                     }
                 }
