@@ -291,8 +291,8 @@ var_dump($teamSwtId);
             if ($eventsTable->exists($eventSwtId)) {
                 $eventId            = $eventsTable->get($eventSwtId)['id'];
                 $uid                = $eventsTable->get($eventSwtId)['master_event_unique_id'];
-                $masterTeamHomeName = $eventsTable->get($eventSwtId)['master_team_home_name'];
-                $masterTeamAwayName = $eventsTable->get($eventSwtId)['master_team_away_name'];
+                $masterTeamHomeName = $eventsTable->get($eventSwtId)['master_home_team_name'];
+                $masterTeamAwayName = $eventsTable->get($eventSwtId)['master_away_team_name'];
             } else {
                 $toTransform    = false;
                 $masterTeamHome = $multiTeam['home']['name'];
@@ -365,7 +365,7 @@ var_dump($teamSwtId);
                      */
                     $sportOddTypeSwtId = implode(':', [
                         "sId:" . $sportId,
-                        "oddTypeId:" . $oddTypeId
+                        "oddType:" . Str::slug($columns->oddsType)
                     ]);
 
                     if (!$sportOddTypesTable->exist($sportOddTypeSwtId)) {
@@ -428,7 +428,7 @@ var_dump($teamSwtId);
 
                         foreach ($eventMarketsTable AS $key => $row) {
                             if (strpos($key, 'pId:' . $providerId . ':meUniqueId:' . $uid . ':memUniqueId:') == 0) {
-                                if ($row['event_market_id'] == $rawEventMarketId) {
+//                                if ($row['event_market_id'] == $rawEventMarketId) {
                                     $found = true;
 
                                     if ($row['odds'] != $markets->odds) {
@@ -437,7 +437,7 @@ var_dump($teamSwtId);
                                     }
 
                                     break;
-                                }
+//                                }
                             }
                         }
 
