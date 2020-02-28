@@ -6,7 +6,7 @@
             <span v-show="!isGameSchedTypeOpen"><i class="fas fa-chevron-right"></i></span>
         </div>
         <div class="games" :class="{'hidden': !isGameSchedTypeOpen}">
-            <p class="text-sm text-gray-500 text-center pt-2 noeventspanel" v-if="games.length === 0">No competitions watched in this market.</p>
+            <p class="text-sm text-gray-500 text-center pt-2 noeventspanel" v-if="checkIfGamesIsEmpty">No competitions watched in this market.</p>
             <div v-else>
                 <div class="bg-white text-white text-sm text-gray-700" v-for="(league, index) in games" :key="index">
                     <div class="flex justify-between py-2 px-4 font-bold border-t border-orange-500 leaguePanel">
@@ -82,6 +82,7 @@
 <script>
 import { mapState } from 'vuex'
 import Cookies from 'js-cookie'
+import _ from 'lodash'
 
 export default {
     props: ['gameSchedType', 'games'],
@@ -93,7 +94,10 @@ export default {
     },
     computed: {
         ...mapState('trade', ['selectedSport', 'tradeLayout', 'oddsTypeBySport']),
-        ...mapState('settings', ['disabledBetColumns'])
+        ...mapState('settings', ['disabledBetColumns']),
+        checkIfGamesIsEmpty() {
+            return _.isEmpty(this.games)
+        }
     },
     methods: {
         toggleLeague(index) {
