@@ -21,7 +21,7 @@
                         <div class="text-white"><i class="fas fa-star"></i></div>
                     </div>
                     <div class="gamesWrapper" :class="!closedLeagues.includes(index) ? 'h-full' : 'h-0 overflow-hidden'">
-                        <div class="asianLayout"  v-if="tradeLayout==='1'">
+                        <div class="asianLayout"  v-if="tradeLayout==1">
                             <div class="relative flex py-4 px-4 game" :class="[index % 2 != 0 ? 'alternateEvent' : '']" v-for="(game, index) in league" :key="game.uid">
                                 <div class="w-2/12 flex flex-col">
                                     <div><span class="font-bold text-green-400 mr-2">H</span>{{game.home.name}}</div>
@@ -47,7 +47,7 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="europeanLayout" v-if="tradeLayout==='2'">
+                        <div class="europeanLayout" v-if="tradeLayout==2">
                             <div class="flex flex-col justify-around pl-4 pr-8 py-4 game" :class="[index % 2 != 0 ? 'alternateEvent' : '']" v-for="(game, index) in league" :key="game.uid">
                                 <div class="relative flex justify-center pb-4">
                                     <span class="gameColumn teamColumn">{{game.home.name}}</span>
