@@ -2,11 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 use App\Models\{MasterEvent, MasterLeague, Sport, UserSelectedLeague, UserWatchlist};
 
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 use Faker\Factory AS Faker;
+use Exception;
 
 class TradeController extends Controller
 {
@@ -80,7 +83,7 @@ class TradeController extends Controller
                     $leagueId = MasterLeague::getIdByName($request->data);
 
                     if ($leagueId) {
-                        $masterEventIds = MasterEvent::getActiveEvents('master_league_id', '=', $leagueId)->get('id')->toArray();
+                        $masterEventUniqueIds = MasterEvent::getActiveEvents('master_league_name', '=', $request->data)->get('master_event_unique_id')->toArray();
                     } else {
                         return response()->json([
                             'status'      => false,
@@ -91,18 +94,18 @@ class TradeController extends Controller
                     break;
 
                 case 'event':
-                    $masterEventIds = MasterEvent::getActiveEvents('master_event_unique_id', '=', $request->data)->get('id')->toArray();
+                    $masterEventUniqueIds = MasterEvent::getActiveEvents('master_event_unique_id', '=', $request->data)->get('master_event_unique_id')->toArray();
                     break;
             }
 
             if ($action == "add") {
                 $lang = "added";
 
-                foreach ($masterEventIds AS $row) {
+                foreach ($masterEventUniqueIds AS $row) {
                     UserWatchlist::create(
                         [
                             'user_id'         => auth()->user()->id,
-                            'master_event_id' => $row
+                            'master_event_unique_id' => $row['master_event_unique_id']
                         ]
                     );
                 }
@@ -111,9 +114,11 @@ class TradeController extends Controller
             if ($action == "remove") {
                 $lang = "removed";
 
-                UserWatchlist::where('user_id', auth()->user()->id)
-                    ->whereIn('master_event_id', $masterEventIds)
-                    ->delete();
+                foreach ($masterEventUniqueIds AS $row) {
+                    UserWatchlist::where('user_id', auth()->user()->id)
+                        ->where('master_event_unique_id', $row['master_event_unique_id'])
+                        ->delete();
+                }
             }
 
             return response()->json([
@@ -142,7 +147,26 @@ class TradeController extends Controller
             $data = getUserDefault(auth()->user()->id, 'sport');
 
             /** Temporary Dummy Data */
-            $leagues = $this->loopLeagues($data['default_sport']);
+
+            $leaguesQuery = DB::table('master_leagues')->get();
+            $dataSchedule = [
+                'inplay' => [],
+                'today' => [],
+                'early' => []
+            ];
+            foreach ($leaguesQuery as $league) {
+                $eventTodayCount = DB::table('master_events')
+                    ->where('master_league_name', $league->master_league_name)
+                    ->where('game_schedule', 'today')
+                    ->whereNull('deleted_at')
+                    ->count();
+                if ($eventTodayCount > 0) {
+                    $dataSchedule['today'][] = [
+                        'name' => $league->master_league_name,
+                        'match_count' => $eventTodayCount
+                    ];
+                }
+            }
 
             if (!$data['status']) {
                 return response()->json([
@@ -156,7 +180,7 @@ class TradeController extends Controller
                 'status'      => true,
                 'status_code' => 200,
                 'sport_id'    => $data['default_sport'],
-                'data'        => $leagues
+                'data'        => $dataSchedule
             ], 200);
         } catch (Exception $e) {
             return response()->json([
@@ -168,35 +192,6 @@ class TradeController extends Controller
     }
 
     /**
-     * Temporary produce dummy data for Multiline Leagues
-     *
-     * @param  int    $sportId
-     * @return json
-     */
-    private function loopLeagues(int $sportId)
-    {
-        $data = [];
-        $faker = Faker::create();
-        $sportName = Sport::find($sportId)->details;
-        $gameSchedules = [
-            'inplay',
-            'today',
-            'early'
-        ];
-
-        foreach ($gameSchedules AS $row) {
-            for ($i = 0; $i < rand(2, 12); $i++) {
-                $data[$row][] = [
-                    'name'        => $faker->country . " " . $sportName,
-                    'match_count' => rand(1, 8),
-                ];
-            }
-        }
-
-        return $data;
-    }
-
-    /**
      * Add/Remove Authenticated User's Selected Sidebar Leagues
      *
      * @param  $request \Illuminate\Http\Request
@@ -205,26 +200,45 @@ class TradeController extends Controller
     public function postManageSidebarLeagues(Request $request)
     {
         try {
-            $leagueId   = MasterLeague::getIdByName($request->data);
             $checkTable = UserSelectedLeague::where('user_id', auth()->user()->id)
-                ->where('master_league_id', $leagueId);
+                ->where('master_league_name', $request->data);
 
-            if ($checkTable->count() == 0) {
-                UserSelectedLeague::create(
-                    [
-                        'user_id'          => auth()->user()->id,
-                        'master_league_id' => $leagueId
-                    ]
-                );
+            if (Sport::find($request->sport_id)) {
+                $wsTable = app('swoole')->wsTable;
+                $userId = auth()->user()->id;
+                if ($checkTable->count() == 0) {
+                    $wsTableKey = 'userSelectedLeagues:' . $userId . ':sId:' . $request->sport_id . ':uniqueId:' . uniqid();
+                    $wsTable->set($wsTableKey, ['value' => $request->data]);
+
+                    if (env('APP_ENV') != 'production') {
+                        Log::debug('WS Table KEY - ' . $wsTableKey);
+                        Log::debug('WS TABLE VALUE - ' . $request->data);
+                    }
+
+                    UserSelectedLeague::create(
+                        [
+                            'user_id'            => $userId,
+                            'master_league_name' => $request->data
+                        ]
+                    );
+                } else {
+                    foreach ($wsTable as $key => $row) {
+                        if (strpos($key, 'userSelectedLeagues:' . $userId) === 0 && $row['value'] == $request->data) {
+                            $wsTable->del($key);
+                            break;
+                        }
+                    }
+                    $checkTable->delete();
+                }
+
+                return response()->json([
+                    'status'      => true,
+                    'status_code' => 200,
+                    'message'     => trans('notifications.save.success')
+                ], 200);
             } else {
-                $checktable->delete();
+                throw new Exception(trans('generic.internal-server-error'));
             }
-
-            return response()->json([
-                'status'      => true,
-                'status_code' => 200,
-                'message'     => trans('notifications.save.success')
-            ], 200);
         } catch (Exception $e) {
             return response()->json([
                 'status'      => false,

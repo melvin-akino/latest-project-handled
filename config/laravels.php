@@ -25,18 +25,18 @@ return [
     ],
     'sockets'                  => [],
     'processes'                => [
+        'data2swt' => [
+            'class'    => \App\Processes\Data2SWT::class,
+            'redirect' => false,
+            'pipe' => 0,
+            'enable' => env('LARAVELS_DATA2SWT', true)
+        ],
         'kafka_consume' => [
             'class' => \App\Processes\KafkaConsume::class,
             'redirect' => false,
             'pipe' => 0,
             'enable' => env('LARAVELS_KAFKA_CONSUME', true)
         ],
-        'ws_subscriber_data' => [
-            'class' => \App\Processes\WsSubscriberData::class,
-            'redirect' => false,
-            'pipe' => 0,
-            'enable' => env('LARAVELS_WS_SUBSCRIBER_DATA', true)
-        ]
     ],
     'timer'                    => [
         'enable'        => env('LARAVELS_TIMER', false),
@@ -52,16 +52,16 @@ return [
     'events'                   => [],
     'swoole_tables'            => [
         'ws' => [// The Key is table name, will add suffix "Table" to avoid naming conflicts. Here defined a table named "wsTable"
-                 // key format [uid:$userId] = [value = $fd]
-                 // key format [fd:$fd] = [value = $userId]
-                 // key format [userAdditionalLeagues:$userId:sportId:$sportId] = [value = $timestamp]
-                 // key format [userSelectedLeagues:$userId:sportId:1:league:multileaguename] = [value = $multileaguename]
-                 // key format [userWatchlist:$userId:league:$multileaguename] = [value = json_encode(data)]
-                 // key format [userSportLeagueEvents:$userId:league:$multileaguename] = [value = json_encode(data)]
-                 'size'   => 102400,// The max size
-                 'column' => [// Define the columns
-                              ['name' => 'value', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 30],
-                 ],
+            // key format [uid:$userId] = [value = $fd]
+            // key format [fd:$fd] = [value = $userId]
+            // key format [userAdditionalLeagues:$userId:sportId:$sportId] = [value = $timestamp]
+            // key format ['userSelectedLeagues:$userId:sId:$sportId:uniqueId:uniqid()] = [value = $multileaguename]
+            // key format [userWatchlist:$userId:masterEventUniqueId:$masterEventUniqueId] = [value = json_encode(data)]
+            // key format [userSportLeagueEvents:$userId:league:$multileaguename] = [value = json_encode(data)]
+            'size'   => 102400,// The max size
+            'column' => [// Define the columns
+                ['name' => 'value', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 30],
+            ],
         ],
         'sports' => [ //key format [sportId:$sportId] = [value = $sportDetailsField]
                       'size'   => 102400,// The max size
