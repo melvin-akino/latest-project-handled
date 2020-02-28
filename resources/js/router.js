@@ -24,16 +24,8 @@ const routes = [
         component: () => import('./components/views/trade')
     },
     {
-        path: '/settlement',
-        component: () => import('./components/views/Settlement')
-    },
-    {
-        path: '/open-orders',
-        component: () => import('./components/views/OpenOrders')
-    },
-    {
-        path: '/analytics',
-        component: () => import('./components/views/Analytics')
+        path: '/orders',
+        component: () => import('./components/views/orders')
     },
     {
         path: '/settings',
