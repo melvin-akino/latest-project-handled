@@ -56,7 +56,9 @@ export default {
     },
     mounted() {
         this.getSports()
-        this.$socket.send('getUserSport')
+        if (this.$socket.readyState == 1) {
+            this.$socket.send('getUserSport')
+        }
         this.$options.sockets.onmessage = (response) => {
             if (getSocketKey(response.data) === 'getUserSport') {
                 let defaultSport = getSocketValue(response.data, 'getUserSport')
