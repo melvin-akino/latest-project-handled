@@ -103,6 +103,7 @@ export default {
             })
         },
         getEvents() {
+            this.$socket.send('getEvents')
             this.$options.sockets.onmessage = (response => {
                 if(getSocketKey(response.data) === 'getEvents') {
                     let receivedEvents = getSocketValue(response.data, 'getEvents')
@@ -133,6 +134,7 @@ export default {
             })
         },
         getUpdatedOdds() {
+            this.$socket.send('getUpdatedOdds')
             this.$options.sockets.onmessage = (response => {
                 if(getSocketKey(response.data) === 'getUpdatedOdds') {
                     let updatedOdds = getSocketValue(response.data, 'getUpdatedOdds')
