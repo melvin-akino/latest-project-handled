@@ -18,7 +18,7 @@ class UpdateEventMarketColumns extends Migration
     {
         if (Schema::hasTable($this->tableName)) {
             Schema::table($this->tableName, function (Blueprint $table) {
-                $table->integer('provider_id');
+                $table->integer('provider_id')->default(1);
                 $table->foreign('provider_id')
                     ->references('id')
                     ->on('providers')

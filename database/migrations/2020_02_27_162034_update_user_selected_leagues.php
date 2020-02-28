@@ -3,11 +3,11 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
-use Illuminate\Support\Facades\DB;
 
-class UpdateUserWatchlist extends Migration
+class UpdateUserSelectedLeagues extends Migration
 {
-    protected $tableName = 'user_watchlist';
+    protected $tableName = 'user_selected_leagues';
+
 
     /**
      * Run the migrations.
@@ -18,12 +18,8 @@ class UpdateUserWatchlist extends Migration
     {
         if (Schema::hasTable($this->tableName)) {
             Schema::table($this->tableName, function (Blueprint $table) {
-                $table->dropColumn('master_event_id');
-                $table->string('master_event_unique_id', 30)->nullable();
-                $table->foreign('master_event_unique_id')
-                    ->references('master_event_unique_id')
-                    ->on('master_events')
-                    ->onUpdate('cascade');
+                $table->dropColumn('master_league_id');
+                $table->string('master_league_name', 30)->default('');
             });
         }
     }
@@ -37,8 +33,12 @@ class UpdateUserWatchlist extends Migration
     {
         if (Schema::hasTable($this->tableName)) {
             Schema::table($this->tableName, function (Blueprint $table) {
-                $table->dropColumn('master_event_unique_id');
-                $table->integer('master_event_id')->nullable();
+                $table->dropColumn('master_league_name');
+                $table->integer('master_league_id');
+                $table->foreign('master_league_id')
+                    ->references('id')
+                    ->on('master_leagues')
+                    ->onUpdate('cascade');
             });
         }
     }

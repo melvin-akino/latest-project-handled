@@ -31,11 +31,11 @@ class Data2SWT implements CustomProcessInterface
             self::{$method}($swoole);
         }
 
-        $table = app('swoole')->sportOddTypesTable;
-        // foreach ($table as $key => $row) {
-            // var_dump($key);
-//            var_dump($row);
-        // }
+        $table = app('swoole')->wsTable;
+         foreach ($table as $key => $row) {
+             var_dump($key);
+             var_dump($row);
+         }
         while (!self::$quit) {
         }
     }
@@ -68,7 +68,7 @@ class Data2SWT implements CustomProcessInterface
         $providersTable = $swoole->providersTable;
         array_map(function ($provider) use ($providersTable) {
             $providersTable->set('providerAlias:' . strtolower($provider->alias),
-                ['id' => $provider->id, 'alias' => $provider->alias]);
+                ['id' => $provider->id, 'alias' => $provider->alias, 'priority' => $provider->priority]);
         }, $providers->toArray());
     }
 
@@ -124,7 +124,7 @@ class Data2SWT implements CustomProcessInterface
             ->get();
         $sportOddTypesTable = $swoole->sportOddTypesTable;
         array_map(function ($sportOddType) use ($sportOddTypesTable) {
-            $sportOddTypesTable->set('sId:' . Str::slug($sportOddType->sport_id) . ':oddType:' . Str::slug($sportOddType->type),
+            $sportOddTypesTable->set('sId:' . $sportOddType->sport_id . ':oddType:' . Str::slug($sportOddType->type),
                 [
                     'id'                => $sportOddType->id,
                     'sportId'           => $sportOddType->sport_id,

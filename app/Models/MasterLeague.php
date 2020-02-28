@@ -10,7 +10,7 @@ class MasterLeague extends Model
 
     protected $fillable = [
         'sport_id',
-        'master_league'
+        'master_league_name'
     ];
 
     protected $hidden = [
@@ -20,7 +20,7 @@ class MasterLeague extends Model
 
     public static function getIdByName($name)
     {
-        $query = self::where('master_league', $name);
+        $query = self::where('master_league_name', $name);
 
         if ($query->count() == 0) {
             return false;

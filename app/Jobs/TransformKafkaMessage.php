@@ -21,6 +21,7 @@ class TransformKafkaMessage implements ShouldQueue
     public function __construct($message)
     {
         $this->message = json_decode($message->payload);
+        var_dump($this->message);
     }
 
     public function handle()
@@ -292,10 +293,10 @@ class TransformKafkaMessage implements ShouldQueue
 
                 $eventsTable->set($eventSwtId, $array);
 
-                $eventModel = MasterEvent::create($array);
-                $rawEventId = $eventModel->id;
-
-                $eventsTable[$eventSwtId]['id'] = $rawEventId;
+//                $eventModel = MasterEvent::create($array);
+//                $rawEventId = $eventModel->id;
+//
+//                $eventsTable[$eventSwtId]['id'] = $rawEventId;
             }
         }
 
@@ -432,10 +433,10 @@ class TransformKafkaMessage implements ShouldQueue
 
                             $eventMarketsTable->set($eventMarketSwtId, $array);
 
-                            $eventModel = MasterEventMarket::create($array);
-                            $id         = $eventModel->id;
-
-                            $eventMarketsTable[$eventMarketSwtId]['id'] = $id;
+//                            $eventModel = MasterEventMarket::create($array);
+//                            $id         = $eventModel->id;
+//
+//                            $eventMarketsTable[$eventMarketSwtId]['id'] = $id;
                         }
                     }
                 }

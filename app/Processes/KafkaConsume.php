@@ -27,10 +27,11 @@ class KafkaConsume implements CustomProcessInterface
         sleep(1);
 
 
-        $kafkaConsumer = new KafkaConsumer(self::getConfig());
-        $kafkaConsumer->subscribe([env('KAFKA_SCRAPE_ODDS')]);
-        while (!self::$quit) {
             TransformKafkaMessage::dispatch((object) ['payload' => self::testData()]);
+
+//        $kafkaConsumer = new KafkaConsumer(self::getConfig());
+//        $kafkaConsumer->subscribe([env('KAFKA_SCRAPE_ODDS')]);
+//        while (!self::$quit) {
 //            $message = $kafkaConsumer->consume(120 * 1000);
 //            if ($message->err == RD_KAFKA_RESP_ERR_NO_ERROR) {
 //
@@ -44,12 +45,11 @@ class KafkaConsume implements CustomProcessInterface
 //            } else {
 //                Log::error(json_encode([$message]));
 //            }
-
-
-            self::getAdditionalLeagues($swoole);
-            self::getForRemovallLeagues($swoole);
-            sleep(3);
-        }
+//
+//            self::getAdditionalLeagues($swoole);
+//            self::getForRemovallLeagues($swoole);
+//            sleep(1);
+//        }
     }
 
     // Requirements: LaravelS >= v3.4.0 & callback() must be async non-blocking program.
