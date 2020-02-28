@@ -4,7 +4,7 @@
         <div class="flex justify-start mt-4">
             <form @submit.prevent="filterOrders()">
                 <div class="flex items-center my-4">
-                    <label class="block text-gray-700 text-sm mb-1 mr-2 w-full">Transaction Date: </label>    
+                    <label class="block text-gray-700 text-sm mb-1 mr-2 w-full">Transaction Date: </label>
                     <input class="shadow appearance-none border rounded w-full mr-3 py-1 px-3 text-gray-700 leading-tight focus:outline-none" id="trasanctiondatefrom" type="date" placeholder="From" v-model="filterOrderForm.transactionDateFrom">
                     <input class="shadow appearance-none border rounded w-full mr-3 py-1 px-3 text-gray-700 leading-tight focus:outline-none" id="trasanctiondateto" type="date" placeholder="To" v-model="filterOrderForm.transactionDateTo">
                 </div>
@@ -19,8 +19,8 @@
                         <select class="shadow appearance-none border rounded w-full py-1 px-3 text-gray-700 leading-tight focus:outline-none statusInput" id="status" v-model="filterOrderForm.status">
                             <option :value="null" disabled>Select Status</option>
                             <option value="1">All</option>
-                            <option value="2">Settled</option>
-                            <option value="3">Pending</option>
+                            <option value="2">Open</option>
+                            <option value="3">Settled</option>
                         </select>
                         <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
                             <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
@@ -119,7 +119,7 @@
                 <span>$ 69.90</span>
             </div>
         </div>
-        
+
         <div class="text-center">
             <ul class="pagination flex justify-center items-center">
                 <div class="flex bg-white border border-gray-700 rounded-full">
@@ -138,7 +138,7 @@
                     <a href="#">
                         <li class="border-r border-gray-700 py-1 px-4">4</li>
                     </a>
-                    <a href="#"> 
+                    <a href="#">
                         <li class="border-r border-gray-700 py-1 px-4 next"><i class="fas fa-chevron-right"></i></li>
                     </a>
                 </div>
@@ -169,7 +169,7 @@ export default {
         }
     },
     mounted() {
-        
+
     },
     methods: {
         filterOrders() {
@@ -198,7 +198,7 @@ export default {
     }
 
     .totalPLdata {
-        right: 125px;
+        right: 219px;
     }
 
     .next {
