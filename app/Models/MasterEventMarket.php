@@ -11,7 +11,7 @@ class MasterEventMarket extends Model
     protected $fillable = [
         'master_event_unique_id',
         'odd_type_id',
-        'master_event_unique_market_id',
+        'master_event_market_unique_id',
         'is_main',
         'market_flag',
     ];

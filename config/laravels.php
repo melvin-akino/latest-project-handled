@@ -146,7 +146,6 @@ return [
                 [ 'name' => 'odd_type_id',                   'type' => \Swoole\Table::TYPE_INT ],
                 [ 'name' => 'master_event_market_unique_id', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 100 ],
                 [ 'name' => 'master_event_unique_id',        'type' => \Swoole\Table::TYPE_STRING, 'size' => 30 ],
-                [ 'name' => 'event_market_id',               'type' => \Swoole\Table::TYPE_INT ],
                 [ 'name' => 'provider_id',                   'type' => \Swoole\Table::TYPE_INT ],
                 [ 'name' => 'odds',                          'type' => \Swoole\Table::TYPE_FLOAT ],
                 [ 'name' => 'odd_label',                     'type' => \Swoole\Table::TYPE_STRING, 'size' => 10 ],
