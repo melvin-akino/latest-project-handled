@@ -33,8 +33,8 @@ class Data2SWT implements CustomProcessInterface
 
         $table = app('swoole')->wsTable;
          foreach ($table as $key => $row) {
-             var_dump($key);
-             var_dump($row);
+             // var_dump($key);
+             // var_dump($row);
          }
         while (!self::$quit) {
         }
@@ -64,7 +64,7 @@ class Data2SWT implements CustomProcessInterface
 
     private static function db2SwtProviders(Server $swoole)
     {
-        $providers = DB::connection(config('database.crm_default'))->table('providers')->get();
+        $providers = DB::table('providers')->get();
         $providersTable = $swoole->providersTable;
         array_map(function ($provider) use ($providersTable) {
             $providersTable->set('providerAlias:' . strtolower($provider->alias),
@@ -154,7 +154,7 @@ class Data2SWT implements CustomProcessInterface
                     'event_identifier'       => $event->event_identifier,
                     'sport_id'               => $event->sport_id,
                     'provider_id'            => $event->provider_id,
-                    'master_league_id'       => $event->master_league_id,
+                    // 'master_league_id'       => $event->master_league_id,
                     'master_event_unique_id' => $event->master_event_unique_id,
                     'master_home_team_name'  => $event->master_home_team_name,
                     'master_away_team_name'  => $event->master_away_team_name,
