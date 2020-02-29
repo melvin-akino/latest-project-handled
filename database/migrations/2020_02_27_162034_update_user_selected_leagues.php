@@ -19,7 +19,7 @@ class UpdateUserSelectedLeagues extends Migration
         if (Schema::hasTable($this->tableName)) {
             Schema::table($this->tableName, function (Blueprint $table) {
                 $table->dropColumn('master_league_id');
-                $table->string('master_league_name', 30)->default('');
+                $table->string('master_league_name', 100)->default('');
             });
         }
     }
@@ -34,7 +34,7 @@ class UpdateUserSelectedLeagues extends Migration
         if (Schema::hasTable($this->tableName)) {
             Schema::table($this->tableName, function (Blueprint $table) {
                 $table->dropColumn('master_league_name');
-                $table->integer('master_league_id');
+                $table->integer('master_league_id')->nullable();
                 $table->foreign('master_league_id')
                     ->references('id')
                     ->on('master_leagues')

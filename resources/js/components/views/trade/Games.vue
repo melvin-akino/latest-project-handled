@@ -6,7 +6,7 @@
             <span v-show="!isGameSchedTypeOpen"><i class="fas fa-chevron-right"></i></span>
         </div>
         <div class="games" :class="{'hidden': !isGameSchedTypeOpen}">
-            <p class="text-sm text-gray-500 text-center pt-2 noeventspanel" v-if="games.length === 0">No competitions watched in this market.</p>
+            <p class="text-sm text-gray-500 text-center pt-2 noeventspanel" v-if="checkIfGamesIsEmpty">No competitions watched in this market.</p>
             <div v-else>
                 <div class="bg-white text-white text-sm text-gray-700" v-for="(league, index) in games" :key="index">
                     <div class="flex justify-between py-2 px-4 font-bold border-t border-orange-500 leaguePanel">
@@ -18,7 +18,7 @@
                             </button>
                             {{index}}
                         </div>
-                        <div class="text-white"><i class="fas fa-star"></i></div>
+                        <div :class="[gameSchedType==='watchlist' ? 'in-watchlist-star' : 'text-white']" @click="gameSchedType==='watchlist' ? removeFromWatchlist('league', index) : addToWatchlist('league', index)"><i class="fas fa-star"></i></div>
                     </div>
                     <div class="gamesWrapper" :class="!closedLeagues.includes(index) ? 'h-full' : 'h-0 overflow-hidden'">
                         <div class="asianLayout"  v-if="tradeLayout==1">
@@ -42,7 +42,7 @@
                                         <span class="px-2 rounded-lg" :class="{'bet-click' : odd.odds != ''}" v-adjust-odd-color="odd.odds">{{odd.odds | formatOdds}}</span>
                                     </p>
                                 </div>
-                                <div class="text-white absolute eventStar">
+                                <div class="absolute eventStar" :class="[gameSchedType==='watchlist' ? 'in-watchlist-star' : 'text-white']" @click="gameSchedType==='watchlist' ? removeFromWatchlist('event', game.uid) : addToWatchlist('event', game.uid)">
                                     <span><i class="fas fa-star"></i></span>
                                 </div>
                             </div>
@@ -57,7 +57,7 @@
                                     <span class="gameColumn text-lg text-center">{{game.away.score}}</span>
                                     <span class="gameColumn font-bold text-red-600 text-center">A</span>
                                     <span class="gameColumn teamColumn">{{game.away.name}}</span>
-                                    <div class="absolute text-white european-event-star">
+                                    <div class="absolute european-event-star" :class="[gameSchedType==='watchlist' ? 'in-watchlist-star' : 'text-white']" @click="gameSchedType==='watchlist' ? removeFromWatchlist('event', game.uid) : addToWatchlist('event', game.uid)">
                                         <span><i class="fas fa-star"></i></span>
                                     </div>
                                 </div>
@@ -82,6 +82,7 @@
 <script>
 import { mapState } from 'vuex'
 import Cookies from 'js-cookie'
+import _ from 'lodash'
 
 export default {
     props: ['gameSchedType', 'games'],
@@ -93,7 +94,10 @@ export default {
     },
     computed: {
         ...mapState('trade', ['selectedSport', 'tradeLayout', 'oddsTypeBySport']),
-        ...mapState('settings', ['disabledBetColumns'])
+        ...mapState('settings', ['disabledBetColumns']),
+        checkIfGamesIsEmpty() {
+            return _.isEmpty(this.games)
+        }
     },
     methods: {
         toggleLeague(index) {
@@ -102,6 +106,26 @@ export default {
             } else {
                 this.closedLeagues.push(index)
             }
+        },
+        addToWatchlist(type, data) {
+            let token = Cookies.get('mltoken')
+            axios.post('v1/trade/watchlist/add', { type: type, data: data }, { headers: { 'Authorization': `Bearer ${token}` }})
+            .then(() => {
+                /* Response will depend on a socket listener */
+            })
+            .catch(err => {
+                this.$store.dispatch('auth/checkIfTokenIsValid', err.response.data.status_code)
+            })
+        },
+        removeFromWatchlist(type, data) {
+            let token = Cookies.get('mltoken')
+            axios.post('v1/trade/watchlist/remove', { type: type, data: data }, { headers: { 'Authorization': `Bearer ${token}` }})
+            .then(() => {
+                /* Response will depend on a socket listener */
+            })
+            .catch(err => {
+                this.$store.dispatch('auth/checkIfTokenIsValid', err.response.data.status_code)
+            })
         }
     },
     directives: {
@@ -164,7 +188,11 @@ export default {
     }
 
     .fa-star:hover {
-        color: #fff200
+        color: #fff200;
+    }
+
+    .in-watchlist-star {
+        color: #fff200;
     }
 
     .eventStar {

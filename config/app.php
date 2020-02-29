@@ -179,6 +179,8 @@ return [
 
 
         App\Providers\ProducerServiceProvider::class,
+        App\Providers\TransformOddsServiceProvider::class,
+
     ],
 
     /*
@@ -229,6 +231,8 @@ return [
         'URL' => Illuminate\Support\Facades\URL::class,
         'Validator' => Illuminate\Support\Facades\Validator::class,
         'View' => Illuminate\Support\Facades\View::class,
+
+        'TransformOdds'=> App\Facades\TransformOdds::class,
 
     ],
 
