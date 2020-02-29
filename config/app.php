@@ -179,7 +179,7 @@ return [
 
 
         App\Providers\ProducerServiceProvider::class,
-        App\Providers\TransformOddsServiceProvider::class,
+        App\Providers\TransformRequestOddsServiceProvider::class,
 
     ],
 
