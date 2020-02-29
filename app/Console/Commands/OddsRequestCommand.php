@@ -93,11 +93,11 @@ class OddsRequestCommand extends Command
     {
         foreach ($this->providers as $provider) {
             foreach ($this->sports as $sport) {
-                $uid = Str::uuid();
+                $requestId = Str::uuid();
                 $requestTs = $this->milliseconds();
 
                 $payload = [
-                    'request_uid' => $uid,
+                    'request_uid' => $requestId,
                     'request_ts'  => $requestTs,
                     'command'     => 'odd',
                     'sub_command' => 'scrape',
@@ -108,7 +108,8 @@ class OddsRequestCommand extends Command
                     'sport'    => $sport->id
                 ];
 
-                $this->pushToKafka($payload, $uid, strtolower($provider->alias) . $this->kafkaTopic);
+                // publish message to kafka
+                $this->pushToKafka($payload, $requestId, strtolower($provider->alias) . $this->kafkaTopic);
             }
         }
     }
