@@ -465,17 +465,8 @@ class TransformKafkaMessage implements ShouldQueue
             $transformedSwtId = "uid:" . $uid;
 
             if (!$transformedTable->exists($transformedSwtId)) {
-                $transformedTable->set($transformedSwtId, $transformedJSON);
+                $transformedTable->set($transformedSwtId, ['value' => json_encode($transformedJSON)]);
             }
-
-            var_dump([ 'toinsert' => $toInsert ]);
-
-            /** TODO: Insert to DB WHERE $key == Model Name */
-            // $insertIds = [];
-
-            // foreach ($toInsert AS $key => $row) {
-            //     $insertIds[$key] = $key::create($row);
-            // }
         }
     }
 }

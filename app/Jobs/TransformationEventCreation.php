@@ -32,7 +32,7 @@ class TransformationEventCreation implements ShouldQueue
 
         MasterEventLink::create([
             'event_id' => $rawEventId,
-            'master_event_unique_id' => $this->data['MasterEvent']['data']['master_event_unique_id']
+            'master_event_unique_id' => $masterEventModel->master_event_unique_id
         ]);
 
 
@@ -45,7 +45,7 @@ class TransformationEventCreation implements ShouldQueue
 
         MasterEventMarketLink::create([
             'event_market_id' => $eventMarketId,
-            'master_event_market_unique_id' => $this->data['MasterEventMarket']['data']['master_event_market_unique_id']
+            'master_event_market_unique_id' => $masterEventMarketModel->master_event_market_unique_id
         ]);
 
         $this->data['MasterEventMarketLog']['data']['master_event_market_id'] = $masterEventMarketId;
