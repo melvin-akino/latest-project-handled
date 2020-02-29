@@ -185,7 +185,7 @@ class TransformKafkaMessage implements ShouldQueue
                     $this->message->data->events[0]->eventId
                 ]);
 
-                $array = [
+                $masterEventData = [
                     'event_identifier'       => $this->message->data->events[0]->eventId,
                     'sport_id'               => $sportId,
                     'master_event_unique_id' => $uid,
@@ -193,15 +193,14 @@ class TransformKafkaMessage implements ShouldQueue
                     'master_home_team_name'  => $masterTeamHome,
                     'master_away_team_name'  => $masterTeamAway,
                     'game_schedule'          => $this->message->data->schedule,
-                    'ref_schedule'           => date("Y-m-d H:i:s", strtotime($this->message->data->referenceSchedule))
+                    'ref_schedule'           => date("Y-m-d H:i:s", strtotime($this->message->data->referenceSchedule)),
+                    'score'                  => $this->message->data->home_score . ' - ' . $this->message->data->away_score,
+                    'running_time'           => $this->message->data->running_time,
+                    'home_penalty'           => $this->message->data->home_redcard,
+                    'away_penalty'           => $this->message->data->away_redcard,
                 ];
 
-                $eventsTable->set($eventSwtId, $array);
-
-                $eventModel = MasterEvent::create($array);
-                $rawEventId = $eventModel->id;
-
-                $eventsTable[$eventSwtId]['id'] = $rawEventId;
+                $eventsTable->set($eventSwtId, $masterEventData);
             }
         }
 
@@ -308,32 +307,13 @@ class TransformKafkaMessage implements ShouldQueue
 
                             $eventMarketsTable->set($eventMarketSwtId, $array);
 
-                            $eventModel = MasterEventMarket::create([
-                                'master_event_unique_id'        => $uid,
-                                'master_event_market_unique_id' => $memUID,
-                                'odd_type_id'                   => $oddTypeId,
-                                'is_main'                       => $array['is_main'],
-                                'market_flag'                   => $array['market_flag'],
-                            ]);
-
-                            $id = $eventModel->id;
-
-                            $eventMarketsTable[$eventMarketSwtId]['id'] = $id;
-
                             /** TO INSERT */
-
-                            $toInsert['Events'][] = [
-                                'sport_id'         => $sportId,
-                                'provider_id'      => $providerId,
-                                'event_identifier' => $this->message->data->events[0]->eventId,
-                                'league_name'      => $this->message->data->leagueName,
-                                'home_team_name'   => $this->message->data->homeTeam,
-                                'away_team_name'   => $this->message->data->awayTeam,
-                                'ref_schedule'     => date("Y-m-d H:i:s", strtotime($this->message->data->referenceSchedule)),
-                                'game_schedule'    => $this->message->data->schedule,
-                            ];
-
-                            $toInsert['MasterEvent'][] = [
+                            $toInsert['MasterEvent']['swtKey'] = implode(':', [
+                                "sId:" . $sportId,
+                                "pId:" . $providerId,
+                                "eventIdentifier:" . $this->message->data->events[0]->eventId
+                            ]);
+                            $toInsert['MasterEvent']['data'] = [
                                 'sport_id'               => $sportId,
                                 'master_event_unique_id' => $uid,
                                 'master_league_name'     => $masterLeagueName,
@@ -347,13 +327,19 @@ class TransformKafkaMessage implements ShouldQueue
                                 'away_penalty'           => $this->message->data->away_redcard,
                             ];
 
-                            $toInsert['MasterEventLink'][] = [
-                                'event_id'        => "",
-                                'master_event_id' => "",
+                            $toInsert['Event']['data'] = [
+                                'sport_id'         => $sportId,
+                                'provider_id'      => $providerId,
+                                'event_identifier' => $this->message->data->events[0]->eventId,
+                                'league_name'      => $this->message->data->leagueName,
+                                'home_team_name'   => $this->message->data->homeTeam,
+                                'away_team_name'   => $this->message->data->awayTeam,
+                                'ref_schedule'     => date("Y-m-d H:i:s", strtotime($this->message->data->referenceSchedule)),
+                                'game_schedule'    => $this->message->data->schedule,
                             ];
 
-                            $toInsert['MasterEventMarket'][] = [
-                                'sport_id'                      => $sportId,
+                            $toInsert['MasterEventMarket']['swtKey'] = "marketId:" . $markets->market_id;
+                            $toInsert['MasterEventMarket']['data'] = [
                                 'master_event_unique_id'        => $uid,
                                 'odd_type_id'                   => $oddTypeId,
                                 'master_event_market_unique_id' => $memUID,
@@ -361,7 +347,7 @@ class TransformKafkaMessage implements ShouldQueue
                                 'market_flag'                   => $array['market_flag'],
                             ];
 
-                            $toInsert['EventMarket'][] = [
+                            $toInsert['EventMarket']['data'] = [
                                 'provider_id'            => $providerId,
                                 'master_event_unique_id' => $uid,
                                 'odd_type_id'            => $oddTypeId,
@@ -372,19 +358,15 @@ class TransformKafkaMessage implements ShouldQueue
                                 'market_flag'            => $array['market_flag'],
                             ];
 
-                            $toInsert['MasterEventMarketLink'][] = [
-                                'event_market_id'        => "",
-                                'master_event_market_id' => "",
-                            ];
-
-                            $toInsert['MasterEventMarketLog'][] = [
-                                'master_event_unique_id' => $uid,
+                            $toInsert['MasterEventMarketLog']['data'] = [
                                 'odd_type_id'            => $oddTypeId,
                                 'odds'                   => $markets->odds,
                                 'odd_label'              => $array['odd_label'],
                                 'is_main'                => $array['is_main'],
                                 'market_flag'            => $array['market_flag'],
                             ];
+
+                            TransformationEventCreation::dispatch($toInsert);
                         }
                     }
                 }

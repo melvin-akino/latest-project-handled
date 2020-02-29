@@ -24,8 +24,9 @@ class KafkaConsume implements CustomProcessInterface
     {
         $kafkaTable = $swoole->kafkaTable;
 
+        sleep(2);
         TransformKafkaMessage::dispatch((object) ['payload' => self::testData()]);
-        sleep(1);
+
 
 //        $kafkaConsumer = new KafkaConsumer(self::getConfig());
 //        $kafkaConsumer->subscribe([env('KAFKA_SCRAPE_ODDS')]);

@@ -60,7 +60,7 @@ return [
             // key format [userSportLeagueEvents:$userId:league:$multileaguename] = [value = json_encode(data)]
             'size'   => 102400,// The max size
             'column' => [// Define the columns
-                ['name' => 'value', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 30],
+                ['name' => 'value', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 100],
             ],
         ],
         'deletedLeagues'    => [// key format [sportId:1:league:multileaguename] => [value = multileaguename]
@@ -137,6 +137,10 @@ return [
                 [ 'name' => 'master_away_team_name',  'type' => \Swoole\Table::TYPE_STRING, 'size' => 100 ],
                 [ 'name' => 'game_schedule',          'type' => \Swoole\Table::TYPE_STRING, 'size' => 30 ],
                 [ 'name' => 'ref_schedule',           'type' => \Swoole\Table::TYPE_STRING, 'size' => 30 ],
+                [ 'name' => 'score',           'type' => \Swoole\Table::TYPE_STRING, 'size' => 30 ],
+                [ 'name' => 'running_time',           'type' => \Swoole\Table::TYPE_STRING, 'size' => 30 ],
+                [ 'name' => 'home_penalty',           'type' => \Swoole\Table::TYPE_STRING, 'size' => 30 ],
+                [ 'name' => 'away_penalty',           'type' => \Swoole\Table::TYPE_STRING, 'size' => 30 ],
             ],
         ],
         'eventMarkets'  => [ //key format [pId:$providerId:meUniqueId:$masterEventUniqueId:memUniqueId:$masterEventMarketUniqueId] = [id = $id, ...]

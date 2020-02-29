@@ -154,18 +154,21 @@ class TradeController extends Controller
                 'today' => [],
                 'early' => []
             ];
-            foreach ($leaguesQuery as $league) {
-                $eventTodayCount = DB::table('master_events')
-                    ->where('master_league_name', $league->master_league_name)
-                    ->where('game_schedule', 'today')
-                    ->whereNull('deleted_at')
-                    ->count();
-                if ($eventTodayCount > 0) {
-                    $dataSchedule['today'][] = [
-                        'name' => $league->master_league_name,
-                        'match_count' => $eventTodayCount
-                    ];
+            foreach ($dataSchedule as $key => $sched) {
+                foreach ($leaguesQuery as $league) {
+                    $eventTodayCount = DB::table('master_events')
+                        ->where('master_league_name', $league->master_league_name)
+                        ->where('game_schedule', $key)
+                        ->whereNull('deleted_at')
+                        ->count();
+                    if ($eventTodayCount > 0) {
+                        $dataSchedule[$key][$league->master_league_name] = [
+                            'name' => $league->master_league_name,
+                            'match_count' => $eventTodayCount
+                        ];
+                    }
                 }
+                $dataSchedule[$key] = array_values($dataSchedule[$key]);
             }
 
             if (!$data['status']) {
@@ -186,7 +189,7 @@ class TradeController extends Controller
             return response()->json([
                 'status'      => false,
                 'status_code' => 500,
-                'message'     => trans('generic.internal-server-error') . $e
+                'message'     => trans('generic.internal-server-error')
             ], 500);
         }
     }

@@ -32,10 +32,10 @@ class Data2SWT implements CustomProcessInterface
         }
 
         $table = app('swoole')->wsTable;
-         foreach ($table as $key => $row) {
-             // var_dump($key);
-             // var_dump($row);
-         }
+        foreach ($table as $key => $row) {
+            // var_dump($key);
+            // var_dump($row);
+        }
         while (!self::$quit) {
         }
     }
@@ -138,13 +138,15 @@ class Data2SWT implements CustomProcessInterface
     {
         $masterEvents = DB::table('master_events')
             ->join('sports', 'sports.id', 'master_events.sport_id')
-            ->join('master_event_links', 'master_event_links.master_event_id', 'master_events.id')
+            ->join('master_event_links', 'master_event_links.master_event_unique_id',
+                'master_events.master_event_unique_id')
             ->join('events', 'events.id', 'master_event_links.event_id')
             ->join('master_leagues', 'master_leagues.master_league_name', 'master_events.master_league_name')
             ->select('master_events.id', 'master_events.master_event_unique_id', 'events.provider_id',
                 'events.event_identifier', 'master_leagues.id as master_league_id', 'master_events.sport_id',
                 'master_events.ref_schedule', 'master_events.master_home_team_name',
-                'master_events.master_away_team_name', 'master_leagues.master_league_name')
+                'master_events.master_away_team_name', 'master_leagues.master_league_name', 'master_events.score',
+                'master_events.running_time', 'master_events.home_penalty', 'master_events.away_penalty')
             ->get();
         $masterEventsTable = $swoole->eventsTable;
         array_map(function ($event) use ($masterEventsTable) {
@@ -154,12 +156,15 @@ class Data2SWT implements CustomProcessInterface
                     'event_identifier'       => $event->event_identifier,
                     'sport_id'               => $event->sport_id,
                     'provider_id'            => $event->provider_id,
-                    // 'master_league_id'       => $event->master_league_id,
                     'master_event_unique_id' => $event->master_event_unique_id,
                     'master_home_team_name'  => $event->master_home_team_name,
                     'master_away_team_name'  => $event->master_away_team_name,
                     'ref_schedule'           => $event->ref_schedule,
                     'master_league_name'     => $event->master_league_name,
+                    'score'                  => $event->score,
+                    'running_time'           => $event->running_time,
+                    'home_penalty'           => $event->home_penalty,
+                    'away_penalty'           => $event->away_penalty,
                 ]);
         }, $masterEvents->toArray());
     }
@@ -167,8 +172,8 @@ class Data2SWT implements CustomProcessInterface
     private static function db2SwtMasterEventMarkets(Server $swoole)
     {
         $masterEventMarkets = DB::table('master_event_markets')
-            ->join('master_event_market_links', 'master_event_market_links.master_event_market_id',
-                'master_event_markets.id')
+            ->join('master_event_market_links', 'master_event_market_links.master_event_market_unique_id',
+                'master_event_markets.master_event_market_unique_id')
             ->join('event_markets', 'event_markets.id', 'master_event_market_links.event_market_id')
             ->join('master_events', 'master_events.master_event_unique_id',
                 'master_event_markets.master_event_unique_id')
