@@ -38,15 +38,6 @@ class KafkaConsume implements CustomProcessInterface
             self::{$method}($swoole);
         }
 
-//        $table = app('swoole')->transformedTable;
-//        foreach ($table as $key => $row) {
-//             var_dump($key);
-//             var_dump($row);
-//        }
-
-
-
-
         $kafkaTable = $swoole->kafkaTable;
 
         $kafkaConsumer = resolve('KafkaConsumer');
@@ -68,7 +59,6 @@ class KafkaConsume implements CustomProcessInterface
 
             self::getAdditionalLeagues($swoole);
             self::getForRemovallLeagues($swoole);
-            sleep(1);
         }
     }
 
