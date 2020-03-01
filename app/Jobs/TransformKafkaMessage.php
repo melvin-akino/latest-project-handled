@@ -151,7 +151,7 @@ class TransformKafkaMessage implements ShouldQueue
             }
         }
 
-        if (!empty($masterLeagueName) && !empty($multiTeam)) {
+        if (!empty($masterLeagueName) && !empty($multiTeam) && count($multiTeam) == 2) {
             /**
              * EVENTS (MASTER) Swoole Table
              *

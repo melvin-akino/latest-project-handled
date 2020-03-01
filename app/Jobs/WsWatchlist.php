@@ -31,7 +31,6 @@ class WsWatchlist implements ShouldQueue
                 $providerPriority = $provider['priority'];
                 $providerId = $provider['id'];
             }
-
         }
 
         $transformed = $server->transformedTable;
@@ -42,8 +41,8 @@ class WsWatchlist implements ShouldQueue
                 $uid = substr($key, strlen('userWatchlist:' . $this->userId . ':masterEventUniqueId:'));
 
                 if ($transformed->exist('uid:' . $uid . ":pId:" . $providerId)) {
-                    $event = json_decode($transformed->get('uid:' . $uid . ":pId:" . $providerId)['value'], true);
-                    $watchlist[] = $event;
+                    $watchlist[] = json_decode($transformed->get('uid:' . $uid . ":pId:" . $providerId)['value'],
+                        true);;
                 }
             }
         }

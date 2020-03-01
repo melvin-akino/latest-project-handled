@@ -25,12 +25,6 @@ return [
     ],
     'sockets'                  => [],
     'processes'                => [
-        'data2swt' => [
-            'class'    => \App\Processes\Data2SWT::class,
-            'redirect' => false,
-            'pipe' => 0,
-            'enable' => env('LARAVELS_DATA2SWT', true)
-        ],
         'kafka_consume' => [
             'class'    => \App\Processes\KafkaConsume::class,
             'redirect' => false,

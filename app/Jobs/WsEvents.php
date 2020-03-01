@@ -31,14 +31,13 @@ class WsEvents implements ShouldQueue
                 $providerPriority = $provider['priority'];
                 $providerId = $provider['id'];
             }
-
         }
         foreach ($eventsTable as $key => $event) {
             if ($event['master_league_name'] == $this->master_league_name) {
                 $transformed = $server->transformedTable;
                 if ($transformed->exist('uid:' . $event['master_event_unique_id'] . ":pId:" . $providerId)) {
-                    $event = json_decode($transformed->get('uid:' . $event['master_event_unique_id'] . ":pId:" . $providerId)['value'], true);
-                    $getEvents[] = $event;
+                    $getEvents[] = json_decode($transformed->get('uid:' . $event['master_event_unique_id'] . ":pId:" . $providerId)['value'],
+                        true);
                 }
             }
         }
