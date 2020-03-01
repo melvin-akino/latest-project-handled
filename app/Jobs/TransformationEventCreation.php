@@ -23,32 +23,18 @@ class TransformationEventCreation implements ShouldQueue
 
     public function handle()
     {
-        $masterEventModel = MasterEvent::create($this->data['MasterEvent']['data']);
-        $masterEventId = $masterEventModel->id;
-        app('swoole')->eventsTable[$this->data['MasterEvent']['swtKey']]['id'] = $masterEventId;
+        if (!MasterEvent::where('master_event_unique_id', $this->data['MasterEvent']['data']['master_event_unique_id'])->exists()) {
+            $masterEventModel = MasterEvent::create($this->data['MasterEvent']['data']);
+            $masterEventId = $masterEventModel->id;
+            app('swoole')->eventsTable[$this->data['MasterEvent']['swtKey']]['id'] = $masterEventId;
 
-        $eventModel = Events::create($this->data['Event']['data']);
-        $rawEventId = $eventModel->id;
+            $eventModel = Events::create($this->data['Event']['data']);
+            $rawEventId = $eventModel->id;
 
-        MasterEventLink::create([
-            'event_id' => $rawEventId,
-            'master_event_unique_id' => $masterEventModel->master_event_unique_id
-        ]);
-
-
-        $masterEventMarketModel = MasterEventMarket::create($this->data['MasterEventMarket']['data']);
-        $masterEventMarketId = $masterEventMarketModel->id;
-        app('swoole')->eventMarketsTable[$this->data['MasterEventMarket']['swtKey']]['id'] = $masterEventMarketId;
-
-        $eventMarketModel = EventMarket::create($this->data['EventMarket']['data']);
-        $eventMarketId = $eventMarketModel->id;
-
-        MasterEventMarketLink::create([
-            'event_market_id' => $eventMarketId,
-            'master_event_market_unique_id' => $masterEventMarketModel->master_event_market_unique_id
-        ]);
-
-        $this->data['MasterEventMarketLog']['data']['master_event_market_id'] = $masterEventMarketId;
-        MasterEventMarketLog::create($this->data['MasterEventMarketLog']['data']);
+            MasterEventLink::create([
+                'event_id' => $rawEventId,
+                'master_event_unique_id' => $masterEventModel->master_event_unique_id
+            ]);
+        }
     }
 }

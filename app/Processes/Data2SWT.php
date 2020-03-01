@@ -191,6 +191,7 @@ class Data2SWT implements CustomProcessInterface
             $masterEventMarketsTable->set(
                 'pId:' . $eventMarket->provider_id .
                 ':meUID:' . $eventMarket->master_event_unique_id .
+                ':oId:' . $eventMarket->odd_type_id .
                 ':memUID:' . $eventMarket->master_event_market_unique_id,
                 [
                     'id'                            => $eventMarket->id,
@@ -251,7 +252,7 @@ class Data2SWT implements CustomProcessInterface
 
             if (empty($data[$transformed->master_event_unique_id]['away'])) {
                 $data[$transformed->master_event_unique_id]['away'] = [
-                    'name' => $transformed->master_home_team_name,
+                    'name' => $transformed->master_away_team_name,
                     'score' => empty($transformed->score) ? '' : array_values(explode(' - ', $transformed->score))[1],
                     'redcard' => $transformed->home_penalty
                 ];
@@ -259,7 +260,7 @@ class Data2SWT implements CustomProcessInterface
 
             if (empty($data[$transformed->master_event_unique_id]['market_odds'][$mainOrOther][$transformed->type][$transformed->market_flag])) {
                 $data[$transformed->master_event_unique_id]['market_odds'][$mainOrOther][$transformed->type][$transformed->market_flag] = [
-                    'odds' => $transformed->odds,
+                    'odds' => (double) $transformed->odds,
                     'market_id' => $transformed->master_event_market_unique_id
                 ];
                 if (!empty($transformed->odd_label)) {

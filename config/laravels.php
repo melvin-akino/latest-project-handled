@@ -106,7 +106,7 @@ return [
                 [ 'name' => 'type',              'type' => \Swoole\Table::TYPE_STRING, 'size' => 20 ],
             ],
         ],
-        'leagues'         => [ // key format [sId:$sportId:pId:$providerId:league_name:$rawLeague] = [id = $multiLeagueId, ...]
+        'leagues'         => [ // key format [sId:$sportId:pId:$providerId:league:$rawLeague] = [id = $multiLeagueId, ...]
             'size'   => 102400,
             'column' => [
                 [ 'name' => 'id',                   'type' => \Swoole\Table::TYPE_INT ],
@@ -143,7 +143,7 @@ return [
                 [ 'name' => 'away_penalty',           'type' => \Swoole\Table::TYPE_STRING, 'size' => 30 ],
             ],
         ],
-        'eventMarkets'  => [ //key format [pId:$providerId:meUniqueId:$masterEventUniqueId:memUniqueId:$masterEventMarketUniqueId] = [id = $id, ...]
+        'eventMarkets'  => [ //key format [pId:$providerId:meUniqueId:$masterEventUniqueId:oId:$oddTypeId:memUniqueId:$masterEventMarketUniqueId] = [id = $id, ...]
             'size' => 102400,
             'column' => [
                 [ 'name' => 'id',                            'type' => \Swoole\Table::TYPE_INT ],

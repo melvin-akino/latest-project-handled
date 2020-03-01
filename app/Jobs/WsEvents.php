@@ -12,7 +12,7 @@ class WsEvents implements ShouldQueue
     public function __construct($userId, $params)
     {
         $this->userId = $userId;
-        $this->multi_league = $params[1];
+        $this->master_league_name = $params[1];
     }
 
     public function handle()
@@ -22,12 +22,22 @@ class WsEvents implements ShouldQueue
 
         $getEvents = [];
 
-        $eventData = $this->sampleOutput();var_dump($eventData);
-        foreach ($eventData as $jsonData) {
-            $data = json_decode($jsonData, true);
-            unset($data['market_odds']['other']);
-            $getEvents[] = $data;
+        $eventsTable = $server->eventsTable;
+        foreach ($eventsTable as $key => $event) {
+            if ($event['master_league_name'] == $this->master_league_name) {
+                $transformed = $server->transformedTable;
+                if ($transformed->exist('uid:' . $event['master_event_unique_id'])) {
+                    $getEvents[] = json_decode($transformed->get('uid:' . $event['master_event_unique_id'])['value'], true);
+                }
+            }
         }
+
+//        $eventData = $this->sampleOutput();var_dump($eventData);
+//        foreach ($eventData as $jsonData) {
+//            $data = json_decode($jsonData, true);
+//            unset($data['market_odds']['other']);
+//            $getEvents[] = $data;
+//        }
 
         $server->push($fd['value'], json_encode([
             'getEvents' => $getEvents
