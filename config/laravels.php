@@ -56,7 +56,7 @@ return [
             // key format [fd:$fd] = [value = $userId]
             // key format [userAdditionalLeagues:$userId:sportId:$sportId] = [value = $timestamp]
             // key format ['userSelectedLeagues:$userId:sId:$sportId:uniqueId:uniqid()] = [value = $multileaguename]
-            // key format [userWatchlist:$userId:masterEventUniqueId:$masterEventUniqueId] = [value = json_encode(data)]
+            // key format [userWatchlist:$userId:masterEventUniqueId:$masterEventUniqueId] = [value = true]
             // key format [userSportLeagueEvents:$userId:league:$multileaguename] = [value = json_encode(data)]
             'size'   => 102400,// The max size
             'column' => [// Define the columns
@@ -85,9 +85,10 @@ return [
         'providers'       => [ // key format [providerAlias:strtolower($providerAlias)] => [id = $id, alias = $alias]
             'size'   => 500,
             'column' => [
-                ['name' => 'id',          'type' => \Swoole\Table::TYPE_INT],
-                ['name' => 'alias',       'type' => \Swoole\Table::TYPE_STRING, 'size' => 10],
-                ['name' => 'priority',    'type' => \Swoole\Table::TYPE_INT],
+                ['name' => 'id',            'type' => \Swoole\Table::TYPE_INT],
+                ['name' => 'alias',         'type' => \Swoole\Table::TYPE_STRING, 'size' => 10],
+                ['name' => 'priority',      'type' => \Swoole\Table::TYPE_INT],
+                ['name' => 'is_enabled',    'type' => \Swoole\Table::TYPE_INT],
             ],
         ],
         'sports'          => [ //key format [sId:$sportId] = [name = $sport]
@@ -158,7 +159,7 @@ return [
                 [ 'name' => 'market_flag',                   'type' => \Swoole\Table::TYPE_STRING, 'size' => 5 ],
             ],
         ],
-        'transformed' => [
+        'transformed' => [ //key format [uid:$uid:pId:$providerId] = [value = json_encode($value)]
             'size'   => 102400,
             'column' => [ // key format [uid:$uid]
                 [ 'name' => 'value', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 5000 ],

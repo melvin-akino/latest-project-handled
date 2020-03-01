@@ -150,9 +150,8 @@ class TransformKafkaMessage implements ShouldQueue
                 $toTransform = false;
             }
         }
-var_dump($masterLeagueName);
-        var_dump($multiTeam);
-        if (!empty($masterLeagueName) && !empty($multiTeam)) {var_dump("SDf");
+
+        if (!empty($masterLeagueName) && !empty($multiTeam)) {
             /**
              * EVENTS (MASTER) Swoole Table
              *
@@ -223,7 +222,6 @@ var_dump($masterLeagueName);
                      *      $oddTypeId      swoole_table_value  int
                      */
                     $oddTypeSwtId = "oddType:" . $columns->oddsType;
-var_dump('odd type 1: ' . $columns->oddsType);
                     if ($oddTypesTable->exists($oddTypeSwtId)) {
                         $oddTypeId = $oddTypesTable->get($oddTypeSwtId)['id'];
                     } else {
@@ -288,7 +286,6 @@ var_dump('odd type 1: ' . $columns->oddsType);
                             if (strpos($key, 'pId:' . $providerId . ':meUID:' . $uid . ':oId:' . $oddTypeId . ':memUID:') == 0) {
                                 if ($row['bet_identifier'] == $markets->market_id) {
                                     $memUID = substr($key, strlen('pId:' . $providerId . ':meUID:' . $uid . ':oId:' . $oddTypeId . ':memUID:') + 1);
-                                    var_dump('eventMarketsTable Key: ' . $key);
                                     if ($row['odds'] != $marketOdds) {
                                         $eventMarketsTable[$key]['odds'] = $marketOdds;
                                         $updated = true;
@@ -318,14 +315,6 @@ var_dump('odd type 1: ' . $columns->oddsType);
                             "memUID:" . $memUID
                         ]);
 
-                        var_dump('Master Event Market Unique Id: ' . $memUID);
-                        var_dump('event ID: ' . $uid);
-                        var_dump('odd type: ' . $columns->oddsType);
-                        var_dump('odds: ' . $marketOdds);
-                        var_dump('odd type id: ' . $oddTypeId);
-                        var_dump('market flag: ' . $markets->indicator);
-                        var_dump('is main: ' . $event->market_type);
-                        var_dump("---------------------------");
                         $array = [
                             'odd_type_id'                   => $oddTypeId,
                             'master_event_market_unique_id' => $memUID,
@@ -503,8 +492,8 @@ var_dump('odd type 1: ' . $columns->oddsType);
                 }
             }
 
-            $transformedSwtId = "uid:" . $uid;
-//var_dump($transformedJSON);
+            $transformedSwtId = "uid:" . $uid . ":pId:" . $providerId;
+
             if (!$transformedTable->exists($transformedSwtId)) {
                 $transformedTable->set($transformedSwtId, ['value' => json_encode($transformedJSON)]);
             }

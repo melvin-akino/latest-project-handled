@@ -69,7 +69,7 @@ class Data2SWT implements CustomProcessInterface
         $providersTable = $swoole->providersTable;
         array_map(function ($provider) use ($providersTable) {
             $providersTable->set('providerAlias:' . strtolower($provider->alias),
-                ['id' => $provider->id, 'alias' => $provider->alias, 'priority' => $provider->priority]);
+                ['id' => $provider->id, 'alias' => $provider->alias, 'priority' => $provider->priority, 'is_enabled' => $provider->is_enabled]);
         }, $providers->toArray());
     }
 
@@ -213,7 +213,6 @@ class Data2SWT implements CustomProcessInterface
     {
         $transformed = DB::table('master_leagues as ml')
             ->join('sports as s', 's.id', 'ml.sport_id')
-//            ->join('master_league_links as mll', 'mll.master_league_id', 'ml.id')
             ->join('master_events as me', 'me.master_league_name', 'ml.master_league_name')
             ->join('master_event_markets as mem', 'mem.master_event_unique_id', 'me.master_event_unique_id')
             ->join('odd_types as ot', 'ot.id', 'mem.odd_type_id')
@@ -225,7 +224,6 @@ class Data2SWT implements CustomProcessInterface
                 'me.home_penalty', 'me.away_penalty', 'mem.odd_type_id', 'mem.master_event_market_unique_id', 'mem.is_main', 'mem.market_flag',
                 'ot.type', 'em.odds', 'em.odd_label', 'em.provider_id')
             ->distinct()->get();
-        $masterEventMarketsTable = $swoole->eventMarketsTable;
         $data = [];
         array_map(function ($transformed) use (&$data) {
             $mainOrOther = $transformed->is_main ? 'main' : 'other';
@@ -271,7 +269,7 @@ class Data2SWT implements CustomProcessInterface
         }, $transformed->toArray());
 
         foreach ($data as $key => $_data) {
-            $swoole->transformedTable->set('uid:' . $key, ['value' => json_encode($_data)]);
+            $swoole->transformedTable->set('uid:' . $key . ":pId:" . $_data['provider_id'], ['value' => json_encode($_data)]);
         }
     }
 
