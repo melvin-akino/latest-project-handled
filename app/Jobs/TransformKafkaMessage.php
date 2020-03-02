@@ -28,7 +28,7 @@ class TransformKafkaMessage implements ShouldQueue
         $swoole  = app('swoole');
         $wsTable = $swoole->wsTable;
 
-        if (empty((array) $this->message->data)) {
+        if (empty($this->message->data)) {
             return;
         }
 
