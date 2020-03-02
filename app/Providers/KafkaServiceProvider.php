@@ -2,11 +2,10 @@
 
 namespace App\Providers;
 
-use RdKafka\Conf;
-use RdKafka\Producer;
+use RdKafka\{Conf, KafkaConsumer, Producer};
 use Illuminate\Support\ServiceProvider;
 
-class ProducerServiceProvider extends ServiceProvider
+class KafkaServiceProvider extends ServiceProvider
 {
     /**
      * Boot method
@@ -32,6 +31,10 @@ class ProducerServiceProvider extends ServiceProvider
 
         $this->app->bind(Producer::class, function () use ($conf) {
             return new Producer($conf);
+        });
+
+        $this->app->bind('KafkaConsumer', function () use ($conf) {
+            return new KafkaConsumer($conf);
         });
     }
 }

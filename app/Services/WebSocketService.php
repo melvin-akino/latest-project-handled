@@ -18,6 +18,7 @@ class WebSocketService implements WebSocketHandlerInterface
 {
     public function __construct()
     {
+        $this->wsTable = app('swoole')->wsTable;
     }
 
     public function onOpen(Server $server, Request $request)
@@ -43,11 +44,9 @@ class WebSocketService implements WebSocketHandlerInterface
             'getWatchlist'         => 'App\Jobs\WsWatchlist',
             'getEvents'            => 'App\Jobs\WsEvents'
         ];
-        $commandFound = false;
         foreach ($commands as $key => $value) {
             $clientCommand = explode('_', $frame->data);
             if ($clientCommand[0] == $key) {
-                $commandFound = true;
                 $job = $commands[$clientCommand[0]];
                 if (count($clientCommand) > 0) {
                     $job::dispatch($user['value'], $clientCommand);
@@ -57,9 +56,6 @@ class WebSocketService implements WebSocketHandlerInterface
                 }
                 break;
             }
-        }
-        if ($commandFound) {
-            wsEmit("Found");
         }
     }
 

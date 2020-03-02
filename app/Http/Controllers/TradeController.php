@@ -3,12 +3,10 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Str;
 use App\Models\{MasterEvent, MasterLeague, Sport, UserSelectedLeague, UserWatchlist};
 
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
-use Faker\Factory AS Faker;
 use Exception;
 
 class TradeController extends Controller
@@ -67,7 +65,7 @@ class TradeController extends Controller
     /**
      * Add/Remove to Authenticated User's Lists of Favorite Leagues/Events
      *
-     * @param  $action  "add|remove"
+     * @param  $action "add|remove"
      * @param  $request \Illuminate\Http\Request
      * @return json
      */
@@ -83,7 +81,8 @@ class TradeController extends Controller
                     $leagueId = MasterLeague::getIdByName($request->data);
 
                     if ($leagueId) {
-                        $masterEventUniqueIds = MasterEvent::getActiveEvents('master_league_name', '=', $request->data)->get('master_event_unique_id')->toArray();
+                        $masterEventUniqueIds = MasterEvent::getActiveEvents('master_league_name', '=',
+                            $request->data)->get('master_event_unique_id')->toArray();
                     } else {
                         return response()->json([
                             'status'      => false,
@@ -94,7 +93,8 @@ class TradeController extends Controller
                     break;
 
                 case 'event':
-                    $masterEventUniqueIds = MasterEvent::getActiveEvents('master_event_unique_id', '=', $request->data)->get('master_event_unique_id')->toArray();
+                    $masterEventUniqueIds = MasterEvent::getActiveEvents('master_event_unique_id', '=',
+                        $request->data)->get('master_event_unique_id')->toArray();
                     break;
             }
 
@@ -104,10 +104,12 @@ class TradeController extends Controller
                 foreach ($masterEventUniqueIds AS $row) {
                     UserWatchlist::create(
                         [
-                            'user_id'         => auth()->user()->id,
+                            'user_id'                => auth()->user()->id,
                             'master_event_unique_id' => $row['master_event_unique_id']
                         ]
                     );
+                    app('swoole')->wsTable->set('userWatchlist:' . auth()->user()->id . ':masterEventUniqueId:' . $row['master_event_unique_id'],
+                        ['value' => true]);
                 }
             }
 
@@ -118,6 +120,7 @@ class TradeController extends Controller
                     UserWatchlist::where('user_id', auth()->user()->id)
                         ->where('master_event_unique_id', $row['master_event_unique_id'])
                         ->delete();
+                    app('swoole')->wsTable->del('userWatchlist:' . auth()->user()->id . ':masterEventUniqueId:' . $row['master_event_unique_id']);
                 }
             }
 
@@ -151,21 +154,24 @@ class TradeController extends Controller
             $leaguesQuery = DB::table('master_leagues')->whereNull('deleted_at')->get();
             $dataSchedule = [
                 'inplay' => [],
-                'today' => [],
-                'early' => []
+                'today'  => [],
+                'early'  => []
             ];
-            foreach ($leaguesQuery as $league) {
-                $eventTodayCount = DB::table('master_events')
-                    ->where('master_league_name', $league->master_league_name)
-                    ->where('game_schedule', 'today')
-                    ->whereNull('deleted_at')
-                    ->count();
-                if ($eventTodayCount > 0) {
-                    $dataSchedule['today'][] = [
-                        'name' => $league->master_league_name,
-                        'match_count' => $eventTodayCount
-                    ];
+            foreach ($dataSchedule as $key => $sched) {
+                foreach ($leaguesQuery as $league) {
+                    $eventTodayCount = DB::table('master_events')
+                        ->where('master_league_name', $league->master_league_name)
+                        ->where('game_schedule', $key)
+                        ->whereNull('deleted_at')
+                        ->count();
+                    if ($eventTodayCount > 0) {
+                        $dataSchedule[$key][$league->master_league_name] = [
+                            'name'        => $league->master_league_name,
+                            'match_count' => $eventTodayCount
+                        ];
+                    }
                 }
+                $dataSchedule[$key] = array_values($dataSchedule[$key]);
             }
 
             if (!$data['status']) {

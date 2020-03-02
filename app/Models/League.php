@@ -6,8 +6,21 @@ use App\Models\{Sport, UserConfiguration};
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
 
-class Leagues extends Model
+class League extends Model
 {
+    protected $table = "leagues";
+
+    protected $fillable = [
+        'sport_id',
+        'provider_id',
+        'league'
+    ];
+
+    protected $hidden = [
+        'created_at',
+        'updated_at',
+    ];
+
     public static function getLeagues(int $sportType = null)
     {
         /**
