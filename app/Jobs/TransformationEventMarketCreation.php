@@ -28,8 +28,6 @@ class TransformationEventMarketCreation implements ShouldQueue
         } else {
             $masterEventMarketModel = MasterEventMarket::where('master_event_market_unique_id', $this->data['MasterEventMarket']['data']['master_event_market_unique_id'])
                 ->first();
-//            var_dump($this->data['MasterEventMarket']['data']);
-//            var_dump('testing' . $masterEventMarketModel['id']);
         }
 
         if ($masterEventMarketModel) {
