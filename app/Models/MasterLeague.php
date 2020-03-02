@@ -10,7 +10,7 @@ class MasterLeague extends Model
 
     protected $fillable = [
         'sport_id',
-        'multi_league'
+        'master_league_name'
     ];
 
     protected $hidden = [

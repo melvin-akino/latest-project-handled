@@ -178,7 +178,7 @@ return [
         Hhxsv5\LaravelS\Illuminate\LaravelSServiceProvider::class,
 
 
-        App\Providers\ProducerServiceProvider::class,
+        App\Providers\KafkaServiceProvider::class,
         App\Providers\TransformRequestOddsServiceProvider::class,
 
     ],
