@@ -29,6 +29,7 @@ import { mapState } from 'vuex'
 import Cookies from 'js-cookie'
 import Leagues from './Leagues'
 import { getSocketKey, getSocketValue } from '../../../helpers/socket.js'
+import _ from 'lodash'
 
 export default {
     data() {
@@ -42,7 +43,7 @@ export default {
         Leagues
     },
     computed: {
-        ...mapState('trade', ['selectedSport']),
+        ...mapState('trade', ['selectedSport', 'selectedLeagues']),
         sportsList() {
             if(this.isSportsListOpen) {
                 let sports = this.sports.filter(sport => sport.id != this.selectedSport)
@@ -71,8 +72,17 @@ export default {
         selectSport(sport) {
             this.$store.commit('trade/SET_SELECTED_SPORT', sport)
             this.$store.dispatch('trade/getBetColumns', this.selectedSport)
-            this.$socket.send(`getSelectedLeagues_${sport}`)
+            this.$store.commit('trade/SET_EVENTS', { schedule: 'inplay', events: '' })
+            this.$store.commit('trade/SET_EVENTS', { schedule: 'today', events: ''  })
+            this.$store.commit('trade/SET_EVENTS', { schedule: 'early', events: '' })
             this.isSportsListOpen = !this.isSportsListOpen
+
+            //FIX
+            if(_.isEmpty(this.selectedLeagues)) {
+                this.$socket.send(`getSelectedLeagues_${this.selectedSport}`)
+            } else {
+                this.$store.commit('trade/CLEAR_SELECTED_LEAGUES')
+            }
         },
         getSports() {
             let token = Cookies.get('mltoken')

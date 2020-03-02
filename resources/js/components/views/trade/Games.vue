@@ -11,14 +11,14 @@
                 <div class="bg-white text-white text-sm text-gray-700" v-for="(league, index) in games" :key="index">
                     <div class="flex justify-between py-2 px-4 font-bold border-t border-orange-500 leaguePanel">
                         <div>
-                            <button type="button" class="mt-1 pr-1 text-red-600 focus:outline-none"><i class="fas fa-times-circle"></i></button>
+                            <button type="button" class="mt-1 pr-1 text-red-600 focus:outline-none" @click="unselectLeague(index)"><i class="fas fa-times-circle"></i></button>
                             <button type="button" class="mt-1 pr-1 text-orange-500 focus:outline-none" @click="toggleLeague(index)">
                                 <span v-show="closedLeagues.includes(index)"><i class="fas fa-chevron-down"></i></span>
                                 <span v-show="!closedLeagues.includes(index)"><i class="fas fa-chevron-up"></i></span>
                             </button>
                             {{index}}
                         </div>
-                        <div :class="[gameSchedType==='watchlist' ? 'in-watchlist-star' : 'text-white']" @click="gameSchedType==='watchlist' ? removeFromWatchlist('league', index) : addToWatchlist('league', index)"><i class="fas fa-star"></i></div>
+                        <div :class="[gameSchedType==='watchlist' ? 'in-watchlist-star' : 'text-white']" @click="gameSchedType==='watchlist' ? removeFromWatchlist('league', index, league) : addToWatchlist('league', index, league)"><i class="fas fa-star"></i></div>
                     </div>
                     <div class="gamesWrapper" :class="!closedLeagues.includes(index) ? 'h-full' : 'h-0 overflow-hidden'">
                         <div class="asianLayout"  v-if="tradeLayout==1">
@@ -42,7 +42,7 @@
                                         <span class="px-2 rounded-lg" :class="{'bet-click' : odd.odds != ''}" v-adjust-odd-color="odd.odds">{{odd.odds | formatOdds}}</span>
                                     </p>
                                 </div>
-                                <div class="absolute eventStar" :class="[gameSchedType==='watchlist' ? 'in-watchlist-star' : 'text-white']" @click="gameSchedType==='watchlist' ? removeFromWatchlist('event', game.uid) : addToWatchlist('event', game.uid)">
+                                <div class="absolute eventStar" :class="[gameSchedType==='watchlist' ? 'in-watchlist-star' : 'text-white']" @click="gameSchedType==='watchlist' ? removeFromWatchlist('event', game.uid, game) : addToWatchlist('event', game.uid, game)">
                                     <span><i class="fas fa-star"></i></span>
                                 </div>
                             </div>
@@ -57,7 +57,7 @@
                                     <span class="gameColumn text-lg text-center">{{game.away.score}}</span>
                                     <span class="gameColumn font-bold text-red-600 text-center">A</span>
                                     <span class="gameColumn teamColumn">{{game.away.name}}</span>
-                                    <div class="absolute european-event-star" :class="[gameSchedType==='watchlist' ? 'in-watchlist-star' : 'text-white']" @click="gameSchedType==='watchlist' ? removeFromWatchlist('event', game.uid) : addToWatchlist('event', game.uid)">
+                                    <div class="absolute european-event-star" :class="[gameSchedType==='watchlist' ? 'in-watchlist-star' : 'text-white']" @click="gameSchedType==='watchlist' ? removeFromWatchlist('event', game.uid, game) : addToWatchlist('event', game.uid, game)">
                                         <span><i class="fas fa-star"></i></span>
                                     </div>
                                 </div>
@@ -93,7 +93,7 @@ export default {
         }
     },
     computed: {
-        ...mapState('trade', ['selectedSport', 'tradeLayout', 'oddsTypeBySport']),
+        ...mapState('trade', ['selectedSport', 'tradeLayout', 'oddsTypeBySport', 'events']),
         ...mapState('settings', ['disabledBetColumns']),
         checkIfGamesIsEmpty() {
             return _.isEmpty(this.games)
@@ -107,21 +107,46 @@ export default {
                 this.closedLeagues.push(index)
             }
         },
-        addToWatchlist(type, data) {
+        unselectLeague(league) {
+            let token = Cookies.get('mltoken')
+            this.$store.commit('trade/REMOVE_SELECTED_LEAGUE', league)
+            this.$store.commit('trade/REMOVE_FROM_EVENTS', { schedule: this.gameSchedType, removedLeague: league })
+
+            axios.post('v1/trade/leagues/toggle', { data: league, sport_id: this.selectedSport }, { headers: { 'Authorization': `Bearer ${token}` } })
+            .catch(err => {
+                this.$store.dispatch('auth/checkIfTokenIsValid', err.response.data.status_code)
+            })
+        },
+        addToWatchlist(type, data, payload) {
             let token = Cookies.get('mltoken')
             axios.post('v1/trade/watchlist/add', { type: type, data: data }, { headers: { 'Authorization': `Bearer ${token}` }})
-            .then(() => {
-                /* Response will depend on a socket listener */
+            .then(response => {
+                //FIX: Adding to watchlist
+                let addToWatchlist = {}
+                if(type==='league') {
+                    axios.post('v1/trade/leagues/toggle', { data: league, sport_id: this.selectedSport }, { headers: { 'Authorization': `Bearer ${token}` } })
+                    this.$store.commit('trade/REMOVE_SELECTED_LEAGUE', data)
+                    this.$store.commit('trade/REMOVE_FROM_EVENTS', { schedule: this.gameSchedType, removedLeague: data })
+                } else if(type=='event') {
+                    this.$store.commit('trade/REMOVE_EVENT', { schedule: this.gameSchedType, removedEvent: data, removedLeague: payload.league_name })
+                }
             })
             .catch(err => {
                 this.$store.dispatch('auth/checkIfTokenIsValid', err.response.data.status_code)
             })
         },
-        removeFromWatchlist(type, data) {
+        removeFromWatchlist(type, data, payload) {
             let token = Cookies.get('mltoken')
             axios.post('v1/trade/watchlist/remove', { type: type, data: data }, { headers: { 'Authorization': `Bearer ${token}` }})
-            .then(() => {
-                /* Response will depend on a socket listener */
+            .then(response => {
+                // FIX: removing from watchlist
+                if(type==='league') {
+                    axios.post('v1/trade/leagues/toggle', { data: league, sport_id: this.selectedSport }, { headers: { 'Authorization': `Bearer ${token}` } })
+                    this.$store.commit('trade/SET_SELECTED_LEAGUES', data)
+                    this.$store.commit('trade/REMOVE_FROM_EVENTS', { schedule: this.gameSchedType, removedLeague: data })
+                } else if(type=='event') {
+                    this.$store.commit('trade/REMOVE_EVENT', { schedule: this.gameSchedType, removedEvent: data, removedLeague: payload.league_name })
+                }
             })
             .catch(err => {
                 this.$store.dispatch('auth/checkIfTokenIsValid', err.response.data.status_code)

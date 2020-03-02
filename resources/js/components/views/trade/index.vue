@@ -44,17 +44,6 @@ export default {
         Games,
         Betbar
     },
-    data () {
-        return {
-            events: {
-                watchlist: [],
-                inplay: [],
-                today: [],
-                early: []
-            },
-            eventsList: []
-        }
-    },
     head: {
         title() {
             return {
@@ -63,7 +52,7 @@ export default {
         }
     },
     computed: {
-        ...mapState('trade', ['isBetBarOpen', 'oddsTypeBySport'])
+        ...mapState('trade', ['isBetBarOpen', 'oddsTypeBySport', 'eventsList', 'events'])
     },
     mounted() {
         this.getWatchlist()
@@ -106,13 +95,15 @@ export default {
             this.$options.sockets.onmessage = (response => {
                 if(getSocketKey(response.data) === 'getEvents') {
                     let receivedEvents = getSocketValue(response.data, 'getEvents')
-                    this.eventsList = receivedEvents
-                    let eventsSchedule = _.uniq(receivedEvents.map(event => event.game_schedule))
-                    let eventsLeague = _.uniq(receivedEvents.map(event => event.league_name))
+                    receivedEvents.map(event => {
+                        this.$store.commit('trade/SET_EVENTS_LIST', event)
+                    })
+                    let eventsSchedule = _.uniq(this.eventsList.map(event => event.game_schedule))
+                    let eventsLeague = _.uniq(this.eventsList.map(event => event.league_name))
                     let eventObject = {}
                     eventsSchedule.map(schedule => {
                         eventsLeague.map(league => {
-                            receivedEvents.map(event => {
+                            this.eventsList.map(event => {
                                 if(event.game_schedule === schedule && event.league_name === league) {
                                     if(typeof(eventObject[schedule]) == "undefined") {
                                         eventObject[schedule] = {}
@@ -127,7 +118,7 @@ export default {
                         })
                     })
                     Object.keys(eventObject).map(schedule => {
-                        this.events[schedule] = eventObject[schedule]
+                        this.$store.commit('trade/SET_EVENTS', { schedule: schedule, events: eventObject[schedule] })
                     })
                 }
             })

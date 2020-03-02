@@ -24,7 +24,7 @@ export default {
         return {
             leagues: null,
             leagueSchedModes: ['inplay', 'today', 'early'],
-            selectedLeagueSchedMode: 'today',
+            selectedLeagueSchedMode: null,
             displayedLeagues: []
         }
     },
@@ -33,6 +33,7 @@ export default {
     },
     mounted() {
         this.getLeagues()
+        this.selectedLeagueSchedMode = Cookies.get('leagueSchedMode') || 'today'
     },
     methods: {
         getLeagues() {
@@ -86,16 +87,25 @@ export default {
             }
         },
         selectLeagueSchedMode(schedMode) {
+            Cookies.set('leagueSchedMode', schedMode)
             this.selectedLeagueSchedMode = schedMode
             this.filterLeaguesBySched(schedMode)
         },
         selectLeague(league) {
+            let token = Cookies.get('mltoken')
+
             if(this.selectedLeagues.includes(league)) {
                 this.$store.commit('trade/REMOVE_SELECTED_LEAGUE', league)
+                this.$store.commit('trade/REMOVE_FROM_EVENTS', { schedule: this.selectedLeagueSchedMode, removedLeague: league })
             } else {
                 this.$store.commit('trade/SET_SELECTED_LEAGUES', league)
                 this.$socket.send(`getEvents_${league}`)
             }
+
+            axios.post('v1/trade/leagues/toggle', { data: league, sport_id: this.selectedSport }, { headers: { 'Authorization': `Bearer ${token}` } })
+            .catch(err => {
+                this.$store.dispatch('auth/checkIfTokenIsValid', err.response.data.status_code)
+            })
         }
     }
 }
