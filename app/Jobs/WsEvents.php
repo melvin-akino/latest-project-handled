@@ -38,6 +38,9 @@ class WsEvents implements ShouldQueue
                 if ($transformed->exist('uid:' . $event['master_event_unique_id'] . ":pId:" . $providerId)) {
                     $getEvents[] = json_decode($transformed->get('uid:' . $event['master_event_unique_id'] . ":pId:" . $providerId)['value'],
                         true);
+
+                    $server->wsTable->set('userEvents:' . $this->userId . ':uid:' . $event['master_event_unique_id'],
+                        ['value' => true]);
                 }
             }
         }

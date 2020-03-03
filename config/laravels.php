@@ -53,6 +53,9 @@ return [
             // key format [userWatchlist:$userId:masterEventUniqueId:$masterEventUniqueId] = [value = true]
             // key format [userSportLeagueEvents:$userId:league:$multileaguename] = [value = json_encode(data)]
             // key format [leagueLookUpId:unique()] = [value = slug($leagueName)]
+            // key format [eventLookUpId:unique()] = [value = slug($masterEventUniqueId)]
+            // key format [updatedEvents:$uid] = [value = json_encode([['market_id' => $marketId, 'odds' => $odds], ...])]
+            // key format [updatedEvents:$uid] = [value = true]
             'size'   => 102400,// The max size
             'column' => [// Define the columns
                 ['name' => 'value', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 100],
@@ -139,7 +142,7 @@ return [
                 [ 'name' => 'away_penalty',           'type' => \Swoole\Table::TYPE_STRING, 'size' => 30 ],
             ],
         ],
-        'eventMarkets'  => [ //key format [pId:$providerId:meUniqueId:$masterEventUniqueId:oId:$oddTypeId:memUniqueId:$masterEventMarketUniqueId] = [id = $id, ...]
+        'eventMarkets'  => [ //key format [pId:$providerId:meUID:$meUID:betIdentifier:$betIdentifier] = [id = $id, ...]
             'size' => 102400,
             'column' => [
                 [ 'name' => 'id',                            'type' => \Swoole\Table::TYPE_INT ],

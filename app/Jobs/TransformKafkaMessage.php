@@ -214,6 +214,7 @@ class TransformKafkaMessage implements ShouldQueue
             }
         }
 
+        $updatedOdds = [];
         if (!empty($uid)) {
             $arrayEvents = $this->message->data->events;
 
@@ -292,27 +293,17 @@ class TransformKafkaMessage implements ShouldQueue
 
 
                         $memUID           = uniqid();
-                        foreach ($eventMarketsTable AS $key => $row) {
-                            if (strpos($key, 'pId:' . $providerId . ':meUID:' . $uid . ':oId:' . $oddTypeId . ':memUID:') == 0) {
-                                if ($row['bet_identifier'] == $markets->market_id) {
-                                    $memUID = substr($key, strlen('pId:' . $providerId . ':meUID:' . $uid . ':oId:' . $oddTypeId . ':memUID:') + 1);
-                                    if ($row['odds'] != $marketOdds) {
-                                        $eventMarketsTable[$key]['odds'] = $marketOdds;
-                                        $updated = true;
+                        if ($eventMarketsTable->exist('pId:' . $providerId . ':meUID:' . $uid . ':betIdentifier:' . $markets->market_id)) {
+                            $memUID = $eventMarketsTable->get('pId:' . $providerId . ':meUID:' . $uid . ':betIdentifier:' . $markets->market_id)['bet_identifier'];
+                            $odds = $eventMarketsTable->get('pId:' . $providerId . ':meUID:' . $uid . ':betIdentifier:' . $markets->market_id)['odds'];
+                            if ($odds != $marketOdds) {
+                                $eventMarketsTable[$key]['odds'] = $marketOdds;
+                                $updated = true;
 
-                                        /** Set Updated Odds to WS Swoole Table */
-                                        $WSOddsSwtId = "marketId:" . $markets->market_id;
-
-                                        if ($wsTable->exists($WSOddsSwtId)) {
-                                            $wsTable->set($WSOddsSwtId, [ 'value' => $marketOdds ]);
-                                        }
-                                    }
-                                }
-                                break;
+                                $updatedOdds[] = ['market_id' => $markets->market_id, 'odds' => $marketOdds];
                             }
+                            break;
                         }
-
-
 
                         if (empty($eventId)) {
                             $toTransform      = false;
@@ -320,11 +311,8 @@ class TransformKafkaMessage implements ShouldQueue
 
                         $eventMarketSwtId = implode(':', [
                             "pId:" . $providerId,
-                            "meUID:" . $uid,
-                            "oId:" . $oddTypeId,
-                            "memUID:" . $memUID
+                            "meUID:" . $uid
                         ]);
-
                         $array = [
                             'odd_type_id'                   => $oddTypeId,
                             'master_event_market_unique_id' => $memUID,
@@ -409,6 +397,17 @@ class TransformKafkaMessage implements ShouldQueue
             }
         }
         /** `events` key from json data */
+
+
+        if ($updated) {
+            /** Set Updated Odds to WS Swoole Table */
+            $WSOddsSwtId = "updatedEvents:" . $uid;
+            $wsTable->set($WSOddsSwtId, [ 'value' => json_encode($updatedOdds) ]);
+
+            array_map(function($odds) use ($wsTable, $uid) {
+                TransformationEventMarketUpdate::dispatch($odds['market_id'], $odds['odds']);
+            }, $updatedOdds);
+        }
 
         /** Data Transformation */
         if ($toTransform && !$updated) {

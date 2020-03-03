@@ -5,6 +5,8 @@ namespace App\Processes;
 use App\Jobs\Data2SWT;
 use App\Jobs\TransformKafkaMessage;
 use App\Models\Sport;
+use Faker\Factory;
+use Faker\Generator;
 use Hhxsv5\LaravelS\Swoole\Process\CustomProcessInterface;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -59,6 +61,7 @@ class KafkaConsume implements CustomProcessInterface
 
             self::getAdditionalLeagues($swoole);
             self::getForRemovallLeagues($swoole);
+            self::getUpdatedOdds($swoole);
         }
     }
 
@@ -214,12 +217,10 @@ class KafkaConsume implements CustomProcessInterface
             $masterEventMarketsTable->set(
                 'pId:' . $eventMarket->provider_id .
                 ':meUID:' . $eventMarket->master_event_unique_id .
-                ':oId:' . $eventMarket->odd_type_id .
-                ':memUID:' . $eventMarket->master_event_market_unique_id,
+                ':betIdentifier:' . $eventMarket->bet_identifier,
                 [
                     'id'                            => $eventMarket->id,
                     'master_event_unique_id'        => $eventMarket->master_event_unique_id,
-                    // 'event_market_id'               => $eventMarket->event_market_id,
                     'master_event_market_unique_id' => $eventMarket->master_event_market_unique_id,
                     'odd_type_id'                   => $eventMarket->odd_type_id,
                     'provider_id'                   => $eventMarket->provider_id,
@@ -362,5 +363,164 @@ class KafkaConsume implements CustomProcessInterface
                 }
             }
         }
+    }
+
+    private static function getUpdatedOdds($swoole)
+    {
+        $table = $swoole->wsTable;
+        foreach ($table as $k => $r) {
+            if (strpos($k, 'updatedEvents:') === 0) {
+                foreach ($table as $key => $row) {
+                    $updatedMarkets = json_decode($r['value']);
+                    if (!empty($updatedMarkets)) {
+                        if (strpos($key, 'fd:') === 0) {
+                            $fd = $table->get('uid:' . $row['value']);
+                            $swoole->push($fd['value'], json_encode(['getUpdatedOdds' => $updatedMarkets]));
+                            $table->del($k);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private static function testData() {
+        $faker = Factory::create();
+        return json_encode(array (
+            'request_uid' => '0c6e25d7-df8c-4cb1-8776-a911f3aebecd',
+            'request_ts' => '1583209828.45480400',
+            'command' => 'odd',
+            'sub_command' => 'transform',
+            'data' =>
+                array (
+                    'provider' => 'hg',
+                    'schedule' => 'today',
+                    'sport' => 2,
+                    'leagueName' => 'NCAA Basketball',
+                    'homeTeam' => 'Oklahoma',
+                    'awayTeam' => 'Texas',
+                    'referenceSchedule' => '2020-03-04T02:00:00.000+04:00',
+                    'running_time' => '',
+                    'home_score' => 0,
+                    'away_score' => 0,
+                    'home_redcard' => 0,
+                    'away_redcard' => 0,
+                    'id' => 49,
+                    'events' =>
+                        array (
+                            0 =>
+                                array (
+                                    'eventId' => '3472289',
+                                    'market_type' => 1,
+                                    'market_odds' =>
+                                        array (
+                                            0 =>
+                                                array (
+                                                    'oddsType' => 'ML',
+                                                    'marketSelection' =>
+                                                        array (
+                                                            0 =>
+                                                                array (
+                                                                    'market_id' => 'MH3472289',
+                                                                    'indicator' => 'Home',
+                                                                    'odds' => '2.3',
+                                                                ),
+                                                            1 =>
+                                                                array (
+                                                                    'market_id' => 'MC3472289',
+                                                                    'indicator' => 'Away',
+                                                                    'odds' => '1.3',
+                                                                ),
+                                                        ),
+                                                ),
+                                            1 =>
+                                                array (
+                                                    'oddsType' => 'HDP',
+                                                    'marketSelection' =>
+                                                        array (
+                                                            0 =>
+                                                                array (
+                                                                    'market_id' => 'RH3472289',
+                                                                    'indicator' => 'Home',
+                                                                    'odds' => $faker->randomFloat(99.99),//'0.909',
+                                                                    'points' => '-6.5',
+                                                                ),
+                                                            1 =>
+                                                                array (
+                                                                    'market_id' => 'RC3472289',
+                                                                    'indicator' => 'Away',
+                                                                    'odds' => '0.891',
+                                                                    'points' => '+6.5',
+                                                                ),
+                                                        ),
+                                                ),
+                                            2 =>
+                                                array (
+                                                    'oddsType' => 'OU',
+                                                    'marketSelection' =>
+                                                        array (
+                                                            0 =>
+                                                                array (
+                                                                    'market_id' => 'OUC3472289',
+                                                                    'indicator' => 'Home',
+                                                                    'odds' => $faker->randomFloat(99.99),
+                                                                    'points' => 'O 132.5',
+                                                                ),
+                                                            1 =>
+                                                                array (
+                                                                    'market_id' => 'OUH3472289',
+                                                                    'indicator' => 'Away',
+                                                                    'odds' => $faker->randomFloat(99.99),
+                                                                    'points' => 'U 132.5',
+                                                                ),
+                                                        ),
+                                                ),
+                                            3 =>
+                                                array (
+                                                    'oddsType' => 'HOME GOALS',
+                                                    'marketSelection' =>
+                                                        array (
+                                                            0 =>
+                                                                array (
+                                                                    'market_id' => 'OUHO3472289',
+                                                                    'indicator' => 'Home',
+                                                                    'odds' => '0.880',
+                                                                    'points' => 'O 69.5',
+                                                                ),
+                                                            1 =>
+                                                                array (
+                                                                    'market_id' => 'OUHU3472289',
+                                                                    'indicator' => 'Away',
+                                                                    'odds' => '0.880',
+                                                                    'points' => 'U 69.5',
+                                                                ),
+                                                        ),
+                                                ),
+                                            4 =>
+                                                array (
+                                                    'oddsType' => 'AWAY GOALS',
+                                                    'marketSelection' =>
+                                                        array (
+                                                            0 =>
+                                                                array (
+                                                                    'market_id' => 'OUCO3472289',
+                                                                    'indicator' => 'Home',
+                                                                    'odds' => '0.870',
+                                                                    'points' => 'O 63',
+                                                                ),
+                                                            1 =>
+                                                                array (
+                                                                    'market_id' => 'OUCU3472289',
+                                                                    'indicator' => 'Away',
+                                                                    'odds' => '0.890',
+                                                                    'points' => 'U 63',
+                                                                ),
+                                                        ),
+                                                ),
+                                        ),
+                                ),
+                        ),
+                ),
+        ));
     }
 }
