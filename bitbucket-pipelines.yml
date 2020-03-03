@@ -4,20 +4,15 @@
 # -----
 # You can specify a custom docker image from Docker Hub as your build environment.
 
-# Check our guides at https://confluence.atlassian.com/x/5Q4SMw for more examples.
-# Only use spaces to indent your .yml configuration.
-# -----
-# You can specify a custom docker image from Docker Hub as your build environment.
-
 image: php:7.2-fpm
 
 pipelines:
   default:
-      - step: &run_bundle
-        name: Develop
+    - step: &run_requirements
         caches:
-          - composer
+          - composer  
         script:
+          script:
           - apt-get update && apt-get install -y unzip   nodejs npm librdkafka-dev
           - pecl install swoole
           - pecl install rdkafka
@@ -42,12 +37,14 @@ pipelines:
           - .env
         services:
           - postgres
-  branches:
-    aws-deployment:
-    - step:
-       
 
-          <<: *run_bundle
+
+
+  branches:
+    develop:
+    - step:
+        name: Develop
+        <<: *run_requirements  
         
     - step:
         name: Unit test
@@ -64,42 +61,6 @@ pipelines:
           - ./vendor/bin/phpunit
         services:
           - postgres
-    - step:
-        name: Deploy to develop
-        script:
-          - apt-get update && apt-get install -y openssh-client
-          - mkdir -p ~/.ssh
-          - cat .develop_hosts >> ~/.ssh/known_hosts
-          - (umask  077 ; echo $devkey2 | base64 --decode > ~/.ssh/id_rsa)
-          
-          - ssh $devuser36@ninepinetechnology-tmcrjvwbpr.dynamic-m.com -p 9913 'bash -i  "compile.sherror"'
-
-
-definitions:
-      services:
-        postgres:
-            image: postgres
-            environment:
-                POSTGRES_USER: 'postgres'
-                POSTGRES_PASSWORD: 'testuser'
-                POSTGRES_DB: 'test'/**
-      - .env
-    services:
-      - postgres
-  
-image: php:7.2-fpm
-
-
-pipelines:
-  branches:
-    aws-deployment:
-    - step:
-        name: Develop
-        caches:
-          - composer
-        script:
-          - echo "Lot's of code redundancy"
-    - <<: *commonStep    
     - step:
         name: Deploy to develop
         script:
