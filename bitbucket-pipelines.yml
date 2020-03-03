@@ -36,7 +36,7 @@ pipelines:
           - .env
         services:
           - postgres
-      - step: &run_unittest   
+    - step: &run_unittest   
         script:
           - apt-get update && apt-get install -y libmcrypt-dev   libpq-dev postgresql-client librdkafka-dev
           - pecl install swoole
