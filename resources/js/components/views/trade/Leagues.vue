@@ -4,7 +4,7 @@
             <a href="#" class="text-sm uppercase py-2 px-3 leagueSchedule" :class="{'bg-orange-400 shadow-xl': selectedLeagueSchedMode === leagueSchedMode}" @click="selectLeagueSchedMode(leagueSchedMode)" v-for="(leagueSchedMode, index) in leagueSchedModes" :key="index">{{leagueSchedMode}} &nbsp; <span v-if="leagues">({{leagues[leagueSchedMode].length}})</span></a>
         </div>
 
-        <div class="flex justify-center" v-if="leagues===null">
+        <div class="flex justify-center" v-if="checkIfLeaguesIsEmpty">
             <p class="text-sm p-3">No leagues available for this sport.</p>
         </div>
 
@@ -17,6 +17,7 @@
 <script>
 import { mapState } from 'vuex'
 import Cookies from 'js-cookie'
+import _ from 'lodash'
 import { getSocketKey, getSocketValue } from '../../../helpers/socket'
 
 export default {
@@ -29,7 +30,12 @@ export default {
         }
     },
     computed: {
-        ...mapState('trade', ['selectedLeagues', 'selectedSport'])
+        ...mapState('trade', ['selectedLeagues', 'selectedSport']),
+        checkIfLeaguesIsEmpty() {
+            if(this.leagues != null) {
+                return _.isEmpty(this.leagues[this.selectedLeagueSchedMode])
+            }
+        }
     },
     mounted() {
         this.getLeagues()
