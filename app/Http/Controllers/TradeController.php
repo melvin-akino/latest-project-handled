@@ -143,7 +143,7 @@ class TradeController extends Controller
      *
      * @return json
      */
-    public function getInitialLeagues(Request $request)
+    public function getInitialLeagues()
     {
         try {
             /** Get Authenticated User's Default Initial Sport : Last Sport visited */
