@@ -33,7 +33,7 @@
                                 </div>
                                 <div class="w-1/12 flex flex-col items-center">
                                     <span>{{game.home.score}} - {{game.away.score}}</span>
-                                    <span>{{game.ref_schedule}}</span>
+                                    <span>{{ gameSchedType === 'inplay' || (gameSchedType === 'watchlist' && game.game_schedule === 'inplay') ? game.running_time : game.ref_schedule }}</span>
                                 </div>
                                 <div class="w-1/12"></div>
                                 <div class="w-1/12 flex flex-col items-center" :class="column" v-for="(column, index) in oddsTypeBySport" :key="index">
@@ -53,7 +53,7 @@
                                     <span class="gameColumn teamColumn">{{game.home.name}}</span>
                                     <span class="gameColumn font-bold text-green-400 text-center">H</span>
                                     <span class="gameColumn text-lg text-center">{{game.home.score}}</span>
-                                    <span class="gameColumn text-center">{{game.ref_schedule}}</span>
+                                    <span class="gameColumn text-center">{{ gameSchedType === 'inplay' || (gameSchedType === 'watchlist' && game.game_schedule === 'inplay') ? game.running_time : game.ref_schedule }}</span>
                                     <span class="gameColumn text-lg text-center">{{game.away.score}}</span>
                                     <span class="gameColumn font-bold text-red-600 text-center">A</span>
                                     <span class="gameColumn teamColumn">{{game.away.name}}</span>
