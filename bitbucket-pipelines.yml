@@ -1,4 +1,4 @@
-commonStep: &commonStep
+commonBuild: &commonBuild
   script:
     - apt-get update && apt-get install -y unzip   nodejs npm librdkafka-dev
     - pecl install swoole
@@ -23,9 +23,20 @@ commonStep: &commonStep
   services:
     - postgres
 
-commonScript: &commonScript
+commonUnittest: &commonUnittest
   script:
-    - echo "common script"
+    - apt-get update && apt-get install -y libmcrypt-dev   libpq-dev postgresql-client librdkafka-dev
+    - pecl install swoole
+    - pecl install rdkafka
+    - echo "extension=swoole.so" > /usr/local/etc/php/conf.d/docker-php-swoole.ini
+    - echo "extension=rdkafka.so" > /usr/local/etc/php/conf.d/docker-php-rdkafka.ini
+    - docker-php-ext-install pdo pdo_pgsql pcntl
+    - psql -U "postgres" -h "localhost"  -p 5432 -c "CREATE DATABASE test_crm"
+    - php artisan migrate
+    - php artisan passport:install
+    - ./vendor/bin/phpunit
+  services:
+    - postgres
 
 image: php:7.2-fpm
 pipelines:
@@ -33,7 +44,19 @@ pipelines:
     aws-deployment: 
     - step:
         name: Develop
-        <<: *commonStep
+        <<: *commonBuild
+    - step:
+        name: Unit test  
+        <<: *commonUnittest
+    - step:
+        name: Deploy to develop
+        script:
+          - apt-get update && apt-get install -y openssh-client
+          - mkdir -p ~/.ssh
+          - cat .develop_hosts >> ~/.ssh/known_hosts
+          - (umask  077 ; echo $devkey2 | base64 --decode > ~/.ssh/id_rsa)
+          
+          - ssh $devuser36@ninepinetechnology-tmcrjvwbpr.dynamic-m.com -p 9913 'bash -i  "compile.sherror"'      
  
 
 
