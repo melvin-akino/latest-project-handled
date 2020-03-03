@@ -44,10 +44,14 @@ pipelines:
     aws-deployment: 
     - step:
         name: Develop
-        #<<: *commonBuild
+        script:
+          - echo "test"
+#        <<: *commonBuild
     - step:
-        name: Unit test  
-        #<<: *commonUnittest
+        name: Unit test
+        script:
+          - echo "test"  
+#        <<: *commonUnittest
     - step:
         name: Deploy to develop
         script:
