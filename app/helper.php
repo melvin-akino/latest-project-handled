@@ -117,11 +117,14 @@ if (!function_exists('getUserDefault')) {
 
                     if ($defaultSport->count() == 0) {
                         $defaultSport = Sport::getActiveSports();
+                        $sport = $defaultSport->first()->id;
+                    } else {
+                        $sport = $defaultSport->first()->value;
                     }
 
                     $data = [
                         'status'        => true,
-                        'default_sport' => $defaultSport->first()->value,
+                        'default_sport' => $sport,
                     ];
                 break;
 
