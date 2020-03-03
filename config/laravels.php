@@ -136,7 +136,7 @@ return [
                 [ 'name' => 'master_away_team_name',  'type' => \Swoole\Table::TYPE_STRING, 'size' => 100 ],
                 [ 'name' => 'game_schedule',          'type' => \Swoole\Table::TYPE_STRING, 'size' => 30 ],
                 [ 'name' => 'ref_schedule',           'type' => \Swoole\Table::TYPE_STRING, 'size' => 30 ],
-                [ 'name' => 'score',           'type' => \Swoole\Table::TYPE_STRING, 'size' => 30 ],
+                [ 'name' => 'score',                  'type' => \Swoole\Table::TYPE_STRING, 'size' => 30 ],
                 [ 'name' => 'running_time',           'type' => \Swoole\Table::TYPE_STRING, 'size' => 30 ],
                 [ 'name' => 'home_penalty',           'type' => \Swoole\Table::TYPE_STRING, 'size' => 30 ],
                 [ 'name' => 'away_penalty',           'type' => \Swoole\Table::TYPE_STRING, 'size' => 30 ],
@@ -161,6 +161,14 @@ return [
             'size'   => 102400,
             'column' => [ // key format [uid:$uid]
                 [ 'name' => 'value', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 5000 ],
+            ],
+        ],
+        'userProviderConfig' => [
+            'size'   => 1000,
+            'column' => [ // KEY FORMAT: [userId:$userId:pId:$providerId]
+                [ 'name' => 'user_id',     'type' => \Swoole\Table::TYPE_INT ],
+                [ 'name' => 'provider_id', 'type' => \Swoole\Table::TYPE_INT ],
+                [ 'name' => 'active',      'type' => \Swoole\Table::TYPE_STRING, 'size' => 5 ],
             ],
         ],
     ],

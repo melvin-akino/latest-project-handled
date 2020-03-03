@@ -33,7 +33,8 @@ class KafkaConsume implements CustomProcessInterface
             'MasterEvents',
             'MasterEventMarkets',
             'Transformed',
-            'UserWatchlist'
+            'UserWatchlist',
+            'UserProviderConfig',
         ];
         foreach ($swooleProcesses as $process) {
             $method = "db2Swt" . $process;
@@ -253,14 +254,14 @@ class KafkaConsume implements CustomProcessInterface
             $mainOrOther = $transformed->is_main ? 'main' : 'other';
             if (empty($data[$transformed->master_event_unique_id])) {
                 $data[$transformed->master_event_unique_id] = [
-                    'uid' => $transformed->master_event_unique_id,
-                    'sport_id' => $transformed->sport_id,
-                    'sport' => $transformed->sport,
-                    'provider_id' => $transformed->provider_id,
+                    'uid'           => $transformed->master_event_unique_id,
+                    'sport_id'      => $transformed->sport_id,
+                    'sport'         => $transformed->sport,
+                    'provider_id'   => $transformed->provider_id,
                     'game_schedule' => $transformed->game_schedule,
-                    'league_name' => $transformed->master_league_name,
-                    'running_time' => $transformed->running_time,
-                    'ref_schedule' => $transformed->ref_schedule,
+                    'league_name'   => $transformed->master_league_name,
+                    'running_time'  => $transformed->running_time,
+                    'ref_schedule'  => $transformed->ref_schedule,
                 ];
             }
 
@@ -308,6 +309,23 @@ class KafkaConsume implements CustomProcessInterface
                 ':masterEventUniqueId:' . $watchlist->master_event_unique_id,
                 ['value' => $watchlist->id]);
         }, $userWatchlist->toArray());
+    }
+
+    private static function db2SwtUserProviderConfig(Server $swoole)
+    {
+        $swooleTable = $swoole->userProviderConfigTable;
+        $userProviderConfig= DB::table('user_provider_configurations')
+            ->get();
+
+        array_map(function ($userConfig) use ($swooleTable) {
+            $swooleTable->set('userId:' . $userConfig->user_id . ':pId:' . $userConfig->provider_id,
+                [
+                    'user_id'     => $userConfig->user_id,
+                    'provider_id' => $userConfig->provider_id,
+                    'active'      => $userConfig->active,
+                ]
+            );
+        }, $userProviderConfig->toArray());
     }
 
     private static function getAdditionalLeagues($swoole)
