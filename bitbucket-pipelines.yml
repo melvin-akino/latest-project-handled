@@ -41,7 +41,7 @@ commonUnittest: &commonUnittest
 image: php:7.3-fpm
 pipelines:
   branches:
-    aws-deployment: 
+    staging: 
     - step:
         name: Develop
         <<: *commonBuild
