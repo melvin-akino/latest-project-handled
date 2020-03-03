@@ -19,6 +19,17 @@ class WebSocketService implements WebSocketHandlerInterface
     public function __construct()
     {
         $this->wsTable = app('swoole')->wsTable;
+
+        $this->commands = [
+            'getUserSport'       => 'App\Jobs\WsUserSport',
+            'getSelectedLeagues' => [
+                'App\Jobs\WsSelectedLeagues',
+                'App\Jobs\WsAdditionalLeagues',
+                'App\Jobs\WsForRemovalLeagues',
+            ],
+            'getWatchlist'       => 'App\Jobs\WsWatchlist',
+            'getEvents'          => 'App\Jobs\WsEvents'
+        ];
     }
 
     public function onOpen(Server $server, Request $request)
@@ -28,32 +39,21 @@ class WebSocketService implements WebSocketHandlerInterface
 
         $server->wsTable->set('uid:' . $userId, ['value' => $request->fd]);
         $server->wsTable->set('fd:' . $request->fd, ['value' => $userId]);
-
-        $server->push($request->fd, 'Welcome to LaravelS');
     }
 
     public function onMessage(Server $server, Frame $frame)
     {
         $user = $server->wsTable->get('fd:' . $frame->fd);
-
-        $commands = [
-            'getUserSport'         => 'App\Jobs\WsUserSport',
-            'getSelectedLeagues'   => 'App\Jobs\WsSelectedLeagues',
-            'getAdditionalLeagues' => 'App\Jobs\WsAdditionalLeagues',
-            'getForRemovalLeagues' => 'App\Jobs\WsForRemovalLeagues',
-            'getWatchlist'         => 'App\Jobs\WsWatchlist',
-            'getEvents'            => 'App\Jobs\WsEvents'
-        ];
-        foreach ($commands as $key => $value) {
-            $clientCommand = explode('_', $frame->data);
-            if ($clientCommand[0] == $key) {
-                $job = $commands[$clientCommand[0]];
-                if (count($clientCommand) > 0) {
-                    $job::dispatch($user['value'], $clientCommand);
-                    Log::debug("WS Job Dispatched");
-                } else {
-                    $job::dispatch($user['value']);
+        $clientCommand = explode('_', $frame->data);
+        foreach ($this->commands as $key => $value) {
+            if (is_array($value)) {
+                foreach ($value as $k => $v) {
+                    if ($clientCommand[0] == $key) {
+                        $this->dispatchJob($user, $v, $clientCommand);
+                    }
                 }
+            } else if ($clientCommand[0] == $key) {
+                $this->dispatchJob($user, $this->commands[$clientCommand[0]], $clientCommand);
                 break;
             }
         }
@@ -75,5 +75,15 @@ class WebSocketService implements WebSocketHandlerInterface
         $request = HttpRequest::create('/');
         $request->headers->set('Authorization', 'Bearer ' . $bearerToken);
         return $tokenguard->user($request);
+    }
+
+    private function dispatchJob($user, $job, $clientCommand)
+    {
+        if (count($clientCommand) > 1) {
+            $job::dispatch($user['value'], $clientCommand);
+            Log::debug("WS Job Dispatched");
+        } else {
+            $job::dispatch($user['value']);
+        }
     }
 }
