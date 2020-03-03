@@ -65,7 +65,7 @@ pipelines:
         services:
           - postgres
   branches:
-     aws-deployment:
+    aws-deployment:
     - step:
         name: Develop
 
