@@ -32,21 +32,7 @@ commonStep: &commonStep
       - .env
     services:
       - postgres
-  step:
-      name: Unit test
-      script:
-        - apt-get update && apt-get install -y libmcrypt-dev   libpq-dev postgresql-client librdkafka-dev
-        - pecl install swoole
-        - pecl install rdkafka
-        - echo "extension=swoole.so" > /usr/local/etc/php/conf.d/docker-php-swoole.ini
-        - echo "extension=rdkafka.so" > /usr/local/etc/php/conf.d/docker-php-rdkafka.ini
-        - docker-php-ext-install pdo pdo_pgsql pcntl
-        - psql -U "postgres" -h "localhost"  -p 5432 -c "CREATE DATABASE test_crm"
-        - php artisan migrate
-        - php artisan passport:install
-        - ./vendor/bin/phpunit
-      services:
-        - postgres
+  
 
 pipelines:
   branches:
