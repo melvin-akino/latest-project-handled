@@ -38,7 +38,7 @@ commonUnittest: &commonUnittest
   services:
     - postgres
 
-image: php:7.2-fpm
+image: php:7.3-fpm
 pipelines:
   branches:
     aws-deployment: 
