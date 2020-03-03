@@ -41,6 +41,8 @@ pipelines:
         name: Develop
         caches:
           - composer
+        script:
+          - echo "Lot's of code redundancy"
     - <<: *commonStep    
     - step:
         name: Deploy to develop
