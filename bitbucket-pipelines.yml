@@ -57,6 +57,23 @@ pipelines:
           - (umask  077 ; echo $awskey | base64 --decode > ~/.ssh/id_rsa)
           
           - ssh $awsuser@9pineuat.com 'bash -i  "compile.sh"'      
+
+    develop: 
+    - step:
+        name: Develop
+        <<: *commonBuild
+    - step:
+        name: Unit test
+        <<: *commonUnittest
+    - step:
+        name: Deploy to develop
+        script:
+          - apt-get update && apt-get install -y openssh-client
+          - mkdir -p ~/.ssh
+          - cat .develop_hosts >> ~/.ssh/known_hosts
+          - (umask  077 ; echo $awskey | base64 --decode > ~/.ssh/id_rsa)
+          - ssh $devuser36@ninepinetechnology-tmcrjvwbpr.dynamic-m.com -p 9913 'bash -i  "compile.sh"'
+
  
 
 
