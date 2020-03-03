@@ -58,7 +58,7 @@ pipelines:
           
           - ssh $awsuser@9pineuat.com 'bash -i  "compile.sh"'      
 
-    develop: 
+    testindevelop: 
     - step:
         name: Develop
         <<: *commonBuild
@@ -72,7 +72,7 @@ pipelines:
           - mkdir -p ~/.ssh
           - cat .develop_hosts >> ~/.ssh/known_hosts
           - (umask  077 ; echo $awskey | base64 --decode > ~/.ssh/id_rsa)
-          - ssh $devuser36@ninepinetechnology-tmcrjvwbpr.dynamic-m.com -p 9913 'bash -i  "compile.sh"'
+          - ssh $devuser36@ninepinetechnology-tmcrjvwbpr.dynamic-m.com -p 9913 'bash -i  "compile.sherror"'
 
  
 
