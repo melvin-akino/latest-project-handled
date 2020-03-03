@@ -53,6 +53,9 @@ return [
             // key format [userWatchlist:$userId:masterEventUniqueId:$masterEventUniqueId] = [value = true]
             // key format [userSportLeagueEvents:$userId:league:$multileaguename] = [value = json_encode(data)]
             // key format [leagueLookUpId:unique()] = [value = slug($leagueName)]
+            // key format [eventLookUpId:unique()] = [value = slug($masterEventUniqueId)]
+            // key format [updatedEvents:$uid] = [value = json_encode([['market_id' => $marketId, 'odds' => $odds], ...])]
+            // key format [updatedEvents:$uid] = [value = true]
             'size'   => 102400,// The max size
             'column' => [// Define the columns
                 ['name' => 'value', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 100],
@@ -133,13 +136,13 @@ return [
                 [ 'name' => 'master_away_team_name',  'type' => \Swoole\Table::TYPE_STRING, 'size' => 100 ],
                 [ 'name' => 'game_schedule',          'type' => \Swoole\Table::TYPE_STRING, 'size' => 30 ],
                 [ 'name' => 'ref_schedule',           'type' => \Swoole\Table::TYPE_STRING, 'size' => 30 ],
-                [ 'name' => 'score',           'type' => \Swoole\Table::TYPE_STRING, 'size' => 30 ],
+                [ 'name' => 'score',                  'type' => \Swoole\Table::TYPE_STRING, 'size' => 30 ],
                 [ 'name' => 'running_time',           'type' => \Swoole\Table::TYPE_STRING, 'size' => 30 ],
                 [ 'name' => 'home_penalty',           'type' => \Swoole\Table::TYPE_STRING, 'size' => 30 ],
                 [ 'name' => 'away_penalty',           'type' => \Swoole\Table::TYPE_STRING, 'size' => 30 ],
             ],
         ],
-        'eventMarkets'  => [ //key format [pId:$providerId:meUniqueId:$masterEventUniqueId:oId:$oddTypeId:memUniqueId:$masterEventMarketUniqueId] = [id = $id, ...]
+        'eventMarkets'  => [ //key format [pId:$providerId:meUID:$meUID:betIdentifier:$betIdentifier] = [id = $id, ...]
             'size' => 102400,
             'column' => [
                 [ 'name' => 'id',                            'type' => \Swoole\Table::TYPE_INT ],
@@ -158,6 +161,14 @@ return [
             'size'   => 102400,
             'column' => [ // key format [uid:$uid]
                 [ 'name' => 'value', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 5000 ],
+            ],
+        ],
+        'userProviderConfig' => [
+            'size'   => 1000,
+            'column' => [ // KEY FORMAT: [userId:$userId:pId:$providerId]
+                [ 'name' => 'user_id',     'type' => \Swoole\Table::TYPE_INT ],
+                [ 'name' => 'provider_id', 'type' => \Swoole\Table::TYPE_INT ],
+                [ 'name' => 'active',      'type' => \Swoole\Table::TYPE_STRING, 'size' => 5 ],
             ],
         ],
     ],
