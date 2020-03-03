@@ -12,7 +12,6 @@ pipelines:
         caches:
           - composer  
         script:
-          script:
           - apt-get update && apt-get install -y unzip   nodejs npm librdkafka-dev
           - pecl install swoole
           - pecl install rdkafka
