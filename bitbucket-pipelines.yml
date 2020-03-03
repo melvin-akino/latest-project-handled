@@ -5,38 +5,44 @@
 # You can specify a custom docker image from Docker Hub as your build environment.
 
 image: php:7.2-fpm
-
+commonstep:  &commonStep
+  - step:
+      caches:
+        - composer
+      script:
+        - apt-get update && apt-get install -y unzip   nodejs npm librdkafka-dev
+        - pecl install swoole
+        - pecl install rdkafka
+        - curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+        - docker-php-ext-install pcntl
+      # -docker-php-ext-install pdo pdo_pgsql  pcntl
+      # -psql -U "postgres" -h "localhost"  -p 5432 -c "CREATE DATABASE test_crm"
+        - echo "extension=swoole.so" > /usr/local/etc/php/conf.d/docker-php-swoole.ini
+        - echo "extension=rdkafka.so" > /usr/local/etc/php/conf.d/docker-php-rdkafka.ini
+        - composer install 
+        - cp .env.pipeline .env
+        - php artisan key:generate
+        - php artisan view:clear
+        - php artisan cache:clear
+        - npm install
+        - npm run dev
+      artifacts:
+        - storage/**
+        - vendor/**
+        - public/**
+        - node_modules/**
+        - .env
+      services:
+        - postgres  
 pipelines:
-  default:
-    - step: &run_requirements
-        caches:
-          - composer  
-        script:
-          - apt-get update && apt-get install -y unzip   nodejs npm librdkafka-dev
-          - pecl install swoole
-          - pecl install rdkafka
-          - curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
-          - docker-php-ext-install pcntl
-        # -docker-php-ext-install pdo pdo_pgsql  pcntl
-        # -psql -U "postgres" -h "localhost"  -p 5432 -c "CREATE DATABASE test_crm"
-          - echo "extension=swoole.so" > /usr/local/etc/php/conf.d/docker-php-swoole.ini
-          - echo "extension=rdkafka.so" > /usr/local/etc/php/conf.d/docker-php-rdkafka.ini
-          - composer install 
-          - cp .env.pipeline .env
-          - php artisan key:generate
-          - php artisan view:clear
-          - php artisan cache:clear
-          - npm install
-          - npm run dev
-        artifacts:
-          - storage/**
-          - vendor/**
-          - public/**
-          - node_modules/**
-          - .env
-        services:
-          - postgres
-    - step: &run_unittest   
+  branches:
+    aws-deployment:
+    - step:
+        name: Develop
+        <<: *commonStep
+        
+    - step:
+        name: Unit test
         script:
           - apt-get update && apt-get install -y libmcrypt-dev   libpq-dev postgresql-client librdkafka-dev
           - pecl install swoole
@@ -49,19 +55,7 @@ pipelines:
           - php artisan passport:install
           - ./vendor/bin/phpunit
         services:
-          - postgres 
-
-
-
-  branches:
-    aws-deployment:
-    - step:
-        name: Develop
-        <<: *run_requirements  
-        
-    - step:
-        name: Unit test
-        <<: *run_unittest
+          - postgres
     - step:
         name: Deploy to develop
         script:
@@ -70,7 +64,7 @@ pipelines:
           - cat .develop_hosts >> ~/.ssh/known_hosts
           - (umask  077 ; echo $devkey2 | base64 --decode > ~/.ssh/id_rsa)
           
-          - ssh $devuser36@ninepinetechnology-tmcrjvwbpr.dynamic-m.com -p 9913 'bash -i  "compile.sherror"'
+          - ssh $devuser36@ninepinetechnology-tmcrjvwbpr.dynamic-m.com -p 9913 'bash -i  "compile.sh"'
 
 
 definitions:
