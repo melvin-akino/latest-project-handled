@@ -143,7 +143,7 @@ class TradeController extends Controller
      *
      * @return json
      */
-    public function getInitialLeagues()
+    public function getInitialLeagues(Request $request)
     {
         try {
             /** Get Authenticated User's Default Initial Sport : Last Sport visited */
@@ -151,7 +151,7 @@ class TradeController extends Controller
 
             /** Temporary Dummy Data */
 
-            $leaguesQuery = DB::table('master_leagues')->whereNull('deleted_at')->get();
+            $leaguesQuery = DB::table('master_leagues')->where('sport_id', $data['default_sport'])->whereNull('deleted_at')->get();
             $dataSchedule = [
                 'inplay' => [],
                 'today'  => [],
