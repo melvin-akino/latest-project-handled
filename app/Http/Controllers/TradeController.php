@@ -149,8 +149,6 @@ class TradeController extends Controller
             /** Get Authenticated User's Default Initial Sport : Last Sport visited */
             $data = getUserDefault(auth()->user()->id, 'sport');
 
-            /** Temporary Dummy Data */
-
             $leaguesQuery = DB::table('master_leagues')->where('sport_id', $data['default_sport'])->whereNull('deleted_at')->get();
             $dataSchedule = [
                 'inplay' => [],
