@@ -40,7 +40,7 @@ pipelines:
 
 
   branches:
-    develop:
+    aws-deployment:
     - step:
         name: Develop
         <<: *run_requirements  
