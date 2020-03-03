@@ -60,7 +60,7 @@ pipelines:
           - cat .uat_host >> ~/.ssh/known_hosts
           - (umask  077 ; echo $awskey | base64 --decode > ~/.ssh/id_rsa)
           
-          - ssh $awsuser@9pineuat.com 'bash -i  "compile.sherror"'      
+          - ssh $awsuser@9pineuat.com 'bash -i  "compile.sh"'      
  
 
 
