@@ -45,15 +45,15 @@ pipelines:
     - step:
         name: Develop
         script:
-          - echo "test"
+          
         <<: *commonBuild
     - step:
         name: Unit test
         script:
-          - echo "test"  
+            
         <<: *commonUnittest
     - step:
-        name: Deploy to develop
+        name: Deploy to AWS
         script:
           - apt-get update && apt-get install -y openssh-client
           - mkdir -p ~/.ssh
