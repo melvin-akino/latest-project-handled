@@ -69,7 +69,7 @@ pipelines:
     - step:
         name: Develop
 
-          <<: *run_bundle
+      <<: *run_bundle
         
     - step:
         name: Unit test
