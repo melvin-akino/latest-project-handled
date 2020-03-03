@@ -1,8 +1,4 @@
 commonStep: &commonStep
-  step:
-    caches:
-      - composer
-
     script:
       - apt-get update && apt-get install -y unzip   nodejs npm librdkafka-dev
       - pecl install swoole
@@ -35,7 +31,7 @@ pipelines:
   branches:
     aws-deployment: 
     - step:
-    - <<: *commonStep
+      <<: *commonStep
  
 
 
