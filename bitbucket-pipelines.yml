@@ -3,8 +3,6 @@
 # Only use spaces to indent your .yml configuration.
 # -----
 # You can specify a custom docker image from Docker Hub as your build environment.
-
-image: php:7.2-fpm
 commonStep: &commonStep
   step:
     script:
@@ -33,6 +31,8 @@ commonStep: &commonStep
     services:
       - postgres
   
+image: php:7.2-fpm
+
 
 pipelines:
   branches:
