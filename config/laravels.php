@@ -52,6 +52,7 @@ return [
             // key format ['userSelectedLeagues:$userId:sId:$sportId:uniqueId:uniqid()] = [value = $multileaguename]
             // key format [userWatchlist:$userId:masterEventUniqueId:$masterEventUniqueId] = [value = true]
             // key format [userSportLeagueEvents:$userId:league:$multileaguename] = [value = json_encode(data)]
+            // key format [leagueLookUpId:unique()] = [value = slug($leagueName)]
             'size'   => 102400,// The max size
             'column' => [// Define the columns
                 ['name' => 'value', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 100],
@@ -101,7 +102,7 @@ return [
                 [ 'name' => 'type',              'type' => \Swoole\Table::TYPE_STRING, 'size' => 20 ],
             ],
         ],
-        'leagues'         => [ // key format [sId:$sportId:pId:$providerId:league:$rawLeague] = [id = $multiLeagueId, ...]
+        'leagues'         => [ // key format [sId:$sportId:pId:$providerId:leagueLookUpId:$leagueLookUpId] = [id = $multiLeagueId, ...]
             'size'   => 102400,
             'column' => [
                 [ 'name' => 'id',                   'type' => \Swoole\Table::TYPE_INT ],

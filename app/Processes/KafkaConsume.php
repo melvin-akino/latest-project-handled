@@ -99,14 +99,16 @@ class KafkaConsume implements CustomProcessInterface
         /** TODO: table source will be changed */
         $leagues = DB::table('master_leagues')
             ->join('master_league_links', 'master_leagues.id', 'master_league_links.master_league_id')
-//            ->where(DB::raw('LENGTH(master_leagues.deleted_at)'), '<>', 0)
+            ->whereNull('master_leagues.deleted_at')
             ->select('master_leagues.id', 'master_leagues.sport_id', 'master_leagues.master_league_name',
                 'master_league_links.league_name',
                 'master_league_links.provider_id', 'master_leagues.updated_at')
             ->get();
         $leaguesTable = $swoole->leaguesTable;
         array_map(function ($league) use ($leaguesTable) {
-            $leaguesTable->set('sId:' . $league->sport_id . ':pId:' . $league->provider_id . ':league:' . Str::slug($league->league_name),
+            $leagueLookUpId = uniqid();
+            app('swoole')->wsTable->set('leagueLookUpId:' . $leagueLookUpId, ['value' => $league->league_name]);
+            $leaguesTable->set('sId:' . $league->sport_id . ':pId:' . $league->provider_id . ':leagueLookUpId:' . $leagueLookUpId,
                 [
                     'id'                 => $league->id,
                     'sport_id'           => $league->sport_id,

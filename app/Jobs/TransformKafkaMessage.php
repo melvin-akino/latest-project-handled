@@ -100,19 +100,29 @@ class TransformKafkaMessage implements ShouldQueue
             throw new Exception("Sport doesn't exist");
         }
 
+        $leagueLookupId = null;
+        foreach ($wsTable as $key => $value) {
+            if (strpos($key, 'leagueLookUpId:') === 0) {
+                if ($value['value'] == $this->message->data->leagueName) {
+                    $leagueLookupId = substr($key, strlen('leagueLookUpId:'));
+                    break;
+                }
+            }
+        }
+
         /**
          * LEAGUES (MASTER) Swoole Table
          *
          * @ref config.laravels.leagues
          *
          * @var $leaguesTable    swoole_table
-         *      $leagueSwtId     swoole_table_key    "sId:<$sportId>:pId:<$providerId>:league:<slug($rawLeague)>"
+         *      $leagueSwtId     swoole_table_key    "sId:<$sportId>:pId:<$providerId>:leagueLookUpId:$leagueLookUpId"
          *      $multiLeagueId   swoole_table_value  int
          */
         $leagueSwtId = implode(':', [
             "sId:" . $sportId,
             "pId:" . $providerId,
-            "league:" . Str::slug($this->message->data->leagueName)
+            "leagueLookUpId:" . $leagueLookupId
         ]);
 
         if ($leaguesTable->exists($leagueSwtId)) {
@@ -459,36 +469,37 @@ class TransformKafkaMessage implements ShouldQueue
 
             /** Forming Other Markets */
             $i = 0;
+            if (!empty($this->message->data->events[1])) {
+                foreach ($this->message->data->events[1]->market_odds AS $columns) {
+                    if (in_array($columns->oddsType, $arrayOddTypes)) {
+                        foreach ($columns->marketSelection AS $_market) {
+                            $_marketOdds = $_market->odds;
+                            $_marketPoints = "";
 
-            foreach ($this->message->data->events[1]->market_odds AS $columns) {
-                if (in_array($columns->oddsType, $arrayOddTypes)) {
-                    foreach ($columns->marketSelection AS $_market) {
-                        $_marketOdds = $_market->odds;
-                        $_marketPoints = "";
+                            if (gettype($_market->odds) == 'string') {
+                                $_marketOdds = explode(' ', $_market->odds);
 
-                        if (gettype($_market->odds) == 'string') {
-                            $_marketOdds = explode(' ', $_market->odds);
+                                if (count($_marketOdds) > 1) {
+                                    $_marketPoints = $_marketOdds[0];
+                                    $_marketOdds   = $_marketOdds[1];
+                                } else {
+                                    $_marketOdds   = $_marketOdds[0];
+                                }
+                            }
 
-                            if (count($_marketOdds) > 1) {
-                                $_marketPoints = $_marketOdds[0];
-                                $_marketOdds   = $_marketOdds[1];
-                            } else {
-                                $_marketOdds   = $_marketOdds[0];
+                            $transformedJSON['market_odds']['other'][$columns->oddsType][strtolower($_market->indicator)] = [
+                                'odds'      => trim($_marketOdds) == '' ? 0 : (float) $_marketOdds,
+                                'market_id' => $_market->market_id
+                            ];
+
+                            if (array_key_exists('points', $_market)) {
+                                $_marketPoints = $_market->points;
+                                $transformedJSON['market_odds']['other'][$i][$columns->oddsType][strtolower($_market->indicator)]['points'] = $_marketPoints;
                             }
                         }
 
-                        $transformedJSON['market_odds']['other'][$columns->oddsType][strtolower($_market->indicator)] = [
-                            'odds'      => trim($_marketOdds) == '' ? 0 : (float) $_marketOdds,
-                            'market_id' => $_market->market_id
-                        ];
-
-                        if (array_key_exists('points', $_market)) {
-                            $_marketPoints = $_market->points;
-                            $transformedJSON['market_odds']['other'][$i][$columns->oddsType][strtolower($_market->indicator)]['points'] = $_marketPoints;
-                        }
+                        $i++;
                     }
-
-                    $i++;
                 }
             }
 
