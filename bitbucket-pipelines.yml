@@ -36,17 +36,7 @@ pipelines:
           - .env
         services:
           - postgres
-
-
-
-  branches:
-    aws-deployment:
-    - step:
-        name: Develop
-        <<: *run_requirements  
-        
-    - step:
-        name: Unit test
+      - step: &run_unittest   
         script:
           - apt-get update && apt-get install -y libmcrypt-dev   libpq-dev postgresql-client librdkafka-dev
           - pecl install swoole
@@ -59,7 +49,19 @@ pipelines:
           - php artisan passport:install
           - ./vendor/bin/phpunit
         services:
-          - postgres
+          - postgres 
+
+
+
+  branches:
+    aws-deployment:
+    - step:
+        name: Develop
+        <<: *run_requirements  
+        
+    - step:
+        name: Unit test
+        <<: *run_unittest
     - step:
         name: Deploy to develop
         script:
