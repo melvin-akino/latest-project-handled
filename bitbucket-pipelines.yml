@@ -41,23 +41,7 @@ commonUnittest: &commonUnittest
 image: php:7.2-fpm
 pipelines:
   branches:
-    develop: 
-    - step:
-        name: Develop
-        script:
-        <<: *commonBuild
-    - step:
-        name: Unit test
-        script:
-        <<: *commonUnittest
-    - step:
-        name: Deploy to develop
-        script:
-          - apt-get update && apt-get install -y openssh-client
-          - mkdir -p ~/.ssh
-          - cat .develop_hosts >> ~/.ssh/known_hosts
-          - (umask  077 ; echo $devkey2 | base64 --decode > ~/.ssh/id_rsa)
-          - ssh $devuser36@ninepinetechnology-tmcrjvwbpr.dynamic-m.com -p 9913 'bash -i  "compile.sh"'
+    
     aws-deployment: 
     - step:
         name: Develop
