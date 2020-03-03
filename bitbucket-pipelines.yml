@@ -39,7 +39,7 @@ pipelines:
     aws-deployment:
     - step:
         name: Develop
-        <<: *commonStep
+    - <<: *commonStep
         
     - step:
         name: Unit test
