@@ -48,9 +48,8 @@ function deleteCookie(string $cookieName)
  * @author  Kevin Uy, Alex Virtucio
  */
 if (!function_exists('setUserDefault')) {
-    function setUserDefault(int $userId, string $type, array $data = null)
+    function setUserDefault(int $userId, string $type, array $data = [])
     {
-        $data = [];
         $types = [
             'sport',
             'league',
@@ -66,7 +65,7 @@ if (!function_exists('setUserDefault')) {
                             'menu'    => 'TRADE',
                         ],
                         [
-                            'value' => $data->sport_id
+                            'value' => $data['sport_id']
                         ]
                     );
                 break;
@@ -122,7 +121,7 @@ if (!function_exists('getUserDefault')) {
 
                     $data = [
                         'status'        => true,
-                        'default_sport' => $defaultSport->first()->id,
+                        'default_sport' => $defaultSport->first()->value,
                     ];
                 break;
 

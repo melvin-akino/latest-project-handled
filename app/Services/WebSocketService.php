@@ -31,7 +31,8 @@ class WebSocketService implements WebSocketHandlerInterface
             'getEvents'          => [
                 'App\Jobs\WsEvents',
                 'App\Jobs\WsOdds'
-            ]
+            ],
+            'getSelectedSport'   => 'App\Jobs\WsSelectedSport'
         ];
     }
 
