@@ -68,8 +68,8 @@ export default {
                         let selectedLeagues = getSocketValue(response.data, 'getSelectedLeagues')
                         selectedLeagues.map(league => {
                             this.$store.commit('trade/SET_SELECTED_LEAGUES', league)
+                            this.$socket.send(`getEvents_${league}`)
                         })
-                        this.selectedLeagues.map(league => this.$socket.send(`getEvents_${league}`))
                     }
                 } else if (getSocketKey(response.data) === 'getForRemovalLeagues') {
                     if(getSocketValue(response.data, 'getForRemovalLeagues') != '') {

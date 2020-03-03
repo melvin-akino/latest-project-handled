@@ -72,17 +72,12 @@ export default {
         selectSport(sport) {
             this.$store.commit('trade/SET_SELECTED_SPORT', sport)
             this.$store.dispatch('trade/getBetColumns', this.selectedSport)
-            this.$store.commit('trade/SET_EVENTS', { schedule: 'inplay', events: '' })
-            this.$store.commit('trade/SET_EVENTS', { schedule: 'today', events: ''  })
-            this.$store.commit('trade/SET_EVENTS', { schedule: 'early', events: '' })
+            this.$store.commit('trade/SET_EVENTS', { schedule: 'inplay', events: [] })
+            this.$store.commit('trade/SET_EVENTS', { schedule: 'today', events: [] })
+            this.$store.commit('trade/SET_EVENTS', { schedule: 'early', events: [] })
+            this.$store.commit('trade/SET_EVENTS', { schedule: 'early', events: [] })
+            this.$store.commit('trade/CLEAR_EVENTS_LIST')
             this.isSportsListOpen = !this.isSportsListOpen
-
-            //FIX
-            if(_.isEmpty(this.selectedLeagues)) {
-                this.$socket.send(`getSelectedLeagues_${this.selectedSport}`)
-            } else {
-                this.$store.commit('trade/CLEAR_SELECTED_LEAGUES')
-            }
         },
         getSports() {
             let token = Cookies.get('mltoken')

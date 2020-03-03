@@ -33,7 +33,7 @@
                                 </div>
                                 <div class="w-1/12 flex flex-col items-center">
                                     <span>{{game.home.score}} - {{game.away.score}}</span>
-                                    <span>{{game.running_time}}</span>
+                                    <span>{{game.ref_schedule}}</span>
                                 </div>
                                 <div class="w-1/12"></div>
                                 <div class="w-1/12 flex flex-col items-center" :class="column" v-for="(column, index) in oddsTypeBySport" :key="index">
@@ -53,7 +53,7 @@
                                     <span class="gameColumn teamColumn">{{game.home.name}}</span>
                                     <span class="gameColumn font-bold text-green-400 text-center">H</span>
                                     <span class="gameColumn text-lg text-center">{{game.home.score}}</span>
-                                    <span class="gameColumn text-center">{{game.running_time}}</span>
+                                    <span class="gameColumn text-center">{{game.ref_schedule}}</span>
                                     <span class="gameColumn text-lg text-center">{{game.away.score}}</span>
                                     <span class="gameColumn font-bold text-red-600 text-center">A</span>
                                     <span class="gameColumn teamColumn">{{game.away.name}}</span>
@@ -93,7 +93,7 @@ export default {
         }
     },
     computed: {
-        ...mapState('trade', ['selectedSport', 'tradeLayout', 'oddsTypeBySport', 'events']),
+        ...mapState('trade', ['selectedSport', 'selectedLeagues', 'tradeLayout', 'oddsTypeBySport', 'events']),
         ...mapState('settings', ['disabledBetColumns']),
         checkIfGamesIsEmpty() {
             return _.isEmpty(this.games)
@@ -120,16 +120,21 @@ export default {
         addToWatchlist(type, data, payload) {
             let token = Cookies.get('mltoken')
             axios.post('v1/trade/watchlist/add', { type: type, data: data }, { headers: { 'Authorization': `Bearer ${token}` }})
-            .then(response => {
-                //FIX: Adding to watchlist
-                let addToWatchlist = {}
+            .then(() => {
                 if(type==='league') {
-                    axios.post('v1/trade/leagues/toggle', { data: league, sport_id: this.selectedSport }, { headers: { 'Authorization': `Bearer ${token}` } })
+                    axios.post('v1/trade/leagues/toggle', { data: data, sport_id: this.selectedSport }, { headers: { 'Authorization': `Bearer ${token}` } })
                     this.$store.commit('trade/REMOVE_SELECTED_LEAGUE', data)
                     this.$store.commit('trade/REMOVE_FROM_EVENTS', { schedule: this.gameSchedType, removedLeague: data })
-                } else if(type=='event') {
-                    this.$store.commit('trade/REMOVE_EVENT', { schedule: this.gameSchedType, removedEvent: data, removedLeague: payload.league_name })
+                } else if(type==='event') {
+                    this.$store.commit('trade/REMOVE_EVENT', { schedule: this.gameSchedType, removedLeague: payload.league_name, removedEvent: data})
+                    this.$store.commit('trade/REMOVE_FROM_EVENT_LIST', { type: 'uid', data: data })
+                    if(this.events[this.gameSchedType][payload.league_name].length === 0) {
+                        axios.post('v1/trade/leagues/toggle', { data: data, sport_id: this.selectedSport }, { headers: { 'Authorization': `Bearer ${token}` } })
+                        this.$store.commit('trade/REMOVE_SELECTED_LEAGUE', payload.league_name)
+                        this.$store.commit('trade/REMOVE_FROM_EVENTS', { schedule: this.gameSchedType, removedLeague: payload.league_name })
+                    }
                 }
+                this.$socket.send('getWatchlist')
             })
             .catch(err => {
                 this.$store.dispatch('auth/checkIfTokenIsValid', err.response.data.status_code)
@@ -139,14 +144,20 @@ export default {
             let token = Cookies.get('mltoken')
             axios.post('v1/trade/watchlist/remove', { type: type, data: data }, { headers: { 'Authorization': `Bearer ${token}` }})
             .then(response => {
-                // FIX: removing from watchlist
                 if(type==='league') {
-                    axios.post('v1/trade/leagues/toggle', { data: league, sport_id: this.selectedSport }, { headers: { 'Authorization': `Bearer ${token}` } })
-                    this.$store.commit('trade/SET_SELECTED_LEAGUES', data)
-                    this.$store.commit('trade/REMOVE_FROM_EVENTS', { schedule: this.gameSchedType, removedLeague: data })
-                } else if(type=='event') {
-                    this.$store.commit('trade/REMOVE_EVENT', { schedule: this.gameSchedType, removedEvent: data, removedLeague: payload.league_name })
+                    payload.map(data => {
+                        if(this.selectedLeagues.includes(data.league_name)) {
+                            this.$socket.send(`getSelectedLeagues_${this.selectedSport}`)
+                            this.$store.commit('trade/CLEAR_EVENTS_LIST')
+                        }
+                    })
+                } else if(type==='event') {
+                    if(this.selectedLeagues.includes(payload.league_name)) {
+                        this.$socket.send(`getSelectedLeagues_${this.selectedSport}`)
+                        this.$store.commit('trade/CLEAR_EVENTS_LIST')
+                    }
                 }
+                this.$socket.send('getWatchlist')
             })
             .catch(err => {
                 this.$store.dispatch('auth/checkIfTokenIsValid', err.response.data.status_code)

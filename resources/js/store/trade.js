@@ -5,7 +5,6 @@ const token = Cookies.get('mltoken')
 const state = {
     selectedSport: null,
     selectedLeagues: [],
-    leaguesData: {},
     isBetBarOpen: false,
     tradeLayout: null,
     filteredColumnsBySport: [],
@@ -15,7 +14,7 @@ const state = {
     initialLeagues: [],
     eventsList: [],
     events: {
-        watchlist: [],
+        watchlist: {},
         inplay: [],
         today: [],
         early: []
@@ -53,6 +52,9 @@ const mutations = {
     SET_EVENTS_LIST: (state, event) => {
         state.eventsList.push(event)
     },
+    CLEAR_EVENTS_LIST: (state, event) => {
+        state.eventsList = []
+    },
     SET_EVENTS: (state, data) => {
         state.events[data.schedule] = data.events
     },
@@ -63,8 +65,8 @@ const mutations = {
     REMOVE_EVENT: (state, data) => {
         state.events[data.schedule][data.removedLeague] = state.events[data.schedule][data.removedLeague].filter(event => event.uid != data.removedEvent)
     },
-    ADD_TO_WATCHLIST: (state, data) => {
-        
+    REMOVE_FROM_EVENT_LIST: (state, data) => {
+        state.eventsList = state.eventsList.filter(event => event[data.type] != data.data)
     }
 }
 
