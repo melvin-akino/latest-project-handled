@@ -14,6 +14,7 @@ class WsEvents implements ShouldQueue
     {
         $this->userId             = $userId;
         $this->master_league_name = $params[1];
+        $this->schedule           = $params[2];
     }
 
     public function handle()
@@ -64,8 +65,8 @@ class WsEvents implements ShouldQueue
 
         $eventsTable = $server->eventsTable;
 
-        foreach ($eventsTable as $key => $event) {
-            if ($event['master_league_name'] == $this->master_league_name) {
+        foreach ($eventsTable as $key => $event) {var_dump($event);
+            if ($event['master_league_name'] == $this->master_league_name && $event['game_schedule'] == $this->schedule) {
                 $transformed = $server->transformedTable;
 
                 if ($transformed->exist('uid:' . $event['master_event_unique_id'] . ":pId:" . $providerId)) {
