@@ -76,7 +76,7 @@ export default {
                         let selectedLeagues = getSocketValue(response.data, 'getSelectedLeagues')
                         selectedLeagues.map(league => {
                             this.$store.commit('trade/SET_SELECTED_LEAGUES', league)
-                            this.$socket.send(`getEvents_${league}`)
+                            this.$socket.send(`getEvents_${league}_${this.selectedLeagueSchedMode}`)
                         })
                     }
                 } else if (getSocketKey(response.data) === 'getForRemovalLeagues') {
@@ -108,7 +108,7 @@ export default {
                 this.$store.commit('trade/REMOVE_FROM_EVENTS', { schedule: this.selectedLeagueSchedMode, removedLeague: league })
             } else {
                 this.$store.commit('trade/SET_SELECTED_LEAGUES', league)
-                this.$socket.send(`getEvents_${league}`)
+                this.$socket.send(`getEvents_${league}_${this.selectedLeagueSchedMode}`)
             }
 
             axios.post('v1/trade/leagues/toggle', { data: league, sport_id: this.selectedSport }, { headers: { 'Authorization': `Bearer ${token}` } })

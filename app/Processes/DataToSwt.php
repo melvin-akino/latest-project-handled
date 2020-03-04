@@ -154,7 +154,7 @@ class DataToSwt implements CustomProcessInterface
             ->join('master_leagues', 'master_leagues.master_league_name', 'master_events.master_league_name')
             ->select('master_events.id', 'master_events.master_event_unique_id', 'events.provider_id',
                 'events.event_identifier', 'master_leagues.id as master_league_id', 'master_events.sport_id',
-                'master_events.ref_schedule', 'master_events.master_home_team_name',
+                'master_events.ref_schedule', 'master_events.game_schedule',  'master_events.master_home_team_name',
                 'master_events.master_away_team_name', 'master_leagues.master_league_name', 'master_events.score',
                 'master_events.running_time', 'master_events.home_penalty', 'master_events.away_penalty')
             ->get();
@@ -170,6 +170,7 @@ class DataToSwt implements CustomProcessInterface
                     'master_home_team_name'  => $event->master_home_team_name,
                     'master_away_team_name'  => $event->master_away_team_name,
                     'ref_schedule'           => $event->ref_schedule,
+                    'game_schedule'          => $event->game_schedule,
                     'master_league_name'     => $event->master_league_name,
                     'score'                  => $event->score,
                     'running_time'           => $event->running_time,
