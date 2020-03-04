@@ -74,7 +74,7 @@ class UserProviderConfiguration extends Model
                             'provider_id' => $provider['id'],
                             'active'      => $request[$requestProviderKey]['active'],
                         ]
-                    )
+                    );
                 }
             }
 
