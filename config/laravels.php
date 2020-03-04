@@ -67,7 +67,6 @@ return [
             // key format [uid:$userId] = [value = $fd]
             // key format [fd:$fd] = [value = $userId]
             // key format [userAdditionalLeagues:$userId:sportId:$sportId] = [value = $timestamp]
-            // key format ['userSelectedLeagues:$userId:sId:$sportId:uniqueId:uniqid()] = [value = $multileaguename]
             // key format [userWatchlist:$userId:masterEventUniqueId:$masterEventUniqueId] = [value = true]
             // key format [userSportLeagueEvents:$userId:league:$multileaguename] = [value = json_encode(data)]
             // key format [leagueLookUpId:unique()] = [value = slug($leagueName)]
@@ -77,6 +76,15 @@ return [
             'size'   => 102400,// The max size
             'column' => [// Define the columns
                 ['name' => 'value', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 100],
+            ],
+        ],
+        'userSelectedLeagues' => [// key format [userId:1:sId:$sportId:schedule:early:uniqueId:uniquid()] => [league_name = $multileaguename, ...]
+            'size'   => 102400,// The max size
+            'column' => [// Define the columns
+                ['name' => 'league_name', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 100],
+                ['name' => 'sport_id', 'type' => \Swoole\Table::TYPE_INT],
+                ['name' => 'schedule', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 6],
+                ['name' => 'user_id', 'type' => \Swoole\Table::TYPE_INT],
             ],
         ],
         'deletedLeagues'    => [// key format [sportId:1:league:multileaguename] => [value = multileaguename]

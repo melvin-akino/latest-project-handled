@@ -122,14 +122,14 @@ export default {
             axios.post('v1/trade/watchlist/add', { type: type, data: data }, { headers: { 'Authorization': `Bearer ${token}` }})
             .then(() => {
                 if(type==='league') {
-                    axios.post('v1/trade/leagues/toggle', { data: data, sport_id: this.selectedSport }, { headers: { 'Authorization': `Bearer ${token}` } })
+                    axios.post('v1/trade/leagues/toggle', { league_name: data, sport_id: this.selectedSport, schedule: this.gameSchedType }, { headers: { 'Authorization': `Bearer ${token}` } })
                     this.$store.commit('trade/REMOVE_SELECTED_LEAGUE', data)
                     this.$store.commit('trade/REMOVE_FROM_EVENTS', { schedule: this.gameSchedType, removedLeague: data })
                 } else if(type==='event') {
                     this.$store.commit('trade/REMOVE_EVENT', { schedule: this.gameSchedType, removedLeague: payload.league_name, removedEvent: data})
                     this.$store.commit('trade/REMOVE_FROM_EVENT_LIST', { type: 'uid', data: data })
                     if(this.events[this.gameSchedType][payload.league_name].length === 0) {
-                        axios.post('v1/trade/leagues/toggle', { data: data, sport_id: this.selectedSport }, { headers: { 'Authorization': `Bearer ${token}` } })
+                        axios.post('v1/trade/leagues/toggle', { league_name: data, sport_id: this.selectedSport, schedule: this.gameSchedType }, { headers: { 'Authorization': `Bearer ${token}` } })
                         this.$store.commit('trade/REMOVE_SELECTED_LEAGUE', payload.league_name)
                         this.$store.commit('trade/REMOVE_FROM_EVENTS', { schedule: this.gameSchedType, removedLeague: payload.league_name })
                     }

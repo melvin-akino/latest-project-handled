@@ -39,11 +39,11 @@ class DataToSwt implements CustomProcessInterface
 
         $swoole->wsTable->set('data2Swt', ['value' => true]);
 
-        $table = $swoole->activeEventsTable;
-        foreach ($table as $key => $row) {
-            var_dump($key);
-            var_dump($row);
-        }
+//        $table = $swoole->activeEventsTable;
+//        foreach ($table as $key => $row) {
+//            var_dump($key);
+//            var_dump($row);
+//        }
 
         while (!self::$quit) {}
     }

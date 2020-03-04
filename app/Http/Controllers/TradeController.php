@@ -205,31 +205,35 @@ class TradeController extends Controller
     {
         try {
             $checkTable = UserSelectedLeague::where('user_id', auth()->user()->id)
-                ->where('master_league_name', $request->data);
+                ->where('master_league_name', $request->league_name)
+                ->where('game_schedule', $request->schedule);
 
+            $userSelectedLeagueTable = app('swoole')->userSelectedLeaguesTable;
             if (Sport::find($request->sport_id)) {
-                $wsTable = app('swoole')->wsTable;
                 $userId = auth()->user()->id;
+                $swtKey = 'userId:' . $userId . ':sId:' . $request->sport_id . ':schedule:' . $request->schedule . ':uniqueId:' . uniqid();
                 if ($checkTable->count() == 0) {
-                    $wsTableKey = 'userSelectedLeagues:' . $userId . ':sId:' . $request->sport_id . ':uniqueId:' . uniqid();
-                    $wsTable->set($wsTableKey, ['value' => $request->data]);
-
-                    if (env('APP_ENV') != 'production') {
-                        Log::debug('WS Table KEY - ' . $wsTableKey);
-                        Log::debug('WS TABLE VALUE - ' . $request->data);
-                    }
+                    $userSelectedLeagueTable->set($swtKey, [
+                        'user_id'     => $userId,
+                        'schedule'    => $request->schedule,
+                        'league_name' => $request->league_name,
+                        'sport_id'    => $request->sport_id
+                    ]);
 
                     UserSelectedLeague::create(
                         [
                             'user_id'            => $userId,
-                            'master_league_name' => $request->data
+                            'master_league_name' => $request->league_name,
+                            'game_schedule'      => $request->schedule,
+                            'sport_id'           => $request->sport_id
                         ]
                     );
                 } else {
-                    foreach ($wsTable as $key => $row) {
-                        if (strpos($key, 'userSelectedLeagues:' . $userId) === 0 && $row['value'] == $request->data) {
-                            $wsTable->del($key);
-                            break;
+                    foreach ($userSelectedLeagueTable as $key => $row) {
+                        if (strpos($key, 'userId:' . $userId . ':sId:' . $request->sport_id . ':schedule:' . $request->schedule) == 0) {
+                            if ($row['league_name'] == $request->league_name) {
+                                $userSelectedLeagueTable->del($swtKey);
+                            }
                         }
                     }
                     $checkTable->delete();
@@ -247,7 +251,7 @@ class TradeController extends Controller
             return response()->json([
                 'status'      => false,
                 'status_code' => 500,
-                'message'     => trans('generic.internal-server-error')
+                'message'     => trans('generic.internal-server-error') . $e->getMessage()
             ], 500);
         }
     }

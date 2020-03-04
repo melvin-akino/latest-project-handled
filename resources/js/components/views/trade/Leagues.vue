@@ -111,7 +111,7 @@ export default {
                 this.$socket.send(`getEvents_${league}_${this.selectedLeagueSchedMode}`)
             }
 
-            axios.post('v1/trade/leagues/toggle', { data: league, sport_id: this.selectedSport }, { headers: { 'Authorization': `Bearer ${token}` } })
+            axios.post('v1/trade/leagues/toggle', { league_name: league, sport_id: this.selectedSport, schedule: this.selectedLeagueSchedMode}, { headers: { 'Authorization': `Bearer ${token}` } })
             .catch(err => {
                 this.$store.dispatch('auth/checkIfTokenIsValid', err.response.data.status_code)
             })
