@@ -27,7 +27,6 @@ class UserProviderConfiguration extends Model
             DB::beginTransaction();
 
             $requestProviders = array_column($request, 'provider_id');
-            $swoole           = app('swoole')->userProviderConfigTable;
             $providers        = Provider::getActiveProviders()
                 ->get()
                 ->toArray();
@@ -62,21 +61,24 @@ class UserProviderConfiguration extends Model
                     );
                 }
 
-                $swooleId = implode(':', [
-                    "userId:" . auth()->user()->id,
-                    "pId:"    . $provider['id']
-                ]);
+                if (!$_SERVER['_PHPUNIT']) {
+                    $swoole = app('swoole')->userProviderConfigTable;
+                    $swooleId = implode(':', [
+                        "userId:" . auth()->user()->id,
+                        "pId:"    . $provider['id']
+                    ]);
 
-                if ($swoole->exists($swooleId)) {
-                    $swoole[$swooleId]['active'] = $active;
-                } else {
-                    $swoole->set($swooleId,
-                        [
-                            'user_id'     => auth()->user()->id,
-                            'provider_id' => $provider['id'],
-                            'active'      => $active,
-                        ]
-                    );
+                    if ($swoole->exists($swooleId)) {
+                        $swoole[$swooleId]['active'] = $active;
+                    } else {
+                        $swoole->set($swooleId,
+                            [
+                                'user_id'     => auth()->user()->id,
+                                'provider_id' => $provider['id'],
+                                'active'      => $active,
+                            ]
+                        );
+                    }
                 }
             }
 
