@@ -146,7 +146,10 @@
                 <div class="mb-2 flex justify-end mt-3">
                     <button type="button" v-if="step != 1" class="bg-orange-400 text-white rounded-full font-bold sm:text-sm text-xs uppercase px-12 sm:py-5 py-2 hover:bg-orange-500 focus:outline-none"  @click.prevent="prevStep">Previous</button>
                     <button type="button" v-if="step != totalSteps" class="bg-orange-400 text-white rounded-full font-bold sm:text-sm text-xs uppercase px-12 sm:py-5 py-2  ml-2 hover:bg-orange-500 focus:outline-none" @click.prevent="nextStep">Next</button>
-                    <button type="submit" v-if="step === totalSteps" class="bg-orange-400 text-white rounded-full font-bold sm:text-sm text-xs uppercase px-12 sm:py-5 py-2 ml-2 hover:bg-orange-500 focus:outline-none" @click.prevent="register">Create Account</button>
+                    <button type="submit" v-if="step === totalSteps" class="bg-orange-400 text-white rounded-full font-bold sm:text-sm text-xs uppercase px-12 sm:py-5 py-2 ml-2 hover:bg-orange-500 focus:outline-none" @click.prevent="register" :disabled="isRegistering || isRegisterSuccessful">
+                        <span v-if="isRegistering">Creating Account...</span>
+                        <span v-else>Create Account</span>
+                    </button>
                 </div>
             </form>
         </div>
@@ -197,7 +200,9 @@ export default {
             currencies: [
                 { id: 1, currency: 'CNY' },
                 { id: 2, currency: 'USD' }
-            ]
+            ],
+            isRegistering: false,
+            isRegisterSuccessful: false
         }
     },
     head: {
@@ -302,13 +307,17 @@ export default {
                     phone: this.registerForm.step2.phone,
                     currency_id: this.registerForm.step2.currency_id,
                 }
-
+                this.isRegistering = true
                 axios.post('/v1/auth/register', data)
                 .then(response => {
+                    this.isRegistering = false
+                    this.isRegisterSuccessful = true
                     Swal.fire({
                         icon: 'success',
                         html: `${response.data.message} <br> Logging In...`,
-                        timer: 3000
+                        timer: 3000,
+                        allowOutsideClick: false,
+                        showConfirmButton: false
                     })
 
                     setTimeout(() => {
@@ -316,6 +325,7 @@ export default {
                     }, 3000)
                 })
                 .catch(err => {
+                    this.isRegistering = false
                     this.registerErrors = err.response.data.errors
                     let errorFields = Object.keys(this.registerErrors).map(field => {
                         return field
