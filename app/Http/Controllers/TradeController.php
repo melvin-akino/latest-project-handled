@@ -251,7 +251,7 @@ class TradeController extends Controller
             return response()->json([
                 'status'      => false,
                 'status_code' => 500,
-                'message'     => trans('generic.internal-server-error') . $e->getMessage()
+                'message'     => trans('generic.internal-server-error')
             ], 500);
         }
     }
