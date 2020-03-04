@@ -2,10 +2,7 @@
 
 namespace App\Jobs;
 
-use App\Models\Events;
-use App\Models\MasterEvent;
-use App\Models\MasterEventLink;
-use App\Models\UserWatchlist;
+use App\Models\{Events, MasterEvent, MasterEventLink, UserWatchlist};
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Exception;
