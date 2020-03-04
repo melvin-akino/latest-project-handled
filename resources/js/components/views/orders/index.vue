@@ -5,19 +5,18 @@
             <form @submit.prevent="filterOrders()">
                 <div class="flex items-center my-4">
                     <label class="block text-gray-700 text-sm mb-1 mr-2 w-full">Transaction Date: </label>
-                    <input class="shadow appearance-none border rounded w-full mr-3 py-1 px-3 text-gray-700 leading-tight focus:outline-none" id="trasanctiondatefrom" type="date" placeholder="From" v-model="filterOrderForm.transactionDateFrom">
-                    <input class="shadow appearance-none border rounded w-full mr-3 py-1 px-3 text-gray-700 leading-tight focus:outline-none" id="trasanctiondateto" type="date" placeholder="To" v-model="filterOrderForm.transactionDateTo">
+                    <input class="shadow appearance-none border rounded w-full text-sm mr-3 py-1 px-3 text-gray-700 leading-tight focus:outline-none ordersInput" id="trasanctiondatefrom" type="text" placeholder="From" v-model="filterOrderForm.transactionDateFrom" onfocus="(this.type='date')" onblur="(this.type='text')">
+                    <input class="shadow appearance-none border rounded w-full text-sm mr-3 py-1 px-3 text-gray-700 leading-tight focus:outline-none ordersInput" id="trasanctiondateto" type="text" placeholder="To" v-model="filterOrderForm.transactionDateTo" onfocus="(this.type='date')" onblur="(this.type='text')">
                 </div>
                 <div class="flex items-center my-4">
                     <label class="block text-gray-700 text-sm mb-1 mr-2 w-full">Order Date: </label>
-                    <input class="shadow appearance-none border rounded w-full mr-3 py-1 px-3 text-gray-700 leading-tight focus:outline-none" id="orderdatefrom" type="date" placeholder="From" v-model="filterOrderForm.orderDateFrom">
-                    <input class="shadow appearance-none border rounded w-full mr-3 py-1 px-3 text-gray-700 leading-tight focus:outline-none" id="orderdateto" type="date" placeholder="To" v-model="filterOrderForm.orderDateTo">
+                    <input class="shadow appearance-none border rounded w-full text-sm mr-3 py-1 px-3 text-gray-700 leading-tight focus:outline-none ordersInput" id="orderdatefrom" type="text" placeholder="From" v-model="filterOrderForm.orderDateFrom" onfocus="(this.type='date')" onblur="(this.type='text')">
+                    <input class="shadow appearance-none border rounded w-full text-sm mr-3 py-1 px-3 text-gray-700 leading-tight focus:outline-none ordersInput" id="orderdateto" type="text" placeholder="To" v-model="filterOrderForm.orderDateTo" onfocus="(this.type='date')" onblur="(this.type='text')">
                 </div>
                 <div class="flex items-center my-4">
                     <label class="block text-gray-700 text-sm mb-1 mr-2 w-full" for="status">Status: </label>
                     <div class="relative statusInputHolder">
-                        <select class="shadow appearance-none border rounded w-full py-1 px-3 text-gray-700 leading-tight focus:outline-none statusInput" id="status" v-model="filterOrderForm.status">
-                            <option :value="null" disabled>Select Status</option>
+                        <select class="shadow appearance-none border rounded w-full text-sm py-1 px-3 text-gray-700 leading-tight focus:outline-none ordersInput" id="status" v-model="filterOrderForm.status">
                             <option value="1">All</option>
                             <option value="2">Open</option>
                             <option value="3">Settled</option>
@@ -37,11 +36,12 @@
         <div class="flex justify-between w-full mt-4">
             <div class="flex items-center">
                 <span class="text-xs mr-2">Show</span>
-                 <div class="relative w-12 mr-2">
+                <div class="relative w-12 mr-2">
                     <select class="shadow appearance-none border rounded w-12 py-1 px-1 text-xs text-gray-700 leading-tight focus:outline-none" v-model="dataPerPage">
                         <option value="10" selected>10</option>
-                        <option value="20">20</option>
+                        <option value="20">25</option>
                         <option value="50">50</option>
+                        <option value="50">100</option>
                     </select>
                     <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
                         <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
@@ -156,7 +156,7 @@ export default {
                 transactionDateTo: null,
                 orderDateFrom: null,
                 orderDateTo: null,
-                status: null,
+                status: 1,
             },
             dataPerPage: 10
         }
@@ -177,7 +177,11 @@ export default {
         },
         resetForm() {
             Object.keys(this.filterOrderForm).map(field => {
-                this.filterOrderForm[field] = null
+                if(field=='status') {
+                    this.filterOrderForm[field] = 1
+                } else {
+                    this.filterOrderForm[field] = null
+                }
             })
         }
     }
@@ -185,12 +189,13 @@ export default {
 </script>
 
 <style>
-    .statusInputHolder {
-        right: 52px;
+    .ordersInput {
+        width:157px;
+        height:30px;
     }
 
-    .statusInput {
-        width: 182px;
+    .statusInputHolder {
+        right: 39px;
     }
 
     .totalPLlabel {
