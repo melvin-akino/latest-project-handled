@@ -499,7 +499,6 @@ class TransformKafkaMessageOdds implements ShouldQueue
             }
 
             $transformedSwtId = "uid:" . $uid . ":pId:" . $providerId;
-
             if (!$transformedTable->exists($transformedSwtId)) {
                 $transformedTable->set($transformedSwtId, ['value' => json_encode($transformedJSON)]);
             }
