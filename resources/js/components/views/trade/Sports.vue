@@ -75,6 +75,7 @@ export default {
             this.$store.commit('trade/SET_EVENTS', { schedule: 'inplay', events: [] })
             this.$store.commit('trade/SET_EVENTS', { schedule: 'today', events: [] })
             this.$store.commit('trade/SET_EVENTS', { schedule: 'early', events: [] })
+            this.$store.commit('trade/CLEAR_SELECTED_LEAGUES')
             this.$store.commit('trade/CLEAR_EVENTS_LIST')
             this.$socket.send(`getSelectedSport_${sport}`)
             this.isSportsListOpen = !this.isSportsListOpen
