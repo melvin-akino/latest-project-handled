@@ -36,7 +36,8 @@ export default {
         return {
             sports: [],
             leagues: {},
-            isSportsListOpen: false
+            isSportsListOpen: false,
+            isSelectingSport: false
         }
     },
     components: {
@@ -70,14 +71,17 @@ export default {
     },
     methods: {
         selectSport(sport) {
-            this.$store.commit('trade/SET_SELECTED_SPORT', sport)
-            this.$store.dispatch('trade/getBetColumns', this.selectedSport)
-            this.$store.commit('trade/SET_EVENTS', { schedule: 'inplay', events: [] })
-            this.$store.commit('trade/SET_EVENTS', { schedule: 'today', events: [] })
-            this.$store.commit('trade/SET_EVENTS', { schedule: 'early', events: [] })
-            this.$store.commit('trade/CLEAR_EVENTS_LIST')
-            this.$socket.send(`getSelectedSport_${sport}`)
             this.isSportsListOpen = !this.isSportsListOpen
+            this.isSelectingSport = !this.isSelectingSport
+            if(!this.isSelectingSport) {
+                this.$store.commit('trade/SET_EVENTS', { schedule: 'inplay', events: [] })
+                this.$store.commit('trade/SET_EVENTS', { schedule: 'today', events: [] })
+                this.$store.commit('trade/SET_EVENTS', { schedule: 'early', events: [] })
+                this.$store.commit('trade/CLEAR_EVENTS_LIST')
+                this.$store.commit('trade/SET_SELECTED_SPORT', sport)
+                this.$store.dispatch('trade/getBetColumns', this.selectedSport)
+                this.$socket.send(`getSelectedSport_${sport}`)
+            }
         },
         getSports() {
             let token = Cookies.get('mltoken')
