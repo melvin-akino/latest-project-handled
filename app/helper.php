@@ -48,9 +48,8 @@ function deleteCookie(string $cookieName)
  * @author  Kevin Uy, Alex Virtucio
  */
 if (!function_exists('setUserDefault')) {
-    function setUserDefault(int $userId, string $type, array $data = null)
+    function setUserDefault(int $userId, string $type, array $data = [])
     {
-        $data = [];
         $types = [
             'sport',
             'league',
@@ -66,7 +65,7 @@ if (!function_exists('setUserDefault')) {
                             'menu'    => 'TRADE',
                         ],
                         [
-                            'value' => $data->sport_id
+                            'value' => $data['sport_id']
                         ]
                     );
                 break;
@@ -118,11 +117,14 @@ if (!function_exists('getUserDefault')) {
 
                     if ($defaultSport->count() == 0) {
                         $defaultSport = Sport::getActiveSports();
+                        $sport = $defaultSport->first()->id;
+                    } else {
+                        $sport = $defaultSport->first()->value;
                     }
 
                     $data = [
                         'status'        => true,
-                        'default_sport' => $defaultSport->first()->id,
+                        'default_sport' => $sport,
                     ];
                 break;
 
@@ -174,3 +176,5 @@ if (!function_exists('wsEmit')) {
         }
     }
 }
+
+

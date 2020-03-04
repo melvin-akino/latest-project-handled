@@ -3,7 +3,7 @@
         <div class="flex flex-col overflow-hidden">
             <div class="sports overflow-y-auto flex flex-col bg-white text-gray-700">
                 <div class="sport" v-for="(sport, index) in sportsList" :key="sport.id">
-                    <div class="flex text-left text-sm py-1 px-6"  :class="[selectedSport === sport.id ? 'bg-gray-900 text-white' : '']" >
+                    <div class="flex text-left text-sm py-1 px-6"  :class="[selectedSport == sport.id ? 'bg-gray-900 text-white' : '']" >
                         <button type="button" class="flex justify-between items-center w-full focus:outline-none" @click="selectSport(sport.id)">
                             <div class="sportBtn">
                                 <i class="material-icons sportsIcon pr-2">{{sport.icon}}</i>
@@ -29,6 +29,7 @@ import { mapState } from 'vuex'
 import Cookies from 'js-cookie'
 import Leagues from './Leagues'
 import { getSocketKey, getSocketValue } from '../../../helpers/socket.js'
+import _ from 'lodash'
 
 export default {
     data() {
@@ -42,15 +43,15 @@ export default {
         Leagues
     },
     computed: {
-        ...mapState('trade', ['selectedSport']),
+        ...mapState('trade', ['selectedSport', 'selectedLeagues']),
         sportsList() {
             if(this.isSportsListOpen) {
                 let sports = this.sports.filter(sport => sport.id != this.selectedSport)
-                let selectedSport = this.sports.filter(sport => sport.id === this.selectedSport)[0]
+                let selectedSport = this.sports.filter(sport => sport.id == this.selectedSport)[0]
                 sports.unshift(selectedSport)
                 return sports
             } else {
-                return this.sports.filter(sport => sport.id === this.selectedSport)
+                return this.sports.filter(sport => sport.id == this.selectedSport)
             }
         }
     },
@@ -71,7 +72,11 @@ export default {
         selectSport(sport) {
             this.$store.commit('trade/SET_SELECTED_SPORT', sport)
             this.$store.dispatch('trade/getBetColumns', this.selectedSport)
-            this.$socket.send(`getSelectedLeagues_${sport}`)
+            this.$store.commit('trade/SET_EVENTS', { schedule: 'inplay', events: [] })
+            this.$store.commit('trade/SET_EVENTS', { schedule: 'today', events: [] })
+            this.$store.commit('trade/SET_EVENTS', { schedule: 'early', events: [] })
+            this.$store.commit('trade/CLEAR_EVENTS_LIST')
+            this.$socket.send(`getSelectedSport_${sport}`)
             this.isSportsListOpen = !this.isSportsListOpen
         },
         getSports() {

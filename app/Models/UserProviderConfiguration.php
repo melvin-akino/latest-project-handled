@@ -26,44 +26,64 @@ class UserProviderConfiguration extends Model
         try {
             DB::beginTransaction();
 
-            $providers = Provider::getActiveProviders()
+            $requestProviders = array_column($request, 'provider_id');
+            $swoole           = app('swoole')->UserProviderConfigTable;
+            $providers        = Provider::getActiveProviders()
                 ->get()
                 ->toArray();
 
-            $requestProviders = array_column($request, 'provider_id');
-                foreach ($providers as $provider) {
-                    if (!empty($request)) {
-                        if (in_array($provider['id'], $requestProviders)) {
-                            $requestProviderKey = array_search($provider['id'], $requestProviders);
-                            self::updateOrCreate(
-                                [
-                                    'user_id' => auth()->user()->id,
-                                    'provider_id' => $request[$requestProviderKey]['provider_id'],
-                                ],
-                                [
-                                    'active' => $request[$requestProviderKey]['active'],
-                                    'updated_at' => Carbon::now()
-                                ]
-                            );
-                        }
-                    } else {
+            foreach ($providers as $provider) {
+                if (!empty($request)) {
+                    if (in_array($provider['id'], $requestProviders)) {
+                        $requestProviderKey = array_search($provider['id'], $requestProviders);
                         self::updateOrCreate(
                             [
                                 'user_id' => auth()->user()->id,
-                                'provider_id' => $provider['id'],
+                                'provider_id' => $request[$requestProviderKey]['provider_id'],
                             ],
                             [
-                                'active' => true,
+                                'active' => $request[$requestProviderKey]['active'],
                                 'updated_at' => Carbon::now()
                             ]
                         );
                     }
+                } else {
+                    self::updateOrCreate(
+                        [
+                            'user_id' => auth()->user()->id,
+                            'provider_id' => $provider['id'],
+                        ],
+                        [
+                            'active' => true,
+                            'updated_at' => Carbon::now()
+                        ]
+                    );
                 }
+
+                $swooleId = implode(':', [
+                    "userId:" . auth()->user()->id,
+                    "pId:"    . $provider['id']
+                ]);
+
+                if ($swoole->exists($swooleId)) {
+                    $swoole[$swooleId]['active'] = $request[$requestProviderKey]['active'];
+                } else {
+                    $swoole->set($swooleId,
+                        [
+                            'user_id'     => auth()->user()->id,
+                            'provider_id' => $provider['id'],
+                            'active'      => $request[$requestProviderKey]['active'],
+                        ]
+                    );
+                }
+            }
+
             DB::commit();
 
             return true;
         } catch (Exception $e) {
             DB::rollBack();
+
             throw new ServerException(trans('generic.db-transaction-error'));
         }
     }

@@ -4,7 +4,7 @@
             <a href="#" class="text-sm uppercase py-2 px-3 leagueSchedule" :class="{'bg-orange-400 shadow-xl': selectedLeagueSchedMode === leagueSchedMode}" @click="selectLeagueSchedMode(leagueSchedMode)" v-for="(leagueSchedMode, index) in leagueSchedModes" :key="index">{{leagueSchedMode}} &nbsp; <span v-if="leagues">({{leagues[leagueSchedMode].length}})</span></a>
         </div>
 
-        <div class="flex justify-center" v-if="leagues===null">
+        <div class="flex justify-center" v-if="checkIfLeaguesIsEmpty">
             <p class="text-sm p-3">No leagues available for this sport.</p>
         </div>
 
@@ -17,6 +17,7 @@
 <script>
 import { mapState } from 'vuex'
 import Cookies from 'js-cookie'
+import _ from 'lodash'
 import { getSocketKey, getSocketValue } from '../../../helpers/socket'
 
 export default {
@@ -24,15 +25,21 @@ export default {
         return {
             leagues: null,
             leagueSchedModes: ['inplay', 'today', 'early'],
-            selectedLeagueSchedMode: 'today',
+            selectedLeagueSchedMode: null,
             displayedLeagues: []
         }
     },
     computed: {
-        ...mapState('trade', ['selectedLeagues', 'selectedSport'])
+        ...mapState('trade', ['selectedLeagues', 'selectedSport']),
+        checkIfLeaguesIsEmpty() {
+            if(this.leagues != null) {
+                return _.isEmpty(this.leagues[this.selectedLeagueSchedMode])
+            }
+        }
     },
     mounted() {
         this.getLeagues()
+        this.selectedLeagueSchedMode = Cookies.get('leagueSchedMode') || 'today'
     },
     methods: {
         getLeagues() {
@@ -67,8 +74,8 @@ export default {
                         let selectedLeagues = getSocketValue(response.data, 'getSelectedLeagues')
                         selectedLeagues.map(league => {
                             this.$store.commit('trade/SET_SELECTED_LEAGUES', league)
+                            this.$socket.send(`getEvents_${league}`)
                         })
-                        this.selectedLeagues.map(league => this.$socket.send(`getEvents_${league}`))
                     }
                 } else if (getSocketKey(response.data) === 'getForRemovalLeagues') {
                     if(getSocketValue(response.data, 'getForRemovalLeagues') != '') {
@@ -86,16 +93,25 @@ export default {
             }
         },
         selectLeagueSchedMode(schedMode) {
+            Cookies.set('leagueSchedMode', schedMode)
             this.selectedLeagueSchedMode = schedMode
             this.filterLeaguesBySched(schedMode)
         },
         selectLeague(league) {
+            let token = Cookies.get('mltoken')
+
             if(this.selectedLeagues.includes(league)) {
                 this.$store.commit('trade/REMOVE_SELECTED_LEAGUE', league)
+                this.$store.commit('trade/REMOVE_FROM_EVENTS', { schedule: this.selectedLeagueSchedMode, removedLeague: league })
             } else {
                 this.$store.commit('trade/SET_SELECTED_LEAGUES', league)
                 this.$socket.send(`getEvents_${league}`)
             }
+
+            axios.post('v1/trade/leagues/toggle', { data: league, sport_id: this.selectedSport }, { headers: { 'Authorization': `Bearer ${token}` } })
+            .catch(err => {
+                this.$store.dispatch('auth/checkIfTokenIsValid', err.response.data.status_code)
+            })
         }
     }
 }

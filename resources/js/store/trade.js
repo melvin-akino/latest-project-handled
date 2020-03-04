@@ -1,17 +1,24 @@
+import Vue from 'vue'
 import Cookies from 'js-cookie'
 const token = Cookies.get('mltoken')
 
 const state = {
     selectedSport: null,
     selectedLeagues: [],
-    leaguesData: {},
     isBetBarOpen: false,
     tradeLayout: null,
     filteredColumnsBySport: [],
     oddsTypeBySport: [],
     columnsToDisplay: [],
     checkedColumns: [],
-    initialLeagues: []
+    initialLeagues: [],
+    eventsList: [],
+    events: {
+        watchlist: {},
+        inplay: [],
+        today: [],
+        early: []
+    }
 }
 
 const mutations = {
@@ -27,6 +34,9 @@ const mutations = {
     REMOVE_SELECTED_LEAGUE: (state, removedLeague) => {
         state.selectedLeagues = state.selectedLeagues.filter(league => league != removedLeague)
     },
+    CLEAR_SELECTED_LEAGUES: (state) => {
+        state.selectedLeagues = []
+    },
     TOGGLE_BETBAR: (state, status) => {
         state.isBetBarOpen = status
     },
@@ -38,8 +48,26 @@ const mutations = {
     },
     SET_INITIAL_LEAGUES: (state, leagues) => {
         state.initialLeagues = leagues
+    },
+    SET_EVENTS_LIST: (state, event) => {
+        state.eventsList.push(event)
+    },
+    CLEAR_EVENTS_LIST: (state, event) => {
+        state.eventsList = []
+    },
+    SET_EVENTS: (state, data) => {
+        state.events[data.schedule] = data.events
+    },
+    REMOVE_FROM_EVENTS: (state, data) => {
+        Vue.delete(state.events[data.schedule], data.removedLeague)
+        state.eventsList = state.eventsList.filter(event => event.league_name != data.removedLeague)
+    },
+    REMOVE_EVENT: (state, data) => {
+        state.events[data.schedule][data.removedLeague] = state.events[data.schedule][data.removedLeague].filter(event => event.uid != data.removedEvent)
+    },
+    REMOVE_FROM_EVENT_LIST: (state, data) => {
+        state.eventsList = state.eventsList.filter(event => event[data.type] != data.data)
     }
-
 }
 
 const actions = {
@@ -50,7 +78,7 @@ const actions = {
             let betColumns = response.data.data
             let { disabled_columns } = settings
             commit('settings/FETCH_DISABLED_COLUMNS', disabled_columns, { root:true })
-            betColumns.filter(column => column.sport_id === selectedSport).map(column => state.filteredColumnsBySport = column.odds)
+            betColumns.filter(column => column.sport_id == selectedSport).map(column => state.filteredColumnsBySport = column.odds)
             state.columnsToDisplay = state.filteredColumnsBySport.filter(column => !rootState.settings.disabledBetColumns.includes(column.sport_odd_type_id))
             state.oddsTypeBySport = state.filteredColumnsBySport.filter(column => !rootState.settings.disabledBetColumns.includes(column.sport_odd_type_id)).map(column => column.type)
             state.checkedColumns = state.columnsToDisplay.map(column => column.sport_odd_type_id)
@@ -62,7 +90,7 @@ const actions = {
         return new Promise((resolve, reject) => {
             axios.get('v1/trade/leagues', { headers: { 'Authorization': `Bearer ${token}` }})
             .then(response => {
-                if(response.data.sport_id === state.selectedSport) {
+                if(response.data.sport_id == state.selectedSport) {
                     commit('SET_INITIAL_LEAGUES', response.data.data)
                     resolve(state.initialLeagues)
                 }

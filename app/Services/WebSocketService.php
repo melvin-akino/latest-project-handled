@@ -28,7 +28,11 @@ class WebSocketService implements WebSocketHandlerInterface
                 'App\Jobs\WsForRemovalLeagues',
             ],
             'getWatchlist'       => 'App\Jobs\WsWatchlist',
-            'getEvents'          => 'App\Jobs\WsEvents'
+            'getEvents'          => [
+                'App\Jobs\WsEvents',
+                'App\Jobs\WsOdds'
+            ],
+            'getSelectedSport'   => 'App\Jobs\WsSelectedSport'
         ];
     }
 
@@ -61,6 +65,7 @@ class WebSocketService implements WebSocketHandlerInterface
 
     public function onClose(Server $server, $fd, $reactorId)
     {
+        $server->wsTable->del('fd:' . $fd);
     }
 
     private function getUser($bearerToken)
