@@ -27,22 +27,24 @@ class UserProviderConfiguration extends Model
             DB::beginTransaction();
 
             $requestProviders = array_column($request, 'provider_id');
-            $swoole           = app('swoole')->UserProviderConfigTable;
+            $swoole           = app('swoole')->userProviderConfigTable;
             $providers        = Provider::getActiveProviders()
                 ->get()
                 ->toArray();
 
             foreach ($providers as $provider) {
+                $active = true;
                 if (!empty($request)) {
                     if (in_array($provider['id'], $requestProviders)) {
                         $requestProviderKey = array_search($provider['id'], $requestProviders);
+                        $active = $request[$requestProviderKey]['active'];
                         self::updateOrCreate(
                             [
                                 'user_id' => auth()->user()->id,
                                 'provider_id' => $request[$requestProviderKey]['provider_id'],
                             ],
                             [
-                                'active' => $request[$requestProviderKey]['active'],
+                                'active' => $active,
                                 'updated_at' => Carbon::now()
                             ]
                         );
@@ -54,7 +56,7 @@ class UserProviderConfiguration extends Model
                             'provider_id' => $provider['id'],
                         ],
                         [
-                            'active' => true,
+                            'active' => $active,
                             'updated_at' => Carbon::now()
                         ]
                     );
@@ -66,13 +68,13 @@ class UserProviderConfiguration extends Model
                 ]);
 
                 if ($swoole->exists($swooleId)) {
-                    $swoole[$swooleId]['active'] = $request[$requestProviderKey]['active'];
+                    $swoole[$swooleId]['active'] = $active;
                 } else {
                     $swoole->set($swooleId,
                         [
                             'user_id'     => auth()->user()->id,
                             'provider_id' => $provider['id'],
-                            'active'      => $request[$requestProviderKey]['active'],
+                            'active'      => $active,
                         ]
                     );
                 }
@@ -84,7 +86,7 @@ class UserProviderConfiguration extends Model
         } catch (Exception $e) {
             DB::rollBack();
 
-            throw new ServerException(trans('generic.db-transaction-error'));
+            throw new ServerException($e->getMessage());
         }
     }
 

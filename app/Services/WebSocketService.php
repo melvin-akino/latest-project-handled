@@ -28,10 +28,7 @@ class WebSocketService implements WebSocketHandlerInterface
                 'App\Jobs\WsForRemovalLeagues',
             ],
             'getWatchlist'       => 'App\Jobs\WsWatchlist',
-            'getEvents'          => [
-                'App\Jobs\WsEvents',
-                'App\Jobs\WsOdds'
-            ],
+            'getEvents'          => 'App\Jobs\WsEvents',
             'getSelectedSport'   => 'App\Jobs\WsSelectedSport'
         ];
     }
