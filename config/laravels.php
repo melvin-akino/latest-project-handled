@@ -32,7 +32,7 @@ return [
             'enable' => true
         ],
         'kafka_consume_leagues' => [
-            'class'    => \App\Processes\KafkaConsumeEvents::class,
+            'class'    => \App\Processes\KafkaConsumeLeagues::class,
             'redirect' => false,
             'pipe' => 0,
             'enable' => env('LARAVELS_KAFKA_CONSUME_LEAGUES', true)
@@ -75,7 +75,7 @@ return [
             // key format [updatedEvents:$uid] = [value = true]
             'size'   => 102400,// The max size
             'column' => [// Define the columns
-                ['name' => 'value', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 100],
+                ['name' => 'value', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 1000 ],
             ],
         ],
         'userSelectedLeagues' => [// key format [userId:1:sId:$sportId:schedule:early:uniqueId:uniquid()] => [league_name = $multileaguename, ...]

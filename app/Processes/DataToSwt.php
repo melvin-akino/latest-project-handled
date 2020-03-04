@@ -152,6 +152,7 @@ class DataToSwt implements CustomProcessInterface
                 'master_events.master_event_unique_id')
             ->join('events', 'events.id', 'master_event_links.event_id')
             ->join('master_leagues', 'master_leagues.master_league_name', 'master_events.master_league_name')
+            ->whereNull('master_events.deleted_at')
             ->select('master_events.id', 'master_events.master_event_unique_id', 'events.provider_id',
                 'events.event_identifier', 'master_leagues.id as master_league_id', 'master_events.sport_id',
                 'master_events.ref_schedule', 'master_events.game_schedule',  'master_events.master_home_team_name',
