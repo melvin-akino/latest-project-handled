@@ -16,7 +16,7 @@
                 </div>
 
                 <div class="mb-4 flex sm:justify-end justify-center">
-                    <button type="submit" class="bg-orange-400 mt-3 text-white rounded-full font-bold sm:text-sm text-xs uppercase px-12 sm:py-5 py-2 hover:bg-orange-500 focus:outline-none" :isSending="isSending">
+                    <button type="submit" class="bg-orange-400 mt-3 text-white rounded-full font-bold sm:text-sm text-xs uppercase px-12 sm:py-5 py-2 hover:bg-orange-500 focus:outline-none" :disabled="isSending">
                         <span v-if="isSending">Sending...</span>
                         <span v-else>Send Password Reset Link</span>
                     </button>
