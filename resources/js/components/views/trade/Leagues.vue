@@ -125,7 +125,7 @@ export default {
     }
 
     .leaguesList {
-        max-height:355px;
+        max-height:302px;
         overflow-y:auto;
     }
 </style>
