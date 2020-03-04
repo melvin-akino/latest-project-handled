@@ -41,7 +41,7 @@ class WsEvents implements ShouldQueue
 
                     if ($userProviderConfigTable->exists($userProviderConfigSwtId)) {
                         if ($userProviderConfigTable->get($userProviderConfigSwtId)['active']) {
-                            $providerId = $userProviderConfigTable->get($key)['provider_id'];
+                            $providerId = $userProviderConfigTable->get($userProviderConfigSwtId)['provider_id'];
                         }
                     } else {
                         $userProviderConfigTable->set($userProviderConfigSwtId,
