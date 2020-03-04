@@ -6,7 +6,7 @@
                 <span v-show="isWatchListOpen"><i class="fas fa-chevron-up"></i></span>
             </div>
             <div class="watchlistLeagues bg-white" v-if="watchlist">
-                <p class="text-left text-sm py-1 px-6" v-for="(league, index) in watchlist" :key="index">{{index}}</p>
+                <p class="text-left text-sm py-1 px-6" v-for="(league, index) in watchlist" :key="index">{{index}} &nbsp; ({{league.length}})</p>
             </div>
         </div>
     </div>
@@ -24,5 +24,8 @@ export default {
 </script>
 
 <style>
-   
+    .watchlistLeagues {
+        max-height: 145px;
+        overflow-y: auto;
+    }
 </style>
