@@ -25,11 +25,29 @@ return [
     ],
     'sockets'                  => [],
     'processes'                => [
-        'kafka_consume' => [
-            'class'    => \App\Processes\KafkaConsume::class,
+        'data_to_swt' => [
+            'class'    => \App\Processes\DataToSwt::class,
             'redirect' => false,
             'pipe' => 0,
-            'enable' => env('LARAVELS_KAFKA_CONSUME', true)
+            'enable' => true
+        ],
+        'kafka_consume_leagues' => [
+            'class'    => \App\Processes\KafkaConsumeEvents::class,
+            'redirect' => false,
+            'pipe' => 0,
+            'enable' => env('LARAVELS_KAFKA_CONSUME_LEAGUES', true)
+        ],
+        'kafka_consume_events' => [
+            'class'    => \App\Processes\KafkaConsumeEvents::class,
+            'redirect' => false,
+            'pipe' => 0,
+            'enable' => env('LARAVELS_KAFKA_CONSUME_EVENTS', true)
+        ],
+        'kafka_consume_odds' => [
+            'class'    => \App\Processes\KafkaConsumeOdds::class,
+            'redirect' => false,
+            'pipe' => 0,
+            'enable' => env('LARAVELS_KAFKA_CONSUME_ODDS', true)
         ],
     ],
     'timer'                    => [
@@ -171,6 +189,12 @@ return [
                 [ 'name' => 'active',      'type' => \Swoole\Table::TYPE_STRING, 'size' => 5 ],
             ],
         ],
+        'activeEvents' => [
+            'size'   => 1000,
+            'column' => [ // KEY FORMAT: [sId:$sportId:pId:$providerId:schedule:$schedule]
+                [ 'name' => 'events',     'type' => \Swoole\Table::TYPE_STRING, 'size' => 10000 ],
+            ],
+        ]
     ],
     'register_providers'       => [
         \Laravel\Passport\PassportServiceProvider::class
