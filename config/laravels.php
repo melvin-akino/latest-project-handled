@@ -189,6 +189,12 @@ return [
                 [ 'name' => 'active',      'type' => \Swoole\Table::TYPE_STRING, 'size' => 5 ],
             ],
         ],
+        'activeEvents' => [
+            'size'   => 1000,
+            'column' => [ // KEY FORMAT: [sId:$sportId:pId:$providerId:schedule:$schedule]
+                [ 'name' => 'events',     'type' => \Swoole\Table::TYPE_STRING, 'size' => 10000 ],
+            ],
+        ]
     ],
     'register_providers'       => [
         \Laravel\Passport\PassportServiceProvider::class

@@ -30,6 +30,7 @@ class DataToSwt implements CustomProcessInterface
             'Transformed',
             'UserWatchlist',
             'UserProviderConfig',
+            'ActiveEvents',
         ];
         foreach ($swooleProcesses as $process) {
             $method = "db2Swt" . $process;
@@ -37,6 +38,12 @@ class DataToSwt implements CustomProcessInterface
         }
 
         $swoole->wsTable->set('data2Swt', ['value' => true]);
+
+        $table = $swoole->activeEventsTable;
+        foreach ($table as $key => $row) {
+            var_dump($key);
+            var_dump($row);
+        }
 
         while (!self::$quit) {}
     }
@@ -301,5 +308,24 @@ class DataToSwt implements CustomProcessInterface
                 ]
             );
         }, $userProviderConfig->toArray());
+    }
+
+    private static function db2SwtActiveEvents(Server $swoole)
+    {
+        $events = DB::table('events')
+            ->whereNull('deleted_at')
+            ->get();
+        $activeEvents = $swoole->activeEventsTable;
+        array_map(function ($event) use ($activeEvents) {
+            if ($activeEvents->exists('sId:' . $event->sport_id . ':pId:' . $event->provider_id . ':schedule:' . $event->game_schedule)) {
+                $activeEventsArray = json_decode($activeEvents->get('sId:' . $event->sport_id . ':pId:' . $event->provider_id . ':schedule:' . $event->game_schedule)['events']);
+            } else {
+                $activeEventsArray = [];
+            }
+            $activeEventsArray[] = $event->event_identifier;
+
+            $activeEvents->set('sId:' . $event->sport_id . ':pId:' . $event->provider_id . ':schedule:' . $event->game_schedule,
+                ['events' => json_encode($activeEventsArray)]);
+        }, $events->toArray());
     }
 }

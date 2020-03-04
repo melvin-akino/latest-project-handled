@@ -18,6 +18,10 @@ class KafkaConsumeEvents implements CustomProcessInterface
     public static function callback(Server $swoole, Process $process)
     {
         if ($swoole->wsTable->exist('data2Swt')) {
+
+            TransformKafkaMessageEvents::dispatch((object) ['payload' => self::testData()]);
+            while(!self::$quit) {}
+
             $kafkaTable = $swoole->kafkaTable;
 
             $kafkaConsumer = resolve('KafkaConsumer');
@@ -45,5 +49,32 @@ class KafkaConsumeEvents implements CustomProcessInterface
     public static function onReload(Server $swoole, Process $process)
     {
         self::$quit = true;
+    }
+
+    private static function testData()
+    {
+        return json_encode([
+            'request_uid' => '0eb7273d-07bc-4773-a4a2-1e193c9ac92e',
+            'request_ts' => '1378761833768',
+            'command' => 'odd',
+            'sub_command' => 'transform',
+            'data' => [
+                    'provider' => 'hg',
+                    'schedule' => 'early',
+                    'sport' => 1,
+                    'event_ids' => [
+                        '4063057',
+                        '4061099',
+                        '4061215',
+                        '4061247',
+                        '4061251',
+                        '4050099',
+                        '4049793',
+//                        '4058907',
+//                        '4072095',
+                        '4059043'
+                    ],
+                ],
+        ]);
     }
 }
