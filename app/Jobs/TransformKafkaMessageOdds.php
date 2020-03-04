@@ -2,16 +2,12 @@
 
 namespace App\Jobs;
 
-use Carbon\Carbon;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
-use App\Models\{Events, EventMarket, MasterEvent, MasterEventLink, MasterEventMarket, MasterEventMarketLink, MasterEventMarketLog, MasterLeague, Provider, Teams};
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
-use DateTime;
 use Exception;
 
-class TransformKafkaMessage implements ShouldQueue
+class TransformKafkaMessageOdds implements ShouldQueue
 {
     use Dispatchable;
 
