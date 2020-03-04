@@ -42,8 +42,7 @@ class TransformKafkaMessageLeagues implements ShouldQueue
 
     public function __construct($message)
     {
-        // $this->message = json_decode($message->payload);
-        $this->message = json_decode($message);
+        $this->message = json_decode($message->payload);
     }
 
     public function handle()
