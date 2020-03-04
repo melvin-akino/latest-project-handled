@@ -2,13 +2,9 @@
 
 namespace App\Processes;
 
-use App\Jobs\Data2SWT;
 use App\Jobs\TransformKafkaMessageEvents;
-use App\Models\Sport;
 use Hhxsv5\LaravelS\Swoole\Process\CustomProcessInterface;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Str;
 use Swoole\Http\Server;
 use Swoole\Process;
 
@@ -21,41 +17,33 @@ class KafkaConsumeEvents implements CustomProcessInterface
 
     public static function callback(Server $swoole, Process $process)
     {
-        // DB to SWT Initialization
-        $swooleProcesses = [
-            'Sports',
-            'Providers',
-            'MasterLeagues',
-            'MasterTeams',
-            'SportOddTypes',
-            'MasterEvents',
-            'MasterEventMarkets',
-            'Transformed',
-            'UserWatchlist'
-        ];
-        foreach ($swooleProcesses as $process) {
-            $method = "db2Swt" . $process;
-            self::{$method}($swoole);
-        }
+        if ($swoole->wsTable->exist('data2Swt')) {
+            $kafkaTable = $swoole->kafkaTable;
 
-        $kafkaTable = $swoole->kafkaTable;
+            $kafkaConsumer = resolve('KafkaConsumer');
+            $kafkaConsumer->subscribe([env('KAFKA_SCRAPE_EVENTS')]);
+            while (!self::$quit) {
+                $message = $kafkaConsumer->consume(120 * 1000);
+                if ($message->err == RD_KAFKA_RESP_ERR_NO_ERROR) {
+                    $kafkaTable->set('message:' . $message->offset, ['value' => $message->payload]);
+                    TransformKafkaMessageEvents::dispatch($message);
 
-        $kafkaConsumer = resolve('KafkaConsumer');
-        $kafkaConsumer->subscribe([env('KAFKA_SCRAPE_Events')]);
-        while (!self::$quit) {
-            $message = $kafkaConsumer->consume(120 * 1000);
-            if ($message->err == RD_KAFKA_RESP_ERR_NO_ERROR) {
+                    if (env('APP_ENV') != 'production') {
+                        Log::debug(json_encode($message));
+                        Log::debug(json_encode($kafkaTable->get('message:' . $message->offset)));
+                    }
 
-                 Log::debug(json_encode($message));
-                 $kafkaTable->set('message:' . $message->offset, ['value' => $message->payload]);
-                 Log::debug(json_encode($kafkaTable->get('message:' . $message->offset)));
-
-                TransformKafkaMessageEvents::dispatch($message);
-
-                $kafkaConsumer->commitAsync($message);
-            } else {
-                Log::error(json_encode([$message]));
+                    $kafkaConsumer->commitAsync($message);
+                } else {
+                    Log::error(json_encode([$message]));
+                }
             }
         }
+    }
+
+    // Requirements: LaravelS >= v3.4.0 & callback() must be async non-blocking program.
+    public static function onReload(Server $swoole, Process $process)
+    {
+        self::$quit = true;
     }
 }

@@ -24,11 +24,6 @@ class TransformKafkaMessageEvents implements ShouldQueue
 
     public function handle()
     {
-        $swoole  = app('swoole');
-        $wsTable = $swoole->wsTable;
-
-        if (empty($this->message->data)) {
-            return;
-        }
+        //@TODO transform events
     }
 }

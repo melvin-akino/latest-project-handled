@@ -4,10 +4,9 @@ namespace App\Console\Commands;
 
 use App\Models\SystemConfiguration;
 use Illuminate\Console\Command;
-use Illuminate\Support\Facades\DB;
 use App\Handlers\ProducerHandler;
 use Exception;
-use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\{DB, Log};
 use Illuminate\Support\Str;
 
 class ScrapeRequestCommand extends Command
