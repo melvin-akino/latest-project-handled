@@ -5,7 +5,7 @@
         </div>
 
         <div class="flex justify-center" v-if="checkIfLeaguesIsEmpty">
-            <p class="text-sm p-3">No leagues available for this sport.</p>
+            <p class="text-sm p-3">No leagues/events available for this sport/schedule.</p>
         </div>
 
         <div class="flex flex-col leaguesList" v-else>
@@ -51,9 +51,11 @@ export default {
             })
         },
         filterLeaguesBySched(schedMode) {
-            this.displayedLeagues = this.leagues[schedMode].map(league => {
-                return league
-            })
+            if(this.leagues != null) {
+                this.displayedLeagues = this.leagues[schedMode].map(league => {
+                    return league
+                })
+            }
         },
         modifyLeaguesFromSocket() {
             this.$socket.send(`getSelectedLeagues_${this.selectedSport}`)
@@ -84,6 +86,7 @@ export default {
                             if(sched in removalLeagues) {
                                 removalLeagues[sched].map(removalLeague => {
                                     this.leagues[sched] = this.leagues[sched].filter(league => league.name != removalLeague)
+                                    this.$store.commit('trade/REMOVE_SELECTED_LEAGUE', removalLeague)
                                 })
                             }
                         })
