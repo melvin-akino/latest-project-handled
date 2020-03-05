@@ -108,9 +108,8 @@ class TransformKafkaMessageEvents implements ShouldQueue
 
 
                 }
-                var_dump($eventsTable->get("sId:$sportId:pId:$providerId:eventIdentifier:$eventId"));
             }
-            var_dump($forRemovalEvents);
+
             WsForRemovalEvents::dispatch($forRemovalEvents);
         }
 
