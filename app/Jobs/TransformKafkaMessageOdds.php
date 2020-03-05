@@ -2,6 +2,12 @@
 
 namespace App\Jobs;
 
+use App\Tasks\{
+    TransformationEventCreation,
+    TransformationEventMarketCreation
+};
+
+use Hhxsv5\LaravelS\Swoole\Task\Task;
 use Illuminate\Support\Str;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -41,7 +47,6 @@ class TransformKafkaMessageOdds implements ShouldQueue
     public function __construct($message)
     {
         $this->message = json_decode($message->payload);
-        $this->start = microtime(true);
     }
 
     public function handle()
@@ -137,8 +142,6 @@ class TransformKafkaMessageOdds implements ShouldQueue
             }
         }
 
-        var_dump($this->message->data->leagueName);
-
         /**
          * LEAGUES (MASTER) Swoole Table
          *
@@ -153,8 +156,6 @@ class TransformKafkaMessageOdds implements ShouldQueue
             "pId:" . $providerId,
             "leagueLookUpId:" . $leagueLookupId
         ]);
-
-        var_dump($leagueSwtId);
 
         if ($leaguesTable->exists($leagueSwtId)) {
             $multiLeagueId    = $leaguesTable->get($leagueSwtId)['id'];
@@ -181,7 +182,7 @@ class TransformKafkaMessageOdds implements ShouldQueue
              */
             $teamSwtId = implode(':', [
                 "pId:" . $providerId,
-                "teamName:" . Str::slug($competitors[$key])
+                "teamName:" . Str::slug($row)
             ]);
 
             if ($teamsTable->exists($teamSwtId)) {
@@ -326,7 +327,7 @@ class TransformKafkaMessageOdds implements ShouldQueue
                             $marketOdds   = $markets->odds;
                             $marketPoints = "";
 
-                            if (gettype($markets->odds) == 'string') {
+                            if (gettype($marketOdds) == 'string') {
                                 $marketOdds = explode(' ', $markets->odds);
 
                                 if (count($marketOdds) > 1) {
@@ -337,18 +338,19 @@ class TransformKafkaMessageOdds implements ShouldQueue
                                 }
                             }
 
-                            $transformedJSON['market_odds']['main'][$columns->oddsType][strtolower($_market->indicator)] = [
-                                'odds'      => trim($_marketOdds) == '' ? 0 : (float) $_marketOdds,
-                                'market_id' => $_market->market_id
+                            $marketOdds = trim($marketOdds) == '' ? 0 : (float) $marketOdds;
+                            $transformedJSON['market_odds']['main'][$columns->oddsType][strtolower($markets->indicator)] = [
+                                'odds'      => $marketOdds,
+                                'market_id' => $markets->market_id
                             ];
 
-                            if (array_key_exists('points', $_market)) {
-                                $_marketPoints = $_market->points;
+                            if (array_key_exists('points', $markets)) {
+                                $marketPoints = $markets->points;
 
                                 if ($counter == 0) {
-                                    $transformedJSON['market_odds']['main'][$columns->oddsType][strtolower($_market->indicator)]['points'] = $_marketPoints;
+                                    $transformedJSON['market_odds']['main'][$columns->oddsType][strtolower($markets->indicator)]['points'] = $marketPoints;
                                 } else {
-                                    $transformedJSON['market_odds']['other'][($counter - 1)][$columns->oddsType][strtolower($_market->indicator)]['points'] = $_marketPoints;
+                                    $transformedJSON['market_odds']['other'][($counter - 1)][$columns->oddsType][strtolower($markets->indicator)]['points'] = $marketPoints;
                                 }
                             }
 
@@ -420,7 +422,8 @@ class TransformKafkaMessageOdds implements ShouldQueue
                             ];
 
                             if (empty($eventId)) {
-                                TransformationEventCreation::dispatch($toInsert);
+                                $task = new TransformationEventCreation($toInsert);
+                                Task::deliver($task);
                             }
 
                             $toInsert['MasterEventMarket']['isNew']  = empty($eventId) ? true : false;
@@ -452,7 +455,8 @@ class TransformKafkaMessageOdds implements ShouldQueue
                                 'market_flag' => $array['market_flag'],
                             ];
 
-                            TransformationEventMarketCreation::dispatch($toInsert);
+                            $task = new TransformationEventMarketCreation($toInsert);
+                            Task::deliver($task);
                         }
                     }
                 }
@@ -475,7 +479,5 @@ class TransformKafkaMessageOdds implements ShouldQueue
                 TransformationEventMarketUpdate::dispatch($odds['market_id'], $odds['odds']);
             }, $updatedOdds);
         }
-
-        var_dump($toTransform . " || DURATION :: " . (microtime(true) - $this->start));
     }
 }
