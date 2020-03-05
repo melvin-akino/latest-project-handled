@@ -20,7 +20,7 @@ class KafkaServiceProvider extends ServiceProvider
 
         $conf->set('metadata.broker.list', env('KAFKA_BROKERS', 'kafka:9092'));
 
-        $conf->set('auto.offset.reset', 'smallest');
+        $conf->set('auto.offset.reset', 'latest');
 
         $conf->set('enable.auto.commit', 'false');
 
