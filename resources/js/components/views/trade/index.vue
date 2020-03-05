@@ -58,7 +58,12 @@ export default {
         this.getWatchlist()
         this.getUserTradeLayout()
         this.getEvents()
-        this.getUpdatedOdds()
+    },
+    watch: {
+        eventsList() {
+            this.getForRemovalEvents()
+            this.getUpdatedOdds()
+        }
     },
     methods: {
         getUserTradeLayout() {
@@ -119,6 +124,27 @@ export default {
                     })
                     Object.keys(eventObject).map(schedule => {
                         this.$store.commit('trade/SET_EVENTS', { schedule: schedule, events: eventObject[schedule] })
+                    })
+                }
+            })
+        },
+        getForRemovalEvents() {
+            this.$socket.send('getForRemovalEvents')
+            this.$options.sockets.onmessage = (response => {
+                if(getSocketKey(response.data) === 'getForRemovalEvents') {
+                    let removedEvents = getSocketValue(response.data, 'getForRemovalEvents')
+                    this.eventsList.map(event => {
+                        removedEvents.map(removedEvent => {
+                            if(event.uid === removedEvent) {
+                                this.$store.commit('trade/REMOVE_EVENT', { schedule: event.game_schedule, removedLeague: event.league_name, removedEvent: removedEvent })
+                                this.$store.commit('trade/REMOVE_FROM_EVENT_LIST', { type: 'uid', data: removedEvent })
+
+                                if(this.events[event.game_schedule][event.league_name].length === 0) {
+                                    this.$store.commit('trade/REMOVE_SELECTED_LEAGUE', { schedule: event.game_schedule, league: event.league_name })
+                                    this.$delete(this.events[event.game_schedule], event.league_name)
+                                }
+                            }
+                        })
                     })
                 }
             })
