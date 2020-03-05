@@ -36,10 +36,12 @@ class TransformKafkaMessageOdds implements ShouldQueue
         'To Win',
         'TEST'
     ];
+    protected $start;
 
     public function __construct($message)
     {
         $this->message = json_decode($message->payload);
+        $this->start = microtime(true);
     }
 
     public function handle()
@@ -135,6 +137,8 @@ class TransformKafkaMessageOdds implements ShouldQueue
             }
         }
 
+        var_dump($this->message->data->leagueName);
+
         /**
          * LEAGUES (MASTER) Swoole Table
          *
@@ -150,11 +154,13 @@ class TransformKafkaMessageOdds implements ShouldQueue
             "leagueLookUpId:" . $leagueLookupId
         ]);
 
+        var_dump($leagueSwtId);
+
         if ($leaguesTable->exists($leagueSwtId)) {
             $multiLeagueId    = $leaguesTable->get($leagueSwtId)['id'];
             $masterLeagueName = $leaguesTable->get($leagueSwtId)['master_league_name'];
         } else {
-            $toTransform = false;
+            throw new Exception("League doesn't exist");
         }
 
         $multiTeam = [];
@@ -209,7 +215,6 @@ class TransformKafkaMessageOdds implements ShouldQueue
                 $masterTeamHomeName = $eventsTable->get($eventSwtId)['master_home_team_name'];
                 $masterTeamAwayName = $eventsTable->get($eventSwtId)['master_away_team_name'];
             } else {
-                $toTransform    = false;
                 $masterTeamHome = $multiTeam['home']['name'];
                 $masterTeamAway = $multiTeam['away']['name'];
 
@@ -240,189 +245,226 @@ class TransformKafkaMessageOdds implements ShouldQueue
         }
 
         $updatedOdds = [];
+
         if (!empty($uid)) {
-            $arrayEvents = $this->message->data->events;
+            $arrayEvents     = $this->message->data->events;
+            $counter         = 0;
+            $transformedJSON = [
+                'timestamp'     => $this->message->request_ts,
+                'uid'           => $uid,
+                'sport_id'      => $sportId,
+                'sport'         => $sportName,
+                'provider_id'   => $providerId,
+                'event_id'      => $this->message->data->events[0]->eventId,
+                'game_schedule' => $this->message->data->schedule,
+                'league_name'   => $masterLeagueName,
+                'home'          => [
+                    'name'    => $masterTeamHome,
+                    'score'   => $this->message->data->home_score,
+                    'penalty' => $this->message->data->home_redcard
+                ],
+                'away'          => [
+                    'name'    => $masterTeamAway,
+                    'score'   => $this->message->data->away_score,
+                    'penalty' => $this->message->data->away_redcard
+                ],
+                'ref_schedule'  => date("Y-m-d H:i:s", strtotime($this->message->data->referenceSchedule)),
+                'running_time'  => $this->message->data->running_time,
+                'market_odds'   => [],
+            ];
 
-            /** loop each `events` */
             foreach ($arrayEvents AS $keyEvent => $event) {
-                $arrayOddTypes = [];
-                /** loop each `market_odds` inside every `events` */
-                foreach ($event->market_odds AS $columns) {
-                    /**
-                     * ODD TYPES Swoole Table
-                     *
-                     * @ref config.laravels.oddType
-                     *
-                     * @var $oddTypesTable  swoole_table
-                     *      $oddTypeSwtId   swoole_table_key    "oddType:<$events[]->market_odds[]->oddsType>"
-                     *      $oddTypeId      swoole_table_value  int
-                     */
-                    $oddTypeSwtId = "oddType:" . $columns->oddsType;
-                    if ($oddTypesTable->exists($oddTypeSwtId)) {
-                        $oddTypeId = $oddTypesTable->get($oddTypeSwtId)['id'];
-                    } else {
-                        throw new Exception("Odds Type doesn't exist");
-                    }
-
-                    /**
-                     * SPORT ODD TYPES Swoole Table
-                     *
-                     * @ref config.laravels.sportOddType
-                     *
-                     * @var $sportOddTypesTable  swoole_table
-                     *      $sportOddTypeSwtId   swoole_table_key    "sId:<$sportId>:oddTypeId:<$oddTypeId>"
-                     *      $sportOddTypeId      swoole_table_value  int
-                     */
-                    $sportOddTypeSwtId = implode(':', [
-                        "sId:" . $sportId,
-                        "oddType:" . Str::slug($columns->oddsType)
-                    ]);
-
-                    if (!$sportOddTypesTable->exist($sportOddTypeSwtId)) {
-                        throw new Exception("Sport Odds Type doesn't exist");
-                    }
-
-                    $arrayOddTypes[] = $columns->oddsType;
-
-                    /** loop each `marketSelection` from each `market_odds` */
-                    foreach ($columns->marketSelection AS $markets) {
+                if (!empty($event)) {
+                    foreach ($event->market_odds AS $columns) {
                         /**
-                         * EVENT MARKETS (MASTER) Swoole Table
+                         * ODD TYPES Swoole Table
                          *
-                         * @ref config.laravels.eventMarkets
+                         * @ref config.laravels.oddType
                          *
-                         * @var $eventMarketsTable  swoole_table
-                         *      $eventMarketSwtId   swoole_table_key    "pId:<$providerId>:meUniqueId:<$masterEventUniqueId>:memUniqueId:<$masterEventMarketUniqueId>"
-                         *      $eventMarket        swoole_table_value  string
+                         * @var $oddTypesTable  swoole_table
+                         *      $oddTypeSwtId   swoole_table_key    "oddType:<$events[]->market_odds[]->oddsType>"
+                         *      $oddTypeId      swoole_table_value  int
                          */
+                        $oddTypeSwtId = "oddType:" . $columns->oddsType;
 
-                        $marketOdds = $markets->odds;
-                        $marketPoints = "";
-
-                        if (gettype($markets->odds) == 'string') {
-                            $marketOdds = explode(' ', $markets->odds);
-
-                            if (count($marketOdds) > 1) {
-                                $marketPoints = $marketOdds[0];
-                                $marketOdds   = $marketOdds[1];
-                            } else {
-                                $marketOdds   = $marketOdds[0];
-                            }
+                        if ($oddTypesTable->exists($oddTypeSwtId)) {
+                            $oddTypeId = $oddTypesTable->get($oddTypeSwtId)['id'];
+                        } else {
+                            throw new Exception("Odds Type doesn't exist");
                         }
 
-                        $marketOdds = trim($marketOdds) == '' ? 0 : (float) $marketOdds;
-
-                        if (array_key_exists('points', $markets)) {
-                            $marketPoints = $markets->points;
-                        }
-
-
-                        $memUID           = uniqid();
-                        if ($eventMarketsTable->exist('pId:' . $providerId . ':meUID:' . $uid . ':betIdentifier:' . $markets->market_id)) {
-                            $memUID = $eventMarketsTable->get('pId:' . $providerId . ':meUID:' . $uid . ':betIdentifier:' . $markets->market_id)['bet_identifier'];
-                            $odds = $eventMarketsTable->get('pId:' . $providerId . ':meUID:' . $uid . ':betIdentifier:' . $markets->market_id)['odds'];
-                            if ($odds != $marketOdds) {
-                                $eventMarketsTable[$key]['odds'] = $marketOdds;
-                                $updated = true;
-
-                                $updatedOdds[] = ['market_id' => $markets->market_id, 'odds' => $marketOdds];
-                            }
-                            break;
-                        }
-
-                        if (empty($eventId)) {
-                            $toTransform      = false;
-                        }
-
-                        $eventMarketSwtId = implode(':', [
-                            "pId:" . $providerId,
-                            "meUID:" . $uid
+                        /**
+                         * SPORT ODD TYPES Swoole Table
+                         *
+                         * @ref config.laravels.sportOddType
+                         *
+                         * @var $sportOddTypesTable  swoole_table
+                         *      $sportOddTypeSwtId   swoole_table_key    "sId:<$sportId>:oddTypeId:<$oddTypeId>"
+                         *      $sportOddTypeId      swoole_table_value  int
+                         */
+                        $sportOddTypeSwtId = implode(':', [
+                            "sId:"     . $sportId,
+                            "oddType:" . Str::slug($columns->oddsType)
                         ]);
-                        $array = [
-                            'odd_type_id'                   => $oddTypeId,
-                            'master_event_market_unique_id' => $memUID,
-                            'master_event_unique_id'        => $uid,
-                            'provider_id'                   => $providerId,
-                            'odds'                          => $marketOdds,
-                            'odd_label'                     => $marketPoints,
-                            'bet_identifier'                => $markets->market_id,
-                            'is_main'                       => $event->market_type == 1 ? true : false,
-                            'market_flag'                   => strtoupper($markets->indicator),
-                        ];
 
-                        $eventMarketsTable->set($eventMarketSwtId, $array);
-
-                        /** TO INSERT */
-                        $toInsert['MasterEvent']['swtKey'] = implode(':', [
-                            "sId:" . $sportId,
-                            "pId:" . $providerId,
-                            "eventIdentifier:" . $this->message->data->events[0]->eventId
-                        ]);
-                        $toInsert['MasterEvent']['data'] = [
-                            'sport_id'               => $sportId,
-                            'master_event_unique_id' => $uid,
-                            'master_league_name'     => $masterLeagueName,
-                            'master_home_team_name'  => $multiTeam['home']['name'],
-                            'master_away_team_name'  => $multiTeam['away']['name'],
-                            'ref_schedule'           => date("Y-m-d H:i:s", strtotime($this->message->data->referenceSchedule)),
-                            'game_schedule'          => $this->message->data->schedule,
-                            'score'                  => $this->message->data->home_score . "|" . $this->message->data->away_score,
-                            'running_time'           => $this->message->data->running_time,
-                            'home_penalty'           => $this->message->data->home_redcard,
-                            'away_penalty'           => $this->message->data->away_redcard,
-                        ];
-
-                        $toInsert['Event']['data'] = [
-                            'sport_id'         => $sportId,
-                            'provider_id'      => $providerId,
-                            'event_identifier' => $this->message->data->events[0]->eventId,
-                            'league_name'      => $this->message->data->leagueName,
-                            'home_team_name'   => $this->message->data->homeTeam,
-                            'away_team_name'   => $this->message->data->awayTeam,
-                            'ref_schedule'     => date("Y-m-d H:i:s", strtotime($this->message->data->referenceSchedule)),
-                            'game_schedule'    => $this->message->data->schedule,
-                        ];
-
-                        if (empty($eventId)) {
-                            TransformationEventCreation::dispatch($toInsert);
+                        if (!$sportOddTypesTable->exist($sportOddTypeSwtId)) {
+                            throw new Exception("Sport Odds Type doesn't exist");
                         }
 
-                        $toInsert['MasterEventMarket']['isNew'] = empty($eventId) ? true : false;
-                        $toInsert['MasterEventMarket']['swtKey'] = "marketId:" . $markets->market_id;
-                        $toInsert['MasterEventMarket']['data'] = [
-                            'master_event_unique_id'        => $uid,
-                            'odd_type_id'                   => $oddTypeId,
-                            'master_event_market_unique_id' => $memUID,
-                            'is_main'                       => $array['is_main'],
-                            'market_flag'                   => $array['market_flag'],
-                        ];
+                        /** loop each `marketSelection` from each `market_odds` */
+                        foreach ($columns->marketSelection AS $markets) {
+                            /**
+                             * EVENT MARKETS (MASTER) Swoole Table
+                             *
+                             * @ref config.laravels.eventMarkets
+                             *
+                             * @var $eventMarketsTable  swoole_table
+                             *      $eventMarketSwtId   swoole_table_key    "pId:<$providerId>:meUniqueId:<$masterEventUniqueId>:memUniqueId:<$masterEventMarketUniqueId>"
+                             *      $eventMarket        swoole_table_value  string
+                             */
 
-                        $toInsert['EventMarket']['data'] = [
-                            'provider_id'            => $providerId,
-                            'master_event_unique_id' => $uid,
-                            'odd_type_id'            => $oddTypeId,
-                            'odds'                   => $marketOdds,
-                            'odd_label'              => $array['odd_label'],
-                            'bet_identifier'         => $markets->market_id,
-                            'is_main'                => $array['is_main'],
-                            'market_flag'            => $array['market_flag'],
-                        ];
+                            $marketOdds   = $markets->odds;
+                            $marketPoints = "";
 
-                        $toInsert['MasterEventMarketLog']['data'] = [
-                            'odd_type_id'            => $oddTypeId,
-                            'odds'                   => $marketOdds,
-                            'odd_label'              => $array['odd_label'],
-                            'is_main'                => $array['is_main'],
-                            'market_flag'            => $array['market_flag'],
-                        ];
+                            if (gettype($markets->odds) == 'string') {
+                                $marketOdds = explode(' ', $markets->odds);
 
-                        TransformationEventMarketCreation::dispatch($toInsert);
+                                if (count($marketOdds) > 1) {
+                                    $marketPoints = $marketOdds[0];
+                                    $marketOdds   = $marketOdds[1];
+                                } else {
+                                    $marketOdds   = $marketOdds[0];
+                                }
+                            }
+
+                            $transformedJSON['market_odds']['main'][$columns->oddsType][strtolower($_market->indicator)] = [
+                                'odds'      => trim($_marketOdds) == '' ? 0 : (float) $_marketOdds,
+                                'market_id' => $_market->market_id
+                            ];
+
+                            if (array_key_exists('points', $_market)) {
+                                $_marketPoints = $_market->points;
+
+                                if ($counter == 0) {
+                                    $transformedJSON['market_odds']['main'][$columns->oddsType][strtolower($_market->indicator)]['points'] = $_marketPoints;
+                                } else {
+                                    $transformedJSON['market_odds']['other'][($counter - 1)][$columns->oddsType][strtolower($_market->indicator)]['points'] = $_marketPoints;
+                                }
+                            }
+
+                            $memUID = uniqid();
+
+                            if ($eventMarketsTable->exist('pId:' . $providerId . ':meUID:' . $uid . ':betIdentifier:' . $markets->market_id)) {
+                                $memUID = $eventMarketsTable->get('pId:' . $providerId . ':meUID:' . $uid . ':betIdentifier:' . $markets->market_id)['bet_identifier'];
+                                $odds   = $eventMarketsTable->get('pId:' . $providerId . ':meUID:' . $uid . ':betIdentifier:' . $markets->market_id)['odds'];
+
+                                if ($odds != $marketOdds) {
+                                    $eventMarketsTable[$key]['odds'] = $marketOdds;
+                                    $updated = true;
+
+                                    $updatedOdds[] = ['market_id' => $markets->market_id, 'odds' => $marketOdds];
+                                }
+
+                                break;
+                            }
+
+                            $eventMarketSwtId = implode(':', [
+                                "pId:" . $providerId,
+                                "meUID:" . $uid
+                            ]);
+
+                            $array = [
+                                'odd_type_id'                   => $oddTypeId,
+                                'master_event_market_unique_id' => $memUID,
+                                'master_event_unique_id'        => $uid,
+                                'provider_id'                   => $providerId,
+                                'odds'                          => $marketOdds,
+                                'odd_label'                     => $marketPoints,
+                                'bet_identifier'                => $markets->market_id,
+                                'is_main'                       => $event->market_type == 1 ? true : false,
+                                'market_flag'                   => strtoupper($markets->indicator),
+                            ];
+
+                            $eventMarketsTable->set($eventMarketSwtId, $array);
+
+                            /** TO INSERT */
+                            $toInsert['MasterEvent']['swtKey'] = implode(':', [
+                                "sId:" . $sportId,
+                                "pId:" . $providerId,
+                                "eventIdentifier:" . $this->message->data->events[0]->eventId
+                            ]);
+
+                            $toInsert['MasterEvent']['data'] = [
+                                'sport_id'               => $sportId,
+                                'master_event_unique_id' => $uid,
+                                'master_league_name'     => $masterLeagueName,
+                                'master_home_team_name'  => $multiTeam['home']['name'],
+                                'master_away_team_name'  => $multiTeam['away']['name'],
+                                'ref_schedule'           => date("Y-m-d H:i:s", strtotime($this->message->data->referenceSchedule)),
+                                'game_schedule'          => $this->message->data->schedule,
+                                'score'                  => $this->message->data->home_score . "|" . $this->message->data->away_score,
+                                'running_time'           => $this->message->data->running_time,
+                                'home_penalty'           => $this->message->data->home_redcard,
+                                'away_penalty'           => $this->message->data->away_redcard,
+                            ];
+
+                            $toInsert['Event']['data'] = [
+                                'sport_id'         => $sportId,
+                                'provider_id'      => $providerId,
+                                'event_identifier' => $this->message->data->events[0]->eventId,
+                                'league_name'      => $this->message->data->leagueName,
+                                'home_team_name'   => $this->message->data->homeTeam,
+                                'away_team_name'   => $this->message->data->awayTeam,
+                                'ref_schedule'     => date("Y-m-d H:i:s", strtotime($this->message->data->referenceSchedule)),
+                                'game_schedule'    => $this->message->data->schedule,
+                            ];
+
+                            if (empty($eventId)) {
+                                TransformationEventCreation::dispatch($toInsert);
+                            }
+
+                            $toInsert['MasterEventMarket']['isNew']  = empty($eventId) ? true : false;
+                            $toInsert['MasterEventMarket']['swtKey'] = "marketId:" . $markets->market_id;
+                            $toInsert['MasterEventMarket']['data']   = [
+                                'master_event_unique_id'        => $uid,
+                                'odd_type_id'                   => $oddTypeId,
+                                'master_event_market_unique_id' => $memUID,
+                                'is_main'                       => $array['is_main'],
+                                'market_flag'                   => $array['market_flag'],
+                            ];
+
+                            $toInsert['EventMarket']['data'] = [
+                                'provider_id'            => $providerId,
+                                'master_event_unique_id' => $uid,
+                                'odd_type_id'            => $oddTypeId,
+                                'odds'                   => $marketOdds,
+                                'odd_label'              => $array['odd_label'],
+                                'bet_identifier'         => $markets->market_id,
+                                'is_main'                => $array['is_main'],
+                                'market_flag'            => $array['market_flag'],
+                            ];
+
+                            $toInsert['MasterEventMarketLog']['data'] = [
+                                'odd_type_id' => $oddTypeId,
+                                'odds'        => $marketOdds,
+                                'odd_label'   => $array['odd_label'],
+                                'is_main'     => $array['is_main'],
+                                'market_flag' => $array['market_flag'],
+                            ];
+
+                            TransformationEventMarketCreation::dispatch($toInsert);
+                        }
                     }
                 }
+
+                $counter++;
+            }
+
+            $transformedSwtId = "uid:" . $uid . ":pId:" . $providerId;
+            if (!$transformedTable->exists($transformedSwtId)) {
+                $transformedTable->set($transformedSwtId, ['value' => json_encode($transformedJSON)]);
             }
         }
-        /** `events` key from json data */
-
 
         if ($updated) {
             /** Set Updated Odds to WS Swoole Table */
@@ -434,103 +476,6 @@ class TransformKafkaMessageOdds implements ShouldQueue
             }, $updatedOdds);
         }
 
-        /** Data Transformation */
-        if ($toTransform && !$updated) {
-            $transformedJSON = [
-                'timestamp'     => $this->message->request_ts,
-                'uid'           => $uid,
-                'sport_id'      => $sportId,
-                'sport'         => $sportName,
-                'provider_id'   => $providerId,
-                'event_id'      => $this->message->data->events[0]->eventId,
-                'game_schedule' => $this->message->data->schedule,
-                'league_name'   => $masterLeagueName,
-                'home'          => [
-                    'name'    => $multiTeam['home']['name'],
-                    'score'   => $this->message->data->home_score,
-                    'penalty' => $this->message->data->home_redcard
-                ],
-                'away'          => [
-                    'name'    => $multiTeam['away']['name'],
-                    'score'   => $this->message->data->away_score,
-                    'penalty' => $this->message->data->away_redcard
-                ],
-                'ref_schedule'  => date("Y-m-d H:i:s", strtotime($this->message->data->referenceSchedule)),
-                'running_time'  => $this->message->data->running_time,
-                'market_odds'   => [],
-            ];
-
-            /** Forming Main Markets */
-            foreach ($this->message->data->events[0]->market_odds AS $columns) {
-                if (in_array($columns->oddsType, $arrayOddTypes)) {
-                    foreach ($columns->marketSelection AS $_market) {
-                        $_marketOdds = $_market->odds;
-                        $_marketPoints = "";
-
-                        if (gettype($_market->odds) == 'string') {
-                            $_marketOdds = explode(' ', $_market->odds);
-
-                            if (count($_marketOdds) > 1) {
-                                $_marketPoints = $_marketOdds[0];
-                                $_marketOdds   = $_marketOdds[1];
-                            } else {
-                                $_marketOdds   = $_marketOdds[0];
-                            }
-                        }
-
-                        $transformedJSON['market_odds']['main'][$columns->oddsType][strtolower($_market->indicator)] = [
-                            'odds'      => trim($_marketOdds) == '' ? 0 : (float) $_marketOdds,
-                            'market_id' => $_market->market_id
-                        ];
-
-                        if (array_key_exists('points', $_market)) {
-                            $_marketPoints = $_market->points;
-                            $transformedJSON['market_odds']['main'][$columns->oddsType][strtolower($_market->indicator)]['points'] = $_marketPoints;
-                        }
-                    }
-                }
-            }
-
-            /** Forming Other Markets */
-            $i = 0;
-            if (!empty($this->message->data->events[1])) {
-                foreach ($this->message->data->events[1]->market_odds AS $columns) {
-                    if (in_array($columns->oddsType, $arrayOddTypes)) {
-                        foreach ($columns->marketSelection AS $_market) {
-                            $_marketOdds = $_market->odds;
-                            $_marketPoints = "";
-
-                            if (gettype($_market->odds) == 'string') {
-                                $_marketOdds = explode(' ', $_market->odds);
-
-                                if (count($_marketOdds) > 1) {
-                                    $_marketPoints = $_marketOdds[0];
-                                    $_marketOdds   = $_marketOdds[1];
-                                } else {
-                                    $_marketOdds   = $_marketOdds[0];
-                                }
-                            }
-
-                            $transformedJSON['market_odds']['other'][$columns->oddsType][strtolower($_market->indicator)] = [
-                                'odds'      => trim($_marketOdds) == '' ? 0 : (float) $_marketOdds,
-                                'market_id' => $_market->market_id
-                            ];
-
-                            if (array_key_exists('points', $_market)) {
-                                $_marketPoints = $_market->points;
-                                $transformedJSON['market_odds']['other'][$i][$columns->oddsType][strtolower($_market->indicator)]['points'] = $_marketPoints;
-                            }
-                        }
-
-                        $i++;
-                    }
-                }
-            }
-
-            $transformedSwtId = "uid:" . $uid . ":pId:" . $providerId;
-            if (!$transformedTable->exists($transformedSwtId)) {
-                $transformedTable->set($transformedSwtId, ['value' => json_encode($transformedJSON)]);
-            }
-        }
+        var_dump($toTransform . " || DURATION :: " . (microtime(true) - $this->start));
     }
 }
