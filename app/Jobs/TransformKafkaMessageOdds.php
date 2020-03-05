@@ -13,6 +13,29 @@ class TransformKafkaMessageOdds implements ShouldQueue
 
     protected $message;
     protected $swoole;
+    protected $disregard = [
+        'No. of Corners',
+        'No. of Bookings',
+        'Extra Time',
+        'To Qualify',
+        'Winner',
+        'PK(Handicap)',
+        'PK(Over/Under)',
+        'games (e.g',
+        'Days (',
+        ' Game',
+        'Corners',
+        'borders',
+        'To Win Final',
+        'To Finish 3rd',
+        'To Advance',
+        '(w)',
+        '(n)',
+        'Home Team',
+        'Away Team',
+        'To Win',
+        'TEST'
+    ];
 
     public function __construct($message)
     {
@@ -26,6 +49,12 @@ class TransformKafkaMessageOdds implements ShouldQueue
 
         if (empty($this->message->data)) {
             return;
+        }
+
+        foreach ($this->disregard AS $disregard) {
+            if (strpos($this->message->data->leagueName, $disregard) > -1) {
+                return;
+            }
         }
 
         $timestampSwtId = implode(':', [

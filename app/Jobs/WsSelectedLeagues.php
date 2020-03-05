@@ -21,10 +21,9 @@ class WsSelectedLeagues implements ShouldQueue
         $fd = $server->wsTable->get('uid:' . $this->userId);
 
         $leagues = [];
-        // Id format for selectedLeaguesTable = 'userSelectedLeagues:' . $userId . ':sId:' . $sportId . ':uniqueId:' . uniqid()
-        foreach ($server->wsTable as $key => $row) {
-            if (strpos($key, 'userSelectedLeagues:' . $this->userId) === 0) {
-                $leagues[] = $row['value'];
+        foreach ($server->userSelectedLeaguesTable as $key => $row) {
+            if (strpos($key, 'userId:' . $this->userId . ':sId:' . $this->sportId) === 0) {
+                $leagues[$row['schedule']][] = $row['league_name'];
             }
         }
 

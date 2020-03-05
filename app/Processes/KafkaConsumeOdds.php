@@ -26,12 +26,8 @@ class KafkaConsumeOdds implements CustomProcessInterface
                 $message = $kafkaConsumer->consume(120 * 1000);
                 if ($message->err == RD_KAFKA_RESP_ERR_NO_ERROR) {
                     $kafkaTable->set('message:' . $message->offset, ['value' => $message->payload]);
-                    TransformKafkaMessageOdds::dispatch($message);
 
-                    if (env('APP_ENV') != 'production') {
-                        Log::debug(json_encode($message));
-                        Log::debug(json_encode($kafkaTable->get('message:' . $message->offset)));
-                    }
+                    TransformKafkaMessageOdds::dispatch($message);
 
                     $kafkaConsumer->commitAsync($message);
                 } else {
