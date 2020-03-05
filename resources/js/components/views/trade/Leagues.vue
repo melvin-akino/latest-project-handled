@@ -9,7 +9,7 @@
         </div>
 
         <div class="flex flex-col leaguesList" v-else>
-            <a href="#" class="text-sm capitalize py-1 px-3 w-full league" :class="[selectedLeagues.includes(league.name) ? 'bg-gray-900 shadow-xl text-white selectedLeague' : 'text-gray-700']" @click="selectLeague(league.name)" v-for="(league, index) in displayedLeagues" :key="index">{{league.name}} &nbsp; ({{league.match_count}})</a>
+            <a href="#" class="text-sm capitalize py-1 px-3 w-full league" :class="[selectedLeagues[selectedLeagueSchedMode].includes(league.name)  ? 'bg-gray-900 shadow-xl text-white selectedLeague' : 'text-gray-700']" @click="selectLeague(league.name)" v-for="(league, index) in displayedLeagues" :key="index">{{league.name}} &nbsp; ({{league.match_count}})</a>
         </div>
     </div>
 </template>
@@ -30,7 +30,7 @@ export default {
         }
     },
     computed: {
-        ...mapState('trade', ['selectedLeagues', 'selectedSport']),
+        ...mapState('trade', ['selectedLeagues', 'selectedSport', 'events']),
         checkIfLeaguesIsEmpty() {
             if(this.leagues != null) {
                 return _.isEmpty(this.leagues[this.selectedLeagueSchedMode])
@@ -64,31 +64,38 @@ export default {
                     if(getSocketValue(response.data, 'getAdditionalLeagues') != '') {
                         let additionalLeagues = getSocketValue(response.data, 'getAdditionalLeagues')
                         this.leagueSchedModes.map(sched => {
-                            if(sched in additionalLeagues) {
-                                additionalLeagues[sched].map(league => {
-                                    this.leagues[sched].push(league)
-                                })
-                            }
+                            additionalLeagues.map(additionalLeague => {
+                                if(sched == additionalLeague.schedule) {
+                                    this.leagues[sched].push(additionalLeague)
+                                }
+                            })
                         })
                     }
                 } else if (getSocketKey(response.data) === 'getSelectedLeagues') {
                     if(getSocketValue(response.data, 'getSelectedLeagues') != '') {
                         let selectedLeagues = getSocketValue(response.data, 'getSelectedLeagues')
-                        selectedLeagues.map(league => {
-                            this.$store.commit('trade/SET_SELECTED_LEAGUES', league)
-                            this.$socket.send(`getEvents_${league}_${this.selectedLeagueSchedMode}`)
+                        this.leagueSchedModes.map(sched => {
+                            if(sched in selectedLeagues) {
+                                selectedLeagues[sched].map(selectedLeague => {
+                                    this.$store.commit('trade/ADD_TO_SELECTED_LEAGUE', { schedule: sched, league: selectedLeague })
+                                    this.$socket.send(`getEvents_${selectedLeague}_${sched}`)
+                                })
+                            }
                         })
                     }
                 } else if (getSocketKey(response.data) === 'getForRemovalLeagues') {
                     if(getSocketValue(response.data, 'getForRemovalLeagues') != '') {
                         let removalLeagues = getSocketValue(response.data, 'getForRemovalLeagues')
                         this.leagueSchedModes.map(sched => {
-                            if(sched in removalLeagues) {
-                                removalLeagues[sched].map(removalLeague => {
-                                    this.leagues[sched] = this.leagues[sched].filter(league => league.name != removalLeague)
-                                    this.$store.commit('trade/REMOVE_SELECTED_LEAGUE', removalLeague)
-                                })
-                            }
+                            removalLeagues.map(removalLeague => {
+                                if(sched == removalLeague.schedule) {
+                                    this.leagues[sched] = this.leagues[sched].filter(league => league.name != removalLeague.name)
+                                    this.$store.commit('trade/REMOVE_SELECTED_LEAGUE', { schedule: sched, league: removalLeague.name })
+                                    if(removalLeague.name in this.events.watchlist) {
+                                        this.$store.commit('trade/REMOVE_FROM_EVENTS', { schedule: 'watchlist', removedLeague: removalLeague.name  })
+                                    }
+                                }
+                            })
                         })
                     }
                 }
@@ -102,19 +109,14 @@ export default {
         },
         selectLeague(league) {
             let token = Cookies.get('mltoken')
-
-            if(this.selectedLeagues.includes(league)) {
-                this.$store.commit('trade/REMOVE_SELECTED_LEAGUE', league)
+            if(this.selectedLeagues[this.selectedLeagueSchedMode].includes(league)) {
+                this.$store.commit('trade/REMOVE_SELECTED_LEAGUE', { schedule: this.selectedLeagueSchedMode, league: league })
                 this.$store.commit('trade/REMOVE_FROM_EVENTS', { schedule: this.selectedLeagueSchedMode, removedLeague: league })
             } else {
-                this.$store.commit('trade/SET_SELECTED_LEAGUES', league)
+                this.$store.commit('trade/ADD_TO_SELECTED_LEAGUE', { schedule: this.selectedLeagueSchedMode, league: league })
                 this.$socket.send(`getEvents_${league}_${this.selectedLeagueSchedMode}`)
             }
-
-            axios.post('v1/trade/leagues/toggle', { league_name: league, sport_id: this.selectedSport, schedule: this.selectedLeagueSchedMode}, { headers: { 'Authorization': `Bearer ${token}` } })
-            .catch(err => {
-                this.$store.dispatch('auth/checkIfTokenIsValid', err.response.data.status_code)
-            })
+            this.$store.dispatch('trade/toggleLeague', { league_name: league, sport_id: this.selectedSport, schedule: this.selectedLeagueSchedMode  })
         }
     }
 }

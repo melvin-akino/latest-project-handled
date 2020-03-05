@@ -4,7 +4,11 @@ const token = Cookies.get('mltoken')
 
 const state = {
     selectedSport: null,
-    selectedLeagues: [],
+    selectedLeagues:{
+        inplay: [],
+        today: [],
+        early: []
+    },
     isBetBarOpen: false,
     tradeLayout: null,
     filteredColumnsBySport: [],
@@ -14,7 +18,7 @@ const state = {
     initialLeagues: [],
     eventsList: [],
     events: {
-        watchlist: {},
+        watchlist: [],
         inplay: [],
         today: [],
         early: []
@@ -28,14 +32,16 @@ const mutations = {
     SET_SELECTED_SPORT: (state, selectedSport) => {
         state.selectedSport = selectedSport
     },
-    SET_SELECTED_LEAGUES: (state, selectedLeague) => {
-        state.selectedLeagues.push(selectedLeague)
+    SET_SELECTED_LEAGUES: (state, selectedLeagues) => {
+        state.selectedLeagues = selectedLeagues
     },
-    REMOVE_SELECTED_LEAGUE: (state, removedLeague) => {
-        state.selectedLeagues = state.selectedLeagues.filter(league => league != removedLeague)
+    ADD_TO_SELECTED_LEAGUE: (state, data) => {
+        if(!state.selectedLeagues[data.schedule].includes(data.league)) {
+            state.selectedLeagues[data.schedule].push(data.league)
+        }
     },
-    CLEAR_SELECTED_LEAGUES: (state) => {
-        state.selectedLeagues = []
+    REMOVE_SELECTED_LEAGUE: (state, data) => {
+        state.selectedLeagues[data.schedule] = state.selectedLeagues[data.schedule].filter(league => league != data.league)
     },
     TOGGLE_BETBAR: (state, status) => {
         state.isBetBarOpen = status
@@ -58,9 +64,17 @@ const mutations = {
     SET_EVENTS: (state, data) => {
         state.events[data.schedule] = data.events
     },
+    ADD_TO_EVENTS: (state, data) => {
+        Vue.set(state.events[data.schedule], data.league, data.events)
+    },
+    ADD_TO_EVENTS_LIST: (state, event) => {
+        state.eventsList.push(event)
+    },
     REMOVE_FROM_EVENTS: (state, data) => {
         Vue.delete(state.events[data.schedule], data.removedLeague)
-        state.eventsList = state.eventsList.filter(event => event.league_name != data.removedLeague)
+        if(data.schedule != 'watchlist') {
+            state.eventsList = state.eventsList.filter(event => event.league_name != data.removedLeague)
+        }
     },
     REMOVE_EVENT: (state, data) => {
         state.events[data.schedule][data.removedLeague] = state.events[data.schedule][data.removedLeague].filter(event => event.uid != data.removedEvent)
@@ -99,6 +113,12 @@ const actions = {
                 dispatch('auth/checkIfTokenIsValid', err.response.data.status_code,  { root: true })
                 reject(err)
             })
+        })
+    },
+    toggleLeague(context, data) {
+        axios.post('v1/trade/leagues/toggle', { league_name: data.league_name, sport_id: data.sport_id, schedule: data.schedule}, { headers: { 'Authorization': `Bearer ${token}` } })
+        .catch(err => {
+            this.$store.dispatch('auth/checkIfTokenIsValid', err.response.data.status_code)
         })
     }
 }
