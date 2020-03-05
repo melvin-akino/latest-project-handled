@@ -161,7 +161,7 @@ class TransformKafkaMessageOdds implements ShouldQueue
             $multiLeagueId    = $leaguesTable->get($leagueSwtId)['id'];
             $masterLeagueName = $leaguesTable->get($leagueSwtId)['master_league_name'];
         } else {
-            throw new Exception("League doesn't exist");
+            return;
         }
 
         $multiTeam = [];
@@ -213,8 +213,8 @@ class TransformKafkaMessageOdds implements ShouldQueue
             if ($eventsTable->exists($eventSwtId)) {
                 $eventId            = $eventsTable->get($eventSwtId)['id'];
                 $uid                = $eventsTable->get($eventSwtId)['master_event_unique_id'];
-                $masterTeamHomeName = $eventsTable->get($eventSwtId)['master_home_team_name'];
-                $masterTeamAwayName = $eventsTable->get($eventSwtId)['master_away_team_name'];
+                $masterTeamHome = $eventsTable->get($eventSwtId)['master_home_team_name'];
+                $masterTeamAway = $eventsTable->get($eventSwtId)['master_away_team_name'];
             } else {
                 $masterTeamHome = $multiTeam['home']['name'];
                 $masterTeamAway = $multiTeam['away']['name'];
