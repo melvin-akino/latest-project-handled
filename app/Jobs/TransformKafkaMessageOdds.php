@@ -16,7 +16,9 @@ class TransformKafkaMessageOdds implements ShouldQueue
 
     public function __construct($message)
     {
+        $this->startTime = microtime(true);
         $this->message = json_decode($message->payload);
+
     }
 
     public function handle()
@@ -502,6 +504,9 @@ class TransformKafkaMessageOdds implements ShouldQueue
 
             if (!$transformedTable->exists($transformedSwtId)) {
                 $transformedTable->set($transformedSwtId, ['value' => json_encode($transformedJSON)]);
+
+                var_dump('Start Time:' . $this->startTime);
+                var_dump('End Time:' . microtime(true));
             }
         }
     }
