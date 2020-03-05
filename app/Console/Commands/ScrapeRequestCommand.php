@@ -98,7 +98,6 @@ class ScrapeRequestCommand extends Command
                 $payload = [
                     'request_uid' => $requestId,
                     'request_ts'  => $requestTs,
-                    'command'     => 'odd',
                     'sub_command' => 'scrape',
                 ];
                 $payload['data'] = [
@@ -109,11 +108,11 @@ class ScrapeRequestCommand extends Command
 
                 // publish message leagues to kafka
                 $payload['command'] = 'league';
-                $this->pushToKafka($payload, $requestId, strtolower($provider->alias) . $this->kafkaTopic . '_league');
+                $this->pushToKafka($payload, $requestId, strtolower($provider->alias) . $this->kafkaTopic);
 
                 // publish message events to kafka
                 $payload['command'] = 'event';
-                $this->pushToKafka($payload, $requestId, strtolower($provider->alias) . $this->kafkaTopic . '_event');
+                $this->pushToKafka($payload, $requestId, strtolower($provider->alias) . $this->kafkaTopic);
 
                 // publish message to kafka
                 $payload['command'] = 'odd';
