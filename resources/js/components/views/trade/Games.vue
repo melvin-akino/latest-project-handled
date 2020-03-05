@@ -11,7 +11,7 @@
                 <div class="bg-white text-white text-sm text-gray-700" v-for="(league, index) in games" :key="index">
                     <div class="flex justify-between py-2 px-4 font-bold border-t border-orange-500 leaguePanel">
                         <div>
-                            <button type="button" class="mt-1 pr-1 text-red-600 focus:outline-none" @click="unselectLeague(index)"><i class="fas fa-times-circle"></i></button>
+                            <button type="button" class="mt-1 pr-1 text-red-600 focus:outline-none" @click="gameSchedType==='watchlist' ? removeFromWatchlist('league', index, league) : unselectLeague(index)"><i class="fas fa-times-circle"></i></button>
                             <button type="button" class="mt-1 pr-1 text-orange-500 focus:outline-none" @click="toggleLeague(index)">
                                 <span v-show="closedLeagues.includes(index)"><i class="fas fa-chevron-down"></i></span>
                                 <span v-show="!closedLeagues.includes(index)"><i class="fas fa-chevron-up"></i></span>
@@ -109,28 +109,24 @@ export default {
         },
         unselectLeague(league) {
             let token = Cookies.get('mltoken')
-            this.$store.commit('trade/REMOVE_SELECTED_LEAGUE', league)
+            this.$store.commit('trade/REMOVE_SELECTED_LEAGUE', { schedule: this.gameSchedType, league: league })
             this.$store.commit('trade/REMOVE_FROM_EVENTS', { schedule: this.gameSchedType, removedLeague: league })
-
-            axios.post('v1/trade/leagues/toggle', { data: league, sport_id: this.selectedSport }, { headers: { 'Authorization': `Bearer ${token}` } })
-            .catch(err => {
-                this.$store.dispatch('auth/checkIfTokenIsValid', err.response.data.status_code)
-            })
+            this.$store.dispatch('trade/toggleLeague', { league_name: league, sport_id: this.selectedSport, schedule: this.gameSchedType })
         },
         addToWatchlist(type, data, payload) {
             let token = Cookies.get('mltoken')
             axios.post('v1/trade/watchlist/add', { type: type, data: data }, { headers: { 'Authorization': `Bearer ${token}` }})
             .then(() => {
                 if(type==='league') {
-                    axios.post('v1/trade/leagues/toggle', { league_name: data, sport_id: this.selectedSport, schedule: this.gameSchedType }, { headers: { 'Authorization': `Bearer ${token}` } })
-                    this.$store.commit('trade/REMOVE_SELECTED_LEAGUE', data)
+                    this.$store.dispatch('trade/toggleLeague', { league_name: data, sport_id: this.selectedSport, schedule: this.gameSchedType })
+                    this.$store.commit('trade/REMOVE_SELECTED_LEAGUE', { schedule: this.gameSchedType, league: data })
                     this.$store.commit('trade/REMOVE_FROM_EVENTS', { schedule: this.gameSchedType, removedLeague: data })
                 } else if(type==='event') {
                     this.$store.commit('trade/REMOVE_EVENT', { schedule: this.gameSchedType, removedLeague: payload.league_name, removedEvent: data})
                     this.$store.commit('trade/REMOVE_FROM_EVENT_LIST', { type: 'uid', data: data })
                     if(this.events[this.gameSchedType][payload.league_name].length === 0) {
-                        axios.post('v1/trade/leagues/toggle', { league_name: data, sport_id: this.selectedSport, schedule: this.gameSchedType }, { headers: { 'Authorization': `Bearer ${token}` } })
-                        this.$store.commit('trade/REMOVE_SELECTED_LEAGUE', payload.league_name)
+                        this.$store.dispatch('trade/toggleLeague', { league_name: payload.league_name, sport_id: this.selectedSport, schedule: this.gameSchedType })
+                        this.$store.commit('trade/REMOVE_SELECTED_LEAGUE', { schedule: this.gameSchedType, league: payload.league_name })
                         this.$store.commit('trade/REMOVE_FROM_EVENTS', { schedule: this.gameSchedType, removedLeague: payload.league_name })
                     }
                 }

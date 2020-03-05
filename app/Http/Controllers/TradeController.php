@@ -230,9 +230,9 @@ class TradeController extends Controller
                     );
                 } else {
                     foreach ($userSelectedLeagueTable as $key => $row) {
-                        if (strpos($key, 'userId:' . $userId . ':sId:' . $request->sport_id . ':schedule:' . $request->schedule) == 0) {
+                        if (strpos($key, 'userId:' . $userId . ':sId:' . $request->sport_id . ':schedule:' . $request->schedule) === 0) {
                             if ($row['league_name'] == $request->league_name) {
-                                $userSelectedLeagueTable->del($swtKey);
+                                $userSelectedLeagueTable->del($key);
                             }
                         }
                     }
