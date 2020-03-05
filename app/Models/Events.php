@@ -2,10 +2,12 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\{Model, SoftDeletes};
 
 class Events extends Model
 {
+    use SoftDeletes;
+
     protected $table = "events";
 
     protected $fillable = [
@@ -16,7 +18,8 @@ class Events extends Model
         'home_team_name',
         'away_team_name',
         'ref_schedule',
-        'game_schedule'
+        'game_schedule',
+        'deleted_at'
     ];
 
     protected $hidden = [
