@@ -232,7 +232,7 @@ class TradeController extends Controller
                     foreach ($userSelectedLeagueTable as $key => $row) {
                         if (strpos($key, 'userId:' . $userId . ':sId:' . $request->sport_id . ':schedule:' . $request->schedule) == 0) {
                             if ($row['league_name'] == $request->league_name) {
-                                $userSelectedLeagueTable->del($swtKey);
+                                $userSelectedLeagueTable->del($key);
                             }
                         }
                     }
@@ -251,7 +251,7 @@ class TradeController extends Controller
             return response()->json([
                 'status'      => false,
                 'status_code' => 500,
-                'message'     => trans('generic.internal-server-error') . $e->getMessage()
+                'message'     => trans('generic.internal-server-error')
             ], 500);
         }
     }

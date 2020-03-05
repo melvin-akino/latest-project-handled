@@ -31,6 +31,7 @@ class DataToSwt implements CustomProcessInterface
             'UserWatchlist',
             'UserProviderConfig',
             'ActiveEvents',
+            'UserSelectedLeagues'
         ];
         foreach ($swooleProcesses as $process) {
             $method = "db2Swt" . $process;
@@ -38,12 +39,6 @@ class DataToSwt implements CustomProcessInterface
         }
 
         $swoole->wsTable->set('data2Swt', ['value' => true]);
-
-//        $table = $swoole->activeEventsTable;
-//        foreach ($table as $key => $row) {
-//            var_dump($key);
-//            var_dump($row);
-//        }
 
         while (!self::$quit) {}
     }
@@ -328,5 +323,26 @@ class DataToSwt implements CustomProcessInterface
             $activeEvents->set('sId:' . $event->sport_id . ':pId:' . $event->provider_id . ':schedule:' . $event->game_schedule,
                 ['events' => json_encode($activeEventsArray)]);
         }, $events->toArray());
+    }
+
+    private static function db2SwtUserSelectedLeagues(Server $swoole)
+    {
+        $userSelectedLeagues = DB::table('user_selected_leagues')
+            ->get();
+        $userSelectedLeaguesTable = $swoole->userSelectedLeaguesTable;
+        array_map(function ($userSelectedLeague) use ($userSelectedLeaguesTable) {
+            $userSelectedLeaguesTable->set(
+                implode(':', [
+                    'userId:' . $userSelectedLeague->user_id,
+                    'sId:' . $userSelectedLeague->sport_id,
+                    'schedule:' . $userSelectedLeague->game_schedule,
+                    'uniqueId:' . uniqid()
+                ]), [
+                'userId'      => $userSelectedLeague->user_id,
+                'sId'         => $userSelectedLeague->sport_id,
+                'schedule'    => $userSelectedLeague->game_schedule,
+                'league_name' => $userSelectedLeague->master_league_name
+            ]);
+        }, $userSelectedLeagues->toArray());
     }
 }
