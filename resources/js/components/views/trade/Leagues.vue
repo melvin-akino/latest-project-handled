@@ -16,7 +16,7 @@
 
 <script>
 import { mapState } from 'vuex'
-import Cookies from 'js-cookie'
+//import Cookies from 'js-cookie'
 import _ from 'lodash'
 import { getSocketKey, getSocketValue } from '../../../helpers/socket'
 
@@ -39,7 +39,8 @@ export default {
     },
     mounted() {
         this.getLeagues()
-        this.selectedLeagueSchedMode = Cookies.get('leagueSchedMode') || 'today'
+        //this.selectedLeagueSchedMode = Cookies.get('leagueSchedMode') || 'today'
+        this.selectedLeagueSchedMode ='Today'
     },
     methods: {
         getLeagues() {
@@ -103,12 +104,14 @@ export default {
             }
         },
         selectLeagueSchedMode(schedMode) {
-            Cookies.set('leagueSchedMode', schedMode)
+            //Cookies.set('leagueSchedMode', schedMode)
             this.selectedLeagueSchedMode = schedMode
             this.filterLeaguesBySched(schedMode)
         },
         selectLeague(league) {
-            let token = Cookies.get('mltoken')
+            //let token = Cookies.get('mltoken')
+            let token ='abc'
+
             if(this.selectedLeagues[this.selectedLeagueSchedMode].includes(league)) {
                 this.$store.commit('trade/REMOVE_SELECTED_LEAGUE', { schedule: this.selectedLeagueSchedMode, league: league })
                 this.$store.commit('trade/REMOVE_FROM_EVENTS', { schedule: this.selectedLeagueSchedMode, removedLeague: league })
