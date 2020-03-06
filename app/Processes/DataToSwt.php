@@ -40,7 +40,28 @@ class DataToSwt implements CustomProcessInterface
 
         $swoole->wsTable->set('data2Swt', ['value' => true]);
 
-        while (!self::$quit) {}
+        while (!self::$quit) {
+            self::getUpdatedOdds($swoole);
+        }
+    }
+
+    private static function getUpdatedOdds($swoole)
+    {
+        $table = $swoole->wsTable;
+        foreach ($table as $k => $r) {
+            if (strpos($k, 'updatedEvents:') === 0) {
+                foreach ($table as $key => $row) {
+                    $updatedMarkets = json_decode($r['value']);
+                    if (!empty($updatedMarkets)) {
+                        if (strpos($key, 'fd:') === 0) {
+                            $fd = $table->get('uid:' . $row['value']);
+                            $swoole->push($fd['value'], json_encode(['getUpdatedOdds' => $updatedMarkets]));
+                            $table->del($k);
+                        }
+                    }
+                }
+            }
+        }
     }
 
     // Requirements: LaravelS >= v3.4.0 & callback() must be async non-blocking program.

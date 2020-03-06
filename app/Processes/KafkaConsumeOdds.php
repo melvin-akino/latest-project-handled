@@ -2,8 +2,9 @@
 
 namespace App\Processes;
 
-use App\Jobs\TransformKafkaMessageOdds;
+use App\Tasks\TransformKafkaMessageOdds;
 use Hhxsv5\LaravelS\Swoole\Process\CustomProcessInterface;
+use Hhxsv5\LaravelS\Swoole\Task\Task;
 use Illuminate\Support\Facades\Log;
 use Swoole\Http\Server;
 use Swoole\Process;
@@ -27,14 +28,14 @@ class KafkaConsumeOdds implements CustomProcessInterface
                 if ($message->err == RD_KAFKA_RESP_ERR_NO_ERROR) {
                     $kafkaTable->set('message:' . $message->offset, ['value' => $message->payload]);
 
-                    TransformKafkaMessageOdds::dispatch($message);
+                    $task = new TransformKafkaMessageOdds($message);
+                    Task::deliver($task);
 
                     $kafkaConsumer->commitAsync($message);
                 } else {
-                    Log::error(json_encode([$message]));
+                    Log::error($message);
                 }
-
-                self::getUpdatedOdds($swoole);
+                sleep(1);
             }
         }
     }
@@ -43,24 +44,5 @@ class KafkaConsumeOdds implements CustomProcessInterface
     public static function onReload(Server $swoole, Process $process)
     {
         self::$quit = true;
-    }
-
-    private static function getUpdatedOdds($swoole)
-    {
-        $table = $swoole->wsTable;
-        foreach ($table as $k => $r) {
-            if (strpos($k, 'updatedEvents:') === 0) {
-                foreach ($table as $key => $row) {
-                    $updatedMarkets = json_decode($r['value']);
-                    if (!empty($updatedMarkets)) {
-                        if (strpos($key, 'fd:') === 0) {
-                            $fd = $table->get('uid:' . $row['value']);
-                            $swoole->push($fd['value'], json_encode(['getUpdatedOdds' => $updatedMarkets]));
-                            $table->del($k);
-                        }
-                    }
-                }
-            }
-        }
     }
 }

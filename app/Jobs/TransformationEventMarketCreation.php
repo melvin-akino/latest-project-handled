@@ -3,9 +3,6 @@
 namespace App\Jobs;
 
 use App\Models\{EventMarket,
-    Events,
-    MasterEvent,
-    MasterEventLink,
     MasterEventMarket,
     MasterEventMarketLink,
     MasterEventMarketLog};
@@ -23,6 +20,8 @@ class TransformationEventMarketCreation implements ShouldQueue
 
     public function handle()
     {
+        $swoole = app('swoole');
+
         if (!empty($this->data['MasterEventMarket']['isNew'])) {
             $masterEventMarketModel = MasterEventMarket::create($this->data['MasterEventMarket']['data']);
         } else {
@@ -32,7 +31,6 @@ class TransformationEventMarketCreation implements ShouldQueue
 
         if ($masterEventMarketModel) {
             $masterEventMarketId = $masterEventMarketModel->id;
-            app('swoole')->eventMarketsTable[$this->data['MasterEventMarket']['swtKey']]['id'] = $masterEventMarketId;
 
             $eventMarketModel = EventMarket::create($this->data['EventMarket']['data']);
             $eventMarketId = $eventMarketModel->id;
@@ -44,6 +42,20 @@ class TransformationEventMarketCreation implements ShouldQueue
 
             $this->data['MasterEventMarketLog']['data']['master_event_market_id'] = $masterEventMarketId;
             MasterEventMarketLog::create($this->data['MasterEventMarketLog']['data']);
+
+            $array = [
+                'odd_type_id'                   => $this->data['MasterEventMarket']['data']['odd_type_id'],
+                'master_event_market_unique_id' => $this->data['MasterEventMarket']['data']['master_event_market_unique_id'],
+                'master_event_unique_id'        => $this->data['MasterEventMarket']['data']['master_event_unique_id'],
+                'provider_id'                   => $this->data['EventMarket']['data']['provider_id'],
+                'odds'                          => $this->data['EventMarket']['data']['odds'],
+                'odd_label'                     => $this->data['EventMarket']['data']['odd_label'],
+                'bet_identifier'                => $this->data['EventMarket']['data']['bet_identifier'],
+                'is_main'                       => $this->data['MasterEventMarket']['data']['is_main'],
+                'market_flag'                   => $this->data['MasterEventMarket']['data']['market_flag'],
+            ];
+
+            $swoole->eventMarketsTable->set($this->data['MasterEventMarket']['swtKey'], $array);
         }
     }
 }

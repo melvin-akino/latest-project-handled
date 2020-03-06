@@ -205,35 +205,26 @@ class TradeController extends Controller
     {
         try {
             $checkTable = UserSelectedLeague::where('user_id', auth()->user()->id)
-                ->where('master_league_name', $request->league_name)
-                ->where('game_schedule', $request->schedule);
+                ->where('master_league_name', $request->data);
 
-            $userSelectedLeagueTable = app('swoole')->userSelectedLeaguesTable;
             if (Sport::find($request->sport_id)) {
+                $wsTable = app('swoole')->wsTable;
                 $userId = auth()->user()->id;
-                $swtKey = 'userId:' . $userId . ':sId:' . $request->sport_id . ':schedule:' . $request->schedule . ':uniqueId:' . uniqid();
                 if ($checkTable->count() == 0) {
-                    $userSelectedLeagueTable->set($swtKey, [
-                        'user_id'     => $userId,
-                        'schedule'    => $request->schedule,
-                        'league_name' => $request->league_name,
-                        'sport_id'    => $request->sport_id
-                    ]);
+                    $wsTableKey = 'userSelectedLeagues:' . $userId . ':sId:' . $request->sport_id . ':uniqueId:' . uniqid();
+                    $wsTable->set($wsTableKey, ['value' => $request->data]);
 
                     UserSelectedLeague::create(
                         [
                             'user_id'            => $userId,
-                            'master_league_name' => $request->league_name,
-                            'game_schedule'      => $request->schedule,
-                            'sport_id'           => $request->sport_id
+                            'master_league_name' => $request->data
                         ]
                     );
                 } else {
-                    foreach ($userSelectedLeagueTable as $key => $row) {
-                        if (strpos($key, 'userId:' . $userId . ':sId:' . $request->sport_id . ':schedule:' . $request->schedule) === 0) {
-                            if ($row['league_name'] == $request->league_name) {
-                                $userSelectedLeagueTable->del($key);
-                            }
+                    foreach ($wsTable as $key => $row) {
+                        if (strpos($key, 'userSelectedLeagues:' . $userId) === 0 && $row['value'] == $request->data) {
+                            $wsTable->del($key);
+                            break;
                         }
                     }
                     $checkTable->delete();
