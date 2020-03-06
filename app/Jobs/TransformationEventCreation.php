@@ -44,4 +44,9 @@ class TransformationEventCreation implements ShouldQueue
             }
         }
     }
+
+    public function finish()
+    {
+        TransformationEventMarketCreation::dispatch($this->data);
+    }
 }

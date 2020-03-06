@@ -183,10 +183,11 @@ return [
                 [ 'name' => 'market_flag',                   'type' => \Swoole\Table::TYPE_STRING, 'size' => 5 ],
             ],
         ],
-        'transformed' => [ //key format [uid:$uid:pId:$providerId] = [value = json_encode($value)]
+        'transformed' => [ //key format [eventIdentifier:$eventIdentifier] = [ts => $ts, ...]
             'size'   => 102400,
             'column' => [ // key format [uid:$uid]
-                [ 'name' => 'value', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 5000 ],
+                [ 'name' => 'ts', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 30],
+                [ 'name' => 'hash', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 32],
             ],
         ],
         'userProviderConfig' => [
