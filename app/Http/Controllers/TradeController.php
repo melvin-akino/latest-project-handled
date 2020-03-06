@@ -283,6 +283,7 @@ class TradeController extends Controller
                 }
 
                 $transformed = $transformed->whereNull('me.deleted_at')
+                    ->where('mem.is_main', true)
                     ->select('ml.sport_id', 'ml.master_league_name', 's.sport', //'mll.provider_id',
                         'me.master_event_unique_id', 'me.master_home_team_name', 'me.master_away_team_name',
                         'me.ref_schedule', 'me.game_schedule', 'me.score', 'me.running_time',
@@ -291,8 +292,6 @@ class TradeController extends Controller
                     ->distinct()->get();
 
                 array_map(function ($transformed) use (&$data, $row) {
-                    $mainOrOther = $transformed->is_main ? 'main' : 'other';
-
                     if (empty($data[$row][$transformed->game_schedule][$transformed->master_league_name][$transformed->master_event_unique_id])) {
                         $data[$row][$transformed->game_schedule][$transformed->master_league_name][$transformed->master_event_unique_id] = [
                             'sport_id'      => $transformed->sport_id,
@@ -319,14 +318,14 @@ class TradeController extends Controller
                         ];
                     }
 
-                    if (empty($data[$row][$transformed->game_schedule][$transformed->master_league_name][$transformed->master_event_unique_id]['market_odds'][$mainOrOther][$transformed->type][$transformed->market_flag]) && $transformed->is_main == 'main') {
-                        $data[$row][$transformed->game_schedule][$transformed->master_league_name][$transformed->master_event_unique_id]['market_odds'][$mainOrOther][$transformed->type][$transformed->market_flag] = [
+                    if (empty($data[$row][$transformed->game_schedule][$transformed->master_league_name][$transformed->master_event_unique_id]['market_odds']['main'][$transformed->type][$transformed->market_flag])) {
+                        $data[$row][$transformed->game_schedule][$transformed->master_league_name][$transformed->master_event_unique_id]['market_odds']['main'][$transformed->type][$transformed->market_flag] = [
                             'odds' => (double) $transformed->odds,
                             'market_id' => $transformed->master_event_market_unique_id
                         ];
 
                         if (!empty($transformed->odd_label)) {
-                            $data[$row][$transformed->game_schedule][$transformed->master_league_name][$transformed->master_event_unique_id]['market_odds'][$mainOrOther][$transformed->type][$transformed->market_flag]['points'] = $transformed->odd_label;
+                            $data[$row][$transformed->game_schedule][$transformed->master_league_name][$transformed->master_event_unique_id]['market_odds']['main'][$transformed->type][$transformed->market_flag]['points'] = $transformed->odd_label;
                         }
                     }
 
