@@ -100,6 +100,8 @@ Route::group([
             Route::get('/', 'TradeController@getInitialLeagues');
             Route::post('toggle', 'TradeController@postManageSidebarLeagues');
         });
+
+        Route::get('events', 'TradeController@getUserEvents');
     });
 });
 

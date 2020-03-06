@@ -92,7 +92,7 @@ export default {
                             }
                         })
                     })
-                    this.events.watchlist = watchlistObject
+                    this.$store.commit('trade/SET_WATCHLIST', watchlistObject)
                 }
             })
         },
@@ -129,7 +129,6 @@ export default {
             })
         },
         getForRemovalEvents() {
-            this.$socket.send('getForRemovalEvents')
             this.$options.sockets.onmessage = (response => {
                 if(getSocketKey(response.data) === 'getForRemovalEvents') {
                     let removedEvents = getSocketValue(response.data, 'getForRemovalEvents')
