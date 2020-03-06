@@ -3,7 +3,6 @@
 namespace App\Tasks;
 
 use Illuminate\Support\Facades\Log;
-use App\Jobs\{TransformationEventMarketCreation, TransformationEventCreation, TransformationEventMarketUpdate};
 use Hhxsv5\LaravelS\Swoole\Task\Task;
 use Illuminate\Support\Str;
 use Exception;
@@ -60,23 +59,6 @@ class TransformKafkaMessageOdds extends Task
             }
         }
 
-        $timestampSwtId = implode(':', [
-            /** LEAGUE NAME */
-            'ln:' . $this->message->data->leagueName,
-            /** REFERENCE SCHEDULE */
-            'rs:' . $this->message->data->referenceSchedule
-        ]);
-
-        if ($wsTable->exists($timestampSwtId)) {
-            $swooleTS = $wsTable[$timestampSwtId]['value'];
-
-            if ($swooleTS > $this->message->request_ts) {
-                return;
-            }
-        }
-
-        $wsTable[$timestampSwtId]['value'] = $this->message->request_ts;
-
         $toInsert    = [];
         $updated     = false;
 
@@ -90,6 +72,24 @@ class TransformKafkaMessageOdds extends Task
         $oddTypesTable      = $swoole->oddTypesTable;
         $sportOddTypesTable = $swoole->sportOddTypesTable;
         $eventMarketsTable  = $swoole->eventMarketsTable;
+        $transformedTable   = $swoole->transformedTable;
+
+        $transformedSwtId = 'eventIdentifier:' . $this->message->data->events[0]->eventId;
+        if ($transformedTable->exists($transformedSwtId)) {
+            $ts = $transformedTable->get($transformedSwtId)['ts'];
+            $hash = $transformedTable->get($transformedSwtId)['hash'];
+            if ($ts > $this->message->request_ts) {
+                echo "return 1";
+                return;
+            }
+
+            $toHashMessage = $this->message->data;
+            unset($toHashMessage->running_time, $toHashMessage->id);
+            if ($hash == md5(json_encode((array) $toHashMessage))) {
+                echo "return 2";
+                return;
+            }
+        }
 
         /**
          * PROVIDERS Swoole Table
@@ -205,9 +205,6 @@ class TransformKafkaMessageOdds extends Task
             if ($eventsTable->exists($eventSwtId)) {
                 $eventId            = $eventsTable->get($eventSwtId)['id'];
                 $uid                = $eventsTable->get($eventSwtId)['master_event_unique_id'];
-                $masterTeamHome = $eventsTable->get($eventSwtId)['master_home_team_name'];
-                $masterTeamAway = $eventsTable->get($eventSwtId)['master_away_team_name'];
-                $masterLeagueName = $eventsTable->get($eventSwtId)['master_league_name'];
             } else {
                 $masterTeamHome = $multiTeam['home']['name'];
                 $masterTeamAway = $multiTeam['away']['name'];
@@ -218,34 +215,6 @@ class TransformKafkaMessageOdds extends Task
                     $multiLeagueId,
                     $this->message->data->events[0]->eventId
                 ]);
-
-                /** TO INSERT */
-                $toInsert['MasterEvent']['swtKey'] = $eventSwtId;
-                $toInsert['MasterEvent']['data'] = [
-                    'sport_id'               => $sportId,
-                    'master_event_unique_id' => $uid,
-                    'master_league_name'     => $masterLeagueName,
-                    'master_home_team_name'  => $masterTeamHome,
-                    'master_away_team_name'  => $masterTeamAway,
-                    'ref_schedule'           => date("Y-m-d H:i:s", strtotime($this->message->data->referenceSchedule)),
-                    'game_schedule'          => $this->message->data->schedule,
-                    'score'                  => $this->message->data->home_score . "|" . $this->message->data->away_score,
-                    'running_time'           => $this->message->data->running_time,
-                    'home_penalty'           => $this->message->data->home_redcard,
-                    'away_penalty'           => $this->message->data->away_redcard,
-                ];
-                $toInsert['Event']['data'] = [
-                    'sport_id'         => $sportId,
-                    'provider_id'      => $providerId,
-                    'event_identifier' => $this->message->data->events[0]->eventId,
-                    'league_name'      => $this->message->data->leagueName,
-                    'home_team_name'   => $this->message->data->homeTeam,
-                    'away_team_name'   => $this->message->data->awayTeam,
-                    'ref_schedule'     => date("Y-m-d H:i:s", strtotime($this->message->data->referenceSchedule)),
-                    'game_schedule'    => $this->message->data->schedule,
-                ];
-
-                TransformationEventCreation::dispatch($toInsert);
             }
         }
 
@@ -343,6 +312,32 @@ class TransformKafkaMessageOdds extends Task
                                 $memUID = uniqid();
                             }
 
+                            /** TO INSERT */
+                            $toInsert['MasterEvent']['swtKey'] = $eventSwtId;
+                            $toInsert['MasterEvent']['data'] = [
+                                'sport_id'               => $sportId,
+                                'master_event_unique_id' => $uid,
+                                'master_league_name'     => $masterLeagueName,
+                                'master_home_team_name'  => $masterTeamHome,
+                                'master_away_team_name'  => $masterTeamAway,
+                                'ref_schedule'           => date("Y-m-d H:i:s", strtotime($this->message->data->referenceSchedule)),
+                                'game_schedule'          => $this->message->data->schedule,
+                                'score'                  => $this->message->data->home_score . "|" . $this->message->data->away_score,
+                                'running_time'           => $this->message->data->running_time,
+                                'home_penalty'           => $this->message->data->home_redcard,
+                                'away_penalty'           => $this->message->data->away_redcard,
+                            ];
+                            $toInsert['Event']['data'] = [
+                                'sport_id'         => $sportId,
+                                'provider_id'      => $providerId,
+                                'event_identifier' => $this->message->data->events[0]->eventId,
+                                'league_name'      => $this->message->data->leagueName,
+                                'home_team_name'   => $this->message->data->homeTeam,
+                                'away_team_name'   => $this->message->data->awayTeam,
+                                'ref_schedule'     => date("Y-m-d H:i:s", strtotime($this->message->data->referenceSchedule)),
+                                'game_schedule'    => $this->message->data->schedule,
+                            ];
+
                             $toInsert['MasterEventMarket']['isNew']  = empty($eventId) ? true : false;
                             $toInsert['MasterEventMarket']['swtKey'] = "marketId:" . $markets->market_id;
                             $toInsert['MasterEventMarket']['data']   = [
@@ -372,21 +367,17 @@ class TransformKafkaMessageOdds extends Task
                                 'market_flag' => strtoupper($markets->indicator),
                             ];
 
-                            TransformationEventMarketCreation::dispatch($toInsert);
+                            Task::deliver(new TransformationEventCreation($toInsert));
                         }
                     }
                 }
                 $counter++;
             }
-        }
-        Log::info("Transformation finished");
 
-        $endTime = microtime(true);
-
-        if (!empty($memUID)) {
-            var_dump("S " . $startTime);
-            var_dump("E " . $endTime);
-            var_dump("S - E = " . ($endTime - $startTime));
+            $transformedTable->set($transformedSwtId, [
+                'ts' => $this->message->request_ts,
+                'hash' => md5(json_encode((array)$this->message->data))
+            ]);
         }
 
         if ($updated) {
@@ -395,8 +386,18 @@ class TransformKafkaMessageOdds extends Task
             $WSOddsSwtId = "updatedEvents:" . $uid;
             $wsTable->set($WSOddsSwtId, [ 'value' => json_encode($updatedOdds) ]);
             array_map(function($odds) use ($wsTable, $uid) {
-                TransformationEventMarketUpdate::dispatch($odds['market_id'], $odds['odds']);
+                Task::deliver(new TransformationEventMarketUpdate($odds['market_id'], $odds['odds']));
             }, $updatedOdds);
+        }
+
+        Log::info("Transformation finished");
+
+        $endTime = microtime(true);
+
+        if (!empty($memUID)) {
+            var_dump("S " . $startTime);
+            var_dump("E " . $endTime);
+            var_dump("S - E = " . ($endTime - $startTime));
         }
     }
 }
