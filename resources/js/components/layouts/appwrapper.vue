@@ -40,7 +40,7 @@
 <script>
 import Logo from '../../../assets/images/icon.png'
 import axios from 'axios'
-import Cookies from 'js-cookie'
+//import Cookies from 'js-cookie'
 import moment from 'moment-timezone'
 import { mapState } from 'vuex'
 
@@ -59,7 +59,8 @@ export default {
     },
     mounted() {
         this.getDefaultTimezone()
-        this.display_name = Cookies.get('display_name')
+        //this.display_name = Cookies.get('display_name')
+        this.display_name='abc'
     },
     methods: {
         async getDefaultTimezone() {
@@ -84,13 +85,14 @@ export default {
             }
         },
         logout() {
-            let token = Cookies.get('mltoken')
+            //let token = Cookies.get('mltoken')
+            let token ='abc'
 
             axios.post('/v1/auth/logout', null, { headers: { 'Authorization': `Bearer ${token}` } })
             .then(response => {
                 location.reload('/login')
-                Cookies.remove('mltoken')
-                Cookies.remove('display_name')
+               // Cookies.remove('mltoken')
+                //Cookies.remove('display_name')
                 setTimeout(() => {
                     this.$store.commit('auth/SET_IS_AUTHENTICATED', false)
                 }, 2000)

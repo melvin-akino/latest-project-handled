@@ -81,7 +81,7 @@
 
 <script>
 import { mapState } from 'vuex'
-import Cookies from 'js-cookie'
+//import Cookies from 'js-cookie'
 import _ from 'lodash'
 
 export default {
@@ -108,13 +108,15 @@ export default {
             }
         },
         unselectLeague(league) {
-            let token = Cookies.get('mltoken')
+            //let token = Cookies.get('mltoken')
+            let token ='abc'
             this.$store.commit('trade/REMOVE_SELECTED_LEAGUE', { schedule: this.gameSchedType, league: league })
             this.$store.commit('trade/REMOVE_FROM_EVENTS', { schedule: this.gameSchedType, removedLeague: league })
             this.$store.dispatch('trade/toggleLeague', { league_name: league, sport_id: this.selectedSport, schedule: this.gameSchedType })
         },
         addToWatchlist(type, data, payload) {
-            let token = Cookies.get('mltoken')
+            //let token = Cookies.get('mltoken')
+            let token = 'abc'
             axios.post('v1/trade/watchlist/add', { type: type, data: data }, { headers: { 'Authorization': `Bearer ${token}` }})
             .then(() => {
                 if(type==='league') {
@@ -137,7 +139,8 @@ export default {
             })
         },
         removeFromWatchlist(type, data, payload) {
-            let token = Cookies.get('mltoken')
+            //let token = Cookies.get('mltoken')
+            let token ='abc'
             axios.post('v1/trade/watchlist/remove', { type: type, data: data }, { headers: { 'Authorization': `Bearer ${token}` }})
             .then(response => {
                 if(type==='league') {

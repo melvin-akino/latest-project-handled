@@ -77,7 +77,7 @@
 </template>
 
 <script>
-import Cookies from 'js-cookie'
+//import Cookies from 'js-cookie'
 import Swal from 'sweetalert2'
 
 export default {
@@ -110,7 +110,8 @@ export default {
     },
     methods: {
         getUserConfig() {
-            let token = Cookies.get('mltoken')
+            //let token = Cookies.get('mltoken')
+            let token = 'abc'
 
             axios.get('v1/user/settings/trade-page', { headers: { 'Authorization': `Bearer ${token}` } })
             .then(response => {
@@ -130,7 +131,8 @@ export default {
             }
         },
         saveChanges() {
-            let token = Cookies.get('mltoken')
+            //let token = Cookies.get('mltoken')
+            let token ='abc'
             let data = {
                 suggested: this.tradePageSettingsForm.suggested,
                 trade_background: this.tradePageSettingsForm.trade_background,

@@ -50,7 +50,7 @@
 
 <script>
 import { required, email } from 'vuelidate/lib/validators'
-import Cookies from 'js-cookie'
+//import Cookies from 'js-cookie'
 import Swal from 'sweetalert2'
 
 export default {
@@ -98,13 +98,13 @@ export default {
                 try {
                     const response = await axios.post('/v1/auth/login', { email: this.loginForm.email, password: this.loginForm.password })
                     if(this.loginForm.remember_me) {
-                        await Cookies.set('mltoken', response.data.access_token, { expires: new Date(response.data.expires_at) })
+                        //await Cookies.set('mltoken', response.data.access_token, { expires: new Date(response.data.expires_at) })
                     } else {
                         await Cookies.set('mltoken', response.data.access_token)
                     }
 
                     const user = await axios.get('/v1/user', { headers: { 'Authorization': `Bearer ${response.data.access_token}` } })
-                    await Cookies.set('display_name', user.data.data.name)
+                    //await Cookies.set('display_name', user.data.data.name)
                     location.reload('/')
                     setTimeout(() => {
                         this.$store.commit('auth/SET_IS_AUTHENTICATED', true)

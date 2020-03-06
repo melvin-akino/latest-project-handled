@@ -18,7 +18,7 @@
 </template>
 
 <script>
-import Cookies from 'js-cookie'
+//import Cookies from 'js-cookie'
 
 export default {
     data() {
@@ -34,7 +34,8 @@ export default {
     },
     methods: {
         getWalletData() {
-            let token = Cookies.get('mltoken')
+            //let token = Cookies.get('mltoken')
+            let token ='abc'
 
             axios.get('v1/user/wallet', { headers: { 'Authorization': `Bearer ${token}` }})
             .then(response => {

@@ -26,7 +26,7 @@
 
 <script>
 import { mapState } from 'vuex'
-import Cookies from 'js-cookie'
+//import Cookies from 'js-cookie'
 import Leagues from './Leagues'
 import { getSocketKey, getSocketValue } from '../../../helpers/socket.js'
 import _ from 'lodash'
@@ -84,7 +84,8 @@ export default {
             }
         },
         getSports() {
-            let token = Cookies.get('mltoken')
+            //let token = Cookies.get('mltoken')
+            let token ='abc'
 
             axios.get('v1/sports', { headers: { 'Authorization': `Bearer ${token}` } })
             .then(response => this.sports = response.data.data)

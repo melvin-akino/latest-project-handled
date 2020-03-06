@@ -16,7 +16,7 @@
 </template>
 
 <script>
-import Cookies from 'js-cookie'
+//import Cookies from 'js-cookie'
 import Swal from 'sweetalert2'
 
 export default {
@@ -39,7 +39,8 @@ export default {
     },
     methods: {
         getBookies() {
-            let token = Cookies.get('mltoken')
+            //let token = Cookies.get('mltoken')
+            let token ='abc'
 
             axios.get('v1/bookies', { headers: { 'Authorization': `Bearer ${token}` }})
             .then(response => this.bookies = response.data.data)
@@ -48,7 +49,8 @@ export default {
             })
         },
         getUserConfig() {
-            let token = Cookies.get('mltoken')
+            //let token = Cookies.get('mltoken')
+            let token='abc'
 
             axios.get('v1/user/settings/bookies', { headers: { 'Authorization': `Bearer ${token}` }})
             .then(response => this.disabledBookies = response.data.data.disabled_bookies)
@@ -57,7 +59,8 @@ export default {
             })
         },
         saveChanges() {
-            let token = Cookies.get('mltoken')
+            //let token = Cookies.get('mltoken')
+            let token='abc'
             let data = this.bookies.map(bookie => {
                 return {
                     provider_id: bookie.id,

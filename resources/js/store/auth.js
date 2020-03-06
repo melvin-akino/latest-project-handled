@@ -1,4 +1,4 @@
-import Cookies from 'js-cookie'
+//import Cookies from 'js-cookie'
 
 const state = {
     isAuthenticated: false,
@@ -28,8 +28,8 @@ const actions = {
         let allowedErrorStatuses = [422, 400]
         if(!allowedErrorStatuses.includes(status)) {
             location.reload('/login')
-            Cookies.remove('mltoken')
-            Cookies.remove('display_name')
+            //Cookies.remove('mltoken')
+            //Cookies.remove('display_name')
             setTimeout(() => {
                 commit('auth/SET_IS_AUTHENTICATED', false)
             }, 2000)

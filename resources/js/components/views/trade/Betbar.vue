@@ -26,7 +26,7 @@
 
 <script>
 import { mapState } from 'vuex'
-import Cookies from 'js-cookie'
+//import Cookies from 'js-cookie'
 
 export default {
     data() {
@@ -45,7 +45,8 @@ export default {
             this.$store.commit('trade/TOGGLE_BETBAR', !this.isBetBarOpen)
         },
         getBetbarData() {
-            let token = Cookies.get('mltoken')
+            //let token = Cookies.get('mltoken')
+            let token ='abc'
 
             axios.get('v1/trade/betbar', { headers: { 'Authorization': `Bearer ${token}` }})
             .then(response => {

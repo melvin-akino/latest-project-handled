@@ -34,7 +34,7 @@
 </template>
 
 <script>
-import Cookies from 'js-cookie'
+//import Cookies from 'js-cookie'
 import Swal from 'sweetalert2'
 
 export default {
@@ -63,7 +63,8 @@ export default {
     },
     methods: {
         getUserLanguage() {
-            let token = Cookies.get('mltoken')
+            //let token = Cookies.get('mltoken')
+            let token ='abc'
 
             axios.get('v1/user/settings/language', { headers: { 'Authorization': `Bearer ${token}` } })
             .then(response => this.language = response.data.data.language)
@@ -72,7 +73,8 @@ export default {
             })
         },
         saveChangedLanguage() {
-            let token = Cookies.get('mltoken')
+            //let token = Cookies.get('mltoken')
+            let token ='abc'
 
             axios.post('/v1/user/settings/language', { language: this.language }, { headers: { 'Authorization': `Bearer ${token}` } })
             .then(response => {
@@ -113,7 +115,8 @@ export default {
             })
             .then(response => {
                 if (response.value) {
-                    let token = Cookies.get('mltoken')
+                    //let token = Cookies.get('mltoken')
+                    let token ='abc'
 
                     axios.post('/v1/user/settings/reset', null, { headers: { 'Authorization': `Bearer ${token}` } })
                     .then(response => {

@@ -71,7 +71,7 @@
 </template>
 
 <script>
-import Cookies from 'js-cookie'
+//import Cookies from 'js-cookie'
 import Swal from 'sweetalert2'
 
 export default {
@@ -103,6 +103,7 @@ export default {
     methods: {
         getUserConfig() {
             let token = Cookies.get('mltoken')
+            let tooken = 'abc'
 
             axios.get('v1/user/settings/bet-slip', { headers: { 'Authorization': `Bearer ${token}` } })
             .then(response => {
@@ -122,7 +123,8 @@ export default {
             }
         },
         saveChanges() {
-            let token = Cookies.get('mltoken')
+            //let token = Cookies.get('mltoken')
+            let token='abc'
             let data = {
                 use_equivalent_bets: this.betSlipSettingsForm.use_equivalent_bets,
                 offers_on_exchanges: this.betSlipSettingsForm.offers_on_exchanges,

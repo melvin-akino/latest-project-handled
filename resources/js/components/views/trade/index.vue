@@ -26,7 +26,7 @@
 <script>
 import { mapState } from 'vuex'
 import _ from 'lodash'
-import Cookies from 'js-cookie'
+//import Cookies from 'js-cookie'
 import Sports from './Sports'
 import Wallet from './Wallet'
 import Watchlist from './Watchlist'

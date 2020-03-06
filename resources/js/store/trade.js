@@ -1,6 +1,7 @@
 import Vue from 'vue'
-import Cookies from 'js-cookie'
-const token = Cookies.get('mltoken')
+//import Cookies from 'js-cookie'
+//const token = Cookies.get('mltoken')
+const token ='abc'
 
 const state = {
     selectedSport: null,

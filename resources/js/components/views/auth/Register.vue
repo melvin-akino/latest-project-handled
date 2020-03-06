@@ -164,7 +164,7 @@
 <script>
 import { required, minLength, maxLength, alphaNum, sameAs, email, numeric } from 'vuelidate/lib/validators'
 import Swal from 'sweetalert2'
-import Cookies from 'js-cookie'
+//import Cookies from 'js-cookie'
 
 export default {
     name: 'Register',
@@ -275,8 +275,8 @@ export default {
             try {
                 const response = await axios.post('/v1/auth/login', { email: this.registerForm.step1.email, password: this.registerForm.step1.password })
                 const user = await axios.get('/v1/user', { headers: { 'Authorization': `Bearer ${response.data.access_token}` } })
-                Cookies.set('display_name', user.data.data.name)
-                Cookies.set('mltoken', response.data.access_token)
+              //  Cookies.set('display_name', user.data.data.name)
+              //  Cookies.set('mltoken', response.data.access_token)
                 await location.reload('/')
                 setTimeout(() => {
                     this.$store.commit('auth/SET_IS_AUTHENTICATED', true)

@@ -34,7 +34,7 @@
 
 <script>
 import { mapState } from 'vuex'
-import Cookies from 'js-cookie'
+//import Cookies from 'js-cookie'
 import Swal from 'sweetalert2'
 
 export default {
@@ -67,7 +67,8 @@ export default {
         },
         saveColumns() {
             this.showToggleColumnsModal = false
-            let token = Cookies.get('mltoken')
+           // let token = Cookies.get('mltoken')
+            let token ='abc'
             let data = this.filteredColumnsBySport.map(column => {
                 return {
                     sport_odd_type_id: column.sport_odd_type_id,

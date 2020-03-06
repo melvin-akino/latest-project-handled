@@ -34,7 +34,7 @@
 </template>
 
 <script>
-import Cookies from 'js-cookie'
+//import Cookies from 'js-cookie'
 import Swal from 'sweetalert2'
 
 export default {
@@ -69,7 +69,8 @@ export default {
             .catch(err => console.log(err))
         },
         getUserConfig() {
-            let token = Cookies.get('mltoken')
+            //let token = Cookies.get('mltoken')
+            let token ='abc'
 
             axios.get('v1/user/settings/general', { headers: { 'Authorization': `Bearer ${token}` } })
             .then(response => {
@@ -81,7 +82,8 @@ export default {
             })
         },
         async saveChanges() {
-            let token = Cookies.get('mltoken')
+            //let token = Cookies.get('mltoken')
+            let token='abc'
             let data = {
                 price_format: this.generalSettingsForm.price_format,
                 timezone: this.generalSettingsForm.timezone

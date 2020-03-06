@@ -24,7 +24,7 @@
 </template>
 
 <script>
-import Cookies from 'js-cookie'
+//import Cookies from 'js-cookie'
 import Swal from 'sweetalert2'
 
 export default {
@@ -58,7 +58,8 @@ export default {
             this.betColumns.filter(column => column.sport_id === sport_id).map(column => this.columnsToDisplay = column.odds)
         },
         getUserConfig() {
-            let token = Cookies.get('mltoken')
+            //let token = Cookies.get('mltoken')
+            let token ='abc'
 
             axios.get('v1/user/settings/bet-columns', { headers: { 'Authorization': `Bearer ${token}` }})
             .then(response => this.disabledBetColumns = response.data.data.disabled_columns)
@@ -67,7 +68,8 @@ export default {
             })
         },
         getBetColumns() {
-            let token = Cookies.get('mltoken')
+            //let token = Cookies.get('mltoken')
+            let token ='abc'
 
             axios.get('v1/sports/odds', { headers: { 'Authorization': `Bearer ${token}` }})
             .then(response => {
@@ -79,7 +81,8 @@ export default {
             })
         },
         saveChanges() {
-            let token = Cookies.get('mltoken')
+            //let token = Cookies.get('mltoken')
+            let token = 'abc'
             let odds = this.betColumns.map(column => column.odds).reduce((prevOddGroup, nextOddGroup) => prevOddGroup.concat(nextOddGroup))
             let data = odds.map(odd => {
                 return {

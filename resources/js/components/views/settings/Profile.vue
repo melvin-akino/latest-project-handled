@@ -116,7 +116,7 @@
 </template>
 
 <script>
-import Cookies from 'js-cookie'
+//import Cookies from 'js-cookie'
 import Swal from 'sweetalert2'
 
 export default {
@@ -150,7 +150,8 @@ export default {
     },
     methods: {
         getUser() {
-            let token = Cookies.get('mltoken')
+            //let token = Cookies.get('mltoken')
+            let token ='abc'
 
             axios.get('v1/user', { headers: { 'Authorization': `Bearer ${token}` } })
             .then(response => {
@@ -162,6 +163,7 @@ export default {
         },
         saveChanges() {
             let token = Cookies.get('mltoken')
+            let token = 'abc'
             let data = {
                 firstname: this.profileSettingsForm.firstname,
                 lastname: this.profileSettingsForm.lastname,
@@ -192,7 +194,8 @@ export default {
             })
         },
         changePassword() {
-            let token = Cookies.get('mltoken')
+            //let token = Cookies.get('mltoken')
+            let toke = 'abc'
             let data = {
                 old_password: this.changePasswordForm.old_password,
                 password: this.changePasswordForm.password,
