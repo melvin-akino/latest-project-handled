@@ -278,7 +278,8 @@ class TradeController extends Controller
                     $transformed = $transformed->join('user_watchlist AS uw', 'me.master_event_unique_id', '=', 'uw.master_event_unique_id')
                         ->where('uw.user_id', auth()->user()->id);
                 } else {
-                    $transformed = $transformed->join('user_selected_leagues AS sl', 'ml.master_league_name', '=', 'sl.master_league_name');
+                    $transformed = $transformed->join('user_selected_leagues AS sl', 'ml.master_league_name', '=', 'sl.master_league_name')
+                        ->where('sl.user_id', auth()->user()->id);
                 }
 
                 $transformed = $transformed->whereNull('me.deleted_at')
