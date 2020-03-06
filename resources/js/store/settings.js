@@ -1,6 +1,6 @@
 //import Cookies from 'js-cookie'
 //const token = Cookies.get('mltoken')
-const token ='abc'
+const token =''
 
 const state = {
     settingsData: {},
