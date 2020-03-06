@@ -55,6 +55,7 @@ export default {
         ...mapState('trade', ['isBetBarOpen', 'oddsTypeBySport', 'eventsList', 'events'])
     },
     mounted() {
+        this.getInitialEvents()
         this.getWatchlist()
         this.getUserTradeLayout()
         this.getEvents()
@@ -75,8 +76,34 @@ export default {
                 this.$store.dispatch('auth/checkIfTokenIsValid', err.response.data.status_code)
             })
         },
+        getInitialEvents() {
+            let token = Cookies.get('mltoken')
+
+            axios.get('v1/trade/events', { headers: { 'Authorization': `Bearer ${token}` }})
+            .then(response => {
+                if('user_selected' in response.data.data) {
+                    let schedule = ['inplay', 'today', 'early']
+                    schedule.map(schedule => {
+                        if(schedule in response.data.data.user_selected) {
+                            this.$store.commit('trade/SET_EVENTS', { schedule: schedule, events: response.data.data.user_selected[schedule]})
+                            Object.keys(response.data.data.user_selected[schedule]).map(league => {
+                               response.data.data.user_selected[schedule][league].map(event => {
+                                   this.$store.commit('trade/SET_EVENTS_LIST', event)
+                               })
+                            })
+                        }
+                    })
+                }
+
+                if('user_watchlist' in response.data.data) {
+                   this.$store.commit('trade/SET_WATCHLIST', response.data.data.user_watchlist)
+                }
+            })
+            .catch(err => {
+                this.$store.dispatch('auth/checkIfTokenIsValid', err.response.data.status_code)
+            })
+        },
         getWatchlist() {
-            this.$socket.send('getWatchlist')
             this.$options.sockets.onmessage = (response => {
                 if(getSocketKey(response.data) ===  'getWatchlist') {
                     let watchlist = getSocketValue(response.data, 'getWatchlist')

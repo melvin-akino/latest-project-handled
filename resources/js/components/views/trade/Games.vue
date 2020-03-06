@@ -126,6 +126,7 @@ export default {
                     payload.map(event => {
                         this.$store.commit('trade/SET_PREVIOUSLY_SELECTED_EVENTS', event.uid)
                     })
+                    Cookies.set('previouslySelectedEvents', JSON.stringify(this.previouslySelectedEvents))
                 } else if(type==='event') {
                     this.$store.commit('trade/REMOVE_EVENT', { schedule: this.gameSchedType, removedLeague: payload.league_name, removedEvent: payload.uid})
                     this.$store.commit('trade/REMOVE_FROM_EVENT_LIST', { type: 'uid', data: payload.uid })
@@ -134,6 +135,7 @@ export default {
                         this.$store.commit('trade/REMOVE_SELECTED_LEAGUE_BY_NAME', payload.league_name)
                         this.$store.commit('trade/REMOVE_FROM_EVENTS_BY_LEAGUE', payload.league_name)
                         this.$store.commit('trade/SET_PREVIOUSLY_SELECTED_EVENTS', payload.uid)
+                        Cookies.set('previouslySelectedEvents', JSON.stringify(this.previouslySelectedEvents))
                     }
                 }
                 this.$socket.send('getWatchlist')
@@ -149,22 +151,24 @@ export default {
                 if(type==='league') {
                     this.$store.commit('trade/REMOVE_FROM_EVENTS', { schedule: 'watchlist', removedLeague: data })
                     payload.map(event => {
-                        if(this.previouslySelectedEvents.includes(event.uid)) {
+                        if(JSON.parse(Cookies.get('previouslySelectedEvents')).includes(event.uid)) {
                             this.$store.dispatch('trade/toggleLeague', { league_name: event.league_name, sport_id: this.selectedSport, schedule: event.game_schedule  })
                             this.$store.commit('trade/ADD_TO_SELECTED_LEAGUE', { schedule: event.game_schedule, league: event.league_name })
                             this.$store.commit('trade/ADD_TO_EVENTS', { schedule: event.game_schedule, league: event.league_name, event: event  })
                             this.$store.commit('trade/SET_EVENTS_LIST', event)
                             this.$store.commit('trade/REMOVE_FROM_PREVIOUSLY_SELECTED_EVENT_LIST', event.uid)
+                            Cookies.set('previouslySelectedEvents', JSON.stringify(this.previouslySelectedEvents))
                         }
                     })
                 } else if(type==='event') {
                     this.$store.commit('trade/REMOVE_EVENT', { schedule: 'watchlist', removedLeague: payload.league_name, removedEvent: data })
-                    if(this.previouslySelectedEvents.includes(payload.uid)) {
+                    if(JSON.parse(Cookies.get('previouslySelectedEvents')).includes(payload.uid)) {
                         this.$store.dispatch('trade/toggleLeague', { league_name: payload.league_name, sport_id: this.selectedSport, schedule: payload.game_schedule  })
                         this.$store.commit('trade/ADD_TO_SELECTED_LEAGUE', { schedule: payload.game_schedule, league: payload.league_name })
                         this.$store.commit('trade/ADD_TO_EVENTS', { schedule: payload.game_schedule, league: payload.league_name, event: payload })
                         this.$store.commit('trade/SET_EVENTS_LIST', payload)
                         this.$store.commit('trade/REMOVE_FROM_PREVIOUSLY_SELECTED_EVENT_LIST', payload.uid)
+                        Cookies.set('previouslySelectedEvents', JSON.stringify(this.previouslySelectedEvents))
                     }
                 }
                 this.$socket.send('getWatchlist')
