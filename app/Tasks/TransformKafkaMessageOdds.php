@@ -205,6 +205,8 @@ class TransformKafkaMessageOdds extends Task
             if ($eventsTable->exists($eventSwtId)) {
                 $eventId            = $eventsTable->get($eventSwtId)['id'];
                 $uid                = $eventsTable->get($eventSwtId)['master_event_unique_id'];
+                $masterTeamHome = $eventsTable->get($eventSwtId)['master_home_team_name'];
+                $masterTeamAway = $eventsTable->get($eventSwtId)['master_away_team_name'];
             } else {
                 $masterTeamHome = $multiTeam['home']['name'];
                 $masterTeamAway = $multiTeam['away']['name'];
