@@ -2,8 +2,9 @@
 
 namespace App\Processes;
 
-use App\Jobs\TransformKafkaMessageOdds;
+use App\Tasks\TransformKafkaMessageOdds;
 use Hhxsv5\LaravelS\Swoole\Process\CustomProcessInterface;
+use Hhxsv5\LaravelS\Swoole\Task\Task;
 use Illuminate\Support\Facades\Log;
 use Swoole\Http\Server;
 use Swoole\Process;
@@ -27,13 +28,13 @@ class KafkaConsumeOdds implements CustomProcessInterface
                 if ($message->err == RD_KAFKA_RESP_ERR_NO_ERROR) {
                     $kafkaTable->set('message:' . $message->offset, ['value' => $message->payload]);
 
-                    TransformKafkaMessageOdds::dispatch($message);
+                    $task = new TransformKafkaMessageOdds($message);
+                    Task::deliver($task);
 
                     $kafkaConsumer->commitAsync($message);
                 } else {
-                    Log::error(json_encode([$message]));
+                    Log::error((array) $message);
                 }
-
                 self::getUpdatedOdds($swoole);
             }
         }

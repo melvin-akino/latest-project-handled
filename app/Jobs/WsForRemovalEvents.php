@@ -55,14 +55,16 @@ class WsForRemovalEvents implements ShouldQueue
                 } else {
                     $userProviderConfigTable->set($userProviderConfigSwtId,
                         [
-                            'user_id'     => $this->userId,
+                            'user_id'     => $userId,
                             'provider_id' => $provider['id'],
                             'active'      => $provider['is_enabled'],
                         ]
                     );
                 }
 
-                $server->push($row['value'], json_encode(['getForRemovalEvents' => $this->data]));
+                if (!empty($this->data)) {
+                    $server->push($row['value'], json_encode(['getForRemovalEvents' => $this->data]));
+                }
             }
         }
 
