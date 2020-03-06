@@ -18,6 +18,7 @@ Vue.use(VueHead)
 
 //import Cookies from 'js-cookie'
 //const token = Cookies.get('mltoken')
+const token ='abc'
 
 import VueNativeSock from 'vue-native-websocket'
 Vue.use(VueNativeSock, `${process.env.MIX_WEBSOCKET_URL}?token=${token}`, { reconnection: true })

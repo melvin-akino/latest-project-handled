@@ -102,7 +102,7 @@ export default {
     },
     methods: {
         getUserConfig() {
-            let token = Cookies.get('mltoken')
+            //let token = Cookies.get('mltoken')
             let tooken = 'abc'
 
             axios.get('v1/user/settings/bet-slip', { headers: { 'Authorization': `Bearer ${token}` } })
