@@ -205,28 +205,29 @@ class TradeController extends Controller
     {
         try {
             $checkTable = UserSelectedLeague::where('user_id', auth()->user()->id)
-                ->where('master_league_name', $request->data);
+                ->where('master_league_name', $request->league_name)
+                ->where('game_schedule', $request->schedule);
 
             if (Sport::find($request->sport_id)) {
-                $wsTable = app('swoole')->wsTable;
                 $userId = auth()->user()->id;
                 if ($checkTable->count() == 0) {
-                    $wsTableKey = 'userSelectedLeagues:' . $userId . ':sId:' . $request->sport_id . ':uniqueId:' . uniqid();
-                    $wsTable->set($wsTableKey, ['value' => $request->data]);
-
-                    UserSelectedLeague::create(
-                        [
-                            'user_id'            => $userId,
-                            'master_league_name' => $request->data
-                        ]
-                    );
-                } else {
-                    foreach ($wsTable as $key => $row) {
-                        if (strpos($key, 'userSelectedLeagues:' . $userId) === 0 && $row['value'] == $request->data) {
-                            $wsTable->del($key);
-                            break;
-                        }
+                    if (MasterLeague::where('master_league_name', $request->league_name)->count() != 0) {
+                        UserSelectedLeague::create(
+                            [
+                                'user_id'            => $userId,
+                                'master_league_name' => $request->league_name,
+                                'game_schedule'      => $request->schedule,
+                                'sport_id'           => $request->sport_id
+                            ]
+                        );
+                    } else {
+                        return response()->json([
+                            'status'      => true,
+                            'status_code' => 405,
+                            'message'     => trans('generic.method-not-allowed')
+                        ], 405);
                     }
+                } else {
                     $checkTable->delete();
                 }
 

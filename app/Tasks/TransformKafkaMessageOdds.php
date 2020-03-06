@@ -2,6 +2,7 @@
 
 namespace App\Tasks;
 
+use Illuminate\Support\Facades\Log;
 use App\Jobs\{TransformationEventMarketCreation, TransformationEventCreation, TransformationEventMarketUpdate};
 use Hhxsv5\LaravelS\Swoole\Task\Task;
 use Illuminate\Support\Str;
@@ -43,6 +44,9 @@ class TransformKafkaMessageOdds extends Task
 
     public function handle()
     {
+        Log::info("Transformation started");
+        $startTime = microtime(true);
+
         $swoole  = app('swoole');
         $wsTable = $swoole->wsTable;
 
@@ -86,7 +90,6 @@ class TransformKafkaMessageOdds extends Task
         $oddTypesTable      = $swoole->oddTypesTable;
         $sportOddTypesTable = $swoole->sportOddTypesTable;
         $eventMarketsTable  = $swoole->eventMarketsTable;
-        $transformedTable   = $swoole->transformedTable;
 
         /**
          * PROVIDERS Swoole Table
@@ -118,7 +121,6 @@ class TransformKafkaMessageOdds extends Task
 
         if ($sportsTable->exists($sportSwtId)) {
             $sportId = $sportsTable->get($sportSwtId)['id'];
-            $sportName = $sportsTable->get($sportSwtId)['sport'];
         } else {
             throw new Exception("Sport doesn't exist");
         }
@@ -252,29 +254,6 @@ class TransformKafkaMessageOdds extends Task
         if (!empty($uid)) {
             $arrayEvents     = $this->message->data->events;
             $counter         = 0;
-            $transformedJSON = [
-                'timestamp'     => $this->message->request_ts,
-                'uid'           => $uid,
-                'sport_id'      => $sportId,
-                'sport'         => $sportName,
-                'provider_id'   => $providerId,
-                'event_id'      => $this->message->data->events[0]->eventId,
-                'game_schedule' => $this->message->data->schedule,
-                'league_name'   => $masterLeagueName,
-                'home'          => [
-                    'name'    => $masterTeamHome,
-                    'score'   => $this->message->data->home_score,
-                    'penalty' => $this->message->data->home_redcard
-                ],
-                'away'          => [
-                    'name'    => $masterTeamAway,
-                    'score'   => $this->message->data->away_score,
-                    'penalty' => $this->message->data->away_redcard
-                ],
-                'ref_schedule'  => date("Y-m-d H:i:s", strtotime($this->message->data->referenceSchedule)),
-                'running_time'  => $this->message->data->running_time,
-                'market_odds'   => [],
-            ];
 
             foreach ($arrayEvents AS $keyEvent => $event) {
                 if (!empty($event)) {
@@ -341,19 +320,9 @@ class TransformKafkaMessageOdds extends Task
                             }
 
                             $marketOdds = trim($marketOdds) == '' ? 0 : (float) $marketOdds;
-                            $transformedJSON['market_odds']['main'][$columns->oddsType][strtolower($markets->indicator)] = [
-                                'odds'      => $marketOdds,
-                                'market_id' => $markets->market_id
-                            ];
 
                             if (array_key_exists('points', $markets)) {
                                 $marketPoints = $markets->points;
-
-                                if ($counter == 0) {
-                                    $transformedJSON['market_odds']['main'][$columns->oddsType][strtolower($markets->indicator)]['points'] = $marketPoints;
-                                } else {
-                                    $transformedJSON['market_odds']['other'][($counter - 1)][$columns->oddsType][strtolower($markets->indicator)]['points'] = $marketPoints;
-                                }
                             }
 
                             $masterEventMarketSwtId = implode(':', [
@@ -409,14 +378,19 @@ class TransformKafkaMessageOdds extends Task
                 }
                 $counter++;
             }
+        }
+        Log::info("Transformation finished");
 
-            $transformedSwtId = "uid:" . $uid . ":pId:" . $providerId;
-            if (!$transformedTable->exists($transformedSwtId)) {
-                $transformedTable->set($transformedSwtId, ['value' => json_encode($transformedJSON)]);
-            }
+        $endTime = microtime(true);
+
+        if (!empty($memUID)) {
+            var_dump("S " . $startTime);
+            var_dump("E " . $endTime);
+            var_dump("S - E = " . ($endTime - $startTime));
         }
 
         if ($updated) {
+            Log::info("Odds Update");
             /** Set Updated Odds to WS Swoole Table */
             $WSOddsSwtId = "updatedEvents:" . $uid;
             $wsTable->set($WSOddsSwtId, [ 'value' => json_encode($updatedOdds) ]);

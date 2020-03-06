@@ -33,9 +33,9 @@ class KafkaConsumeOdds implements CustomProcessInterface
 
                     $kafkaConsumer->commitAsync($message);
                 } else {
-                    Log::error($message);
+                    Log::error((array) $message);
                 }
-                sleep(1);
+                self::getUpdatedOdds($swoole);
             }
         }
     }
@@ -44,5 +44,24 @@ class KafkaConsumeOdds implements CustomProcessInterface
     public static function onReload(Server $swoole, Process $process)
     {
         self::$quit = true;
+    }
+
+    private static function getUpdatedOdds($swoole)
+    {
+        $table = $swoole->wsTable;
+        foreach ($table as $k => $r) {
+            if (strpos($k, 'updatedEvents:') === 0) {
+                foreach ($table as $key => $row) {
+                    $updatedMarkets = json_decode($r['value']);
+                    if (!empty($updatedMarkets)) {
+                        if (strpos($key, 'fd:') === 0) {
+                            $fd = $table->get('uid:' . $row['value']);
+                            $swoole->push($fd['value'], json_encode(['getUpdatedOdds' => $updatedMarkets]));
+                            $table->del($k);
+                        }
+                    }
+                }
+            }
+        }
     }
 }
