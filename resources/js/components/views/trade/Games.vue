@@ -162,6 +162,9 @@ export default {
                     })
                 } else if(type==='event') {
                     this.$store.commit('trade/REMOVE_EVENT', { schedule: 'watchlist', removedLeague: payload.league_name, removedEvent: data })
+                    if(this.events.watchlist[payload.league_name].length === 0) {
+                        this.$store.commit('trade/REMOVE_FROM_EVENTS', { schedule: 'watchlist', removedLeague: payload.league_name })
+                    }
                     if(JSON.parse(Cookies.get('previouslySelectedEvents')).includes(payload.uid)) {
                         this.$store.dispatch('trade/toggleLeague', { league_name: payload.league_name, sport_id: this.selectedSport, schedule: payload.game_schedule  })
                         this.$store.commit('trade/ADD_TO_SELECTED_LEAGUE', { schedule: payload.game_schedule, league: payload.league_name })
