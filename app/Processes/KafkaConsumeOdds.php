@@ -24,7 +24,7 @@ class KafkaConsumeOdds implements CustomProcessInterface
             $kafkaConsumer = resolve('KafkaConsumer');
             $kafkaConsumer->subscribe([env('KAFKA_SCRAPE_ODDS')]);
             while (!self::$quit) {
-                $message = $kafkaConsumer->consume(120 * 1000);echo 1;
+                $message = $kafkaConsumer->consume(120 * 1000);
                 if ($message->err == RD_KAFKA_RESP_ERR_NO_ERROR) {
                     $kafkaTable->set('message:' . $message->offset, ['value' => $message->payload]);
 

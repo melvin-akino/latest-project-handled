@@ -44,8 +44,6 @@ class TransformKafkaMessageOdds extends Task
     public function handle()
     {
         try {
-            $startTime = microtime(true);
-
             $swoole  = app('swoole');
             $wsTable = $swoole->wsTable;
 
@@ -394,14 +392,6 @@ class TransformKafkaMessageOdds extends Task
                 array_map(function($odds) use ($wsTable, $uid) {
                     Task::deliver(new TransformationEventMarketUpdate($odds['market_id'], $odds['odds']));
                 }, $updatedOdds);
-            }
-
-            $endTime = microtime(true);
-
-            if (!empty($memUID)) {
-                var_dump("S " . $startTime);
-                var_dump("E " . $endTime);
-                var_dump("S - E = " . ($endTime - $startTime));
             }
         } catch (Exception $e) {
             Log::error($e->getMessage());
