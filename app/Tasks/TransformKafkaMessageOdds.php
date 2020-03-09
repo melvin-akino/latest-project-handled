@@ -106,7 +106,8 @@ class TransformKafkaMessageOdds extends Task
             if ($providersTable->exist($providerSwtId)) {
                 $providerId = $providersTable->get($providerSwtId)['id'];
             } else {
-                throw new Exception("Provider doesn't exist");
+                Log::info("Transformation ignored - Provider doesn't exist");
+                return;
             }
 
             /**
@@ -123,7 +124,8 @@ class TransformKafkaMessageOdds extends Task
             if ($sportsTable->exists($sportSwtId)) {
                 $sportId = $sportsTable->get($sportSwtId)['id'];
             } else {
-                throw new Exception("Sport doesn't exist");
+                Log::info("Transformation ignored - Sport doesn't exist");
+                return;
             }
 
             $leagueLookupId = null;
@@ -155,6 +157,7 @@ class TransformKafkaMessageOdds extends Task
                 $multiLeagueId    = $leaguesTable->get($leagueSwtId)['id'];
                 $masterLeagueName = $leaguesTable->get($leagueSwtId)['master_league_name'];
             } else {
+                Log::info("Transformation ignored - League is not in the masterlist");
                 return;
             }
 
@@ -182,6 +185,7 @@ class TransformKafkaMessageOdds extends Task
                     $multiTeam[$key]['id']   = $teamsTable->get($teamSwtId)['id'];
                     $multiTeam[$key]['name'] = $teamsTable->get($teamSwtId)['team_name'];
                 } else {
+                    Log::info("Transformation ignored - No Available Teams in the masterlist");
                     return;
                 }
             }
@@ -370,7 +374,7 @@ class TransformKafkaMessageOdds extends Task
                                     'market_flag' => strtoupper($markets->indicator),
                                 ];
 
-                                Task::deliver(new TransformationEventCreation($toInsert));
+                                Task::deliver(new TransformationEventAndOddsCreation($toInsert));
                             }
                         }
                     }
@@ -388,9 +392,8 @@ class TransformKafkaMessageOdds extends Task
             if ($updated) {
                 /** Set Updated Odds to WS Swoole Table */
                 $WSOddsSwtId = "updatedEvents:" . $uid;
-                $wsTable->set($WSOddsSwtId, [ 'value' => json_encode($updatedOdds) ]);
-                array_map(function($odds) use ($wsTable, $uid) {
-                    Task::deliver(new TransformationEventMarketUpdate($odds['market_id'], $odds['odds']));
+                array_map(function($odds) use ($WSOddsSwtId, $wsTable, $uid) {
+                    Task::deliver(new TransformationEventMarketUpdate($WSOddsSwtId, $odds['market_id'], $odds['odds']));
                 }, $updatedOdds);
             }
         } catch (Exception $e) {
