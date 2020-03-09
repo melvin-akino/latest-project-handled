@@ -78,7 +78,6 @@ export default {
                             if(sched in selectedLeagues) {
                                 selectedLeagues[sched].map(selectedLeague => {
                                     this.$store.commit('trade/ADD_TO_SELECTED_LEAGUE', { schedule: sched, league: selectedLeague })
-                                    this.$socket.send(`getEvents_${selectedLeague}_${sched}`)
                                 })
                             }
                         })

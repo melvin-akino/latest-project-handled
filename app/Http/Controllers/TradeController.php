@@ -283,45 +283,85 @@ class TradeController extends Controller
                         'ot.type', 'em.odds', 'em.odd_label', 'em.provider_id')
                     ->distinct()->get();
 
-                array_map(function ($transformed) use (&$data, $row) {
-                    if (empty($data[$row][$transformed->game_schedule][$transformed->master_league_name][$transformed->master_event_unique_id])) {
-                        $data[$row][$transformed->game_schedule][$transformed->master_league_name][$transformed->master_event_unique_id] = [
-                            'sport_id'      => $transformed->sport_id,
-                            'sport'         => $transformed->sport,
-                            'provider_id'   => $transformed->provider_id,
-                            'running_time'  => $transformed->running_time,
-                            'ref_schedule'  => $transformed->ref_schedule,
-                        ];
-                    }
-
-                    if (empty($data[$row][$transformed->game_schedule][$transformed->master_league_name][$transformed->master_event_unique_id]['home'])) {
-                        $data[$row][$transformed->game_schedule][$transformed->master_league_name][$transformed->master_event_unique_id]['home'] = [
-                            'name' => $transformed->master_home_team_name,
-                            'score' => empty($transformed->score) ? '' : array_values(explode(' - ', $transformed->score))[0],
-                            'redcard' => $transformed->home_penalty
-                        ];
-                    }
-
-                    if (empty($data[$row][$transformed->game_schedule][$transformed->master_league_name][$transformed->master_event_unique_id]['away'])) {
-                        $data[$row][$transformed->game_schedule][$transformed->master_league_name][$transformed->master_event_unique_id]['away'] = [
-                            'name' => $transformed->master_away_team_name,
-                            'score' => empty($transformed->score) ? '' : array_values(explode(' - ', $transformed->score))[1],
-                            'redcard' => $transformed->home_penalty
-                        ];
-                    }
-
-                    if (empty($data[$row][$transformed->game_schedule][$transformed->master_league_name][$transformed->master_event_unique_id]['market_odds']['main'][$transformed->type][$transformed->market_flag])) {
-                        $data[$row][$transformed->game_schedule][$transformed->master_league_name][$transformed->master_event_unique_id]['market_odds']['main'][$transformed->type][$transformed->market_flag] = [
-                            'odds' => (double) $transformed->odds,
-                            'market_id' => $transformed->master_event_market_unique_id
-                        ];
-
-                        if (!empty($transformed->odd_label)) {
-                            $data[$row][$transformed->game_schedule][$transformed->master_league_name][$transformed->master_event_unique_id]['market_odds']['main'][$transformed->type][$transformed->market_flag]['points'] = $transformed->odd_label;
+                if ($row == 'user_watchlist') {
+                    $ctr = 0;
+                    array_map(function ($transformed) use (&$data, $row, $ctr) {
+                        if (empty($data[$row][$transformed->master_league_name][$ctr])) {
+                            $data[$row][$transformed->master_league_name][$ctr] = [
+                                "uid"           => $transformed->master_event_unique_id,
+                                'sport_id'      => $transformed->sport_id,
+                                'sport'         => $transformed->sport,
+                                'provider_id'   => $transformed->provider_id,
+                                'game_schedule' => $transformed->game_schedule,
+                                'league_name'   => $transformed->master_league_name,
+                                'running_time'  => $transformed->running_time,
+                                'ref_schedule'  => $transformed->ref_schedule,
+                            ];
                         }
-                    }
-
-                }, $transformed->toArray());
+                        if (empty($data[$row][$transformed->master_league_name][$ctr]['home'])) {
+                            $data[$row][$transformed->master_league_name][$ctr]['home'] = [
+                                'name' => $transformed->master_home_team_name,
+                                'score' => empty($transformed->score) ? '' : array_values(explode(' - ', $transformed->score))[0],
+                                'redcard' => $transformed->home_penalty
+                            ];
+                        }
+                        if (empty($data[$row][$transformed->master_league_name][$ctr]['away'])) {
+                            $data[$row][$transformed->master_league_name][$ctr]['away'] = [
+                                'name' => $transformed->master_away_team_name,
+                                'score' => empty($transformed->score) ? '' : array_values(explode(' - ', $transformed->score))[1],
+                                'redcard' => $transformed->home_penalty
+                            ];
+                        }
+                        if (empty($data[$row][$transformed->master_league_name][$ctr]['market_odds']['main'][$transformed->type][$transformed->market_flag])) {
+                            $data[$row][$transformed->master_league_name][$ctr]['market_odds']['main'][$transformed->type][$transformed->market_flag] = [
+                                'odds' => (double) $transformed->odds,
+                                'market_id' => $transformed->master_event_market_unique_id
+                            ];
+                            if (!empty($transformed->odd_label)) {
+                                $data[$row][$transformed->master_league_name][$ctr]['market_odds']['main'][$transformed->type][$transformed->market_flag]['points'] = $transformed->odd_label;
+                            }
+                        }
+                    }, $transformed->toArray());
+                } else {
+                    $ctr = 0;
+                    array_map(function ($transformed) use (&$data, $row, $ctr) {
+                        if (empty($data[$row][$transformed->game_schedule][$transformed->master_league_name][$ctr])) {
+                            $data[$row][$transformed->game_schedule][$transformed->master_league_name][$ctr] = [
+                                "uid"           => $transformed->master_event_unique_id,
+                                'sport_id'      => $transformed->sport_id,
+                                'sport'         => $transformed->sport,
+                                'provider_id'   => $transformed->provider_id,
+                                'game_schedule' => $transformed->game_schedule,
+                                'league_name'   => $transformed->master_league_name,
+                                'running_time'  => $transformed->running_time,
+                                'ref_schedule'  => $transformed->ref_schedule,
+                            ];
+                        }
+                        if (empty($data[$row][$transformed->game_schedule][$transformed->master_league_name][$ctr]['home'])) {
+                            $data[$row][$transformed->game_schedule][$transformed->master_league_name][$ctr]['home'] = [
+                                'name' => $transformed->master_home_team_name,
+                                'score' => empty($transformed->score) ? '' : array_values(explode(' - ', $transformed->score))[0],
+                                'redcard' => $transformed->home_penalty
+                            ];
+                        }
+                        if (empty($data[$row][$transformed->game_schedule][$transformed->master_league_name][$ctr]['away'])) {
+                            $data[$row][$transformed->game_schedule][$transformed->master_league_name][$ctr]['away'] = [
+                                'name' => $transformed->master_away_team_name,
+                                'score' => empty($transformed->score) ? '' : array_values(explode(' - ', $transformed->score))[1],
+                                'redcard' => $transformed->home_penalty
+                            ];
+                        }
+                        if (empty($data[$row][$transformed->game_schedule][$transformed->master_league_name][$ctr]['market_odds']['main'][$transformed->type][$transformed->market_flag])) {
+                            $data[$row][$transformed->game_schedule][$transformed->master_league_name][$ctr]['market_odds']['main'][$transformed->type][$transformed->market_flag] = [
+                                'odds' => (double) $transformed->odds,
+                                'market_id' => $transformed->master_event_market_unique_id
+                            ];
+                            if (!empty($transformed->odd_label)) {
+                                $data[$row][$transformed->game_schedule][$transformed->master_league_name][$ctr]['market_odds']['main'][$transformed->type][$transformed->market_flag]['points'] = $transformed->odd_label;
+                            }
+                        }
+                    }, $transformed->toArray());
+                }
             }
 
             return response()->json([
