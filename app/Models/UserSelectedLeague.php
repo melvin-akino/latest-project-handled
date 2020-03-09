@@ -2,10 +2,12 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\{Model, SoftDeletes};
 
 class UserSelectedLeague extends Model
 {
+    use SoftDeletes;
+
     protected $table = "user_selected_leagues";
 
     protected $fillable = [
