@@ -13,6 +13,16 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-// Auth::routes();
+Route::namespace('CRM')->prefix('admin')->group(function () {
+    Route::namespace('Auth')->group(function () {
+        Route::get('/', 'LoginController@index')->name('crm');
+        Route::post('login', 'LoginController@login')->name('crm.login');
+        Route::get('logout', 'LoginController@logout')->name('crm.logout');
+    });
+
+    Route::middleware('auth:crm')->group(function () {
+        Route::get('dashboard', 'DashboardController@index')->name('dashboard');
+    });
+});
 
 Route::get('/{any}', 'AppController@index')->where('any', '^(?!api).*');
