@@ -5,7 +5,7 @@ namespace App\Jobs;
 use App\Models\{Events, MasterEvent, MasterEventLink, UserWatchlist};
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
-use Exception;
+use Illuminate\Support\Facades\Log;
 
 class WsForRemovalEvents implements ShouldQueue
 {
@@ -36,7 +36,8 @@ class WsForRemovalEvents implements ShouldQueue
         }
 
         if (empty($providerId)) {
-            throw new Exception('[VALIDATION_ERROR] No Providers found.');
+            Log::info("For Removal Event - No Providers Found");
+            return;
         }
 
         foreach ($server->wsTable as $key => $row) {

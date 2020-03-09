@@ -2,11 +2,13 @@
 
 namespace App\Processes;
 
-use App\Jobs\TransformKafkaMessageLeagues;
 use Hhxsv5\LaravelS\Swoole\Process\CustomProcessInterface;
 use Illuminate\Support\Facades\Log;
 use Swoole\Http\Server;
 use Swoole\Process;
+use Exception;
+use Hhxsv5\LaravelS\Swoole\Task\Task;
+use App\Tasks\TransformKafkaMessageLeagues;
 
 class KafkaConsumeLeagues implements CustomProcessInterface
 {
@@ -17,27 +19,29 @@ class KafkaConsumeLeagues implements CustomProcessInterface
 
     public static function callback(Server $swoole, Process $process)
     {
-        if ($swoole->wsTable->exist('data2Swt')) {
-            $kafkaTable    = $swoole->kafkaTable;
-            $kafkaConsumer = resolve('KafkaConsumer');
-            $kafkaConsumer->subscribe([env('KAFKA_SCRAPE_LEAGUES')]);
+        try {
+            if ($swoole->wsTable->exist('data2Swt')) {
+                $kafkaTable    = $swoole->kafkaTable;
 
-            while (!self::$quit) {
-                $message = $kafkaConsumer->consume(120 * 1000);
+                $kafkaConsumer = resolve('KafkaConsumer');
+                $kafkaConsumer->subscribe([env('KAFKA_SCRAPE_LEAGUES')]);
+                while (!self::$quit) {
+                    $message = $kafkaConsumer->consume(120 * 1000);
+                    if ($message->err == RD_KAFKA_RESP_ERR_NO_ERROR) {
+                        $kafkaTable->set('message:' . $message->offset, ['value' => $message->payload]);
 
-                if ($message->err == RD_KAFKA_RESP_ERR_NO_ERROR) {
-                    $kafkaTable->set('message:' . $message->offset, ['value' => $message->payload]);
+                        Task::deliver(new TransformKafkaMessageLeagues($message));
 
-                    TransformKafkaMessageLeagues::dispatch(json_encode($message));
-
-                    $kafkaConsumer->commitAsync($message);
-                } else {
-                    Log::error(json_encode([$message]));
+                        $kafkaConsumer->commitAsync($message);
+                    } else {
+                        Log::error(json_encode([$message]));
+                    }
+                    self::getAdditionalLeagues($swoole);
+                    self::getForRemovallLeagues($swoole);
                 }
-
-                self::getAdditionalLeagues($swoole);
-                self::getForRemovallLeagues($swoole);
             }
+        } catch (Exception $e) {
+            Log::error($e->getMessage());
         }
     }
 
@@ -53,9 +57,7 @@ class KafkaConsumeLeagues implements CustomProcessInterface
         $part    = strtolower('ADDITIONAL');
         $swtKey  = "::LEAGUE_" . strtoupper($part);
         $topic   = "getAdditionalLeagues";
-        $data    = [];
         $table   = $swoole->wsTable;
-        $slTable = $swoole->userSelectedLeaguesTable;
 
         foreach ($table as $key => $row) {
             if (strpos($key, 'fd:') === 0) {
@@ -81,7 +83,6 @@ class KafkaConsumeLeagues implements CustomProcessInterface
         $part    = strtolower('removal');
         $swtKey  = "::LEAGUE_" . strtoupper($part);
         $topic   = "getForRemovalLeagues";
-        $data    = [];
         $table   = $swoole->wsTable;
         $slTable = $swoole->userSelectedLeaguesTable;
 

@@ -3,8 +3,6 @@
 namespace App\Tasks;
 
 use App\Models\UserSelectedLeague;
-use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Foundation\Bus\Dispatchable;
 use Hhxsv5\LaravelS\Swoole\Task\Task;
 
 class TransformationLeagueRemoval extends Task
@@ -26,7 +24,7 @@ class TransformationLeagueRemoval extends Task
                 ->where('game_schedule', $row['schedule']);
 
             if ($userSelectedLeague->exists()) {
-                userSelectedLeague->delete();
+                $userSelectedLeague->delete();
             }
         }
     }
