@@ -22,7 +22,6 @@ class WsEvents implements ShouldQueue
     {
         $server    = app('swoole');
         $fd        = $server->wsTable->get('uid:' . $this->userId);
-        $getEvents = [];
 
         $providerPriority        = 0;
         $providerId              = 0;
@@ -124,8 +123,10 @@ class WsEvents implements ShouldQueue
         }, $transformed->toArray());
 
         $eventData = array_values($data);
-        $server->push($fd['value'], json_encode([
-            'getEvents' => $eventData
-        ]));
+        if (!empty($eventData)) {
+            $server->push($fd['value'], json_encode([
+                'getEvents' => $eventData
+            ]));
+        }
     }
 }

@@ -3,7 +3,7 @@
 namespace App\Jobs;
 
 use App\Tasks\{
-    TransformationEventCreation,
+    TransformationEventAndOddsCreation,
     TransformationEventMarketCreation
 };
 
@@ -422,7 +422,7 @@ class TransformKafkaMessageOdds implements ShouldQueue
                             ];
 
                             if (empty($eventId)) {
-                                $task = new TransformationEventCreation($toInsert);
+                                $task = new TransformationEventAndOddsCreation($toInsert);
                                 Task::deliver($task);
                             }
 
