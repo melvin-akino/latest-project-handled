@@ -36,7 +36,7 @@ class TransformKafkaMessageLeagues extends Task
 
     public function __construct($message)
     {
-        $this->message = json_decode($message->payload);
+        $this->message = $message;
     }
 
     public function handle()

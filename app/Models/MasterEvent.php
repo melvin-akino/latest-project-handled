@@ -17,7 +17,12 @@ class MasterEvent extends Model
         'master_home_team_name',
         'master_away_team_name',
         'ref_schedule',
-        'game_schedule'
+        'game_schedule',
+        'score',
+        'running_time',
+        'home_penalty',
+        'away_penalty',
+        'deleted_at'
     ];
 
     protected $hidden = [

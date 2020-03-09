@@ -2,15 +2,15 @@
 
 namespace App\Processes;
 
+use App\Tasks\{TransformKafkaMessageEvents, TransformKafkaMessageLeagues, TransformKafkaMessageOdds};
 use Hhxsv5\LaravelS\Swoole\Process\CustomProcessInterface;
+use Hhxsv5\LaravelS\Swoole\Task\Task;
 use Illuminate\Support\Facades\Log;
 use Swoole\Http\Server;
 use Swoole\Process;
 use Exception;
-use Hhxsv5\LaravelS\Swoole\Task\Task;
-use App\Tasks\TransformKafkaMessageLeagues;
 
-class KafkaConsumeLeagues implements CustomProcessInterface
+class KafkaConsume implements CustomProcessInterface
 {
     /**
      * @var bool Quit tag for Reload updates
@@ -21,34 +21,67 @@ class KafkaConsumeLeagues implements CustomProcessInterface
     {
         try {
             if ($swoole->wsTable->exist('data2Swt')) {
-                $kafkaTable    = $swoole->kafkaTable;
-
                 $kafkaConsumer = resolve('KafkaConsumer');
-                $kafkaConsumer->subscribe([env('KAFKA_SCRAPE_LEAGUES')]);
+                $kafkaConsumer->subscribe([
+                    env('KAFKA_SCRAPE_ODDS', 'SCRAPING-ODDS'),
+                    env('KAFKA_SCRAPE_LEAGUES', 'SCRAPING-PROVIDER-LEAGUES'),
+                    env('KAFKA_SCRAPE_EVENTS', 'SCRAPING-PROVIDER-EVENTS')
+                ]);
                 while (!self::$quit) {
                     $message = $kafkaConsumer->consume(120 * 1000);
                     if ($message->err == RD_KAFKA_RESP_ERR_NO_ERROR) {
-                        $kafkaTable->set('message:' . $message->offset, ['value' => $message->payload]);
+                        $payload = json_decode($message->payload);
 
-                        Task::deliver(new TransformKafkaMessageLeagues($message));
+                        switch ($payload->command) {
+                            case 'league':
+                                Task::deliver(new TransformKafkaMessageLeagues($payload));
+                                break;
+                            case 'event':
+                                Task::deliver(new TransformKafkaMessageEvents($payload));
+                                break;
+                            default:
+                                Task::deliver(new TransformKafkaMessageOdds($payload));
+                                break;
+                        }
 
                         $kafkaConsumer->commitAsync($message);
                     } else {
                         Log::error(json_encode([$message]));
                     }
+                    self::getUpdatedOdds($swoole);
                     self::getAdditionalLeagues($swoole);
                     self::getForRemovallLeagues($swoole);
                 }
             }
-        } catch (Exception $e) {
+        } catch(Exception $e) {
             Log::error($e->getMessage());
         }
+
     }
 
     // Requirements: LaravelS >= v3.4.0 & callback() must be async non-blocking program.
     public static function onReload(Server $swoole, Process $process)
     {
         self::$quit = true;
+    }
+
+    private static function getUpdatedOdds($swoole)
+    {
+        $table = $swoole->wsTable;
+        foreach ($table as $k => $r) {
+            if (strpos($k, 'updatedEvents:') === 0) {
+                foreach ($table as $key => $row) {
+                    $updatedMarkets = json_decode($r['value']);
+                    if (!empty($updatedMarkets)) {
+                        if (strpos($key, 'fd:') === 0) {
+                            $fd = $table->get('uid:' . $row['value']);
+                            $swoole->push($fd['value'], json_encode(['getUpdatedOdds' => $updatedMarkets]));
+                            $table->del($k);
+                        }
+                    }
+                }
+            }
+        }
     }
 
     private static function getAdditionalLeagues($swoole)
