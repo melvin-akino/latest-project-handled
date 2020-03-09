@@ -9,6 +9,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use DateTime;
 use Exception;
+use Hhxsv5\LaravelS\Swoole\Task\Task;
 
 class TransformKafkaMessageLeagues implements ShouldQueue
 {
@@ -155,8 +156,8 @@ class TransformKafkaMessageLeagues implements ShouldQueue
                     }
 
                     $preData = [
-                        'schedule'    => strtolower($this->message->data->schedule),
-                        'name' => $masterLeagueName,
+                        'schedule' => strtolower($this->message->data->schedule),
+                        'name'     => $masterLeagueName,
                     ];
 
                     if ($key == 'add') {
@@ -164,6 +165,10 @@ class TransformKafkaMessageLeagues implements ShouldQueue
                     }
 
                     $data[$key][] = $preData;
+                }
+
+                if ($key == 'rmv') {
+                    Task::deliver(new TransformationLeagueRemoval($data[$key], $sportId));
                 }
 
                 $action   = $key == "rmv" ? "LEAGUE_REMOVAL" : "LEAGUE_ADDITIONAL";
@@ -178,8 +183,6 @@ class TransformKafkaMessageLeagues implements ShouldQueue
                 }
             }
         }
-
-        echo "END ITERATION\n";
     }
 
     /**
