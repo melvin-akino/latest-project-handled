@@ -8,6 +8,7 @@ use Hhxsv5\LaravelS\Swoole\Task\Task;
 use Illuminate\Support\Facades\Log;
 use Swoole\Http\Server;
 use Swoole\Process;
+use Exception;
 
 class KafkaConsumeOdds implements CustomProcessInterface
 {
@@ -18,26 +19,30 @@ class KafkaConsumeOdds implements CustomProcessInterface
 
     public static function callback(Server $swoole, Process $process)
     {
-        if ($swoole->wsTable->exist('data2Swt')) {
-            $kafkaTable = $swoole->kafkaTable;
+        try {
+            if ($swoole->wsTable->exist('data2Swt')) {
+                $kafkaTable = $swoole->kafkaTable;
 
-            $kafkaConsumer = resolve('KafkaConsumer');
-            $kafkaConsumer->subscribe([env('KAFKA_SCRAPE_ODDS')]);
-            while (!self::$quit) {
-                $message = $kafkaConsumer->consume(120 * 1000);
-                if ($message->err == RD_KAFKA_RESP_ERR_NO_ERROR) {
-                    $kafkaTable->set('message:' . $message->offset, ['value' => $message->payload]);
+                $kafkaConsumer = resolve('KafkaConsumer');
+                $kafkaConsumer->subscribe([env('KAFKA_SCRAPE_ODDS')]);
+                while (!self::$quit) {
+                    $message = $kafkaConsumer->consume(120 * 1000);
+                    if ($message->err == RD_KAFKA_RESP_ERR_NO_ERROR) {
+                        $kafkaTable->set('message:' . $message->offset, ['value' => $message->payload]);
 
-                    $task = new TransformKafkaMessageOdds($message);
-                    Task::deliver($task);
+                        Task::deliver(new TransformKafkaMessageOdds($message));
 
-                    $kafkaConsumer->commitAsync($message);
-                } else {
-                    Log::error((array) $message);
+                        $kafkaConsumer->commitAsync($message);
+                    } else {
+                        Log::error(json_encode([$message]));
+                    }
+                    self::getUpdatedOdds($swoole);
                 }
-                self::getUpdatedOdds($swoole);
             }
+        } catch(Exception $e) {
+            Log::error($e->getMessage());
         }
+
     }
 
     // Requirements: LaravelS >= v3.4.0 & callback() must be async non-blocking program.
