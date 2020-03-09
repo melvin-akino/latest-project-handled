@@ -1,6 +1,6 @@
 <template>
     <div class="w-full sm:pb-0 pb-8" :class="{'flex flex-col items-center':!$store.state.auth.isAuthenticated}">
-        <nav class="flex bg-white shadow-md w-full h-16 fixed z-20" v-if="$store.state.auth.isAuthenticated">
+        <nav class="flex bg-white shadow-md w-full h-16 fixed z-20" v-if="$store.state.auth.isAuthenticated && Object.keys($route.meta).length === 0">
             <div class="flex justify-start items-center w-3/12 ml-16">
                 <img :src="logo" class="w-12 mt-2">
                 <router-link to="/" class="text-sm uppercase ml-5 sm:px-4 px-6 hover:bg-orange-500 hover:text-white navlink">Trade</router-link>
@@ -31,7 +31,7 @@
         <div v-if="!$store.state.auth.isAuthenticated">
             <img :src="logo" class="w-48 mt-2">
         </div>
-        <main class="pt-16">
+        <main :class="{'pt-16': Object.keys($route.meta).length === 0}">
             <slot></slot>
         </main>
     </div>
