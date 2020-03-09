@@ -19,10 +19,10 @@ const state = {
     initialLeagues: [],
     eventsList: [],
     events: {
-        watchlist: [],
-        inplay: [],
-        today: [],
-        early: []
+        watchlist: {},
+        inplay: {},
+        today: {},
+        early: {}
     },
     watchlist: [],
     previouslySelectedEvents: []
@@ -78,7 +78,7 @@ const mutations = {
         state.eventsList = []
     },
     SET_EVENTS: (state, data) => {
-        state.events[data.schedule] = data.events
+        Vue.set(state.events, data.schedule, data.events)
     },
     ADD_TO_EVENTS: (state, data) => {
         Vue.set(state.events[data.schedule], data.league, []).push(data.event)
