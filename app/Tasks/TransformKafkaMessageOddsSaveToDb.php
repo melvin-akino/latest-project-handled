@@ -73,18 +73,17 @@ class TransformKafkaMessageOddsSaveToDb extends Task
 
         if (!empty($this->eventMarketsData)) {
             foreach ($this->eventMarketsData as $eventMarket) {
-                try {echo '2';
+                try {
                     $eventMarketModel = EventMarket::updateOrCreate([
                         'bet_identifier' => $eventMarket['EventMarket']['data']['bet_identifier']
                     ], $eventMarket['EventMarket']['data']);
-                    echo '3';
-                } catch (Exception $e) {echo '4';
+                } catch (Exception $e) {
                     EventMarket::where('bet_identifier', $eventMarket['EventMarket']['data']['bet_identifier'])
-                                                    ->update($eventMarket['EventMarket']['data']);echo '5';
+                                                    ->update($eventMarket['EventMarket']['data']);
                     $eventMarketModel = EventMarket::where('bet_identifier', $eventMarket['EventMarket']['data']['bet_identifier'])->first();
-                    echo '6';
                 }
                 $eventMarketId = $eventMarketModel->id;
+
 
                 $masterEventMarketLink = MasterEventMarketLink::where('event_market_id', $eventMarketId);
                 if ($masterEventMarketLink->exists()) {

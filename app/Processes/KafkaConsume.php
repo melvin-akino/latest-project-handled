@@ -27,7 +27,8 @@ class KafkaConsume implements CustomProcessInterface
                     env('KAFKA_SCRAPE_LEAGUES', 'SCRAPING-PROVIDER-LEAGUES'),
                     env('KAFKA_SCRAPE_EVENTS', 'SCRAPING-PROVIDER-EVENTS')
                 ]);
-                echo 1;
+
+                $baseTime = time();
                 while (!self::$quit) {
                     $message = $kafkaConsumer->consume(120 * 1000);
                     if ($message->err == RD_KAFKA_RESP_ERR_NO_ERROR) {
@@ -54,7 +55,6 @@ class KafkaConsume implements CustomProcessInterface
                                     $hash = $transformedTable->get($transformedSwtId)['hash'];
                                     if ($ts > $payload->request_ts) {
                                         Log::info("Transformation ignored - Old Timestamp");
-                                        echo '-';
                                         break;
                                     }
 
@@ -63,7 +63,6 @@ class KafkaConsume implements CustomProcessInterface
                                     $toHashMessage->id = null;
                                     if ($hash == md5(json_encode((array)$toHashMessage))) {
                                         Log::info("Transformation ignored - No change");
-                                        echo '+';
                                         break;
                                     }
                                 } else {
@@ -72,7 +71,15 @@ class KafkaConsume implements CustomProcessInterface
                                         'hash' => md5(json_encode((array) $payload->data))
                                     ]);
                                 }
-echo '.';
+                                $time = time();
+                                if ($swoole->wsTable->exist('test:' . $time)) {
+                                    $value = $swoole->wsTable->get('test:' . $time)['value'];
+                                    $swoole->wsTable->set('test:' . $time, ['value' => ++$value]);
+                                } else {
+                                    $value = 1;
+                                    $swoole->wsTable->set('test:' . $time, ['value' => $value]);
+                                }
+                                var_dump(($time - $baseTime) . 's = ' . $value);
                                 Task::deliver(new TransformKafkaMessageOdds($payload));
                                 break;
                         }
