@@ -194,7 +194,7 @@ class DataToSwt implements CustomProcessInterface
             $masterEventMarketsTable->set(
                 'pId:' . $eventMarket->provider_id .
                 ':meUID:' . $eventMarket->master_event_unique_id .
-                ':betIdentifier:' . $eventMarket->bet_identifier,
+                ':bId:' . $eventMarket->bet_identifier,
                 [
                     'id'                            => $eventMarket->id,
                     'master_event_unique_id'        => $eventMarket->master_event_unique_id,
