@@ -179,7 +179,7 @@ export default {
             this.$options.sockets.onmessage = (response => {
                 if(getSocketKey(response.data) === 'getUpdatedOdds') {
                     let updatedOdds = getSocketValue(response.data, 'getUpdatedOdds')
-                    let team = ['home', 'away', 'draw']
+                    let team = ['HOME', 'AWAY', 'DRAW']
                     this.eventsList.map(event => {
                         updatedOdds.map(updatedOdd => {
                             this.oddsTypeBySport.map(oddType => {
