@@ -121,7 +121,6 @@ export default {
                     this.$store.dispatch('trade/toggleLeagueByName', { league_name: data, sport_id: this.selectedSport })
                     this.$store.commit('trade/REMOVE_SELECTED_LEAGUE_BY_NAME', data)
                     this.$store.commit('trade/REMOVE_FROM_EVENTS_BY_LEAGUE', data)
-                    this.$store.commit('trade/REMOVE_FROM_EVENT_LIST', { type: 'league_name', data: data })
 
                     payload.map(event => {
                         this.$store.commit('trade/SET_PREVIOUSLY_SELECTED_EVENTS', event.uid)
@@ -129,7 +128,6 @@ export default {
                     Cookies.set('previouslySelectedEvents', JSON.stringify(this.previouslySelectedEvents))
                 } else if(type==='event') {
                     this.$store.commit('trade/REMOVE_EVENT', { schedule: this.gameSchedType, removedLeague: payload.league_name, removedEvent: payload.uid})
-                    this.$store.commit('trade/REMOVE_FROM_EVENT_LIST', { type: 'uid', data: payload.uid })
                     if(this.events[this.gameSchedType][payload.league_name].length === 0) {
                         this.$store.dispatch('trade/toggleLeagueByName', { league_name: payload.league_name, sport_id: this.selectedSport })
                         this.$store.commit('trade/REMOVE_SELECTED_LEAGUE_BY_NAME', payload.league_name)
@@ -155,7 +153,6 @@ export default {
                             this.$store.dispatch('trade/toggleLeague', { league_name: event.league_name, sport_id: this.selectedSport, schedule: event.game_schedule  })
                             this.$store.commit('trade/ADD_TO_SELECTED_LEAGUE', { schedule: event.game_schedule, league: event.league_name })
                             this.$store.commit('trade/ADD_TO_EVENTS', { schedule: event.game_schedule, league: event.league_name, event: event  })
-                            this.$store.commit('trade/SET_EVENTS_LIST', event)
                             this.$store.commit('trade/REMOVE_FROM_PREVIOUSLY_SELECTED_EVENT_LIST', event.uid)
                             Cookies.set('previouslySelectedEvents', JSON.stringify(this.previouslySelectedEvents))
                         }
@@ -169,7 +166,6 @@ export default {
                         this.$store.dispatch('trade/toggleLeague', { league_name: payload.league_name, sport_id: this.selectedSport, schedule: payload.game_schedule  })
                         this.$store.commit('trade/ADD_TO_SELECTED_LEAGUE', { schedule: payload.game_schedule, league: payload.league_name })
                         this.$store.commit('trade/ADD_TO_EVENTS', { schedule: payload.game_schedule, league: payload.league_name, event: payload })
-                        this.$store.commit('trade/SET_EVENTS_LIST', payload)
                         this.$store.commit('trade/REMOVE_FROM_PREVIOUSLY_SELECTED_EVENT_LIST', payload.uid)
                         Cookies.set('previouslySelectedEvents', JSON.stringify(this.previouslySelectedEvents))
                     }
