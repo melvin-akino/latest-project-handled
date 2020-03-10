@@ -15,6 +15,9 @@ class TransformKafkaMessageOdds extends Task
     protected $updated = false;
     protected $uid = null;
 
+//    protected $startTime;
+//    protected $endTime;
+
     protected $disregard = [
         'No. of Corners',
         'No. of Bookings',
@@ -41,6 +44,7 @@ class TransformKafkaMessageOdds extends Task
 
     public function __construct($message)
     {
+//        $this->startTime = microtime(true);
         $this->message = $message;
     }
 
@@ -50,10 +54,10 @@ class TransformKafkaMessageOdds extends Task
             $swoole = $this->swoole = app('swoole');
             $wsTable = $this->swoole->wsTable;
 
-            if (!isset($this->message->data->events)) {
-                Log::info("Transformation ignored - No Event Found");
-                return;
-            }
+//            if (!isset($this->message->data->events)) {
+//                Log::info("Transformation ignored - No Event Found");
+//                return;
+//            }
 
             foreach ($this->disregard AS $disregard) {
                 if (strpos($this->message->data->leagueName, $disregard) === 0) {
@@ -74,25 +78,35 @@ class TransformKafkaMessageOdds extends Task
             $oddTypesTable = $swoole->oddTypesTable;
             $sportOddTypesTable = $swoole->sportOddTypesTable;
             $eventMarketsTable = $swoole->eventMarketsTable;
-            $transformedTable = $swoole->transformedTable;
-
-            $transformedSwtId = 'eventIdentifier:' . $this->message->data->events[0]->eventId;
-            if ($transformedTable->exists($transformedSwtId)) {
-                $ts = $transformedTable->get($transformedSwtId)['ts'];
-                $hash = $transformedTable->get($transformedSwtId)['hash'];
-                if ($ts > $this->message->request_ts) {
-                    Log::info("Transformation ignored - Old Timestamp");
-                    return;
-                }
-
-                $toHashMessage = $this->message->data;
-                $toHashMessage->running_time = null;
-                $toHashMessage->id = null;
-                if ($hash == md5(json_encode((array)$toHashMessage))) {
-                    Log::info("Transformation ignored - No change");
-                    return;
-                }
-            }
+//            $transformedTable = $swoole->transformedTable;
+//
+//            $transformedSwtId = 'eventIdentifier:' . $this->message->data->events[0]->eventId;
+//            $toHashMessage = $this->message->data;
+//            if ($transformedTable->exists($transformedSwtId)) {
+//                $ts = $transformedTable->get($transformedSwtId)['ts'];
+//                $hash = $transformedTable->get($transformedSwtId)['hash'];
+//                if ($ts > $this->message->request_ts) {
+//                    echo '-';
+//                    Log::info("Transformation ignored - Old Timestamp");
+//                    return;
+//                }
+//
+//
+//                $toHashMessage->running_time = null;
+//                $toHashMessage->id = null;
+//                if ($hash == md5(json_encode((array)$toHashMessage))) {
+//                    echo '+';
+//                    Log::info("Transformation ignored - No change");
+//                    return;
+//                }
+//            } else {
+//                $toHashMessage->running_time = null;
+//                $toHashMessage->id = null;
+//                $transformedTable->set($transformedSwtId, [
+//                    'ts'   => $this->message->request_ts,
+//                    'hash' => md5(json_encode((array) $toHashMessage))
+//                ]);
+//            }
 
             /**
              * PROVIDERS Swoole Table
@@ -389,13 +403,6 @@ class TransformKafkaMessageOdds extends Task
                     }
                     $counter++;
                 }
-
-                $this->message->data->running_time = null;
-                $this->message->data->id = null;
-                $transformedTable->set($transformedSwtId, [
-                    'ts'   => $this->message->request_ts,
-                    'hash' => md5(json_encode((array)$this->message->data))
-                ]);
             }
 
             $this->subTasks['updated-odds'] = [];
@@ -409,5 +416,10 @@ class TransformKafkaMessageOdds extends Task
         } catch (Exception $e) {
             Log::error($e->getMessage());
         }
+//        echo '.';
+//        $this->endTime = microtime(true);
+//        var_dump('S - ' . $this->startTime);
+//        var_dump('E - ' . $this->endTime);
+//        var_dump('E - S = ' . ($this->endTime - $this->startTime));
     }
 }

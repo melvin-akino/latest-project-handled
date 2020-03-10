@@ -40,22 +40,26 @@ class TransformKafkaMessageOddsSaveToDb extends Task
                 'master_event_unique_id' => $this->eventData['MasterEvent']['data']['master_event_unique_id']
             ], $this->eventData['MasterEvent']['data']);
         } catch (Exception $e) {
-            MasterEvent::where('master_event_unique_id',
+            MasterEvent::withTrashed()->where('master_event_unique_id',
                 $this->eventData['MasterEvent']['data']['master_event_unique_id'])
                 ->update($this->eventData['MasterEvent']['data']);
             $masterEventModel = MasterEvent::where('master_event_unique_id',
                 $this->eventData['MasterEvent']['data']['master_event_unique_id'])->first();
         }
 
-        $eventModel = Events::updateOrCreate([
-            'event_identifier' => $this->eventData['Event']['data']['event_identifier']
-        ], $this->eventData['Event']['data']);
-        $rawEventId = $eventModel->id;
+        if ($masterEventModel) {
+            $eventModel = Events::updateOrCreate([
+                'event_identifier' => $this->eventData['Event']['data']['event_identifier']
+            ], $this->eventData['Event']['data']);
+        }
 
-        $masterEventLink = MasterEventLink::updateOrCreate([
-            'event_id'               => $rawEventId,
-            'master_event_unique_id' => $masterEventModel->master_event_unique_id
-        ], []);
+        if ($masterEventModel && $eventModel) {
+            $rawEventId = $eventModel->id;
+            $masterEventLink = MasterEventLink::updateOrCreate([
+                'event_id'               => $rawEventId,
+                'master_event_unique_id' => $masterEventModel->master_event_unique_id
+            ], []);
+        }
 
         if ($masterEventModel && $eventModel && $masterEventLink) {
             $masterEventData = [
@@ -64,12 +68,29 @@ class TransformKafkaMessageOddsSaveToDb extends Task
                 'master_home_team_name'  => $this->eventData['MasterEvent']['data']['master_home_team_name'],
                 'master_away_team_name'  => $this->eventData['MasterEvent']['data']['master_away_team_name'],
             ];
-
             $this->swoole->eventsTable->set($this->eventData['MasterEvent']['swtKey'], $masterEventData);
         }
 
         if (!empty($this->eventMarketsData)) {
             foreach ($this->eventMarketsData as $eventMarket) {
+                try {echo '2';
+                    $eventMarketModel = EventMarket::updateOrCreate([
+                        'bet_identifier' => $eventMarket['EventMarket']['data']['bet_identifier']
+                    ], $eventMarket['EventMarket']['data']);
+                    echo '3';
+                } catch (Exception $e) {echo '4';
+                    EventMarket::where('bet_identifier', $eventMarket['EventMarket']['data']['bet_identifier'])
+                                                    ->update($eventMarket['EventMarket']['data']);echo '5';
+                    $eventMarketModel = EventMarket::where('bet_identifier', $eventMarket['EventMarket']['data']['bet_identifier'])->first();
+                    echo '6';
+                }
+                $eventMarketId = $eventMarketModel->id;
+
+                $masterEventMarketLink = MasterEventMarketLink::where('event_market_id', $eventMarketId);
+                if ($masterEventMarketLink->exists()) {
+                    $eventMarket['MasterEventMarket']['data']['master_event_market_unique_id'] = ($masterEventMarketLink->first())->master_event_market_unique_id;
+                }
+
                 $masterEventMarketModel = MasterEventMarket::updateOrCreate([
                     'master_event_market_unique_id' => $eventMarket['MasterEventMarket']['data']['master_event_market_unique_id']
                 ], $eventMarket['MasterEventMarket']['data']);
@@ -77,11 +98,6 @@ class TransformKafkaMessageOddsSaveToDb extends Task
 
                 if ($masterEventMarketModel) {
                     $masterEventMarketId = $masterEventMarketModel->id;
-
-                    $eventMarketModel = EventMarket::updateOrCreate([
-                        'bet_identifier' => $eventMarket['EventMarket']['data']['bet_identifier']
-                    ], $eventMarket['EventMarket']['data']);
-                    $eventMarketId = $eventMarketModel->id;
 
                     MasterEventMarketLink::updateOrCreate([
                         'event_market_id'               => $eventMarketId,
@@ -110,12 +126,12 @@ class TransformKafkaMessageOddsSaveToDb extends Task
 
         if (!empty($this->updatedOddsData)) {
             $uid = $this->uid;
-            array_map(function ($odds) use ($uid) {
+            array_map(function ($marketOdds) use ($uid) {
                 try {
                     EventMarket::updateOrCreate([
-                        'bet_identifier' => $this->marketId
+                        'bet_identifier' => $marketOdds['market_id']
                     ], [
-                        'odds' => $this->odds
+                        'odds' => $marketOdds['odds']
                     ]);
                 } catch (Exception $e) {
                     Log::error($e->getMessage());

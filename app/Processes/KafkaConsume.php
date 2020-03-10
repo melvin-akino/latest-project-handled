@@ -27,6 +27,7 @@ class KafkaConsume implements CustomProcessInterface
                     env('KAFKA_SCRAPE_LEAGUES', 'SCRAPING-PROVIDER-LEAGUES'),
                     env('KAFKA_SCRAPE_EVENTS', 'SCRAPING-PROVIDER-EVENTS')
                 ]);
+                echo 1;
                 while (!self::$quit) {
                     $message = $kafkaConsumer->consume(120 * 1000);
                     if ($message->err == RD_KAFKA_RESP_ERR_NO_ERROR) {
@@ -40,6 +41,38 @@ class KafkaConsume implements CustomProcessInterface
                                 Task::deliver(new TransformKafkaMessageEvents($payload));
                                 break;
                             default:
+                                if (!isset($payload->data->events)) {
+                                    Log::info("Transformation ignored - No Event Found");
+                                    echo '*';
+                                    break;
+                                }
+                                $transformedTable = $swoole->transformedTable;
+
+                                $transformedSwtId = 'eventIdentifier:' . $payload->data->events[0]->eventId;
+                                if ($transformedTable->exists($transformedSwtId)) {
+                                    $ts = $transformedTable->get($transformedSwtId)['ts'];
+                                    $hash = $transformedTable->get($transformedSwtId)['hash'];
+                                    if ($ts > $payload->request_ts) {
+                                        Log::info("Transformation ignored - Old Timestamp");
+                                        echo '-';
+                                        break;
+                                    }
+
+                                    $toHashMessage = $payload->data;
+                                    $toHashMessage->running_time = null;
+                                    $toHashMessage->id = null;
+                                    if ($hash == md5(json_encode((array)$toHashMessage))) {
+                                        Log::info("Transformation ignored - No change");
+                                        echo '+';
+                                        break;
+                                    }
+                                } else {
+                                    $transformedTable->set($transformedSwtId, [
+                                        'ts'   => $payload->request_ts,
+                                        'hash' => md5(json_encode((array) $payload->data))
+                                    ]);
+                                }
+echo '.';
                                 Task::deliver(new TransformKafkaMessageOdds($payload));
                                 break;
                         }
@@ -48,6 +81,7 @@ class KafkaConsume implements CustomProcessInterface
                     } else {
                         Log::error(json_encode([$message]));
                     }
+
                     self::getUpdatedOdds($swoole);
                     self::getAdditionalLeagues($swoole);
                     self::getForRemovallLeagues($swoole);
