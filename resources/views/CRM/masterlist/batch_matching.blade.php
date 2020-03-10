@@ -43,6 +43,9 @@
                 <li class=""><a data-toggle="tab" href="#TODAY">TODAY <span class="badge pull-right">0</span></a></li>
                 <li class="active"><a data-toggle="tab" href="#EARLY">EARLY <span class="badge pull-right">99</span></a></li>
             </ul>
+
+            <div class="tab-content content-game-schedules">
+            </div>
         </div>
     </div>
 @endsection
