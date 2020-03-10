@@ -27,7 +27,7 @@ class KafkaConsume implements CustomProcessInterface
                     env('KAFKA_SCRAPE_LEAGUES', 'SCRAPING-PROVIDER-LEAGUES'),
                     env('KAFKA_SCRAPE_EVENTS', 'SCRAPING-PROVIDER-EVENTS')
                 ]);
-
+echo 1;
                 $baseTime = time();
                 while (!self::$quit) {
                     $message = $kafkaConsumer->consume(120 * 1000);
