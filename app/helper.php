@@ -177,4 +177,33 @@ if (!function_exists('wsEmit')) {
     }
 }
 
+if (!function_exists('dataTable')) {
+    function dataTable(Request $request, $query, $cols = null)
+    {
+        $order = collect($request->input('order')[0]);
+        $col   = collect($request->input('columns')[$order->get('column')])->get('data');
+        $dir   = $order->get('dir');
+        $q     = trim($request->input('search')['value']);
+        $len   = $request->input('length');
+        $page  = ($request->input('start') / $len) + 1;
 
+        Paginator::currentPageResolver(function () use ($page) {
+            return $page;
+        });
+
+        $pagin = null;
+
+        if (!empty($q)) {
+            $pagin = $query->search($q, $cols)->orderBy($col, $dir)->paginate($len);
+        } else {
+            $pagin = $query->orderBy($col, $dir)->paginate($len);
+        }
+
+        return response()->json([
+            'draw'            => intval($request->input('draw')),
+            'recordsTotal'    => $pagin->total(),
+            'recordsFiltered' => $pagin->total(),
+            'data'            => $pagin->items()
+        ]);
+    }
+}

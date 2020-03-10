@@ -132,45 +132,57 @@
                         @endusercan
                     </ul>
                 </li>
-                <li class="treeview @isset($masterlist_menu) active menu-open @endisset" id="security-treeview">
-                    <a href="javascript:void(0);">
-                        <i class="fa fa-list-alt" aria-hidden="true"></i>
-                        <span>Masterlist</span>
-                        <i class="fa fa-angle-left pull-right"></i>
-                    </a>
-
-                    <ul class="treeview-menu">
-                        <li class="@isset($match_menu) active @endisset">
-                            <a href="{{ route('crm.masterlist.match') }}">
-                                <i class="fa fa-random" aria-hidden="true"></i>
-                                <span>Match</span>
-                            </a>
-                        </li>
-
-                        <li class="@isset($match_early_menu) active @endisset">
-                            <a href="{{ route('crm.masterlist.match.early') }}">
-                                <i class="fa fa-arrows-h" aria-hidden="true"></i>
-                                <span>Batch Matching</span>
-                            </a>
-                        </li>
-
-                        <li class="@isset($providers_menu) active @endisset" style="display: none;">
-                            <a href="{{ route('crm.masterlist.providers') }}">
-                                <i class="fa fa-address-book-o" aria-hidden="true"></i>
-                                <span>Providers <span class="badge pull-right">v 1.0</span></span>
-                            </a>
-                        </li>
-
-                        <li class="@isset($matched_menu) active @endisset">
-                            <a href="{{ route('crm.masterlist.matchedgames') }}">
-                                <i class="fa fa-th-list" aria-hidden="true"></i>
-                                <span>Matched Games <span class="badge pull-right">BETA</span></span>
-                            </a>
-                        </li>
-                    </ul>
-                </li>
             @endif
             --}}
+            <li class="treeview @isset($masterlist_menu) active menu-open @endisset" id="security-treeview">
+                <a href="javascript:void(0);">
+                    <i class="fa fa-list-alt" aria-hidden="true"></i>
+                    <span>
+                        Masterlist
+                    </span>
+                    <i class="fa fa-angle-left pull-right"></i>
+                </a>
+
+                <ul class="treeview-menu">
+                    <li class="@isset($match_menu) active @endisset hidden">
+                        <a href="{{-- route('crm.masterlist.match') --}}">
+                            <i class="fa fa-random" aria-hidden="true"></i>
+                            <span>
+                                Match
+                            </span>
+                        </a>
+                    </li>
+
+                    <li class="@isset($batch_matching_menu) active @endisset">
+                        <a href="{{ route('crm.masterlist.batch_matching') }}">
+                            <i class="fa fa-arrows-h" aria-hidden="true"></i>
+                            <span>
+                                Batch Matching
+                            </span>
+                        </a>
+                    </li>
+
+                    <li class="@isset($providers_menu) active @endisset">
+                        <a href="{{-- route('crm.masterlist.providers') --}}">
+                            <i class="fa fa-address-book-o" aria-hidden="true"></i>
+                            <span>
+                                Providers
+                                <span class="badge pull-right">v 1.0</span>
+                            </span>
+                        </a>
+                    </li>
+
+                    <li class="@isset($matched_menu) active @endisset hidden">
+                        <a href="{{-- route('crm.masterlist.matchedgames') --}}">
+                            <i class="fa fa-th-list" aria-hidden="true"></i>
+                            <span>
+                                Matched Games
+                                <span class="badge pull-right">BETA</span>
+                            </span>
+                        </a>
+                    </li>
+                </ul>
+            </li>
         </ul>
     </section>
 </aside>

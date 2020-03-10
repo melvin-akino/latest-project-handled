@@ -229,11 +229,26 @@ class TransformKafkaMessageOdds extends Task
             }
 
             $updatedOdds = [];
+            $eventOnly   = true;
+            $toInsert['Event']['data'] = [
+                'sport_id'         => $sportId,
+                'provider_id'      => $providerId,
+                'event_identifier' => $this->message->data->events[0]->eventId,
+                'league_name'      => $this->message->data->leagueName,
+                'home_team_name'   => $this->message->data->homeTeam,
+                'away_team_name'   => $this->message->data->awayTeam,
+                'ref_schedule'     => date("Y-m-d H:i:s", strtotime($this->message->data->referenceSchedule)),
+                'game_schedule'    => $this->message->data->schedule,
+                'deleted_at'       => null
+            ];
+
+            $this->subTasks['raw_event'] = $toInsert;
 
             if (!empty($uid)) {
-                $this->uid = $uid;
+                $this->uid   = $uid;
                 $arrayEvents = $this->message->data->events;
-                $counter = 0;
+                $counter     = 0;
+                $eventOnly   = false;
 
                 $toInsert['MasterEvent']['swtKey'] = $eventSwtId;
                 $toInsert['MasterEvent']['data'] = [
@@ -249,17 +264,6 @@ class TransformKafkaMessageOdds extends Task
                     'home_penalty'           => $this->message->data->home_redcard,
                     'away_penalty'           => $this->message->data->away_redcard,
                     'deleted_at'             => null
-                ];
-                $toInsert['Event']['data'] = [
-                    'sport_id'         => $sportId,
-                    'provider_id'      => $providerId,
-                    'event_identifier' => $this->message->data->events[0]->eventId,
-                    'league_name'      => $this->message->data->leagueName,
-                    'home_team_name'   => $this->message->data->homeTeam,
-                    'away_team_name'   => $this->message->data->awayTeam,
-                    'ref_schedule'     => date("Y-m-d H:i:s", strtotime($this->message->data->referenceSchedule)),
-                    'game_schedule'    => $this->message->data->schedule,
-                    'deleted_at'       => null
                 ];
 
                 $this->subTasks['event'] = $toInsert;
@@ -403,9 +407,8 @@ class TransformKafkaMessageOdds extends Task
                 $this->subTasks['updated-odds'] = $updatedOdds;
             }
 
-            if (!empty($this->subTasks['event'])) {
-                Task::deliver(new TransformKafkaMessageOddsSaveToDb($this->subTasks, $this->uid));
-            }
+            var_dump('ping | ' . $eventOnly);
+            Task::deliver(new TransformKafkaMessageOddsSaveToDb($this->subTasks, $this->uid, $eventOnly));
         } catch (Exception $e) {
             Log::error($e->getMessage());
         }

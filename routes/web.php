@@ -22,6 +22,14 @@ Route::namespace('CRM')->prefix('admin')->group(function () {
 
     Route::middleware('auth:crm')->group(function () {
         Route::get('dashboard', 'DashboardController@index')->name('dashboard');
+
+        Route::prefix('masterlist')->group(function () {
+            Route::prefix('batch_matching')->group(function () {
+                Route::get('/', 'MasterlistController@batchMatching')->name('crm.masterlist.batch_matching');
+                Route::get('dataTables', 'MasterlistController@dataTables')->name('crm.masterlist.batch_matching.data_tables');
+                Route::post('save', 'MasterlistController@postBatchMatching')->name('crm.masterlist.batch_matcing.save');
+            });
+        });
     });
 });
 
