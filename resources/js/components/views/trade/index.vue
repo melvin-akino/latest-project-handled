@@ -64,6 +64,7 @@ export default {
         eventsList() {
             this.getForRemovalEvents()
             this.getUpdatedOdds()
+            this.getUpdatedEventsSchedule()
         }
     },
     methods: {
@@ -87,16 +88,16 @@ export default {
                         if(schedule in response.data.data.user_selected) {
                             this.$store.commit('trade/SET_EVENTS', { schedule: schedule, events: response.data.data.user_selected[schedule]})
                             Object.keys(response.data.data.user_selected[schedule]).map(league => {
-                               response.data.data.user_selected[schedule][league].map(event => {
-                                   this.$store.commit('trade/SET_EVENTS_LIST', event)
-                               })
+                                response.data.data.user_selected[schedule][league].map(event => {
+                                    this.$store.commit('trade/SET_EVENTS_LIST', event)
+                                })
                             })
                         }
                     })
                 }
 
                 if('user_watchlist' in response.data.data) {
-                   this.$store.commit('trade/SET_WATCHLIST', response.data.data.user_watchlist)
+                    this.$store.commit('trade/SET_WATCHLIST', response.data.data.user_watchlist)
                 }
             })
             .catch(err => {
@@ -169,6 +170,21 @@ export default {
                                     this.$store.commit('trade/REMOVE_SELECTED_LEAGUE', { schedule: event.game_schedule, league: event.league_name })
                                     this.$delete(this.events[event.game_schedule], event.league_name)
                                 }
+                            }
+                        })
+                    })
+                }
+            })
+        },
+        getUpdatedEventsSchedule() {
+            this.$options.sockets.onmessage = (response => {
+                if(getSocketKey(response.data) === 'getUpdatedEventsSchedule') {
+                    let updatedEventsSchedule = getSocketValue(response.data, 'getUpdatedEventsSchedule')
+                    this.eventsList.map(event => {
+                        updatedEventsSchedule.map(updatedEvent => {
+                            if(event.uid === updatedEvent.uid && event.game_schedule != updatedEvent.game_schedule) {
+                                event.game_schedule = updatedEvent.game_schedule
+                                this.$socket.send(`getEvents_${event.league_name}_${updatedEvent.game_schedule}`)
                             }
                         })
                     })
