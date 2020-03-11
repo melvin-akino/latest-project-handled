@@ -63,11 +63,12 @@ class SportController extends Controller
                     'priority',
                     'sport'
                 ]);
-
+            $userSport = getUserDefault(auth()->user()->id, 'sport');
             return response()->json([
                 'status'      => true,
                 'status_code' => 200,
-                'data'        => $sports
+                'data'        => $sports,
+                'default_sport' => $userSport['default_sport']
             ]);
         } catch (Exception $e) {
             return response()->json([

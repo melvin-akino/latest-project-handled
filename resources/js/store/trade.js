@@ -17,6 +17,7 @@ const state = {
     columnsToDisplay: [],
     checkedColumns: [],
     initialLeagues: [],
+    allEventsList: [],
     eventsList: [],
     events: {
         watchlist: {},
@@ -65,11 +66,17 @@ const mutations = {
     SET_EVENTS_LIST: (state, event) => {
         state.eventsList.push(event)
     },
+    SET_ALL_EVENTS_LIST: (state, event) => {
+        state.allEventsList.push(event)
+    },
     SET_PREVIOUSLY_SELECTED_EVENTS: (state, event) => {
         state.previouslySelectedEvents.push(event)
     },
     REMOVE_FROM_EVENT_LIST: (state, data) => {
         state.eventsList = state.eventsList.filter(event => event[data.type] != data.data)
+    },
+    REMOVE_FROM_ALL_EVENT_LIST: (state, data) => {
+        state.allEventsList = state.allEventsList.filter(event => event[data.type] != data.data)
     },
     REMOVE_FROM_PREVIOUSLY_SELECTED_EVENT_LIST: (state, data) => {
         state.previouslySelectedEvents = state.previouslySelectedEvents.filter(uid => uid != data)
@@ -81,7 +88,10 @@ const mutations = {
         Vue.set(state.events, data.schedule, data.events)
     },
     ADD_TO_EVENTS: (state, data) => {
-        Vue.set(state.events[data.schedule], data.league, []).push(data.event)
+        if(typeof(state.events[data.schedule][data.league]) == "undefined") {
+            state.events[data.schedule][data.league] = []
+        }
+        state.events[data.schedule][data.league].push(data.event)
     },
     REMOVE_FROM_EVENTS: (state, data) => {
         Vue.delete(state.events[data.schedule], data.removedLeague)
@@ -99,7 +109,7 @@ const mutations = {
         state.events[data.schedule][data.removedLeague] = state.events[data.schedule][data.removedLeague].filter(event => event.uid != data.removedEvent)
     },
     SET_WATCHLIST: (state, watchlist) => {
-        state.events.watchlist = watchlist
+        Vue.set(state.events, 'watchlist', watchlist)
     }
 }
 
