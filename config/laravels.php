@@ -195,8 +195,8 @@ return [
         'topic' => [
             'size'   => 1000,
             'column' => [ // KEY FORMAT: [userId:$userId:unique:<uniqid()>]
-                [ 'name' => 'user_id',    'type' => \Swoole\Table\TYPE_INT ],
-                [ 'name' => 'topic_name', 'type' => \Swoole\Table\TYPE_STRING, 'size' => 100 ],
+                [ 'name' => 'user_id',    'type' => \Swoole\Table::TYPE_INT ],
+                [ 'name' => 'topic_name', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 100 ],
             ],
         ],
     ],
