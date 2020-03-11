@@ -30,7 +30,7 @@ class KafkaConsume implements CustomProcessInterface
                 ]);
 
                 while (!self::$quit) {
-                    $message = $kafkaConsumer->consume(120 * 1000);echo 2;
+                    $message = $kafkaConsumer->consume(120 * 1000);
                     if ($message->err == RD_KAFKA_RESP_ERR_NO_ERROR) {
                         $payload = json_decode($message->payload);
 
@@ -70,7 +70,6 @@ class KafkaConsume implements CustomProcessInterface
                                         'hash' => md5(json_encode((array) $payload->data))
                                     ]);
                                 }
-                                echo 1;
                                 Task::deliver(new TransformKafkaMessageOdds($payload));
                                 break;
                         }
