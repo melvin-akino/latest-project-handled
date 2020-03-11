@@ -376,6 +376,7 @@ class TransformKafkaMessageOdds extends Task
                                 ];
 
                                 $toInsert['MasterEventMarketLog']['data'] = [
+                                    'provider_id' => $providerId,
                                     'odd_type_id' => $oddTypeId,
                                     'odds'        => $marketOdds,
                                     'odd_label'   => $marketPoints,
