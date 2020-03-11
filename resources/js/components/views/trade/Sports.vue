@@ -58,16 +58,6 @@ export default {
     },
     mounted() {
         this.getSports()
-        if (this.$socket.readyState == 1) {
-            this.$socket.send('getUserSport')
-        }
-        this.$options.sockets.onmessage = (response) => {
-            if (getSocketKey(response.data) === 'getUserSport') {
-                let defaultSport = getSocketValue(response.data, 'getUserSport')
-                this.$store.commit('trade/SET_SELECTED_SPORT', defaultSport.sport_id)
-                this.$store.dispatch('trade/getBetColumns', this.selectedSport)
-            }
-        }
     },
     methods: {
         selectSport(sport) {
@@ -87,7 +77,11 @@ export default {
             let token = Cookies.get('mltoken')
 
             axios.get('v1/sports', { headers: { 'Authorization': `Bearer ${token}` } })
-            .then(response => this.sports = response.data.data)
+            .then(response => {
+                this.sports = response.data.data
+                this.$store.commit('trade/SET_SELECTED_SPORT', response.data.default_sport)
+                this.$store.dispatch('trade/getBetColumns', response.data.default_sport)
+            })
             .catch(err => {
                 this.$store.dispatch('auth/checkIfTokenIsValid', err.response.data.status_code)
             })
