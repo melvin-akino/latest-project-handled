@@ -6,6 +6,7 @@ use App\Models\{
     EventMarket,
     MasterEvent,
     MasterEventMarket,
+    MasterEventMarketLog,
     OddType,
     Sport
 };
@@ -22,54 +23,104 @@ class OrdersController extends Controller
      */
     public function getEventMarketsDetails(string $memUID)
     {
-        $masterEventMarket = MasterEventMarket::where('master_event_market_unique_id', $memUID);
+        try {
+            $masterEventMarket = MasterEventMarket::where('master_event_market_unique_id', $memUID);
 
-        if (!$masterEventMarket->exists()) {
+            if (!$masterEventMarket->exists()) {
+                return response()->json([
+                    'status'      => false,
+                    'status_code' => 404,
+                    'message'     => trans('generic.not-found')
+                ], 404);
+            }
+
+            $masterEventMarket = $masterEventMarket->first([
+                'is_main',
+                'market_flag',
+                'odd_type_id',
+                'master_event_unique_id'
+            ]);
+
+            $masterEvent = MasterEvent::where('master_event_unique_id', $masterEventMarket->master_event_unique_id);
+
+            if (!$masterEvent->exists()) {
+                return response()->json([
+                    'status'      => false,
+                    'status_code' => 404,
+                    'message'     => trans('generic.not-found')
+                ], 404);
+            }
+
+            $masterEvent = $masterEvent->first();
+
+            $data = [
+                'league_name'   => $masterEvent->master_league_name,
+                'home'          => $masterEvent->master_home_team_name,
+                'away'          => $masterEvent->master_away_team_name,
+                'game_schedule' => $masterEvent->game_schedule,
+                'ref_schedule'  => $masterEvent->ref_schedule,
+                'running_time'  => $masterEvent->running_time,
+                'score'         => $masterEvent->score,
+                'home_penalty'  => $masterEvent->home_penalty,
+                'away_penalty'  => $masterEvent->away_penalty,
+                'market_flag'   => $masterEventMarket->market_flag,
+                'odd_type'      => OddType::getTypeByID($masterEventMarket->odd_type_id),
+                'sport'         => Sport::getNameByID($masterEvent->sport_id),
+            ];
+
+            return response()->json([
+                'status'      => true,
+                'status_code' => 200,
+                'data'        => $data
+            ], 200);
+        } catch (Exception $e) {
             return response()->json([
                 'status'      => false,
-                'status_code' => 404,
-                'message'     => trans('generic.not-found')
-            ], 404);
+                'status_code' => 500,
+                'message'     => trans('generic.internal-server-error')
+            ], 500);
         }
+    }
 
-        $masterEventMarket = $masterEventMarket->first([
-            'is_main',
-            'market_flag',
-            'odd_type_id',
-            'master_event_unique_id'
-        ]);
+    /**
+     * Get Event Market Logs to keep track on every updates
+     * the market offers
+     *
+     * @param  string $memUID
+     * @return json
+     */
+    public function getEventMarketLogs(string $memUID)
+    {
+        try {
+            $data = [];
 
-        $masterEvent = MasterEvent::where('master_event_unique_id', $masterEventMarket->master_event_unique_id);
+            $masterEventMarket = MasterEventMarket::where('master_event_market_unique_id', $memUID);
 
-        if (!$masterEvent->exists()) {
+            if (!$masterEventMarket->exists()) {
+                return response()->json([
+                    'status'      => false,
+                    'status_code' => 404,
+                    'message'     => trans('generic.not-found')
+                ], 404);
+            }
+
+            $masterEventMarket = $masterEventMarket->first();
+
+            $eventLogs = MasterEventMarketLog::where('master_event_market_id', $masterEventMarket->id)
+                ->orderBy('created_at', 'asc')
+                ->get();
+
+            return response()->json([
+                'status'      => true,
+                'status_code' => 200,
+                'data'        => $eventLogs
+            ], 200);
+        } catch (Exception $e) {
             return response()->json([
                 'status'      => false,
-                'status_code' => 404,
-                'message'     => trans('generic.not-found')
-            ], 404);
+                'status_code' => 500,
+                'message'     => trans('generic.internal-server-error')
+            ], 500);
         }
-
-        $masterEvent = $masterEvent->first();
-
-        $data = [
-            'league_name'   => $masterEvent->master_league_name,
-            'home'          => $masterEvent->master_home_team_name,
-            'away'          => $masterEvent->master_away_team_name,
-            'game_schedule' => $masterEvent->game_schedule,
-            'ref_schedule'  => $masterEvent->ref_schedule,
-            'running_time'  => $masterEvent->running_time,
-            'score'         => $masterEvent->score,
-            'home_penalty'  => $masterEvent->home_penalty,
-            'away_penalty'  => $masterEvent->away_penalty,
-            'market_flag'   => $masterEventMarket->market_flag,
-            'odd_type'      => OddType::getTypeByID($masterEventMarket->odd_type_id),
-            'sport'         => Sport::getNameByID($masterEvent->sport_id),
-        ];
-
-        return response()->json([
-            'status'      => true,
-            'status_code' => 200,
-            'data'        => $data
-        ], 200);
     }
 }
