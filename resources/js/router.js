@@ -29,6 +29,11 @@ const routes = [
         meta: { popup: true }
     },
     {
+        path: '/odds-history/:market_id',
+        component: () => import('./components/views/trade/OddsHistory'),
+        meta: { popup: true }
+    },
+    {
         path: '/orders',
         component: () => import('./components/views/orders')
     },

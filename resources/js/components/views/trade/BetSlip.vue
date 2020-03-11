@@ -4,8 +4,8 @@
         <div class="flex items-center w-1/2">
             <span class="text-white uppercase font-bold mr-2 my-2 px-2 bg-orange-500">FT Handicap</span>
             <span class="text-gray-800 font-bold my-2 pr-6">English Premier League</span>
-            <a href="#" class="text-center py-1 pr-1"><i class="fas fa-chart-area"></i></a>
-            <a href="#" class="text-center py-1"><i class="fas fa-bars"></i></a>
+            <a href="#" class="text-center py-1 pr-1" title="Bet Matrix"><i class="fas fa-chart-area"></i></a>
+            <a href="#" @click.prevent="openOddsHistory" lass="text-center py-1" title="Odds History"><i class="fas fa-bars"></i></a>
         </div>
         <div class="flex justify-between items-center w-full">
             <div class="flex justify-between w-2/4 items-center teams">
@@ -80,20 +80,20 @@
             </div>
             <div class="flex flex-col mt-4 w-3/5 h-full">
                 <div class="flex flex-col items-center bg-white shadow shadow-xl mb-2">
-                     <span class="text-white uppercase font-bold mr-2 my-2 px-2 bg-orange-500">FT Handicap</span>
-                     <div class="flex justify-around items-center">
+                    <span class="text-white uppercase font-bold mr-2 my-3 px-2 bg-orange-500">FT Handicap</span>
+                    <div class="flex justify-around items-center">
                         <!-- <a href="#" class="m-1 w-12 text-center text-gray-800"><i class="fas fa-chevron-left"></i></a> -->
-                        <a href="#" class="m-1 w-12 text-center text-white bg-orange-500 px-2 py-1">-0.75</a>
-                        <a href="#" class="m-1 w-12 text-center text-gray-800 bg-gray-200 px-2 py-1">-0.50</a>
-                        <a href="#" class="m-1 w-12 text-center text-gray-800 bg-gray-200 px-2 py-1">-0.25</a>
-                        <a href="#" class="m-1 w-12 text-center text-gray-800 bg-gray-200 px-2 py-1">0</a>
-                        <a href="#" class="m-1 w-12 text-center text-gray-800 bg-gray-200 px-2 py-1">0.25</a>
-                        <a href="#" class="m-1 w-12 text-center text-gray-800 bg-gray-200 px-2 py-1">0.50</a>
-                        <a href="#" class="m-1 w-12 text-center text-gray-800 bg-gray-200 px-2 py-1">0.75</a>
+                        <a href="#" class="m-1 w-12 text-center text-sm text-white bg-orange-500 px-2 py-1">-0.75</a>
+                        <a href="#" class="m-1 w-12 text-center text-sm text-gray-800 bg-gray-200 px-2 py-1 hover:text-white hover:bg-orange-500">-0.50</a>
+                        <a href="#" class="m-1 w-12 text-center text-sm text-gray-800 bg-gray-200 px-2 py-1 hover:text-white hover:bg-orange-500">-0.25</a>
+                        <a href="#" class="m-1 w-12 text-center text-sm text-gray-800 bg-gray-200 px-2 py-1 hover:text-white hover:bg-orange-500">0</a>
+                        <a href="#" class="m-1 w-12 text-center text-sm text-gray-800 bg-gray-200 px-2 py-1 hover:text-white hover:bg-orange-500">0.25</a>
+                        <a href="#" class="m-1 w-12 text-center text-sm text-gray-800 bg-gray-200 px-2 py-1 hover:text-white hover:bg-orange-500">0.50</a>
+                        <a href="#" class="m-1 w-12 text-center text-sm text-gray-800 bg-gray-200 px-2 py-1 hover:text-white hover:bg-orange-500">0.75</a>
                         <!-- <a href="#" class="m-1 w-12 text-center text-gray-800"><i class="fas fa-chevron-right"></i></a> -->
                     </div>
                 </div>
-                <div class="flex flex-col bg-white shadow shadow-xl py-5 px-3">
+                <div class="flex flex-col bg-white shadow shadow-xl py-8 px-3">
                     <div class="flex justify-between items-center p-1">
                         <span class="w-1/4"></span>
                         <span class="w-1/4 text-sm font-bold">Min</span>
@@ -102,38 +102,40 @@
                     </div>
                     <div class="flex justify-between items-center p-1">
                         <span class="w-1/4 text-sm font-bold">Singbet</span>
-                        <span class="w-1/4">6.90</span>
-                        <span class="w-1/4">6.90</span>
-                        <span class="w-1/4">6.90</span>
+                        <span class="w-1/4 text-sm">6.90</span>
+                        <span class="w-1/4 text-sm">6.90</span>
+                        <span class="w-1/4 text-sm">6.90</span>
                     </div>
                     <div class="flex justify-between items-center p-1">
                         <span class="w-1/4 text-sm font-bold">ISN</span>
-                        <span class="w-1/4">6.90</span>
-                        <span class="w-1/4">6.90</span>
-                        <span class="w-1/4">6.90</span>
+                        <span class="w-1/4 text-sm">6.90</span>
+                        <span class="w-1/4 text-sm">6.90</span>
+                        <span class="w-1/4 text-sm">6.90</span>
                     </div>
                     <div class="flex justify-between items-center p-1">
                         <span class="w-1/4 text-sm font-bold">PIN</span>
-                        <span class="w-1/4">6.90</span>
-                        <span class="w-1/4">6.90</span>
-                        <span class="w-1/4">6.90</span>
+                        <span class="w-1/4 text-sm">6.90</span>
+                        <span class="w-1/4 text-sm">6.90</span>
+                        <span class="w-1/4 text-sm">6.90</span>
                     </div>
                     <div class="flex justify-between items-center p-1">
                         <span class="w-1/4 text-sm font-bold">ISC</span>
-                        <span class="w-1/4">6.90</span>
-                        <span class="w-1/4">6.90</span>
-                        <span class="w-1/4">6.90</span>
+                        <span class="w-1/4 text-sm">6.90</span>
+                        <span class="w-1/4 text-sm">6.90</span>
+                        <span class="w-1/4 text-sm">6.90</span>
                     </div>
                     <div class="flex justify-between items-center p-1">
                         <span class="w-1/4 text-sm font-bold">SBC</span>
-                        <span class="w-1/4">6.90</span>
-                        <span class="w-1/4">6.90</span>
-                        <span class="w-1/4">6.90</span>
+                        <span class="w-1/4 text-sm">6.90</span>
+                        <span class="w-1/4 text-sm">6.90</span>
+                        <span class="w-1/4 text-sm">6.90</span>
                     </div>
                 </div>
             </div>
         </div>
-        <
+        <div class="flex justify-center w-full">
+            <button @click="placeOrder" class="bg-orange-500 text-white rounded-lg hover:bg-orange-600 w-full text-sm uppercase p-2 mt-2">Place Order</button>
+        </div>
     </div>
 </template>
 
@@ -149,6 +151,11 @@ export default {
         }
     },
     methods: {
+        openOddsHistory() {
+            let x = (screen.width / 2) - (400 / 2)
+            let y = (screen.height / 2) - (300 / 2)
+            window.open(`${process.env.MIX_APP_URL}/#/odds-history/${this.$route.params.market_id}`, `order`, `width=400, height=300, top=${y}, left=${x}`)
+        },
         placeOrder() {
             /* place bet (API or Socket) */
         }
