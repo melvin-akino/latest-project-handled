@@ -31,23 +31,11 @@ return [
             'pipe' => 0,
             'enable' => true
         ],
-        'kafka_consume_leagues' => [
-            'class'    => \App\Processes\KafkaConsumeLeagues::class,
+        'kafka_consume' => [
+            'class'    => \App\Processes\KafkaConsume::class,
             'redirect' => false,
             'pipe' => 0,
-            'enable' => env('LARAVELS_KAFKA_CONSUME_LEAGUES', true)
-        ],
-        'kafka_consume_events' => [
-            'class'    => \App\Processes\KafkaConsumeEvents::class,
-            'redirect' => false,
-            'pipe' => 0,
-            'enable' => env('LARAVELS_KAFKA_CONSUME_EVENTS', true)
-        ],
-        'kafka_consume_odds' => [
-            'class'    => \App\Processes\KafkaConsumeOdds::class,
-            'redirect' => false,
-            'pipe' => 0,
-            'enable' => env('LARAVELS_KAFKA_CONSUME_ODDS', true)
+            'enable' => env('LARAVELS_KAFKA_CONSUME', true)
         ],
     ],
     'timer'                    => [
@@ -240,7 +228,7 @@ return [
         'reload_async'       => true,
         'max_wait_time'      => 60,
         'enable_reuse_port'  => true,
-        'enable_coroutine'   => false,
+        'enable_coroutine'   => true,
         'http_compression'   => false,
 
         'heartbeat_idle_time' => 60000,

@@ -76,6 +76,7 @@ class WsEvents implements ShouldQueue
                 'me.home_penalty', 'me.away_penalty', 'mem.odd_type_id', 'mem.master_event_market_unique_id', 'mem.is_main', 'mem.market_flag',
                 'ot.type', 'em.odds', 'em.odd_label', 'em.provider_id')
             ->where('ml.master_league_name', $this->master_league_name)
+            ->where('me.game_schedule', $this->schedule)
             ->whereNull('ml.deleted_at')
             ->distinct()->get();
         $data = [];
