@@ -191,7 +191,14 @@ return [
             'column' => [ // KEY FORMAT: [sId:$sportId:pId:$providerId:schedule:$schedule]
                 [ 'name' => 'events',     'type' => \Swoole\Table::TYPE_STRING, 'size' => 10000 ],
             ],
-        ]
+        ],
+        'topic' => [
+            'size'   => 1000,
+            'column' => [ // KEY FORMAT: [userId:$userId:unique:<uniqid()>]
+                [ 'name' => 'user_id',    'type' => \Swoole\Table::TYPE_INT ],
+                [ 'name' => 'topic_name', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 100 ],
+            ],
+        ],
     ],
     'register_providers'       => [
         \Laravel\Passport\PassportServiceProvider::class
