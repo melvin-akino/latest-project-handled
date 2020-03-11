@@ -2,6 +2,7 @@
 
 namespace App\Processes;
 
+use App\Jobs\WsEvents;
 use App\Tasks\{TransformKafkaMessageEvents, TransformKafkaMessageLeagues, TransformKafkaMessageOdds};
 use Hhxsv5\LaravelS\Swoole\Process\CustomProcessInterface;
 use Hhxsv5\LaravelS\Swoole\Task\Task;
@@ -23,12 +24,11 @@ class KafkaConsume implements CustomProcessInterface
             if ($swoole->wsTable->exist('data2Swt')) {
                 $kafkaConsumer = resolve('KafkaConsumer');
                 $kafkaConsumer->subscribe([
-                    env('KAFKA_SCRAPE_ODDS', 'SCRAPING-ODDS'),
-                    env('KAFKA_SCRAPE_LEAGUES', 'SCRAPING-PROVIDER-LEAGUES'),
-                    env('KAFKA_SCRAPE_EVENTS', 'SCRAPING-PROVIDER-EVENTS')
+                    env('KAFKA_SCRAPE_ODDS', 'SCRAPING-ODDS')//,
+//                    env('KAFKA_SCRAPE_LEAGUES', 'SCRAPING-PROVIDER-LEAGUES'),
+//                    env('KAFKA_SCRAPE_EVENTS', 'SCRAPING-PROVIDER-EVENTS')
                 ]);
-echo 1;
-                $baseTime = time();
+
                 while (!self::$quit) {
                     $message = $kafkaConsumer->consume(120 * 1000);
                     if ($message->err == RD_KAFKA_RESP_ERR_NO_ERROR) {
@@ -44,7 +44,6 @@ echo 1;
                             default:
                                 if (!isset($payload->data->events)) {
                                     Log::info("Transformation ignored - No Event Found");
-                                    echo '*';
                                     break;
                                 }
                                 $transformedTable = $swoole->transformedTable;
@@ -71,15 +70,7 @@ echo 1;
                                         'hash' => md5(json_encode((array) $payload->data))
                                     ]);
                                 }
-                                $time = time();
-                                if ($swoole->wsTable->exist('test:' . $time)) {
-                                    $value = $swoole->wsTable->get('test:' . $time)['value'];
-                                    $swoole->wsTable->set('test:' . $time, ['value' => ++$value]);
-                                } else {
-                                    $value = 1;
-                                    $swoole->wsTable->set('test:' . $time, ['value' => $value]);
-                                }
-                                var_dump(($time - $baseTime) . 's = ' . $value);
+                                echo 1;
                                 Task::deliver(new TransformKafkaMessageOdds($payload));
                                 break;
                         }
@@ -89,6 +80,7 @@ echo 1;
                         Log::error(json_encode([$message]));
                     }
 
+                    self::getAdditionalEvents($swoole);
                     self::getUpdatedOdds($swoole);
                     self::getAdditionalLeagues($swoole);
                     self::getForRemovallLeagues($swoole);
@@ -104,6 +96,36 @@ echo 1;
     public static function onReload(Server $swoole, Process $process)
     {
         self::$quit = true;
+    }
+
+    public static function getAdditionalEvents($swoole)
+    {
+        $table = $swoole->wsTable;
+        foreach ($table as $k => $r) {
+            if (strpos($k, 'additionalEvents:') === 0) {
+                foreach ($table as $key => $row) {
+                    $additionalEvents = json_decode($r['value']);
+                    if (!empty($additionalEvents)) {
+                        if (strpos($key, 'fd:') === 0) {
+                            $userId = $row['value'];
+                            $sportId = $additionalEvents['sport_id'];
+                            $gameSchedule = $additionalEvents['schedule'];
+                            $defaultSport = getUserDefault($userId, 'sport');
+                            if ($defaultSport == $sportId) {
+                                $userSelectedLeagueTable = $swoole->userSelectedLeagueTable;
+                                foreach ($userSelectedLeagueTable as $uslKey => $uslData) {
+                                    if (strpos($uslKey, 'userId:' . $userId . ':sId:' . $sportId) === 0) {
+                                        WsEvents::dispatch($userId, [1 => $sportId, 2 => $gameSchedule]);
+                                    }
+                                }
+                            }
+
+                            $table->del($k);
+                        }
+                    }
+                }
+            }
+        }
     }
 
     private static function getUpdatedOdds($swoole)

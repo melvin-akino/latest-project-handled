@@ -208,8 +208,10 @@ class TradeController extends Controller
                 ->where('master_league_name', $request->league_name)
                 ->where('game_schedule', $request->schedule);
 
+            $userSelectedLeagueTable = app('swoole')->userSelectedLeaguesTable;
             if (Sport::find($request->sport_id)) {
                 $userId = auth()->user()->id;
+                $swtKey = 'userId:' . $userId . ':sId:' . $request->sport_id . ':schedule:' . $request->schedule . ':uniqueId:' . uniqid();
                 if ($checkTable->count() == 0) {
                     if (MasterLeague::where('master_league_name', $request->league_name)->count() != 0) {
                         UserSelectedLeague::create(
@@ -220,7 +222,25 @@ class TradeController extends Controller
                                 'sport_id'           => $request->sport_id
                             ]
                         );
+                        if (!$_SERVER['_PHPUNIT']) {
+                            $userSelectedLeagueTable->set($swtKey, [
+                                'user_id'     => $userId,
+                                'schedule'    => $request->schedule,
+                                'league_name' => $request->league_name,
+                                'sport_id'    => $request->sport_id
+                            ]);
+                        }
                     } else {
+                        if (!$_SERVER['_PHPUNIT']) {
+                            foreach ($userSelectedLeagueTable as $key => $row) {
+                                if (strpos($key,
+                                        'userId:' . $userId . ':sId:' . $request->sport_id . ':schedule:' . $request->schedule) === 0) {
+                                    if ($row['league_name'] == $request->league_name) {
+                                        $userSelectedLeagueTable->del($key);
+                                    }
+                                }
+                            }
+                        }
                         return response()->json([
                             'status'      => true,
                             'status_code' => 405,
