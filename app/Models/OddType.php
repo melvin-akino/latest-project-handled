@@ -16,4 +16,16 @@ class OddType extends Model
     {
         return $this->belongsToMany('App\Models\Sport');
     }
+
+    public static function getTypeByID(int $id)
+    {
+        $query = self::where('id', $id);
+
+        if (!$query->exists()) {
+            return false;
+        }
+
+        return $query->first()
+            ->type;
+    }
 }

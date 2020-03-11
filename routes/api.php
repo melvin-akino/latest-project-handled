@@ -84,24 +84,28 @@ Route::group([
 
     Route::middleware('auth:api')->get('bookies', 'ResourceController@getProviders');
 
-    /** Game Data Route Endpoints*/
-    Route::group([
-        'middleware' => 'auth:api',
-        'prefix'     => 'trade',
-    ], function () {
-        /** User Bet bar Management Route Endpoints */
-        Route::get('betbar', 'TradeController@getUserBetbar');
-
-        /** User Watchlist Management Route Endpoints */
-        Route::post('watchlist/{action}', 'TradeController@postManageWatchlist')->where('action', '^(add|remove)$');
-
-        /** League List Route Endpoints for Initial Page Load */
-        Route::prefix('leagues')->group(function () {
-            Route::get('/', 'TradeController@getInitialLeagues');
-            Route::post('toggle', 'TradeController@postManageSidebarLeagues');
+    Route::middleware('auth:api')->group(function () {
+        /** Orders Route Endpoints */
+        Route::prefix('orders')->group(function () {
+            Route::get('/{memUID}', 'OrdersController@getEventMarketsDetails');
         });
 
-        Route::get('events', 'TradeController@getUserEvents');
+        /** Game Data Route Endpoints*/
+        Route::prefix('trade')->group(function () {
+            /** User Bet bar Management Route Endpoints */
+            Route::get('betbar', 'TradeController@getUserBetbar');
+
+            /** User Watchlist Management Route Endpoints */
+            Route::post('watchlist/{action}', 'TradeController@postManageWatchlist')->where('action', '^(add|remove)$');
+
+            /** League List Route Endpoints for Initial Page Load */
+            Route::prefix('leagues')->group(function () {
+                Route::get('/', 'TradeController@getInitialLeagues');
+                Route::post('toggle', 'TradeController@postManageSidebarLeagues');
+            });
+
+            Route::get('events', 'TradeController@getUserEvents');
+        });
     });
 });
 
