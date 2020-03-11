@@ -93,7 +93,6 @@ class TransformKafkaMessageOddsSaveToDb extends Task
                             'bet_identifier' => $eventMarket['EventMarket']['data']['bet_identifier']
                         ], $eventMarket['EventMarket']['data']);
                     } catch (Exception $e) {
-                        Log::info(json_encode($eventMarket['EventMarket']['data']));
                         EventMarket::where('bet_identifier', $eventMarket['EventMarket']['data']['bet_identifier'])
                             ->update($eventMarket['EventMarket']['data']);
                         $eventMarketModel = EventMarket::where('bet_identifier', $eventMarket['EventMarket']['data']['bet_identifier'])->first();

@@ -195,6 +195,13 @@ class TransformKafkaMessageOdds extends Task
                     $uid = $eventsTable->get($eventSwtId)['master_event_unique_id'];
                     $masterTeamHome = $eventsTable->get($eventSwtId)['master_home_team_name'];
                     $masterTeamAway = $eventsTable->get($eventSwtId)['master_away_team_name'];
+
+                    if ($eventsTable->get($eventSwtId)['game_schedule'] != $this->message->data->schedule) {
+                        $wsTable->set('eventScheduleChange:' . $uid, ['value' => json_encode([
+                            'uid' => $uid,
+                            'game_schedule' => $this->message->data->schedule
+                        ])]);
+                    }
                 } else {
                     $masterTeamHome = $multiTeam['home']['name'];
                     $masterTeamAway = $multiTeam['away']['name'];
@@ -226,7 +233,7 @@ class TransformKafkaMessageOdds extends Task
 
             if (!empty($uid)) {
                 $this->dbOptions['event-only'] = false;
-                if ($eventId) {
+                if (!empty($eventId)) {
                     $this->dbOptions['is-event-new'] = false;
                 }
 

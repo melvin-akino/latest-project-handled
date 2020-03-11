@@ -24,13 +24,13 @@ class KafkaConsume implements CustomProcessInterface
             if ($swoole->wsTable->exist('data2Swt')) {
                 $kafkaConsumer = resolve('KafkaConsumer');
                 $kafkaConsumer->subscribe([
-                    env('KAFKA_SCRAPE_ODDS', 'SCRAPING-ODDS')//,
-//                    env('KAFKA_SCRAPE_LEAGUES', 'SCRAPING-PROVIDER-LEAGUES'),
-//                    env('KAFKA_SCRAPE_EVENTS', 'SCRAPING-PROVIDER-EVENTS')
+                    env('KAFKA_SCRAPE_ODDS', 'SCRAPING-ODDS'),
+                    env('KAFKA_SCRAPE_LEAGUES', 'SCRAPING-PROVIDER-LEAGUES'),
+                    env('KAFKA_SCRAPE_EVENTS', 'SCRAPING-PROVIDER-EVENTS')
                 ]);
 
                 while (!self::$quit) {
-                    $message = $kafkaConsumer->consume(120 * 1000);
+                    $message = $kafkaConsumer->consume(120 * 1000);echo 2;
                     if ($message->err == RD_KAFKA_RESP_ERR_NO_ERROR) {
                         $payload = json_decode($message->payload);
 
@@ -81,6 +81,7 @@ class KafkaConsume implements CustomProcessInterface
                     }
 
                     self::getAdditionalEvents($swoole);
+                    self::getUpdatedEventsSchedule($swoole);
                     self::getUpdatedOdds($swoole);
                     self::getAdditionalLeagues($swoole);
                     self::getForRemovallLeagues($swoole);
@@ -98,6 +99,23 @@ class KafkaConsume implements CustomProcessInterface
         self::$quit = true;
     }
 
+    public static function getUpdatedEventsSchedule($swoole)
+    {
+        $table = $swoole->wsTable;
+        foreach ($table as $k => $r) {
+            if (strpos($k, 'eventScheduleChange:') === 0) {
+                $updatedEventSchedule = json_decode($r['value']);
+                foreach ($table as $key => $row) {
+                    if (strpos($key, 'fd:') === 0) {
+                        $fd = $table->get('uid:' . $row['value']);
+                        $swoole->push($fd['value'], json_encode(['getUpdatedEventsSchedule' => $updatedEventSchedule]));
+                        $table->del($k);
+                    }
+                }
+            }
+        }
+    }
+
     public static function getAdditionalEvents($swoole)
     {
         $table = $swoole->wsTable;
@@ -108,8 +126,8 @@ class KafkaConsume implements CustomProcessInterface
                     if (!empty($additionalEvents)) {
                         if (strpos($key, 'fd:') === 0) {
                             $userId = $row['value'];
-                            $sportId = $additionalEvents['sport_id'];
-                            $gameSchedule = $additionalEvents['schedule'];
+                            $sportId = $additionalEvents->sport_id;
+                            $gameSchedule = $additionalEvents->schedule;
                             $defaultSport = getUserDefault($userId, 'sport');
                             if ($defaultSport == $sportId) {
                                 $userSelectedLeagueTable = $swoole->userSelectedLeagueTable;
