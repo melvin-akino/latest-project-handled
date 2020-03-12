@@ -15,10 +15,8 @@ class MasterEventMarketLog extends Model
         'odd_label',
         'is_main',
         'market_flag',
+        'provider_id',
     ];
 
-    protected $hidden = [
-        'created_at',
-        'updated_at'
-    ];
+    protected $hidden = [];
 }
