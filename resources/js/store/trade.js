@@ -153,7 +153,7 @@ const actions = {
     toggleLeagueByName({dispatch}, data) {
         let schedule = ['inplay', 'today', 'early']
         schedule.map(schedule => {
-            if(state.selectedLeagues[schedule].length != 0) {
+            if(state.selectedLeagues[schedule].length != 0 && state.selectedLeagues[schedule].includes(data.league_name)) {
                 dispatch('toggleLeague', { league_name: data.league_name, sport_id: data.sport_id, schedule: schedule })
             }
         })
