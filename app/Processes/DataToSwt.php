@@ -107,7 +107,9 @@ class DataToSwt implements CustomProcessInterface
             ->get();
         $teamsTable = $swoole->teamsTable;
         array_map(function ($team) use ($teamsTable) {
-            $teamsTable->set('pId:' . $team->provider_id . ':teamName:' . Str::slug($team->team_name),
+            $teamLookUpId = uniqid();
+            app('swoole')->wsTable->set('teamLookUpId:' . $teamLookUpId, ['value' => $team->team_name]);
+            $teamsTable->set('pId:' . $team->provider_id . ':teamLookUpId:' . $teamLookUpId,
                 [
                     'id'               => $team->id,
                     'team_name'        => $team->team_name,
