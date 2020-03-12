@@ -269,14 +269,14 @@ class TradeController extends Controller
     public function getUserEvents()
     {
         try {
-            $watchlistData = [];
-            $watchlist = [];
-            $userSelectedData = [];
-            $userSelected = [];
-            $type = [
-                'user_watchlist',
-                'user_selected',
-            ];
+            $watchlistData      = [];
+            $watchlist          = [];
+            $userSelectedData   = [];
+            $userSelected       = [];
+            $type               = [
+                                    'user_watchlist',
+                                    'user_selected',
+                                ];
 
             foreach ($type AS $row) {
                 $transformed = DB::table('master_leagues as ml')

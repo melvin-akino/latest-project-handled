@@ -124,10 +124,10 @@ class KafkaConsume implements CustomProcessInterface
                     $additionalEvents = json_decode($r['value']);
                     if (!empty($additionalEvents)) {
                         if (strpos($key, 'fd:') === 0) {
-                            $userId = $row['value'];
-                            $sportId = $additionalEvents->sport_id;
-                            $gameSchedule = $additionalEvents->schedule;
-                            $defaultSport = getUserDefault($userId, 'sport');
+                            $userId         = $row['value'];
+                            $sportId        = $additionalEvents->sport_id;
+                            $gameSchedule   = $additionalEvents->schedule;
+                            $defaultSport   = getUserDefault($userId, 'sport');
                             if ($defaultSport == $sportId) {
                                 $userSelectedLeagueTable = $swoole->userSelectedLeagueTable;
                                 foreach ($userSelectedLeagueTable as $uslKey => $uslData) {
