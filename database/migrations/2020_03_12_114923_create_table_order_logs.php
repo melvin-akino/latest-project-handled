@@ -17,6 +17,8 @@ class CreateTableOrderLogs extends Migration
     {
         Schema::create($this->tablename, function (Blueprint $table) {
             $table->bigIncrements('id');
+            $table->integer('provider_id');
+            $table->integer('sport_id');
             $table->string('bet_id');
             $table->text('bet_selection');
             $table->string('status');
