@@ -37,9 +37,9 @@
                                 </div>
                                 <div class="w-1/12"></div>
                                 <div class="w-1/12 flex flex-col items-center" :class="column" v-for="(column, index) in oddsTypeBySport" :key="index">
-                                    <p class="relative" :class="[{'order-1' : index==='home'}, {'order-2' : index==='away'}, {'order-3': index==='draw'}]" v-for="(odd, index) in game.market_odds.main[column]" :key="odd.market_id">
+                                    <p class="relative" :class="[{'order-1' : index=='HOME'}, {'order-2' : index=='AWAY'}, {'order-3': index=='DRAW'}]" v-for="(odd, index) in game.market_odds.main[column]" :key="odd.market_id">
                                         <span class="absolute text-gray-500 odds-label" :class="[odd.odds != '' ? 'left-label' : 'empty-left-label']">{{odd.points}}</span>
-                                        <a href="#" @click.prevent="openBetSlip(odd.market_id, index, game.uid, column)" class="px-2 rounded-lg" :class="{'bet-click' : odd.odds != ''}" v-adjust-odd-color="odd.odds">{{odd.odds | formatOdds}}</a>
+                                        <a href="#" @click.prevent="openBetSlip(odd.market_id)" class="px-2 rounded-lg" :class="{'bet-click' : odd.odds != ''}" v-adjust-odd-color="odd.odds">{{odd.odds | formatOdds}}</a>
                                     </p>
                                 </div>
                                 <div class="absolute eventStar" :class="[gameSchedType==='watchlist' ? 'in-watchlist-star' : 'text-white']" @click="gameSchedType==='watchlist' ? removeFromWatchlist('event', game.uid, game) : addToWatchlist('event', game.uid, game)">
@@ -64,9 +64,9 @@
                                 <div class="flex">
                                     <div class="w-1/12"></div>
                                     <div class="w-1/12 flex justify-between mr-10" :class="column" v-for="(column, index) in oddsTypeBySport" :key="index">
-                                        <p class="relative" :class="[{'order-1' : index==='home'}, {'order-2' : index==='draw'}, {'order-3': index==='away'}]" v-for="(odd, index) in game.market_odds.main[column]" :key="odd.market_id">
+                                        <p class="relative" :class="[{'order-1' : index=='HOME'}, {'order-2' : index=='DRAW'}, {'order-3': index=='AWAY'}]" v-for="(odd, index) in game.market_odds.main[column]" :key="odd.market_id">
                                             <span class="absolute text-gray-500 odds-label" :class="[odd.odds != '' ? 'left-label' : 'empty-left-label']">{{odd.points}}</span>
-                                            <a href="#"  @click.prevent="openBetSlip(odd.market_id, index, game.uid, column)" class="px-2 rounded-lg" :class="{'bet-click' : odd.odds != ''}" v-adjust-odd-color="odd.odds">{{odd.odds | formatOdds}}</a>
+                                            <a href="#"  @click.prevent="openBetSlip(odd.market_id)" class="px-2 rounded-lg" :class="{'bet-click' : odd.odds != ''}" v-adjust-odd-color="odd.odds">{{odd.odds | formatOdds}}</a>
                                         </p>
                                     </div>
                                 </div>
@@ -93,17 +93,16 @@ export default {
         }
     },
     computed: {
-        ...mapState('trade', ['selectedSport', 'selectedLeagues', 'tradeLayout', 'oddsTypeBySport', 'events', 'eventsList', 'previouslySelectedEvents', 'watchlist']),
+        ...mapState('trade', ['selectedSport', 'selectedLeagues', 'tradeLayout', 'oddsTypeBySport', 'events', 'eventsList', 'watchlist', 'openedBetSlips']),
         ...mapState('settings', ['disabledBetColumns']),
         checkIfGamesIsEmpty() {
             return _.isEmpty(this.games)
         }
     },
     methods: {
-        openBetSlip(market_id, team, uid, column) {
-            let x = (screen.width / 2) - (820 / 2)
-            let y = (screen.height / 2) - (475 / 2)
-            window.open(`${process.env.MIX_APP_URL}/#/bet-slip/${market_id}/${team}/${uid}/${column}`, `bet-slip-${market_id}`, `width=820, height=475, top=${y}, left=${x}`)
+        openBetSlip(market_id) {
+            this.$store.commit('trade/CLOSE_BETSLIP', market_id)
+            this.$store.commit('trade/OPEN_BETSLIP', market_id)
         },
         toggleLeague(index) {
             if(this.closedLeagues.includes(index)) {
@@ -286,13 +285,13 @@ export default {
 
     .bet-click.ping-danger {
         animation-name: ping-danger;
-        animation-duration: 5s;
+        animation-duration: 4s;
         animation-iteration-count: 1;
     }
 
     .bet-click.ping-success {
         animation-name: ping-success;
-        animation-duration: 3s;
+        animation-duration: 2s;
         animation-iteration-count: 1;
     }
 

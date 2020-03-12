@@ -19,6 +19,7 @@
                 </div>
             </div>
         </div>
+        <Betslip></Betslip>
         <Betbar></Betbar>
     </div>
 </template>
@@ -33,6 +34,7 @@ import Watchlist from './Watchlist'
 import Columns from './Columns'
 import Games from './Games'
 import Betbar from './Betbar'
+import Betslip from './BetSlip'
 import { getSocketKey, getSocketValue } from '../../../helpers/socket'
 
 export default {
@@ -42,7 +44,8 @@ export default {
         Watchlist,
         Columns,
         Games,
-        Betbar
+        Betbar,
+        Betslip
     },
     head: {
         title() {
@@ -142,7 +145,7 @@ export default {
                             if(eventsListCheckUID === -1) {
                             this.$store.commit('trade/SET_EVENTS_LIST', receivedEvent)
                             }
-                            
+
                             if(allEventsListCheckUID === -1) {
                                 this.$store.commit('trade/SET_ALL_EVENTS_LIST', receivedEvent)
                             }
