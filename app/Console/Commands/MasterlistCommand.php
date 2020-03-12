@@ -15,7 +15,6 @@ class MasterlistCommand extends Command
     public function __construct()
     {
         parent::__construct();
-
     }
 
     public function handle()
@@ -28,47 +27,47 @@ class MasterlistCommand extends Command
 
         $masterLeague = MasterLeague::withTrashed()->updateOrCreate([
             'master_league_name' => $leagueName,
-            'sport_id' => $sportId
+            'sport_id'           => $sportId
         ], [
             'deleted_at' => null
         ]);
 
         MasterLeagueLink::withTrashed()->updateOrCreate([
             'master_league_id' => $masterLeague->id,
-            'sport_id' => $sportId,
-            'provider_id' => $providerId,
-            'league_name' => $leagueName
+            'sport_id'         => $sportId,
+            'provider_id'      => $providerId,
+            'league_name'      => $leagueName
         ], [
             'deleted_at' => null
         ]);
 
         $team1 = MasterTeam::withTrashed()->updateOrCreate([
-            'sport_id' => $sportId,
+            'sport_id'         => $sportId,
             'master_team_name' => $team1,
         ], [
             'deleted_at' => null
         ]);
 
         MasterTeamLink::withTrashed()->updateOrCreate([
-            'sport_id' => $sportId,
-            'team_name' => $team1,
-            'provider_id' => $providerId,
+            'sport_id'       => $sportId,
+            'team_name'      => $team1,
+            'provider_id'    => $providerId,
             'master_team_id' => $team1->id
         ], [
             'deleted_at' => null
         ]);
 
         $team2 = MasterTeam::withTrashed()->updateOrCreate([
-            'sport_id' => $sportId,
+            'sport_id'         => $sportId,
             'master_team_name' => $team2,
         ], [
             'deleted_at' => null
         ]);
 
         MasterTeamLink::withTrashed()->updateOrCreate([
-            'sport_id' => $sportId,
-            'team_name' => $team2,
-            'provider_id' => $providerId,
+            'sport_id'       => $sportId,
+            'team_name'      => $team2,
+            'provider_id'    => $providerId,
             'master_team_id' => $team2->id
         ], [
             'deleted_at' => null
