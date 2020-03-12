@@ -2,6 +2,7 @@
 
 namespace App\Console;
 
+use App\Console\Commands\MasterlistCommand;
 use App\Console\Commands\OddsRequestCommand;
 use App\Console\Commands\ScrapeRequestCommand;
 use Illuminate\Console\Scheduling\Schedule;
@@ -15,7 +16,8 @@ class Kernel extends ConsoleKernel
      * @var array
      */
     protected $commands = [
-        ScrapeRequestCommand::class
+        ScrapeRequestCommand::class,
+        MasterlistCommand::class
     ];
 
     /**

@@ -40,6 +40,35 @@ class KafkaConsume implements CustomProcessInterface
                                 Task::deliver(new TransformKafkaMessageEvents($payload));
                                 break;
                             default:
+                                if (!isset($payload->data->events)) {
+                                    Log::info("Transformation ignored - No Event Found");
+                                    break;
+                                }
+                                $transformedTable = $swoole->transformedTable;
+
+                                $transformedSwtId = 'eventIdentifier:' . $payload->data->events[0]->eventId;
+                                if ($transformedTable->exists($transformedSwtId)) {
+                                    $ts = $transformedTable->get($transformedSwtId)['ts'];
+                                    $hash = $transformedTable->get($transformedSwtId)['hash'];
+                                    if ($ts > $payload->request_ts) {
+                                        Log::info("Transformation ignored - Old Timestamp");
+                                        break;
+                                    }
+
+                                    $toHashMessage = $payload->data;
+                                    $toHashMessage->running_time = null;
+                                    $toHashMessage->id = null;
+                                    if ($hash == md5(json_encode((array)$toHashMessage))) {
+                                        Log::info("Transformation ignored - No change");
+                                        break;
+                                    }
+                                } else {
+                                    $transformedTable->set($transformedSwtId, [
+                                        'ts'   => $payload->request_ts,
+                                        'hash' => md5(json_encode((array) $payload->data))
+                                    ]);
+                                }
+
                                 Task::deliver(new TransformKafkaMessageOdds($payload));
                                 break;
                         }
