@@ -20,9 +20,9 @@ class MasterlistCommand extends Command
     public function handle()
     {
         $leagueName = $this->argument('league');
-        $team1 = $this->argument('team_1');
-        $team2 = $this->argument('team_2');
-        $sportId = $this->argument('sport_id');
+        $team1      = $this->argument('team_1');
+        $team2      = $this->argument('team_2');
+        $sportId    = $this->argument('sport_id');
         $providerId = $this->argument('provider_id');
 
         $masterLeague = MasterLeague::withTrashed()->updateOrCreate([
