@@ -2,8 +2,7 @@
 
 namespace App\Console\Commands;
 
-use App\Models\Currency;
-use App\Models\ExchangeRate;
+use App\Models\{Currency, ExchangeRate};
 use GuzzleHttp\Client;
 use Illuminate\Console\Command;
 use DateTime;
