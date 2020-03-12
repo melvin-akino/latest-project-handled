@@ -41,7 +41,7 @@ class MasterlistCommand extends Command
             'deleted_at' => null
         ]);
 
-        $team1 = MasterTeam::withTrashed()->updateOrCreate([
+        $masterTeam1 = MasterTeam::withTrashed()->updateOrCreate([
             'sport_id'         => $sportId,
             'master_team_name' => $team1,
         ], [
@@ -52,12 +52,12 @@ class MasterlistCommand extends Command
             'sport_id'       => $sportId,
             'team_name'      => $team1,
             'provider_id'    => $providerId,
-            'master_team_id' => $team1->id
+            'master_team_id' => $masterTeam1->id
         ], [
             'deleted_at' => null
         ]);
 
-        $team2 = MasterTeam::withTrashed()->updateOrCreate([
+        $masterTeam2 = MasterTeam::withTrashed()->updateOrCreate([
             'sport_id'         => $sportId,
             'master_team_name' => $team2,
         ], [
@@ -68,7 +68,7 @@ class MasterlistCommand extends Command
             'sport_id'       => $sportId,
             'team_name'      => $team2,
             'provider_id'    => $providerId,
-            'master_team_id' => $team2->id
+            'master_team_id' => $masterTeam2->id
         ], [
             'deleted_at' => null
         ]);
