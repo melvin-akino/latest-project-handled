@@ -148,19 +148,28 @@ class TransformKafkaMessageOdds extends Task
                 'home' => $this->message->data->homeTeam,
                 'away' => $this->message->data->awayTeam,
             ];
-
             foreach ($competitors AS $key => $row) {
+                $teamLookUpId = null;
+                foreach ($wsTable as $k => $value) {
+                    if (strpos($k, 'teamLookUpId:') === 0) {
+                        if ($value['value'] == $row) {
+                            $teamLookUpId = substr($k, strlen('teamLookUpId:'));
+                            break;
+                        }
+                    }
+                }
+
                 /**
                  * TEAMS (MASTER) Swoole Table
                  *
                  * @ref config.laravels.teams
                  *
                  * @var $teamsTable  swoole_table
-                 *      $teamSwtId   swoole_table_key    "pId:<$providerId>:teamName:<slug($rawTeamName)>"
+                 *      $teamSwtId   swoole_table_key    "pId:<$providerId>:teamLookUpId:<$teamLookUpId>"
                  */
                 $teamSwtId = implode(':', [
                     "pId:" . $providerId,
-                    "teamName:" . Str::slug($row)
+                    "teamLookUpId:" . $teamLookUpId
                 ]);
 
                 if ($teamsTable->exists($teamSwtId)) {
@@ -171,7 +180,6 @@ class TransformKafkaMessageOdds extends Task
                     return;
                 }
             }
-
 
             if (!empty($masterLeagueName) && !empty($multiTeam) && count($multiTeam) == 2) {
                 /**

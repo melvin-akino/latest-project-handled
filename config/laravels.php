@@ -57,7 +57,8 @@ return [
             // key format [userAdditionalLeagues:$userId:sportId:$sportId] = [value = $timestamp]
             // key format [userWatchlist:$userId:masterEventUniqueId:$masterEventUniqueId] = [value = true]
             // key format [userSportLeagueEvents:$userId:league:$multileaguename] = [value = json_encode(data)]
-            // key format [leagueLookUpId:unique()] = [value = slug($leagueName)]
+            // key format [leagueLookUpId:unique()] = [value = $leagueName]
+            // key format [teamLookUpId:unique()] = [value = $teamName]
             // key format [eventLookUpId:unique()] = [value = slug($masterEventUniqueId)]
             // key format [updatedEvents:$uid] = [value = json_encode([['market_id' => $marketId, 'odds' => $odds], ...])]
             // key format [updatedEvents:$uid] = [value = true]
@@ -129,7 +130,7 @@ return [
                 [ 'name' => 'league_name',          'type' => \Swoole\Table::TYPE_STRING, 'size' => 100 ]
             ],
         ],
-        'teams'           => [ //key format ['pId:$providerId:teamName:slug($team)] = [id = $teamId, team_name = $teamName]
+        'teams'           => [ //key format ['pId:$providerId:teamLookUpId:$teamLookUpId] = [id = $teamId, team_name = $teamName]
             'size'   => 102400,
             'column' => [
                 [ 'name' => 'id',               'type' => \Swoole\Table::TYPE_INT ],
