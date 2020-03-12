@@ -13,7 +13,7 @@
                 <Columns></Columns>
                 <div class="gameScheds pb-4">
                     <Games gameSchedType="watchlist" :games="events.watchlist"></Games>
-                    <Games gameSchedType="in-play" :games="events.inplay"></Games>
+                    <Games gameSchedType="inplay" :games="events.inplay"></Games>
                     <Games gameSchedType="today" :games="events.today"></Games>
                     <Games gameSchedType="early" :games="events.early"></Games>
                 </div>
@@ -138,11 +138,14 @@ export default {
                     receivedEvents.map(receivedEvent => {
                         let eventsListCheckUID = this.eventsList.findIndex(event => event.uid === receivedEvent.uid)
                         let allEventsListCheckUID = this.allEventsList.findIndex(event => event.uid === receivedEvent.uid)
-                        if(eventsListCheckUID === -1) {
+                        if(receivedEvent.sport_id == this.selectedSport) {
+                            if(eventsListCheckUID === -1) {
                             this.$store.commit('trade/SET_EVENTS_LIST', receivedEvent)
-                        }
-                        if(allEventsListCheckUID === -1) {
-                            this.$store.commit('trade/SET_ALL_EVENTS_LIST', receivedEvent)
+                            }
+                            
+                            if(allEventsListCheckUID === -1) {
+                                this.$store.commit('trade/SET_ALL_EVENTS_LIST', receivedEvent)
+                            }
                         }
                     })
                     let eventsSchedule = _.uniq(this.eventsList.map(event => event.game_schedule))

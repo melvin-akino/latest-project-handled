@@ -71,6 +71,13 @@ export default {
                 this.$store.commit('trade/SET_SELECTED_SPORT', sport)
                 this.$store.dispatch('trade/getBetColumns', this.selectedSport)
                 this.$socket.send(`getSelectedSport_${sport}`)
+
+                let schedule = ['inplay', 'today', 'early']
+                schedule.map(schedule => {
+                    this.selectedLeagues[schedule].map(league => {
+                        this.$socket.send(`getEvents_${league}_${schedule}`)
+                    })
+                })
             }
         },
         getSports() {
