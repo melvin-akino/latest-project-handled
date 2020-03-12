@@ -2,6 +2,7 @@
 
 namespace App\Console;
 
+use App\Console\Commands\CurrencyConversionCommand;
 use App\Console\Commands\MasterlistCommand;
 use App\Console\Commands\OddsRequestCommand;
 use App\Console\Commands\ScrapeRequestCommand;
@@ -17,7 +18,8 @@ class Kernel extends ConsoleKernel
      */
     protected $commands = [
         ScrapeRequestCommand::class,
-        MasterlistCommand::class
+        MasterlistCommand::class,
+        CurrencyConversionCommand::class
     ];
 
     /**

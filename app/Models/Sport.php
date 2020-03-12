@@ -25,4 +25,17 @@ class Sport extends Model
         return self::where('is_enabled', true)
             ->orderBy('priority', 'asc');
     }
+
+    public static function getNameByID(int $id)
+    {
+        $query = self::where('id', $id);
+
+        if (!$query->exists()) {
+            return false;
+        }
+
+        return $query->where('is_enabled', true)
+            ->first()
+            ->sport;
+    }
 }
