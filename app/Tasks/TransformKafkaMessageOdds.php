@@ -375,14 +375,16 @@ class TransformKafkaMessageOdds extends Task
                                     'market_flag'            => strtoupper($markets->indicator),
                                 ];
 
-                                $toInsert['MasterEventMarketLog']['data'] = [
-                                    'provider_id' => $providerId,
-                                    'odd_type_id' => $oddTypeId,
-                                    'odds'        => $marketOdds,
-                                    'odd_label'   => $marketPoints,
-                                    'is_main'     => $event->market_type == 1 ? true : false,
-                                    'market_flag' => strtoupper($markets->indicator),
-                                ];
+                                if ($this->updated) {
+                                    $toInsert['MasterEventMarketLog']['data'] = [
+                                        'provider_id' => $providerId,
+                                        'odd_type_id' => $oddTypeId,
+                                        'odds'        => $marketOdds,
+                                        'odd_label'   => $marketPoints,
+                                        'is_main'     => $event->market_type == 1 ? true : false,
+                                        'market_flag' => strtoupper($markets->indicator),
+                                    ];
+                                }
 
                                 $this->subTasks['event-market'][] = $toInsert;
                             }

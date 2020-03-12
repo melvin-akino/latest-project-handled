@@ -8,6 +8,7 @@ use App\Models\{
     MasterEventMarket,
     MasterEventMarketLog,
     OddType,
+    Provider,
     Sport
 };
 use Illuminate\Http\Request;
@@ -94,6 +95,11 @@ class OrdersController extends Controller
         try {
             $data = [];
 
+            $providers = Provider::getActiveProviders()->get([
+                'id',
+                'alias'
+            ]);
+
             $masterEventMarket = MasterEventMarket::where('master_event_market_unique_id', $memUID);
 
             if (!$masterEventMarket->exists()) {
@@ -108,12 +114,19 @@ class OrdersController extends Controller
 
             $eventLogs = MasterEventMarketLog::where('master_event_market_id', $masterEventMarket->id)
                 ->orderBy('created_at', 'asc')
-                ->get();
+                ->get()
+                ->toArray();
+
+            foreach ($providers AS $provider) {
+                $data[$provider->alias] = array_filter($eventLogs, function ($row) use ($provider) {
+                    return $row['provider_id'] == $provider->id;
+                });
+            }
 
             return response()->json([
                 'status'      => true,
                 'status_code' => 200,
-                'data'        => $eventLogs
+                'data'        => $data
             ], 200);
         } catch (Exception $e) {
             return response()->json([
