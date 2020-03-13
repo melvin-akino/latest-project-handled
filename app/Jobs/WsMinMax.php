@@ -5,7 +5,7 @@ namespace App\Jobs;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 
-class WsEvents implements ShouldQueue
+class WsMinMax implements ShouldQueue
 {
     use Dispatchable;
 
