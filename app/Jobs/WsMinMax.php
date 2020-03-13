@@ -19,7 +19,7 @@ class WsEvents implements ShouldQueue
     {
         $topicTable = app('swoole')->topicTable;
         $topicTable->set('userId:' . $this->userId . ':unique:' . uniqid(), [
-            'user_id' => $this->userId,
+            'user_id'    => $this->userId,
             'topic_name' => 'min-max-' . $this->master_event_market_unique_id
         ]);
     }
