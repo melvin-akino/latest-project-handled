@@ -90,10 +90,10 @@ export default {
                     let schedule = ['inplay', 'today', 'early']
                     schedule.map(schedule => {
                         if(schedule in response.data.data.user_selected) {
-                            this.$store.commit('trade/SET_EVENTS', { schedule: schedule, events: response.data.data.user_selected[schedule]})
                             Object.keys(response.data.data.user_selected[schedule]).map(league => {
                                 response.data.data.user_selected[schedule][league].map(event => {
                                     if(event.sport_id == this.selectedSport) {
+                                        this.$store.commit('trade/SET_EVENTS', { schedule: schedule, events: response.data.data.user_selected[schedule]})
                                         this.$store.commit('trade/SET_EVENTS_LIST', event)
                                         this.$store.commit('trade/SET_ALL_EVENTS_LIST', event)
                                     }

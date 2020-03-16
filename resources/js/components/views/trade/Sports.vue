@@ -69,15 +69,9 @@ export default {
                 this.$store.commit('trade/SET_EVENTS', { schedule: 'early', events: [] })
                 this.$store.commit('trade/CLEAR_EVENTS_LIST')
                 this.$store.commit('trade/SET_SELECTED_SPORT', sport)
+                this.$store.commit('trade/CLEAR_SELECTED_LEAGUES')
                 this.$store.dispatch('trade/getBetColumns', this.selectedSport)
                 this.$socket.send(`getSelectedSport_${sport}`)
-
-                let schedule = ['inplay', 'today', 'early']
-                schedule.map(schedule => {
-                    this.selectedLeagues[schedule].map(league => {
-                        this.$socket.send(`getEvents_${league}_${schedule}`)
-                    })
-                })
             }
         },
         getSports() {
