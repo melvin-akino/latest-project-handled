@@ -26,7 +26,9 @@ const state = {
         early: {}
     },
     watchlist: [],
-    previouslySelectedEvents: []
+    previouslySelectedEvents: [],
+    openedBetSlips: [],
+    openedOddsHistory: []
 }
 
 const mutations = {
@@ -110,6 +112,18 @@ const mutations = {
     },
     SET_WATCHLIST: (state, watchlist) => {
         Vue.set(state.events, 'watchlist', watchlist)
+    },
+    OPEN_BETSLIP: (state, market_id) => {
+        state.openedBetSlips.push(market_id)
+    },
+    CLOSE_BETSLIP: (state, market_id) => {
+        state.openedBetSlips = state.openedBetSlips.filter(openedBetSlip => openedBetSlip != market_id)
+    },
+    OPEN_ODDS_HISTORY: (state, market_id) => {
+        state.openedOddsHistory.push(market_id)
+    },
+    CLOSE_ODDS_HISTORY: (state, market_id) => {
+        state.openedOddsHistory = state.openedOddsHistory.filter(oddHistory => oddHistory != market_id)
     }
 }
 
