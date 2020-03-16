@@ -53,6 +53,12 @@ const mutations = {
         })
 
     },
+    CLEAR_SELECTED_LEAGUES: (state, data) => {
+        let schedule = ['inplay', 'today', 'early']
+        schedule.map(schedule => {
+            state.selectedLeagues[schedule] = []
+        })
+    },
     TOGGLE_BETBAR: (state, status) => {
         state.isBetBarOpen = status
     },
