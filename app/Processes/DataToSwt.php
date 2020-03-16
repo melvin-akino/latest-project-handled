@@ -285,20 +285,22 @@ class DataToSwt implements CustomProcessInterface
     
     private static function db2SwtOrders(Server $swoole)
     {
-//        $orders = DB::table('orders as o')
-//                ->join('master_event_markets as mem', 'mem.master_event_market_unique_id', 'o.master_event_market_unique_id')
-//                ->join('master_events as me', 'me.master_event_unique_id', 'mem.master_event_unique_id')
-//                ->join('master_event_links as mel')
-//            ->get();
-//        $ordersTable = $swoole->ordersTable;
-//        array_map(function ($order) use ($ordersTable) {
-//            $ordersTable->set('orderId:' . $order->id, [
-//                'actual_stake'  => $order->user_id,
-//                'odds'          => $order->sport_id,
-//                'market_id'     => $order->game_schedule,
-//                'event_id'      => $order->master_league_name,
-//                'score'         => $order->master_league_name
-//            ]);
-//        }, $orders->toArray());
+        $orders = DB::table('orders as o')
+                ->join('master_event_markets as mem', 'mem.master_event_market_unique_id', 'o.master_event_market_unique_id')
+                ->join('master_events as me', 'me.master_event_unique_id', 'mem.master_event_unique_id')
+                ->join('master_event_links as mel', 'mel.master_event_unique_id', 'me.master_event_unique_id')
+                ->join('events as e', 'e.id', 'mel.event_id')
+                ->select('o.actual_stake', 'o.odds', 'o.market_id', 'e.event_identifier', 'me.score')
+            ->get();
+        $ordersTable = $swoole->ordersTable;
+        array_map(function ($order) use ($ordersTable) {
+            $ordersTable->set('orderId:' . $order->id, [
+                'actual_stake'  => $order->user_id,
+                'odds'          => $order->sport_id,
+                'market_id'     => $order->game_schedule,
+                'event_id'      => $order->master_league_name,
+                'score'         => $order->master_league_name
+            ]);
+        }, $orders->toArray());
     }
 }
