@@ -19,6 +19,7 @@
                 </div>
             </div>
         </div>
+        <Betslip v-for="market_id in openedBetSlips" :key="market_id" :market_id="market_id"></Betslip>
         <Betbar></Betbar>
     </div>
 </template>
@@ -33,6 +34,7 @@ import Watchlist from './Watchlist'
 import Columns from './Columns'
 import Games from './Games'
 import Betbar from './Betbar'
+import Betslip from './BetSlip'
 import { getSocketKey, getSocketValue } from '../../../helpers/socket'
 
 export default {
@@ -42,7 +44,8 @@ export default {
         Watchlist,
         Columns,
         Games,
-        Betbar
+        Betbar,
+        Betslip
     },
     head: {
         title() {
@@ -52,7 +55,7 @@ export default {
         }
     },
     computed: {
-        ...mapState('trade', ['isBetBarOpen', 'selectedSport', 'oddsTypeBySport', 'allEventsList', 'eventsList', 'events'])
+        ...mapState('trade', ['isBetBarOpen', 'selectedSport', 'oddsTypeBySport', 'allEventsList', 'eventsList', 'events', 'openedBetSlips'])
     },
     mounted() {
         this.getInitialEvents()
@@ -90,8 +93,10 @@ export default {
                             this.$store.commit('trade/SET_EVENTS', { schedule: schedule, events: response.data.data.user_selected[schedule]})
                             Object.keys(response.data.data.user_selected[schedule]).map(league => {
                                 response.data.data.user_selected[schedule][league].map(event => {
-                                    this.$store.commit('trade/SET_EVENTS_LIST', event)
-                                    this.$store.commit('trade/SET_ALL_EVENTS_LIST', event)
+                                    if(event.sport_id == this.selectedSport) {
+                                        this.$store.commit('trade/SET_EVENTS_LIST', event)
+                                        this.$store.commit('trade/SET_ALL_EVENTS_LIST', event)
+                                    }
                                 })
                             })
                         }
@@ -140,9 +145,9 @@ export default {
                         let allEventsListCheckUID = this.allEventsList.findIndex(event => event.uid === receivedEvent.uid)
                         if(receivedEvent.sport_id == this.selectedSport) {
                             if(eventsListCheckUID === -1) {
-                            this.$store.commit('trade/SET_EVENTS_LIST', receivedEvent)
+                                this.$store.commit('trade/SET_EVENTS_LIST', receivedEvent)
                             }
-                            
+
                             if(allEventsListCheckUID === -1) {
                                 this.$store.commit('trade/SET_ALL_EVENTS_LIST', receivedEvent)
                             }
