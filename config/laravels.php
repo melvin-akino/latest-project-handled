@@ -206,6 +206,16 @@ return [
                 [ 'name' => 'topic_name', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 100 ],
             ],
         ],
+        'orders' => [
+            'size'   => 102400,
+            'column' => [ // KEY FORMAT: [orderId:$oriderId]
+                [ 'name' => 'actual_stake', 'type' => \Swoole\Table::TYPE_FLOAT],
+                [ 'name' => 'odds',    'type' => \Swoole\Table::TYPE_FLOAT],
+                [ 'name' => 'market_id', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 100 ],
+                [ 'name' => 'event_id', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 20],
+                [ 'name' => 'score', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 30]
+            ],
+        ],
     ],
     'register_providers'       => [
         \Laravel\Passport\PassportServiceProvider::class

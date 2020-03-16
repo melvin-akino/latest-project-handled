@@ -30,7 +30,8 @@ class DataToSwt implements CustomProcessInterface
             'UserWatchlist',
             'UserProviderConfig',
             'ActiveEvents',
-            'UserSelectedLeagues'
+            'UserSelectedLeagues',
+            'Orders'
         ];
         foreach ($swooleProcesses as $process) {
             $method = "db2Swt" . $process;
@@ -280,5 +281,24 @@ class DataToSwt implements CustomProcessInterface
                 'league_name' => $userSelectedLeague->master_league_name
             ]);
         }, $userSelectedLeagues->toArray());
+    }
+    
+    private static function db2SwtOrders(Server $swoole)
+    {
+//        $orders = DB::table('orders as o')
+//                ->join('master_event_markets as mem', 'mem.master_event_market_unique_id', 'o.master_event_market_unique_id')
+//                ->join('master_events as me', 'me.master_event_unique_id', 'mem.master_event_unique_id')
+//                ->join('master_event_links as mel')
+//            ->get();
+//        $ordersTable = $swoole->ordersTable;
+//        array_map(function ($order) use ($ordersTable) {
+//            $ordersTable->set('orderId:' . $order->id, [
+//                'actual_stake'  => $order->user_id,
+//                'odds'          => $order->sport_id,
+//                'market_id'     => $order->game_schedule,
+//                'event_id'      => $order->master_league_name,
+//                'score'         => $order->master_league_name
+//            ]);
+//        }, $orders->toArray());
     }
 }
