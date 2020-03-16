@@ -24,10 +24,12 @@ class KafkaProduce implements CustomProcessInterface
         try {
             $kafkaProducer = app('KafkaProducer');
             self::$producerHandler = new ProducerHandler($kafkaProducer);
-            $kafkaTopic = env('KAFKA_SCRAPE_MINMAX_POSTFIX', '_req');
+            $kafkaTopic = env('KAFKA_SCRAPE_MINMAX_REQUEST_POSTFIX', '_minmax_req');
+            $kafkaOrderTopic = env('KAFKA_SCRAPE_ORDER_REQUEST_POSTFIX', '_bet_req');
 
             if ($swoole->wsTable->exist('data2Swt')) {
                 $topicTable = $swoole->topicTable;
+                $ordersTable = $swoole->ordersTable;
                 while (!self::$quit) {
                     foreach ($topicTable as $key => $topic) {
                         if (strpos($topic['topic_name'], 'min-max-') === 0) {
@@ -61,6 +63,33 @@ class KafkaProduce implements CustomProcessInterface
                                 ];
 
                                 self::pushToKafka($payload, $requestId, strtolower($eventMarket->alias) . $kafkaTopic);
+                            }
+                        }
+                        
+                        if (strpos($topic['topic_name'], 'order-') === 0) {
+                            $orderId = substr($topic['topic_name'], strlen('order-'));
+                            if ($ordersTable->count() > 0) {
+                                foreach ($ordersTable as $orderKey => $order) {
+                                    $requestId = Str::uuid();
+                                    $requestTs = self::milliseconds();
+                                
+                                    $payload = [
+                                        'request_uid' => $requestId,
+                                        'request_ts'  => $requestTs,
+                                        'sub_command' => 'scrape',
+                                        'command'     => 'bet'
+                                    ];
+                                    
+                                    $payload['data'] = [
+                                        'actual_stake' => $order->actual_stake,
+                                        'odds'         => $order->odds,
+                                        'market_id'    => $order->market_id,
+                                        'event_id'     => $order->event_id,
+                                        'score'        => $order->score
+                                    ];
+                                    
+                                    self::pushToKafka($payload, $requestId, $kafkaOrderTopic);
+                                }
                             }
                         }
                     }
