@@ -12,7 +12,7 @@
                 <span v-if="betData.bet_info[0]==='home'">{{betData.home}}</span>
                 <span v-if="betData.bet_info[0]==='away'">{{betData.away}}</span>
             </div>
-            <div class="w-4/12 py-1"> {{defaultPriceFormat}} {{betData.bet_info[1]}} {{betData.bet_info[2]}}</div>
+            <div class="w-4/12 py-1">{{defaultPriceFormat}} {{betData.bet_info[1]}} {{betData.bet_info[2]}}</div>
             <div class="w-4/12 py-1 text-center" :class="{'success': betData.status==='Success', 'failed': betData.status==='Failed', 'processing': betData.status==='Processing'}">
                 {{betData.bet_info[3]}}@{{betData.bet_info[2]}} - {{betData.status}}
             </div>
