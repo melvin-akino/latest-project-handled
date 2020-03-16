@@ -24,8 +24,8 @@ class KafkaProduce implements CustomProcessInterface
         try {
             $kafkaProducer = app('KafkaProducer');
             self::$producerHandler = new ProducerHandler($kafkaProducer);
-            $kafkaTopic = env('KAFKA_SCRAPE_MINMAX_POSTFIX', '_req');
-            $kafkaOrderTopic = env('KAFKA_SCRAPE_ORDER_TOPIC', 'BET-ODDS');
+            $kafkaTopic = env('KAFKA_SCRAPE_MINMAX_REQUEST_POSTFIX', '_minmax_req');
+            $kafkaOrderTopic = env('KAFKA_SCRAPE_ORDER_REQUEST_POSTFIX', '_bet_req');
 
             if ($swoole->wsTable->exist('data2Swt')) {
                 $topicTable = $swoole->topicTable;
