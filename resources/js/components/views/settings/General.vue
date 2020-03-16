@@ -90,7 +90,9 @@ export default {
             try {
                 let response = await axios.post('/v1/user/settings/general', data, { headers: { 'Authorization': `Bearer ${token}` } })
                 let defaultTimezone = await this.$store.dispatch('settings/getDefaultTimezone')
+                let defaultPriceFormat = await this.$store.dispatch('settings/getDefaultPriceFormat')
                 this.$store.commit('settings/SET_DEFAULT_TIMEZONE', defaultTimezone)
+                this.$store.commit('settings/SET_DEFAULT_PRICE_FORMAT', defaultPriceFormat)
                 Swal.fire({
                     icon: 'success',
                     text: response.data.message
