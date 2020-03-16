@@ -37,6 +37,12 @@ return [
             'pipe' => 0,
             'enable' => env('LARAVELS_KAFKA_CONSUME', true)
         ],
+        'kafka_produce' => [
+            'class'    => \App\Processes\KafkaProduce::class,
+            'redirect' => false,
+            'pipe' => 0,
+            'enable' => env('LARAVELS_KAFKA_PRODUCE', true)
+        ],
     ],
     'timer'                    => [
         'enable'        => env('LARAVELS_TIMER', false),
@@ -57,7 +63,8 @@ return [
             // key format [userAdditionalLeagues:$userId:sportId:$sportId] = [value = $timestamp]
             // key format [userWatchlist:$userId:masterEventUniqueId:$masterEventUniqueId] = [value = true]
             // key format [userSportLeagueEvents:$userId:league:$multileaguename] = [value = json_encode(data)]
-            // key format [leagueLookUpId:unique()] = [value = slug($leagueName)]
+            // key format [leagueLookUpId:unique()] = [value = $leagueName]
+            // key format [teamLookUpId:unique()] = [value = $teamName]
             // key format [eventLookUpId:unique()] = [value = slug($masterEventUniqueId)]
             // key format [updatedEvents:$uid] = [value = json_encode([['market_id' => $marketId, 'odds' => $odds], ...])]
             // key format [updatedEvents:$uid] = [value = true]
@@ -129,7 +136,7 @@ return [
                 [ 'name' => 'league_name',          'type' => \Swoole\Table::TYPE_STRING, 'size' => 100 ]
             ],
         ],
-        'teams'           => [ //key format ['pId:$providerId:teamName:slug($team)] = [id = $teamId, team_name = $teamName]
+        'teams'           => [ //key format ['pId:$providerId:teamLookUpId:$teamLookUpId] = [id = $teamId, team_name = $teamName]
             'size'   => 102400,
             'column' => [
                 [ 'name' => 'id',               'type' => \Swoole\Table::TYPE_INT ],
@@ -220,7 +227,7 @@ return [
         'reactor_num'        => env('LARAVELS_REACTOR_NUM', function_exists('swoole_cpu_num') ? swoole_cpu_num() * 2 : 4),
         'worker_num'         => env('LARAVELS_WORKER_NUM', function_exists('swoole_cpu_num') ? swoole_cpu_num() * 2 : 8),
         'task_worker_num'    => env('LARAVELS_TASK_WORKER_NUM', function_exists('swoole_cpu_num') ? swoole_cpu_num() * 2 : 8),
-        'task_ipc_mode'      => 2,
+        'task_ipc_mode'      => 1,
         'task_max_request'   => env('LARAVELS_TASK_MAX_REQUEST', 8000),
         'task_tmpdir'        => @is_writable('/dev/shm/') ? '/dev/shm' : '/tmp',
         'max_request'        => env('LARAVELS_MAX_REQUEST', 8000),

@@ -33,6 +33,10 @@ class KafkaServiceProvider extends ServiceProvider
             return new Producer($conf);
         });
 
+        $this->app->bind('KafkaProducer', function () use ($conf) {
+            return new Producer($conf);
+        });
+
         $this->app->bind('KafkaConsumer', function () use ($conf) {
             return new KafkaConsumer($conf);
         });
