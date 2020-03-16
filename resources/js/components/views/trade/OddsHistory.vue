@@ -2,7 +2,7 @@
     <div class="oddsHistory">
         <dialog-drag v-for="market_id in openedOddsHistory" :key="market_id" :title="'Odds History - '+market_id" :options="options" @close="closeOddsHistory(market_id)">
             <div class="flex flex-col">
-                <!-- hard coded data, should be dynamic -->
+                <!-- hard coded data for UI purposes, should be dynamic -->
                 <div class="py-2 bg-gray-800 w-full p-2">
                     <div class="container mx-auto">
                         <p class="text-white">Order 69</p>
@@ -80,7 +80,6 @@ export default {
                 width:400,
                 height:400,
                 buttonPin: false,
-                dropEnabled: false,
                 centered: "viewport"
             }
         }
