@@ -9,8 +9,12 @@ use App\Models\{
     MasterEventMarketLog,
     OddType,
     Provider,
-    Sport
+    Sport,
+    UserConfiguration,
+    UserProviderConfiguration,
+    UserSportOddConfiguration
 };
+use Hhxsv5\LaravelS\Swoole\Task\Task;
 use Illuminate\Http\Request;
 
 class OrdersController extends Controller
@@ -127,6 +131,46 @@ class OrdersController extends Controller
                 'status'      => true,
                 'status_code' => 200,
                 'data'        => $data
+            ], 200);
+        } catch (Exception $e) {
+            return response()->json([
+                'status'      => false,
+                'status_code' => 500,
+                'message'     => trans('generic.internal-server-error')
+            ], 500);
+        }
+    }
+
+    public function postPlaceBet(Request $request)
+    {
+        try {
+            switch ($request->betType) {
+                case 'BEST_PRICE':
+                    # code...
+                break;
+
+                case 'FAST_BET':
+                    # code...
+                break;
+            }
+
+            $payload = [
+                'odds'          => "",
+                'stake'         => "",
+                'actual_stake'  => "",
+                'to_win'        => "",
+                'actual_to_win' => "",
+                'market_id'     => "",
+                'event_id'      => "",
+                'score'         => "",
+                'request_uid'   => "",
+                'request_ts'    => "",
+            ];
+
+            return response()->json([
+                'status'      => true,
+                'status_code' => 200,
+                'data'        => $payload
             ], 200);
         } catch (Exception $e) {
             return response()->json([
