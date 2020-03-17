@@ -89,6 +89,8 @@ Route::group([
         Route::prefix('orders')->group(function () {
             Route::get('/{memUID}', 'OrdersController@getEventMarketsDetails');
             Route::get('/{memUID}/logs', 'OrdersController@getEventMarketLogs');
+
+            Route::post('bet', 'OrdersController@postPlaceBet');
         });
 
         /** Game Data Route Endpoints*/

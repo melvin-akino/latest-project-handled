@@ -209,11 +209,15 @@ return [
         'orders' => [
             'size'   => 102400,
             'column' => [ // KEY FORMAT: [orderId:$oriderId]
-                [ 'name' => 'actual_stake', 'type' => \Swoole\Table::TYPE_FLOAT],
-                [ 'name' => 'odds',    'type' => \Swoole\Table::TYPE_FLOAT],
-                [ 'name' => 'market_id', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 100 ],
-                [ 'name' => 'event_id', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 20],
-                [ 'name' => 'score', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 30]
+                [ 'name' => 'odds',          'type' => \Swoole\Table::TYPE_FLOAT ],
+                [ 'name' => 'stake',         'type' => \Swoole\Table::TYPE_FLOAT ],
+                [ 'name' => 'to_win',        'type' => \Swoole\Table::TYPE_FLOAT ],
+                [ 'name' => 'actual_stake',  'type' => \Swoole\Table::TYPE_FLOAT ],
+                [ 'name' => 'actual_to_win', 'type' => \Swoole\Table::TYPE_FLOAT ],
+                [ 'name' => 'market_id',     'type' => \Swoole\Table::TYPE_STRING, 'size' => 50 ],
+                [ 'name' => 'event_id',      'type' => \Swoole\Table::TYPE_STRING, 'size' => 30 ],
+                [ 'name' => 'score',         'type' => \Swoole\Table::TYPE_STRING, 'size' => 30 ],
+                [ 'name' => 'orderExpiry',   'type' => \Swoole\Table::TYPE_STRING, 'size' => 50 ],
             ],
         ],
     ],
