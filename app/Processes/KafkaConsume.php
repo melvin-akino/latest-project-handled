@@ -70,10 +70,10 @@ class KafkaConsume implements CustomProcessInterface
                                         'hash' => md5(json_encode((array) $payload->data))
                                     ]);
                                 }
+
                                 Task::deliver(new TransformKafkaMessageOdds($payload));
                                 break;
                         }
-
                         $kafkaConsumer->commitAsync($message);
                     } else {
                         Log::error(json_encode([$message]));
@@ -148,15 +148,21 @@ class KafkaConsume implements CustomProcessInterface
     private static function getUpdatedOdds($swoole)
     {
         $table = $swoole->wsTable;
+        $topicTable = $swoole->topicTable;
         foreach ($table as $k => $r) {
             if (strpos($k, 'updatedEvents:') === 0) {
                 foreach ($table as $key => $row) {
                     $updatedMarkets = json_decode($r['value']);
                     if (!empty($updatedMarkets)) {
                         if (strpos($key, 'fd:') === 0) {
-                            $fd = $table->get('uid:' . $row['value']);
-                            $swoole->push($fd['value'], json_encode(['getUpdatedOdds' => $updatedMarkets]));
-                            $table->del($k);
+                            foreach ($topicTable as $topic) {
+                                if ($topic['user_id'] == $row['value']) {
+                                    $fd = $table->get('uid:' . $row['value']);
+                                    $swoole->push($fd['value'], json_encode(['getUpdatedOdds' => $updatedMarkets]));
+                                    $table->del($k);
+                                    break;
+                                }
+                            }
                         }
                     }
                 }
