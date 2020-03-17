@@ -239,6 +239,7 @@ class TradeController extends Controller
                                 }
                             }
                         }
+
                         return response()->json([
                             'status'      => true,
                             'status_code' => 405,

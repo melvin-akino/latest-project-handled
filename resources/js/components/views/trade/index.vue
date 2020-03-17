@@ -192,16 +192,21 @@ export default {
             this.$options.sockets.onmessage = (response => {
                 if(getSocketKey(response.data) === 'getUpdatedOdds') {
                     let updatedOdds = getSocketValue(response.data, 'getUpdatedOdds')
+                    let schedule = ['inplay', 'today', 'early', 'watchlist']
                     let team = ['HOME', 'AWAY', 'DRAW']
-                    this.allEventsList.map(event => {
-                        updatedOdds.map(updatedOdd => {
-                            this.oddsTypeBySport.map(oddType => {
-                                team.map(team => {
-                                    if(oddType in event.market_odds.main && team in event.market_odds.main[oddType]) {
-                                        if(event.market_odds.main[oddType][team].market_id === updatedOdd.market_id && event.market_odds.main[oddType][team].odds != updatedOdd.odds) {
-                                            event.market_odds.main[oddType][team].odds = updatedOdd.odds
-                                        }
-                                    }
+                    schedule.map(schedule => {
+                        Object.keys(this.events[schedule]).map(league => {
+                            this.events[schedule][league].map(event => {
+                                updatedOdds.map(updatedOdd => {
+                                    this.oddsTypeBySport.map(oddType => {
+                                        team.map(team => {
+                                            if(oddType in event.market_odds.main && team in event.market_odds.main[oddType]) {
+                                                if(event.market_odds.main[oddType][team].market_id === updatedOdd.market_id && event.market_odds.main[oddType][team].odds != updatedOdd.odds) {
+                                                    this.$set(event.market_odds.main[oddType][team], 'odds', updatedOdd.odds)
+                                                }
+                                            }
+                                        })
+                                    })
                                 })
                             })
                         })
