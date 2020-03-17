@@ -5,7 +5,7 @@
                 <div class="flex items-center w-1/2">
                     <span class="text-white uppercase font-bold mr-2 my-2 px-2 bg-orange-500">{{market_details.odd_type}}</span>
                     <span class="text-gray-800 font-bold my-2 pr-6">{{market_details.league_name}}</span>
-                    <a href="#" class="text-center py-1 pr-1" title="Bet Matrix"><i class="fas fa-chart-area"></i></a>
+                    <a href="#" class="text-center py-1 pr-1" title="Bet Matrix" v-if="oddTypesWithSpreads.includes(market_details.odd_type)"><i class="fas fa-chart-area"></i></a>
                     <a href="#" @click.prevent="openOddsHistory(market_id)" lass="text-center py-1" title="Odds History"><i class="fas fa-bars"></i></a>
                 </div>
                 <div class="flex justify-between items-center w-full">
@@ -72,11 +72,11 @@
                         <div class="flex justify-between items-center py-2">
                             <label class="text-sm flex items-center">
                                 <span class="mr-4">Fast Bet</span>
-                                <input class="outline-none rounded text-sm py-1 px-3 text-gray-700 leading-tight focus:outline-none" type="radio" value="1" v-model="orderForm.betType">
+                                <input class="outline-none rounded text-sm py-1 px-3 text-gray-700 leading-tight focus:outline-none" type="radio" value="FAST_BET" v-model="orderForm.betType">
                             </label>
                             <label class="text-sm flex items-center">
-                                <span class="mr-4">Best Bet</span>
-                                <input class="outline-none rounded text-sm py-1 px-3 text-gray-700 leading-tight focus:outline-none" type="radio" value="2" v-model="orderForm.betType">
+                                <span class="mr-4">Best Price</span>
+                                <input class="outline-none rounded text-sm py-1 px-3 text-gray-700 leading-tight focus:outline-none" type="radio" value="BEST_PRICE" v-model="orderForm.betType">
                             </label>
                         </div>
                     </div>
@@ -116,7 +116,7 @@
                 </div>
             </div>
         </dialog-drag>
-        <odds-history></odds-history>
+        <odds-history v-for="market_id in openedOddsHistory" :key="market_id" :market_id="market_id" :market_details="market_details"></odds-history>
     </div>
 </template>
 
@@ -142,10 +142,9 @@ export default {
                 stake: '',
                 price: '',
                 orderExpiry: 'Now',
-                betType: '1'
+                betType: 'FAST_BET'
             },
             oddTypesWithSpreads: ['HDP', 'HT HDP', 'OU', 'HT OU'],
-            bookies: [],
             options: {
                 width:825,
                 height:520,
@@ -154,9 +153,12 @@ export default {
             }
         }
     },
+    computed: {
+        ...mapState('trade', ['openedOddsHistory', 'bookies'])
+    },
     mounted() {
         this.getMarketDetails()
-        this.getBookies()
+        this.$store.dispatch('trade/getBookies')
         this.$socket.send(`getMinMax_${this.market_id}`)
     },
     methods: {
@@ -168,15 +170,6 @@ export default {
                 this.market_details = response.data.data
                 this.formattedRefSchedule = response.data.data.ref_schedule.split(' ')
             })
-            .catch(err => {
-                this.$store.dispatch('auth/checkIfTokenIsValid', err.response.data.status_code)
-            })
-        },
-        getBookies() {
-            let token = Cookies.get('mltoken')
-
-            axios.get('v1/bookies', { headers: { 'Authorization': `Bearer ${token}` }})
-            .then(response => this.bookies = response.data.data)
             .catch(err => {
                 this.$store.dispatch('auth/checkIfTokenIsValid', err.response.data.status_code)
             })

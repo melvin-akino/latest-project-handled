@@ -65,15 +65,15 @@ export default {
         async getDefaultTimezone() {
             try {
                 if (this.$store.state.auth.isAuthenticated) {
-                    if (!this.$store.state.settings.defaultTimezone) {
+                    if (!this.defaultTimezone) {
                         this.$store.dispatch('settings/getDefaultTimezone')
                         .then(response => {
                             this.$store.commit('settings/SET_DEFAULT_TIMEZONE', response)
+                            setInterval(() => {
+                                this.time = moment().tz(this.defaultTimezone.name).format('hh:mm:ss')
+                            }, 1000)
                         })
                     }
-                    setInterval(() => {
-                        this.time = moment().tz(this.defaultTimezone.name).format('hh:mm:ss')
-                    }, 1000)
                 } else {
                     this.$store.commit('settings/SET_DEFAULT_TIMEZONE', '')
                     this.timezone = {}

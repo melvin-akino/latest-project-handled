@@ -239,12 +239,12 @@ class TradeController extends Controller
                                 }
                             }
                         }
+                        return response()->json([
+                            'status'      => true,
+                            'status_code' => 405,
+                            'message'     => trans('generic.method-not-allowed')
+                        ], 405);
                     }
-                    return response()->json([
-                        'status'      => true,
-                        'status_code' => 405,
-                        'message'     => trans('generic.method-not-allowed')
-                    ], 405);
                 } else {
                     $checkTable->delete();
                 }
