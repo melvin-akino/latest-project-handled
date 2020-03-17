@@ -12,7 +12,7 @@
                 <span v-if="betData.bet_info[0]==='home'">{{betData.home}}</span>
                 <span v-if="betData.bet_info[0]==='away'">{{betData.away}}</span>
             </div>
-            <div class="w-4/12 py-1">{{betData.bet_info[1]}} {{betData.bet_info[2]}}</div>
+            <div class="w-4/12 py-1">{{defaultPriceFormat}} {{betData.bet_info[1]}} {{betData.bet_info[2]}}</div>
             <div class="w-4/12 py-1 text-center" :class="{'success': betData.status==='Success', 'failed': betData.status==='Failed', 'processing': betData.status==='Processing'}">
                 {{betData.bet_info[3]}}@{{betData.bet_info[2]}} - {{betData.status}}
             </div>
@@ -35,10 +35,12 @@ export default {
         }
     },
     computed: {
-        ...mapState('trade', ['isBetBarOpen'])
+        ...mapState('trade', ['isBetBarOpen']),
+        ...mapState('settings', ['defaultPriceFormat'])
     },
     mounted() {
         this.getBetbarData()
+        this.getPriceFormat()
     },
     methods: {
         toggleBetBar() {
@@ -57,6 +59,14 @@ export default {
             .catch(err => {
                 this.$store.dispatch('auth/checkIfTokenIsValid', err.response.data.status_code)
             })
+        },
+        getPriceFormat() {
+            if(!this.$store.state.settings.defaultPriceFormat) {
+                this.$store.dispatch('settings/getDefaultPriceFormat')
+                .then(response => {
+                    this.$store.commit('settings/SET_DEFAULT_PRICE_FORMAT', response)
+                })
+            }
         }
     }
 }
