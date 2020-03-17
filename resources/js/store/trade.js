@@ -28,7 +28,8 @@ const state = {
     watchlist: [],
     previouslySelectedEvents: [],
     openedBetSlips: [],
-    openedOddsHistory: []
+    openedOddsHistory: [],
+    bookies: []
 }
 
 const mutations = {
@@ -92,6 +93,9 @@ const mutations = {
     CLEAR_EVENTS_LIST: (state, event) => {
         state.eventsList = []
     },
+    CLEAR_ALL_EVENTS_LIST: (state, event) => {
+        state.allEventsList = []
+    },
     SET_EVENTS: (state, data) => {
         Vue.set(state.events, data.schedule, data.events)
     },
@@ -130,6 +134,9 @@ const mutations = {
     },
     CLOSE_ODDS_HISTORY: (state, market_id) => {
         state.openedOddsHistory = state.openedOddsHistory.filter(oddHistory => oddHistory != market_id)
+    },
+    SET_BOOKIES: (state, bookies) => {
+        state.bookies = bookies
     }
 }
 
@@ -149,6 +156,15 @@ const actions = {
             dispatch('auth/checkIfTokenIsValid', err.response.data.status_code,  { root: true })
         }
     },
+    getBookies({commit, dispatch}) {
+        axios.get('v1/bookies', { headers: { 'Authorization': `Bearer ${token}` }})
+        .then(response => {
+            commit('SET_BOOKIES', response.data.data)
+        })
+        .catch(err => {
+            dispatch('auth/checkIfTokenIsValid', err.response.data.status_code, { root: true })
+        })
+    },
     getInitialLeagues({commit, dispatch, state}) {
         return new Promise((resolve, reject) => {
             axios.get('v1/trade/leagues', { headers: { 'Authorization': `Bearer ${token}` }})
@@ -162,6 +178,39 @@ const actions = {
                 dispatch('auth/checkIfTokenIsValid', err.response.data.status_code,  { root: true })
                 reject(err)
             })
+        })
+    },
+    getInitialEvents({commit, dispatch, state}) {
+        axios.get('v1/trade/events', { headers: { 'Authorization': `Bearer ${token}` }})
+        .then(response => {
+            if('user_selected' in response.data.data) {
+                let schedule = ['inplay', 'today', 'early']
+                schedule.map(schedule => {
+                    if(schedule in response.data.data.user_selected) {
+                        Object.keys(response.data.data.user_selected[schedule]).map(league => {
+                            response.data.data.user_selected[schedule][league].map(event => {
+                                if(event.sport_id == state.selectedSport) {
+                                    commit('SET_EVENTS', { schedule: schedule, events: response.data.data.user_selected[schedule]})
+                                    commit('SET_EVENTS_LIST', event)
+                                    commit('SET_ALL_EVENTS_LIST', event)
+                                }
+                            })
+                        })
+                    }
+                })
+            }
+
+            if('user_watchlist' in response.data.data) {
+                commit('SET_WATCHLIST', response.data.data.user_watchlist)
+                Object.keys(response.data.data.user_watchlist).map(league => {
+                    response.data.data.user_watchlist[league].map(event => {
+                        commit('SET_ALL_EVENTS_LIST', event)
+                    })
+                })
+            }
+        })
+        .catch(err => {
+            dispatch('auth/checkIfTokenIsValid', err.response.data.status_code, { root: true })
         })
     },
     toggleLeague(context, data) {

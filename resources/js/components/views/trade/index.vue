@@ -58,7 +58,7 @@ export default {
         ...mapState('trade', ['isBetBarOpen', 'selectedSport', 'oddsTypeBySport', 'allEventsList', 'eventsList', 'events', 'openedBetSlips'])
     },
     mounted() {
-        this.getInitialEvents()
+        this.$store.dispatch('trade/getInitialEvents')
         this.getWatchlist()
         this.getUserTradeLayout()
         this.getEvents()
@@ -76,41 +76,6 @@ export default {
             this.$store.dispatch('settings/getUserSettingsConfig', 'trade-page')
             .then(response => {
                 this.$store.commit('trade/SET_TRADE_LAYOUT', response.trade_layout)
-            })
-            .catch(err => {
-                this.$store.dispatch('auth/checkIfTokenIsValid', err.response.data.status_code)
-            })
-        },
-        getInitialEvents() {
-            let token = Cookies.get('mltoken')
-
-            axios.get('v1/trade/events', { headers: { 'Authorization': `Bearer ${token}` }})
-            .then(response => {
-                if('user_selected' in response.data.data) {
-                    let schedule = ['inplay', 'today', 'early']
-                    schedule.map(schedule => {
-                        if(schedule in response.data.data.user_selected) {
-                            Object.keys(response.data.data.user_selected[schedule]).map(league => {
-                                response.data.data.user_selected[schedule][league].map(event => {
-                                    if(event.sport_id == this.selectedSport) {
-                                        this.$store.commit('trade/SET_EVENTS', { schedule: schedule, events: response.data.data.user_selected[schedule]})
-                                        this.$store.commit('trade/SET_EVENTS_LIST', event)
-                                        this.$store.commit('trade/SET_ALL_EVENTS_LIST', event)
-                                    }
-                                })
-                            })
-                        }
-                    })
-                }
-
-                if('user_watchlist' in response.data.data) {
-                    this.$store.commit('trade/SET_WATCHLIST', response.data.data.user_watchlist)
-                    Object.keys(response.data.data.user_watchlist).map(league => {
-                        response.data.data.user_watchlist[league].map(event => {
-                            this.$store.commit('trade/SET_ALL_EVENTS_LIST', event)
-                        })
-                    })
-                }
             })
             .catch(err => {
                 this.$store.dispatch('auth/checkIfTokenIsValid', err.response.data.status_code)
@@ -256,6 +221,11 @@ export default {
                 }
             }
         }
+    },
+    beforeRouteLeave(to, from, next) {
+        this.$store.commit('trade/CLEAR_EVENTS_LIST')
+        this.$store.commit('trade/CLEAR_ALL_EVENTS_LIST')
+        next()
     }
 }
 </script>
