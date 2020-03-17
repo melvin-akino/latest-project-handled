@@ -14,6 +14,8 @@ use App\Models\{
     UserProviderConfiguration
 };
 
+use App\Tasks\PlaceOrder;
+
 use Hhxsv5\LaravelS\Swoole\Task\Task;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -145,6 +147,10 @@ class OrdersController extends Controller
     public function postPlaceBet(Request $request)
     {
         try {
+            $swt    = app('swoole');
+            $topics = $swt->topicTable;
+            $orders = $swt->ordersTable;
+
             if ($request->betType == "BEST_PRICE") {
                 $data[] = [
                     'betType'     => $request->betType,
@@ -163,11 +169,9 @@ class OrdersController extends Controller
             $betType   = "";
             $return    = "";
             $prevStake = 0;
-            $task      = [];
 
             foreach ($data AS $row) {
                 $betType        = $row['betType'];
-                $payloadStake   = $row['stake'];
                 $hasComputation = false;
                 $userProvider   = UserProviderConfiguration::where('provider_id', $row['provider_id']);
                 $userProvider   = Provider::find($userProvider->count() == 0 ? $row['provider_id'] : $userProvider->provider_id);
@@ -213,6 +217,7 @@ class OrdersController extends Controller
                         'me.master_away_team_name',
                         'me.game_schedule',
                         'me.running_time',
+                        'me.score',
                         'mem.master_event_market_unique_id',
                         'mem.is_main',
                         'mem.market_flag',
@@ -222,18 +227,24 @@ class OrdersController extends Controller
                     ])
                     ->first();
 
-                if ($row['betType'] == "BEST_PRICE") {
-                    $prevStake = $row['stake'] - $row['max'];
-                }
-
-                if ($row['betType'] == "FAST_BET") {
-                    $prevStake = $prevStake == 0 ? $row['stake'] - $row['max'] : $prevStake - $row['max'];
+                if (!$query->master_event_unique_id) {
+                    return response()->json([
+                        'status'      => false,
+                        'status_code' => 404,
+                        'message'     => trans('generic.not-found')
+                    ], 404);
                 }
 
                 if ($hasComputation) {
                     $actualStake = $row['stake'] / ($userProvider->punter_percentage / 100);
                 } else {
                     $actualStake = $row['stake'];
+                }
+
+                $payloadStake = $prevStake == 0 ? $row['stake'] : $prevStake;
+
+                if ($row['betType'] == "BEST_PRICE") {
+                    $prevStake = $row['stake'] - $row['max'];
                 }
 
                 $payload = [
@@ -247,30 +258,46 @@ class OrdersController extends Controller
                         'actual_to_win' => $actualStake * $row['price'],
                         'market_id'     => $query->bet_identifier,
                         'event_id'      => explode('-', $query->master_event_unique_id)[3],
-                        'score'         => "", // PENDING ON VUE SIDE
+                        'score'         => $query->score,
                         'orderExpiry'   => $row['orderExpiry'],
-                        'prev' => $prevStake,
                     ],
                 ];
 
-                /** TO DO: Send $payload to Swoole Task */
+                if ($row['betType'] == "FAST_BET") {
+                    $prevStake = $prevStake == 0 ? $row['stake'] - $row['max'] : $prevStake - $row['max'];
+                }
 
-                $task[] = $payload;
+                $topicsId = implode(':', [
+                    "userId:" . auth()->user()->id,
+                    "unique:" . uniqid(),
+                ]);
+
+                if (!$topics->exists($topicsId)) {
+                    $topics->set($topicsId, [
+                        'user_id'    => auth()->user()->id,
+                        'topic_name' => "order-" . uniqid()
+                    ]);
+                }
+
+                $ordersId = "order-" . uniqid();
+
+                if (!$orders->exists($ordersId)) {
+                    $orders->set($ordersId, $payload['data']);
+                }
             }
 
-            // if ($betType == "BEST_PRICE") {
-            //     $return = $prevStake > $max ? trans('game.bet.best-price.continue') : trans('game.bet.best-price.success');
-            // }
+            if ($betType == "BEST_PRICE") {
+                $return = $prevStake > 0 ? trans('game.bet.best-price.continue') : trans('game.bet.best-price.success');
+            }
 
-            // if ($betType == "FAST_BET") {
-            //     $return = $prevStake > $max ? trans('game.bet.fast-bet.continue') : trans('game.bet.fast-bet.success');
-            // }
+            if ($betType == "FAST_BET") {
+                $return = $prevStake > 0 ? trans('game.bet.fast-bet.continue') : trans('game.bet.fast-bet.success');
+            }
 
             return response()->json([
                 'status'      => true,
                 'status_code' => 200,
                 'data'        => $return,
-                'task' => $task
             ], 200);
         } catch (Exception $e) {
             return response()->json([
