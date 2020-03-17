@@ -27,6 +27,7 @@ class WsEvents implements ShouldQueue
         $providerId              = 0;
         $providersTable          = $server->providersTable;
         $userProviderConfigTable = $server->userProviderConfigTable;
+        $topicTable              = $server->topicTable;
 
         /** TODO: Provider Maintenance Validation */
 
@@ -80,7 +81,8 @@ class WsEvents implements ShouldQueue
             ->whereNull('ml.deleted_at')
             ->distinct()->get();
         $data = [];
-        array_map(function ($transformed) use (&$data) {
+        $userId = $this->userId;
+        array_map(function ($transformed) use (&$data, $topicTable, $userId) {
             $mainOrOther = $transformed->is_main ? 'main' : 'other';
             if (empty($data[$transformed->master_event_unique_id])) {
                 $data[$transformed->master_event_unique_id] = [
@@ -119,6 +121,11 @@ class WsEvents implements ShouldQueue
                 if (!empty($transformed->odd_label)) {
                     $data[$transformed->master_event_unique_id]['market_odds'][$mainOrOther][$transformed->type][$transformed->market_flag]['points'] = $transformed->odd_label;
                 }
+
+                $topicTable->set('userId:' . $userId . ':unique:' . uniqid(), [
+                    'user_id'       => $userId,
+                    'topic_name'    => 'market-id-' . $transformed->master_event_market_unique_id
+                ]);
             }
 
         }, $transformed->toArray());
