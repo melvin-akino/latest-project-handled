@@ -9,16 +9,9 @@ use App\Models\{
     MasterEventMarketLog,
     OddType,
     Provider,
-    Sport,
-    UserConfiguration,
-    UserProviderConfiguration
+    Sport
 };
-
-use App\Tasks\PlaceOrder;
-
-use Hhxsv5\LaravelS\Swoole\Task\Task;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 
 class OrdersController extends Controller
 {
@@ -248,19 +241,15 @@ class OrdersController extends Controller
                 }
 
                 $payload = [
-                    'request_uid' => $query->master_event_unique_id,
-                    'request_ts'  => self::milliseconds(),
-                    'data'        => [
-                        'odds'          => $row['price'],
-                        'stake'         => $payloadStake,
-                        'to_win'        => $payloadStake * $row['price'],
-                        'actual_stake'  => $actualStake,
-                        'actual_to_win' => $actualStake * $row['price'],
-                        'market_id'     => $query->bet_identifier,
-                        'event_id'      => explode('-', $query->master_event_unique_id)[3],
-                        'score'         => $query->score,
-                        'orderExpiry'   => $row['orderExpiry'],
-                    ],
+                    'odds'          => $row['price'],
+                    'stake'         => $payloadStake,
+                    'to_win'        => $payloadStake * $row['price'],
+                    'actual_stake'  => $actualStake,
+                    'actual_to_win' => $actualStake * $row['price'],
+                    'market_id'     => $query->bet_identifier,
+                    'event_id'      => explode('-', $query->master_event_unique_id)[3],
+                    'score'         => $query->score,
+                    'orderExpiry'   => $row['orderExpiry'],
                 ];
 
                 if ($row['betType'] == "FAST_BET") {
@@ -282,7 +271,7 @@ class OrdersController extends Controller
                 $ordersId = "order-" . uniqid();
 
                 if (!$orders->exists($ordersId)) {
-                    $orders->set($ordersId, $payload['data']);
+                    $orders->set($ordersId, $payload);
                 }
             }
 

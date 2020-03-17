@@ -65,21 +65,22 @@ class KafkaProduce implements CustomProcessInterface
                                 self::pushToKafka($payload, $requestId, strtolower($eventMarket->alias) . $kafkaTopic);
                             }
                         }
-                        
+
                         if (strpos($topic['topic_name'], 'order-') === 0) {
                             $orderId = substr($topic['topic_name'], strlen('order-'));
                             if ($ordersTable->count() > 0) {
                                 foreach ($ordersTable as $orderKey => $order) {
+                                    $order     = (object) $order;
                                     $requestId = Str::uuid();
                                     $requestTs = self::milliseconds();
-                                
+
                                     $payload = [
                                         'request_uid' => $requestId,
                                         'request_ts'  => $requestTs,
                                         'sub_command' => 'scrape',
                                         'command'     => 'bet'
                                     ];
-                                    
+
                                     $payload['data'] = [
                                         'actual_stake' => $order->actual_stake,
                                         'odds'         => $order->odds,
@@ -87,7 +88,7 @@ class KafkaProduce implements CustomProcessInterface
                                         'event_id'     => $order->event_id,
                                         'score'        => $order->score
                                     ];
-                                    
+
                                     self::pushToKafka($payload, $requestId, $kafkaOrderTopic);
                                 }
                             }
