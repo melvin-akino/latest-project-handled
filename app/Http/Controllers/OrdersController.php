@@ -171,7 +171,7 @@ class OrdersController extends Controller
             $betType   = "";
             $return    = "";
             $prevStake = 0;
-            $order_ids = [];
+            $orderIds = [];
 
             foreach ($data['markets'] AS $row) {
                 $betType        = $request->betType;
@@ -250,7 +250,7 @@ class OrdersController extends Controller
                     $prevStake = $request->stake - $row['max'];
                 }
 
-                $order_id = uniqid();
+                $orderId = uniqid();
 
                 $payload['provider_id']   = $row['provider_id'];
                 $payload['odds']          = $row['price'];
@@ -262,7 +262,7 @@ class OrdersController extends Controller
                 $payload['event_id']      = explode('-', $query->master_event_unique_id)[3];
                 $payload['score']         = $query->score;
                 $payload['orderExpiry']   = $request->orderExpiry;
-                $payload['order_id']      = $order_id;
+                $payload['order_id']      = $orderId;
 
                 Order::create([
                     'user_id'                       => auth()->user()->id,
@@ -301,23 +301,23 @@ class OrdersController extends Controller
 
                 $topicsId = implode(':', [
                     "userId:" . auth()->user()->id,
-                    "unique:" . $order_id,
+                    "unique:" . $orderId,
                 ]);
 
                 if (!$topics->exists($topicsId)) {
                     $topics->set($topicsId, [
                         'user_id'    => auth()->user()->id,
-                        'topic_name' => "order-" . $order_id
+                        'topic_name' => "order-" . $orderId
                     ]);
                 }
 
-                $ordersId = "order-" . $order_id;
+                $ordersId = "order-" . $orderId;
 
                 if (!$orders->exists($ordersId)) {
                     $orders->set($ordersId, $payload);
                 }
 
-                $order_ids[] = $order_id;
+                $orderIds[] = $orderId;
             }
 
             if ($betType == "BEST_PRICE") {
@@ -334,7 +334,7 @@ class OrdersController extends Controller
                 'status'      => true,
                 'status_code' => 200,
                 'data'        => $return,
-                'order_id'    => $order_ids,
+                'order_id'    => $orderIds,
             ], 200);
         } catch (Exception $e) {
             DB::rollback();
