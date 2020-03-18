@@ -28,7 +28,6 @@ class KafkaConsume implements CustomProcessInterface
                     env('KAFKA_SCRAPE_LEAGUES', 'SCRAPING-PROVIDER-LEAGUES'),
                     env('KAFKA_SCRAPE_EVENTS', 'SCRAPING-PROVIDER-EVENTS')
                 ]);
-
                 while (!self::$quit) {
                     $message = $kafkaConsumer->consume(120 * 1000);
                     if ($message->err == RD_KAFKA_RESP_ERR_NO_ERROR) {
@@ -70,7 +69,6 @@ class KafkaConsume implements CustomProcessInterface
                                         'hash' => md5(json_encode((array) $payload->data))
                                     ]);
                                 }
-
                                 Task::deliver(new TransformKafkaMessageOdds($payload));
                                 break;
                         }
@@ -128,11 +126,11 @@ class KafkaConsume implements CustomProcessInterface
                             $sportId        = $additionalEvents->sport_id;
                             $gameSchedule   = $additionalEvents->schedule;
                             $defaultSport   = getUserDefault($userId, 'sport');
-                            if ($defaultSport == $sportId) {
-                                $userSelectedLeagueTable = $swoole->userSelectedLeagueTable;
-                                foreach ($userSelectedLeagueTable as $uslKey => $uslData) {
+                            if ((int) $defaultSport['default_sport'] == $sportId) {
+                                $userSelectedLeaguesTable = $swoole->userSelectedLeaguesTable;
+                                foreach ($userSelectedLeaguesTable as $uslKey => $uslData) {
                                     if (strpos($uslKey, 'userId:' . $userId . ':sId:' . $sportId) === 0) {
-                                        WsEvents::dispatch($userId, [1 => $sportId, 2 => $gameSchedule]);
+                                        WsEvents::dispatch($userId, [1 => $uslData['league_name'], 2 => $gameSchedule]);
                                     }
                                 }
                             }

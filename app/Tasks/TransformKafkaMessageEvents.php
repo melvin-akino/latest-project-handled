@@ -101,7 +101,6 @@ class TransformKafkaMessageEvents extends Task
                         $forRemovalEvents[] = $eventId;
                     }
                 }
-
                 WsForRemovalEvents::dispatch($forRemovalEvents);
             }
 
