@@ -174,7 +174,6 @@ export default {
         this.getMarketDetails()
         this.$store.dispatch('trade/getBookies')
         this.$socket.send(`getMinMax_${this.odd_details.market_id}`)
-        console.log(this.points)
     },
     methods: {
         getMarketDetails() {
