@@ -1,10 +1,10 @@
 <template>
     <div class="oddsHistory">
-        <dialog-drag title="Odds History" :options="options" @close="closeOddsHistory(market_id)">
+        <dialog-drag title="Odds History" :options="options" @close="closeOddsHistory(odd_details.market_id)">
             <div class="flex flex-col">
                 <div class="bg-gray-800 w-full p-2">
                     <div class="container mx-auto">
-                        <p class="text-white">Orders for Market: {{market_id}}</p>
+                        <p class="text-white">Orders for Market: {{odd_details.market_id}}</p>
                     </div>
                 </div>
 
@@ -37,7 +37,7 @@ import 'vue-dialog-drag/dist/vue-dialog-drag.css'
 import DialogDrag from 'vue-dialog-drag'
 
 export default {
-    props: ['market_id', 'market_details'],
+    props: ['odd_details', 'market_details'],
     components: {
         DialogDrag
     },
@@ -64,7 +64,7 @@ export default {
         getOrderLogs() {
             let token = Cookies.get('mltoken')
 
-            axios.get(`v1/orders/${this.market_id}/logs`, { headers: { 'Authorization': `Bearer ${token}` }})
+            axios.get(`v1/orders/${this.odd_details.market_id}/logs`, { headers: { 'Authorization': `Bearer ${token}` }})
             .then(response => {
                 this.logs = response.data.data
             })
@@ -77,8 +77,8 @@ export default {
 }
 </script>
 
-<style scoped>
-    .dialog-drag .dialog-body {
+<style>
+    .oddsHistory .dialog-drag .dialog-body {
         padding: 0;
         max-height: 400px;
         overflow-y: auto;

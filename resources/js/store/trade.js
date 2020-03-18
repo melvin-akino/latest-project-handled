@@ -29,6 +29,7 @@ const state = {
     previouslySelectedEvents: [],
     openedBetSlips: [],
     openedOddsHistory: [],
+    openedBetMatrix: [],
     bookies: []
 }
 
@@ -123,17 +124,23 @@ const mutations = {
     SET_WATCHLIST: (state, watchlist) => {
         Vue.set(state.events, 'watchlist', watchlist)
     },
-    OPEN_BETSLIP: (state, market_id) => {
-        state.openedBetSlips.push(market_id)
+    OPEN_BETSLIP: (state, odd) => {
+        state.openedBetSlips.push(odd)
     },
     CLOSE_BETSLIP: (state, market_id) => {
-        state.openedBetSlips = state.openedBetSlips.filter(openedBetSlip => openedBetSlip != market_id)
+        state.openedBetSlips = state.openedBetSlips.filter(openedBetSlip => openedBetSlip.market_id != market_id)
     },
-    OPEN_ODDS_HISTORY: (state, market_id) => {
-        state.openedOddsHistory.push(market_id)
+    OPEN_BET_MATRIX: (state, odd) => {
+        state.openedBetMatrix.push(odd)
+    },
+    CLOSE_BET_MATRIX: (state, market_id) => {
+        state.openedBetMatrix = state.openedBetMatrix.filter(betMatrix => betMatrix.market_id != market_id)
+    },
+    OPEN_ODDS_HISTORY: (state, odd) => {
+        state.openedOddsHistory.push(odd)
     },
     CLOSE_ODDS_HISTORY: (state, market_id) => {
-        state.openedOddsHistory = state.openedOddsHistory.filter(oddHistory => oddHistory != market_id)
+        state.openedOddsHistory = state.openedOddsHistory.filter(oddHistory => oddHistory.market_id != market_id)
     },
     SET_BOOKIES: (state, bookies) => {
         state.bookies = bookies

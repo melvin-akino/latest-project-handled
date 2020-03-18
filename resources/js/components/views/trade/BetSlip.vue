@@ -1,12 +1,12 @@
 <template>
     <div class="betslip flex justify-center items-center">
-        <dialog-drag :title="'Bet Slip - '+market_id" :options="options" @close="closeBetSlip(market_id)">
+        <dialog-drag :title="'Bet Slip - '+odd_details.market_id" :options="options" @close="closeBetSlip(odd_details.market_id)">
             <div class="container mx-auto p-2">
                 <div class="flex items-center w-1/2">
                     <span class="text-white uppercase font-bold mr-2 my-2 px-2 bg-orange-500">{{market_details.odd_type}}</span>
                     <span class="text-gray-800 font-bold my-2 pr-6">{{market_details.league_name}}</span>
-                    <a href="#" class="text-center py-1 pr-1" title="Bet Matrix" v-if="oddTypesWithSpreads.includes(market_details.odd_type)"><i class="fas fa-chart-area"></i></a>
-                    <a href="#" @click.prevent="openOddsHistory(market_id)" lass="text-center py-1" title="Odds History"><i class="fas fa-bars"></i></a>
+                    <a href="#" @click.prevent="openBetMatrix(odd_details)" class="text-center py-1 pr-1" title="Bet Matrix" v-if="oddTypesWithSpreads.includes(market_details.odd_type)"><i class="fas fa-chart-area"></i></a>
+                    <a href="#" @click.prevent="openOddsHistory(odd_details)" lass="text-center py-1" title="Odds History"><i class="fas fa-bars"></i></a>
                 </div>
                 <div class="flex justify-between items-center w-full">
                     <div class="flex justify-between w-2/4 items-center teams">
@@ -38,11 +38,11 @@
                         </div>
                         <div class="flex justify-between items-center py-2">
                             <span class="text-sm">Average Price</span>
-                            <span class="text-sm">6.99</span>
+                            <span class="text-sm">{{odd_details.odds}}</span>
                         </div>
                         <div class="flex justify-between items-center py-2">
                             <span class="text-sm">{{market_details.odd_type}}</span>
-                            <span class="text-sm">-0.69</span>
+                            <span class="text-sm">{{points}}</span>
                         </div>
                         <div class="flex justify-between items-center py-2">
                             <label class="text-sm">Stake</label>
@@ -106,7 +106,7 @@
                                 <span class="w-1/4 text-sm font-bold">{{bookie.alias}}</span>
                                 <span class="w-1/4 text-sm">6.90</span>
                                 <span class="w-1/4 text-sm">6.90</span>
-                                <span class="w-1/4 text-sm">6.90</span>
+                                <span class="w-1/4 text-sm">{{odd_details.odds}}</span>
                             </div>
                         </div>
                     </div>
@@ -116,7 +116,8 @@
                 </div>
             </div>
         </dialog-drag>
-        <odds-history v-for="market_id in openedOddsHistory" :key="market_id" :market_id="market_id" :market_details="market_details"></odds-history>
+        <bet-matrix v-for="odd in openedBetMatrix" :key="odd.market_id" :odd_details="odd" :points="points"></bet-matrix>
+        <odds-history v-for="odd in openedOddsHistory" :key="odd.market_id" :odd_details="odd" :market_details="market_details"></odds-history>
     </div>
 </template>
 
@@ -124,14 +125,16 @@
 import { mapState } from 'vuex'
 import Cookies from 'js-cookie'
 import _ from 'lodash'
+import BetMatrix from './BetMatrix'
 import OddsHistory from './OddsHistory'
 import 'vue-dialog-drag/dist/vue-dialog-drag.css'
 import DialogDrag from 'vue-dialog-drag'
 
 export default {
-    props: ['market_id'],
+    props: ['odd_details'],
     components: {
         DialogDrag,
+        BetMatrix,
         OddsHistory
     },
     data() {
@@ -140,7 +143,7 @@ export default {
             formattedRefSchedule: [],
             orderForm: {
                 stake: '',
-                price: '',
+                price: this.odd_details.odds,
                 orderExpiry: 'Now',
                 betType: 'FAST_BET'
             },
@@ -154,18 +157,30 @@ export default {
         }
     },
     computed: {
-        ...mapState('trade', ['openedOddsHistory', 'bookies'])
+        ...mapState('trade', ['openedBetMatrix', 'openedOddsHistory', 'bookies']),
+        points() {
+            if(!_.isEmpty(this.market_details)) {
+                if(this.market_details.odd_type == 'HDP' || this.market_details.odd_type == 'HT HDP') {
+                    return Number(this.odd_details.points)
+                } else if(this.market_details.odd_type == 'OU' || this.market_details.odd_type == 'HT OU') {
+                    return Number(this.odd_details.points.split(' ')[1])
+                } else {
+                    return
+                }
+            }
+        }
     },
     mounted() {
         this.getMarketDetails()
         this.$store.dispatch('trade/getBookies')
-        this.$socket.send(`getMinMax_${this.market_id}`)
+        this.$socket.send(`getMinMax_${this.odd_details.market_id}`)
+        console.log(this.points)
     },
     methods: {
         getMarketDetails() {
             let token = Cookies.get('mltoken')
 
-            axios.get(`v1/orders/${this.market_id}`, { headers: { 'Authorization': `Bearer ${token}` }})
+            axios.get(`v1/orders/${this.odd_details.market_id}`, { headers: { 'Authorization': `Bearer ${token}` }})
             .then(response => {
                 this.market_details = response.data.data
                 this.formattedRefSchedule = response.data.data.ref_schedule.split(' ')
@@ -175,11 +190,15 @@ export default {
             })
         },
         closeBetSlip(market_id) {
-            this.$store.commit('trade/CLOSE_BETSLIP', market_id)
+            this.$store.commit('trade/CLOSE_BETSLIP', this.odd_details.market_id)
         },
-        openOddsHistory(market_id) {
-            this.$store.commit('trade/CLOSE_ODDS_HISTORY', market_id)
-            this.$store.commit('trade/OPEN_ODDS_HISTORY', market_id)
+        openBetMatrix(odd_details) {
+            this.$store.commit('trade/CLOSE_BET_MATRIX', odd_details.market_id)
+            this.$store.commit('trade/OPEN_BET_MATRIX', odd_details)
+        },
+        openOddsHistory(odd_details) {
+            this.$store.commit('trade/CLOSE_ODDS_HISTORY', odd_details.market_id)
+            this.$store.commit('trade/OPEN_ODDS_HISTORY', odd_details)
         },
         placeOrder() {
             /* place bet (API or Socket) */
