@@ -207,9 +207,15 @@ class TransformKafkaMessageOdds extends Task
 
                     if ($eventsTable->get($eventSwtId)['game_schedule'] != $this->message->data->schedule) {
                         $wsTable->set('eventScheduleChange:' . $uid, ['value' => json_encode([
-                            'uid' => $uid,
-                            'game_schedule' => $this->message->data->schedule
+                            'uid'           => $uid,
+                            'game_schedule' => $this->message->data->schedule,
+                            'sport_id'      => $sportId
                         ])]);
+
+                        $toDelete['EventMarket']['master_event_unique_id'] = $uid;
+
+                        $this->subTasks['delete-event-market'] = $toDelete;
+
                     }
                 } else {
                     $masterTeamHome = $multiTeam['home']['name'];
