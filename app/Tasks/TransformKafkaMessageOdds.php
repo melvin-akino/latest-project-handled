@@ -404,7 +404,7 @@ class TransformKafkaMessageOdds extends Task
                 $this->subTasks['updated-odds'] = $updatedOdds;
             }
 
-            if (!empty($this->subTasks['event'])) {echo '-';
+            if (!empty($this->subTasks['event'])) {
                 Task::deliver(new TransformKafkaMessageOddsSaveToDb($this->subTasks, $this->uid, $this->dbOptions));
             }
         } catch (Exception $e) {
