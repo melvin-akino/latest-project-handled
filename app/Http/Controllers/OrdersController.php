@@ -18,6 +18,23 @@ use Illuminate\Support\Facades\DB;
 
 class OrdersController extends Controller
 {
+    
+    public function myOrders() 
+    {
+        try {
+            //check the authenticated user's info in order to get all orders made
+            $myOrders = Order::getMyOrders(auth()->user()->id);
+            
+
+        } catch (Exception $e) {
+            return response()->json([
+                'status'      => false,
+                'status_code' => 500,
+                'message'     => trans('generic.internal-server-error')
+            ], 500);
+        }
+    }
+
     /**
      * Get Event Details from the given parameter to display information
      * in the Bet Slip Interface
