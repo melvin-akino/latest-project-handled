@@ -9,7 +9,8 @@ use App\Models\{
     MasterEventMarketLog,
     OddType,
     Provider,
-    Sport
+    Sport,
+    UserProviderConfiguration
 };
 use Illuminate\Http\Request;
 
