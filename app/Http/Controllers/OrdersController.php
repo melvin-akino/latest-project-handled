@@ -12,7 +12,9 @@ use App\Models\{
     Sport,
     UserProviderConfiguration
 };
+
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class OrdersController extends Controller
 {
