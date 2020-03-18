@@ -10,6 +10,7 @@ use App\Models\{
     OddType,
     Provider,
     Sport,
+    Order,
     UserProviderConfiguration
 };
 
@@ -23,8 +24,23 @@ class OrdersController extends Controller
     {
         try {
             //check the authenticated user's info in order to get all orders made
-            $myOrders = Order::getMyOrders(auth()->user()->id);
-            
+            //auth()->user()->id
+            $myOrders = Order::getAllOrders(1);
+            // $data = [
+            //     'bet_id'        => $myOrders->bet_id,
+            //     'bet_selection' => $myOrders->bet_selection,
+            //     'odds'          => $myOrders->odds,
+            //     'stake'         => $myOrders->stake,
+            //     'towin'         => $myOrders->towin,
+            //     'created'       => $myOrders->created_at,
+            //     'settled'       => $myOrders->settled_at,
+            // ];
+
+            return response()->json([
+                'status'      => true,
+                'status_code' => 200,
+                'data'        => $myOrders
+            ], 200);
 
         } catch (Exception $e) {
             return response()->json([
