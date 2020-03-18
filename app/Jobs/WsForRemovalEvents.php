@@ -40,6 +40,23 @@ class WsForRemovalEvents implements ShouldQueue
             return;
         }
 
+        $data = [];
+        foreach ($this->data as $eventIdentifier) {
+            $event = Events::where('event_identifier', $eventIdentifier)->first();
+            $event->delete();
+
+            if($event->provider_id == $providerId) {
+                $eventLink = MasterEventLink::where('event_id', $event->id)->first();
+                if ($eventLink) {
+                    $userWatchlist = UserWatchlist::where('master_event_unique_id', $eventLink->master_event_unique_id);
+                    $userWatchlist->delete();
+                    $masterEvent = MasterEvent::where('master_event_unique_id', $eventLink->master_event_unique_id);
+                    $masterEvent->delete();
+                    $data[] = $eventLink->master_event_unique_id;
+                }
+            }
+        }
+
         foreach ($server->wsTable as $key => $row) {
             if (strpos($key, 'uid:') === 0 && $server->isEstablished($row['value'])) {
                 $userId = substr($key, strlen('uid:'));
@@ -63,23 +80,8 @@ class WsForRemovalEvents implements ShouldQueue
                     );
                 }
 
-                if (!empty($this->data)) {
-                    $server->push($row['value'], json_encode(['getForRemovalEvents' => $this->data]));
-                }
-            }
-        }
-
-        foreach ($this->data as $eventIdentifier) {
-            $event = Events::where('event_identifier', $eventIdentifier)->first();
-            $event->delete();
-
-            if($event->provider_id == $providerId) {
-                $eventLink = MasterEventLink::where('event_id', $event->id)->first();
-                if ($eventLink) {
-                    $userWatchlist = UserWatchlist::where('master_event_unique_id', $eventLink->master_event_unique_id);
-                    $userWatchlist->delete();
-                    $masterEvent = MasterEvent::where('master_event_unique_id', $eventLink->master_event_unique_id);
-                    $masterEvent->delete();
+                if (!empty($data)) {
+                    $server->push($row['value'], json_encode(['getForRemovalEvents' => $data]));
                 }
             }
         }

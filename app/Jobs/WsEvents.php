@@ -79,6 +79,7 @@ class WsEvents implements ShouldQueue
             ->where('ml.master_league_name', $this->master_league_name)
             ->where('me.game_schedule', $this->schedule)
             ->whereNull('ml.deleted_at')
+            ->whereNull('me.deleted_at')
             ->distinct()->get();
         $data = [];
         $userId = $this->userId;

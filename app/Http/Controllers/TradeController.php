@@ -287,7 +287,9 @@ class TradeController extends Controller
                     ->join('odd_types as ot', 'ot.id', 'mem.odd_type_id')
                     ->join('master_event_market_links as meml', 'meml.master_event_market_unique_id',
                         'mem.master_event_market_unique_id')
-                    ->join('event_markets as em', 'em.id', 'meml.event_market_id');
+                    ->join('event_markets as em', 'em.id', 'meml.event_market_id')
+                    ->whereNull('me.deleted_at')
+                    ->whereNull('ml.deleted_at');
 
                 if ($row == 'user_watchlist') {
                     $transformed = $transformed->join('user_watchlist AS uw', 'me.master_event_unique_id', '=',

@@ -16,7 +16,8 @@ class TransformKafkaMessageOdds extends Task
     protected $uid = null;
     protected $dbOptions = [
         'event-only' => true,
-        'is-event-new' => true
+        'is-event-new' => true,
+        'is-market-different' => true
     ];
 
     protected $disregard = [
@@ -350,6 +351,8 @@ class TransformKafkaMessageOdds extends Task
                                         $eventMarketsTable[$key]['odds'] = $marketOdds;
                                         $this->updated = true;
                                         $updatedOdds[] = ['market_id' => $memUID, 'odds' => $marketOdds];
+                                    } else {
+                                        $this->dbOptions['is-market-different'] = false;
                                     }
                                 } else {
                                     $memUID = uniqid();
@@ -377,7 +380,7 @@ class TransformKafkaMessageOdds extends Task
                                     'market_flag'            => strtoupper($markets->indicator),
                                 ];
 
-                                if ($this->updated) {
+                                if ($this->dbOptions['is-market-different']) {
                                     $toInsert['MasterEventMarketLog']['data'] = [
                                         'provider_id' => $providerId,
                                         'odd_type_id' => $oddTypeId,
@@ -401,7 +404,7 @@ class TransformKafkaMessageOdds extends Task
                 $this->subTasks['updated-odds'] = $updatedOdds;
             }
 
-            if (!empty($this->subTasks['event'])) {
+            if (!empty($this->subTasks['event'])) {echo '-';
                 Task::deliver(new TransformKafkaMessageOddsSaveToDb($this->subTasks, $this->uid, $this->dbOptions));
             }
         } catch (Exception $e) {
