@@ -144,7 +144,7 @@ class OrdersController extends Controller
 
     public function postPlaceBet(Request $request)
     {
-        DB::transaction();
+        DB::beginTransaction();
 
         try {
             $swt    = app('swoole');
@@ -152,15 +152,17 @@ class OrdersController extends Controller
             $orders = $swt->ordersTable;
 
             if ($request->betType == "BEST_PRICE") {
-                $data[] = [
+                $data = [
                     'betType'     => $request->betType,
                     'stake'       => $request->stake,
-                    'min'         => $request->min,
-                    'max'         => $request->max,
-                    'price'       => $request->price,
-                    'provider_id' => $request->provider_id,
                     'orderExpiry' => $request->orderExpiry,
-                    'market_id'   => $request->market_id,
+                    'markets' => [
+                        'min'         => $request->min,
+                        'max'         => $request->max,
+                        'price'       => $request->price,
+                        'provider_id' => $request->provider_id,
+                        'market_id'   => $request->market_id,
+                    ],
                 ];
             } else {
                 $data = $request->all();
@@ -228,7 +230,7 @@ class OrdersController extends Controller
                     ])
                     ->first();
 
-                if (!$query->master_event_unique_id) {
+                if (!$query) {
                     return response()->json([
                         'status'      => false,
                         'status_code' => 404,
@@ -248,6 +250,9 @@ class OrdersController extends Controller
                     $prevStake = $request->stake - $row['max'];
                 }
 
+                $order_id = uniqid();
+
+                $payload['provider_id']   = $row['provider_id'];
                 $payload['odds']          = $row['price'];
                 $payload['stake']         = $payloadStake;
                 $payload['to_win']        = $payloadStake * $row['price'];
@@ -256,11 +261,9 @@ class OrdersController extends Controller
                 $payload['market_id']     = $query->bet_identifier;
                 $payload['event_id']      = explode('-', $query->master_event_unique_id)[3];
                 $payload['score']         = $query->score;
-                $payload['orderExpiry']   = $row['orderExpiry'];
+                $payload['orderExpiry']   = $request->orderExpiry;
+                $payload['order_id']      = $order_id;
 
-                $order_id = uniqid();
-
-                /** TO DO: Save to DB */
                 Order::create([
                     'user_id'                       => auth()->user()->id,
                     'master_event_market_unique_id' => $row['market_id'],
@@ -277,7 +280,7 @@ class OrdersController extends Controller
                     'actual_to_win'                 => $actualStake * $row['price'],
                     'settled_date'                  => "",
                     'reason'                        => "",
-                    'profit_loss'                   => "",
+                    'profit_loss'                   => 0.00,
                 ]);
 
                 OrderLogs::create([
@@ -289,7 +292,7 @@ class OrdersController extends Controller
                     'status'        => "PENDING",
                     'settled_date'  => "",
                     'reason'        => "",
-                    'profit_loss'   => "",
+                    'profit_loss'   => 0.00,
                 ]);
 
                 if ($request->betType == "FAST_BET") {
