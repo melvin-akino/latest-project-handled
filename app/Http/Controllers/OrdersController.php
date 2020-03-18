@@ -10,7 +10,9 @@ use App\Models\{
     OddType,
     Provider,
     Sport,
-    UserProviderConfiguration
+    UserProviderConfiguration,
+    Order,
+    OrderLogs
 };
 
 use Illuminate\Http\Request;
@@ -142,6 +144,8 @@ class OrdersController extends Controller
 
     public function postPlaceBet(Request $request)
     {
+        DB::transaction();
+
         try {
             $swt    = app('swoole');
             $topics = $swt->topicTable;
@@ -165,9 +169,10 @@ class OrdersController extends Controller
             $betType   = "";
             $return    = "";
             $prevStake = 0;
+            $order_ids = [];
 
-            foreach ($data AS $row) {
-                $betType        = $row['betType'];
+            foreach ($data['markets'] AS $row) {
+                $betType        = $request->betType;
                 $hasComputation = false;
                 $userProvider   = UserProviderConfiguration::where('provider_id', $row['provider_id']);
                 $userProvider   = Provider::find($userProvider->count() == 0 ? $row['provider_id'] : $userProvider->provider_id);
@@ -232,50 +237,84 @@ class OrdersController extends Controller
                 }
 
                 if ($hasComputation) {
-                    $actualStake = $row['stake'] / ($userProvider->punter_percentage / 100);
+                    $actualStake = $request->stake / ($userProvider->punter_percentage / 100);
                 } else {
-                    $actualStake = $row['stake'];
+                    $actualStake = $request->stake;
                 }
 
-                $payloadStake = $prevStake == 0 ? $row['stake'] : $prevStake;
+                $payloadStake = $prevStake == 0 ? $request->stake : $prevStake;
 
-                if ($row['betType'] == "BEST_PRICE") {
-                    $prevStake = $row['stake'] - $row['max'];
+                if ($request->betType == "BEST_PRICE") {
+                    $prevStake = $request->stake - $row['max'];
                 }
 
-                $payload = [
-                    'odds'          => $row['price'],
-                    'stake'         => $payloadStake,
-                    'to_win'        => $payloadStake * $row['price'],
-                    'actual_stake'  => $actualStake,
-                    'actual_to_win' => $actualStake * $row['price'],
-                    'market_id'     => $query->bet_identifier,
-                    'event_id'      => explode('-', $query->master_event_unique_id)[3],
-                    'score'         => $query->score,
-                    'orderExpiry'   => $row['orderExpiry'],
-                ];
+                $payload['odds']          = $row['price'];
+                $payload['stake']         = $payloadStake;
+                $payload['to_win']        = $payloadStake * $row['price'];
+                $payload['actual_stake']  = $actualStake;
+                $payload['actual_to_win'] = $actualStake * $row['price'];
+                $payload['market_id']     = $query->bet_identifier;
+                $payload['event_id']      = explode('-', $query->master_event_unique_id)[3];
+                $payload['score']         = $query->score;
+                $payload['orderExpiry']   = $row['orderExpiry'];
 
-                if ($row['betType'] == "FAST_BET") {
-                    $prevStake = $prevStake == 0 ? $row['stake'] - $row['max'] : $prevStake - $row['max'];
+                $order_id = uniqid();
+
+                /** TO DO: Save to DB */
+                Order::create([
+                    'user_id'                       => auth()->user()->id,
+                    'master_event_market_unique_id' => $row['market_id'],
+                    'market_id'                     => $query->bet_identifier,
+                    'status'                        => "PENDING",
+                    'bet_id'                        => "",
+                    'bet_selection'                 => "",
+                    'provider_id'                   => $row['provider_id'],
+                    'sport_id'                      => $query->sport_id,
+                    'odds'                          => $row['price'],
+                    'stake'                         => $payloadStake,
+                    'to_win'                        => $payloadStake * $row['price'],
+                    'actual_stake'                  => $actualStake,
+                    'actual_to_win'                 => $actualStake * $row['price'],
+                    'settled_date'                  => "",
+                    'reason'                        => "",
+                    'profit_loss'                   => "",
+                ]);
+
+                OrderLogs::create([
+                    'user_id'       => auth()->user()->id,
+                    'provider_id'   => $row['provider_id'],
+                    'sport_id'      => $query->sport_id,
+                    'bet_id'        => "",
+                    'bet_selection' => "",
+                    'status'        => "PENDING",
+                    'settled_date'  => "",
+                    'reason'        => "",
+                    'profit_loss'   => "",
+                ]);
+
+                if ($request->betType == "FAST_BET") {
+                    $prevStake = $prevStake == 0 ? $request->stake - $row['max'] : $prevStake - $row['max'];
                 }
 
                 $topicsId = implode(':', [
                     "userId:" . auth()->user()->id,
-                    "unique:" . uniqid(),
+                    "unique:" . $order_id,
                 ]);
 
                 if (!$topics->exists($topicsId)) {
                     $topics->set($topicsId, [
                         'user_id'    => auth()->user()->id,
-                        'topic_name' => "order-" . uniqid()
+                        'topic_name' => "order-" . $order_id
                     ]);
                 }
 
-                $ordersId = "order-" . uniqid();
+                $ordersId = "order-" . $order_id;
 
                 if (!$orders->exists($ordersId)) {
                     $orders->set($ordersId, $payload);
                 }
+
+                $order_ids[] = $order_id;
             }
 
             if ($betType == "BEST_PRICE") {
@@ -286,12 +325,17 @@ class OrdersController extends Controller
                 $return = $prevStake > 0 ? trans('game.bet.fast-bet.continue') : trans('game.bet.fast-bet.success');
             }
 
+            DB::commit();
+
             return response()->json([
                 'status'      => true,
                 'status_code' => 200,
                 'data'        => $return,
+                'order_id'    => $order_ids,
             ], 200);
         } catch (Exception $e) {
+            DB::rollback();
+
             return response()->json([
                 'status'      => false,
                 'status_code' => 500,
