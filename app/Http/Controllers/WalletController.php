@@ -1,8 +1,9 @@
 <?php
 
 namespace App\Http\Controllers;
-
+#use App\Exceptions\ServerException;
 use App\Models\Currency;
+use App\Models\UserWallet;
 use Illuminate\Http\Request;
 
 class WalletController extends Controller
@@ -14,15 +15,24 @@ class WalletController extends Controller
      */
     public function userWallet()
     {
+       
+        $wallet = UserWallet::where('user_id',auth()->user()->id )->first();
+        $balance = $wallet->balance;
+        $profit_loss = $wallet->Order()->sum('profit_loss');
+        $orders  = $wallet->Order()->where('settled_date','')->sum('stake');
         return response()->json([
-            'status'      => true,
+            'status'    => true,
             'status_code' => 200,
-            'data'        => [
+            'data' => [
                 'currency_symbol' => Currency::find(auth()->user()->currency_id)->symbol,
-                'credit'          => 800,
-                'profit_loss'     => 0,
-                'orders'          => 200,
-            ],
-        ]);
+                'credit'    => $balance,
+                'profit_loss' => $profit_loss,
+                'orders' =>  $order,
+                
+                ],
+        ], 200);
+
+         
+        
     }
 }
