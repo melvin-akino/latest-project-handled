@@ -34,10 +34,5 @@ class Order extends Model
         $whereClause[] = ['user_id', auth()->user()->id]);
         return self::where($whereClause)->orderBy('created_at', 'desc')->limit($limit)->offset(($page - 1) * $limit)->get();
     }
-
-    public static function getAll()
-    {
-        return self::all();
-    }
 }
 

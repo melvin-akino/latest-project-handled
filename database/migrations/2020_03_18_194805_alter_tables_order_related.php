@@ -28,12 +28,6 @@ class AlterTablesOrderRelated extends Migration
                     ->references('id')
                     ->on('providers')
                     ->onUpdate('cascade');
-                // if ($row == "orders") {
-                //     $table->foreign('market_id')
-                //         ->references('master_event_market_unique_id')
-                //         ->on('master_event_markets')
-                //         ->onUpdate('cascade');
-                // }
             });
         }
     }
