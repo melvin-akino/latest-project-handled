@@ -19,7 +19,7 @@
                 </div>
             </div>
         </div>
-        <Betslip v-for="market_id in openedBetSlips" :key="market_id" :market_id="market_id"></Betslip>
+        <Betslip v-for="odd in openedBetSlips" :key="odd.market_id" :odd_details="odd"></Betslip>
         <Betbar></Betbar>
     </div>
 </template>
