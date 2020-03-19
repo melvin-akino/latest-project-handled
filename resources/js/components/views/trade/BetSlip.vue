@@ -302,6 +302,7 @@ export default {
             .then(response => {
                 this.orderMessage = response.data.data
                 this.$store.dispatch('trade/getBetbarData')
+                this.$store.commit('trade/TOGGLE_BETBAR', true)
             })
             .catch(err => {
                 this.$store.dispatch('auth/checkIfTokenIsValid', err.response.data.status_code)

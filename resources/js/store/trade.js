@@ -228,7 +228,7 @@ const actions = {
         axios.get('v1/trade/betbar', { headers: { 'Authorization': `Bearer ${token}` }})
         .then(response => {
             commit('SET_BETS', response.data.data.reverse())
-            if(state.bets) {
+            if(state.bets.length != 0) {
                 commit('TOGGLE_BETBAR', true)
             }
         })
