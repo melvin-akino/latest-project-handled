@@ -55,7 +55,7 @@ class OrdersController extends Controller
                     $data['orders'][] = [
                         'bet_id'        => $myOrder->bet_id,
                         'bet_selection' => $myOrder->bet_selection,
-                        'provider'      => $myOrder->name,
+                        'provider'      => strtoupper($myOrder->alias),
                         'odds'          => $myOrder->odds,
                         'stake'         => $myOrder->stake,
                         'towin'         => $myOrder->to_win,
