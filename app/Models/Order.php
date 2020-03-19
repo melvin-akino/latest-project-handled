@@ -31,9 +31,14 @@ class Order extends Model
 
     protected $hidden = [];
 
+
+    public function UserWallet() {
+        return $this->belongsTo(App/Models/UserWallet::class, 'user_id','user_id');
+    }
+
     public static function getAllOrders($whereClause, $page, $limit)
     {
-        $whereClause[] = ['user_id', auth()->user()->id]);
+        $whereClause[] = ['user_id', auth()->user()->id];
 
         return DB::table('orders')
             ->join('providers', 'orders.provider_id', '=', 'providers.id')
@@ -46,7 +51,8 @@ class Order extends Model
     }
     public static function countAllOrders()
     {
-        return self::where('user_id', auth()->user()->id])->count();
+        return self::where('user_id', auth()->user()->id)->count();
+
     }
 }
 
