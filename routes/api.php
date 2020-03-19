@@ -88,8 +88,8 @@ Route::group([
         /** Orders Route Endpoints */
         Route::prefix('orders')->group(function () {
             Route::get('/{memUID}', 'OrdersController@getEventMarketsDetails');
+            Route::get('/all', 'OrdersController@myOrders');
             Route::get('/{memUID}/logs', 'OrdersController@getEventMarketLogs');
-
             Route::post('bet', 'OrdersController@postPlaceBet');
         });
 
