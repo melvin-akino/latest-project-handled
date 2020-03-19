@@ -2,8 +2,7 @@
 
 namespace App\Http\Controllers;
 #use App\Exceptions\ServerException;
-use App\Models\Currency;
-use App\Models\UserWallet;
+use App\Models\{Currency, UserWallet};
 use Illuminate\Http\Request;
 
 class WalletController extends Controller
@@ -26,13 +25,13 @@ class WalletController extends Controller
             $orders      = $wallet->Order()->whereNull('settled_date')->sum('stake');
          }   
         return response()->json([
-            'status'      =>  true,
+            'status'      => true,
             'status_code' => 200,
             'data'        => [
                 'currency_symbol'   => Currency::find(auth()->user()->currency_id)->symbol,
-                'credit'            => (float)$balance,
-                'profit_loss'       => (float)$profit_loss,
-                'orders'            =>  (float)$orders,
+                'credit'            => (float) $balance,
+                'profit_loss'       => (float) $profit_loss,
+                'orders'            => (float) $orders,
                 
             ],
         ]); 
