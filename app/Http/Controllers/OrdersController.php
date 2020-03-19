@@ -10,8 +10,9 @@ use App\Models\{
     OddType,
     Provider,
     Sport,
+    UserProviderConfiguration,
     Order,
-    UserProviderConfiguration
+    OrderLogs
 };
 
 use Illuminate\Http\Request;
@@ -19,29 +20,53 @@ use Illuminate\Support\Facades\DB;
 
 class OrdersController extends Controller
 {
-    
-    public function myOrders() 
+    /**
+     * Get all orders made by the user using the parameters below
+     * 
+     * @param  Request $request
+     * @return json
+     */
+    public function myOrders(Request $request) 
     {
         try {
-            //check the authenticated user's info in order to get all orders made
-            //auth()->user()->id
-            $myOrders = Order::getAllOrders(1);
-            // $data = [
-            //     'bet_id'        => $myOrders->bet_id,
-            //     'bet_selection' => $myOrders->bet_selection,
-            //     'odds'          => $myOrders->odds,
-            //     'stake'         => $myOrders->stake,
-            //     'towin'         => $myOrders->towin,
-            //     'created'       => $myOrders->created_at,
-            //     'settled'       => $myOrders->settled_at,
-            // ];
+            $conditions = [];
 
-            return response()->json([
-                'status'      => true,
-                'status_code' => 200,
-                'data'        => $myOrders
-            ], 200);
+            !empty($request->status) ? !($request->status == "All") ? $conditions[] = ['status', $request->status] : null : null;
 
+            !empty($request->created_from) ? $conditions[] = ['created_at', '>=', $request->created_from] : null;
+            !empty($request->created_to) ? $conditions[] = ['created_at', '<=', $request->created_to] : !empty($request->created_from) ? ['created_at', '<=', now()] : null;
+
+            !empty($request->settled_from) ? $conditions[] = ['settled_date', '>=', $request->settled_from] : null;
+            !empty($request->settled_to) ? $conditions[] = ['settled_date', '<=', $request->settled_to] : !empty($request->settled_to) ? ['settled_date', '<=', now()] : null;
+
+            //Pagination part
+            $page = $request->has('page') ? $request->get('page') : 1;
+            $limit = $request->has('limit') ? $request->get('limit') : 25;
+            
+            $myOrders = Order::getAllOrders($conditions, $page, $limit);
+
+            if (!empty($myOrders)) {
+
+                foreach($myOrders as $myOrder) {
+                    $data[] = [
+                        'bet_id'        => $myOrder['bet_id'],
+                        'bet_selection' => $myOrder['bet_selection'],
+                        'odds'          => $myOrder['odds'],
+                        'stake'         => $myOrder['stake'],
+                        'towin'         => $myOrder['to_win'],
+                        'created'       => $myOrder['created_at'],
+                        'settled'       => $myOrder['settled_date'],
+                        'pl'            => $myOrder['profit_loss']
+                    ];
+                }
+
+                return response()->json([
+                    'status'      => true,
+                    'status_code' => 200,
+                    'conditions' => $conditions,
+                    'data'        => !empty($data) ? $data : null
+                ], 200);
+            }
         } catch (Exception $e) {
             return response()->json([
                 'status'      => false,
@@ -175,21 +200,25 @@ class OrdersController extends Controller
 
     public function postPlaceBet(Request $request)
     {
+        DB::beginTransaction();
+
         try {
             $swt    = app('swoole');
             $topics = $swt->topicTable;
             $orders = $swt->ordersTable;
 
             if ($request->betType == "BEST_PRICE") {
-                $data[] = [
+                $data = [
                     'betType'     => $request->betType,
                     'stake'       => $request->stake,
-                    'min'         => $request->min,
-                    'max'         => $request->max,
-                    'price'       => $request->price,
-                    'provider_id' => $request->provider_id,
                     'orderExpiry' => $request->orderExpiry,
-                    'market_id'   => $request->market_id,
+                    'markets' => [
+                        'min'         => $request->min,
+                        'max'         => $request->max,
+                        'price'       => $request->price,
+                        'provider_id' => $request->provider_id,
+                        'market_id'   => $request->market_id,
+                    ],
                 ];
             } else {
                 $data = $request->all();
@@ -198,9 +227,10 @@ class OrdersController extends Controller
             $betType   = "";
             $return    = "";
             $prevStake = 0;
+            $orderIds = [];
 
-            foreach ($data AS $row) {
-                $betType        = $row['betType'];
+            foreach ($data['markets'] AS $row) {
+                $betType        = $request->betType;
                 $hasComputation = false;
                 $userProvider   = UserProviderConfiguration::where('provider_id', $row['provider_id']);
                 $userProvider   = Provider::find($userProvider->count() == 0 ? $row['provider_id'] : $userProvider->provider_id);
@@ -256,7 +286,7 @@ class OrdersController extends Controller
                     ])
                     ->first();
 
-                if (!$query->master_event_unique_id) {
+                if (!$query) {
                     return response()->json([
                         'status'      => false,
                         'status_code' => 404,
@@ -265,50 +295,85 @@ class OrdersController extends Controller
                 }
 
                 if ($hasComputation) {
-                    $actualStake = $row['stake'] / ($userProvider->punter_percentage / 100);
+                    $actualStake = $request->stake / ($userProvider->punter_percentage / 100);
                 } else {
-                    $actualStake = $row['stake'];
+                    $actualStake = $request->stake;
                 }
 
-                $payloadStake = $prevStake == 0 ? $row['stake'] : $prevStake;
+                $payloadStake = $prevStake == 0 ? $request->stake : $prevStake;
 
-                if ($row['betType'] == "BEST_PRICE") {
-                    $prevStake = $row['stake'] - $row['max'];
+                if ($request->betType == "BEST_PRICE") {
+                    $prevStake = $request->stake - $row['max'];
                 }
 
-                $payload = [
-                    'odds'          => $row['price'],
-                    'stake'         => $payloadStake,
-                    'to_win'        => $payloadStake * $row['price'],
-                    'actual_stake'  => $actualStake,
-                    'actual_to_win' => $actualStake * $row['price'],
-                    'market_id'     => $query->bet_identifier,
-                    'event_id'      => explode('-', $query->master_event_unique_id)[3],
-                    'score'         => $query->score,
-                    'orderExpiry'   => $row['orderExpiry'],
-                ];
+                $orderId = uniqid();
 
-                if ($row['betType'] == "FAST_BET") {
-                    $prevStake = $prevStake == 0 ? $row['stake'] - $row['max'] : $prevStake - $row['max'];
+                $payload['provider_id']   = $row['provider_id'];
+                $payload['odds']          = $row['price'];
+                $payload['stake']         = $payloadStake;
+                $payload['to_win']        = $payloadStake * $row['price'];
+                $payload['actual_stake']  = $actualStake;
+                $payload['actual_to_win'] = $actualStake * $row['price'];
+                $payload['market_id']     = $query->bet_identifier;
+                $payload['event_id']      = explode('-', $query->master_event_unique_id)[3];
+                $payload['score']         = $query->score;
+                $payload['orderExpiry']   = $request->orderExpiry;
+                $payload['order_id']      = $orderId;
+
+                Order::create([
+                    'user_id'                       => auth()->user()->id,
+                    'master_event_market_unique_id' => $row['market_id'],
+                    'market_id'                     => $query->bet_identifier,
+                    'status'                        => "PENDING",
+                    'bet_id'                        => "",
+                    'bet_selection'                 => "",
+                    'provider_id'                   => $row['provider_id'],
+                    'sport_id'                      => $query->sport_id,
+                    'odds'                          => $row['price'],
+                    'stake'                         => $payloadStake,
+                    'to_win'                        => $payloadStake * $row['price'],
+                    'actual_stake'                  => $actualStake,
+                    'actual_to_win'                 => $actualStake * $row['price'],
+                    'settled_date'                  => "",
+                    'reason'                        => "",
+                    'profit_loss'                   => 0.00,
+                ]);
+
+                OrderLogs::create([
+                    'user_id'       => auth()->user()->id,
+                    'provider_id'   => $row['provider_id'],
+                    'sport_id'      => $query->sport_id,
+                    'bet_id'        => "",
+                    'bet_selection' => "",
+                    'status'        => "PENDING",
+                    'settled_date'  => "",
+                    'reason'        => "",
+                    'profit_loss'   => 0.00,
+                ]);
+
+                if ($request->betType == "FAST_BET") {
+                    $prevStake = $prevStake == 0 ? $request->stake - $row['max'] : $prevStake - $row['max'];
                 }
 
                 $topicsId = implode(':', [
                     "userId:" . auth()->user()->id,
-                    "unique:" . uniqid(),
+                    "unique:" . $orderId,
                 ]);
 
                 if (!$topics->exists($topicsId)) {
                     $topics->set($topicsId, [
                         'user_id'    => auth()->user()->id,
-                        'topic_name' => "order-" . uniqid()
+                        'topic_name' => "order-" . $orderId
                     ]);
                 }
 
-                $ordersId = "order-" . uniqid();
+                $ordersId = "order-" . $orderId;
 
                 if (!$orders->exists($ordersId)) {
                     $orders->set($ordersId, $payload);
                 }
+
+                $orderIds[] = $orderId;
             }
 
             if ($betType == "BEST_PRICE") {
@@ -319,12 +384,17 @@ class OrdersController extends Controller
                 $return = $prevStake > 0 ? trans('game.bet.fast-bet.continue') : trans('game.bet.fast-bet.success');
             }
 
+            DB::commit();
+
             return response()->json([
                 'status'      => true,
                 'status_code' => 200,
                 'data'        => $return,
+                'order_id'    => $orderIds,
             ], 200);
         } catch (Exception $e) {
+            DB::rollback();
+
             return response()->json([
                 'status'      => false,
                 'status_code' => 500,
