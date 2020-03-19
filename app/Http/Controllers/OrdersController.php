@@ -43,12 +43,17 @@ class OrdersController extends Controller
             $page = $request->has('page') ? $request->get('page') : 1;
             $limit = $request->has('limit') ? $request->get('limit') : 25;
             
-            $myOrders = Order::getAllOrders($conditions, $page, $limit);
+            
+            
+            $myAllOrders = Order::countAllOrders();
 
-            if (!empty($myOrders)) {
+            if (!empty($myAllOrders)) {
+                
+                $myOrders = Order::getAllOrders($conditions, $page, $limit);
 
+                $currentRecordCount = count($myOrders);
                 foreach($myOrders as $myOrder) {
-                    $data[] = [
+                    $data['orders'][] = [
                         'bet_id'        => $myOrder['bet_id'],
                         'bet_selection' => $myOrder['bet_selection'],
                         'odds'          => $myOrder['odds'],
@@ -56,9 +61,12 @@ class OrdersController extends Controller
                         'towin'         => $myOrder['to_win'],
                         'created'       => $myOrder['created_at'],
                         'settled'       => $myOrder['settled_date'],
-                        'pl'            => $myOrder['profit_loss']
+                        'pl'            => $myOrder['profit_loss'],
+                        
                     ];
                 }
+                $data['page_count']  = $currentRecordCount;
+                $data['total_count'] = $myAllOrders;
 
                 return response()->json([
                     'status'      => true,
