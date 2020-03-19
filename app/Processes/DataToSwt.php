@@ -315,7 +315,7 @@ class DataToSwt implements CustomProcessInterface
         }, $orders->toArray());
     }
 
-    private static function db2SwtExchangeRates(Swoole $swoole)
+    private static function db2SwtExchangeRates(Server $swoole)
     {
         $exchangeRates = DB::table('exchange_rates AS er')
             ->join('currency AS cf', 'er.from_currency_id', '=', 'cf.id')
@@ -329,22 +329,22 @@ class DataToSwt implements CustomProcessInterface
                 'er.exchange_rate',
             ]);
 
-        $er = $swoole->exchangeRatesTable;
+        $swTable = $swoole->exchangeRatesTable;
 
-        array_map(function ($exchangeRates) use ($er) {
+        array_map(function ($exchangeRates) use ($swTable) {
             $erSwtId = implode(':', [
                 "from:" . $exchangeRates->from_code,
                 "to:"   . $exchangeRates->to_code,
             ]);
 
-            $ordersTable->set($erSwtId, [
+            $swTable->set($erSwtId, [
                 'default_amount' => $exchangeRates->default_amount,
                 'exchange_rate'  => $exchangeRates->exchange_rate,
             ]);
-        }, $exchangeRates->toArray())
+        }, $exchangeRates->toArray());
     }
 
-    private static function db2SwtCurrencies(Swoole $swoole)
+    private static function db2SwtCurrencies(Server $swoole)
     {
         $currency = DB::table('currency')
             ->get();
@@ -361,12 +361,12 @@ class DataToSwt implements CustomProcessInterface
                 'id'   => $currency->id,
                 'code' => $currency->code,
             ]);
-        }, $currency->toArray())
+        }, $currency->toArray());
     }
 
-    private static function db2SwtUserInfo(Swoole $swoole)
+    private static function db2SwtUserInfo(Server $swoole)
     {
-        $users = DB::table('uesrs')
+        $users = DB::table('users')
             ->get();
 
         $swTable = $swoole->usersTable;
@@ -377,6 +377,6 @@ class DataToSwt implements CustomProcessInterface
             $swTable->set($swtId, [
                 'currency_id' => $users->currency_id,
             ]);
-        }, $users->toArray())
+        }, $users->toArray());
     }
 }
