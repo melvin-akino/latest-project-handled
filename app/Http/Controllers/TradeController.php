@@ -24,7 +24,7 @@ class TradeController extends Controller
             ->join('master_events as me', 'me.master_event_unique_id', 'mem.master_event_unique_id')
             ->join('odd_types as ot', 'ot.id', 'mem.odd_type_id')
             ->join('sport_odd_type as sot', 'sot.odd_type_id', 'ot.id')
-            ->select('o.master_event_market_unique_id', 'me.master_league_name', 'me.master_home_team_name', 'me.master_away_team_name', 'mem.market_flag', 'sot.name', 'o.odds', 'o.stake', 'o.status', 'o.created_at')
+            ->select('o.id as order_id', 'o.master_event_market_unique_id', 'me.master_league_name', 'me.master_home_team_name', 'me.master_away_team_name', 'mem.market_flag', 'sot.name', 'o.odds', 'o.stake', 'o.status', 'o.created_at')
             ->distinct()
             ->where('sot.sport_id', DB::raw('o.sport_id'))
             ->get();
@@ -32,6 +32,7 @@ class TradeController extends Controller
             $data = [];
             foreach ($betBarData as $betData) {
                 $data[] = [
+                    'order_id'      => $betData->order_id,
                     'market_id'     => $betData->master_event_market_unique_id,
                     'league_name'   => $betData->master_league_name,
                     'home'          => $betData->master_home_team_name,
