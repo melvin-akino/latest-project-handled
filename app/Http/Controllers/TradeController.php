@@ -33,20 +33,20 @@ class TradeController extends Controller
             $data = [];
             foreach ($betBarData as $betData) {
                 $data[] = [
-                    'order_id'      => $betData->order_id,
+                    'order_id'       => $betData->order_id,
                     'provider_alias' => $betData->alias,
-                    'market_id'     => $betData->master_event_market_unique_id,
-                    'league_name'   => $betData->master_league_name,
-                    'home'          => $betData->master_home_team_name,
-                    'away'          => $betData->master_away_team_name,
-                    'bet_info'      => [
+                    'market_id'      => $betData->master_event_market_unique_id,
+                    'league_name'    => $betData->master_league_name,
+                    'home'           => $betData->master_home_team_name,
+                    'away'           => $betData->master_away_team_name,
+                    'bet_info'       => [
                         $betData->market_flag,
                         $betData->name,
                         $betData->odds,
                         $betData->stake
                     ],
-                    'status'        => $betData->status,
-                    'create_at'     => $betData->created_at
+                    'status'         => $betData->status,
+                    'create_at'      => $betData->created_at
                 ];
             }
 
