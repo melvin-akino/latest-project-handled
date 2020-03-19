@@ -51,7 +51,6 @@ class OrdersController extends Controller
                 
                 $myOrders = Order::getAllOrders($conditions, $page, $limit);
 
-                $currentRecordCount = count($myOrders);
                 foreach($myOrders as $myOrder) {
                     $data['orders'][] = [
                         'bet_id'        => $myOrder['bet_id'],
@@ -65,7 +64,7 @@ class OrdersController extends Controller
                         
                     ];
                 }
-                $data['page_count']  = $currentRecordCount;
+
                 $data['total_count'] = $myAllOrders;
 
                 return response()->json([
