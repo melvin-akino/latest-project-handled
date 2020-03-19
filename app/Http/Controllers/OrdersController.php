@@ -53,14 +53,15 @@ class OrdersController extends Controller
 
                 foreach($myOrders as $myOrder) {
                     $data['orders'][] = [
-                        'bet_id'        => $myOrder['bet_id'],
-                        'bet_selection' => $myOrder['bet_selection'],
-                        'odds'          => $myOrder['odds'],
-                        'stake'         => $myOrder['stake'],
-                        'towin'         => $myOrder['to_win'],
-                        'created'       => $myOrder['created_at'],
-                        'settled'       => $myOrder['settled_date'],
-                        'pl'            => $myOrder['profit_loss'],
+                        'bet_id'        => $myOrder->bet_id,
+                        'bet_selection' => $myOrder->bet_selection,
+                        'provider'      => $myOrder->name,
+                        'odds'          => $myOrder->odds,
+                        'stake'         => $myOrder->stake,
+                        'towin'         => $myOrder->to_win,
+                        'created'       => $myOrder->created_at,
+                        'settled'       => $myOrder->settled_date,
+                        'pl'            => $myOrder->profit_loss,
                         
                     ];
                 }
