@@ -220,6 +220,18 @@ return [
                 [ 'name' => 'orderExpiry',   'type' => \Swoole\Table::TYPE_STRING, 'size' => 50 ],
             ],
         ],
+        'minmax' => [
+            'size' => 102400,
+            'column' => [ // KEY FORMAT: [userId:$userId:memUID:$memUID]
+                [ 'name' => 'id',              'type' => \Swoole\Table::TYPE_INT ],
+                [ 'name' => 'user_id',         'type' => \Swoole\Table::TYPE_INT ],
+                [ 'name' => 'sport_id',        'type' => \Swoole\Table::TYPE_INT ],
+                [ 'name' => 'provider_alias',  'type' => \Swoole\Table::TYPE_STRING, 'size' => 10 ],
+                [ 'name' => 'bet_identifier',  'type' => \Swoole\Table::TYPE_STRING, 'size' => 50 ],
+                [ 'name' => 'min',             'type' => \Swoole\Table::TYPE_FLOAT ],
+                [ 'name' => 'max',             'type' => \Swoole\Table::TYPE_FLOAT ],
+            ],
+        ],
     ],
     'register_providers'       => [
         \Laravel\Passport\PassportServiceProvider::class
