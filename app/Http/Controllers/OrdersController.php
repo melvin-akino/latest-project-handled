@@ -21,6 +21,69 @@ use Illuminate\Support\Facades\DB;
 class OrdersController extends Controller
 {
     /**
+     * Get all orders made by the user using the parameters below
+     * 
+     * @param  Request $request
+     * @return json
+     */
+    public function myOrders(Request $request) 
+    {
+        try {
+            $conditions = [];
+
+            !empty($request->status) ? !($request->status == "All") ? $conditions[] = ['status', $request->status] : null : null;
+
+            !empty($request->created_from) ? $conditions[] = ['created_at', '>=', $request->created_from] : null;
+            !empty($request->created_to) ? $conditions[] = ['created_at', '<=', $request->created_to] : !empty($request->created_from) ? ['created_at', '<=', now()] : null;
+
+            !empty($request->settled_from) ? $conditions[] = ['settled_date', '>=', $request->settled_from] : null;
+            !empty($request->settled_to) ? $conditions[] = ['settled_date', '<=', $request->settled_to] : !empty($request->settled_to) ? ['settled_date', '<=', now()] : null;
+
+            //Pagination part
+            $page = $request->has('page') ? $request->get('page') : 1;
+            $limit = $request->has('limit') ? $request->get('limit') : 25;
+            
+            
+            
+            $myAllOrders = Order::countAllOrders();
+
+            if (!empty($myAllOrders)) {
+                
+                $myOrders = Order::getAllOrders($conditions, $page, $limit);
+
+                foreach($myOrders as $myOrder) {
+                    $data['orders'][] = [
+                        'bet_id'        => $myOrder->bet_id,
+                        'bet_selection' => $myOrder->bet_selection,
+                        'provider'      => strtoupper($myOrder->alias),
+                        'odds'          => $myOrder->odds,
+                        'stake'         => $myOrder->stake,
+                        'towin'         => $myOrder->to_win,
+                        'created'       => $myOrder->created_at,
+                        'settled'       => $myOrder->settled_date,
+                        'pl'            => $myOrder->profit_loss,
+                        
+                    ];
+                }
+
+                $data['total_count'] = $myAllOrders;
+
+                return response()->json([
+                    'status'      => true,
+                    'status_code' => 200,
+                    'data'        => !empty($data) ? $data : null
+                ], 200);
+            }
+        } catch (Exception $e) {
+            return response()->json([
+                'status'      => false,
+                'status_code' => 500,
+                'message'     => trans('generic.internal-server-error')
+            ], 500);
+        }
+    }
+
+    /**
      * Get Event Details from the given parameter to display information
      * in the Bet Slip Interface
      *
@@ -192,7 +255,7 @@ class OrdersController extends Controller
                         $join->on('mem.market_flag', '=', 'em.market_flag');
                     })
                     ->whereNull('me.deleted_at')
-                    ->where('mem.master_event_market_unique_id', $row['market_id'])
+                    ->where('mem.master_event_market_unique_id', $request->market_id)
                     ->orderBy('mem.odd_type_id', 'asc')
                     ->select([
                         'me.sport_id',
@@ -242,7 +305,7 @@ class OrdersController extends Controller
 
                 $orderId = uniqid();
 
-                $payload['provider_id']   = $row['provider_id'];
+                $payload['provider_id']   = strtolower($userProvider->alias);
                 $payload['odds']          = $row['price'];
                 $payload['stake']         = $payloadStake;
                 $payload['to_win']        = $payloadStake * $row['price'];
@@ -256,7 +319,7 @@ class OrdersController extends Controller
 
                 Order::create([
                     'user_id'                       => auth()->user()->id,
-                    'master_event_market_unique_id' => $row['market_id'],
+                    'master_event_market_unique_id' => $request->market_id,
                     'market_id'                     => $query->bet_identifier,
                     'status'                        => "PENDING",
                     'bet_id'                        => "",

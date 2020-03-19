@@ -6,11 +6,11 @@ use Illuminate\Database\Eloquent\Model;
 
 class UserWallet extends Model
 {
-    protected $table = "wallet";
+	protected $table = "wallet";
 
-   	public function Order() {
+	public function Order() {
 
-	 	return $this->hasMany('App\Models\Order','user_id','user_id');
+		return $this->hasMany('App\Models\Order','user_id','user_id');
 
 	}
 

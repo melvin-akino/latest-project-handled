@@ -13,24 +13,8 @@ class WalletController extends Controller
      *
      * @return json
      */
-    public function userWallet()
-    {
-        
-        /*
-        return response()->json([
-            'status'      => true,
-            'status_code' => 200,
-            'data'        => [
-                'currency_symbol' => Currency::find(auth()->user()->currency_id)->symbol,
-                'credit'          => 8.50,
-                'profit_loss'     => 0,
-                'orders'          => 200,
-            ],
-        ]);
-        */
-        
-        
-        
+    public function userWallet() {
+    
         $balance      =  0.00;
         $profit_loss  =  0.00;
         $orders       =  0.00;
@@ -52,6 +36,6 @@ class WalletController extends Controller
                 
             ],
         ]); 
-                
+
     }
 }
