@@ -28,4 +28,8 @@ class Order extends Model
     ];
 
     protected $hidden = [];
+
+    public function UserWallet() {
+        return $this->belongsTo(App/Models/UserWallet::class, 'user_id','user_id');
+    }
 }
