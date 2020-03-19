@@ -147,33 +147,15 @@ class OrdersController extends Controller
         DB::beginTransaction();
 
         try {
-            $swt    = app('swoole');
-            $topics = $swt->topicTable;
-            $orders = $swt->ordersTable;
-
-            if ($request->betType == "BEST_PRICE") {
-                $data = [
-                    'betType'     => $request->betType,
-                    'stake'       => $request->stake,
-                    'orderExpiry' => $request->orderExpiry,
-                    'markets' => [
-                        'min'         => $request->min,
-                        'max'         => $request->max,
-                        'price'       => $request->price,
-                        'provider_id' => $request->provider_id,
-                        'market_id'   => $request->market_id,
-                    ],
-                ];
-            } else {
-                $data = $request->all();
-            }
-
+            $swt       = app('swoole');
+            $topics    = $swt->topicTable;
+            $orders    = $swt->ordersTable;
             $betType   = "";
             $return    = "";
             $prevStake = 0;
-            $orderIds = [];
+            $orderIds  = [];
 
-            foreach ($data['markets'] AS $row) {
+            foreach ($request->markets AS $row) {
                 $betType        = $request->betType;
                 $hasComputation = false;
                 $userProvider   = UserProviderConfiguration::where('provider_id', $row['provider_id']);
