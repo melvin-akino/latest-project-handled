@@ -232,6 +232,14 @@ return [
                 [ 'name' => 'max',             'type' => \Swoole\Table::TYPE_FLOAT ],
             ],
         ],
+        'minMaxRequests' => [
+            'size' => 102400,
+            'column' => [ // KEY FORMAT: [memUID:$memUID]
+                [ 'name' => 'provider',              'type' => \Swoole\Table::TYPE_STRING, 'size' => 5 ],
+                [ 'name' => 'market_id',         'type' => \Swoole\Table::TYPE_STRING, 'size' => 50 ],
+                [ 'name' => 'sport',        'type' => \Swoole\Table::TYPE_INT ],
+            ],
+        ],
     ],
     'register_providers'       => [
         \Laravel\Passport\PassportServiceProvider::class
