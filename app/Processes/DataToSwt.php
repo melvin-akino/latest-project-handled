@@ -282,7 +282,7 @@ class DataToSwt implements CustomProcessInterface
             ]);
         }, $userSelectedLeagues->toArray());
     }
-    
+
     private static function db2SwtOrders(Server $swoole)
     {
         $orders = DB::table('orders as o')
@@ -290,16 +290,17 @@ class DataToSwt implements CustomProcessInterface
                 ->join('master_events as me', 'me.master_event_unique_id', 'mem.master_event_unique_id')
                 ->join('master_event_links as mel', 'mel.master_event_unique_id', 'me.master_event_unique_id')
                 ->join('events as e', 'e.id', 'mel.event_id')
-                ->select('o.actual_stake', 'o.odds', 'o.market_id', 'e.event_identifier', 'me.score')
+                ->select('o.id', 'o.stake', 'o.actual_stake', 'o.odds', 'o.market_id', 'mem.master_event_unique_id', 'mem.master_event_market_unique_id', 'me.score')
             ->get();
         $ordersTable = $swoole->ordersTable;
         array_map(function ($order) use ($ordersTable) {
             $ordersTable->set('orderId:' . $order->id, [
-                'actual_stake'  => $order->user_id,
-                'odds'          => $order->sport_id,
-                'market_id'     => $order->game_schedule,
-                'event_id'      => $order->master_league_name,
-                'score'         => $order->master_league_name
+                'stake'         => $order->stake,
+                'actual_stake'  => $order->actual_stake,
+                'odds'          => $order->odds,
+                'market_id'     => $order->market_id,
+                'event_id'      => explode('-', $order->master_event_unique_id)[3],
+                'score'         => $order->score
             ]);
         }, $orders->toArray());
     }

@@ -192,7 +192,7 @@ class OrdersController extends Controller
                         $join->on('mem.market_flag', '=', 'em.market_flag');
                     })
                     ->whereNull('me.deleted_at')
-                    ->where('mem.master_event_market_unique_id', $row['market_id'])
+                    ->where('mem.master_event_market_unique_id', $request->market_id)
                     ->orderBy('mem.odd_type_id', 'asc')
                     ->select([
                         'me.sport_id',
@@ -256,7 +256,7 @@ class OrdersController extends Controller
 
                 Order::create([
                     'user_id'                       => auth()->user()->id,
-                    'master_event_market_unique_id' => $row['market_id'],
+                    'master_event_market_unique_id' => $request->market_id,
                     'market_id'                     => $query->bet_identifier,
                     'status'                        => "PENDING",
                     'bet_id'                        => "",
