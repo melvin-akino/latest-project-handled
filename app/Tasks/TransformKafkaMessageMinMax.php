@@ -9,7 +9,7 @@ class TransformKafkaMessageMinMax extends Task
 {
     protected $data;
 
-    public function __construct(array $data)
+    public function __construct($data)
     {
         $this->data = $data;
     }
@@ -18,18 +18,20 @@ class TransformKafkaMessageMinMax extends Task
     {
         $swoole = app('swoole');
 
-        $topics = $swoole->topicsTable;
+        $topics = $swoole->topicTable;
         $mmr    = $swoole->minMaxRequestsTable;
-
+        $wsTable = $swoole->wsTable;
         foreach ($mmr AS $key => $row) {
-            if ($row['market_id'] == $this->data->market_id) {
+            if ($row['market_id'] == $this->data->data->market_id) {
                 $memUID = substr($key, strlen('memUID:'));
 
                 foreach ($topics AS $_key => $_row) {
                     if (strpos($_row['topic_name'], 'min-max-' . $memUID) === 0) {
                         $userId = explode(':', $_key)[1];
-
-                        WsMinMax::dispatch($userId, $memUID);
+                        $fd = $wsTable->get('uid:' . $userId);
+                        $swoole->push($fd['value'], json_encode([
+                            'getMinMax' => []
+                        ]));
                     }
                 }
             }

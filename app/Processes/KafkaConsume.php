@@ -3,7 +3,7 @@
 namespace App\Processes;
 
 use App\Jobs\WsEvents;
-use App\Tasks\{TransformKafkaMessageEvents, TransformKafkaMessageLeagues, TransformKafkaMessageOdds};
+use App\Tasks\{TransformKafkaMessageEvents, TransformKafkaMessageLeagues, TransformKafkaMessageOdds, TransformKafkaMessageMinMax};
 use Hhxsv5\LaravelS\Swoole\Process\CustomProcessInterface;
 use Hhxsv5\LaravelS\Swoole\Task\Task;
 use Illuminate\Support\Facades\Log;
@@ -43,7 +43,7 @@ class KafkaConsume implements CustomProcessInterface
                                 Task::deliver(new TransformKafkaMessageEvents($payload));
                                 break;
                             case 'minmax':
-                                Task::delivery(new TransformKafkaMessageMinMax($payload));
+                                Task::deliver(new TransformKafkaMessageMinMax($payload));
                                 break;
                             default:
                                 if (!isset($payload->data->events)) {
