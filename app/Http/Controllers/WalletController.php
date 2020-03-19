@@ -15,22 +15,43 @@ class WalletController extends Controller
      */
     public function userWallet()
     {
-       
+        
+        /*
+        return response()->json([
+            'status'      => true,
+            'status_code' => 200,
+            'data'        => [
+                'currency_symbol' => Currency::find(auth()->user()->currency_id)->symbol,
+                'credit'          => 8.50,
+                'profit_loss'     => 0,
+                'orders'          => 200,
+            ],
+        ]);
+        */
+        
+        
+        
+        $balance =0.00;
+        $profit_loss =0.00;
+        $orders =0.00;
+
         $wallet = UserWallet::where('user_id',auth()->user()->id )->first();
-        $balance = $wallet->balance;
-        $profit_loss = $wallet->Order()->sum('profit_loss');
-        $orders  = $wallet->Order()->where('settled_date','')->sum('stake');
+        if ($wallet) {
+            $balance = $wallet->balance;
+            $profit_loss = $wallet->Order()->sum('profit_loss');
+            $orders  = $wallet->Order()->whereNull('settled_date')->sum('stake');
+         }   
         return response()->json([
             'status'    => true,
             'status_code' => 200,
             'data' => [
                 'currency_symbol' => Currency::find(auth()->user()->currency_id)->symbol,
-                'credit'    => $balance,
-                'profit_loss' => $profit_loss,
-                'orders' =>  $order,
+                'credit'    => (float)$balance,
+                'profit_loss' => (float)$profit_loss,
+                'orders' =>  (float)$orders,
                 
                 ],
-        ], 200);
+        ] ); 
 
          
         
