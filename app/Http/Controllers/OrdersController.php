@@ -21,6 +21,69 @@ use Illuminate\Support\Facades\DB;
 class OrdersController extends Controller
 {
     /**
+     * Get all orders made by the user using the parameters below
+     * 
+     * @param  Request $request
+     * @return json
+     */
+    public function myOrders(Request $request) 
+    {
+        try {
+            $conditions = [];
+
+            !empty($request->status) ? !($request->status == "All") ? $conditions[] = ['status', $request->status] : null : null;
+
+            !empty($request->created_from) ? $conditions[] = ['created_at', '>=', $request->created_from] : null;
+            !empty($request->created_to) ? $conditions[] = ['created_at', '<=', $request->created_to] : !empty($request->created_from) ? ['created_at', '<=', now()] : null;
+
+            !empty($request->settled_from) ? $conditions[] = ['settled_date', '>=', $request->settled_from] : null;
+            !empty($request->settled_to) ? $conditions[] = ['settled_date', '<=', $request->settled_to] : !empty($request->settled_to) ? ['settled_date', '<=', now()] : null;
+
+            //Pagination part
+            $page = $request->has('page') ? $request->get('page') : 1;
+            $limit = $request->has('limit') ? $request->get('limit') : 25;
+            
+            
+            
+            $myAllOrders = Order::countAllOrders();
+
+            if (!empty($myAllOrders)) {
+                
+                $myOrders = Order::getAllOrders($conditions, $page, $limit);
+
+                foreach($myOrders as $myOrder) {
+                    $data['orders'][] = [
+                        'bet_id'        => $myOrder->bet_id,
+                        'bet_selection' => $myOrder->bet_selection,
+                        'provider'      => strtoupper($myOrder->alias),
+                        'odds'          => $myOrder->odds,
+                        'stake'         => $myOrder->stake,
+                        'towin'         => $myOrder->to_win,
+                        'created'       => $myOrder->created_at,
+                        'settled'       => $myOrder->settled_date,
+                        'pl'            => $myOrder->profit_loss,
+                        
+                    ];
+                }
+
+                $data['total_count'] = $myAllOrders;
+
+                return response()->json([
+                    'status'      => true,
+                    'status_code' => 200,
+                    'data'        => !empty($data) ? $data : null
+                ], 200);
+            }
+        } catch (Exception $e) {
+            return response()->json([
+                'status'      => false,
+                'status_code' => 500,
+                'message'     => trans('generic.internal-server-error')
+            ], 500);
+        }
+    }
+
+    /**
      * Get Event Details from the given parameter to display information
      * in the Bet Slip Interface
      *
