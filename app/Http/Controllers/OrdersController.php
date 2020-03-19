@@ -71,7 +71,6 @@ class OrdersController extends Controller
                 return response()->json([
                     'status'      => true,
                     'status_code' => 200,
-                    'conditions' => $conditions,
                     'data'        => !empty($data) ? $data : null
                 ], 200);
             }
