@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class UserWallet extends Model
 {
 	protected $table = "wallet";
+	
 
 	public function Order() {
 

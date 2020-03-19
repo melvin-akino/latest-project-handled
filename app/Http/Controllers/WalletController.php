@@ -28,10 +28,10 @@ class WalletController extends Controller
             'status'      => true,
             'status_code' => 200,
             'data'        => [
-                'currency_symbol'   => Currency::find(auth()->user()->currency_id)->symbol,
-                'credit'            => (float) $balance,
-                'profit_loss'       => (float) $profit_loss,
-                'orders'            => (float) $orders,
+                'currency_symbol'  => Currency::find(auth()->user()->currency_id)->symbol,
+                'credit'           => (float) $balance,
+                'profit_loss'      => (float) $profit_loss,
+                'orders'           => (float) $orders,
                 
             ],
         ]); 
