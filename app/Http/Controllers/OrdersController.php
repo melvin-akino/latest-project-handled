@@ -232,6 +232,14 @@ class OrdersController extends Controller
                     $prevStake = $request->stake - $row['max'];
                 }
 
+                if ($payloadStake < $row['min']) {
+                    return response()->json([
+                        'status'      => false,
+                        'status_code' => 400,
+                        'message'     => trans('generic.bad-request')
+                    ], 400);
+                }
+
                 $orderId = uniqid();
 
                 $payload['provider_id']   = $row['provider_id'];
