@@ -19,40 +19,39 @@ class TradeController extends Controller
     public function getUserBetbar()
     {
         try {
-            $data = [
+            $betBarData = DB::table('orders as o')
+            ->join('master_event_markets as mem', 'mem.master_event_market_unique_id', 'o.master_event_market_unique_id')
+            ->join('master_events as me', 'me.master_event_unique_id', 'mem.master_event_unique_id')
+            ->join('odd_types as ot', 'ot.id', 'mem.odd_type_id')
+            ->join('sport_odd_type as sot', 'sot.odd_type_id', 'ot.id')
+            ->select('o.master_event_market_unique_id', 'me.master_league_name', 'me.master_home_team_name', 'me.master_away_team_name', 'mem.market_flag', 'sot.name', 'o.odds', 'o.stake', 'o.status', 'o.created_at')
+            ->distinct()
+            ->where('sot.sport_id', DB::raw('o.sport_id'))
+            ->get();
+
+            $data = [];
+            foreach ($betBarData as $betData) {
+                $data[] = [
+                    'market_id'     => $betData->master_event_market_unique_id,
+                    'league_name'   => $betData->master_league_name,
+                    'home'          => $betData->master_home_team_name,
+                    'away'          => $betData->master_away_team_name,
+                    'bet_info'      => [
+                        $betData->market_flag,
+                        $betData->name,
+                        $betData->odds,
+                        $betData->stake
+                    ],
+                    'status'        => $betData->status,
+                    'create_at'     => $betData->created_at
+                ];
+            }
+
+            return response()->json([
                 'status'      => true,
                 'status_code' => 200,
-                'data'        => [
-                    "bet_id_20"        => [
-                        'league_name' => "FIFA Asia 2020",
-                        'home'        => "Vietnam",
-                        'away'        => "South Korea",
-                        'bet_info'    => [
-                            'home',
-                            'FT 1X2',
-                            '1.54',
-                            '120'
-                        ],
-                        'status'      => "Processing",
-                        'created_at'  => "2020-02-11 4:20 PM",
-                    ],
-                    "bet_id_19"        => [
-                        'league_name' => "FIFA Asia 2020",
-                        'home'        => "Philippines",
-                        'away'        => "India",
-                        'bet_info'    => [
-                            'away',
-                            'FT 1X2',
-                            '2.58',
-                            '80'
-                        ],
-                        'status'      => "Success",
-                        'created_at'  => "2020-02-11 4:10 PM",
-                    ],
-                ],
-            ];
-
-            return response()->json($data, 200);
+                'data'        => $data,
+            ], 200);
         } catch (Exception $e) {
             return response()->json([
                 'status'      => false,
