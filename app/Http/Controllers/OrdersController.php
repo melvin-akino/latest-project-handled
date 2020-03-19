@@ -242,7 +242,7 @@ class OrdersController extends Controller
 
                 $orderId = uniqid();
 
-                $payload['provider_id']   = $row['provider_id'];
+                $payload['provider_id']   = strtolower($userProvider->alias);
                 $payload['odds']          = $row['price'];
                 $payload['stake']         = $payloadStake;
                 $payload['to_win']        = $payloadStake * $row['price'];
