@@ -9,9 +9,10 @@ use App\Models\{EventMarket,
     MasterEventMarket,
     MasterEventMarketLink,
     MasterEventMarketLog};
-use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\{Log, DB};
 use Hhxsv5\LaravelS\Swoole\Task\Task;
 use Exception;
+use Carbon\Carbon;
 
 class TransformKafkaMessageOddsSaveToDb extends Task
 {
@@ -87,6 +88,16 @@ class TransformKafkaMessageOddsSaveToDb extends Task
             }
 
             if (!empty($this->eventMarketsData)) {
+                if (!empty($this->subTasks['delete-event-market'])) {
+                    DB::table('event_markets')
+                        ->where('master_event_unique_id', $this->subTasks['delete-event-market']['EventMarket']['master_event_unique_id'])
+                        ->update([
+                            'deleted_at' => Carbon::now()
+                        ]);
+                }
+
+
+
                 foreach ($this->eventMarketsData as $eventMarket) {
                     try {
                         $eventMarketModel = EventMarket::updateOrCreate([

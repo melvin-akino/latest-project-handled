@@ -203,33 +203,15 @@ class OrdersController extends Controller
         DB::beginTransaction();
 
         try {
-            $swt    = app('swoole');
-            $topics = $swt->topicTable;
-            $orders = $swt->ordersTable;
-
-            if ($request->betType == "BEST_PRICE") {
-                $data = [
-                    'betType'     => $request->betType,
-                    'stake'       => $request->stake,
-                    'orderExpiry' => $request->orderExpiry,
-                    'markets' => [
-                        'min'         => $request->min,
-                        'max'         => $request->max,
-                        'price'       => $request->price,
-                        'provider_id' => $request->provider_id,
-                        'market_id'   => $request->market_id,
-                    ],
-                ];
-            } else {
-                $data = $request->all();
-            }
-
+            $swt       = app('swoole');
+            $topics    = $swt->topicTable;
+            $orders    = $swt->ordersTable;
             $betType   = "";
             $return    = "";
             $prevStake = 0;
-            $orderIds = [];
+            $orderIds  = [];
 
-            foreach ($data['markets'] AS $row) {
+            foreach ($request->markets AS $row) {
                 $betType        = $request->betType;
                 $hasComputation = false;
                 $userProvider   = UserProviderConfiguration::where('provider_id', $row['provider_id']);
@@ -266,7 +248,7 @@ class OrdersController extends Controller
                         $join->on('mem.market_flag', '=', 'em.market_flag');
                     })
                     ->whereNull('me.deleted_at')
-                    ->where('mem.master_event_market_unique_id', $row['market_id'])
+                    ->where('mem.master_event_market_unique_id', $request->market_id)
                     ->orderBy('mem.odd_type_id', 'asc')
                     ->select([
                         'me.sport_id',
@@ -306,9 +288,17 @@ class OrdersController extends Controller
                     $prevStake = $request->stake - $row['max'];
                 }
 
+                if ($payloadStake < $row['min']) {
+                    return response()->json([
+                        'status'      => false,
+                        'status_code' => 400,
+                        'message'     => trans('generic.bad-request')
+                    ], 400);
+                }
+
                 $orderId = uniqid();
 
-                $payload['provider_id']   = $row['provider_id'];
+                $payload['provider_id']   = strtolower($userProvider->alias);
                 $payload['odds']          = $row['price'];
                 $payload['stake']         = $payloadStake;
                 $payload['to_win']        = $payloadStake * $row['price'];
@@ -322,7 +312,7 @@ class OrdersController extends Controller
 
                 Order::create([
                     'user_id'                       => auth()->user()->id,
-                    'master_event_market_unique_id' => $row['market_id'],
+                    'master_event_market_unique_id' => $request->market_id,
                     'market_id'                     => $query->bet_identifier,
                     'status'                        => "PENDING",
                     'bet_id'                        => "",
