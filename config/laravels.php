@@ -228,6 +228,7 @@ return [
                 [ 'name' => 'sport_id',        'type' => \Swoole\Table::TYPE_INT ],
                 [ 'name' => 'provider_alias',  'type' => \Swoole\Table::TYPE_STRING, 'size' => 10 ],
                 [ 'name' => 'bet_identifier',  'type' => \Swoole\Table::TYPE_STRING, 'size' => 50 ],
+                [ 'name' => 'order_id',        'type' => \Swoole\Table::TYPE_STRING, 'size' => 50 ],
                 [ 'name' => 'min',             'type' => \Swoole\Table::TYPE_FLOAT ],
                 [ 'name' => 'max',             'type' => \Swoole\Table::TYPE_FLOAT ],
             ],

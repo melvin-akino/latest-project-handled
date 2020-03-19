@@ -26,8 +26,10 @@ class KafkaConsume implements CustomProcessInterface
                 $kafkaConsumer->subscribe([
                     env('KAFKA_SCRAPE_ODDS', 'SCRAPING-ODDS'),
                     env('KAFKA_SCRAPE_LEAGUES', 'SCRAPING-PROVIDER-LEAGUES'),
-                    env('KAFKA_SCRAPE_EVENTS', 'SCRAPING-PROVIDER-EVENTS')
+                    env('KAFKA_SCRAPE_EVENTS', 'SCRAPING-PROVIDER-EVENTS'),
+                    env('KAFKA_SCRAPE_MINMAX_ODDS', 'MINMAX-ODDS')
                 ]);
+
                 while (!self::$quit) {
                     $message = $kafkaConsumer->consume(120 * 1000);
                     if ($message->err == RD_KAFKA_RESP_ERR_NO_ERROR) {
@@ -39,6 +41,9 @@ class KafkaConsume implements CustomProcessInterface
                                 break;
                             case 'event':
                                 Task::deliver(new TransformKafkaMessageEvents($payload));
+                                break;
+                            case 'minmax':
+                                Task::delivery(new TransformKafkaMessageMinMax($payload));
                                 break;
                             default:
                                 if (!isset($payload->data->events)) {
