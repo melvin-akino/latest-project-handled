@@ -17,7 +17,7 @@
                 </div>
                 <div class="w-4/12 py-1 text-center">{{defaultPriceFormat}} {{bet.bet_info[1]}} {{bet.bet_info[2]}}</div>
                 <div class="w-4/12 py-1 text-center" :class="{'success': bet.status==='SUCCESS', 'failed': bet.status==='FAILED', 'processing': bet.status==='PENDING'}">
-                    {{bet.bet_info[3]}}@{{bet.bet_info[2]}} - {{bet.status}}
+                    {{bet.provider_alias}} - {{bet.bet_info[3]}}@{{bet.bet_info[2]}} - {{bet.status}}
                 </div>
                 <div class="flex justify-center items-center w-1/12">
                     <a href="#" class="text-center py-1 pr-3"><i class="fas fa-chart-area"></i></a>
