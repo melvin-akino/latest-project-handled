@@ -74,8 +74,6 @@ Route::group([
     /** Resources Route Endpoints */
     Route::get('timezones', 'ResourceController@getTimezones');
 
-    Route::get('myorders', 'OrdersController@myOrders');
-
     Route::group([
         'middleware' => 'auth:api',
         'prefix'     => 'sports'
@@ -90,9 +88,8 @@ Route::group([
         /** Orders Route Endpoints */
         Route::prefix('orders')->group(function () {
             Route::get('/{memUID}', 'OrdersController@getEventMarketsDetails');
-            //Route::get('/all', 'OrdersController@myOrders');
+            Route::get('/all', 'OrdersController@myOrders');
             Route::get('/{memUID}/logs', 'OrdersController@getEventMarketLogs');
-
             Route::post('bet', 'OrdersController@postPlaceBet');
         });
 
