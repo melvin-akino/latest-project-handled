@@ -30,7 +30,8 @@ const state = {
     openedBetSlips: [],
     openedOddsHistory: [],
     openedBetMatrix: [],
-    bookies: []
+    bookies: [],
+    bets: []
 }
 
 const mutations = {
@@ -144,6 +145,9 @@ const mutations = {
     },
     SET_BOOKIES: (state, bookies) => {
         state.bookies = bookies
+    },
+    SET_BETS: (state, bets) => {
+        state.bets = bets
     }
 }
 
@@ -214,6 +218,18 @@ const actions = {
                         commit('SET_ALL_EVENTS_LIST', event)
                     })
                 })
+            }
+        })
+        .catch(err => {
+            dispatch('auth/checkIfTokenIsValid', err.response.data.status_code, { root: true })
+        })
+    },
+    getBetbarData({commit, state, dispatch}) {
+        axios.get('v1/trade/betbar', { headers: { 'Authorization': `Bearer ${token}` }})
+        .then(response => {
+            commit('SET_BETS', response.data.data.reverse())
+            if(state.bets) {
+                commit('TOGGLE_BETBAR', true)
             }
         })
         .catch(err => {

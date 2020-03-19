@@ -1,24 +1,28 @@
 <template>
-    <div class="betbar flex flex-col w-full bg-gray-800 left-0 bottom-0 fixed overflow-y-auto shadow-inner" :class="{'openBetBar': isBetBarOpen}">
+    <div class="betbar flex flex-col w-full bg-gray-800 left-0 bottom-0 fixed shadow-inner" :class="{'openBetBar': isBetBarOpen}">
         <div class="text-center text-white h-10 pt-2 cursor-pointer bg-orange-500" @click="toggleBetBar()">
             Recent Orders
             <span v-show="isBetBarOpen"><i class="fas fa-chevron-down"></i></span>
             <span v-show="!isBetBarOpen"><i class="fas fa-chevron-up"></i></span>
         </div>
-        <div class="flex border-b text-white text-sm" v-for="(betData, index) in betDatas" :key="index" v-show="isBetBarOpen">
-            <div class="w-2/12 py-1 pl-16">{{betData.league_name}}</div>
-            <div class="w-4/12 py-1">{{betData.home}} vs {{betData.away}}</div>
-            <div class="w-3/12 py-1">
-                <span v-if="betData.bet_info[0]==='home'">{{betData.home}}</span>
-                <span v-if="betData.bet_info[0]==='away'">{{betData.away}}</span>
-            </div>
-            <div class="w-4/12 py-1">{{defaultPriceFormat}} {{betData.bet_info[1]}} {{betData.bet_info[2]}}</div>
-            <div class="w-4/12 py-1 text-center" :class="{'success': betData.status==='Success', 'failed': betData.status==='Failed', 'processing': betData.status==='Processing'}">
-                {{betData.bet_info[3]}}@{{betData.bet_info[2]}} - {{betData.status}}
-            </div>
-            <div class="flex justify-center items-center w-1/12">
-                <a href="#" class="text-center py-1 pr-3"><i class="fas fa-chart-area"></i></a>
-                <a href="#" class="text-center py-1"><i class="fas fa-bars"></i></a>
+        <div class="overflow-y-auto">
+            <div class="flex border-b text-white text-sm" v-for="(bet, index) in bets" :key="bet.order_id" v-show="isBetBarOpen">
+                <div class="w-3/12 py-1 text-center">{{bet.league_name}}</div>
+                <div class="w-3/12 py-1 text-center">{{bet.home}} vs {{bet.away}}</div>
+                <div class="w-3/12 py-1 text-center">{{bet.create_at}}</div>
+                <div class="w-3/12 py-1 text-center">
+                    <span v-if="bet.bet_info[0]==='HOME'">{{bet.home}}</span>
+                    <span v-if="bet.bet_info[0]==='AWAY'">{{bet.away}}</span>
+                    <span v-if="bet.bet_info[0]==='DRAW'">Draw</span>
+                </div>
+                <div class="w-4/12 py-1 text-center">{{defaultPriceFormat}} {{bet.bet_info[1]}} {{bet.bet_info[2]}}</div>
+                <div class="w-4/12 py-1 text-center" :class="{'success': bet.status==='SUCCESS', 'failed': bet.status==='FAILED', 'processing': bet.status==='PENDING'}">
+                    {{bet.bet_info[3]}}@{{bet.bet_info[2]}} - {{bet.status}}
+                </div>
+                <div class="flex justify-center items-center w-1/12">
+                    <a href="#" class="text-center py-1 pr-3"><i class="fas fa-chart-area"></i></a>
+                    <a href="#" class="text-center py-1"><i class="fas fa-bars"></i></a>
+                </div>
             </div>
         </div>
     </div>
@@ -29,36 +33,22 @@ import { mapState } from 'vuex'
 import Cookies from 'js-cookie'
 
 export default {
-    data() {
-        return {
-            betDatas: []
-        }
-    },
     computed: {
-        ...mapState('trade', ['isBetBarOpen']),
+        ...mapState('trade', ['isBetBarOpen', 'bets']),
         ...mapState('settings', ['defaultPriceFormat'])
     },
     mounted() {
-        this.getBetbarData()
         this.getPriceFormat()
+        this.$store.dispatch('trade/getBetbarData')
+    },
+    watch: {
+        bets() {
+            this.getOrders()
+        }
     },
     methods: {
         toggleBetBar() {
             this.$store.commit('trade/TOGGLE_BETBAR', !this.isBetBarOpen)
-        },
-        getBetbarData() {
-            let token = Cookies.get('mltoken')
-
-            axios.get('v1/trade/betbar', { headers: { 'Authorization': `Bearer ${token}` }})
-            .then(response => {
-                this.betDatas = response.data.data
-                if(this.betDatas) {
-                    this.$store.commit('trade/TOGGLE_BETBAR', true)
-                }
-            })
-            .catch(err => {
-                this.$store.dispatch('auth/checkIfTokenIsValid', err.response.data.status_code)
-            })
         },
         getPriceFormat() {
             if(!this.$store.state.settings.defaultPriceFormat) {
@@ -67,6 +57,11 @@ export default {
                     this.$store.commit('settings/SET_DEFAULT_PRICE_FORMAT', response)
                 })
             }
+        },
+        getOrders() {
+            this.bets.map(bet => {
+                this.$socket.send(`getOrder_${bet.order_id}`)
+            })
         }
     }
 }

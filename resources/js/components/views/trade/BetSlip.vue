@@ -46,11 +46,11 @@
                         </div>
                         <div class="flex justify-between items-center py-2">
                             <label class="text-sm">Stake</label>
-                            <input class="shadow appearance-none border rounded text-sm py-1 px-3 text-gray-700 leading-tight focus:outline-none" type="number" v-model="orderForm.stake">
+                            <input class="shadow appearance-none border rounded text-sm py-1 px-3 text-gray-700 leading-tight focus:outline-none" type="number" v-model="orderForm.stake" @keyup="clearOrderMessage">
                         </div>
                         <div class="flex justify-between items-center py-2">
                             <label class="text-sm">Price</label>
-                            <input class="shadow appearance-none border rounded text-sm py-1 px-3 text-gray-700 leading-tight focus:outline-none" type="number" v-model="orderForm.price">
+                            <input class="shadow appearance-none border rounded text-sm py-1 px-3 text-gray-700 leading-tight focus:outline-none" type="number" v-model="initialPrice">
                         </div>
                         <div class="flex justify-between items-center py-2">
                             <label class="text-sm">Order Expiry</label>
@@ -79,6 +79,8 @@
                                 <input class="outline-none rounded text-sm py-1 px-3 text-gray-700 leading-tight focus:outline-none" type="radio" value="BEST_PRICE" v-model="orderForm.betType">
                             </label>
                         </div>
+                        <span class="text-sm text-green-600">{{orderMessage}}</span>
+                        <span class="text-sm text-red-600">{{orderError}}</span>
                     </div>
                     <div class="flex flex-col mt-4 w-3/5 h-full">
                         <div class="flex flex-col items-center bg-white shadow shadow-xl mb-2" v-if="oddTypesWithSpreads.includes(market_details.odd_type)">
@@ -102,11 +104,14 @@
                                 <span class="w-1/4 text-sm font-bold">Max</span>
                                 <span class="w-1/4 text-sm font-bold">Price</span>
                             </div>
-                            <div class="flex justify-between items-center p-1" v-for="bookie in bookies" :key="bookie.id">
+                            <!-- <div class="flex justify-between items-center p-1" v-for="bookie in bookies" :key="bookie.id">
                                 <span class="w-1/4 text-sm font-bold">{{bookie.alias}}</span>
-                                <span class="w-1/4 text-sm">6.90</span>
-                                <span class="w-1/4 text-sm">6.90</span>
-                                <span class="w-1/4 text-sm">{{odd_details.odds}}</span>
+                            </div> -->
+                            <div class="flex justify-between items-center p-1" v-for="minmax in minMaxData" :key="minmax.provider_id">
+                                <span class="w-1/4 text-sm font-bold">{{minmax.provider}}</span>
+                                <span class="w-1/4 text-sm">{{minmax.min}}</span>
+                                <span class="w-1/4 text-sm">{{minmax.max}}</span>
+                                <a href="#" @click.prevent="updatePrice(minmax.price)" class="w-1/4 text-sm font-bold underline">{{minmax.price}}</a>
                             </div>
                         </div>
                     </div>
@@ -141,16 +146,45 @@ export default {
         return {
             market_details: {},
             formattedRefSchedule: [],
+            initialPrice: this.odd_details.odds,
             orderForm: {
                 stake: '',
-                price: this.odd_details.odds,
                 orderExpiry: 'Now',
-                betType: 'FAST_BET'
+                betType: 'FAST_BET',
+                markets: []
             },
+            // NOTE: remove this once minmax socket is done, hardcoded for betting purposes
+            minMaxData: [
+                {
+                    provider_id: 1,
+                    provider: 'HG',
+                    min: 100,
+                    max: 500,
+                    price: 0.69,
+                    priority: 1
+                },
+                {
+                    provider_id: 2,
+                    provider: 'PIN',
+                    min: 350,
+                    max: 1000,
+                    price: this.odd_details.odds,
+                    priority: 2
+                },
+                {
+                    provider_id: 3,
+                    provider: 'ISN',
+                    min: 600,
+                    max: 2000,
+                    price: this.odd_details.odds,
+                    priority: 3
+                }
+            ],
             oddTypesWithSpreads: ['HDP', 'HT HDP', 'OU', 'HT OU'],
+            orderMessage: '',
+            orderError: '',
             options: {
                 width:825,
-                height:520,
                 buttonPin: false,
                 centered: "viewport"
             }
@@ -199,8 +233,79 @@ export default {
             this.$store.commit('trade/CLOSE_ODDS_HISTORY', odd_details.market_id)
             this.$store.commit('trade/OPEN_ODDS_HISTORY', odd_details)
         },
+        clearOrderMessage() {
+            this.orderMessage = ''
+            this.orderError = ''
+        },
+        updatePrice(price) {
+            this.initialPrice = price
+        },
         placeOrder() {
-            /* place bet (API or Socket) */
+            let data = {
+                betType: this.orderForm.betType,
+                stake: this.orderForm.stake,
+                orderExpiry: this.orderForm.orderExpiry,
+                market_id: this.odd_details.market_id
+            }
+
+            if(this.orderForm.betType == 'FAST_BET') {
+                let greaterThanOrEqualThanPriceArray = []
+                this.orderForm.markets = []
+                this.minMaxData.map(minmax => {
+                    if(minmax.price >= this.initialPrice) {
+                        greaterThanOrEqualThanPriceArray.push(minmax)
+                    }
+                })
+                let sortedByPriorityArray = greaterThanOrEqualThanPriceArray.sort((a, b) => (a.priority > b.priority) ? 1 : -1)
+                sortedByPriorityArray.map(sortedByPriority => {
+                    if(this.orderForm.stake > sortedByPriority.max) {
+                        this.orderForm.stake = this.orderForm.stake - sortedByPriority.max
+                        this.orderForm.markets.push(sortedByPriority)
+                        this.orderError = ''
+                    } else if(this.orderForm.stake <= sortedByPriority.max && this.orderForm.stake >= sortedByPriority.min) {
+                        this.orderForm.stake = 0
+                        this.orderForm.markets.push(sortedByPriority)
+                        this.orderError = ''
+                    } else if(this.orderForm.stake < sortedByPriority.min && this.orderForm.stake != 0) {
+                        this.orderError = 'Stake lower than minimum stake or cannot proceed to next provider.'
+                    }
+                })
+            } else if(this.orderForm.betType == 'BEST_PRICE') {
+                let greaterThanOrEqualThanPriceArray = []
+                this.minMaxData.map(minmax => {
+                    if(minmax.price >= this.initialPrice) {
+                        greaterThanOrEqualThanPriceArray.push(minmax.price)
+                    }
+                })
+                let bestPricesArray = this.minMaxData.filter(minmax => minmax.price == Math.max(...greaterThanOrEqualThanPriceArray))
+                let bestPricesPriorityArray = bestPricesArray.map(bestPrices => bestPrices.priority)
+                let mostPriorityArray = bestPricesArray.filter(bestPrices => bestPrices.priority == Math.min(...bestPricesPriorityArray))
+                mostPriorityArray.map(mostPriority => {
+                    if(this.orderForm.stake > mostPriority.max) {
+                        this.orderForm.stake = this.orderForm.stake - mostPriority.max
+                        this.orderForm.markets = mostPriorityArray
+                        this.orderError = ''
+                    } else if(this.orderForm.stake <= mostPriority.max && this.orderForm.stake >= mostPriority.min) {
+                        this.orderForm.stake = 0
+                        this.orderForm.markets = mostPriorityArray
+                        this.orderError = ''
+                    } else if(this.orderForm.stake < mostPriority.min && this.orderForm.stake != 0) {
+                        this.orderMessage = 'Stake lower than minimum stake.'
+                    }
+                })
+            }
+            this.$set(data, 'markets', this.orderForm.markets)
+
+            let token = Cookies.get('mltoken')
+
+            axios.post('v1/orders/bet', data, { headers: { 'Authorization': `Bearer ${token}` }})
+            .then(response => {
+                this.orderMessage = response.data.data
+                this.$store.dispatch('trade/getBetbarData')
+            })
+            .catch(err => {
+                this.$store.dispatch('auth/checkIfTokenIsValid', err.response.data.status_code)
+            })
         }
     }
 }
