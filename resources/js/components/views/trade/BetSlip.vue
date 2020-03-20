@@ -244,7 +244,7 @@ export default {
                 }
             })
         },
-        async minmax() {
+        minmax() {
             this.sendMinMax()
             .then(() => {
                 this.getMinMaxData()
