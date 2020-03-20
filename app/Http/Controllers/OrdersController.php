@@ -22,11 +22,11 @@ class OrdersController extends Controller
 {
     /**
      * Get all orders made by the user using the parameters below
-     * 
+     *
      * @param  Request $request
      * @return json
      */
-    public function myOrders(Request $request) 
+    public function myOrders(Request $request)
     {
         try {
             $conditions = [];
@@ -40,15 +40,11 @@ class OrdersController extends Controller
             !empty($request->settled_to) ? $conditions[] = ['settled_date', '<=', $request->settled_to] : !empty($request->settled_to) ? ['settled_date', '<=', now()] : null;
 
             //Pagination part
-            $page = $request->has('page') ? $request->get('page') : 1;
-            $limit = $request->has('limit') ? $request->get('limit') : 25;
-            
-            
-            
+            $page        = $request->has('page') ? $request->get('page') : 1;
+            $limit       = $request->has('limit') ? $request->get('limit') : 25;
             $myAllOrders = Order::countAllOrders();
 
             if (!empty($myAllOrders)) {
-                
                 $myOrders = Order::getAllOrders($conditions, $page, $limit);
 
                 foreach($myOrders as $myOrder) {
@@ -62,7 +58,6 @@ class OrdersController extends Controller
                         'created'       => $myOrder->created_at,
                         'settled'       => $myOrder->settled_date,
                         'pl'            => $myOrder->profit_loss,
-                        
                     ];
                 }
 
