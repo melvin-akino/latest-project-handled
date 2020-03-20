@@ -3,7 +3,6 @@
 namespace App\Processes;
 
 use App\Handlers\ProducerHandler;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Hhxsv5\LaravelS\Swoole\Process\CustomProcessInterface;
 use Illuminate\Support\Facades\Log;
@@ -29,24 +28,15 @@ class KafkaProduce implements CustomProcessInterface
 
             if ($swoole->wsTable->exist('data2Swt')) {
                 $topicTable = $swoole->topicTable;
+                $minMaxRequestsTable = $swoole->minMaxRequestsTable;
                 $ordersTable = $swoole->ordersTable;
+
                 while (!self::$quit) {
                     foreach ($topicTable as $key => $topic) {
                         if (strpos($topic['topic_name'], 'min-max-') === 0) {
                             $memUID = substr($topic['topic_name'], strlen('min-max-'));
 
-                            $eventMarkets = DB::table('event_markets as em')
-                                ->join('master_event_market_links as meml', 'meml.event_market_id', 'em.id')
-                                ->join('master_event_markets as mem', 'mem.master_event_market_unique_id',
-                                    'meml.master_event_market_unique_id')
-                                ->join('master_events as me', 'me.master_event_unique_id', 'mem.master_event_unique_id')
-                                ->join('providers as p', 'p.id', 'em.provider_id')
-                                ->where('mem.master_event_market_unique_id', $memUID)
-                                ->select('em.bet_identifier, p.alias, me.sport_id')
-                                ->distinct()
-                                ->get();
-
-                            foreach ($eventMarkets as $eventMarket) {
+                            foreach ($minMaxRequestsTable as $minMaxRequest) {
                                 $requestId = Str::uuid();
                                 $requestTs = self::milliseconds();
 
@@ -56,13 +46,8 @@ class KafkaProduce implements CustomProcessInterface
                                     'sub_command' => 'scrape',
                                     'command'     => 'minmax'
                                 ];
-                                $payload['data'] = [
-                                    'provider'  => strtolower($eventMarket->alias),
-                                    'market_id' => $eventMarket->bet_identifier,
-                                    'sport'     => $eventMarket->sport_id
-                                ];
-
-                                self::pushToKafka($payload, $requestId, strtolower($eventMarket->alias) . $kafkaTopic);
+                                $payload['data'] = $minMaxRequest;
+                                self::pushToKafka($payload, $requestId, strtolower($minMaxRequest['provider']) . $kafkaTopic);
                             }
                         }
 

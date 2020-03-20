@@ -31,8 +31,12 @@ class DataToSwt implements CustomProcessInterface
             'UserProviderConfig',
             'ActiveEvents',
             'UserSelectedLeagues',
-            'Orders'
+            'Orders',
+            'ExchangeRates',
+            'Currencies',
+            'UserInfo',
         ];
+
         foreach ($swooleProcesses as $process) {
             $method = "db2Swt" . $process;
             self::{$method}($swoole);
@@ -65,11 +69,17 @@ class DataToSwt implements CustomProcessInterface
 
     private static function db2SwtProviders(Server $swoole)
     {
-        $providers = DB::table('providers')->get();
+        $providers = DB::table('providers')->orderBy('priority', 'asc')->get();
         $providersTable = $swoole->providersTable;
         array_map(function ($provider) use ($providersTable) {
             $providersTable->set('providerAlias:' . strtolower($provider->alias),
-                ['id' => $provider->id, 'alias' => $provider->alias, 'priority' => $provider->priority, 'is_enabled' => $provider->is_enabled]);
+                [
+                    'id'          => $provider->id,
+                    'alias'       => $provider->alias,
+                    'priority'    => $provider->priority,
+                    'is_enabled'  => $provider->is_enabled,
+                    'currency_id' => $provider->currency_id
+                ]);
         }, $providers->toArray());
     }
 
@@ -303,5 +313,70 @@ class DataToSwt implements CustomProcessInterface
                 'score'         => $order->score
             ]);
         }, $orders->toArray());
+    }
+
+    private static function db2SwtExchangeRates(Server $swoole)
+    {
+        $exchangeRates = DB::table('exchange_rates AS er')
+            ->join('currency AS cf', 'er.from_currency_id', '=', 'cf.id')
+            ->join('currency AS ct', 'er.to_currency_id', '=', 'ct.id')
+            ->get([
+                'er.from_currency_id',
+                'er.to_currency_id',
+                'cf.code AS from_code',
+                'ct.code AS to_code',
+                'er.default_amount',
+                'er.exchange_rate',
+            ]);
+
+        $swTable = $swoole->exchangeRatesTable;
+
+        array_map(function ($exchangeRates) use ($swTable) {
+            $erSwtId = implode(':', [
+                "from:" . $exchangeRates->from_code,
+                "to:"   . $exchangeRates->to_code,
+            ]);
+
+            $swTable->set($erSwtId, [
+                'default_amount' => $exchangeRates->default_amount,
+                'exchange_rate'  => $exchangeRates->exchange_rate,
+            ]);
+        }, $exchangeRates->toArray());
+    }
+
+    private static function db2SwtCurrencies(Server $swoole)
+    {
+        $currency = DB::table('currency')
+            ->get();
+
+        $swTable = $swoole->currenciesTable;
+
+        array_map(function ($currency) use ($swTable) {
+            $swtId = implode(':', [
+                "currencycId:" . $currency->id,
+                "currencyCode:" . $currency->code,
+            ]);
+
+            $swTable->set($swtId, [
+                'id'   => $currency->id,
+                'code' => $currency->code,
+            ]);
+        }, $currency->toArray());
+    }
+
+    private static function db2SwtUserInfo(Server $swoole)
+    {
+        $users = DB::table('users')
+            ->get();
+
+        $swTable = $swoole->usersTable;
+
+        array_map(function ($users) use ($swTable) {
+            $swtId = "userId:" . $users->id;
+
+            $swTable->set($swtId, [
+                'currency_id' => $users->currency_id,
+            ]);
+        }, $users->toArray());
     }
 }
