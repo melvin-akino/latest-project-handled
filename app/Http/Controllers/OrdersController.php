@@ -361,7 +361,7 @@ class OrdersController extends Controller
                 ];
 
                 $topicsSwtId = implode(':', [
-                    "place-bet-" . $incrementIds['payload'][$i]['order_id'],
+                    "place-bet-" . $incrementIds['id'][$i],
                     "userId:"    . $incrementIds['payload'][$i]['user_id'],
                     "marketId:"  . $incrementIds['payload'][$i]['market_id'],
                 ]);
