@@ -74,11 +74,12 @@ class DataToSwt implements CustomProcessInterface
         array_map(function ($provider) use ($providersTable) {
             $providersTable->set('providerAlias:' . strtolower($provider->alias),
                 [
-                    'id'          => $provider->id,
-                    'alias'       => $provider->alias,
-                    'priority'    => $provider->priority,
-                    'is_enabled'  => $provider->is_enabled,
-                    'currency_id' => $provider->currency_id
+                    'id'                => $provider->id,
+                    'alias'             => $provider->alias,
+                    'priority'          => $provider->priority,
+                    'is_enabled'        => $provider->is_enabled,
+                    'currency_id'       => $provider->currency_id,
+                    'punter_percentage' => $provider->punter_percentage,
                 ]);
         }, $providers->toArray());
     }

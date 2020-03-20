@@ -47,6 +47,7 @@ class TransformKafkaMessageMinMax extends Task
 
                         if ($provTable->exists($providerSwtId)) {
                             $providerCurrency['id'] = $provTable->get($providerSwtId)['currency_id'];
+                            $punterPercentage       = $provTable->get($providerSwtId)['punter_percentage'];
                         }
 
                         $userCurrency = [
@@ -59,12 +60,15 @@ class TransformKafkaMessageMinMax extends Task
                             $userCurrency['id'] = $usersTable->get($userSwtId)['currency_id'];
                         }
 
+                        $maximum = $data->maximum;
+                        $maximum = $data->maximum * ($punterPercentage / 100);
+
                         $transformed = [
                             "sport_id"    => $data->sport,
                             "provider_id" => $provTable->get($providerSwtId)['id'],
                             "provider"    => strtoupper($data->provider),
                             "min"         => $data->minimum,
-                            "max"         => $data->maximum,
+                            "max"         => $maximum,
                             "price"       => $data->odds,
                             "priority"    => $provTable->get($providerSwtId)['priority'],
                         ];
@@ -89,7 +93,6 @@ class TransformKafkaMessageMinMax extends Task
                                 $exchangeRate = $exchangeRatesTable->get($erSwtId)['exchange_rate'];
                             }
 
-                            
                             $transformed['min'] = $data->minimum / $exchangeRate;
                             $transformed['max'] = $data->maximum / $exchangeRate;
                         }
@@ -101,16 +104,5 @@ class TransformKafkaMessageMinMax extends Task
                 }
             }
         }
-    }
-
-    private static function sortArrayByKey($array, $order, $key)
-    {
-        $column = array_column($array, $key);
-
-        if ($order == "desc") {
-            return array_multisort($column, SORT_DESC, $array);
-        }
-
-        return array_multisort($column, SORT_ASC, $array);
     }
 }

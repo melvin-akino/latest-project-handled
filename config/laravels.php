@@ -104,11 +104,12 @@ return [
         'providers'       => [ // key format [providerAlias:strtolower($providerAlias)] => [id = $id, alias = $alias]
             'size'   => 500,
             'column' => [
-                ['name' => 'id',          'type' => \Swoole\Table::TYPE_INT ],
-                ['name' => 'alias',       'type' => \Swoole\Table::TYPE_STRING, 'size' => 10 ],
-                ['name' => 'priority',    'type' => \Swoole\Table::TYPE_INT ],
-                ['name' => 'is_enabled',  'type' => \Swoole\Table::TYPE_INT ],
-                ['name' => 'currency_id', 'type' => \Swoole\Table::TYPE_INT ],
+                ['name' => 'id',                'type' => \Swoole\Table::TYPE_INT ],
+                ['name' => 'alias',             'type' => \Swoole\Table::TYPE_STRING, 'size' => 10 ],
+                ['name' => 'punter_percentage', 'type' => \Swoole\Table::TYPE_FLOAT ],
+                ['name' => 'priority',          'type' => \Swoole\Table::TYPE_INT ],
+                ['name' => 'is_enabled',        'type' => \Swoole\Table::TYPE_INT ],
+                ['name' => 'currency_id',       'type' => \Swoole\Table::TYPE_INT ],
             ],
         ],
         'sports'          => [ //key format [sId:$sportId] = [name = $sport]
