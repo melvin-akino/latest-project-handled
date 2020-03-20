@@ -16,7 +16,10 @@ use App\Models\{
 };
 
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Support\{
+    Facades\DB,
+    Str
+};
 
 class OrdersController extends Controller
 {
@@ -210,13 +213,18 @@ class OrdersController extends Controller
         DB::beginTransaction();
 
         try {
-            $swt       = app('swoole');
-            $topics    = $swt->topicTable;
-            $orders    = $swt->ordersTable;
-            $betType   = "";
-            $return    = "";
-            $prevStake = 0;
-            $orderIds  = [];
+            $swt          = app('swoole');
+            $topics       = $swt->topicTable;
+            $orders       = $swt->ordersTable;
+            $betType      = "";
+            $return       = "";
+            $returnCode   = 200;
+            $prevStake    = 0;
+            $orderIds     = [];
+            $incrementIds = [
+                'id'      => [],
+                'payload' => [],
+            ];
 
             foreach ($request->markets AS $row) {
                 $betType        = $request->betType;
@@ -283,13 +291,17 @@ class OrdersController extends Controller
                     ], 404);
                 }
 
-                if ($hasComputation) {
-                    $actualStake = $request->stake / ($userProvider->punter_percentage / 100);
+                if ($prevStake == 0) {
+                    $payloadStake = $request->stake < $row['max'] ? $request->stake : $row['max'];
                 } else {
-                    $actualStake = $request->stake;
+                    $payloadStake = $prevStake < $row['max'] ? $prevStake : $row['max'];
                 }
 
-                $payloadStake = $prevStake == 0 ? $request->stake : $prevStake;
+                if ($hasComputation) {
+                    $actualStake = $payloadStake / ($userProvider->punter_percentage / 100);
+                } else {
+                    $actualStake = $payloadStake;
+                }
 
                 if ($request->betType == "BEST_PRICE") {
                     $prevStake = $request->stake - $row['max'];
@@ -305,6 +317,7 @@ class OrdersController extends Controller
 
                 $orderId = uniqid();
 
+                $payload['user_id']       = auth()->user()->id;
                 $payload['provider_id']   = strtolower($userProvider->alias);
                 $payload['odds']          = $row['price'];
                 $payload['stake']         = $payloadStake;
@@ -317,7 +330,9 @@ class OrdersController extends Controller
                 $payload['orderExpiry']   = $request->orderExpiry;
                 $payload['order_id']      = $orderId;
 
-                Order::create([
+                $incrementIds['payload'][] = $payload;
+
+                $incrementIds['id'][] = Order::create([
                     'user_id'                       => auth()->user()->id,
                     'master_event_market_unique_id' => $request->market_id,
                     'market_id'                     => $query->bet_identifier,
@@ -349,7 +364,11 @@ class OrdersController extends Controller
                 ]);
 
                 if ($request->betType == "FAST_BET") {
-                    $prevStake = $prevStake == 0 ? $request->stake - $row['max'] : $prevStake - $row['max'];
+                    if ($prevStake == 0) {
+                        $prevStake = $request->stake - $payloadStake;
+                    } else {
+                        $prevStake = $prevStake - $payloadStake;
+                    }
                 }
 
                 $topicsId = implode(':', [
@@ -374,21 +393,53 @@ class OrdersController extends Controller
             }
 
             if ($betType == "BEST_PRICE") {
-                $return = $prevStake > 0 ? trans('game.bet.best-price.continue') : trans('game.bet.best-price.success');
+                $return     = $prevStake > 0 ? trans('game.bet.best-price.continue') : trans('game.bet.best-price.success');
+                $returnCode = $prevStake > 0 ? 210 : 200;
             }
 
             if ($betType == "FAST_BET") {
-                $return = $prevStake > 0 ? trans('game.bet.fast-bet.continue') : trans('game.bet.fast-bet.success');
+                $return     = $prevStake > 0 ? trans('game.bet.fast-bet.continue') : trans('game.bet.fast-bet.success');
+                $returnCode = $prevStake > 0 ? 210 : 200;
             }
 
             DB::commit();
 
+            // SEND TO KAFKA PLACED BET PAYLOAD FOREACH ULET
+            for ($i = 0; $i < count($incrementIds['id']); $i++) {
+                $requestId = Str::uuid() . "-" . $incrementIds['id'][$i];
+                $requestTs = self::milliseconds();
+                $payload   = [
+                    'request_uid' => $requestId,
+                    'request_ts'  => $requestTs,
+                    'sub_command' => 'scrape',
+                    'command'     => 'bet'
+                ];
+
+                $payload['data'] = [
+                    'actual_stake' => $incrementIds['payload'][$i]['actual_stake'],
+                    'odds'         => $incrementIds['payload'][$i]['odds'],
+                    'market_id'    => $incrementIds['payload'][$i]['market_id'],
+                    'event_id'     => $incrementIds['payload'][$i]['event_id'],
+                    'score'        => $incrementIds['payload'][$i]['score']
+                ];
+
+                $topicsSwtId = implode(':', [
+                    "place-bet-" . $incrementIds['id'][$i],
+                    "userId:"    . $incrementIds['payload'][$i]['user_id'],
+                    "marketId:"  . $incrementIds['payload'][$i]['market_id'],
+                ]);
+
+                if ($topics->exists($topicsSwtId)) {
+                    $topics->set($topicsSwtId, $payload);
+                }
+            }
+
             return response()->json([
                 'status'      => true,
-                'status_code' => 200,
+                'status_code' => $returnCode,
                 'data'        => $return,
                 'order_id'    => $orderIds,
-            ], 200);
+            ], $returnCode);
         } catch (Exception $e) {
             DB::rollback();
 

@@ -26,8 +26,7 @@ class CurrencyConversionCommand extends Command
 
     public function handle()
     {
-        $executionTime = '14:34:10';
-        $oneTimeRun = 0;
+        $executionTime = '00:00:00';
 
         while(true) {
             $currentTime = (new DateTime())->format('H:i:s');
