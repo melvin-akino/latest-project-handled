@@ -18,7 +18,7 @@ class UserWalletTest extends RegistrationTest
         $this->initialUser();
         $response = $this->get('/api/v1/user/wallet', [
             'X-Requested-With' => 'XMLHttpRequest',
-            'Authorization'    => 'Bearers ' . $this->loginJsonResponse->access_token
+            'Authorization'    => 'Bearer' . $this->loginJsonResponse->access_token
         ]);
 
 
