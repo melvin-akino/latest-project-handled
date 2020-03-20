@@ -33,6 +33,7 @@
         "js-cookie": "^2.2.1",
         "moment-timezone": "^0.5.27",
         "sweetalert2": "^9.6.1",
-        "vue-dialog-drag": "^0.1.29"
+        "vue-dialog-drag": "^0.1.29",
+        "vue-tables-2": "^2.0.9"
     }
 }

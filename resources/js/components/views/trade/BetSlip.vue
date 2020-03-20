@@ -25,7 +25,6 @@
                         <a href="#" class="text-center py-1"><i class="far fa-clock"></i> {{formattedRefSchedule[1]}}</a>
                     </div>
                 </div>
-                <!-- other data are hardcoded first, only game details were dynamic -->
                 <div class="flex w-full">
                     <div class="flex flex-col mt-4 mr-3 p-2 shadow shadow-xl bg-white w-2/5 h-full">
                         <div class="flex justify-between items-center py-2">
@@ -50,7 +49,7 @@
                         </div>
                         <div class="flex justify-between items-center py-2">
                             <label class="text-sm">Price</label>
-                            <input class="shadow appearance-none border rounded text-sm py-1 px-3 text-gray-700 leading-tight focus:outline-none" type="number" v-model="initialPrice">
+                            <input class="shadow appearance-none border rounded text-sm py-1 px-3 text-gray-700 leading-tight focus:outline-none" type="number" v-model="initialPrice" @keyup="clearOrderMessage">
                         </div>
                         <div class="flex justify-between items-center py-2">
                             <label class="text-sm">Order Expiry</label>
@@ -79,8 +78,7 @@
                                 <input class="outline-none rounded text-sm py-1 px-3 text-gray-700 leading-tight focus:outline-none" type="radio" value="BEST_PRICE" v-model="orderForm.betType">
                             </label>
                         </div>
-                        <span class="text-sm text-green-600">{{orderMessage}}</span>
-                        <span class="text-sm text-red-600">{{orderError}}</span>
+                        <span class="text-sm">{{orderPrompt}}</span>
                     </div>
                     <div class="flex flex-col mt-4 w-3/5 h-full">
                         <div class="flex flex-col items-center bg-white shadow shadow-xl mb-2" v-if="oddTypesWithSpreads.includes(market_details.odd_type)">
@@ -104,20 +102,22 @@
                                 <span class="w-1/4 text-sm font-bold">Max</span>
                                 <span class="w-1/4 text-sm font-bold">Price</span>
                             </div>
-                            <!-- <div class="flex justify-between items-center p-1" v-for="bookie in bookies" :key="bookie.id">
-                                <span class="w-1/4 text-sm font-bold">{{bookie.alias}}</span>
-                            </div> -->
-                            <div class="flex justify-between items-center p-1" v-for="minmax in minMaxData" :key="minmax.provider_id">
-                                <span class="w-1/4 text-sm font-bold">{{minmax.provider}}</span>
-                                <span class="w-1/4 text-sm">{{minmax.min}}</span>
-                                <span class="w-1/4 text-sm">{{minmax.max}}</span>
-                                <a href="#" @click.prevent="updatePrice(minmax.price)" class="w-1/4 text-sm font-bold underline">{{minmax.price}}</a>
+                            <div v-if="minMaxData.length != 0">
+                                <div class="flex justify-between items-center p-1" v-for="minmax in minMaxData" :key="minmax.provider_id">
+                                    <span class="w-1/4 text-sm font-bold">{{minmax.provider}}</span>
+                                    <span class="w-1/4 text-sm">{{minmax.min}}</span>
+                                    <span class="w-1/4 text-sm">{{minmax.max}}</span>
+                                    <a href="#" @click.prevent="updatePrice(minmax.price)" class="w-1/4 text-sm font-bold underline">{{minmax.price}}</a>
+                                </div>
+                            </div>
+                            <div v-else class="flex justify-center">
+                                <span class="text-sm mt-2">No markets available.</span>
                             </div>
                         </div>
                     </div>
                 </div>
                 <div class="flex justify-center w-full">
-                    <button @click="placeOrder" class="bg-orange-500 text-white rounded-lg hover:bg-orange-600 w-full text-sm uppercase p-2 mt-2">Place Order</button>
+                    <button @click="placeOrder" class="bg-orange-500 text-white rounded-lg w-full text-sm uppercase p-2 mt-2" :class="[minMaxData.length === 0 ? 'opacity-75' : 'hover:bg-orange-600']" :disabled="minMaxData.length === 0">Place Order</button>
                 </div>
             </div>
         </dialog-drag>
@@ -153,33 +153,7 @@ export default {
                 betType: 'FAST_BET',
                 markets: []
             },
-            // NOTE: remove this once minmax socket is done, hardcoded for betting purposes
-            minMaxData: [
-                {
-                    provider_id: 1,
-                    provider: 'HG',
-                    min: 100,
-                    max: 500,
-                    price: 0.69,
-                    priority: 1
-                },
-                {
-                    provider_id: 2,
-                    provider: 'PIN',
-                    min: 350,
-                    max: 1000,
-                    price: this.odd_details.odds,
-                    priority: 2
-                },
-                {
-                    provider_id: 3,
-                    provider: 'ISN',
-                    min: 600,
-                    max: 2000,
-                    price: this.odd_details.odds,
-                    priority: 3
-                }
-            ],
+            minMaxData: [],
             oddTypesWithSpreads: ['HDP', 'HT HDP', 'OU', 'HT OU'],
             orderMessage: '',
             orderError: '',
@@ -202,12 +176,18 @@ export default {
                     return
                 }
             }
+        },
+        orderPrompt() {
+            if(this.orderMessage == '') {
+                return this.orderError
+            } else {
+                return this.orderMessage
+            }
         }
     },
     mounted() {
         this.getMarketDetails()
-        this.$store.dispatch('trade/getBookies')
-        this.$socket.send(`getMinMax_${this.odd_details.market_id}`)
+        this.minmax()
     },
     methods: {
         getMarketDetails() {
@@ -220,6 +200,55 @@ export default {
             })
             .catch(err => {
                 this.$store.dispatch('auth/checkIfTokenIsValid', err.response.data.status_code)
+            })
+        },
+        sendMinMax() {
+            return new Promise((resolve) => {
+                this.$socket.send(`getMinMax_${this.odd_details.market_id}`)
+                resolve()
+            })
+        },
+        getMinMaxData() {
+            this.$options.sockets.onmessage = (response => {
+                if(getSocketKey(response.data) === 'getMinMax') {
+                    let minmax = getSocketValue(response.data, 'getMinMax')
+                    if(!_.isEmpty(this.minMaxData)) {
+                        let providerIds = this.minMaxData.map(minMaxData => minMaxData.provider_id)
+                        if(providerIds.includes(minmax.provider_id)) {
+                            this.minMaxData.map(minMaxData => {
+                                if(minMaxData.provider_id == minmax.provider_id) {
+                                    minMaxData.min = minmax.min
+                                    minMaxData.max = minmax.max
+                                }
+                            })
+                        } else {
+                            this.minMaxData.push(minmax)
+                        }
+                    } else {
+                        this.minMaxData.push(minmax)
+                    }
+                }
+            })
+        },
+        getUpdatedPrice() {
+            this.$options.sockets.onmessage = (response => {
+                if(getSocketKey(response.data) === 'getUpdatedPrice') {
+                    let updatedPrice = getSocketValue(response.data, 'getUpdatedPrice')
+                    if(!_.isEmpty(this.minMaxData)) {
+                        this.minMaxData.map(minMaxData => {
+                            if(minMaxData.provider_id == updatedPrice.provider_id) {
+                                minMaxData.price = updatedPrice.odds
+                            }
+                        })
+                    }
+                }
+            })
+        },
+        async minmax() {
+            this.sendMinMax()
+            .then(() => {
+                this.getMinMaxData()
+                this.getUpdatedPrice()
             })
         },
         closeBetSlip(market_id) {
@@ -241,72 +270,76 @@ export default {
             this.initialPrice = price
         },
         placeOrder() {
-            let data = {
-                betType: this.orderForm.betType,
-                stake: this.orderForm.stake,
-                orderExpiry: this.orderForm.orderExpiry,
-                market_id: this.odd_details.market_id
+            if(this.orderForm.stake == '' || this.initialPrice == '') {
+                this.orderMessage = 'Please input stake or price.'
+            } else {
+                let data = {
+                    betType: this.orderForm.betType,
+                    stake: this.orderForm.stake,
+                    orderExpiry: this.orderForm.orderExpiry,
+                    market_id: this.odd_details.market_id
+                }
+
+                if(this.orderForm.betType == 'FAST_BET') {
+                    let greaterThanOrEqualThanPriceArray = []
+                    this.orderForm.markets = []
+                    this.minMaxData.map(minmax => {
+                        if(minmax.price >= this.initialPrice) {
+                            greaterThanOrEqualThanPriceArray.push(minmax)
+                        }
+                    })
+                    let sortedByPriorityArray = greaterThanOrEqualThanPriceArray.sort((a, b) => (a.priority > b.priority) ? 1 : -1)
+                    sortedByPriorityArray.map(sortedByPriority => {
+                        if(this.orderForm.stake > sortedByPriority.max) {
+                            this.orderForm.stake = this.orderForm.stake - sortedByPriority.max
+                            this.orderForm.markets.push(sortedByPriority)
+                            this.orderError = ''
+                        } else if(this.orderForm.stake <= sortedByPriority.max && this.orderForm.stake >= sortedByPriority.min) {
+                            this.orderForm.stake = 0
+                            this.orderForm.markets.push(sortedByPriority)
+                            this.orderError = ''
+                        } else if(this.orderForm.stake < sortedByPriority.min && this.orderForm.stake != 0) {
+                            this.orderError = 'Stake lower than minimum stake or cannot proceed to next provider.'
+                        }
+                    })
+                } else if(this.orderForm.betType == 'BEST_PRICE') {
+                    let greaterThanOrEqualThanPriceArray = []
+                    this.minMaxData.map(minmax => {
+                        if(minmax.price >= this.initialPrice) {
+                            greaterThanOrEqualThanPriceArray.push(minmax.price)
+                        }
+                    })
+                    let bestPricesArray = this.minMaxData.filter(minmax => minmax.price == Math.max(...greaterThanOrEqualThanPriceArray))
+                    let bestPricesPriorityArray = bestPricesArray.map(bestPrices => bestPrices.priority)
+                    let mostPriorityArray = bestPricesArray.filter(bestPrices => bestPrices.priority == Math.min(...bestPricesPriorityArray))
+                    mostPriorityArray.map(mostPriority => {
+                        if(this.orderForm.stake > mostPriority.max) {
+                            this.orderForm.stake = this.orderForm.stake - mostPriority.max
+                            this.orderForm.markets = mostPriorityArray
+                            this.orderError = ''
+                        } else if(this.orderForm.stake <= mostPriority.max && this.orderForm.stake >= mostPriority.min) {
+                            this.orderForm.stake = 0
+                            this.orderForm.markets = mostPriorityArray
+                            this.orderError = ''
+                        } else if(this.orderForm.stake < mostPriority.min && this.orderForm.stake != 0) {
+                            this.orderMessage = 'Stake lower than minimum stake.'
+                        }
+                    })
+                }
+                this.$set(data, 'markets', this.orderForm.markets)
+
+                let token = Cookies.get('mltoken')
+
+                axios.post('v1/orders/bet', data, { headers: { 'Authorization': `Bearer ${token}` }})
+                .then(response => {
+                    this.orderMessage = response.data.data
+                    this.$store.dispatch('trade/getBetbarData')
+                    this.$store.commit('trade/TOGGLE_BETBAR', true)
+                })
+                .catch(err => {
+                    this.$store.dispatch('auth/checkIfTokenIsValid', err.response.data.status_code)
+                })
             }
-
-            if(this.orderForm.betType == 'FAST_BET') {
-                let greaterThanOrEqualThanPriceArray = []
-                this.orderForm.markets = []
-                this.minMaxData.map(minmax => {
-                    if(minmax.price >= this.initialPrice) {
-                        greaterThanOrEqualThanPriceArray.push(minmax)
-                    }
-                })
-                let sortedByPriorityArray = greaterThanOrEqualThanPriceArray.sort((a, b) => (a.priority > b.priority) ? 1 : -1)
-                sortedByPriorityArray.map(sortedByPriority => {
-                    if(this.orderForm.stake > sortedByPriority.max) {
-                        this.orderForm.stake = this.orderForm.stake - sortedByPriority.max
-                        this.orderForm.markets.push(sortedByPriority)
-                        this.orderError = ''
-                    } else if(this.orderForm.stake <= sortedByPriority.max && this.orderForm.stake >= sortedByPriority.min) {
-                        this.orderForm.stake = 0
-                        this.orderForm.markets.push(sortedByPriority)
-                        this.orderError = ''
-                    } else if(this.orderForm.stake < sortedByPriority.min && this.orderForm.stake != 0) {
-                        this.orderError = 'Stake lower than minimum stake or cannot proceed to next provider.'
-                    }
-                })
-            } else if(this.orderForm.betType == 'BEST_PRICE') {
-                let greaterThanOrEqualThanPriceArray = []
-                this.minMaxData.map(minmax => {
-                    if(minmax.price >= this.initialPrice) {
-                        greaterThanOrEqualThanPriceArray.push(minmax.price)
-                    }
-                })
-                let bestPricesArray = this.minMaxData.filter(minmax => minmax.price == Math.max(...greaterThanOrEqualThanPriceArray))
-                let bestPricesPriorityArray = bestPricesArray.map(bestPrices => bestPrices.priority)
-                let mostPriorityArray = bestPricesArray.filter(bestPrices => bestPrices.priority == Math.min(...bestPricesPriorityArray))
-                mostPriorityArray.map(mostPriority => {
-                    if(this.orderForm.stake > mostPriority.max) {
-                        this.orderForm.stake = this.orderForm.stake - mostPriority.max
-                        this.orderForm.markets = mostPriorityArray
-                        this.orderError = ''
-                    } else if(this.orderForm.stake <= mostPriority.max && this.orderForm.stake >= mostPriority.min) {
-                        this.orderForm.stake = 0
-                        this.orderForm.markets = mostPriorityArray
-                        this.orderError = ''
-                    } else if(this.orderForm.stake < mostPriority.min && this.orderForm.stake != 0) {
-                        this.orderMessage = 'Stake lower than minimum stake.'
-                    }
-                })
-            }
-            this.$set(data, 'markets', this.orderForm.markets)
-
-            let token = Cookies.get('mltoken')
-
-            axios.post('v1/orders/bet', data, { headers: { 'Authorization': `Bearer ${token}` }})
-            .then(response => {
-                this.orderMessage = response.data.data
-                this.$store.dispatch('trade/getBetbarData')
-                this.$store.commit('trade/TOGGLE_BETBAR', true)
-            })
-            .catch(err => {
-                this.$store.dispatch('auth/checkIfTokenIsValid', err.response.data.status_code)
-            })
         }
     }
 }

@@ -12,17 +12,21 @@
                     <div class="container mx-auto">
                         <span class="text-sm p-2 font-bold text-gray-800">{{market_details.sport}}: {{market_details.odd_type}} ({{market_details.market_flag}})</span>
                     </div>
-                    <div class="order w-full my-1 p-2">
-                        <div class="text-sm" v-for="(log, index) in logs" :key="index">
-                            <span class="font-bold">{{index}}</span>
-                            <div v-if="logs[index].length == 0">No odd updates for this provider yet.</div>
-                            <div v-else>
-                                <div class="flex justify-between" v-for="(update, index) in log" :key="index">
-                                    <p>{{update.created_at}}</p>
-                                    <p>Updated odds to <span class="font-bold">{{update.odds}}</span></p>
+                    <div v-if="!loadingOddsHistory">
+                        <div class="order w-full my-1" v-for="(oddHistory, index) in groupedByDateLogs" :key="index">
+                            <div class="orderHeading bg-gray-400 p-2 cursor-pointer">
+                                <div class="container mx-auto text-sm">Order placed at {{index}}</div>
+                            </div>
+                            <div class="container mx-auto p-2">
+                                <div class="flex justify-between" v-for="oddUpdate in oddHistory" :key="oddUpdate.id">
+                                    <span class="text-sm">{{oddUpdate.created_at}}</span>
+                                    <span class="text-sm text-left">{{oddUpdate.provider}} - updated price to {{oddUpdate.odds}}</span>
                                 </div>
                             </div>
                         </div>
+                    </div>
+                    <div v-else>
+                        <span class="text-sm p-2 text-gray-800">Loading odds history...</span>
                     </div>
                 </div>
             </div>
@@ -33,6 +37,7 @@
 <script>
 import { mapState } from 'vuex'
 import Cookies from 'js-cookie'
+import _ from 'lodash'
 import 'vue-dialog-drag/dist/vue-dialog-drag.css'
 import DialogDrag from 'vue-dialog-drag'
 
@@ -48,13 +53,16 @@ export default {
                 buttonPin: false,
                 centered: "viewport"
             },
-            logs: {}
+            logs: [],
+            groupedByDateLogs: [],
+            loadingOddsHistory: true
         }
     },
     computed: {
         ...mapState('trade', ['bookies'])
     },
     mounted() {
+        this.$store.dispatch('trade/getBookies')
         this.getOrderLogs()
     },
     methods: {
@@ -66,7 +74,14 @@ export default {
 
             axios.get(`v1/orders/${this.odd_details.market_id}/logs`, { headers: { 'Authorization': `Bearer ${token}` }})
             .then(response => {
-                this.logs = response.data.data
+                Object.keys(response.data.data).map(provider => {
+                    response.data.data[provider].map(log => {
+                        this.$set(log, 'provider', provider)
+                        this.logs.push(log)
+                    })
+                })
+                this.groupedByDateLogs = _.groupBy(this.logs, 'created_at')
+                this.loadingOddsHistory = false
             })
             .catch(err => {
                 this.$store.dispatch('auth/checkIfTokenIsValid', err.response.data.status_code)

@@ -16,6 +16,9 @@ Vue.use(Vuelidate)
 import VueHead from 'vue-head'
 Vue.use(VueHead)
 
+import {ClientTable} from 'vue-tables-2'
+Vue.use(ClientTable, {}, false);
+
 import Cookies from 'js-cookie'
 const token = Cookies.get('mltoken')
 
