@@ -85,6 +85,7 @@ class KafkaConsume implements CustomProcessInterface
                     self::getAdditionalEvents($swoole);
                     self::getUpdatedEventsSchedule($swoole);
                     self::getUpdatedOdds($swoole);
+                    self::getUpdatedPrice($swoole);
                     self::getAdditionalLeagues($swoole);
                     self::getForRemovallLeagues($swoole);
                 }
@@ -162,6 +163,31 @@ class KafkaConsume implements CustomProcessInterface
                                 if ($topic['user_id'] == $row['value']) {
                                     $fd = $table->get('uid:' . $row['value']);
                                     $swoole->push($fd['value'], json_encode(['getUpdatedOdds' => $updatedMarkets]));
+                                    $table->del($k);
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private static function getUpdatedPrice($swoole)
+    {
+        $table = $swoole->wsTable;
+        $topicTable = $swoole->topicTable;
+        foreach ($table as $k => $r) {
+            if (strpos($k, 'updatedEvents:') === 0) {
+                foreach ($table as $key => $row) {
+                    $updatedMarkets = json_decode($r['value']);
+                    if (!empty($updatedMarkets)) {
+                        if (strpos($key, 'fd:') === 0) {
+                            foreach ($topicTable as $topic) {
+                                if ($topic['user_id'] == $row['value']) {
+                                    $fd = $table->get('uid:' . $row['value']);
+                                    $swoole->push($fd['value'], json_encode(['getUpdatedPrice' => $updatedMarkets]));
                                     $table->del($k);
                                     break;
                                 }
