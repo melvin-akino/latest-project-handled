@@ -62,13 +62,13 @@ class OrdersController extends Controller
                 }
 
                 $data['total_count'] = $myAllOrders;
-
-                return response()->json([
-                    'status'      => true,
-                    'status_code' => 200,
-                    'data'        => !empty($data) ? $data : null
-                ], 200);
             }
+
+            return response()->json([
+                'status'      => true,
+                'status_code' => 200,
+                'data'        => !empty($data) ? $data : null
+            ], 200);
         } catch (Exception $e) {
             return response()->json([
                 'status'      => false,
