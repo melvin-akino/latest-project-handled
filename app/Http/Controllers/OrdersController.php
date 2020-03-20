@@ -369,12 +369,6 @@ class OrdersController extends Controller
                     ]);
                 }
 
-                $ordersId = "order-" . $orderId;
-
-                if (!$orders->exists($ordersId)) {
-                    $orders->set($ordersId, $payload);
-                }
-
                 $orderIds[] = $orderId;
             }
 
@@ -390,7 +384,6 @@ class OrdersController extends Controller
 
             DB::commit();
 
-            // SEND TO KAFKA PLACED BET PAYLOAD FOREACH ULET
             for ($i = 0; $i < count($incrementIds['id']); $i++) {
                 $requestId = Str::uuid() . "-" . $incrementIds['id'][$i];
                 $requestTs = self::milliseconds();
