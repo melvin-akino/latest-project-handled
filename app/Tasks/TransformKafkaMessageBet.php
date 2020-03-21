@@ -40,6 +40,7 @@ class TransformKafkaMessageBet extends Task
         $swoole = app('swoole');
 
         $topics = $swoole->topicTable;
+        $ordersTable = $swoole->ordersTable;
         $wsTable = $swoole->wsTable;
 
         foreach ($topics AS $key => $row) {
@@ -59,6 +60,8 @@ class TransformKafkaMessageBet extends Task
                         'user_id' => $row['user_id'],
                         'topic_name' => 'open-order-' . $this->message->data->bet_id
                     ]);
+
+                    $ordersTable['orderId:' . $orderId]['bet_id'] = $this->message->data->bet_id
                 }                
             }
         }

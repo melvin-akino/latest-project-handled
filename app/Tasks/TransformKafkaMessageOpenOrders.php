@@ -16,22 +16,27 @@ class TransformKafkaMessageOpenOrders extends Task
 
     public function handle()
     {
-        $swoole = app('swoole');
-
-        $topics = $swoole->topicTable;
-        $mmr    = $swoole->minMaxRequestsTable;
-        $wsTable = $swoole->wsTable;
-        foreach ($mmr AS $key => $row) {
-            if ($row['market_id'] == $this->data->data->market_id) {
-                $memUID = substr($key, strlen('memUID:'));
-
-                foreach ($topics AS $_key => $_row) {
-                    if (strpos($_row['topic_name'], 'min-max-' . $memUID) === 0) {
-                        $userId = explode(':', $_key)[1];
-                        $fd = $wsTable->get('uid:' . $userId);
-                        $swoole->push($fd['value'], json_encode([
-                            'getMinMax' => []
-                        ]));
+        $swoole         = app('swoole');
+        $topics         = $swoole->topicTable;
+        $ordersTable    = $swoole->ordersTable;
+        $openOrders     = $this->data->data;
+        foreach ($openOrders as $order) {
+            foreach ($topics as $key => $topic) {
+                if (strpos($topic['topic_name'], 'open-order-') === 0) {
+                    $betId = substr($topic['topic_name'], strlen('open-order-'));
+                    $userId = $topic['user_id'];
+                    foreach ($ordersTable as $_key => $orderTable) {
+                        if ($orderTable['bet_id'] == $betId)) {
+                            $fd = $wsTable->get('uid:' . $userId);
+                            $swoole->push($fd['value'], 
+                                json_encode([
+                                    'getOrderStatus' => [
+                                        'order_id'   => substr($_key, strlen('orderId:')),
+                                        'status'     => $order->status
+                                    ]
+                                ])
+                            );
+                        }
                     }
                 }
             }

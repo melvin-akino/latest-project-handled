@@ -301,7 +301,7 @@ class DataToSwt implements CustomProcessInterface
                 ->join('master_events as me', 'me.master_event_unique_id', 'mem.master_event_unique_id')
                 ->join('master_event_links as mel', 'mel.master_event_unique_id', 'me.master_event_unique_id')
                 ->join('events as e', 'e.id', 'mel.event_id')
-                ->select('o.id', 'o.stake', 'o.actual_stake', 'o.odds', 'o.market_id', 'mem.master_event_unique_id', 'mem.master_event_market_unique_id', 'me.score')
+                ->select('o.id', 'o.stake', 'o.actual_stake', 'o.odds', 'o.market_id', 'mem.master_event_unique_id', 'mem.master_event_market_unique_id', 'me.score', 'o.bet_id')
             ->get();
         $ordersTable = $swoole->ordersTable;
         array_map(function ($order) use ($ordersTable) {
@@ -311,7 +311,8 @@ class DataToSwt implements CustomProcessInterface
                 'odds'          => $order->odds,
                 'market_id'     => $order->market_id,
                 'event_id'      => explode('-', $order->master_event_unique_id)[3],
-                'score'         => $order->score
+                'score'         => $order->score,
+                'bet_id'        => $order->bet_id
             ]);
         }, $orders->toArray());
     }

@@ -220,6 +220,7 @@ return [
                 [ 'name' => 'event_id',      'type' => \Swoole\Table::TYPE_STRING, 'size' => 30 ],
                 [ 'name' => 'score',         'type' => \Swoole\Table::TYPE_STRING, 'size' => 30 ],
                 [ 'name' => 'orderExpiry',   'type' => \Swoole\Table::TYPE_STRING, 'size' => 50 ],
+                [ 'name' => 'bet_id',        'type' => \Swoole\Table::TYPE_STRING, 'size' => 50 ],
             ],
         ],
         'minMaxRequests' => [
