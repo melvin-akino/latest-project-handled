@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use Illuminate\Support\Facades\DB;
 use App\Models\{Currency, ExchangeRate};
 use GuzzleHttp\Client;
 use Illuminate\Console\Command;
@@ -26,33 +27,43 @@ class CurrencyConversionCommand extends Command
     public function handle()
     {
         $executionTime = '00:00:00';
+
         while(true) {
             $currentTime = (new DateTime())->format('H:i:s');
+
             if ($currentTime == $executionTime) {
-                $baseCurrency = Currency::find(self::BASE_CURRENCY_ID);
-
-                $currencies = Currency::all();
-
                 $conversionApi = "https://api.exchangeratesapi.io/latest?base=%s&symbols=%s";
+                $currencies    = DB::table('currency AS cfrom', '!=', DB::raw('0'))
+                    ->join('currency AS cto', function ($join) {
+                        $join->on('cfrom.id', '=', 'cto.id');
+                        $join->orOn('cfrom.id', '!=', 'cto.id');
+                    })
+                    ->orderBy('cfrom.id', 'asc')
+                    ->orderBy('cto.id', 'asc')
+                    ->get([
+                        'cfrom.id AS from_id',
+                        'cfrom.code AS from_code',
+                        'cto.id AS to_id',
+                        'cto.code AS to_code',
+                    ]);
+
                 foreach ($currencies as $currency) {
-                    $exchangeCurrency = Currency::find($currency->id);
-                    $api = sprintf($conversionApi, trim($baseCurrency->code), trim($exchangeCurrency->code));
+                    $api      = sprintf($conversionApi, trim($currency->from_code), trim($currency->to_code));
                     $response = $this->client->request('GET', $api);
 
                     if ($response->getStatusCode() == 200) {
                         $objectResponse = json_decode($response->getBody()->getContents());
+
                         ExchangeRate::updateOrCreate([
-                            'from_currency_id' => $baseCurrency->id,
-                            'to_currency_id' => $exchangeCurrency->id,
+                            'from_currency_id' => $currency->from_id,
+                            'to_currency_id'   => $currency->to_id,
                         ], [
                             'default_amount' => 1,
-                            'exchange_rate' => $objectResponse->rates->{trim($exchangeCurrency->code)}
+                            'exchange_rate'  => $objectResponse->rates->{trim($currency->to_code)}
                         ]);
                     }
                 }
             }
         }
-
-
     }
 }

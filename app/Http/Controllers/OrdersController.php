@@ -16,7 +16,10 @@ use App\Models\{
 };
 
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Support\{
+    Facades\DB,
+    Str
+};
 
 class OrdersController extends Controller
 {
@@ -31,13 +34,13 @@ class OrdersController extends Controller
         try {
             $conditions = [];
 
-            !empty($request->status) ? !($request->status == "All") ? $conditions[] = ['status', $request->status] : null : null;
+            !empty($request->status) ? !($request->status  == "All") ? $conditions[] = ['status', $request->status] : null : null;
 
             !empty($request->created_from) ? $conditions[] = ['created_at', '>=', $request->created_from] : null;
-            !empty($request->created_to) ? $conditions[] = ['created_at', '<=', $request->created_to] : !empty($request->created_from) ? ['created_at', '<=', now()] : null;
+            !empty($request->created_to) ? $conditions[]   = ['created_at', '<=', $request->created_to] : !empty($request->created_from) ? ['created_at', '<=', now()] : null;
 
             !empty($request->settled_from) ? $conditions[] = ['settled_date', '>=', $request->settled_from] : null;
-            !empty($request->settled_to) ? $conditions[] = ['settled_date', '<=', $request->settled_to] : !empty($request->settled_to) ? ['settled_date', '<=', now()] : null;
+            !empty($request->settled_to) ? $conditions[]   = ['settled_date', '<=', $request->settled_to] : !empty($request->settled_to) ? ['settled_date', '<=', now()] : null;
 
             //Pagination part
             $page        = $request->has('page') ? $request->get('page') : 1;
@@ -62,13 +65,13 @@ class OrdersController extends Controller
                 }
 
                 $data['total_count'] = $myAllOrders;
-
-                return response()->json([
-                    'status'      => true,
-                    'status_code' => 200,
-                    'data'        => !empty($data) ? $data : null
-                ], 200);
             }
+
+            return response()->json([
+                'status'      => true,
+                'status_code' => 200,
+                'data'        => !empty($data) ? $data : null
+            ], 200);
         } catch (Exception $e) {
             return response()->json([
                 'status'      => false,
@@ -205,19 +208,23 @@ class OrdersController extends Controller
         DB::beginTransaction();
 
         try {
-            $swt       = app('swoole');
-            $topics    = $swt->topicTable;
-            $orders    = $swt->ordersTable;
-            $betType   = "";
-            $return    = "";
-            $prevStake = 0;
-            $orderIds  = [];
+            $swt          = app('swoole');
+            $topics       = $swt->topicTable;
+            $payloadsSwt  = $swt->payloadsTable;
+            $betType      = "";
+            $return       = "";
+            $returnCode   = 200;
+            $prevStake    = 0;
+            $orderIds     = [];
+            $incrementIds = [
+                'id'      => [],
+                'payload' => [],
+            ];
 
             foreach ($request->markets AS $row) {
-                $betType        = $request->betType;
-                $hasComputation = false;
-                $userProvider   = UserProviderConfiguration::where('provider_id', $row['provider_id']);
-                $userProvider   = Provider::find($userProvider->count() == 0 ? $row['provider_id'] : $userProvider->provider_id);
+                $betType      = $request->betType;
+                $userProvider = UserProviderConfiguration::where('provider_id', $row['provider_id']);
+                $userProvider = Provider::find($userProvider->count() == 0 ? $row['provider_id'] : $userProvider->provider_id);
 
                 /** TO DO: Wallet Balance Sufficiency Check */
 
@@ -227,10 +234,6 @@ class OrdersController extends Controller
                         'status_code' => 400,
                         'message'     => trans('generic.bad-request')
                     ], 400);
-                }
-
-                if ($userProvider->alias == "HG") {
-                    $hasComputation = true;
                 }
 
                 if (!in_array($row['provider_id'], $userProvider->toArray())) {
@@ -278,13 +281,13 @@ class OrdersController extends Controller
                     ], 404);
                 }
 
-                if ($hasComputation) {
-                    $actualStake = $request->stake / ($userProvider->punter_percentage / 100);
+                if ($prevStake == 0) {
+                    $payloadStake = $request->stake < $row['max'] ? $request->stake : $row['max'];
                 } else {
-                    $actualStake = $request->stake;
+                    $payloadStake = $prevStake < $row['max'] ? $prevStake : $row['max'];
                 }
 
-                $payloadStake = $prevStake == 0 ? $request->stake : $prevStake;
+                $actualStake = $payloadStake / ($userProvider->punter_percentage / 100);
 
                 if ($request->betType == "BEST_PRICE") {
                     $prevStake = $request->stake - $row['max'];
@@ -300,6 +303,7 @@ class OrdersController extends Controller
 
                 $orderId = uniqid();
 
+                $payload['user_id']       = auth()->user()->id;
                 $payload['provider_id']   = strtolower($userProvider->alias);
                 $payload['odds']          = $row['price'];
                 $payload['stake']         = $payloadStake;
@@ -312,7 +316,9 @@ class OrdersController extends Controller
                 $payload['orderExpiry']   = $request->orderExpiry;
                 $payload['order_id']      = $orderId;
 
-                Order::create([
+                $incrementIds['payload'][] = $payload;
+
+                $incrementIds['id'][] = Order::create([
                     'user_id'                       => auth()->user()->id,
                     'master_event_market_unique_id' => $request->market_id,
                     'market_id'                     => $query->bet_identifier,
@@ -329,7 +335,7 @@ class OrdersController extends Controller
                     'settled_date'                  => "",
                     'reason'                        => "",
                     'profit_loss'                   => 0.00,
-                ]);
+                ])->id;
 
                 OrderLogs::create([
                     'user_id'       => auth()->user()->id,
@@ -344,7 +350,11 @@ class OrdersController extends Controller
                 ]);
 
                 if ($request->betType == "FAST_BET") {
-                    $prevStake = $prevStake == 0 ? $request->stake - $row['max'] : $prevStake - $row['max'];
+                    if ($prevStake == 0) {
+                        $prevStake = $request->stake - $payloadStake;
+                    } else {
+                        $prevStake = $prevStake - $payloadStake;
+                    }
                 }
 
                 $topicsId = implode(':', [
@@ -359,31 +369,57 @@ class OrdersController extends Controller
                     ]);
                 }
 
-                $ordersId = "order-" . $orderId;
-
-                if (!$orders->exists($ordersId)) {
-                    $orders->set($ordersId, $payload);
-                }
-
                 $orderIds[] = $orderId;
             }
 
             if ($betType == "BEST_PRICE") {
-                $return = $prevStake > 0 ? trans('game.bet.best-price.continue') : trans('game.bet.best-price.success');
+                $return     = $prevStake > 0 ? trans('game.bet.best-price.continue') : trans('game.bet.best-price.success');
+                $returnCode = $prevStake > 0 ? 210 : 200;
             }
 
             if ($betType == "FAST_BET") {
-                $return = $prevStake > 0 ? trans('game.bet.fast-bet.continue') : trans('game.bet.fast-bet.success');
+                $return     = $prevStake > 0 ? trans('game.bet.fast-bet.continue') : trans('game.bet.fast-bet.success');
+                $returnCode = $prevStake > 0 ? 210 : 200;
             }
 
             DB::commit();
 
+            for ($i = 0; $i < count($incrementIds['id']); $i++) {
+                $requestId = Str::uuid() . "-" . $incrementIds['id'][$i];
+                $requestTs = self::milliseconds();
+                $payload   = [
+                    'request_uid' => $requestId,
+                    'request_ts'  => $requestTs,
+                    'sub_command' => 'scrape',
+                    'command'     => 'bet'
+                ];
+
+                $payload['data'] = [
+                    'actual_stake' => $incrementIds['payload'][$i]['actual_stake'],
+                    'odds'         => $incrementIds['payload'][$i]['odds'],
+                    'market_id'    => $incrementIds['payload'][$i]['market_id'],
+                    'event_id'     => $incrementIds['payload'][$i]['event_id'],
+                    'score'        => $incrementIds['payload'][$i]['score']
+                ];
+
+                $payloadsSwtId = implode(':', [
+                    "place-bet-" . $incrementIds['id'][$i],
+                    "uId:"       . $incrementIds['payload'][$i]['user_id'],
+                    "mId:"       . $incrementIds['payload'][$i]['market_id'],
+                    "oId:"       . $incrementIds['payload'][$i]['order_id']
+                ]);
+
+                if (!$payloadsSwt->exists($payloadsSwtId)) {
+                    $payloadsSwt->set($payloadsSwtId, [ 'payload' => json_encode($payload) ]);
+                }
+            }
+
             return response()->json([
                 'status'      => true,
-                'status_code' => 200,
+                'status_code' => $returnCode,
                 'data'        => $return,
                 'order_id'    => $orderIds,
-            ], 200);
+            ], $returnCode);
         } catch (Exception $e) {
             DB::rollback();
 
