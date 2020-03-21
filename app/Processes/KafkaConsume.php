@@ -3,7 +3,7 @@
 namespace App\Processes;
 
 use App\Jobs\WsEvents;
-use App\Tasks\{TransformKafkaMessageEvents, TransformKafkaMessageLeagues, TransformKafkaMessageOdds};
+use App\Tasks\{TransformKafkaMessageEvents, TransformKafkaMessageLeagues, TransformKafkaMessageOdds, TransformKafkaMessageMinMax};
 use Hhxsv5\LaravelS\Swoole\Process\CustomProcessInterface;
 use Hhxsv5\LaravelS\Swoole\Task\Task;
 use Illuminate\Support\Facades\Log;
@@ -26,8 +26,12 @@ class KafkaConsume implements CustomProcessInterface
                 $kafkaConsumer->subscribe([
                     env('KAFKA_SCRAPE_ODDS', 'SCRAPING-ODDS'),
                     env('KAFKA_SCRAPE_LEAGUES', 'SCRAPING-PROVIDER-LEAGUES'),
-                    env('KAFKA_SCRAPE_EVENTS', 'SCRAPING-PROVIDER-EVENTS')
+                    env('KAFKA_SCRAPE_EVENTS', 'SCRAPING-PROVIDER-EVENTS'),
+                    env('KAFKA_SCRAPE_MINMAX_ODDS', 'MINMAX-ODDS'),
+                    env('KAFKA_BET_PLACED', 'PLACED-BET'),
+                    env('KAFKA_SCRAPE_OPEN_ORDERS', 'OPEN-ORDERS')
                 ]);
+
                 while (!self::$quit) {
                     $message = $kafkaConsumer->consume(120 * 1000);
                     if ($message->err == RD_KAFKA_RESP_ERR_NO_ERROR) {
@@ -39,6 +43,15 @@ class KafkaConsume implements CustomProcessInterface
                                 break;
                             case 'event':
                                 Task::deliver(new TransformKafkaMessageEvents($payload));
+                                break;
+                            case 'minmax':
+                                Task::deliver(new TransformKafkaMessageMinMax($payload));
+                                break;
+                            case 'bet':
+                                Task::deliver(new TransformKafkaMessageBet($payload));
+                                break;
+                            case 'open orders':
+                                Task::deliver(new TransformKafkaMessageOpenOrders($payload));
                                 break;
                             default:
                                 if (!isset($payload->data->events)) {
@@ -80,6 +93,7 @@ class KafkaConsume implements CustomProcessInterface
                     self::getAdditionalEvents($swoole);
                     self::getUpdatedEventsSchedule($swoole);
                     self::getUpdatedOdds($swoole);
+                    self::getUpdatedPrice($swoole);
                     self::getAdditionalLeagues($swoole);
                     self::getForRemovallLeagues($swoole);
                 }
@@ -157,6 +171,31 @@ class KafkaConsume implements CustomProcessInterface
                                 if ($topic['user_id'] == $row['value']) {
                                     $fd = $table->get('uid:' . $row['value']);
                                     $swoole->push($fd['value'], json_encode(['getUpdatedOdds' => $updatedMarkets]));
+                                    $table->del($k);
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private static function getUpdatedPrice($swoole)
+    {
+        $table = $swoole->wsTable;
+        $topicTable = $swoole->topicTable;
+        foreach ($table as $k => $r) {
+            if (strpos($k, 'updatedEvents:') === 0) {
+                foreach ($table as $key => $row) {
+                    $updatedMarkets = json_decode($r['value']);
+                    if (!empty($updatedMarkets)) {
+                        if (strpos($key, 'fd:') === 0) {
+                            foreach ($topicTable as $topic) {
+                                if ($topic['user_id'] == $row['value']) {
+                                    $fd = $table->get('uid:' . $row['value']);
+                                    $swoole->push($fd['value'], json_encode(['getUpdatedPrice' => $updatedMarkets]));
                                     $table->del($k);
                                     break;
                                 }
