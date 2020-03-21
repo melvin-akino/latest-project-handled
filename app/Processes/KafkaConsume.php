@@ -27,7 +27,8 @@ class KafkaConsume implements CustomProcessInterface
                     env('KAFKA_SCRAPE_ODDS', 'SCRAPING-ODDS'),
                     env('KAFKA_SCRAPE_LEAGUES', 'SCRAPING-PROVIDER-LEAGUES'),
                     env('KAFKA_SCRAPE_EVENTS', 'SCRAPING-PROVIDER-EVENTS'),
-                    env('KAFKA_SCRAPE_MINMAX_ODDS', 'MINMAX-ODDS')
+                    env('KAFKA_SCRAPE_MINMAX_ODDS', 'MINMAX-ODDS'),
+                    env('KAFKA_BET_PLACED', 'PLACED-BET')
                 ]);
 
                 while (!self::$quit) {
@@ -44,6 +45,9 @@ class KafkaConsume implements CustomProcessInterface
                                 break;
                             case 'minmax':
                                 Task::deliver(new TransformKafkaMessageMinMax($payload));
+                                break;
+                            case 'bet':
+                                Task::deliver(new TransformKafkaMessageBet($payload));
                                 break;
                             default:
                                 if (!isset($payload->data->events)) {
