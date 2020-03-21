@@ -210,7 +210,7 @@ class OrdersController extends Controller
         try {
             $swt          = app('swoole');
             $topics       = $swt->topicTable;
-            $orders       = $swt->ordersTable;
+            $payloadsSwt  = $swt->payloadsTable;
             $betType      = "";
             $return       = "";
             $returnCode   = 200;
@@ -402,14 +402,15 @@ class OrdersController extends Controller
                     'score'        => $incrementIds['payload'][$i]['score']
                 ];
 
-                $topicsSwtId = implode(':', [
+                $payloadsSwtId = implode(':', [
                     "place-bet-" . $incrementIds['id'][$i],
-                    "userId:"    . $incrementIds['payload'][$i]['user_id'],
-                    "marketId:"  . $incrementIds['payload'][$i]['market_id'],
+                    "uId:"       . $incrementIds['payload'][$i]['user_id'],
+                    "mId:"       . $incrementIds['payload'][$i]['market_id'],
+                    "oId:"       . $incrementIds['payload'][$i]['order_id']
                 ]);
 
-                if ($topics->exists($topicsSwtId)) {
-                    $topics->set($topicsSwtId, $payload);
+                if (!$payloadsSwt->exists($payloadsSwtId)) {
+                    $payloadsSwt->set($payloadsSwtId, json_encode($payload));
                 }
             }
 

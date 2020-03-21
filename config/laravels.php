@@ -250,6 +250,12 @@ return [
                 [ 'name' => 'currency_id', 'type' => \Swoole\Table::TYPE_INT ],
             ],
         ],
+        'payloads' => [
+            'size' => 102400,
+            'column' => [
+                [ 'name' => 'payload', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 10000 ],
+            ],
+        ],
     ],
     'register_providers'       => [
         \Laravel\Passport\PassportServiceProvider::class

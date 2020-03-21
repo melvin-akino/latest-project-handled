@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Log;
 use Swoole\Http\Server;
 use Swoole\Process;
 use Exception;
+use Carbon\Carbon;
 
 class KafkaProduce implements CustomProcessInterface
 {
@@ -37,55 +38,70 @@ class KafkaProduce implements CustomProcessInterface
                 $ordersTable         = $swoole->ordersTable;
                 $sportsTable         = $swoole->sportsTable;
                 $providersTable      = $swoole->providersTable;
+                $payloadsTable       = $swoole->payloadsTable;
+                $initialTime         = Carbon::now()->format('H:i:s');
 
                 while (!self::$quit) {
-                    foreach ($topicTable as $key => $topic) {
-                        if (strpos($topic['topic_name'], 'min-max-') === 0) {
-                            $memUID = substr($topic['topic_name'], strlen('min-max-'));
+                    $newTime = Carbon::now()->format('H:i:s');
 
-                            foreach ($minMaxRequestsTable as $minMaxRequest) {
-                                $requestId = Str::uuid();
-                                $requestTs = self::milliseconds();
+                    if ($nextTime->diffInSeconds($initialTime) >= 1) {
+                        foreach ($topicTable as $key => $topic) {
+                            if (strpos($topic['topic_name'], 'min-max-') === 0) {
+                                $memUID = substr($topic['topic_name'], strlen('min-max-'));
+
+                                foreach ($minMaxRequestsTable as $minMaxRequest) {
+                                    $requestId = Str::uuid();
+                                    $requestTs = self::milliseconds();
+
+                                    $payload = [
+                                        'request_uid' => $requestId,
+                                        'request_ts'  => $requestTs,
+                                        'sub_command' => 'scrape',
+                                        'command'     => 'minmax'
+                                    ];
+                                    $payload['data'] = $minMaxRequest;
+                                    self::pushToKafka($payload, $requestId, strtolower($minMaxRequest['provider']) . $kafkaTopics['req_minmax']);
+                                }
+                            }
+                        }
+
+                        foreach ($sportsTable AS $sKey => $sRow) {
+                            $sportId = $sportsTable->get($sKey)['id'];
+
+                            foreach ($providersTable AS $pKey => $pRow) {
+                                $providerAlias = $providersTable->get($pKey)['alias'];
+                                $requestId     = Str::uuid();
+                                $requestTs     = self::milliseconds();
 
                                 $payload = [
                                     'request_uid' => $requestId,
                                     'request_ts'  => $requestTs,
                                     'sub_command' => 'scrape',
-                                    'command'     => 'minmax'
+                                    'command'     => 'bet'
                                 ];
-                                $payload['data'] = $minMaxRequest;
-                                self::pushToKafka($payload, $requestId, strtolower($minMaxRequest['provider']) . $kafkaTopics['req_minmax']);
+
+                                $payload['data'] = [
+                                    'sport_id' => $sportId,
+                                    'provider' => $providerAlias
+                                ];
+
+                                self::pushToKafka($payload, $requestId, $kafkaTopics['req_open_order']);
                             }
                         }
+
+                        $initialTime = $newTime;
                     }
 
-                    foreach ($sportsTable AS $sKey => $sRow) {
-                        $sportId = $sportsTable->get($sKey)['id'];
+                    foreach ($payloadsTable AS $pKey => $pRow) {
+                        if (strpos($pKey, 'place-bet-') === 0) {
+                            $requestId = json_decode($payload)['request_uid'];
+                            $payload = $pRow['payload'];
 
-                        foreach ($providersTable AS $pKey => $pRow) {
-                            $providerAlias = $providersTable->get($pKey)['alias'];
-                            $requestId     = Str::uuid();
-                            $requestTs     = self::milliseconds();
-
-                            $payload = [
-                                'request_uid' => $requestId,
-                                'request_ts'  => $requestTs,
-                                'sub_command' => 'scrape',
-                                'command'     => 'bet'
-                            ];
-
-                            $payload['data'] = [
-                                'sport_id' => $sportId,
-                                'provider' => $providerAlias
-                            ];
-
-                            self::pushToKafka($payload, $requestId, $kafkaTopics['req_open_order']);
+                            self::pushToKafka($payload, $requestId, $kafkaTopics['req_order']);
                         }
-                    }
 
-                    // FOREACH TOPICS SWT `place-bet-`
-                    // PUSH TO KAFKA @ $kafkaTopics['req_order']
-                    // DELETE TOPICS SWOOLE KEY
+                        $payloadsTable->del($pKey);
+                    }
                 }
             }
         } catch (Exception $e) {
