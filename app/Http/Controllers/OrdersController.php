@@ -335,7 +335,7 @@ class OrdersController extends Controller
                     'settled_date'                  => "",
                     'reason'                        => "",
                     'profit_loss'                   => 0.00,
-                ]);
+                ])->id;
 
                 OrderLogs::create([
                     'user_id'       => auth()->user()->id,
@@ -410,7 +410,7 @@ class OrdersController extends Controller
                 ]);
 
                 if (!$payloadsSwt->exists($payloadsSwtId)) {
-                    $payloadsSwt->set($payloadsSwtId, json_encode($payload));
+                    $payloadsSwt->set($payloadsSwtId, [ 'payload' => json_encode($payload) ]);
                 }
             }
 

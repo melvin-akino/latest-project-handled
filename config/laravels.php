@@ -253,7 +253,7 @@ return [
         'payloads' => [
             'size' => 102400,
             'column' => [
-                [ 'name' => 'payload', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 10000 ],
+                [ 'name' => 'payload', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 1000 ],
             ],
         ],
     ],

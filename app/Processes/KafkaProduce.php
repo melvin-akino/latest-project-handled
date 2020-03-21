@@ -39,12 +39,12 @@ class KafkaProduce implements CustomProcessInterface
                 $sportsTable         = $swoole->sportsTable;
                 $providersTable      = $swoole->providersTable;
                 $payloadsTable       = $swoole->payloadsTable;
-                $initialTime         = Carbon::now()->format('H:i:s');
+                $initialTime         = Carbon::createFromFormat('H:i:s', Carbon::now()->format('H:i:s'));
 
                 while (!self::$quit) {
-                    $newTime = Carbon::now()->format('H:i:s');
+                    $newTime = Carbon::createFromFormat('H:i:s', Carbon::now()->format('H:i:s'));
 
-                    if ($nextTime->diffInSeconds($initialTime) >= 1) {
+                    if ($newTime->diffInSeconds(Carbon::parse($initialTime)) >= 1) {
                         foreach ($topicTable as $key => $topic) {
                             if (strpos($topic['topic_name'], 'min-max-') === 0) {
                                 $memUID = substr($topic['topic_name'], strlen('min-max-'));
@@ -94,10 +94,10 @@ class KafkaProduce implements CustomProcessInterface
 
                     foreach ($payloadsTable AS $pKey => $pRow) {
                         if (strpos($pKey, 'place-bet-') === 0) {
-                            $requestId = json_decode($payload)['request_uid'];
-                            $payload = $pRow['payload'];
+                            $payload   = json_decode($pRow['payload']);
+                            $requestId = $payload->request_uid;
 
-                            self::pushToKafka($payload, $requestId, $kafkaTopics['req_order']);
+                            self::pushToKafka((array) $payload, $requestId, $kafkaTopics['req_order']);
                         }
 
                         $payloadsTable->del($pKey);
