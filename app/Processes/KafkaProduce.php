@@ -94,7 +94,6 @@ class KafkaProduce implements CustomProcessInterface
 
                     foreach ($payloadsTable AS $pKey => $pRow) {
                         if (strpos($pKey, 'place-bet-') === 0) {
-                            \Log::info(json_encode([ 'pingpong' => $pKey ]));
                             $payload   = json_decode($pRow['payload']);
                             $requestId = $payload->request_uid;
 
