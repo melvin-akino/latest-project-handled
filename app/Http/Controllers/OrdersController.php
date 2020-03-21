@@ -318,7 +318,7 @@ class OrdersController extends Controller
 
                 $incrementIds['payload'][] = $payload;
 
-                $incrementIds['id'][] = Order::create([
+                $orderIncrementId = Order::create([
                     'user_id'                       => auth()->user()->id,
                     'master_event_market_unique_id' => $request->market_id,
                     'market_id'                     => $query->bet_identifier,
@@ -337,6 +337,8 @@ class OrdersController extends Controller
                     'profit_loss'                   => 0.00,
                 ])->id;
 
+                $incrementIds['id'][] = $orderIncrementId;
+
                 OrderLogs::create([
                     'user_id'       => auth()->user()->id,
                     'provider_id'   => $row['provider_id'],
@@ -347,6 +349,7 @@ class OrdersController extends Controller
                     'settled_date'  => "",
                     'reason'        => "",
                     'profit_loss'   => 0.00,
+                    'order_id'      => $orderIncrementId,
                 ]);
 
                 if ($request->betType == "FAST_BET") {
@@ -423,6 +426,42 @@ class OrdersController extends Controller
         } catch (Exception $e) {
             DB::rollback();
 
+            return response()->json([
+                'status'      => false,
+                'status_code' => 500,
+                'message'     => trans('generic.internal-server-error')
+            ], 500);
+        }
+    }
+
+    public function getBetSlipLogs(string $memUID)
+    {
+        try {
+            $data = [];
+
+            $view = DB::table('bet_slip_logs')
+                ->where(function ($cond) {
+                    $cond->where('user_id', 0)
+                        ->orWhere('user_id', auth()->user()->id);
+                })
+                ->where('memuid', $memUID)
+                ->orderBy('timestamp', 'desc')
+                ->get();
+
+            foreach ($view AS $row) {
+                $data[$row->timestamp][$row->log_type][$row->provider] = [
+                    'description' => trans('game.bet_slip_logs.' . strtolower($row->log_type)),
+                    'message'     => $row->message,
+                    'data'        => $row->data
+                ];
+            }
+
+            return response()->json([
+                'status'      => true,
+                'status_code' => 200,
+                'data'        => $data,
+            ], 200);
+        } catch (Exception $e) {
             return response()->json([
                 'status'      => false,
                 'status_code' => 500,

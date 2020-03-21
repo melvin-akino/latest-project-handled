@@ -11,6 +11,10 @@ return [
             'success'  => "Order Successfully Placed!",
         ],
     ],
+    'bet_slip_logs' => [
+        'order_placed' => "Order Placed",
+        'price_update' => "Market Updated",
+    ],
     'watchlist' => [
         'added'     => "Game Successfully Added to your Watchlist",
         'removed'   => "Game Successfully Removed to your Watchlist",
