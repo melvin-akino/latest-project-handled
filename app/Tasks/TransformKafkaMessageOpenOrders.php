@@ -23,7 +23,7 @@ class TransformKafkaMessageOpenOrders extends Task
         foreach ($openOrders as $order) {
             foreach ($topics as $key => $topic) {
                 if (strpos($topic['topic_name'], 'open-order-') === 0) {
-                    $betId = substr($topic['topic_name'], strlen('open-order-'));
+                    $betId  = substr($topic['topic_name'], strlen('open-order-'));
                     $userId = $topic['user_id'];
                     foreach ($ordersTable as $_key => $orderTable) {
                         if ($orderTable['bet_id'] == $betId)) {
