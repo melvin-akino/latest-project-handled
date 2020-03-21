@@ -90,8 +90,6 @@ Route::group([
             Route::get('/all', 'OrdersController@myOrders');
             Route::get('/{memUID}', 'OrdersController@getEventMarketsDetails');
             Route::get('/{memUID}/logs', 'OrdersController@getEventMarketLogs');
-            Route::get('logs/{memUID}', 'OrdersController@getBetSlipLogs');
-
             Route::post('bet', 'OrdersController@postPlaceBet');
         });
 
