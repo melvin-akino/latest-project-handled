@@ -54,10 +54,6 @@ class AlterTablesOrderRelated extends Migration
     {
         foreach ($this->tables AS $row) {
             Schema::table($row, function (Blueprint $table) use ($row) {
-                $table->dropColumn('user_id');
-                $table->dropColumn('reason');
-                $table->dropColumn('profit_loss');
-
                 if (!isset($_SERVER['_PHPUNIT'])) {
                     $table->dropForeign(['user_id']);
                     $table->dropForeign(['provider_id']);
@@ -66,6 +62,12 @@ class AlterTablesOrderRelated extends Migration
                         $table->dropForeign(['master_event_market_unique_id']);
                     }
                 }
+            });
+
+            Schema::table($row, function (Blueprint $table) use ($row) {
+                $table->dropColumn('user_id');
+                $table->dropColumn('reason');
+                $table->dropColumn('profit_loss');
             });
         }
     }
