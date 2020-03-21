@@ -134,6 +134,7 @@ import BetMatrix from './BetMatrix'
 import OddsHistory from './OddsHistory'
 import 'vue-dialog-drag/dist/vue-dialog-drag.css'
 import DialogDrag from 'vue-dialog-drag'
+import { getSocketKey, getSocketValue } from '../../../helpers/socket'
 
 export default {
     props: ['odd_details'],

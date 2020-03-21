@@ -6,7 +6,7 @@
             <span v-show="!isBetBarOpen"><i class="fas fa-chevron-up"></i></span>
         </div>
         <div class="overflow-y-auto">
-            <div class="flex border-b text-white text-sm" v-for="(bet, index) in bets" :key="bet.order_id" v-show="isBetBarOpen">
+            <div class="flex border-b text-white text-sm" v-for="bet in bets" :key="bet.order_id" v-show="isBetBarOpen">
                 <div class="w-3/12 py-1 text-center">{{bet.league_name}}</div>
                 <div class="w-3/12 py-1 text-center">{{bet.home}} vs {{bet.away}}</div>
                 <div class="w-3/12 py-1 text-center">{{bet.create_at}}</div>
@@ -31,6 +31,7 @@
 <script>
 import { mapState } from 'vuex'
 import Cookies from 'js-cookie'
+import { getSocketKey, getSocketValue } from '../../../helpers/socket'
 
 export default {
     computed: {
@@ -40,6 +41,7 @@ export default {
     mounted() {
         this.getPriceFormat()
         this.$store.dispatch('trade/getBetbarData')
+        this.getOrderStatus()
     },
     watch: {
         bets() {
@@ -61,6 +63,18 @@ export default {
         getOrders() {
             this.bets.map(bet => {
                 this.$socket.send(`getOrder_${bet.order_id}`)
+            })
+        },
+        getOrderStatus() {
+            this.$options.sockets.onmessage = (response => {
+                if(getSocketKey(response.data) === 'getOrderStatus') {
+                    let orderStatus = getSocketValue(response.data, 'getOrderStatus')
+                    this.bets.map(bet => {
+                        if(bet.order_id == orderStatus.order_id) {
+                            this.$set(bet, 'status', orderStatus.status)
+                        }
+                    })
+                }
             })
         }
     }

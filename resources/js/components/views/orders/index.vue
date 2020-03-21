@@ -18,7 +18,7 @@ export default {
     data() {
         return {
             myorders: [],
-            columns: ['bet_id', 'created', 'bet_selection', 'provider', 'settled', 'odds', 'stake', 'pl', 'towin'],
+            columns: ['bet_id', 'created', 'bet_selection', 'provider', 'settled', 'odds', 'stake', 'towin', 'pl'],
             options: {
                 headings: {
                     bet_id: 'Bet ID',
