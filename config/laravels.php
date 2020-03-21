@@ -104,11 +104,12 @@ return [
         'providers'       => [ // key format [providerAlias:strtolower($providerAlias)] => [id = $id, alias = $alias]
             'size'   => 500,
             'column' => [
-                ['name' => 'id',          'type' => \Swoole\Table::TYPE_INT ],
-                ['name' => 'alias',       'type' => \Swoole\Table::TYPE_STRING, 'size' => 10 ],
-                ['name' => 'priority',    'type' => \Swoole\Table::TYPE_INT ],
-                ['name' => 'is_enabled',  'type' => \Swoole\Table::TYPE_INT ],
-                ['name' => 'currency_id', 'type' => \Swoole\Table::TYPE_INT ],
+                ['name' => 'id',                'type' => \Swoole\Table::TYPE_INT ],
+                ['name' => 'alias',             'type' => \Swoole\Table::TYPE_STRING, 'size' => 10 ],
+                ['name' => 'punter_percentage', 'type' => \Swoole\Table::TYPE_FLOAT ],
+                ['name' => 'priority',          'type' => \Swoole\Table::TYPE_INT ],
+                ['name' => 'is_enabled',        'type' => \Swoole\Table::TYPE_INT ],
+                ['name' => 'currency_id',       'type' => \Swoole\Table::TYPE_INT ],
             ],
         ],
         'sports'          => [ //key format [sId:$sportId] = [name = $sport]
@@ -219,6 +220,7 @@ return [
                 [ 'name' => 'event_id',      'type' => \Swoole\Table::TYPE_STRING, 'size' => 30 ],
                 [ 'name' => 'score',         'type' => \Swoole\Table::TYPE_STRING, 'size' => 30 ],
                 [ 'name' => 'orderExpiry',   'type' => \Swoole\Table::TYPE_STRING, 'size' => 50 ],
+                [ 'name' => 'bet_id',        'type' => \Swoole\Table::TYPE_STRING, 'size' => 50 ],
             ],
         ],
         'minMaxRequests' => [
@@ -247,6 +249,12 @@ return [
             'size' => 12800,
             'column' => [ // KEY FORMAT: [userId:$userId]
                 [ 'name' => 'currency_id', 'type' => \Swoole\Table::TYPE_INT ],
+            ],
+        ],
+        'payloads' => [
+            'size' => 102400,
+            'column' => [
+                [ 'name' => 'payload', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 1000 ],
             ],
         ],
     ],

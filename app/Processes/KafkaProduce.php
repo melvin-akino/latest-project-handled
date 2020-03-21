@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Log;
 use Swoole\Http\Server;
 use Swoole\Process;
 use Exception;
+use Carbon\Carbon;
 
 class KafkaProduce implements CustomProcessInterface
 {
@@ -21,41 +22,34 @@ class KafkaProduce implements CustomProcessInterface
     public static function callback(Server $swoole, Process $process)
     {
         try {
-            $kafkaProducer = app('KafkaProducer');
+            $kafkaProducer         = app('KafkaProducer');
             self::$producerHandler = new ProducerHandler($kafkaProducer);
-            $kafkaTopic = env('KAFKA_SCRAPE_MINMAX_REQUEST_POSTFIX', '_minmax_req');
-            $kafkaOrderTopic = env('KAFKA_SCRAPE_ORDER_REQUEST_POSTFIX', '_bet_req');
+
+            $kafkaTopics = [
+                'req_minmax'       => env('KAFKA_SCRAPE_MINMAX_REQUEST_POSTFIX', '_minmax_req'),
+                'req_order'        => env('KAFKA_SCRAPE_ORDER_REQUEST_POSTFIX', '_bet_req'),
+                'req_open_order'   => env('KAFKA_SCRAPE_OPEN_ORDERS_POSTFIX', '_openorder_req'),
+                'push_place_order' => env('KAFKA_BET_PLACED', 'PLACED-BET'),
+            ];
 
             if ($swoole->wsTable->exist('data2Swt')) {
-                $topicTable = $swoole->topicTable;
+                $topicTable          = $swoole->topicTable;
                 $minMaxRequestsTable = $swoole->minMaxRequestsTable;
-                $ordersTable = $swoole->ordersTable;
+                $ordersTable         = $swoole->ordersTable;
+                $sportsTable         = $swoole->sportsTable;
+                $providersTable      = $swoole->providersTable;
+                $payloadsTable       = $swoole->payloadsTable;
+                $initialTime         = Carbon::createFromFormat('H:i:s', Carbon::now()->format('H:i:s'));
 
                 while (!self::$quit) {
-                    foreach ($topicTable as $key => $topic) {
-                        if (strpos($topic['topic_name'], 'min-max-') === 0) {
-                            $memUID = substr($topic['topic_name'], strlen('min-max-'));
+                    $newTime = Carbon::createFromFormat('H:i:s', Carbon::now()->format('H:i:s'));
 
-                            foreach ($minMaxRequestsTable as $minMaxRequest) {
-                                $requestId = Str::uuid();
-                                $requestTs = self::milliseconds();
+                    if ($newTime->diffInSeconds(Carbon::parse($initialTime)) >= 1) {
+                        foreach ($topicTable as $key => $topic) {
+                            if (strpos($topic['topic_name'], 'min-max-') === 0) {
+                                $memUID = substr($topic['topic_name'], strlen('min-max-'));
 
-                                $payload = [
-                                    'request_uid' => $requestId,
-                                    'request_ts'  => $requestTs,
-                                    'sub_command' => 'scrape',
-                                    'command'     => 'minmax'
-                                ];
-                                $payload['data'] = $minMaxRequest;
-                                self::pushToKafka($payload, $requestId, strtolower($minMaxRequest['provider']) . $kafkaTopic);
-                            }
-                        }
-
-                        if (strpos($topic['topic_name'], 'order-') === 0) {
-                            $orderId = substr($topic['topic_name'], strlen('order-'));
-                            if ($ordersTable->count() > 0) {
-                                foreach ($ordersTable as $orderKey => $order) {
-                                    $order     = (object) $order;
+                                foreach ($minMaxRequestsTable as $minMaxRequest) {
                                     $requestId = Str::uuid();
                                     $requestTs = self::milliseconds();
 
@@ -63,21 +57,50 @@ class KafkaProduce implements CustomProcessInterface
                                         'request_uid' => $requestId,
                                         'request_ts'  => $requestTs,
                                         'sub_command' => 'scrape',
-                                        'command'     => 'bet'
+                                        'command'     => 'minmax'
                                     ];
-
-                                    $payload['data'] = [
-                                        'actual_stake' => $order->actual_stake,
-                                        'odds'         => $order->odds,
-                                        'market_id'    => $order->market_id,
-                                        'event_id'     => $order->event_id,
-                                        'score'        => $order->score
-                                    ];
-
-                                    self::pushToKafka($payload, $requestId, $kafkaOrderTopic);
+                                    $payload['data'] = $minMaxRequest;
+                                    self::pushToKafka($payload, $requestId, strtolower($minMaxRequest['provider']) . $kafkaTopics['req_minmax']);
                                 }
                             }
                         }
+
+                        foreach ($sportsTable AS $sKey => $sRow) {
+                            $sportId = $sportsTable->get($sKey)['id'];
+
+                            foreach ($providersTable AS $pKey => $pRow) {
+                                $providerAlias = $providersTable->get($pKey)['alias'];
+                                $requestId     = Str::uuid();
+                                $requestTs     = self::milliseconds();
+
+                                $payload = [
+                                    'request_uid' => $requestId,
+                                    'request_ts'  => $requestTs,
+                                    'sub_command' => 'scrape',
+                                    'command'     => 'bet'
+                                ];
+
+                                $payload['data'] = [
+                                    'sport_id' => $sportId,
+                                    'provider' => $providerAlias
+                                ];
+
+                                self::pushToKafka($payload, $requestId, $kafkaTopics['req_open_order']);
+                            }
+                        }
+
+                        $initialTime = $newTime;
+                    }
+
+                    foreach ($payloadsTable AS $pKey => $pRow) {
+                        if (strpos($pKey, 'place-bet-') === 0) {
+                            $payload   = json_decode($pRow['payload']);
+                            $requestId = $payload->request_uid;
+
+                            self::pushToKafka((array) $payload, $requestId, $kafkaTopics['req_order']);
+                        }
+
+                        $payloadsTable->del($pKey);
                     }
                 }
             }

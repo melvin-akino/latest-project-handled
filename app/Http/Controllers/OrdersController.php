@@ -34,13 +34,13 @@ class OrdersController extends Controller
         try {
             $conditions = [];
 
-            !empty($request->status) ? !($request->status == "All") ? $conditions[] = ['status', $request->status] : null : null;
+            !empty($request->status) ? !($request->status  == "All") ? $conditions[] = ['status', $request->status] : null : null;
 
             !empty($request->created_from) ? $conditions[] = ['created_at', '>=', $request->created_from] : null;
-            !empty($request->created_to) ? $conditions[] = ['created_at', '<=', $request->created_to] : !empty($request->created_from) ? ['created_at', '<=', now()] : null;
+            !empty($request->created_to) ? $conditions[]   = ['created_at', '<=', $request->created_to] : !empty($request->created_from) ? ['created_at', '<=', now()] : null;
 
             !empty($request->settled_from) ? $conditions[] = ['settled_date', '>=', $request->settled_from] : null;
-            !empty($request->settled_to) ? $conditions[] = ['settled_date', '<=', $request->settled_to] : !empty($request->settled_to) ? ['settled_date', '<=', now()] : null;
+            !empty($request->settled_to) ? $conditions[]   = ['settled_date', '<=', $request->settled_to] : !empty($request->settled_to) ? ['settled_date', '<=', now()] : null;
 
             //Pagination part
             $page        = $request->has('page') ? $request->get('page') : 1;
@@ -65,13 +65,13 @@ class OrdersController extends Controller
                 }
 
                 $data['total_count'] = $myAllOrders;
-
-                return response()->json([
-                    'status'      => true,
-                    'status_code' => 200,
-                    'data'        => !empty($data) ? $data : null
-                ], 200);
             }
+
+            return response()->json([
+                'status'      => true,
+                'status_code' => 200,
+                'data'        => !empty($data) ? $data : null
+            ], 200);
         } catch (Exception $e) {
             return response()->json([
                 'status'      => false,
@@ -210,7 +210,7 @@ class OrdersController extends Controller
         try {
             $swt          = app('swoole');
             $topics       = $swt->topicTable;
-            $orders       = $swt->ordersTable;
+            $payloadsSwt  = $swt->payloadsTable;
             $betType      = "";
             $return       = "";
             $returnCode   = 200;
@@ -222,10 +222,9 @@ class OrdersController extends Controller
             ];
 
             foreach ($request->markets AS $row) {
-                $betType        = $request->betType;
-                $hasComputation = false;
-                $userProvider   = UserProviderConfiguration::where('provider_id', $row['provider_id']);
-                $userProvider   = Provider::find($userProvider->count() == 0 ? $row['provider_id'] : $userProvider->provider_id);
+                $betType      = $request->betType;
+                $userProvider = UserProviderConfiguration::where('provider_id', $row['provider_id']);
+                $userProvider = Provider::find($userProvider->count() == 0 ? $row['provider_id'] : $userProvider->provider_id);
 
                 /** TO DO: Wallet Balance Sufficiency Check */
 
@@ -235,10 +234,6 @@ class OrdersController extends Controller
                         'status_code' => 400,
                         'message'     => trans('generic.bad-request')
                     ], 400);
-                }
-
-                if ($userProvider->alias == "HG") {
-                    $hasComputation = true;
                 }
 
                 if (!in_array($row['provider_id'], $userProvider->toArray())) {
@@ -292,11 +287,7 @@ class OrdersController extends Controller
                     $payloadStake = $prevStake < $row['max'] ? $prevStake : $row['max'];
                 }
 
-                if ($hasComputation) {
-                    $actualStake = $payloadStake / ($userProvider->punter_percentage / 100);
-                } else {
-                    $actualStake = $payloadStake;
-                }
+                $actualStake = $payloadStake / ($userProvider->punter_percentage / 100);
 
                 if ($request->betType == "BEST_PRICE") {
                     $prevStake = $request->stake - $row['max'];
@@ -344,7 +335,7 @@ class OrdersController extends Controller
                     'settled_date'                  => "",
                     'reason'                        => "",
                     'profit_loss'                   => 0.00,
-                ]);
+                ])->id;
 
                 OrderLogs::create([
                     'user_id'       => auth()->user()->id,
@@ -378,12 +369,6 @@ class OrdersController extends Controller
                     ]);
                 }
 
-                $ordersId = "order-" . $orderId;
-
-                if (!$orders->exists($ordersId)) {
-                    $orders->set($ordersId, $payload);
-                }
-
                 $orderIds[] = $orderId;
             }
 
@@ -399,7 +384,6 @@ class OrdersController extends Controller
 
             DB::commit();
 
-            // SEND TO KAFKA PLACED BET PAYLOAD FOREACH ULET
             for ($i = 0; $i < count($incrementIds['id']); $i++) {
                 $requestId = Str::uuid() . "-" . $incrementIds['id'][$i];
                 $requestTs = self::milliseconds();
@@ -418,14 +402,15 @@ class OrdersController extends Controller
                     'score'        => $incrementIds['payload'][$i]['score']
                 ];
 
-                $topicsSwtId = implode(':', [
+                $payloadsSwtId = implode(':', [
                     "place-bet-" . $incrementIds['id'][$i],
-                    "userId:"    . $incrementIds['payload'][$i]['user_id'],
-                    "marketId:"  . $incrementIds['payload'][$i]['market_id'],
+                    "uId:"       . $incrementIds['payload'][$i]['user_id'],
+                    "mId:"       . $incrementIds['payload'][$i]['market_id'],
+                    "oId:"       . $incrementIds['payload'][$i]['order_id']
                 ]);
 
-                if ($topics->exists($topicsSwtId)) {
-                    $topics->set($topicsSwtId, $payload);
+                if (!$payloadsSwt->exists($payloadsSwtId)) {
+                    $payloadsSwt->set($payloadsSwtId, [ 'payload' => json_encode($payload) ]);
                 }
             }
 
