@@ -41,7 +41,7 @@ commonUnittest: &commonUnittest
 image: php:7.3-fpm
 pipelines:
   branches:
-    staging: 
+    develop: 
     - step:
         name: Develop
         <<: *commonBuild
@@ -58,7 +58,7 @@ pipelines:
           
           - ssh $awsuser@9pineuat.com 'bash -i  "compile.sh"'      
 
-    develop: 
+    develop-local: 
     - step:
         name: Develop
         <<: *commonBuild
