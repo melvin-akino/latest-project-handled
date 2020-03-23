@@ -13,7 +13,7 @@ class CreateViewBetSlipLogs extends Migration
      */
     public function up()
     {
-        DB::statement("CREATE OR REPLACE VIEW bet_slip_logs AS
+        DB::statement("CREATE VIEW bet_slip_logs AS
             SELECT
                 'ORDER_PLACED' AS \"log_type\",
                 ol.user_id AS \"user_id\",
