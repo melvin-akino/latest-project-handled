@@ -5,14 +5,14 @@
                 <p>Bet Matrix for Market ID: {{odd_details.market_id}}</p>
                 <p>Current Score: {{this.analysisData.bet_score}} - {{this.analysisData.against_score}}</p>
                 <div class="flex items-center bg-black text-white pl-4">
-                    <i class="material-icons sportsIcon pr-2">sports_soccer</i>
-                    <div class="w-12 p-1 text-center" v-for="(matrix, index) in matrix_table" :key="index">
+                    <i class="material-icons sportsIcon pr-3">sports_soccer</i>
+                    <div class="result p-1 text-center" v-for="(matrix, index) in matrix_table" :key="index">
                         {{index}}
                     </div>
                 </div>
-                <div class="flex items-center" v-for="(matrix, index) in matrix_table" :key="index">
-                    <span class="label block p-1 w-12 text-center bg-black text-white">{{index}}</span>
-                    <div class="w-12 p-1 text-center text-white border border-white" :class="{'bg-gray-600': data.color=='grey', 'green': data.color=='green', 'red': data.color=='red',}" v-for="(data, index) in matrix" :key="index">
+                <div class="flex flex-wrap items-center" v-for="(matrix, index) in matrix_table" :key="index">
+                    <span class="w-12 label block p-1 text-center bg-black text-white">{{index}}</span>
+                    <div class="result p-1 text-center text-white border border-white" :class="{'grey': data.color=='grey', 'green': data.color=='green', 'lightgreen': data.color=='lightgreen', 'red': data.color=='red', 'lightred': data.color=='lightred'}" v-for="(data, index) in matrix" :key="index">
                         {{data.result}}
                     </div>
                 </div>
@@ -26,22 +26,14 @@ import 'vue-dialog-drag/dist/vue-dialog-drag.css'
 import DialogDrag from 'vue-dialog-drag'
 
 export default {
-    props: ['odd_details', 'points'],
+    props: ['odd_details', 'analysisData'],
     components: {
         DialogDrag
     },
     data() {
         return {
-            analysisData: {
-                stake: 100, //hardcoded
-                price: this.odd_details.odds,
-                hdp: this.points,
-                bet_score: 0, //hardcoded
-                against_score: 0, //hardcoded
-            },
-            matrixAnalysisObject: {},
             options: {
-                width:600,
+                width:868,
                 buttonPin: false,
                 centered: "viewport"
             },
@@ -76,17 +68,21 @@ export default {
                     if(difference > 0) {
                         if(difference == 0.25 || difference == 0.75) {
                             var result = this.halfwin
+                            var color = 'lightgreen'
                         } else {
                             var result = this.towin
+                            var color = 'green'
                         }
-                        var color = 'green'
+
                     } else if(difference < 0) {
                         if(difference == -0.25 || difference == -0.75) {
                             var result = this.halflose * -1
+                            var color = 'lightred'
                         } else {
                             var result = this.analysisData.stake * -1
+                            var color = 'red'
                         }
-                        var color = 'red'
+
                     } else {
                         var result = 'push'
                         var color = 'white'
@@ -95,7 +91,7 @@ export default {
                     if(against_team_counter <= this.analysisData.against_score || bet_team_counter <= this.analysisData.bet_score) {
                         var color = 'grey'
                     }
-                    table.push({ 'color': color, 'result': Math.round(result) })
+                    table.push({ 'color': color, 'result': Math.floor(result) })
                     against_team_counter++
                 }
                 this.matrix_table.push(table)
@@ -111,11 +107,23 @@ export default {
         background-color: #006400;
     }
 
+    .lightgreen {
+        background-color: #4cbb17;
+    }
+
     .red {
         background-color: #8b0000;
     }
 
+    .lightred {
+        background-color: #ff0000;
+    }
+
     .grey {
         background-color: #aaaaaa;
+    }
+
+    .result {
+        width: 70px;
     }
 </style>
