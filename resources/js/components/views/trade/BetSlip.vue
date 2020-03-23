@@ -5,7 +5,7 @@
                 <div class="flex items-center w-1/2">
                     <span class="text-white uppercase font-bold mr-2 my-2 px-2 bg-orange-500">{{market_details.odd_type}}</span>
                     <span class="text-gray-800 font-bold my-2 pr-6">{{market_details.league_name}}</span>
-                    <a href="#" @click.prevent="openBetMatrix(odd_details)" class="text-center py-1 pr-1" title="Bet Matrix" v-if="oddTypesWithSpreads.includes(market_details.odd_type)"><i class="fas fa-chart-area"></i></a>
+                    <a href="#" @click.prevent="openBetMatrix(odd_details)" class="text-center py-1 pr-1" title="Bet Matrix" v-if="oddTypesWithSpreads.includes(market_details.odd_type) && isDoneBetting"><i class="fas fa-chart-area"></i></a>
                     <a href="#" @click.prevent="openOddsHistory(odd_details)" lass="text-center py-1" title="Odds History"><i class="fas fa-bars"></i></a>
                 </div>
                 <div class="flex justify-between items-center w-full">
@@ -121,7 +121,7 @@
                 </div>
             </div>
         </dialog-drag>
-        <bet-matrix v-for="odd in openedBetMatrix" :key="odd.market_id" :odd_details="odd" :points="points"></bet-matrix>
+        <bet-matrix v-for="odd in openedBetMatrix" :key="odd.market_id" :odd_details="odd" :analysis-data="analysisData"></bet-matrix>
         <odds-history v-for="odd in openedOddsHistory" :key="odd.market_id" :odd_details="odd" :market_details="market_details"></odds-history>
     </div>
 </template>
@@ -162,7 +162,9 @@ export default {
                 width:825,
                 buttonPin: false,
                 centered: "viewport"
-            }
+            },
+            analysisData: {},
+            isDoneBetting: false
         }
     },
     computed: {
@@ -183,6 +185,26 @@ export default {
                 return this.orderError
             } else {
                 return this.orderMessage
+            }
+        },
+        bet_score() {
+            if(!_.isEmpty(this.market_details)) {
+                let scores = this.market_details.score.split(' ')
+                if(this.market_details.market_flag=='HOME') {
+                    return Number(scores[0])
+                } else if(this.market_details.market_flag=='AWAY') {
+                    return Number(scores[2])
+                }
+            }
+        },
+        against_score() {
+            if(!_.isEmpty(this.market_details)) {
+                let scores = this.market_details.score.split(' ')
+                if(this.market_details.market_flag=='HOME') {
+                    return Number(scores[2])
+                } else if(this.market_details.market_flag=='AWAY') {
+                    return Number(scores[0])
+                }
             }
         }
     },
@@ -336,6 +358,19 @@ export default {
                     this.orderMessage = response.data.data
                     this.$store.dispatch('trade/getBetbarData')
                     this.$store.commit('trade/TOGGLE_BETBAR', true)
+                    if(this.oddTypesWithSpreads.includes(this.market_details.odd_type)) {
+                        let prices = data.markets.map(market => market.price)
+                        let sumOfPrices = prices.reduce((firstPrice, secondPrice) => firstPrice + secondPrice, 0)
+                        let averagePrice = sumOfPrices / prices.length
+                        this.analysisData = {
+                            stake: data.stake,
+                            hdp: this.points,
+                            price: Math.floor(averagePrice * 100) / 100,
+                            bet_score: this.bet_score,
+                            against_score: this.against_score
+                        }
+                    }
+                    this.isDoneBetting = true
                 })
                 .catch(err => {
                     this.$store.dispatch('auth/checkIfTokenIsValid', err.response.data.status_code)

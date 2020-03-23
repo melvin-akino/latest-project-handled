@@ -46,7 +46,7 @@ class TradeController extends Controller
                         $betData->stake
                     ],
                     'status'         => $betData->status,
-                    'create_at'      => $betData->created_at
+                    'created_at'      => $betData->created_at
                 ];
             }
 
