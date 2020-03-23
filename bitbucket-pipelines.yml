@@ -41,7 +41,7 @@ commonUnittest: &commonUnittest
 image: php:7.3-fpm
 pipelines:
   branches:
-    pipeline-switch-to-aws: 
+    develop: 
     - step:
         name: Develop
         <<: *commonBuild
