@@ -198,10 +198,6 @@ class KafkaConsume implements CustomProcessInterface
                                 $userId = $_row['user_id'];
                                 $fd     = $table->get('uid:' . $userId);
 
-                                \Log::info(json_encode([
-                                    'getUpdatedPrice' => $updatedMarkets,
-                                ]));
-
                                 $swoole->push($fd['value'], json_encode([ 'getUpdatedPrice' => $updatedMarkets ]));
                                 $table->del($k);
 
