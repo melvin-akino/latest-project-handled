@@ -31,7 +31,9 @@ const state = {
     openedOddsHistory: [],
     openedBetMatrix: [],
     bookies: [],
-    bets: []
+    bets: [],
+    tradePageSettings: {},
+    betSlipSettings: {}
 }
 
 const mutations = {
@@ -148,6 +150,12 @@ const mutations = {
     },
     SET_BETS: (state, bets) => {
         state.bets = bets
+    },
+    SET_TRADE_PAGE_SETTINGS: (state, tradePageSettings) => {
+        state.tradePageSettings = tradePageSettings
+    },
+    SET_BET_SLIP_SETTINGS: (state, betSlipSettings) => {
+        state.betSlipSettings = betSlipSettings
     }
 }
 
@@ -235,6 +243,14 @@ const actions = {
         .catch(err => {
             dispatch('auth/checkIfTokenIsValid', err.response.data.status_code, { root: true })
         })
+    },
+    async getTradePageSettings({dispatch, commit}) {
+        let tradePageSettings = await dispatch('settings/getUserSettingsConfig', 'trade-page', { root: true })
+        commit('SET_TRADE_PAGE_SETTINGS', tradePageSettings)
+    },
+    async getBetSlipSettings({dispatch, commit}) {
+        let betSlipSettings = await dispatch('settings/getUserSettingsConfig', 'bet-slip', { root: true })
+        commit('SET_BET_SLIP_SETTINGS', betSlipSettings)
     },
     toggleLeague(context, data) {
         axios.post('v1/trade/leagues/toggle', { league_name: data.league_name, sport_id: data.sport_id, schedule: data.schedule}, { headers: { 'Authorization': `Bearer ${token}` } })
