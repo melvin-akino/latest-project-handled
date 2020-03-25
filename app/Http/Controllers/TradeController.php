@@ -19,16 +19,31 @@ class TradeController extends Controller
     public function getUserBetbar()
     {
         try {
-            $betBarData = DB::table('orders as o')
-            ->join('providers as p', 'p.id', 'o.provider_id')
-            ->join('master_event_markets as mem', 'mem.master_event_market_unique_id', 'o.master_event_market_unique_id')
-            ->join('master_events as me', 'me.master_event_unique_id', 'mem.master_event_unique_id')
-            ->join('odd_types as ot', 'ot.id', 'mem.odd_type_id')
-            ->join('sport_odd_type as sot', 'sot.odd_type_id', 'ot.id')
-            ->select('o.id as order_id', 'p.alias', 'o.master_event_market_unique_id', 'me.master_league_name', 'me.master_home_team_name', 'me.master_away_team_name', 'mem.market_flag', 'sot.name', 'o.odds', 'o.stake', 'o.status', 'o.created_at')
-            ->distinct()
-            ->where('sot.sport_id', DB::raw('o.sport_id'))
-            ->get();
+            $betBarData = DB::table('orders AS o')
+                ->join('order_logs AS ol', 'o.id', '=', 'ol.order_id')
+                ->join('providers AS p', 'p.id', 'o.provider_id')
+                ->join('master_event_markets AS mem', 'mem.master_event_market_unique_id', 'o.master_event_market_unique_id')
+                ->join('master_events AS me', 'me.master_event_unique_id', 'mem.master_event_unique_id')
+                ->join('odd_types AS ot', 'ot.id', 'mem.odd_type_id')
+                ->join('sport_odd_type AS sot', 'sot.odd_type_id', 'ot.id')
+                ->distinct()
+                ->where('sot.sport_id', DB::raw('o.sport_id'))
+                ->select([
+                    'o.id AS order_id',
+                    'p.alias',
+                    'o.master_event_market_unique_id',
+                    'me.master_league_name',
+                    'me.master_home_team_name',
+                    'me.master_away_team_name',
+                    'mem.market_flag',
+                    'sot.name',
+                    'o.odds',
+                    'o.stake',
+                    'ol.status',
+                    'ol.created_at',
+                ])
+                ->orderBy('ol.created_at', 'desc')
+                ->get();
 
             $data = [];
             foreach ($betBarData as $betData) {

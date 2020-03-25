@@ -335,6 +335,7 @@ class OrdersController extends Controller
                     'settled_date'                  => "",
                     'reason'                        => "",
                     'profit_loss'                   => 0.00,
+                    'order_expiry'                  => $request->orderExpiry,
                 ])->id;
 
                 $incrementIds['id'][] = $orderIncrementId;
