@@ -21,6 +21,7 @@ class TransformKafkaMessageOpenOrders extends Task
     {
         $swoole      = app('swoole');
         $topics      = $swoole->topicTable;
+        $ws          = $swoole->wsTable;
         $ordersTable = $swoole->ordersTable;
         $openOrders  = $this->data->data;
 
@@ -32,12 +33,13 @@ class TransformKafkaMessageOpenOrders extends Task
 
                     foreach ($ordersTable as $_key => $orderTable) {
                         if ($orderTable['bet_id'] == $betId) {
-                            $fd     = $wsTable->get('uid:' . $userId);
-                            $expiry = $orderTable['orderExpiry'];
+                            $fd      = $wsTable->get('uid:' . $userId);
+                            $expiry  = $orderTable['orderExpiry'];
+                            $orderid = substr($_key, strlen('orderId:'));
 
                             $swoole->push($fd['value'], json_encode([
                                 'getOrderStatus' => [
-                                    'order_id' => substr($_key, strlen('orderId:')),
+                                    'order_id' => $orderId,
                                     'status'   => $order->status
                                 ]
                             ]));
@@ -47,29 +49,35 @@ class TransformKafkaMessageOpenOrders extends Task
                                 'CANCELLED',
                             ];
 
-                            if (in_array(strtoupper($order->status), $forBetBarRemoval)) {
-                                if ($expiry == "Now") {
-                                    WSForBetBarRemoval::dispatch($fd['value'], substr($_key, strlen('orderId:')));
-                                } else {
-                                    $delay    = substr($row, strlen($row) - 1); // s - Seconds, m - Minutes, h - Hours
-                                    $duration = substr($row, 0, strlen($row) - 1);
+                            $removalSwtId = "remove-bet-bar-" . $orderId;
 
-                                    switch ($delay) {
-                                        case 's':
-                                            WSForBetBarRemoval::dispatch($fd['value'], substr($_key, strlen('orderId:')))
-                                                ->delay(now()->addSeconds($duration));
-                                            break;
+                            if (!$ws->exists($removalSwtId)) {
+                                if (in_array(strtoupper($order->status), $forBetBarRemoval)) {
+                                    if ($expiry == "Now") {
+                                        WSForBetBarRemoval::dispatch($fd['value'], $orderId);
+                                    } else {
+                                        $delay    = substr($row, strlen($row) - 1); // s - Seconds, m - Minutes, h - Hours
+                                        $duration = substr($row, 0, strlen($row) - 1);
 
-                                        case 'm':
-                                            WSForBetBarRemoval::dispatch($fd['value'], substr($_key, strlen('orderId:')))
-                                                ->delay(now()->addMinutes($duration));
-                                            break;
+                                        switch ($delay) {
+                                            case 's':
+                                                WSForBetBarRemoval::dispatch($fd['value'], $orderId)
+                                                    ->delay(now()->addSeconds($duration));
+                                                break;
 
-                                        case 'h':
-                                            WSForBetBarRemoval::dispatch($fd['value'], substr($_key, strlen('orderId:')))
-                                                ->delay(now()->addHours($duration));
-                                            break;
+                                            case 'm':
+                                                WSForBetBarRemoval::dispatch($fd['value'], $orderId)
+                                                    ->delay(now()->addMinutes($duration));
+                                                break;
+
+                                            case 'h':
+                                                WSForBetBarRemoval::dispatch($fd['value'], $orderId)
+                                                    ->delay(now()->addHours($duration));
+                                                break;
+                                        }
                                     }
+
+                                    $ws->set($removalSwtId, [ 'value' => $orderId, ]);
                                 }
                             }
                         }
