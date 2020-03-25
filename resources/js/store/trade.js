@@ -221,10 +221,15 @@ const actions = {
                 let schedule = ['inplay', 'today', 'early']
                 schedule.map(schedule => {
                     if(schedule in response.data.data.user_selected) {
-                        Object.keys(response.data.data.user_selected[schedule]).map(league => {
-                            response.data.data.user_selected[schedule][league].map(event => {
+                        let sortedUserSelected = {}
+                        Object.keys(response.data.data.user_selected[schedule]).sort().map(league => {
+                            if(typeof(sortedUserSelected[schedule]) == "undefined") {
+                                sortedUserSelected[schedule] = {}
+                            }
+                            sortedUserSelected[schedule][league] = response.data.data.user_selected[schedule][league]
+                            sortedUserSelected[schedule][league].map(event => {
                                 if(event.sport_id == state.selectedSport) {
-                                    commit('SET_EVENTS', { schedule: schedule, events: response.data.data.user_selected[schedule]})
+                                    commit('SET_EVENTS', { schedule: schedule, events:  sortedUserSelected[schedule]})
                                     commit('SET_EVENTS_LIST', event)
                                     commit('SET_ALL_EVENTS_LIST', event)
                                 }
@@ -235,9 +240,14 @@ const actions = {
             }
 
             if('user_watchlist' in response.data.data) {
-                commit('SET_WATCHLIST', response.data.data.user_watchlist)
-                Object.keys(response.data.data.user_watchlist).map(league => {
-                    response.data.data.user_watchlist[league].map(event => {
+                let sortedUserWatchlist = {}
+                Object.keys(response.data.data.user_watchlist).sort().map(league => {
+                    if(typeof(sortedUserWatchlist[league]) == "undefined") {
+                        sortedUserWatchlist[league] = {}
+                    }
+                    sortedUserWatchlist[league] = response.data.data.user_watchlist[league]
+                    sortedUserWatchlist[league].map(event => {
+                        commit('SET_WATCHLIST', sortedUserWatchlist)
                         commit('SET_ALL_EVENTS_LIST', event)
                     })
                 })
