@@ -34,8 +34,8 @@ return [
         'swt_to_ws' => [
             'class'    => \App\Processes\SwtToWs::class,
             'redirect' => false,
-            'pipe' => 0,
-            'enable' => true
+            'pipe'     => 0,
+            'enable'   => true
         ],
         'kafka_consume' => [
             'class'    => \App\Processes\KafkaConsume::class,
