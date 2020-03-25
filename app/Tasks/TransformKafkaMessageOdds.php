@@ -205,6 +205,16 @@ class TransformKafkaMessageOdds extends Task
                     $masterTeamHome = $eventsTable->get($eventSwtId)['master_home_team_name'];
                     $masterTeamAway = $eventsTable->get($eventSwtId)['master_away_team_name'];
 
+                    if ($this->message->data->schedule == 'early' && $eventsTable->get($eventSwtId)['game_schedule'] == 'today') {
+                        Log::info("Transformation ignored - event is already in today");
+                        return;
+                    }
+
+                    if ($this->message->data->schedule == 'today' && $eventsTable->get($eventSwtId)['game_schedule'] == 'inplay') {
+                        Log::info("Transformation ignored - event is already in play");
+                        return;
+                    }
+
                     if ($eventsTable->get($eventSwtId)['game_schedule'] != $this->message->data->schedule) {
                         $wsTable->set('eventScheduleChange:' . $uid, ['value' => json_encode([
                             'uid'           => $uid,
