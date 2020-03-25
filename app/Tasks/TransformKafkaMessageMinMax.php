@@ -71,6 +71,7 @@ class TransformKafkaMessageMinMax extends Task
                             "max"         => $maximum,
                             "price"       => $data->odds,
                             "priority"    => $provTable->get($providerSwtId)['priority'],
+                            'market_id'   => $memUID,
                         ];
 
                         if (!$providerCurrency['id'] == $userCurrency['id']) {

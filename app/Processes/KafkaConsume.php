@@ -184,21 +184,24 @@ class KafkaConsume implements CustomProcessInterface
 
     private static function getUpdatedPrice($swoole)
     {
-        $table = $swoole->wsTable;
+        $table      = $swoole->wsTable;
         $topicTable = $swoole->topicTable;
+
         foreach ($table as $k => $r) {
             if (strpos($k, 'updatedEvents:') === 0) {
                 foreach ($table as $key => $row) {
                     $updatedMarkets = json_decode($r['value']);
+
                     if (!empty($updatedMarkets)) {
-                        if (strpos($key, 'fd:') === 0) {
-                            foreach ($topicTable as $topic) {
-                                if ($topic['user_id'] == $row['value']) {
-                                    $fd = $table->get('uid:' . $row['value']);
-                                    $swoole->push($fd['value'], json_encode(['getUpdatedPrice' => $updatedMarkets]));
-                                    $table->del($k);
-                                    break;
-                                }
+                        foreach ($topicTable AS $topic => $_row) {
+                            if (strpos($_row['topic_name'], 'min-max-') === 0) {
+                                $userId = $_row['user_id'];
+                                $fd     = $table->get('uid:' . $userId);
+
+                                $swoole->push($fd['value'], json_encode([ 'getUpdatedPrice' => $updatedMarkets ]));
+                                $table->del($k);
+
+                                break;
                             }
                         }
                     }
