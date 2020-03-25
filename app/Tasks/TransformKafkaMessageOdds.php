@@ -211,11 +211,6 @@ class TransformKafkaMessageOdds extends Task
                             'game_schedule' => $this->message->data->schedule,
                             'sport_id'      => $sportId
                         ])]);
-
-                        $toDelete['EventMarket']['master_event_unique_id'] = $uid;
-
-                        $this->subTasks['delete-event-market'] = $toDelete;
-
                     }
                 } else {
                     $masterTeamHome = $multiTeam['home']['name'];
