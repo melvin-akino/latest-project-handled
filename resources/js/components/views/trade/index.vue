@@ -87,18 +87,40 @@ export default {
                 if(getSocketKey(response.data) ===  'getWatchlist') {
                     let watchlist = getSocketValue(response.data, 'getWatchlist')
                     let watchlistLeagues = _.uniq(watchlist.map(event => event.league_name))
+                    let watchlistStartTime = _.uniq(watchlist.map(event => `[${event.ref_schedule.split(' ')[1]}] ${event.league_name}`))
                     let watchlistObject = {}
-                    watchlistLeagues.map(league => {
-                        watchlist.map(event => {
-                            if(event.league_name === league) {
-                                if(typeof(watchlistObject[league]) == "undefined") {
-                                    watchlistObject[league] = []
+                    if(this.tradePageSettings.sort_event == 1) {
+                        watchlistLeagues.map(league => {
+                            watchlist.map(event => {
+                                if(event.league_name === league) {
+                                    if(typeof(watchlistObject[league]) == "undefined") {
+                                        watchlistObject[league] = []
+                                    }
+                                    watchlistObject[league].push(event)
                                 }
-                                watchlistObject[league].push(event)
-                            }
+                            })
                         })
+                    } else if(this.tradePageSettings.sort_event == 2) {
+                        watchlistStartTime.map(startTime => {
+                            watchlist.map(event => {
+                                let eventSchedLeague = `[${event.ref_schedule.split(' ')[1]}] ${event.league_name}`
+                                if(eventSchedLeague === startTime) {
+                                    if(typeof(watchlistObject[startTime]) == "undefined") {
+                                        watchlistObject[startTime] = []
+                                    }
+                                    watchlistObject[startTime].push(event)
+                                }
+                            })
+                        })
+                    }
+                    let sortedWatchlistObject = {}
+                    Object.keys(watchlistObject).sort().map(league => {
+                        if(typeof(sortedWatchlistObject[league]) == "undefined") {
+                            sortedWatchlistObject[league] = []
+                        }
+                        sortedWatchlistObject[league] = watchlistObject[league]
                     })
-                    this.$store.commit('trade/SET_WATCHLIST', watchlistObject)
+                    this.$store.commit('trade/SET_WATCHLIST', sortedWatchlistObject)
                 }
             })
         },
@@ -121,7 +143,7 @@ export default {
                     })
                     let eventsSchedule = _.uniq(this.eventsList.map(event => event.game_schedule))
                     let eventsLeague = _.uniq(this.eventsList.map(event => event.league_name))
-                    let eventStartTime = _.uniq(this.eventsList.map(event => `${event.ref_schedule.split(' ')[1]} - ${event.league_name}`))
+                    let eventStartTime = _.uniq(this.eventsList.map(event => `[${event.ref_schedule.split(' ')[1]}] ${event.league_name}`))
                     let eventObject = {}
                     eventsSchedule.map(schedule => {
                         if(this.tradePageSettings.sort_event == 1) {
@@ -141,7 +163,7 @@ export default {
                         } else if(this.tradePageSettings.sort_event == 2) {
                             eventStartTime.map(startTime => {
                                 this.eventsList.map(event => {
-                                    let eventSchedLeague = `${event.ref_schedule.split(' ')[1]} - ${event.league_name}`
+                                    let eventSchedLeague = `[${event.ref_schedule.split(' ')[1]}] ${event.league_name}`
                                     if(event.game_schedule === schedule && eventSchedLeague === startTime) {
                                         if(typeof(eventObject[schedule]) == "undefined") {
                                             eventObject[schedule] = {}

@@ -110,15 +110,30 @@ const mutations = {
         state.events[data.schedule][data.league].push(data.event)
     },
     REMOVE_FROM_EVENTS: (state, data) => {
-        Vue.delete(state.events[data.schedule], data.removedLeague)
-        if(data.schedule != 'watchlist') {
-            state.eventsList = state.eventsList.filter(event => event.league_name != data.removedLeague)
+        if(state.tradePageSettings.sort_event == 1) {
+            Vue.delete(state.events[data.schedule], data.removedLeague)
+        } else if(state.tradePageSettings.sort_event == 2) {
+            state.allEventsList.map(event => {
+                if(event.league_name == data.removedLeague) {
+                    let eventSchedLeague = `[${event.ref_schedule.split(' ')[1]}] ${event.league_name}`
+                    Vue.delete(state.events[data.schedule], eventSchedLeague)
+                }
+            })
         }
     },
     REMOVE_FROM_EVENTS_BY_LEAGUE: (state, removedLeague) => {
         let schedule = ['inplay', 'today', 'early']
         schedule.map(schedule => {
-            Vue.delete(state.events[schedule], removedLeague)
+            if(state.tradePageSettings.sort_event == 1) {
+                Vue.delete(state.events[schedule], removedLeague)
+            } else if(state.tradePageSettings.sort_event == 2) {
+                state.allEventsList.map(event => {
+                    if(event.league_name == removedLeague) {
+                        let eventSchedLeague = `[${event.ref_schedule.split(' ')[1]}] ${event.league_name}`
+                        Vue.delete(state.events[schedule], eventSchedLeague)
+                    }
+                })
+            }
         })
     },
     REMOVE_EVENT: (state, data) => {
