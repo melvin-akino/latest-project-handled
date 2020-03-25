@@ -106,6 +106,7 @@ if (!function_exists('getUserDefault')) {
         $types = [
             'sport',
             'league',
+            'sort-event'
         ];
 
         if (in_array($type, $types)) {
@@ -127,7 +128,22 @@ if (!function_exists('getUserDefault')) {
                         'default_sport' => $sport,
                     ];
                 break;
+                case 'sort-event':
+                    $defaultEventSort = UserConfiguration::where('type', 'sort_event')
+                        ->where('menu', 'trade-page')
+                        ->where('user_id', $userId);
 
+                    if ($defaultEventSort->count() == 0) {
+                        $sort = config('default_config.trade-page.sort_event');
+                    } else {
+                        $sort = $defaultEventSort->first()->value;
+                    }
+
+                    $data = [
+                        'status'        => true,
+                        'default_sort'  => $sort,
+                    ];
+                    break;
                 case 'league':
                     //
                 break;

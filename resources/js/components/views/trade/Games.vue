@@ -89,11 +89,12 @@ export default {
     data() {
         return {
             isGameSchedTypeOpen: true,
-            closedLeagues: []
+            closedLeagues: [],
+            leaguesLength: 0
         }
     },
     computed: {
-        ...mapState('trade', ['selectedSport', 'selectedLeagues', 'tradeLayout', 'oddsTypeBySport', 'events', 'eventsList', 'watchlist', 'openedBetSlips']),
+        ...mapState('trade', ['selectedSport', 'selectedLeagues', 'tradeLayout', 'oddsTypeBySport', 'events', 'eventsList', 'watchlist', 'openedBetSlips', 'tradePageSettings']),
         ...mapState('settings', ['disabledBetColumns']),
         checkIfGamesIsEmpty() {
             return _.isEmpty(this.games)
@@ -112,6 +113,9 @@ export default {
             }
         },
         unselectLeague(league) {
+            if(this.tradePageSettings.sort_event == 2) {
+                league = league.split('] ')[1]
+            }
             let token = Cookies.get('mltoken')
             this.$store.commit('trade/REMOVE_SELECTED_LEAGUE', { schedule: this.gameSchedType, league: league })
             this.$store.commit('trade/REMOVE_FROM_EVENTS', { schedule: this.gameSchedType, removedLeague: league })
@@ -120,6 +124,9 @@ export default {
         },
         addToWatchlist(type, data, payload) {
             let token = Cookies.get('mltoken')
+            if(type=='league' && this.tradePageSettings.sort_event == 2) {
+                data = data.split('] ')[1]
+            }
             axios.post('v1/trade/watchlist/add', { type: type, data: data }, { headers: { 'Authorization': `Bearer ${token}` }})
             .then(response => {
                 if(type==='league') {
@@ -127,17 +134,21 @@ export default {
                     this.$store.commit('trade/REMOVE_SELECTED_LEAGUE_BY_NAME', data)
                     this.$store.commit('trade/REMOVE_FROM_EVENTS_BY_LEAGUE', data)
                     this.$store.commit('trade/REMOVE_FROM_EVENT_LIST', { type: 'league_name', data: data })
-                    payload.map(event => {
-                        this.$store.commit('trade/SET_PREVIOUSLY_SELECTED_EVENTS', event.uid)
-                    })
                 } else if(type==='event') {
-                    this.$store.commit('trade/REMOVE_EVENT', { schedule: this.gameSchedType, removedLeague: payload.league_name, removedEvent: payload.uid})
-                    this.$store.commit('trade/REMOVE_FROM_EVENT_LIST', { type: 'uid', data: payload.uid })
-                    if(this.events[this.gameSchedType][payload.league_name].length === 0) {
+                    if(this.tradePageSettings.sort_event == 1) {
+                        this.$store.commit('trade/REMOVE_EVENT', { schedule: this.gameSchedType, removedLeague: payload.league_name, removedEvent: payload.uid})
+                        this.leaguesLength = this.events[this.gameSchedType][payload.league_name].length
+                    } else if(this.tradePageSettings.sort_event == 2) {
+                        let eventStartTime = `[${payload.ref_schedule.split(' ')[1]}] ${payload.league_name}`
+                        this.$store.commit('trade/REMOVE_EVENT', { schedule: this.gameSchedType, removedLeague: eventStartTime, removedEvent: payload.uid})
+                        this.leaguesLength = this.events[this.gameSchedType][eventStartTime].length
+                    }
+
+                    if(this.leaguesLength == 0) {
                         this.$store.dispatch('trade/toggleLeagueByName', { league_name: payload.league_name, sport_id: this.selectedSport })
                         this.$store.commit('trade/REMOVE_SELECTED_LEAGUE_BY_NAME', payload.league_name)
                         this.$store.commit('trade/REMOVE_FROM_EVENTS_BY_LEAGUE', payload.league_name)
-                        this.$store.commit('trade/SET_PREVIOUSLY_SELECTED_EVENTS', payload.uid)
+                        this.$store.commit('trade/REMOVE_FROM_EVENT_LIST', { type: 'uid', data: payload.uid })
                     }
                 }
                 this.$socket.send('getWatchlist')
@@ -148,6 +159,9 @@ export default {
         },
         removeFromWatchlist(type, data, payload) {
             let token = Cookies.get('mltoken')
+            if(type=='league' && this.tradePageSettings.sort_event == 2) {
+                data = data.split('] ')[1]
+            }
             axios.post('v1/trade/watchlist/remove', { type: type, data: data }, { headers: { 'Authorization': `Bearer ${token}` }})
             .then(response => {
                 if(type==='league') {
@@ -158,8 +172,16 @@ export default {
                         this.$socket.send(`getEvents_${event.league_name}_${event.game_schedule}`)
                     })
                 } else if(type==='event') {
-                    this.$store.commit('trade/REMOVE_EVENT', { schedule: 'watchlist', removedLeague: payload.league_name, removedEvent: data })
-                    if(this.events.watchlist[payload.league_name].length === 0) {
+                    if(this.tradePageSettings.sort_event == 1) {
+                        this.$store.commit('trade/REMOVE_EVENT', { schedule: 'watchlist', removedLeague: payload.league_name, removedEvent: data })
+                        this.leaguesLength = this.events.watchlist[payload.league_name].length
+                    } else if(this.tradePageSettings.sort_event == 2) {
+                        let eventStartTime = `[${payload.ref_schedule.split(' ')[1]}] ${payload.league_name}`
+                        this.$store.commit('trade/REMOVE_EVENT', { schedule: 'watchlist', removedLeague: eventStartTime, removedEvent: data })
+                        this.leaguesLength = this.events.watchlist[eventStartTime].length
+                    }
+
+                    if(this.leaguesLength == 0) {
                         this.$store.commit('trade/REMOVE_FROM_EVENTS', { schedule: 'watchlist', removedLeague: payload.league_name })
                     }
                     this.$store.dispatch('trade/toggleLeague', { league_name: payload.league_name, sport_id: this.selectedSport, schedule: payload.game_schedule  })

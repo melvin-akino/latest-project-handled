@@ -55,10 +55,11 @@ export default {
         }
     },
     computed: {
-        ...mapState('trade', ['isBetBarOpen', 'selectedSport', 'oddsTypeBySport', 'allEventsList', 'eventsList', 'events', 'openedBetSlips'])
+        ...mapState('trade', ['isBetBarOpen', 'selectedSport', 'oddsTypeBySport', 'allEventsList', 'eventsList', 'events', 'openedBetSlips', 'tradePageSettings'])
     },
     mounted() {
         this.$store.dispatch('trade/getInitialEvents')
+        this.$store.dispatch('trade/getTradePageSettings')
         this.getWatchlist()
         this.getUserTradeLayout()
         this.getEvents()
@@ -86,18 +87,40 @@ export default {
                 if(getSocketKey(response.data) ===  'getWatchlist') {
                     let watchlist = getSocketValue(response.data, 'getWatchlist')
                     let watchlistLeagues = _.uniq(watchlist.map(event => event.league_name))
+                    let watchlistStartTime = _.uniq(watchlist.map(event => `[${event.ref_schedule.split(' ')[1]}] ${event.league_name}`))
                     let watchlistObject = {}
-                    watchlistLeagues.map(league => {
-                        watchlist.map(event => {
-                            if(event.league_name === league) {
-                                if(typeof(watchlistObject[league]) == "undefined") {
-                                    watchlistObject[league] = []
+                    if(this.tradePageSettings.sort_event == 1) {
+                        watchlistLeagues.map(league => {
+                            watchlist.map(event => {
+                                if(event.league_name === league) {
+                                    if(typeof(watchlistObject[league]) == "undefined") {
+                                        watchlistObject[league] = []
+                                    }
+                                    watchlistObject[league].push(event)
                                 }
-                                watchlistObject[league].push(event)
-                            }
+                            })
                         })
+                    } else if(this.tradePageSettings.sort_event == 2) {
+                        watchlistStartTime.map(startTime => {
+                            watchlist.map(event => {
+                                let eventSchedLeague = `[${event.ref_schedule.split(' ')[1]}] ${event.league_name}`
+                                if(eventSchedLeague === startTime) {
+                                    if(typeof(watchlistObject[startTime]) == "undefined") {
+                                        watchlistObject[startTime] = []
+                                    }
+                                    watchlistObject[startTime].push(event)
+                                }
+                            })
+                        })
+                    }
+                    let sortedWatchlistObject = {}
+                    Object.keys(watchlistObject).sort().map(league => {
+                        if(typeof(sortedWatchlistObject[league]) == "undefined") {
+                            sortedWatchlistObject[league] = []
+                        }
+                        sortedWatchlistObject[league] = watchlistObject[league]
                     })
-                    this.$store.commit('trade/SET_WATCHLIST', watchlistObject)
+                    this.$store.commit('trade/SET_WATCHLIST', sortedWatchlistObject)
                 }
             })
         },
@@ -120,25 +143,51 @@ export default {
                     })
                     let eventsSchedule = _.uniq(this.eventsList.map(event => event.game_schedule))
                     let eventsLeague = _.uniq(this.eventsList.map(event => event.league_name))
+                    let eventStartTime = _.uniq(this.eventsList.map(event => `[${event.ref_schedule.split(' ')[1]}] ${event.league_name}`))
                     let eventObject = {}
                     eventsSchedule.map(schedule => {
-                        eventsLeague.map(league => {
-                            this.eventsList.map(event => {
-                                if(event.game_schedule === schedule && event.league_name === league) {
-                                    if(typeof(eventObject[schedule]) == "undefined") {
-                                        eventObject[schedule] = {}
+                        if(this.tradePageSettings.sort_event == 1) {
+                            eventsLeague.map(league => {
+                                this.eventsList.map(event => {
+                                    if(event.game_schedule === schedule && event.league_name === league) {
+                                        if(typeof(eventObject[schedule]) == "undefined") {
+                                            eventObject[schedule] = {}
+                                        }
+                                        if(typeof(eventObject[schedule][league]) == "undefined") {
+                                            eventObject[schedule][league] = []
+                                        }
+                                        eventObject[schedule][league].push(event)
                                     }
-
-                                    if(typeof(eventObject[schedule][league]) == "undefined") {
-                                        eventObject[schedule][league] = []
-                                    }
-                                    eventObject[schedule][league].push(event)
-                                }
+                                })
                             })
+                        } else if(this.tradePageSettings.sort_event == 2) {
+                            eventStartTime.map(startTime => {
+                                this.eventsList.map(event => {
+                                    let eventSchedLeague = `[${event.ref_schedule.split(' ')[1]}] ${event.league_name}`
+                                    if(event.game_schedule === schedule && eventSchedLeague === startTime) {
+                                        if(typeof(eventObject[schedule]) == "undefined") {
+                                            eventObject[schedule] = {}
+                                        }
+                                        if(typeof(eventObject[schedule][startTime]) == "undefined") {
+                                            eventObject[schedule][startTime] = []
+                                        }
+                                        eventObject[schedule][startTime].push(event)
+                                    }
+                                })
+                            })
+                        }
+                    })
+                    let sortedEventObject = {}
+                    Object.keys(eventObject).map(schedule => {
+                        Object.keys(eventObject[schedule]).sort().map(league => {
+                            if(typeof(sortedEventObject[schedule]) == "undefined") {
+                                sortedEventObject[schedule] = {}
+                            }
+                            sortedEventObject[schedule][league] = eventObject[schedule][league]
                         })
                     })
                     Object.keys(eventObject).map(schedule => {
-                        this.$store.commit('trade/SET_EVENTS', { schedule: schedule, events: eventObject[schedule] })
+                        this.$store.commit('trade/SET_EVENTS', { schedule: schedule, events: sortedEventObject[schedule] })
                     })
                 }
             })
