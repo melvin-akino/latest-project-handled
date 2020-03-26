@@ -1,7 +1,11 @@
 <template>
     <div class="betslip flex justify-center items-center">
         <dialog-drag :title="'Bet Slip - '+odd_details.market_id" :options="options" @close="closeBetSlip(odd_details.market_id)">
-            <div class="container mx-auto p-2">
+            <div class="flex flex-col justify-center items-center loader" v-if="isLoadingMarketDetails">
+                <img :src="loader" />
+                <span class="text-center mt-2">Loading Market Details...</span>
+            </div>
+            <div class="container mx-auto p-2" v-else>
                 <div class="flex items-center w-1/2">
                     <span class="text-white uppercase font-bold mr-2 my-2 px-2 bg-orange-500">{{market_details.odd_type}}</span>
                     <span class="text-gray-800 font-bold my-2 pr-6">{{market_details.league_name}}</span>
@@ -51,7 +55,7 @@
                             <label class="text-sm">Price</label>
                             <input class="shadow appearance-none border rounded text-sm py-1 px-3 text-gray-700 leading-tight focus:outline-none" type="number" v-model="initialPrice" @keyup="clearOrderMessage">
                         </div>
-                        <div class="flex justify-between items-center py-2">
+                        <div class="flex justify-between items-center py-2" :class="{'hidden': betSlipSettings.adv_placement_opt == 0, 'block': betSlipSettings.adv_placement_opt == 1}"> 
                             <label class="text-sm">Order Expiry</label>
                             <div class="relative orderExpiryInput">
                                 <select class="shadow appearance-none border rounded text-sm w-full py-1 px-3 text-gray-700 leading-tight focus:outline-none" v-model="orderForm.orderExpiry">
@@ -68,7 +72,7 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="flex justify-between items-center py-2">
+                        <div class="flex justify-between items-center py-2" :class="{'hidden': betSlipSettings.adv_placement_opt == 0, 'block': betSlipSettings.adv_placement_opt == 1}">
                             <label class="text-sm flex items-center">
                                 <span class="mr-4">Fast Bet</span>
                                 <input class="outline-none rounded text-sm py-1 px-3 text-gray-700 leading-tight focus:outline-none" type="radio" value="FAST_BET" v-model="orderForm.betType">
@@ -127,6 +131,7 @@
 </template>
 
 <script>
+import loader from '../../../../assets/images/loader.gif'
 import { mapState } from 'vuex'
 import Cookies from 'js-cookie'
 import _ from 'lodash'
@@ -145,13 +150,14 @@ export default {
     },
     data() {
         return {
+            loader: loader,
             market_details: {},
             formattedRefSchedule: [],
             initialPrice: this.odd_details.odds,
             orderForm: {
                 stake: '',
                 orderExpiry: 'Now',
-                betType: 'FAST_BET',
+                betType: 'BEST_PRICE',
                 markets: []
             },
             minMaxData: [],
@@ -159,16 +165,17 @@ export default {
             orderMessage: '',
             orderError: '',
             options: {
-                width:825,
+                width: 825,
                 buttonPin: false,
                 centered: "viewport"
             },
             analysisData: {},
-            isDoneBetting: false
+            isDoneBetting: false,
+            isLoadingMarketDetails: true
         }
     },
     computed: {
-        ...mapState('trade', ['openedBetMatrix', 'openedOddsHistory', 'bookies']),
+        ...mapState('trade', ['openedBetMatrix', 'openedOddsHistory', 'betSlipSettings']),
         points() {
             if(!_.isEmpty(this.market_details)) {
                 if(this.market_details.odd_type == 'HDP' || this.market_details.odd_type == 'HT HDP') {
@@ -211,6 +218,7 @@ export default {
     mounted() {
         this.getMarketDetails()
         this.minmax()
+        this.$store.dispatch('trade/getBetSlipSettings')
     },
     methods: {
         getMarketDetails() {
@@ -220,6 +228,7 @@ export default {
             .then(response => {
                 this.market_details = response.data.data
                 this.formattedRefSchedule = response.data.data.ref_schedule.split(' ')
+                this.isLoadingMarketDetails = false
             })
             .catch(err => {
                 this.$store.dispatch('auth/checkIfTokenIsValid', err.response.data.status_code)
@@ -412,5 +421,9 @@ export default {
 
     .dialog-drag .dialog-header {
         background-color:#ed8936;
+    }
+
+    .loader {
+        height: 510px;
     }
 </style>
