@@ -22,8 +22,9 @@ class TransformKafkaMessageOddsSaveToDb extends Task
     protected $updated = false;
     protected $uid = null;
     protected $dbOptions = [
-        'event-only' => true,
-        'is-event-new' => true
+        'event-only'            => true,
+        'is-event-new'          => true,
+        'is-market-different'   => true
     ];
 
     public function __construct(array $subTasks = [], string $uid = null, array $dbOptions)
@@ -89,8 +90,10 @@ class TransformKafkaMessageOddsSaveToDb extends Task
                                 'master_event_market_unique_id' => $masterEventMarketModel->master_event_market_unique_id
                             ], []);
 
-                            $eventMarket['MasterEventMarketLog']['data']['master_event_market_id'] = $masterEventMarketId;
-                            MasterEventMarketLog::create($eventMarket['MasterEventMarketLog']['data']);
+                            if (!empty($this->dbOptions['is-market-different'])) {
+                                $eventMarket['MasterEventMarketLog']['data']['master_event_market_id'] = $masterEventMarketId;
+                                MasterEventMarketLog::create($eventMarket['MasterEventMarketLog']['data']);
+                            }
                         }
                     }
                 }
