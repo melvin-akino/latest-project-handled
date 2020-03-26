@@ -8,6 +8,7 @@ commonBuild: &commonBuild
     - echo "extension=swoole.so" > /usr/local/etc/php/conf.d/docker-php-swoole.ini
     - echo "extension=rdkafka.so" > /usr/local/etc/php/conf.d/docker-php-rdkafka.ini
     - composer config disable-tls true
+    - curl https://api.github.com
     - composer install 
     - cp .env.pipeline .env
     - php artisan key:generate
