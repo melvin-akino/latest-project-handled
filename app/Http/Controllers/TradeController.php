@@ -485,7 +485,7 @@ class TradeController extends Controller
             $data  = DB::table('search_suggestions')
                 ->where('label', 'ILIKE', '%' . trim($request->keyword) . '%');
             $query = $data->limit($limit)
-                ->offset($request->page - 1) * $limit);
+                ->offset($request->page - 1)) * $limit);
 
             return response()->json([
                 'status'      => true,
