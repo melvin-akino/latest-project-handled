@@ -31,17 +31,23 @@
                 </div>
                 <div class="flex w-full">
                     <div class="flex flex-col mt-4 mr-3 p-2 shadow shadow-xl bg-white w-2/5 h-full">
-                        <div class="flex justify-between items-center py-2">
-                            <span class="text-sm">Min Stake</span>
-                            <span class="text-sm">100</span>
-                        </div>
-                        <div class="flex justify-between items-center py-2">
-                            <span class="text-sm">Max Stake</span>
-                            <span class="text-sm">100000</span>
-                        </div>
-                        <div class="flex justify-between items-center py-2">
-                            <span class="text-sm">Average Price</span>
-                            <span class="text-sm">{{odd_details.odds}}</span>
+                        <div class="advanceBetSlipInfo" :class="{'hidden': betSlipSettings.adv_betslip_info == 0, 'block': betSlipSettings.adv_betslip_info == 1}">
+                            <div class="flex justify-between items-center py-2">
+                                <span class="text-sm">Min Stake</span>
+                                <span class="text-sm">{{lowestMin}}</span>
+                            </div>
+                            <div class="flex justify-between items-center py-2">
+                                <span class="text-sm">Max Stake</span>
+                                <span class="text-sm">{{highestMax}}</span>
+                            </div>
+                            <div class="flex justify-between items-center py-2">
+                                <span class="text-sm">Average Price</span>
+                                <span class="text-sm">{{displayedAveragePrice}}</span>
+                            </div>
+                            <div class="flex justify-between items-center py-2">
+                                <span class="text-sm">Towin</span>
+                                <span class="text-sm">{{towin}}</span>
+                            </div>
                         </div>
                         <div class="flex justify-between items-center py-2">
                             <span class="text-sm">{{market_details.odd_type}}</span>
@@ -55,7 +61,7 @@
                             <label class="text-sm">Price</label>
                             <input class="shadow appearance-none border rounded text-sm py-1 px-3 text-gray-700 leading-tight focus:outline-none" type="number" v-model="initialPrice" @keyup="clearOrderMessage">
                         </div>
-                        <div class="flex justify-between items-center py-2" :class="{'hidden': betSlipSettings.adv_placement_opt == 0, 'block': betSlipSettings.adv_placement_opt == 1}"> 
+                        <div class="flex justify-between items-center py-2" :class="{'hidden': betSlipSettings.adv_placement_opt == 0, 'block': betSlipSettings.adv_placement_opt == 1}">
                             <label class="text-sm">Order Expiry</label>
                             <div class="relative orderExpiryInput">
                                 <select class="shadow appearance-none border rounded text-sm w-full py-1 px-3 text-gray-700 leading-tight focus:outline-none" v-model="orderForm.orderExpiry">
@@ -213,6 +219,34 @@ export default {
                     return Number(scores[0])
                 }
             }
+        },
+        lowestMin() {
+            if(!_.isEmpty(this.minMaxData)) {
+                let minValues = this.minMaxData.map(minmax => minmax.min)
+                return Math.min(...minValues)
+            } else {
+                return 0
+            }
+        },
+        highestMax() {
+            if(!_.isEmpty(this.minMaxData)) {
+                let maxValues = this.minMaxData.map(minmax => minmax.max)
+                return Math.max(...maxValues)
+            } else {
+                return 0
+            }
+        },
+        displayedAveragePrice() {
+            if(!_.isEmpty(this.minMaxData)) {
+                let prices = this.minMaxData.map(minmax => minmax.price)
+                let sumOfPrices = prices.reduce((firstPrice, secondPrice) => firstPrice + secondPrice, 0)
+                return Math.floor(sumOfPrices / prices.length * 100) / 100
+            } else {
+                return this.odd_details.odds
+            }
+        },
+        towin() {
+            return Math.floor(this.orderForm.stake * this.initialPrice * 100) / 100
         }
     },
     mounted() {
