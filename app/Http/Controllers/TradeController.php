@@ -2,10 +2,17 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Support\Facades\Log;
-use App\Models\{MasterEvent, MasterLeague, Sport, UserSelectedLeague, UserWatchlist};
-
-use Illuminate\Support\Facades\DB;
+use App\Models\{
+    MasterEvent,
+    MasterLeague,
+    Sport,
+    UserSelectedLeague,
+    UserWatchlist
+};
+use Illuminate\Support\Facades\{
+    DB,
+    Log
+};
 use Illuminate\Http\Request;
 use Exception;
 use DateTime;
@@ -499,7 +506,46 @@ class TradeController extends Controller
             return response()->json([
                 'status'      => false,
                 'status_code' => 500,
-                'message'     => trans('generic.internal-server-error') . $e->getMessage()
+                'message'     => trans('generic.internal-server-error')
+            ], 500);
+        }
+    }
+    public function postSearchSuggestions(Request $request)
+    {
+        try {
+            if (!$request->has('page')) {
+                return response()->json([
+                    'status'      => false,
+                    'status_code' => 404,
+                    'message'     => trans('generic.not-found')
+                ], 404);
+            }
+
+            if ($request->page < 1) {
+                return response()->json([
+                    'status'      => false,
+                    'status_code' => 400,
+                    'message'     => trans('generic.bad-request')
+                ], 400);
+            }
+
+            $limit = 20;
+            $data  = DB::table('search_suggestions')
+                ->where('label', 'ILIKE', '%' . trim($request->keyword) . '%');
+            $query = $data->limit($limit)
+                ->offset(($request->page - 1) * $limit);
+
+            return response()->json([
+                'status'      => true,
+                'status_code' => 200,
+                'data'        => $request->keyword == "" ? [] : $query->get(),
+                'paginated'   => (($request->page * $limit) - $data->count()) >= 0 ? false : true
+            ], 200);
+        } catch (Exception $e) {
+            return response()->json([
+                'status'      => false,
+                'status_code' => 500,
+                'message'     => trans('generic.internal-server-error')
             ], 500);
         }
     }

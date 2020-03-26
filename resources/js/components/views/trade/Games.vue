@@ -307,7 +307,7 @@ export default {
 
     .bet-click.ping-danger {
         animation-name: ping-danger;
-        animation-duration: 4s;
+        animation-duration: 2s;
         animation-iteration-count: 1;
     }
 
@@ -318,14 +318,14 @@ export default {
     }
 
     @keyframes ping-danger{
-        from{
+        from {
             color:#ffffff;
             background-color: #d9534f;
             font-weight: 700;
-        } to{
-            color: rgba(50, 50, 50, 1);
+        } to {
+            color: rgba(74, 85, 104, 1);
             background-color: none;
-            font-weight: normal;
+            font-weight: 400;
         }
     }
 
@@ -334,10 +334,10 @@ export default {
             color:#ffffff;
             background-color: #5cb85c;
             font-weight: 700;
-        } to{
-            color: rgba(50, 50, 50, 1);
+        } to {
+            color: rgba(74, 85, 104, 1);
             background-color:none;
-            font-weight: normal;
+            font-weight: 400;
         }
     }
 </style>
