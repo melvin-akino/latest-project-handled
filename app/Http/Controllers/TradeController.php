@@ -467,6 +467,7 @@ class TradeController extends Controller
                     ->join('event_markets as em', 'em.id', 'meml.event_market_id')
                     ->whereNull('me.deleted_at')
                     ->where('mem.is_main', false)
+                    ->where('me.master_event_unique_id', $memUID)
                     ->select('s.sport',
                         'me.master_event_unique_id', 'me.master_home_team_name', 'me.master_away_team_name',
                         'me.ref_schedule', 'me.game_schedule', 'me.score', 'me.running_time',
