@@ -55,7 +55,7 @@
                             <label class="text-sm">Price</label>
                             <input class="shadow appearance-none border rounded text-sm py-1 px-3 text-gray-700 leading-tight focus:outline-none" type="number" v-model="initialPrice" @keyup="clearOrderMessage">
                         </div>
-                        <div class="flex justify-between items-center py-2" :class="{'hidden': betSlipSettings.adv_placement_opt == 0, 'block': betSlipSettings.adv_placement_opt == 1}"> 
+                        <div class="flex justify-between items-center py-2" :class="{'hidden': betSlipSettings.adv_placement_opt == 0, 'block': betSlipSettings.adv_placement_opt == 1}">
                             <label class="text-sm">Order Expiry</label>
                             <div class="relative orderExpiryInput">
                                 <select class="shadow appearance-none border rounded text-sm w-full py-1 px-3 text-gray-700 leading-tight focus:outline-none" v-model="orderForm.orderExpiry">
@@ -285,6 +285,8 @@ export default {
         },
         closeBetSlip(market_id) {
             this.$store.commit('trade/CLOSE_BETSLIP', this.odd_details.market_id)
+            this.$store.commit('trade/CLOSE_BET_MATRIX', this.odd_details.market_id)
+            this.$store.commit('trade/CLOSE_ODDS_HISTORY', this.odd_details.market_id)
         },
         openBetMatrix(odd_details) {
             this.$store.commit('trade/CLOSE_BET_MATRIX', odd_details.market_id)
