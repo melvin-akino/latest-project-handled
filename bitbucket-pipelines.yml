@@ -44,6 +44,8 @@ pipelines:
     MV-537: 
     - step:
         name: Develop
+        caches:
+          - composer
         <<: *commonBuild
     - step:
         name: Unit test
