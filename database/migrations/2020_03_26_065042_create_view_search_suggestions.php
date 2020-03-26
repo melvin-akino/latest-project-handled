@@ -15,22 +15,22 @@ class CreateViewSearchSuggestions extends Migration
     {
         DB::statement("CREATE VIEW search_suggestions AS
             SELECT
-                'league' AS \"type\",
-                \"master_league_name\" AS \"data\",
-                \"master_league_name\" AS \"label\"
+                'league' AS type,
+                master_league_name AS data,
+                master_league_name AS label
             FROM
-                \"master_leagues\"
+                master_leagues
 
             UNION ALL
 
             SELECT
-                'event' AS \"type\",
-                \"master_event_unique_id\" AS \"data\",
-                CONCAT(\"master_league_name\", ' | ', \"master_home_team_name\", ' VS ', \"master_away_team_name\") AS \"label\"
+                'event' AS type,
+                master_event_unique_id AS data,
+                CONCAT(master_league_name, ' | ', master_home_team_name, ' VS ', master_away_team_name) AS label
             FROM
-                \"master_events\"
+                master_events
 
-            ORDER BY \"label\" ASC;
+            ORDER BY label ASC;
         ");
     }
 
