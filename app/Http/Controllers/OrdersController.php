@@ -394,16 +394,19 @@ class OrdersController extends Controller
                 $payload   = [
                     'request_uid' => $requestId,
                     'request_ts'  => $requestTs,
-                    'sub_command' => 'scrape',
+                    'sub_command' => 'place',
                     'command'     => 'bet'
                 ];
 
                 $payload['data'] = [
-                    'actual_stake' => $incrementIds['payload'][$i]['actual_stake'],
+                    'provider'     => $incrementIds['payload'][$i]['provider_id'],
+                    'sport'        => $incrementIds['payload'][$i]['sport_id'],
+                    'stake'        => $incrementIds['payload'][$i]['actual_stake'],
                     'odds'         => $incrementIds['payload'][$i]['odds'],
                     'market_id'    => $incrementIds['payload'][$i]['market_id'],
                     'event_id'     => $incrementIds['payload'][$i]['event_id'],
-                    'score'        => $incrementIds['payload'][$i]['score']
+                    'score'        => $incrementIds['payload'][$i]['score'],
+                    'username'     => '' //@TODO need to check provider_accounts for this
                 ];
 
                 $payloadsSwtId = implode(':', [
