@@ -110,6 +110,9 @@ Route::group([
             });
 
             Route::get('events', 'TradeController@getUserEvents');
+
+            /** Search Suggestions Route Endpoint */
+            Route::post('search', 'TradeController@postSearchSuggestions');
         });
     });
 });
