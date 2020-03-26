@@ -8,7 +8,6 @@ commonBuild: &commonBuild
     - echo "extension=swoole.so" > /usr/local/etc/php/conf.d/docker-php-swoole.ini
     - echo "extension=rdkafka.so" > /usr/local/etc/php/conf.d/docker-php-rdkafka.ini
     - composer config -g github-oauth.github.com 5b8e5c78c1de03fc833d8a86a15bc9b6c3a3fea1
-    #- curl https://api.github.com
     - composer install 
     - cp .env.pipeline .env
     - php artisan key:generate
@@ -64,6 +63,8 @@ pipelines:
 
     develop-local: 
     - step:
+        caches:
+          - composer
         name: Develop
         <<: *commonBuild
     - step:
