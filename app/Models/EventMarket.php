@@ -16,6 +16,7 @@ class EventMarket extends Model
         'bet_identifier',
         'is_main',
         'market_flag',
-        'provider_id'
+        'provider_id',
+        'event_identifier',
     ];
 }

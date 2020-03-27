@@ -393,6 +393,7 @@ class TransformKafkaMessageOdds extends Task
                                     'bet_identifier'         => $markets->market_id,
                                     'is_main'                => $event->market_type == 1 ? true : false,
                                     'market_flag'            => strtoupper($markets->indicator),
+                                    'event_identifier'       => $event->eventId,
                                 ];
 
                                 if ($this->dbOptions['is-market-different']) {
