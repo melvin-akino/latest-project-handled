@@ -462,6 +462,54 @@ class TradeController extends Controller
         }
     }
 
+    public function getEventOtherMarkets($memUID, Request $request)
+    {
+        try {
+            $transformed = DB::table('master_events as me')
+                    ->join('sports as s', 's.id', 'me.sport_id')
+                    ->join('master_event_markets as mem', 'mem.master_event_unique_id', 'me.master_event_unique_id')
+                    ->join('odd_types as ot', 'ot.id', 'mem.odd_type_id')
+                    ->join('master_event_market_links as meml', 'meml.master_event_market_unique_id',
+                        'mem.master_event_market_unique_id')
+                    ->join('event_markets as em', 'em.id', 'meml.event_market_id')
+                    ->whereNull('me.deleted_at')
+                    ->where('mem.is_main', false)
+                    ->where('me.master_event_unique_id', $memUID)
+                    ->select('s.sport',
+                        'me.master_event_unique_id', 'me.master_home_team_name', 'me.master_away_team_name',
+                        'me.ref_schedule', 'me.game_schedule', 'me.score', 'me.running_time',
+                        'me.home_penalty', 'me.away_penalty', 'mem.odd_type_id', 'mem.master_event_market_unique_id',
+                        'mem.is_main', 'mem.market_flag',
+                        'ot.type', 'em.odds', 'em.odd_label', 'em.provider_id')
+                    ->distinct()->get();
+
+            $data = [];
+            array_map(function ($transformed) use (&$data) {
+                if (!empty($transformed->odd_label)) {
+                    if (empty($data[preg_replace("/[^0-9\-.]/", "", $transformed->odd_label)][$transformed->type][$transformed->market_flag])) {
+                        $data[preg_replace("/[^0-9\-.]/", "", $transformed->odd_label)][$transformed->type][$transformed->market_flag] = [
+                            'odds'      => (double) $transformed->odds,
+                            'market_id' => $transformed->master_event_market_unique_id,
+                            'points'    => $transformed->odd_label
+                        ];
+                    }
+                }
+            }, $transformed->toArray());
+
+            krsort($data, SORT_NUMERIC);
+            return response()->json([
+                'status'      => true,
+                'status_code' => 200,
+                'data'        => $data
+            ], 200);
+        } catch (Exception $e) {
+            return response()->json([
+                'status'      => false,
+                'status_code' => 500,
+                'message'     => trans('generic.internal-server-error')
+            ], 500);
+        }
+    }
     public function postSearchSuggestions(Request $request)
     {
         try {
