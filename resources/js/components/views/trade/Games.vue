@@ -22,7 +22,7 @@
                     </div>
                     <div class="gamesWrapper" :class="!closedLeagues.includes(index) ? 'h-full' : 'h-0 overflow-hidden'">
                         <div class="asianLayout"  v-if="tradeLayout==1">
-                           <div class="event" :class="[index % 2 != 0 ? 'alternateEvent' : '']" v-for="(game, index) in league" :key="game.uid">
+                            <div class="event" :class="[index % 2 != 0 ? 'alternateEvent' : '']" v-for="(game, index) in league" :key="game.uid">
                                 <div class="relative flex py-4 px-4 game" >
                                     <div class="w-2/12 flex flex-col">
                                         <div><span class="font-bold text-green-400 mr-2">H</span>{{game.home.name}}</div>
@@ -51,16 +51,18 @@
                                         <i class="fas fa-plus-square"></i>
                                     </button>
                                 </div>
-                                <div class="relative flex py-4 px-4 game" v-if="'other' in game.market_odds" v-for="(otherMarket, index) in game.market_odds.other" :key="index">
-                                    <div class="w-2/12"></div>
-                                    <div class="w-1/12 flex justify-center"></div>
-                                    <div class="w-1/12"></div>
-                                    <div class="w-1/12"></div>
-                                    <div class="w-1/12 flex flex-col items-center" :class="column" v-for="(column, index) in oddsTypeBySport" :key="index">
-                                       <p class="relative" :class="[{'order-1' : index=='HOME'}, {'order-2' : index=='AWAY'}, {'order-3': index=='DRAW'}]" v-for="(odd, index) in otherMarket[column]" :key="odd.market_id">
-                                            <span class="absolute text-gray-500 odds-label" :class="[odd.odds != '' ? 'left-label' : 'empty-left-label']">{{odd.points}}</span>
-                                            <a href="#" @click.prevent="openBetSlip(odd)" class="px-2 rounded-lg" :class="{'bet-click' : odd.odds != ''}" v-adjust-odd-color="odd.odds">{{odd.odds | formatOdds}}</a>
-                                        </p>
+                                <div class="otherMarkets" v-if="'other' in game.market_odds">
+                                    <div class="relative flex py-4 px-4 game" v-for="(otherMarket, index) in game.market_odds.other" :key="index">
+                                        <div class="w-2/12"></div>
+                                        <div class="w-1/12 flex justify-center"></div>
+                                        <div class="w-1/12"></div>
+                                        <div class="w-1/12"></div>
+                                        <div class="w-1/12 flex flex-col items-center" :class="column" v-for="(column, index) in oddsTypeBySport" :key="index">
+                                            <p class="relative" :class="[{'order-1' : index=='HOME'}, {'order-2' : index=='AWAY'}, {'order-3': index=='DRAW'}]" v-for="(odd, index) in otherMarket[column]" :key="odd.market_id">
+                                                <span class="absolute text-gray-500 odds-label" :class="[odd.odds != '' ? 'left-label' : 'empty-left-label']">{{odd.points}}</span>
+                                                <a href="#" @click.prevent="openBetSlip(odd)" class="px-2 rounded-lg" :class="{'bet-click' : odd.odds != ''}" v-adjust-odd-color="odd.odds">{{odd.odds | formatOdds}}</a>
+                                            </p>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -91,13 +93,15 @@
                                         </p>
                                     </div>
                                 </div>
-                                <div class="flex" v-if="'other' in game.market_odds" v-for="(otherMarket, index) in game.market_odds.other" :key="index">
-                                    <div class="w-1/12"></div>
-                                    <div class="w-1/12 flex justify-between mr-10" :class="column" v-for="(column, index) in oddsTypeBySport" :key="index">
-                                        <p class="relative" :class="[{'order-1' : index=='HOME'}, {'order-2' : index=='DRAW'}, {'order-3': index=='AWAY'}]" v-for="(odd, index) in otherMarket[column]" :key="odd.market_id">
-                                            <span class="absolute text-gray-500 odds-label" :class="[odd.odds != '' ? 'left-label' : 'empty-left-label']">{{odd.points}}</span>
-                                            <a href="#"  @click.prevent="openBetSlip(odd)" class="px-2 rounded-lg" :class="{'bet-click' : odd.odds != ''}" v-adjust-odd-color="odd.odds">{{odd.odds | formatOdds}}</a>
-                                        </p>
+                                <div class="otherMarkets" v-if="'other' in game.market_odds">
+                                    <div class="flex" v-for="(otherMarket, index) in game.market_odds.other" :key="index">
+                                        <div class="w-1/12"></div>
+                                        <div class="w-1/12 flex justify-between mr-10" :class="column" v-for="(column, index) in oddsTypeBySport" :key="index">
+                                            <p class="relative" :class="[{'order-1' : index=='HOME'}, {'order-2' : index=='DRAW'}, {'order-3': index=='AWAY'}]" v-for="(odd, index) in otherMarket[column]" :key="odd.market_id">
+                                                <span class="absolute text-gray-500 odds-label" :class="[odd.odds != '' ? 'left-label' : 'empty-left-label']">{{odd.points}}</span>
+                                                <a href="#"  @click.prevent="openBetSlip(odd)" class="px-2 rounded-lg" :class="{'bet-click' : odd.odds != ''}" v-adjust-odd-color="odd.odds">{{odd.odds | formatOdds}}</a>
+                                            </p>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
