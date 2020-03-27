@@ -86,6 +86,7 @@ class KafkaConsume implements CustomProcessInterface
                                 break;
                         }
                         $kafkaConsumer->commitAsync($message);
+                        Log::channel('kafkalog')->info(json_encode($message));
                     } else {
                         Log::error(json_encode([$message]));
                     }
