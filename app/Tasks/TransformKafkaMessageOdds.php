@@ -354,6 +354,10 @@ class TransformKafkaMessageOdds extends Task
                                     "bId:" . $markets->market_id
                                 ]);
 
+                                if ($markets->market_id == "") {
+                                    $marketOdds = 0;
+                                }
+
                                 if ($eventMarketsTable->exist($masterEventMarketSwtId)) {
                                     $memUID = $eventMarketsTable->get($masterEventMarketSwtId)['master_event_market_unique_id'];
                                     $odds = $eventMarketsTable->get($masterEventMarketSwtId)['odds'];
