@@ -81,7 +81,7 @@
                                         <span><i class="fas fa-star"></i></span>
                                     </div>
                                     <button class="europeanOtherMarketsBtn absolute text-orange-500 hover:text-orange-600 focus:outline-none" @click="toggleOtherMarkets(game)" title="View other markets.">
-                                        <i class="fas fa-plus-square"></i></span>
+                                        <i class="fas fa-plus-square"></i>
                                     </button>
                                 </div>
                                 <div class="flex">
@@ -138,41 +138,41 @@ export default {
     methods: {
         toggleOtherMarkets(game) {
             let token = Cookies.get('mltoken')
-                axios.get(`v1/trade/other-markets/${game.uid}`, { headers: { 'Authorization': `Bearer ${token}` }})
-                .then(response => {
-                    if(!_.isEmpty(response.data.data)) {
-                        if(this.tradePageSettings.sort_event == 1) {
-                            this.events[this.gameSchedType][game.league_name].map(event => {
-                                if(game.uid == event.uid) {
-                                    if('other' in event.market_odds) {
-                                        this.$delete(event.market_odds, 'other')
-                                    } else {
-                                        this.$set(event.market_odds, 'other', response.data.data)
-                                    }
+            axios.get(`v1/trade/other-markets/${game.uid}`, { headers: { 'Authorization': `Bearer ${token}` }})
+            .then(response => {
+                if(!_.isEmpty(response.data.data)) {
+                    if(this.tradePageSettings.sort_event == 1) {
+                        this.events[this.gameSchedType][game.league_name].map(event => {
+                            if(game.uid == event.uid) {
+                                if('other' in event.market_odds) {
+                                    this.$delete(event.market_odds, 'other')
+                                } else {
+                                    this.$set(event.market_odds, 'other', response.data.data)
                                 }
-                            })
-                        } else if(this.tradePageSettings.sort_event == 2) {
-                            let eventStartTime = `[${game.ref_schedule.split(' ')[1]}] ${game.league_name}`
-                            this.events[this.gameSchedType][eventStartTime].map(event => {
-                                if(game.uid == event.uid) {
-                                     if('other' in event.market_odds) {
-                                        this.$delete(event.market_odds, 'other')
-                                    } else {
-                                        this.$set(event.market_odds, 'other', response.data.data)
-                                    }
+                            }
+                        })
+                    } else if(this.tradePageSettings.sort_event == 2) {
+                        let eventStartTime = `[${game.ref_schedule.split(' ')[1]}] ${game.league_name}`
+                        this.events[this.gameSchedType][eventStartTime].map(event => {
+                            if(game.uid == event.uid) {
+                                if('other' in event.market_odds) {
+                                    this.$delete(event.market_odds, 'other')
+                                } else {
+                                    this.$set(event.market_odds, 'other', response.data.data)
                                 }
-                            })
-                        }
-                    } else {
-                        Swal.fire({
-                            icon: 'warning',
-                            text: 'No other markets available for that event.'
+                            }
                         })
                     }
-                })
-                .catch(err => {
-                    this.$store.dispatch('auth/checkIfTokenIsValid', err.response.data.status_code)
-                })
+                } else {
+                    Swal.fire({
+                        icon: 'warning',
+                        text: 'No other markets available for that event.'
+                    })
+                }
+            })
+            .catch(err => {
+                this.$store.dispatch('auth/checkIfTokenIsValid', err.response.data.status_code)
+            })
         },
         openBetSlip(odd) {
             this.$store.commit('trade/CLOSE_BETSLIP', odd.market_id)
