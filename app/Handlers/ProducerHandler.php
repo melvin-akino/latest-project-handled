@@ -93,7 +93,7 @@ class ProducerHandler
 
         $this->producer->poll(0);
 
-        $this->flush();
+        // $this->flush();
     }
 
     /**
