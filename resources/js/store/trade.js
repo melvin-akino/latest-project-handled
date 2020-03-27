@@ -33,7 +33,8 @@ const state = {
     bookies: [],
     bets: [],
     tradePageSettings: {},
-    betSlipSettings: {}
+    betSlipSettings: {},
+    showSearch: true
 }
 
 const mutations = {
@@ -171,6 +172,9 @@ const mutations = {
     },
     SET_BET_SLIP_SETTINGS: (state, betSlipSettings) => {
         state.betSlipSettings = betSlipSettings
+    },
+    SHOW_SEARCH: (state, data) => {
+        state.showSearch = data
     }
 }
 
