@@ -384,17 +384,21 @@ class TransformKafkaMessageOdds extends Task
                                     'market_flag'                   => strtoupper($markets->indicator),
                                 ];
 
-                                $toInsert['EventMarket']['data'] = [
-                                    'provider_id'            => $providerId,
-                                    'master_event_unique_id' => $uid,
-                                    'odd_type_id'            => $oddTypeId,
-                                    'odds'                   => $marketOdds,
-                                    'odd_label'              => $marketPoints,
-                                    'bet_identifier'         => $markets->market_id,
-                                    'is_main'                => $event->market_type == 1 ? true : false,
-                                    'market_flag'            => strtoupper($markets->indicator),
-                                    'event_identifier'       => $event->eventId,
-                                ];
+                                foreach ($eventMarketsTable AS $emKey => $emRow) {
+                                    if (($emRow['uid'] == $uid) && ($emRow['odd_type_id'] == $oddTypeId)) {
+                                        $toInsert['EventMarket']['data'] = [
+                                            'provider_id'            => $providerId,
+                                            'master_event_unique_id' => $uid,
+                                            'odd_type_id'            => $oddTypeId,
+                                            'odds'                   => $marketOdds,
+                                            'odd_label'              => $marketPoints,
+                                            'bet_identifier'         => $markets->market_id,
+                                            'is_main'                => $event->market_type == 1 ? true : false,
+                                            'market_flag'            => strtoupper($markets->indicator),
+                                            'event_identifier'       => $event->eventId,
+                                        ];
+                                    }
+                                }
 
                                 if ($this->dbOptions['is-market-different']) {
                                     $toInsert['MasterEventMarketLog']['data'] = [
