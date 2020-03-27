@@ -270,9 +270,9 @@ return [
                 [ 'name' => 'provider_id', 'type' => \Swoole\Table::TYPE_INT ],
                 [ 'name' => 'provider_alias', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 3 ],
                 [ 'name' => 'type', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 20 ],
-                [ 'name' => 'username', 'type' => \Swoole\Table::TYPE_INT, 'size' => 50 ],
+                [ 'name' => 'username', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 50 ],
                 [ 'name' => 'punter_percentage', 'type' => \Swoole\Table::TYPE_INT ],
-                [ 'name' => 'credits', 'type' => \Swoole\Table::TYPE_INT, 'size' => 100000000 ]
+                [ 'name' => 'credits', 'type' => \Swoole\Table::TYPE_FLOAT ]
             ],
         ],
     ],

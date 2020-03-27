@@ -3,6 +3,7 @@
 namespace App\Processes;
 
 use App\Handlers\ProducerHandler;
+use App\Jobs\KafkaPush;
 use Illuminate\Support\Str;
 use Hhxsv5\LaravelS\Swoole\Process\CustomProcessInterface;
 use Illuminate\Support\Facades\Log;
@@ -94,7 +95,7 @@ class KafkaProduce implements CustomProcessInterface
                             //checking if 30 minutest interval
                             if ($newTime->diffInSeconds(Carbon::parse($providerAccountInitialTime)) >= (60 * 30)) {
                                 foreach ($providerAccountsTable AS $sKey => $sRow) {
-                                    $randomRangeInMinutes = 10;
+                                    $randomRangeInMinutes = rand(0, 10);
 
                                     $requestId     = Str::uuid();
                                     $requestTs     = self::milliseconds();
@@ -112,7 +113,7 @@ class KafkaProduce implements CustomProcessInterface
                                         'username'  => $sRow['username']
                                     ];
 
-                                    self::pushToKafka($payload, $requestId, strtolower($sRow['provider_alias']) . $kafkaTopics['req_settlements']);
+                                    self::pushToKafka($payload, $requestId, strtolower($sRow['provider_alias']) . $kafkaTopics['req_settlements'], $randomRangeInMinutes);
 
                                     $providerAccountInitialTime = $newTime;
                                 }
@@ -151,13 +152,17 @@ class KafkaProduce implements CustomProcessInterface
         return bcadd($mt[1], $mt[0], 8);
     }
 
-    private static function pushToKafka(array $message = [], string $key, string $kafkaTopic)
+    private static function pushToKafka(array $message = [], string $key, string $kafkaTopic, int $delayInMinutes = 0)
     {
         try {
-            self::$producerHandler->setTopic($kafkaTopic)
-                ->send($message, $key);
+            if (empty($delayInMinutes)) {
+                self::$producerHandler->setTopic($kafkaTopic)
+                    ->send($message, $key);
+            } else {
+                KafkaPush::dispatch(self::$producerHandler, $kafkaTopic, $message, $key)->delay(now()->addMinutes($delayInMinutes));
+            }
         } catch (Exception $e) {
-            Log::critical(self::PUBLISH_ERROR_MESSAGE, [
+            Log::critical('Sending Kafka Message Failed', [
                 'error' => $e->getMessage(),
                 'code' => $e->getCode()
             ]);
