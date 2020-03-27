@@ -496,7 +496,7 @@ class TradeController extends Controller
                 }
             }, $transformed->toArray());
 
-            ksort($data, SORT_NUMERIC);
+            krsort($data, SORT_NUMERIC);
             return response()->json([
                 'status'      => true,
                 'status_code' => 200,
