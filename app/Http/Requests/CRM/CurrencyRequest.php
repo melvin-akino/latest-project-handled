@@ -27,9 +27,9 @@ class CurrencyRequest extends FormRequest
         switch ($this->method()) {
             case 'POST': {
                 return [
-                    'currency_name' => 'required|min:2|max:100|unique:currency,name',
-                    'currency_symbol' => 'required|max:6|unique:currency,symbol',
-                    'currency_code' => 'required|max:16|unique:currency,code',
+                    'currency_name' => 'required|min:2|max:50|unique:currency,name',
+                    'currency_symbol' => 'required|max:5|unique:currency,symbol',
+                    'currency_code' => 'required|max:5|unique:currency,code',
                   
                 ];
             }
@@ -41,9 +41,9 @@ class CurrencyRequest extends FormRequest
 
                 return [
                    
-                    'currency_name' => "required|min:2|max:100|unique:currency,name,$currency_id,id",
-                    'currency_symbol' => "required|max:6|unique:currency,symbol,$currency_id,id",
-                    'currency_code' => "required|max:16|unique:currency,code,$currency_id,id",
+                    'currency_name' => "required|min:2|max:50|unique:currency,name,$currency_id,id",
+                    'currency_symbol' => "required|max:5|unique:currency,symbol,$currency_id,id",
+                    'currency_code' => "required|max:5|unique:currency,code,$currency_id,id",
 
                 ];
             }

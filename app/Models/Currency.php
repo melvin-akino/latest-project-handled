@@ -31,4 +31,9 @@ class Currency extends Model
 
         return $query->first()->id;
     }
+
+    public function exchange_rate()
+    {
+        return $this->hasMany(ExchangeRate::class);
+    }
 }

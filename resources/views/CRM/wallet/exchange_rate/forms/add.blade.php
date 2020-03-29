@@ -8,24 +8,25 @@
                 <div class="modal-header">
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span></button>
-                    <h4 class="modal-title">Add Exchange Rate</h4>
+                    <h4 class="modal-title">Add Exchange Rate </h4>
                 </div>
                 <div class="modal-body">
                     <div class="row">
                         <div class="col-md-5">
                             <div class="form-group">
-                                <input type="number" class="form-control" step='0.000000000001' oninput="precise(this, 12);" id="add-default-amount-input" name="default_amount" value="{{ \App\CRM\NinepineModels\ExchangeRate::$default_amount }}" placeholder="Default amount" readonly onkeypress="return (event.charCode == 8 || event.charCode == 0) ? null : event.charCode >= 48 && event.charCode <= 57">
+                                <input type="number" class="form-control"  id="add-default-amount-input" name="default_amount" value="{{   number_format($default_amount,2) }}" placeholder="Default amount" readonly>
                             </div>
-
+                              
                             <div class="form-group">
                                 <select class="form-control" id="add-from-currency-select" name="from_currency" data-width="100%">
                                     <option value="" disabled selected>Select from currency</option>
                                     @foreach($in_app_currencies as $currency)
-                                        <option value="{{ $currency->currency_id }}" {{ $currency->default_registration==true ? 'selected' : '' }}>{{ $currency->currency }}</option>
+                                        <option value="{{ $currency->id }}" >{{ $currency->name }}</option>
                                     @endforeach
                                 </select>
                             </div>
                         </div>
+                        
                         <div class="col-md-2">
                             <a href="#" id="convert-currency" class="col-md-4 col-md-offset-1">
                                 <i class="fa fa-long-arrow-right"></i>
@@ -34,13 +35,13 @@
                         </div>
                         <div class="col-md-5">
                             <div class="form-group">
-                                <input type="number" class="form-control" step='0.000000000001' oninput="precise(this, 12);" id="add-exchange-rate-input" name="exchange_rate" placeholder="Enter exchange rate" data-placeholder="Enter exchange rate" min="0" onkeypress="return (event.charCode == 8 || event.charCode == 0) ? null : event.charCode >= 48 && event.charCode <= 57">
+                                <input type="number" class="form-control"   id="add-exchange-rate-input" name="exchange_rate" placeholder="Enter exchange rate" data-placeholder="Enter exchange rate" min="0.00"    step="any">
                             </div>
                             <div class="form-group">
                                 <select class="form-control" id="add-to-currency-select" name="to_currency" data-width="100%">
                                     <option value="" disabled selected>Select to currency</option>
                                     @foreach($in_app_currencies as $currency)
-                                        <option value="{{ $currency->currency_id }}">{{ $currency->currency }}</option>
+                                        <option value="{{ $currency->id }}">{{ $currency->name }} </option>
                                     @endforeach
                                 </select>
                             </div>
@@ -49,12 +50,12 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-default pull-left" data-dismiss="modal">Close</button>
-                    @usercan('add', 'exchange_rates.store')
+                   
                     <button type="submit" role="button" id="submit-btn" data-loading-text='{{ trans('loading.please_wait') }}'
                             class="btn btn-primary">
                         Save
                     </button>
-                    @endusercan
+                   
                 </div>
             </form>
         </div>

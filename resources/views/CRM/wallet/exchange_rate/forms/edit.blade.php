@@ -9,20 +9,21 @@
                 <div class="modal-header">
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span></button>
-                    <h4 class="modal-title">Edit Exchange Rate</h4>
+                    <h4 class="modal-title">Edit Exchange Rate  </h4>
                 </div>
                 <div class="modal-body">
                     <div class="row">
                         <div class="col-md-5">
                             <div class="form-group">
-                                <input type="number" class="form-control" step='0.000000000001' oninput="precise(this, 12);" id="edit-default-amount-input" name="default_amount" value="{{ \App\CRM\NinepineModels\ExchangeRate::$default_amount }}" placeholder="Default amount" readonly onkeypress="return (event.charCode == 8 || event.charCode == 0) ? null : event.charCode >= 48 && event.charCode <= 57">
+                                <input type="number" class="form-control"  id="edit-default-amount-input"  value="{{  number_format($default_amount,2) }}" placeholder="Default amount" readonly  >
+                       
                             </div>
 
                             <div class="form-group">
                                 <select class="form-control" id="edit-from-currency-select" name="from_currency" data-width="100%" disabled>
                                     <option value="" disabled selected>Select from currency</option>
                                     @foreach($in_app_currencies as $currency)
-                                        <option value="{{ $currency->currency_id }}">{{ $currency->currency }}</option>
+                                        <option value="{{ $currency->id }}">{{ $currency->name }}</option>
                                     @endforeach
                                 </select>
                             </div>
@@ -35,14 +36,14 @@
                         </div>
                         <div class="col-md-5">
                             <div class="form-group">
-                                <input type="number" class="form-control" step='0.000000000001' oninput="precise(this, 12);" id="edit-exchange-rate-input" name="exchange_rate" placeholder="Enter exchange rate" data-placeholder="Enter exchange rate" onkeypress="return (event.charCode == 8 || event.charCode == 0) ? null : event.charCode >= 48 && event.charCode <= 57">
+                                <input type="number" class="form-control" min="0.00"  step="any" id="edit-exchange-rate-input" name="exchange_rate" placeholder="Enter exchange rate" data-placeholder="Enter exchange rate" >
                             </div>
 
                             <div class="form-group">
                                 <select class="form-control" id="edit-to-currency-select" name="to_currency" data-width="100%" disabled>
                                     <option value="" disabled selected>Select to currency</option>
                                     @foreach($in_app_currencies as $currency)
-                                        <option value="{{ $currency->currency_id }}">{{ $currency->currency }}</option>
+                                        <option value="{{ $currency->id }}">{{ $currency->name }}</option>
                                     @endforeach
                                 </select>
                             </div>
@@ -51,11 +52,11 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-default pull-left" data-dismiss="modal">Close</button>
-                    @usercan('edit', 'exchange_rates.update')
+                   
                     <button type="submit" role="button" data-loading-text='{{ trans('loading.please_wait') }}' class="btn btn-primary">
                         Save changes
                     </button>
-                    @endusercan
+                    
                 </div>
             </form>
         </div>
@@ -66,7 +67,9 @@
     @parent
 
     <script>
+        
         $(function () {
+
             var form = $('#form-edit-exchange-rate');
 
             form.find('#edit-to-currency-select').on('change', function () {

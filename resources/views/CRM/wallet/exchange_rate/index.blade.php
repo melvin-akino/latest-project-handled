@@ -20,14 +20,14 @@
                             <th>To</th>
                             <th>Default Amount</th>
                             <th>Exchange Rate</th>
-                            @usercan('edit', 'exchange_rates.update')
+                           
                             <th>Actions</th>
-                            @endusercan
+                           
                         </tr>
                         </thead>
                     </table>
                 </div>
-                @usercan('add', 'exchange_rates.store')
+              
                 <div class="box-footer">
                     <button type="button" class="btn btn-success btn-xs btn-add-exchange-rate"
                             data-toggle="modal"
@@ -35,7 +35,7 @@
                         <i class="fa fa-plus"></i>
                     </button>
                 </div>
-                @endusercan
+                
             </div>
         </div>
     </div>
@@ -89,7 +89,7 @@
                 "responsive": true,
                 "ajax": "{{ route('wallet.exchange_rates.dataTable') }}",
                 'createdRow': function (tr, data, dataIndex) {
-                    $(tr).attr('data-exchange-rate-id', data.exchange_rate_id);
+                    $(tr).attr('data-exchange-rate-id', data.id);
                 },
                 columnDefs: [
                     {
@@ -113,28 +113,28 @@
                             $(td).attr('data-exchange-rate', parseFloat(cellData).toFixed(12));
                         }
                     },
-                        @if(Auth::guard('crm')->user()->canAccess('edit', 'exchange_rates.update'))
+                        
                     {
                         targets: 4,
                         orderable: false
                     }
-                    @endif
+                    
                 ],
                 "columns": [
                     {
-                        "data": "from_currency",
+                        "data": "from_currency_id",
                         "render": function (data, type, row, meta) {
                             if (type === 'display') {
-                                data = row.currency_from.currency;
+                                data = row.currency_from.code;
                             }
                             return data;
                         }
                     },
                     {
-                        "data": "to_currency",
+                        "data": "to_currency_id",
                         "render": function (data, type, row, meta) {
                             if (type === 'display') {
-                                data = row.currency_to.currency;
+                                data = row.currency_to.code;
                             }
                             return data;
                         }
@@ -157,21 +157,21 @@
                             return data;
                         }
                     },
-                        @if(Auth::guard('crm')->user()->canAccess('edit', 'exchange_rates.update'))
-                    {
-                        "data": null,
+                   {
+                        
                         "render": function (data, type, row, meta) {
                             data = '';
 
-                            if (type === 'display') {
-                                @if(Auth::guard('crm')->user()->canAccess('edit', 'exchange_rates.update'))
+                           
+                                
                                     data += '<button type="button" onclick="setFormEditExchangeRate(this);" class="btn btn-warning btn-xs" title="Edit"><i class="fa fa-edit"></i></button>';
-                                @endif
-                            }
+                               
+                           
                             return data;
                         }
                     }
-                    @endif
+
+                  
                 ]
             });
         });
