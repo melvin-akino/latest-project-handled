@@ -36,7 +36,7 @@ class ExchangeRateController extends Controller
         ExchangeRate::create([
             'from_currency_id' => $request->to_currency,
             'to_currency_id' => $request->from_currency,
-            'default_amount' => $request->default_amount,
+            'default_amount' => ExchangeRate::$default_amount,
             'exchange_rate' => ExchangeRate::$default_amount / $request->exchange_rate
         ]);
 
