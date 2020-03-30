@@ -20,10 +20,62 @@
 |
 */
 
+use Illuminate\Pagination\Paginator;
+use Illuminate\Support\Facades\Blade;
+use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Route;
+use Illuminate\Http\Request;
 use App\Models\{Sport, UserConfiguration};
 
 use Illuminate\Support\Facades\Cookie;
 use RdKafka\Conf as KafkaConf;
+
+/* Datatable for CRM admin */
+
+function dataTable(Request $request, $query, $cols = null)
+{
+    $order = collect($request->input('order')[0]);
+    $col = collect($request->input('columns')[$order->get('column')])->get('data');
+    $dir = $order->get('dir');
+
+    $q = trim($request->input('search')['value']);
+    $len = $request->input('length');
+    $page = ($request->input('start') / $len) + 1;
+
+    Paginator::currentPageResolver(function () use ($page) {
+        return $page;
+    });
+
+    $pagin = null;
+
+    if (!empty($q)) {
+        $pagin = $query->search($q, $cols)->orderBy($col, $dir)->paginate($len);
+    } else {
+        $pagin = $query->orderBy($col, $dir)->paginate($len);
+    }
+
+    return response()->json([
+        "draw" => intval($request->input('draw')),
+        "recordsTotal" => $pagin->total(),
+        "recordsFiltered" => $pagin->total(),
+        "data" => $pagin->items()
+    ]);
+}
+/* end databtable */
+
+/* Swal CRM popup container*/
+
+function swal($title, $html, $type)
+{
+    $swal = [
+        'title' => $title,
+        'html' => $html,
+        'type' => $type
+    ];
+
+    return compact('swal');
+}
+/* End SWal CRM popup container */
 
 /**
  * Delete Cookie by Name

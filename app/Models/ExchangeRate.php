@@ -19,4 +19,15 @@ class ExchangeRate extends Model
         'created_at',
         'updated_at',
     ];
+    public static $default_amount = 1.00;
+
+    public function currency_from()
+    {
+        return $this->belongsTo(Currency::class, 'from_currency_id', 'id');
+    }
+
+    public function currency_to()
+    {
+        return $this->belongsTo(Currency::class, 'to_currency_id', 'id');
+    }
 }
