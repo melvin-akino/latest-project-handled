@@ -263,6 +263,18 @@ return [
                 [ 'name' => 'payload', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 1000 ],
             ],
         ],
+        'providerAccounts' => [ // KEY FORMAT: [providerId:$providerId:unique:<uniqid()>]
+            'size' => 102400,
+            'column' => [
+                [ 'name' => 'id', 'type' => \Swoole\Table::TYPE_INT ],
+                [ 'name' => 'provider_id', 'type' => \Swoole\Table::TYPE_INT ],
+                [ 'name' => 'provider_alias', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 3 ],
+                [ 'name' => 'type', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 20 ],
+                [ 'name' => 'username', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 50 ],
+                [ 'name' => 'punter_percentage', 'type' => \Swoole\Table::TYPE_INT ],
+                [ 'name' => 'credits', 'type' => \Swoole\Table::TYPE_FLOAT ]
+            ],
+        ],
     ],
     'register_providers'       => [
         \Laravel\Passport\PassportServiceProvider::class

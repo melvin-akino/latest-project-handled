@@ -35,6 +35,7 @@ class DataToSwt implements CustomProcessInterface
             'ExchangeRates',
             'Currencies',
             'UserInfo',
+            'ProviderAccounts'
         ];
 
         foreach ($swooleProcesses as $process) {
@@ -394,5 +395,33 @@ class DataToSwt implements CustomProcessInterface
                 'currency_id' => $users->currency_id,
             ]);
         }, $users->toArray());
+    }
+
+    private static function db2SwtProviderAccounts(Server $swoole)
+    {
+        $providerAccounts = DB::table('provider_accounts as pa')
+                            ->join('providers as p', 'p.id', 'pa.provider_id')
+                            ->select('pa.id', 'pa.provider_id', 'pa.type', 'pa.username', 'pa.password', 'pa.punter_percentage', 'pa.credits', 'p.alias')
+                                ->get();
+
+        $providerAccountsTable = $swoole->providerAccountsTable;
+
+        array_map(function ($providerAccount) use ($providerAccountsTable) {
+            $swtId = implode(':', [
+                "providerId:" . $providerAccount->provider_id,
+                'uniqueId:' . uniqid()
+            ]);
+
+            $providerAccountsTable->set($swtId, [
+                'id'                => $providerAccount->id,
+                'provider_id'       => $providerAccount->provider_id,
+                'provider_alias'    => $providerAccount->alias,
+                'type'              => $providerAccount->type,
+                'username'          => $providerAccount->username,
+                'password'          => $providerAccount->password,
+                'punter_percentage' => $providerAccount->punter_percentage,
+                'credits'           => $providerAccount->credits,
+            ]);
+        }, $providerAccounts->toArray());
     }
 }
