@@ -6,8 +6,7 @@ namespace App\Http\Controllers\CRM\Wallet;
 use App\Http\Controllers\Controller;
 
 use App\Http\Requests\CRM\ExchangeRateRequest;
-use App\Models\Currency;
-use App\Models\ExchangeRate;
+use App\Models\{Currency,ExchangeRate};
 use Illuminate\Http\Request;
 
 class ExchangeRateController extends Controller

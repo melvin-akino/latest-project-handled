@@ -44,8 +44,7 @@ class ExchangeRateRequest extends FormRequest
             }
             case 'PUT': {
                 $exchange_rate = $this->route('exchange_rate');
-                //$unique_from = is_null($existing_exchange_rate) ? '' : '|unique:exchange_rates,from_currency_id,id,' . $exchange_rate->id;
-                //$unique_to = is_null($existing_exchange_rate) ? '' : '|unique:exchange_rates,to_currency_id,id,' . $exchange_rate->id;
+
                 $existing_exchange_rate = ExchangeRate::where('from_currency_id', $this->input('from_currency'))
                     ->where('to_currency_id', $this->input('to_currency'))
                     ->where('id','<>',$exchange_rate->id)
@@ -53,8 +52,7 @@ class ExchangeRateRequest extends FormRequest
                  $unique = is_null($existing_exchange_rate) ? '' : '|unique:exchange_rates,from_currency_id';   
                 
                 return [
-                    // 'from_currency' => "required$unique_from",
-                    // 'to_currency' => "required|different:from_currency$unique_to",
+
                     'from_currency' => "required|$unique",
                     'to_currency' => "required|different:from_currency",
                    
