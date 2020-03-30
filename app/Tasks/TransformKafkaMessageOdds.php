@@ -328,8 +328,9 @@ class TransformKafkaMessageOdds extends Task
                                  *      $eventMarket        swoole_table_value  string
                                  */
 
-                                $marketOdds = $markets->odds;
+                                $marketOdds   = $markets->odds;
                                 $marketPoints = "";
+                                $emptyMarket  = false;
 
                                 if (gettype($marketOdds) == 'string') {
                                     $marketOdds = explode(' ', $markets->odds);
@@ -355,7 +356,8 @@ class TransformKafkaMessageOdds extends Task
                                 ]);
 
                                 if ($markets->market_id == "") {
-                                    $marketOdds = 0;
+                                    $emptyMarket = true;
+                                    $marketOdds  = 0;
                                 }
 
                                 if ($eventMarketsTable->exist($masterEventMarketSwtId)) {
@@ -374,7 +376,6 @@ class TransformKafkaMessageOdds extends Task
                                 }
 
                                 /** TO INSERT */
-
                                 $toInsert['MasterEventMarket']['swtKey'] = $masterEventMarketSwtId;
                                 $toInsert['MasterEventMarket']['data'] = [
                                     'master_event_unique_id'        => $uid,
@@ -385,20 +386,22 @@ class TransformKafkaMessageOdds extends Task
                                 ];
 
                                 foreach ($eventMarketsTable AS $emKey => $emRow) {
-                                    if (($emRow['uid'] == $uid) && ($emRow['odd_type_id'] == $oddTypeId)) {
-                                        $toInsert['EventMarket']['data'] = [
-                                            'provider_id'            => $providerId,
-                                            'master_event_unique_id' => $uid,
-                                            'odd_type_id'            => $oddTypeId,
-                                            'odds'                   => $marketOdds,
-                                            'odd_label'              => $marketPoints,
-                                            'bet_identifier'         => $markets->market_id,
-                                            'is_main'                => $event->market_type == 1 ? true : false,
-                                            'market_flag'            => strtoupper($markets->indicator),
-                                            'event_identifier'       => $event->eventId,
-                                        ];
+                                    if (($emptyMarket) && ($emRow['uid'] == $uid) && ($emRow['odd_type_id'] == $oddTypeId)) {
+                                        $eventMarketsTable->del($emKey);
                                     }
                                 }
+
+                                $toInsert['EventMarket']['data'] = [
+                                    'provider_id'            => $providerId,
+                                    'master_event_unique_id' => $uid,
+                                    'odd_type_id'            => $oddTypeId,
+                                    'odds'                   => $marketOdds,
+                                    'odd_label'              => $marketPoints,
+                                    'bet_identifier'         => $markets->market_id,
+                                    'is_main'                => $event->market_type == 1 ? true : false,
+                                    'market_flag'            => strtoupper($markets->indicator),
+                                    'event_identifier'       => $event->eventId,
+                                ];
 
                                 if ($this->dbOptions['is-market-different']) {
                                     $toInsert['MasterEventMarketLog']['data'] = [
