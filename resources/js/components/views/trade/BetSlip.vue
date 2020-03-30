@@ -92,16 +92,10 @@
                     </div>
                     <div class="flex flex-col mt-4 w-3/5 h-full">
                         <div class="flex flex-col items-center bg-white shadow shadow-xl mb-2" v-if="oddTypesWithSpreads.includes(market_details.odd_type)">
-                            <span class="text-white uppercase font-bold mr-2 my-3 px-2 bg-orange-500">{{market_details.odd_type}}</span>
-                            <div class="flex justify-around items-center">
+                            <span class="text-white uppercase font-bold my-3 px-2 bg-orange-500">{{market_details.odd_type}}</span>
+                            <div class="flex justify-center items-center">
                                 <a href="#" class="m-1 w-12 text-center text-gray-800"><i class="fas fa-chevron-left"></i></a>
-                                <a href="#" class="m-1 w-12 text-center text-sm text-white bg-orange-500 px-2 py-1">-0.75</a>
-                                <a href="#" class="m-1 w-12 text-center text-sm text-gray-800 bg-gray-200 px-2 py-1 hover:text-white hover:bg-orange-500">-0.50</a>
-                                <a href="#" class="m-1 w-12 text-center text-sm text-gray-800 bg-gray-200 px-2 py-1 hover:text-white hover:bg-orange-500">-0.25</a>
-                                <a href="#" class="m-1 w-12 text-center text-sm text-gray-800 bg-gray-200 px-2 py-1 hover:text-white hover:bg-orange-500">0</a>
-                                <a href="#" class="m-1 w-12 text-center text-sm text-gray-800 bg-gray-200 px-2 py-1 hover:text-white hover:bg-orange-500">0.25</a>
-                                <a href="#" class="m-1 w-12 text-center text-sm text-gray-800 bg-gray-200 px-2 py-1 hover:text-white hover:bg-orange-500">0.50</a>
-                                <a href="#" class="m-1 w-12 text-center text-sm text-gray-800 bg-gray-200 px-2 py-1 hover:text-white hover:bg-orange-500">0.75</a>
+                                <a href="#" class="m-1 w-12 text-center text-sm" :class="[spread.points == points ? 'text-white bg-orange-500 px-2 py-1' : 'text-gray-800']" v-for="spread in spreads" :key="spread.market_id" @click="changePoint(spread.points, spread.market_id)">{{spread.points}}</a>
                                 <a href="#" class="m-1 w-12 text-center text-gray-800"><i class="fas fa-chevron-right"></i></a>
                             </div>
                         </div>
@@ -166,7 +160,16 @@ export default {
                 betType: 'BEST_PRICE',
                 markets: []
             },
-            minMaxData: [],
+            minMaxData: [
+                {
+                    provider_id: 1,
+                    provider: 'HG',
+                    min: 150,
+                    max: 1000,
+                    priority: 1,
+                    price: this.odd_details.odds
+                }
+            ],
             oddTypesWithSpreads: ['HDP', 'HT HDP', 'OU', 'HT OU'],
             orderMessage: '',
             orderError: '',
@@ -192,6 +195,32 @@ export default {
                     return
                 }
             }
+        },
+        spreads() {
+            let spreads = []
+            /* FIX THIS */
+            spreads.push({ market_id: this.odd_details.market_id, points: this.points })
+            if('other' in this.odd_details.game.market_odds) {
+                Object.keys(this.odd_details.game.market_odds.other).map(point => {
+                    Object.keys(this.odd_details.game.market_odds.other[point]).map(oddType => {
+                        Object.keys(this.odd_details.game.market_odds.other[point][oddType]).map(team => {
+                            if(oddType == this.market_details.odd_type && team == this.market_details.market_flag) {
+                                let points
+                                if(oddType == 'HDP' || oddType == 'HT HDP') {
+                                    points = Number(this.odd_details.game.market_odds.other[point][oddType][team].points)
+                                } else if(oddType == 'OU' || oddType == 'HT OU') {
+                                     points = Number(this.odd_details.game.market_odds.other[point][oddType][team].points.split(' ')[1])
+                                }
+                                spreads.push({
+                                    market_id: this.odd_details.game.market_odds.other[point][oddType][team].market_id,
+                                    points: points
+                                })
+                            }
+                        })
+                    })
+                })
+            }
+            return spreads.sort((a,b) => (a.points > b.points) ? 1 : -1)
         },
         orderPrompt() {
             if(this.orderMessage == '') {
@@ -267,6 +296,9 @@ export default {
             .catch(err => {
                 this.$store.dispatch('auth/checkIfTokenIsValid', err.response.data.status_code)
             })
+        },
+        changePoints(points, market_id) {
+
         },
         sendMinMax() {
             return new Promise((resolve) => {
@@ -438,6 +470,11 @@ export default {
                             against_score: this.against_score
                         }
                     }
+
+                    if(this.betSlipSettings.bets_to_fav == 1) {
+                        this.$store.dispatch('trade/addToWatchlist', { type: 'event', data: this.odd_details.game.uid, payload: this.odd_details.game })
+                    }
+
                     this.isDoneBetting = true
                 })
                 .catch(err => {

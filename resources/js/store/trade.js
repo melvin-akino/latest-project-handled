@@ -143,8 +143,9 @@ const mutations = {
     SET_WATCHLIST: (state, watchlist) => {
         Vue.set(state.events, 'watchlist', watchlist)
     },
-    OPEN_BETSLIP: (state, odd) => {
-        state.openedBetSlips.push(odd)
+    OPEN_BETSLIP: (state, data) => {
+        Vue.set(data.odd, 'game', data.game)
+        state.openedBetSlips.push(data.odd)
     },
     CLOSE_BETSLIP: (state, market_id) => {
         state.openedBetSlips = state.openedBetSlips.filter(openedBetSlip => openedBetSlip.market_id != market_id)
@@ -264,7 +265,7 @@ const actions = {
     getBetbarData({commit, state, dispatch}) {
         axios.get('v1/trade/betbar', { headers: { 'Authorization': `Bearer ${token}` }})
         .then(response => {
-            commit('SET_BETS', response.data.data.reverse())
+            commit('SET_BETS', response.data.data)
             if(state.bets.length != 0) {
                 commit('TOGGLE_BETBAR', true)
             }
