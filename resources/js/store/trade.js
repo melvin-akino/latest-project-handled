@@ -33,7 +33,8 @@ const state = {
     bookies: [],
     bets: [],
     tradePageSettings: {},
-    betSlipSettings: {}
+    betSlipSettings: {},
+    showSearch: true
 }
 
 const mutations = {
@@ -171,6 +172,9 @@ const mutations = {
     },
     SET_BET_SLIP_SETTINGS: (state, betSlipSettings) => {
         state.betSlipSettings = betSlipSettings
+    },
+    SHOW_SEARCH: (state, data) => {
+        state.showSearch = data
     }
 }
 
@@ -277,10 +281,10 @@ const actions = {
         let betSlipSettings = await dispatch('settings/getUserSettingsConfig', 'bet-slip', { root: true })
         commit('SET_BET_SLIP_SETTINGS', betSlipSettings)
     },
-    toggleLeague(context, data) {
+    toggleLeague({dispatch}, data) {
         axios.post('v1/trade/leagues/toggle', { league_name: data.league_name, sport_id: data.sport_id, schedule: data.schedule}, { headers: { 'Authorization': `Bearer ${token}` } })
         .catch(err => {
-            this.$store.dispatch('auth/checkIfTokenIsValid', err.response.data.status_code)
+            dispatch('auth/checkIfTokenIsValid', err.response.data.status_code, { root: true })
         })
     },
     toggleLeagueByName({dispatch}, data) {
@@ -289,6 +293,40 @@ const actions = {
             if(state.selectedLeagues[schedule].length != 0 && state.selectedLeagues[schedule].includes(data.league_name)) {
                 dispatch('toggleLeague', { league_name: data.league_name, sport_id: data.sport_id, schedule: schedule })
             }
+        })
+    },
+    addToWatchlist({dispatch, state, commit}, data) {
+        axios.post('v1/trade/watchlist/add', { type: data.type, data: data.data }, { headers: { 'Authorization': `Bearer ${token}` }})
+        .then(response => {
+            if(data.type=='league') {
+                dispatch('toggleLeagueByName', { league_name: data.data, sport_id: state.selectedSport })
+                commit('REMOVE_SELECTED_LEAGUE_BY_NAME', data.data)
+                commit('REMOVE_FROM_EVENTS_BY_LEAGUE', data.data)
+                commit('REMOVE_FROM_EVENT_LIST', { type: 'league_name', data: data.data })
+            } else if(data.type=='event') {
+                if(!_.isEmpty(data.payload)) {
+                    let leaguesLength = 0
+                    if(state.tradePageSettings.sort_event == 1) {
+                        commit('REMOVE_EVENT', { schedule: data.payload.game_schedule, removedLeague: data.payload.league_name, removedEvent: data.payload.uid})
+                        leaguesLength = state.events[data.payload.game_schedule][data.payload.league_name].length
+                    } else if(state.tradePageSettings.sort_event == 2) {
+                        let eventStartTime = `[${data.payload.ref_schedule.split(' ')[1]}] ${data.payload.league_name}`
+                        commit('REMOVE_EVENT', { schedule: data.payload.game_schedule, removedLeague: eventStartTime, removedEvent: data.payload.uid})
+                        leaguesLength = state.events[data.payload.game_schedule][eventStartTime].length
+                    }
+
+                    if(leaguesLength == 0) {
+                        dispatch('toggleLeague', { league_name: data.payload.league_name,  schedule: data.payload.game_schedule, sport_id: state.selectedSport })
+                        commit('REMOVE_SELECTED_LEAGUE', {schedule: data.payload.game_schedule, league: data.payload.league_name })
+                        commit('REMOVE_FROM_EVENTS', { schedule: data.payload.game_schedule, removedLeague: data.payload.league_name })
+                    }
+                    commit('REMOVE_FROM_EVENT_LIST', { type: 'uid', data: data.payload.uid })
+                }
+            }
+            Vue.prototype.$socket.send('getWatchlist')
+        })
+        .catch(err => {
+            dispatch('auth/checkIfTokenIsValid', err.response.data.status_code, { root: true })
         })
     }
 }

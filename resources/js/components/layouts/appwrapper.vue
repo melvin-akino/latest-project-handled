@@ -5,12 +5,7 @@
                 <img :src="logo" class="w-12 mt-2">
                 <router-link to="/" class="text-sm uppercase ml-5 sm:px-4 px-6 hover:bg-orange-500 hover:text-white navlink">Trade</router-link>
                 <router-link to="/orders" class="text-sm uppercase ml-1 sm:px-4 px-6 hover:bg-orange-500 hover:text-white navlink">My Orders</router-link>
-                <form class="w-1/2 xl:w-1/3 px-4" @submit.prevent="searchLeaguesOrTeams">
-                    <div class="flex items-center">
-                        <input type="text" class="appearance-none bg-transparent border-b border-gray-800 w-full text-sm text-gray-700 mr-1 py-1 leading-tight focus:outline-none" placeholder="Search Leagues or Teams" v-model="searchKeyword">
-                        <button class="text-gray-700" type="submit"><i class="fas fa-search"></i></button>
-                    </div>
-                </form>
+                <Search></Search>
             </div>
             <div class="flex justify-end items-center w-1/2 mr-16">
                 <p class="text-gray-600 text-sm capitalize">{{time}} | GMT {{defaultTimezone.timezone}} {{defaultTimezone.name}}</p>
@@ -41,15 +36,18 @@ import axios from 'axios'
 import Cookies from 'js-cookie'
 import moment from 'moment-timezone'
 import { mapState } from 'vuex'
+import Search from '../views/trade/Search'
 
 export default {
+    components: {
+        Search
+    },
     data() {
         return {
             logo: Logo,
             isLoggingOut: false,
             display_name: '',
             time: '',
-            searchKeyword: ''
         }
     },
     computed: {
@@ -97,9 +95,6 @@ export default {
                 this.$store.dispatch('auth/checkIfTokenIsValid', err.response.data.status_code)
             })
             this.isLoggingOut = true
-        },
-        searchLeaguesOrTeams() {
-
         }
     }
 }
