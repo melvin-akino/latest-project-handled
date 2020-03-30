@@ -274,6 +274,12 @@ export default {
                 resolve()
             })
         },
+        removeMinMax() {
+            return new Promise((resolve) => {
+                this.$socket.send(`removeMinMax_${this.odd_details.market_id}`)
+                resolve()
+            })
+        },
         getMinMaxData() {
             this.$options.sockets.onmessage = (response => {
                 if(getSocketKey(response.data) === 'getMinMax') {
@@ -310,6 +316,22 @@ export default {
                 }
             })
         },
+        getRemoveMinMax() {
+            this.$options.sockets.onmessage = (response => {
+                if(getSocketKey(response.data) === 'removeMinMax') {
+                    let removeMinMax = getSocketValue(response.data, 'removeMinMax')
+                    if(removeMinMax.status) {
+                        this.minMaxData = []
+                    }
+                }
+            })
+        },
+        emptyMinMax() {
+            this.removeMinMax()
+            .then(() => {
+                this.getRemoveMinMax()
+            })
+        },
         minmax() {
             this.sendMinMax()
             .then(() => {
@@ -321,6 +343,7 @@ export default {
             this.$store.commit('trade/CLOSE_BETSLIP', this.odd_details.market_id)
             this.$store.commit('trade/CLOSE_BET_MATRIX', this.odd_details.market_id)
             this.$store.commit('trade/CLOSE_ODDS_HISTORY', this.odd_details.market_id)
+            this.emptyMinMax()
         },
         openBetMatrix(odd_details) {
             this.$store.commit('trade/CLOSE_BET_MATRIX', odd_details.market_id)
