@@ -165,6 +165,8 @@ class ScrapeRequestCommand extends Command
                 'error' => $e->getMessage(),
                 'code' => $e->getCode()
             ]);
+        } finally {
+            Log::channel('kafkalog')->info(json_encode($message));
         }
     }
 }
