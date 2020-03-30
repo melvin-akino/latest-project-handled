@@ -37,7 +37,7 @@ export default {
         }
     },
     computed: {
-        ...mapState('trade', ['showSearch'])
+        ...mapState('trade', ['showSearch', 'allEventsList'])
     },
     watch: {
         searchKeyword(newValue, oldValue) {
@@ -75,7 +75,19 @@ export default {
             this.searchLeaguesOrTeams()
         },
         addToWatchlist(type, data) {
-
+            this.isSearching = false
+            this.searchKeyword = ''
+            let token = Cookies.get('mltoken')
+            if(type=='league') {
+                this.$store.dispatch('trade/addToWatchlist', { type: type, data: data })
+            } else if(type=='event') {
+                let payload = {}
+                let event = this.allEventsList.filter(event => event.uid == data)
+                if(event.length != 0) {
+                    payload = event[0]
+                }
+                this.$store.dispatch('trade/addToWatchlist', { type: type, data: data, payload: payload })
+            }
         }
     }
 }
