@@ -166,6 +166,8 @@ class KafkaProduce implements CustomProcessInterface
                 'error' => $e->getMessage(),
                 'code' => $e->getCode()
             ]);
+        } finally {
+            Log::channel('kafkalog')->info(json_encode($message));
         }
     }
 }
