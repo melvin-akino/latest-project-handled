@@ -332,6 +332,8 @@ class TransformKafkaMessageOdds extends Task
                                 $marketPoints = "";
                                 $emptyMarket  = false;
 
+                                $this->dbOptions['is-empty-markket-id'] = false;
+
                                 if (gettype($marketOdds) == 'string') {
                                     $marketOdds = explode(' ', $markets->odds);
 
@@ -387,6 +389,16 @@ class TransformKafkaMessageOdds extends Task
 
                                 foreach ($eventMarketsTable AS $emKey => $emRow) {
                                     if (($emptyMarket) && ($emRow['uid'] == $uid) && ($emRow['odd_type_id'] == $oddTypeId)) {
+                                        $this->dbOptions['is-empty-markket-id'] = true;
+                                        $this->subTasks['remove-event-market'] = [
+                                            'uid'                           => $uid,
+                                            'odd_type_id'                   => $oddTypeId,
+                                            'provider_id'                   => $providerId,
+                                            'master_event_market_unique_id' => $memUID,
+                                            'is_main'                       => $event->market_type == 1 ? true : false,
+                                            'market_flag'                   => strtoupper($markets->indicator),
+                                        ];
+
                                         $eventMarketsTable->del($emKey);
                                     }
                                 }

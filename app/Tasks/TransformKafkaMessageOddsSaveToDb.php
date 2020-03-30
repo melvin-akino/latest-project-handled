@@ -29,18 +29,19 @@ class TransformKafkaMessageOddsSaveToDb extends Task
 
     public function __construct(array $subTasks = [], string $uid = null, array $dbOptions)
     {
-        $this->subTasks = $subTasks;
-        $this->uid = $uid;
+        $this->subTasks  = $subTasks;
+        $this->uid       = $uid;
         $this->dbOptions = $dbOptions;
     }
 
     public function handle()
     {
-        $this->swoole = app('swoole');
-        $this->eventData = $this->subTasks['event'];
-        $this->eventRawData = $this->subTasks['event-raw'];
+        $this->swoole           = app('swoole');
+        $this->eventData        = $this->subTasks['event'];
+        $this->eventRawData     = $this->subTasks['event-raw'];
         $this->eventMarketsData = $this->subTasks['event-market'];
-        $this->updatedOddsData = $this->subTasks['updated-odds'];
+        $this->updatedOddsData  = $this->subTasks['updated-odds'];
+        $removeEventMarket      = $this->subTasks['remove-event-market'];
 
         try {
             DB::beginTransaction();
@@ -53,7 +54,6 @@ class TransformKafkaMessageOddsSaveToDb extends Task
                 $masterEventModel = MasterEvent::withTrashed()->updateOrCreate([
                     'master_event_unique_id' => $this->eventData['MasterEvent']['data']['master_event_unique_id']
                 ], $this->eventData['MasterEvent']['data']);
-
 
                 if ($masterEventModel && $eventModel) {
                     $rawEventId = $eventModel->id;
@@ -112,6 +112,20 @@ class TransformKafkaMessageOddsSaveToDb extends Task
 
                     }, $this->updatedOddsData);
                 }
+            }
+
+            if ($this->dbOptions['is-empty-markket-id']) {
+                MasterEventMarket::where(function($cond) use ($removeEventMarket) {
+                    $cond->where('master_event_market_unique_id', $removeEventMarket['master_event_market_unique_id'])
+                        ->where('odd_type_id', $removeEventMarket['odd_type_id']);
+                })->delete();
+
+                EventMarket::where(function($cond) use ($removeEventMarket) {
+                    $cond->where('master_event_unique_id', $removeEventMarket['uid'])
+                        ->where('odd_type_id', $removeEventMarket['odd_type_id'])
+                        ->where('is_main', $removeEventMarket['is_main'])
+                        ->where('market_flag', $removeEventMarket['market_flag']);
+                })->delete();
             }
 
             DB::commit();
