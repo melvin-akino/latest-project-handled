@@ -48,7 +48,8 @@
                                         <span><i class="fas fa-star"></i></span>
                                     </div>
                                     <button class="otherMarketsBtn absolute text-orange-500 hover:text-orange-600 focus:outline-none" @click="toggleOtherMarkets(game)" title="View other markets.">
-                                        <i class="fas fa-plus-square"></i>
+                                        <span v-show="game.market_odds.hasOwnProperty('other')"><i class="fas fa-minus-square"></i></span>
+                                        <span v-show="!game.market_odds.hasOwnProperty('other')"><i class="fas fa-plus-square"></i></span>
                                     </button>
                                 </div>
                                 <div class="otherMarkets" v-if="'other' in game.market_odds">
@@ -81,7 +82,8 @@
                                         <span><i class="fas fa-star"></i></span>
                                     </div>
                                     <button class="europeanOtherMarketsBtn absolute text-orange-500 hover:text-orange-600 focus:outline-none" @click="toggleOtherMarkets(game)" title="View other markets.">
-                                        <i class="fas fa-plus-square"></i>
+                                        <span v-show="game.market_odds.hasOwnProperty('other')"><i class="fas fa-minus-square"></i></span>
+                                        <span v-show="!game.market_odds.hasOwnProperty('other')"><i class="fas fa-plus-square"></i></span>
                                     </button>
                                 </div>
                                 <div class="flex">
@@ -200,35 +202,7 @@ export default {
             if(type=='league' && this.tradePageSettings.sort_event == 2) {
                 data = data.split('] ')[1]
             }
-            axios.post('v1/trade/watchlist/add', { type: type, data: data }, { headers: { 'Authorization': `Bearer ${token}` }})
-            .then(response => {
-                if(type==='league') {
-                    this.$store.dispatch('trade/toggleLeagueByName', { league_name: data, sport_id: this.selectedSport })
-                    this.$store.commit('trade/REMOVE_SELECTED_LEAGUE_BY_NAME', data)
-                    this.$store.commit('trade/REMOVE_FROM_EVENTS_BY_LEAGUE', data)
-                    this.$store.commit('trade/REMOVE_FROM_EVENT_LIST', { type: 'league_name', data: data })
-                } else if(type==='event') {
-                    if(this.tradePageSettings.sort_event == 1) {
-                        this.$store.commit('trade/REMOVE_EVENT', { schedule: this.gameSchedType, removedLeague: payload.league_name, removedEvent: payload.uid})
-                        this.leaguesLength = this.events[this.gameSchedType][payload.league_name].length
-                    } else if(this.tradePageSettings.sort_event == 2) {
-                        let eventStartTime = `[${payload.ref_schedule.split(' ')[1]}] ${payload.league_name}`
-                        this.$store.commit('trade/REMOVE_EVENT', { schedule: this.gameSchedType, removedLeague: eventStartTime, removedEvent: payload.uid})
-                        this.leaguesLength = this.events[this.gameSchedType][eventStartTime].length
-                    }
-
-                    if(this.leaguesLength == 0) {
-                        this.$store.dispatch('trade/toggleLeagueByName', { league_name: payload.league_name, sport_id: this.selectedSport })
-                        this.$store.commit('trade/REMOVE_SELECTED_LEAGUE_BY_NAME', payload.league_name)
-                        this.$store.commit('trade/REMOVE_FROM_EVENTS_BY_LEAGUE', payload.league_name)
-                        this.$store.commit('trade/REMOVE_FROM_EVENT_LIST', { type: 'uid', data: payload.uid })
-                    }
-                }
-                this.$socket.send('getWatchlist')
-            })
-            .catch(err => {
-                this.$store.dispatch('auth/checkIfTokenIsValid', err.response.data.status_code)
-            })
+            this.$store.dispatch('trade/addToWatchlist', { type: type, data: data, payload: payload })
         },
         removeFromWatchlist(type, data, payload) {
             let token = Cookies.get('mltoken')

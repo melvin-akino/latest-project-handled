@@ -9,8 +9,14 @@ export default router.beforeEach((to, from, next) => {
     if (token) {
         store.commit('auth/SET_IS_AUTHENTICATED', true)
         if (authRoutes.includes(to.matched[0].path)) {
+            store.commit('trade/SHOW_SEARCH', true)
             next('/')
         } else {
+            if(to.path == '/') {
+                store.commit('trade/SHOW_SEARCH', true)
+            } else {
+                store.commit('trade/SHOW_SEARCH', false)
+            }
             next()
         }
     } else {
