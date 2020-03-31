@@ -92,6 +92,7 @@ export default {
                     if(this.tradePageSettings.sort_event == 1) {
                         watchlistLeagues.map(league => {
                             watchlist.map(event => {
+                                this.$delete(event.market_odds, 'other')
                                 if(event.league_name === league) {
                                     if(typeof(watchlistObject[league]) == "undefined") {
                                         watchlistObject[league] = []
@@ -103,6 +104,7 @@ export default {
                     } else if(this.tradePageSettings.sort_event == 2) {
                         watchlistStartTime.map(startTime => {
                             watchlist.map(event => {
+                                this.$delete(event.market_odds, 'other')
                                 let eventSchedLeague = `[${event.ref_schedule.split(' ')[1]}] ${event.league_name}`
                                 if(eventSchedLeague === startTime) {
                                     if(typeof(watchlistObject[startTime]) == "undefined") {
@@ -131,6 +133,7 @@ export default {
                     receivedEvents.map(receivedEvent => {
                         let eventsListCheckUID = this.eventsList.findIndex(event => event.uid === receivedEvent.uid)
                         let allEventsListCheckUID = this.allEventsList.findIndex(event => event.uid === receivedEvent.uid)
+                        this.$delete(receivedEvent.market_odds, 'other')
                         if(receivedEvent.sport_id == this.selectedSport) {
                             if(eventsListCheckUID === -1) {
                                 this.$store.commit('trade/SET_EVENTS_LIST', receivedEvent)
