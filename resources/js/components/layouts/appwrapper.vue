@@ -1,13 +1,13 @@
 <template>
     <div class="w-full sm:pb-0 pb-8" :class="{'flex flex-col items-center':!$store.state.auth.isAuthenticated}">
         <nav class="flex bg-white shadow-md w-full h-16 fixed z-20" v-if="$store.state.auth.isAuthenticated">
-            <div class="flex justify-start items-center w-1/2 ml-16">
+            <div class="flex justify-start items-center w-1/2 ml-4">
                 <img :src="logo" class="w-12 mt-2">
                 <router-link to="/" class="text-sm uppercase ml-5 sm:px-4 px-6 hover:bg-orange-500 hover:text-white navlink">Trade</router-link>
                 <router-link to="/orders" class="text-sm uppercase ml-1 sm:px-4 px-6 hover:bg-orange-500 hover:text-white navlink">My Orders</router-link>
                 <Search></Search>
             </div>
-            <div class="flex justify-end items-center w-1/2 mr-16">
+            <div class="flex justify-end items-center w-1/2">
                 <p class="text-gray-600 text-sm capitalize">{{time}} | GMT {{defaultTimezone.timezone}} {{defaultTimezone.name}}</p>
                 <div class="username relative inline-block sm:px-4 px-6 navlink">
                     <a href="#" class="text-gray-700 text-sm uppercase ml-5 mr-5">{{display_name}} <span class="text-xs text-gray-700 font-normal"><i class="fas fa-chevron-down"></i></span></a>
