@@ -4,6 +4,7 @@ import Cookies from 'js-cookie'
 const token = Cookies.get('mltoken')
 
 const state = {
+    leagues: [],
     selectedSport: null,
     selectedLeagues: {
         inplay: [],
@@ -16,7 +17,6 @@ const state = {
     oddsTypeBySport: [],
     columnsToDisplay: [],
     checkedColumns: [],
-    initialLeagues: [],
     allEventsList: [],
     eventsList: [],
     events: {
@@ -38,6 +38,19 @@ const state = {
 }
 
 const mutations = {
+    SET_LEAGUES: (state, leagues) => {
+        state.leagues = leagues
+    },
+    ADD_TO_LEAGUES: (state, data) => {
+        if(state.leagues.hasOwnProperty(data.schedule)) {
+            state.leagues[data.schedule].push(data.league)
+        }
+    },
+    REMOVE_FROM_LEAGUE: (state, data) => {
+        if(state.leagues.hasOwnProperty(data.schedule)) {
+            state.leagues[data.schedule] = state.leagues[data.schedule].filter(league => league.name != data.league)
+        }
+    },
     SET_SELECTED_SPORT: (state, selectedSport) => {
         state.selectedSport = selectedSport
     },
@@ -73,9 +86,6 @@ const mutations = {
     },
     SET_CHECKED_COLUMNS: (state, columns) => {
         state.checkedColumns = columns
-    },
-    SET_INITIAL_LEAGUES: (state, leagues) => {
-        state.initialLeagues = leagues
     },
     SET_EVENTS_LIST: (state, event) => {
         state.eventsList.push(event)
@@ -209,8 +219,8 @@ const actions = {
             axios.get('v1/trade/leagues', { headers: { 'Authorization': `Bearer ${token}` }})
             .then(response => {
                 if(response.data.sport_id == state.selectedSport) {
-                    commit('SET_INITIAL_LEAGUES', response.data.data)
-                    resolve(state.initialLeagues)
+                    commit('SET_LEAGUES', response.data.data)
+                    resolve()
                 }
             })
             .catch(err => {
