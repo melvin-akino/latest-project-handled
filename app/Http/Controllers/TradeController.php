@@ -326,6 +326,7 @@ class TradeController extends Controller
                 } else {
                     $transformed = $transformed->join('user_selected_leagues AS sl', 'ml.master_league_name', '=',
                         'sl.master_league_name')
+                        ->where('sl.game_schedule', DB::raw('me.game_schedule'))
                         ->where('sl.user_id', auth()->user()->id);
                 }
 
