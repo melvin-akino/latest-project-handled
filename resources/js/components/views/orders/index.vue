@@ -1,12 +1,12 @@
 <template>
     <div class="container mx-auto my-10">
         <h3 class="text-xl">My Orders</h3>
-        <div class="relative">
-            <v-client-table name="My Orders" :data="myorders" :columns="columns" :options="options"></v-client-table>
-            <div class="absolute text-sm totalPLdata">
-                <span class="totalPLlabel">Total P/L</span>
-                <span>$ 0.00</span>
+        <div class="relative h-full">
+            <div class="absolute text-sm totalPLdata" v-if="myorders.length != 0">
+                <span>Total P/L</span>
+                <span class="totalPL">$ 0.00</span>
             </div>
+            <v-client-table name="My Orders" :data="myorders" :columns="columns" :options="options"></v-client-table>
         </div>
     </div>
 </template>
@@ -123,12 +123,12 @@ export default {
         padding-bottom: 0.75rem;
     }
 
-    .totalPLlabel {
-        margin-right: 53px;
+    .totalPL {
+        margin-left: 53px;
     }
 
     .totalPLdata {
-        right: 132px;
-        bottom: 55px;
+        right: 55px;
+        top: 55px;
     }
 </style>
