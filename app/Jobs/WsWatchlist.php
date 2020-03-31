@@ -64,6 +64,7 @@ class WsWatchlist implements ShouldQueue
                 'mem.is_main', 'mem.market_flag',
                 'ot.type', 'em.odds', 'em.odd_label', 'em.provider_id')
             ->where('uw.user_id', $this->userId)
+            ->where('mem.is_main', true)
             ->whereNull('ml.deleted_at')
             ->distinct()->get();
         $data = [];
