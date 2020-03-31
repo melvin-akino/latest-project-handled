@@ -114,7 +114,7 @@ class TransformKafkaMessageOddsSaveToDb extends Task
                 }
             }
 
-            if ($this->dbOptions['is-empty-markket-id']) {
+            if ($this->dbOptions['is-empty-market-id']) {
                 MasterEventMarket::where(function($cond) use ($removeEventMarket) {
                     $cond->where('master_event_market_unique_id', $removeEventMarket['master_event_market_unique_id'])
                         ->where('odd_type_id', $removeEventMarket['odd_type_id']);
