@@ -65,7 +65,7 @@ class TransformKafkaMessageOddsSaveToDb extends Task
 
                 if (!empty($this->eventMarketsData)) {
                     foreach ($this->eventMarketsData as $eventMarket) {
-                        $eventMarketModel = EventMarket::updateOrCreate([
+                        $eventMarketModel = EventMarket::withTrashed()->updateOrCreate([
                             'bet_identifier'         => $eventMarket['EventMarket']['data']['bet_identifier'],
                             'master_event_unique_id' => $eventMarket['EventMarket']['data']['master_event_unique_id']
                         ], $eventMarket['EventMarket']['data']);
