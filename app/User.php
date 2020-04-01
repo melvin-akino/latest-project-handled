@@ -7,6 +7,8 @@ use Illuminate\Auth\Passwords\CanResetPassword;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Passport\HasApiTokens;
+use App\Models\UserWallet;
+use App\Models\Currency;
 
 class User extends Authenticatable
 {
@@ -58,4 +60,22 @@ class User extends Authenticatable
     {
         return self::find($userId)->where('status', 1);
     }
+    public function wallet()
+    {
+        return $this->hasMany(UserWallet::class, 'user_id', 'id');
+    }
+    public function wallet_deposit()
+    {
+        return $this->hasMany(WalletDeposit::class, 'user_id', 'id');
+    }
+    /*
+    public function primary_wallet()
+    {
+        $this->belongsto(UserWallet::class,'id','user_id');
+    }
+    public function my_currency()
+    {
+        return $this->belongsTo(Currency::class, 'currency_id', 'id');
+    }
+    */
 }
