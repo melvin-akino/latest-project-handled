@@ -39,6 +39,7 @@ class TradeController extends Controller
                 ->join('sport_odd_type AS sot', 'sot.odd_type_id', 'ot.id')
                 ->distinct()
                 ->where('sot.sport_id', DB::raw('o.sport_id'))
+                ->where('o.user_id', auth()->user()->id)
                 ->select([
                     'o.id AS order_id',
                     'p.alias',

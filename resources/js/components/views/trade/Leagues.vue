@@ -1,7 +1,7 @@
 <template>
     <div class="flex flex-col bg-white shadow-lg">
         <div class="flex justify-between bg-orange-500 text-white">
-            <a href="#" class="text-sm uppercase py-2 px-3 leagueSchedule" :class="{'bg-orange-400 shadow-xl': selectedLeagueSchedMode === leagueSchedMode}" @click="selectLeagueSchedMode(leagueSchedMode)" v-for="(leagueSchedMode, index) in leagueSchedModes" :key="index">{{leagueSchedMode}} &nbsp; <span v-if="leagues">({{leagues[leagueSchedMode].length}})</span></a>
+            <a href="#" class="text-sm uppercase py-2 px-3 leagueSchedule" :class="{'bg-orange-400 shadow-xl': selectedLeagueSchedMode === leagueSchedMode}" @click="selectLeagueSchedMode(leagueSchedMode)" v-for="(leagueSchedMode, index) in leagueSchedModes" :key="index">{{leagueSchedMode}} &nbsp; <span v-if="leagues[leagueSchedMode]">({{leagues[leagueSchedMode].length}})</span></a>
         </div>
 
         <div class="flex justify-center" v-if="checkIfLeaguesIsEmpty">
@@ -23,18 +23,22 @@ import { getSocketKey, getSocketValue } from '../../../helpers/socket'
 export default {
     data() {
         return {
-            leagues: null,
             leagueSchedModes: ['inplay', 'today', 'early'],
             selectedLeagueSchedMode: null,
             displayedLeagues: []
         }
     },
     computed: {
-        ...mapState('trade', ['selectedLeagues', 'selectedSport', 'events']),
+        ...mapState('trade', ['selectedLeagues', 'selectedSport', 'events', 'leagues']),
         checkIfLeaguesIsEmpty() {
-            if(this.leagues != null) {
+            if(!_.isEmpty(this.leagues)) {
                 return _.isEmpty(this.leagues[this.selectedLeagueSchedMode])
             }
+        }
+    },
+    watch: {
+        leagues() {
+            this.filterLeaguesBySched(this.selectedLeagueSchedMode)
         }
     },
     mounted() {
@@ -45,7 +49,6 @@ export default {
         getLeagues() {
             this.$store.dispatch('trade/getInitialLeagues')
             .then(response => {
-                this.leagues = response
                 this.modifyLeaguesFromSocket()
                 this.filterLeaguesBySched(this.selectedLeagueSchedMode)
             })
@@ -66,7 +69,7 @@ export default {
                         this.leagueSchedModes.map(sched => {
                             additionalLeagues.map(additionalLeague => {
                                 if(sched == additionalLeague.schedule) {
-                                    this.leagues[sched].push(additionalLeague)
+                                    this.$store.commit('trade/ADD_TO_LEAGUES', { schedule: sched, league: additionalLeague })
                                 }
                             })
                         })
@@ -88,7 +91,7 @@ export default {
                         this.leagueSchedModes.map(sched => {
                             removalLeagues.map(removalLeague => {
                                 if(sched == removalLeague.schedule) {
-                                    this.leagues[sched] = this.leagues[sched].filter(league => league.name != removalLeague.name)
+                                    this.$store.commit('trade/REMOVE_FROM_LEAGUE', { schedule: sched, league: removalLeague.name })
                                     this.$store.commit('trade/REMOVE_SELECTED_LEAGUE', { schedule: sched, league: removalLeague.name })
                                     if(removalLeague.name in this.events.watchlist) {
                                         this.$store.commit('trade/REMOVE_FROM_EVENTS', { schedule: 'watchlist', removedLeague: removalLeague.name  })
