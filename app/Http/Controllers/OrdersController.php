@@ -379,8 +379,10 @@ class OrdersController extends Controller
                 $ceil        = ceil($actualStake);
                 $last2       = substr($ceil, -2);
 
-                if (($last2 > 0) && ($last2 <= 50)) {
+                if (($last2 >= 0) && ($last2 <= 50)) {
                     $actualStake = substr($ceil, 0, -2) . '50';
+                } else if ($last2 == 0) {
+                    $actualStake = $ceil;
                 } else if ($last2 > 50) {
                     $actualStake = substr($ceil, 0, -2) + 1;
                     $actualStake .= '00';
