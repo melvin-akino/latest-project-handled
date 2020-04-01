@@ -281,8 +281,8 @@ class OrdersController extends Controller
                 $exchangeRate = 1;
 
                 if ($baseCurrency->id != $userCurrency) {
-                    $exchangeRate = ExchangeRate::where('from_currency', $baseCurrency->id)
-                        ->where('to_currency', $userCurrency)
+                    $exchangeRate = ExchangeRate::where('from_currency_id', $baseCurrency->id)
+                        ->where('to_currency_id', $userCurrency)
                         ->first()
                         ->exchange_rate;
                 }
