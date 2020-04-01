@@ -91,6 +91,17 @@ class OrdersController extends Controller
     public function getEventMarketsDetails(string $memUID)
     {
         try {
+            $userProvider = UserProviderConfiguration::where('user_id', auth()->user()->id);
+
+            if ($userProvider->exists()) {
+                $userProvider = $userProvider->where('active', true);
+            } else {
+                $userProvider = Provider::where('is_enabled', true);
+            }
+
+            $userProvider = $userProvider->orderBy('priority', 'ASC')
+                ->first();
+
             $masterEventMarket = MasterEventMarket::where('master_event_market_unique_id', $memUID);
 
             if (!$masterEventMarket->exists()) {
@@ -120,6 +131,36 @@ class OrdersController extends Controller
 
             $masterEvent = $masterEvent->first();
 
+            $getOtherMarkets = DB::table('event_markets AS em')
+                ->join('master_event_markets AS mem', function ($join) {
+                    $join->on('em.master_event_unique_id', '=', 'mem.master_event_unique_id');
+                    $join->on('em.odd_type_id', '=', 'mem.odd_type_id');
+                    $join->on('em.is_main', '=', 'mem.is_main');
+                    $join->on('em.market_flag', '=', 'mem.market_flag');
+                })
+                ->distinct()
+                ->where('mem.master_event_unique_id', $masterEventMarket->master_event_unique_id)
+                ->where('mem.odd_type_id', $masterEventMarket->odd_type_id)
+                ->where('em.market_flag', $masterEventMarket->market_flag)
+                ->where('em.provider_id', $userProvider->id)
+                ->get(
+                    [
+                        'mem.master_event_market_unique_id',
+                        'em.odd_label',
+                        'em.is_main'
+                    ]
+                );
+
+            $spreads = [];
+
+            foreach ($getOtherMarkets AS $row) {
+                $spreads[] = [
+                    'market_id' => $row->master_event_market_unique_id,
+                    'points'    => $row->odd_label,
+                    'is_main'   => $row->is_main
+                ];
+            }
+
             $data = [
                 'league_name'   => $masterEvent->master_league_name,
                 'home'          => $masterEvent->master_home_team_name,
@@ -133,6 +174,7 @@ class OrdersController extends Controller
                 'market_flag'   => $masterEventMarket->market_flag,
                 'odd_type'      => OddType::getTypeByID($masterEventMarket->odd_type_id),
                 'sport'         => Sport::getNameByID($masterEvent->sport_id),
+                'spreads'       => $spreads,
             ];
 
             return response()->json([
