@@ -20,7 +20,13 @@
 |
 */
 
-use App\Models\{Sport, UserConfiguration};
+use App\Models\{
+    Sport,
+    UserConfiguration,
+    UserWallet,
+    Source,
+    CRM\WalletLedger
+};
 
 use Illuminate\Support\Facades\Cookie;
 use RdKafka\Conf as KafkaConf;
@@ -193,4 +199,39 @@ if (!function_exists('wsEmit')) {
     }
 }
 
+/**
+ * Handle User Wallet related Transactions
+ *
+ * @param  int     $userId          Authenticated User's ID
+ * @param  string  $transactionType 'source_name' from 'source' Database Table
+ * @param  float   $amount          Amount from Transaction (MUST already be converted to Application's Base Currency [CNY])
+ */
+if (!function_exists('userWalletTransaction')) {
+    function userWalletTransaction($userId, $transactionType, $amount)
+    {
+        switch ($transactionType) {
+            case 'PLACE_BET':
+                $userWallet  = UserWallet::where('user_id', $userId);
+                $userBalance = $userWallet->first()->balance;
+                $sourceId    = Source::where('source_name', $transactionType)->first()->id;
+                $newBalance  = $userBalance - $amount;
 
+                $insertId = $userWallet->update(
+                    [ 'balance' => $newBalance ]
+                )->id;
+
+                WalletLedger::create(
+                    [
+                        'wallet_id' => $insertId,
+                        'source_id' => $sourceId,
+                        'debit'     => 0,
+                        'credit'    => $amount,
+                        'balance'   => $newBalance,
+                    ]
+                );
+            break;
+
+            /** TO DO: Add more cases for every User Transaction catered by the application */
+        }
+    }
+}
