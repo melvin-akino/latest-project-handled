@@ -95,7 +95,7 @@
                             <span class="text-white uppercase font-bold my-3 px-2 bg-orange-500">{{market_details.odd_type}}</span>
                             <div class="flex justify-center items-center">
                                 <a href="#" class="m-1 w-12 text-center text-gray-800" @click="previousPoint" v-if="spreads.length > 1"><i class="fas fa-chevron-left"></i></a>
-                                <a href="#" class="m-1 w-12 text-center text-sm" :class="[spread.points == points ? 'text-white bg-orange-500 px-2 py-1' : 'text-gray-800']" v-for="spread in spreads" :key="spread.market_id" @click="changePoint(spread.points, spread.market_id)">{{spread.points}}</a>
+                                <a href="#" class="m-1 w-16 text-center text-sm" :class="[spread.points == points ? 'text-white bg-orange-500 px-1 py-1' : 'text-gray-800']" v-for="(spread, index) in spreads" :key="index" @click="changePoint(spread.points, spread.market_id)">{{spread.points}}</a>
                                 <a href="#" class="m-1 w-12 text-center text-gray-800" @click="nextPoint" v-if="spreads.length > 1"><i class="fas fa-chevron-right"></i></a>
                             </div>
                         </div>
@@ -179,47 +179,9 @@ export default {
     computed: {
         ...mapState('trade', ['openedBetMatrix', 'openedOddsHistory', 'betSlipSettings']),
         spreads() {
-            let spreads = []
-            if('main' in this.odd_details.game.market_odds) {
-                Object.keys(this.odd_details.game.market_odds.main).map(oddType => {
-                    Object.keys(this.odd_details.game.market_odds.main[oddType]).map(team => {
-                        if(oddType == this.market_details.odd_type && team == this.market_details.market_flag) {
-                            let points
-                            if(oddType == 'HDP' || oddType == 'HT HDP') {
-                                points = Number(this.odd_details.game.market_odds.main[oddType][team].points)
-                            } else if(oddType == 'OU' || oddType == 'HT OU') {
-                                points = Number(this.odd_details.game.market_odds.main[oddType][team].points.split(' ')[1])
-                            }
-                            spreads.push({
-                                market_id: this.odd_details.game.market_odds.main[oddType][team].market_id,
-                                points: points
-                            })
-                        }
-                    })
-                })
+            if(!_.isEmpty(this.market_details)) {
+                return this.market_details.spreads
             }
-
-            if('other' in this.odd_details.game.market_odds) {
-                Object.keys(this.odd_details.game.market_odds.other).map(point => {
-                    Object.keys(this.odd_details.game.market_odds.other[point]).map(oddType => {
-                        Object.keys(this.odd_details.game.market_odds.other[point][oddType]).map(team => {
-                            if(oddType == this.market_details.odd_type && team == this.market_details.market_flag) {
-                                let points
-                                if(oddType == 'HDP' || oddType == 'HT HDP') {
-                                    points = Number(this.odd_details.game.market_odds.other[point][oddType][team].points)
-                                } else if(oddType == 'OU' || oddType == 'HT OU') {
-                                    points = Number(this.odd_details.game.market_odds.other[point][oddType][team].points.split(' ')[1])
-                                }
-                                spreads.push({
-                                    market_id: this.odd_details.game.market_odds.other[point][oddType][team].market_id,
-                                    points: points
-                                })
-                            }
-                        })
-                    })
-                })
-            }
-            return spreads.sort((a,b) => (a.points > b.points) ? 1 : -1)
         },
         activePointIndex() {
             if(!_.isEmpty(this.spreads)) {
@@ -296,13 +258,7 @@ export default {
                 this.market_details = response.data.data
                 this.formattedRefSchedule = response.data.data.ref_schedule.split(' ')
                 this.isLoadingMarketDetails = false
-                if(this.market_details.odd_type == 'HDP' || this.market_details.odd_type == 'HT HDP') {
-                    this.points = Number(this.odd_details.points)
-                } else if(this.market_details.odd_type == 'OU' || this.market_details.odd_type == 'HT OU') {
-                    this.points = Number(this.odd_details.points.split(' ')[1])
-                } else {
-                    this.points = null
-                }
+                this.points = this.odd_details.points
             })
             .catch(err => {
                 this.$store.dispatch('auth/checkIfTokenIsValid', err.response.data.status_code)
@@ -418,6 +374,15 @@ export default {
         updatePrice(price) {
             this.initialPrice = price
         },
+        convertPointAsNumeric(points) {
+            if(this.market_details.odd_type == 'HDP' || this.market_details.odd_type == 'HT HDP') {
+                this.points =  Number(points)
+            } else if(this.market_details.odd_type == 'OU' || this.market_details.odd_type == 'HT OU') {
+                this.points = Number(points.split(' ')[1])
+            } else {
+                return
+            }
+        },
         placeOrder() {
             if(this.orderForm.stake == '' || this.initialPrice == '') {
                 this.orderMessage = 'Please input stake or price.'
@@ -490,7 +455,7 @@ export default {
                         let averagePrice = sumOfPrices / prices.length
                         this.analysisData = {
                             stake: data.stake,
-                            hdp: this.points,
+                            hdp: this.convertPointAsNumeric(this.points),
                             price: Math.floor(averagePrice * 100) / 100,
                             bet_score: this.bet_score,
                             against_score: this.against_score
