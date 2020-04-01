@@ -29,22 +29,18 @@ class ExchangeRateRequest extends FormRequest
             ->where('to_currency_id', $this->input('to_currency'))
             ->first();
 
-
         switch ($this->method()) {
             case 'POST': {
                 $unique = is_null($existing_exchange_rate) ? '' : '|unique:exchange_rates,from_currency_id';
              
-
                 return [
                     'from_currency' => "required|$unique",
-                    'to_currency' => "required|different:from_currency|$unique",
-                   
+                    'to_currency'   => "required|different:from_currency|$unique",                   
                     'exchange_rate' => 'required|regex:/^\d*(\.\d{1,12})?$/|numeric|min:0.000000000001'
                 ];
             }
             case 'PUT': {
                 $exchange_rate = $this->route('exchange_rate');
-
                 $existing_exchange_rate = ExchangeRate::where('from_currency_id', $this->input('from_currency'))
                     ->where('to_currency_id', $this->input('to_currency'))
                     ->where('id','<>',$exchange_rate->id)
@@ -54,13 +50,10 @@ class ExchangeRateRequest extends FormRequest
                 return [
 
                     'from_currency' => "required|$unique",
-                    'to_currency' => "required|different:from_currency",
-                   
+                    'to_currency'   => "required|different:from_currency",                   
                     'exchange_rate' => 'required|regex:/^\d*(\.\d{1,12})?$/|numeric|min:0.000000000001'
                 ];
             }
-            default:
-                break;
         }
     }
 

@@ -1,21 +1,15 @@
 <?php
 
 namespace Tests\Feature;
-use Illuminate\Foundation\Testing\WithoutMiddleware;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Foundation\Testing\WithFaker;
+use Illuminate\Foundation\Testing\{WithoutMiddleware,RefreshDatabase,WithFaker};
 use Tests\TestCase;
 
-
 class AdminCurrencyTest extends AdminAccounttest
-
 {
   
-
     /** @test */
     public function InsertCurrenciesNodataTest() {
-        
-       
+              
         $this->login();
         $response = $this->actingAs($this->user)->json('POST', 'admin/wallet/currencies', 
                 [
@@ -30,21 +24,18 @@ class AdminCurrencyTest extends AdminAccounttest
     }
      /** @test */
     public function InsertCurrencieswithRecordTest() {
-       
-       
+         
         $this->login();
         $response = $this->actingAs($this->user)->json('POST', 'admin/wallet/currencies', 
                 [
-                    'currency_name' => 'php',
-                    'currency_symbol'=>'Php',
-                    'currency_code' =>'php'
+                    'currency_name'   => 'php',
+                    'currency_symbol' =>'Php',
+                    'currency_code'   =>'php'
                 ]
             );
        
          $response->assertStatus(200);
-
     }
- 
     
     public function login(){
     
