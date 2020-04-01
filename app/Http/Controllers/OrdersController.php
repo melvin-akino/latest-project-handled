@@ -2,17 +2,23 @@
 
 namespace App\Http\Controllers;
 
+use App\User;
 use App\Models\{
+    Currency,
+    ExchangeRate,
     EventMarket,
     MasterEvent,
     MasterEventMarket,
     MasterEventMarketLog,
     OddType,
     Provider,
+    CRM\ProviderAccount,
     Sport,
     UserProviderConfiguration,
     Order,
-    OrderLogs
+    OrderLogs,
+    UserWallet,
+    CRM\WalletLedger
 };
 
 use Illuminate\Http\Request;
@@ -265,16 +271,81 @@ class OrdersController extends Controller
 
             foreach ($request->markets AS $row) {
                 $betType      = $request->betType;
-                $userProvider = UserProviderConfiguration::where('provider_id', $row['provider_id']);
-                $userProvider = Provider::find($userProvider->count() == 0 ? $row['provider_id'] : $userProvider->provider_id);
+                $baseCurrency = Currency::where('code', 'CNY')->first();
+                $userDetails  = User::find(auth()->user()->id);
+                $userCurrency = $userDetails->currency_id;
+                $isUserVIP    = false;
+                // $isUserVIP    = $userDetails->is_vip; /** TO DO: Uncomment after running migration script */
+                $userProvider = UserProviderConfiguration::where('user_id', auth()->user()->id);
+                $percentage   = 0;
+                $exchangeRate = 1;
+
+                if ($baseCurrency->id != $userCurrency) {
+                    $exchangeRate = ExchangeRate::where('from_currency', $baseCurrency->id)
+                        ->where('to_currency', $userCurrency)
+                        ->first()
+                        ->exchange_rate;
+                }
+
+                if ($userProvider->exists()) {
+                    $userProvider = $userProvider->where('provider_id', $row['provider_id'])
+                        ->first();
+
+                    if ($userProvider->active) {
+                        $percentage   = $userProvider->punter_percentage;
+                        $userProvider = $userProvider->provider_id;
+                    } else {
+                        if ($betType == "BEST_PRICE") {
+                            return response()->json([
+                                'status'      => false,
+                                'status_code' => 400,
+                                'message'     => trans('generic.bad-request')
+                            ], 400);
+                        }
+
+                        if ($betType == "FAST_BET") {
+                            continue;
+                        }
+                    }
+                } else {
+                    $userProvider = Provider::find($row['provider_id']);
+
+                    if ($userProvider->is_enabled) {
+                        $percentage   = $userProvider->punter_percentage;
+                        $userProvider = $userProvider->id;
+                    } else {
+                        if ($betType == "BEST_PRICE") {
+                            return response()->json([
+                                'status'      => false,
+                                'status_code' => 400,
+                                'message'     => trans('generic.bad-request')
+                            ], 400);
+                        }
+
+                        if ($betType == "FAST_BET") {
+                            continue;
+                        }
+                    }
+                }
 
                 /** TO DO: Wallet Balance Sufficiency Check */
+                $userWallet = UserWallet::where('user_id', auth()->user()->id);
 
-                if (!$userProvider->is_enabled) {
+                if (!$userWallet->exists()) {
+                    return response()->json([
+                        'status'      => false,
+                        'status_code' => 404,
+                        'message'     => trans('generic.not-found') . ": User Wallet Not Found"
+                    ], 404);
+                }
+
+                $userBalance = $userWallet->first()->balance * $exchangeRate;
+
+                if ($userBalance < ($row['stake'] * $exchangeRate)) {
                     return response()->json([
                         'status'      => false,
                         'status_code' => 400,
-                        'message'     => trans('generic.bad-request')
+                        'message'     => trans('generic.bad-request') . ": Insufficient Wallet Balance"
                     ], 400);
                 }
 
@@ -329,7 +400,7 @@ class OrdersController extends Controller
                     $payloadStake = $prevStake < $row['max'] ? $prevStake : $row['max'];
                 }
 
-                $actualStake = $payloadStake / ($userProvider->punter_percentage / 100);
+                $actualStake = $payloadStake / ($percentage / 100);
 
                 if ($request->betType == "BEST_PRICE") {
                     $prevStake = $request->stake - $row['max'];
@@ -345,11 +416,25 @@ class OrdersController extends Controller
 
                 $orderId = uniqid();
 
+                /** ROUNDING UP TO NEAREST 50 */
+                $actualStake = $actualStake * $exchangRate;
+                $ceil        = ceil($actualStake);
+                $last2       = substr($ceil, -2);
+
+                if (($last2 >= 0) && ($last2 <= 50)) {
+                    $actualStake = substr($ceil, 0, -2) . '50';
+                } else if ($last2 == 0) {
+                    $actualStake = $ceil;
+                } else if ($last2 > 50) {
+                    $actualStake = substr($ceil, 0, -2) + 1;
+                    $actualStake .= '00';
+                }
+
                 $payload['user_id']       = auth()->user()->id;
                 $payload['provider_id']   = strtolower($userProvider->alias);
                 $payload['odds']          = $row['price'];
-                $payload['stake']         = $payloadStake;
-                $payload['to_win']        = $payloadStake * $row['price'];
+                $payload['stake']         = ($payloadStake * $exchangRate);
+                $payload['to_win']        = (($payloadStake * $row['price']) * $exchangRate);
                 $payload['actual_stake']  = $actualStake;
                 $payload['actual_to_win'] = $actualStake * $row['price'];
                 $payload['market_id']     = $query->bet_identifier;
@@ -370,8 +455,8 @@ class OrdersController extends Controller
                     'provider_id'                   => $row['provider_id'],
                     'sport_id'                      => $query->sport_id,
                     'odds'                          => $row['price'],
-                    'stake'                         => $payloadStake,
-                    'to_win'                        => $payloadStake * $row['price'],
+                    'stake'                         => ($payloadStake * $exchangeRate),
+                    'to_win'                        => (($payloadStake * $row['price']) * $exchangeRate),
                     'actual_stake'                  => $actualStake,
                     'actual_to_win'                 => $actualStake * $row['price'],
                     'settled_date'                  => "",
@@ -394,6 +479,8 @@ class OrdersController extends Controller
                     'profit_loss'   => 0.00,
                     'order_id'      => $orderIncrementId,
                 ]);
+
+                userWalletTransaction(auth()->user()->id, 'PLACE_BET', ($payloadStake * $exchangeRate));
 
                 if ($request->betType == "FAST_BET") {
                     if ($prevStake == 0) {
@@ -436,16 +523,19 @@ class OrdersController extends Controller
                 $payload   = [
                     'request_uid' => $requestId,
                     'request_ts'  => $requestTs,
-                    'sub_command' => 'scrape',
+                    'sub_command' => 'place',
                     'command'     => 'bet'
                 ];
 
                 $payload['data'] = [
-                    'actual_stake' => $incrementIds['payload'][$i]['actual_stake'],
+                    'provider'     => $incrementIds['payload'][$i]['provider_id'],
+                    'sport'        => $incrementIds['payload'][$i]['sport_id'],
+                    'stake'        => $incrementIds['payload'][$i]['actual_stake'],
                     'odds'         => $incrementIds['payload'][$i]['odds'],
                     'market_id'    => $incrementIds['payload'][$i]['market_id'],
                     'event_id'     => $incrementIds['payload'][$i]['event_id'],
-                    'score'        => $incrementIds['payload'][$i]['score']
+                    'score'        => $incrementIds['payload'][$i]['score'],
+                    'username'     => ProviderAccount::getProviderAccount($incrementIds['payload'][$i]['actual_stake'], $isUserVIP),
                 ];
 
                 $payloadsSwtId = implode(':', [
