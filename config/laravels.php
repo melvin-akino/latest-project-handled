@@ -89,26 +89,20 @@ return [
             ],
         ],
         'deletedLeagues'    => [// key format [sportId:1:league:multileaguename] => [value = multileaguename]
-            'size'   => env('SWT_MAX_SIZE', 102400),// The max size
+            'size'   => 10000,// The max size
             'column' => [// Define the columns
                 ['name' => 'value',           'type' => \Swoole\Table::TYPE_STRING, 'size' => 100 ],
             ],
         ],
-        'kafka' => [// The Key is table name, will add suffix "Table" to avoid naming conflicts. Here defined a table named "wsTable"
-            'size'   => env('SWT_MAX_SIZE', 102400),// The max size
-            'column' => [// Define the columns
-                ['name' => 'value', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 5000],
-            ],
-        ],
         'oddTypes'       => [ // key format [oddType:$oddType] => [id = $id, type = $oddType]
-            'size'   => env('SWT_MAX_SIZE', 102400),
+            'size'   => 1000,
             'column' => [
                 [ 'name' => 'id',   'type' => \Swoole\Table::TYPE_INT ],
                 [ 'name' => 'type', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 20 ],
             ],
         ],
         'providers'       => [ // key format [providerAlias:strtolower($providerAlias)] => [id = $id, alias = $alias]
-            'size'   => env('SWT_MAX_SIZE', 102400),
+            'size'   => 100,
             'column' => [
                 ['name' => 'id',                'type' => \Swoole\Table::TYPE_INT ],
                 ['name' => 'alias',             'type' => \Swoole\Table::TYPE_STRING, 'size' => 10 ],
@@ -119,14 +113,14 @@ return [
             ],
         ],
         'sports'          => [ //key format [sId:$sportId] = [name = $sport]
-            'size'   => env('SWT_MAX_SIZE', 102400),
+            'size'   => 100,
             'column' => [
                 [ 'name' => 'sport', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 50 ],
                 [ 'name' => 'id',    'type' => \Swoole\Table::TYPE_INT ],
             ],
         ],
         'sportOddTypes' => [ // key format [sId:$sportId:oddType:slug($oddType)] = [id = $id, ...]
-            'size'   => env('SWT_MAX_SIZE', 102400),
+            'size'   => 1000,
             'column' => [
                 [ 'name' => 'id',                'type' => \Swoole\Table::TYPE_INT ],
                 [ 'name' => 'sport_id',          'type' => \Swoole\Table::TYPE_INT ],
@@ -187,14 +181,14 @@ return [
             ],
         ],
         'transformed' => [ //key format [eventIdentifier:$eventIdentifier] = [ts => $ts, ...]
-            'size'   => env('SWT_MAX_SIZE', 102400),
+            'size'   => 10000,
             'column' => [ // key format [uid:$uid]
                 [ 'name' => 'ts', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 30],
                 [ 'name' => 'hash', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 32],
             ],
         ],
         'userProviderConfig' => [
-            'size'   => env('SWT_MAX_SIZE', 102400),
+            'size'   => 10000,
             'column' => [ // KEY FORMAT: [userId:$userId:pId:$providerId]
                 [ 'name' => 'user_id',     'type' => \Swoole\Table::TYPE_INT ],
                 [ 'name' => 'provider_id', 'type' => \Swoole\Table::TYPE_INT ],
@@ -202,7 +196,7 @@ return [
             ],
         ],
         'activeEvents' => [
-            'size'   => env('SWT_MAX_SIZE', 102400),
+            'size'   => 10000,
             'column' => [ // KEY FORMAT: [sId:$sportId:pId:$providerId:schedule:$schedule]
                 [ 'name' => 'events',     'type' => \Swoole\Table::TYPE_STRING, 'size' => 10000 ],
             ],
@@ -215,7 +209,7 @@ return [
             ],
         ],
         'orders' => [
-            'size'   => env('SWT_MAX_SIZE', 102400),
+            'size'   => 10000,
             'column' => [ // KEY FORMAT: [orderId:$oriderId]
                 [ 'name' => 'odds',          'type' => \Swoole\Table::TYPE_FLOAT ],
                 [ 'name' => 'stake',         'type' => \Swoole\Table::TYPE_FLOAT ],
@@ -230,7 +224,7 @@ return [
             ],
         ],
         'minMaxRequests' => [
-            'size' => env('SWT_MAX_SIZE', 102400),
+            'size' => 10000,
             'column' => [ // KEY FORMAT: [memUID:$memUID]
                 [ 'name' => 'provider',  'type' => \Swoole\Table::TYPE_STRING, 'size' => 5 ],
                 [ 'name' => 'market_id', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 50 ],
@@ -238,33 +232,33 @@ return [
             ],
         ],
         'exchangeRates' => [
-            'size' => env('SWT_MAX_SIZE', 102400),
+            'size' => 1000,
             'column' => [ // KEY FORMAT: [from:$from_currency_code:to:$to_currency_code]
                 [ 'name' => 'default_amount', 'type' => \Swoole\Table::TYPE_FLOAT ],
                 [ 'name' => 'exchange_rate',  'type' => \Swoole\Table::TYPE_FLOAT ],
             ],
         ],
         'currencies' => [
-            'size' => env('SWT_MAX_SIZE', 102400),
+            'size' => 1000,
             'column' => [ // KEY FORMAT: [currencyId:$id:currencyCode:$code]
                 [ 'name' => 'id',   'type' => \Swoole\Table::TYPE_INT ],
                 [ 'name' => 'code', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 10 ],
             ],
         ],
         'users' => [
-            'size' => env('SWT_MAX_SIZE', 102400),
+            'size' => 10000,
             'column' => [ // KEY FORMAT: [userId:$userId]
                 [ 'name' => 'currency_id', 'type' => \Swoole\Table::TYPE_INT ],
             ],
         ],
         'payloads' => [
-            'size' => env('SWT_MAX_SIZE', 102400),
+            'size' => 10000,
             'column' => [
                 [ 'name' => 'payload', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 1000 ],
             ],
         ],
         'providerAccounts' => [ // KEY FORMAT: [providerId:$providerId:unique:<uniqid()>]
-            'size' => env('SWT_MAX_SIZE', 102400),
+            'size' => 1000,
             'column' => [
                 [ 'name' => 'id', 'type' => \Swoole\Table::TYPE_INT ],
                 [ 'name' => 'provider_id', 'type' => \Swoole\Table::TYPE_INT ],
