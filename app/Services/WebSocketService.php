@@ -65,7 +65,13 @@ class WebSocketService implements WebSocketHandlerInterface
 
     public function onClose(Server $server, $fd, $reactorId)
     {
-        $server->wsTable->del('fd:' . $fd);
+        $user = $server->wsTable->get('fd:' . $fd);
+        $userId = $user['value'];
+        foreach ($server->topicTable as $key => $topic) {
+            if ($topic['user_id'] == $userId) {
+                $server->topicTable->del($key);
+            }
+        }
     }
 
     private function getUser($bearerToken)

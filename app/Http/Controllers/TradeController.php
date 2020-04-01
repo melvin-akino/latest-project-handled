@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\{
     DB,
     Log
 };
+use App\Jobs\WsEvents;
 use Illuminate\Http\Request;
 use Exception;
 use DateTime;
@@ -277,6 +278,30 @@ class TradeController extends Controller
                     }
                 } else {
                     $checkTable->delete();
+
+                    if (empty($_SERVER['_PHPUNIT'])) {
+                        $topicTable = app('swoole')->topicTable;
+                        $eventsTable = app('swoole')->eventsTable;
+                        $eventMarketsTable = app('swoole')->eventMarketsTable;
+
+                        foreach ($eventsTable as $eKey => $event) {
+                            if ($event['master_league_name'] == $request->league_name && $event['game_schedule'] == $request->schedule) {
+
+                                foreach ($eventMarketsTable as $eMKey => $eventMarket) {
+                                    if ($eventMarket['master_event_unique_id'] == $event['master_event_unique_id']) {
+                                        foreach ($topicTable as $k => $topic) {
+                                            if ($topic['user_id'] == auth()->user()->id && $topic['topic_name'] == 'market-id-' . $eventMarket['master_event_market_unique_id']) {
+                                                $topicTable->del($k);
+                                            }
+                                        }
+                                    }
+                                }
+
+                                continue;
+                            }
+                            
+                        }
+                    }
                 }
 
                 return response()->json([
@@ -394,7 +419,8 @@ class TradeController extends Controller
                         $watchlistData[$key] = array_values($watchlist[$key]);
                     }
                 } else {
-                    array_map(function ($transformed) use (&$userSelected, $row, $userConfig) {
+                    $topicTable = app('swoole')->topicTable;
+                    array_map(function ($transformed) use (&$userSelected, $row, $userConfig, $topicTable) {
                         if ($userConfig == self::SORT_EVENT_BY_LEAGUE_NAME) {
                             $groupIndex = $transformed->master_league_name;
                         } else {
@@ -434,8 +460,16 @@ class TradeController extends Controller
                                 'odds'      => (double)$transformed->odds,
                                 'market_id' => $transformed->master_event_market_unique_id
                             ];
+
                             if (!empty($transformed->odd_label)) {
                                 $userSelected[$transformed->game_schedule][$groupIndex][$transformed->master_event_unique_id]['market_odds']['main'][$transformed->type][$transformed->market_flag]['points'] = $transformed->odd_label;
+                            }
+
+                            if (empty($_SERVER['_PHPUNIT'])) {
+                                $topicTable->set('userId:' . auth()->user()->id . ':unique:' . uniqid(), [
+                                    'user_id'       => auth()->user()->id,
+                                    'topic_name'    => 'market-id-' . $transformed->master_event_market_unique_id
+                                ]);
                             }
                         }
                     }, $transformed->toArray());
