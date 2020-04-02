@@ -1,19 +1,17 @@
 <?php
 
-return [
-
- 
+return [ 
     'transfer' => [
         'success' => [
             'title' => ':mode_title Success!',
-            'html' => 'You have successfully :mode :amount to :user.',
-            'type' => 'success'
+            'html'  => 'You have successfully :mode :amount to :user.',
+            'type'  => 'success'
         ]
     ],
 
     'exception' => [
         'title' => 'Error!',
-        'type' => 'error'
+        'type'  => 'error'
     ],
  
 ];

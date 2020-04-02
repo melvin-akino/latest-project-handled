@@ -24,8 +24,6 @@ Route::namespace('CRM')->prefix('admin')->group(function () {
         Route::get('dashboard', 'DashboardController@index')->name('dashboard');
          /* Wallet route */
     	Route::namespace('Wallet')->prefix('wallet')->group(function () {
-		
-
 			Route::prefix('exchange_rates')->group(function () {
 				Route::get('datatable', 'ExchangeRateController@dataTable')->name('wallet.exchange_rates.dataTable');
 			});
@@ -47,14 +45,11 @@ Route::namespace('CRM')->prefix('admin')->group(function () {
 				Route::post('/', 'TransferController@transfer')->name('wallet.transfer.transfer');
 				Route::get('datatable', 'TransferController@dataTable')->name('wallet.transfer.dataTable');
 			});
-   	 /* end transfer route */
-
-		
+   	 		/* end transfer route */		
 		});
     /* end wallet route */
 
     });
-   
 });
 
 Route::get('/{any}', 'AppController@index')->where('any', '^(?!api).*');

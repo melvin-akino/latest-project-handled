@@ -68,14 +68,5 @@ class User extends Authenticatable
     {
         return $this->hasMany(WalletDeposit::class, 'user_id', 'id');
     }
-    /*
-    public function primary_wallet()
-    {
-        $this->belongsto(UserWallet::class,'id','user_id');
-    }
-    public function my_currency()
-    {
-        return $this->belongsTo(Currency::class, 'currency_id', 'id');
-    }
-    */
+
 }

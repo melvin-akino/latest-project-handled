@@ -27,11 +27,10 @@ class TransferRequest extends FormRequest
     public function rules()
     {
         return [
-            'currency_id' => 'required',
-            'user_id' => 'required',
-            // 'transfer_amount' => 'required|regex:/^\d*(\.\d{1,2})?$/|numeric|min:1.00|max:99999.99',
+            'currency_id'     => 'required',
+            'user_id'         => 'required',
             'transfer_amount' => 'required|regex:/^\d*(\.\d{1,2})?$/|numeric|min:1.00',
-            'reason' => 'required|max:255'
+            'reason'          => 'required|max:255'
         ];
     }
 

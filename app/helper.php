@@ -21,13 +21,9 @@
 */
 
 use Illuminate\Pagination\Paginator;
-use Illuminate\Support\Facades\Blade;
-use Illuminate\Support\Facades\File;
-use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\{Blade,File,Route,Cookie};
 use Illuminate\Http\Request;
 use App\Models\{Sport, UserConfiguration};
-
-use Illuminate\Support\Facades\Cookie;
 use RdKafka\Conf as KafkaConf;
 
 /* Datatable for CRM admin */
@@ -69,8 +65,8 @@ function swal($title, $html, $type)
 {
     $swal = [
         'title' => $title,
-        'html' => $html,
-        'type' => $type
+        'html'  => $html,
+        'type'  => $type
     ];
 
     return compact('swal');

@@ -9,12 +9,8 @@ use App\Http\Requests\CRM\TransferRequest;
 
 use App\Models\CRM\CrmTransfer;
 use App\Models\{Currency,Source,UserWallet};
-
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Facades\DB;
-
+use Illuminate\Support\Facades\{Auth,DB};
 
 class TransferController extends Controller
 {
@@ -39,12 +35,9 @@ class TransferController extends Controller
         
     }
 
- 
-
     public function transfer(TransferRequest $request)
     {
-     
-      
+        
         $sender = Auth::guard('crm')->user();
         $mode = $request->mode;
         $amount = $request->transfer_amount;
@@ -62,16 +55,16 @@ class TransferController extends Controller
 
         if($mode == 'add') {
             $transfer_amount = $request->transfer_amount;
-            $charge_type = UserWallet::TYPE_CHARGE;
-            $mode_title = 'Deposit';
-            $mode_text = 'added';
-            $source = Source::where('source_name', 'DEPOSIT')->first();
+            $charge_type     = UserWallet::TYPE_CHARGE;
+            $mode_title      = 'Deposit';
+            $mode_text       = 'added';
+            $source          = Source::where('source_name', 'DEPOSIT')->first();
         } else {
             $transfer_amount = -$request->transfer_amount;
-            $charge_type = UserWallet::TYPE_DISCHARGE;
-            $mode_title = 'Withdraw';
-            $mode_text = 'deducted';
-            $source = Source::where('source_name', 'WITHDRAW')->first();
+            $charge_type     = UserWallet::TYPE_DISCHARGE;
+            $mode_title      = 'Withdraw';
+            $mode_text       = 'deducted';
+            $source          = Source::where('source_name', 'WITHDRAW')->first();
         }
         
 
@@ -80,10 +73,10 @@ class TransferController extends Controller
 
             $crm_transfer = CrmTransfer::create([
                 'transfer_amount' => $transfer_amount,
-                'currency_id' => $currency->id,
-                'crm_user_id' => $sender->id,
-                'reason' => $request->reason,
-                'user_id' => $receiver->id
+                'currency_id'     => $currency->id,
+                'crm_user_id'     => $sender->id,
+                'reason'          => $request->reason,
+                'user_id'         => $receiver->id
             ]);
 
             $ledger = UserWallet::makeTransaction($receiver, $request->transfer_amount, $currency, $source,$charge_type);
@@ -110,9 +103,9 @@ class TransferController extends Controller
                 'mode_title' => $mode_title
             ]),
             trans('swal.transfer.success.html', [
-                'mode' => $mode_text,
+                'mode'   => $mode_text,
                 'amount' => $amount,
-                'user' => $receiver->firstname
+                'user'   => $receiver->firstname
             ]),
             trans('swal.transfer.success.type')
         ));

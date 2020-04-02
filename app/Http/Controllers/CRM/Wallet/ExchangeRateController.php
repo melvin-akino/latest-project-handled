@@ -32,12 +32,11 @@ class ExchangeRateController extends Controller
     public function store(ExchangeRateRequest $request)
     {
 
-    
         ExchangeRate::create([
             'from_currency_id' => $request->to_currency,
-            'to_currency_id' => $request->from_currency,
-            'default_amount' => ExchangeRate::$default_amount,
-            'exchange_rate' => ExchangeRate::$default_amount / $request->exchange_rate
+            'to_currency_id'   => $request->from_currency,
+            'default_amount'   => ExchangeRate::$default_amount,
+            'exchange_rate'    => ExchangeRate::$default_amount / $request->exchange_rate
         ]);
 
         return response()->json([
@@ -48,7 +47,6 @@ class ExchangeRateController extends Controller
     public function update(ExchangeRateRequest $request, ExchangeRate $exchange_rate)
     {
         
-
         $exchange_rate->update([
             'exchange_rate' => ExchangeRate::$default_amount / $request->exchange_rate
         ]);
