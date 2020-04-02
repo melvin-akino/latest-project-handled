@@ -22,7 +22,8 @@ class WsMinMax implements ShouldQueue
         $minMaxRequestsTable = app('swoole')->minMaxRequestsTable;
         $doesExist = false;
         foreach($topicTable as $topic) {
-            if ($topic['topic_name'] == 'min-max-' . $this->master_event_market_unique_id) {
+            if ($topic['topic_name'] == 'min-max-' . $this->master_event_market_unique_id &&
+                $topic['user_id'] == $this->userId) {
                 $doesExist = true;
             }
         }
