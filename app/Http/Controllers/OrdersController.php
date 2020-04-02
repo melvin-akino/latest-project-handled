@@ -341,7 +341,7 @@ class OrdersController extends Controller
 
                 $userBalance = $userWallet->first()->balance * $exchangeRate;
 
-                if ($userBalance < ($row['stake'] * $exchangeRate)) {
+                if ($userBalance < ($request->stake * $exchangeRate)) {
                     return response()->json([
                         'status'      => false,
                         'status_code' => 400,
