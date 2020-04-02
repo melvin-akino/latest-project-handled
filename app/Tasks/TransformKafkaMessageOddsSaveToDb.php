@@ -114,18 +114,20 @@ class TransformKafkaMessageOddsSaveToDb extends Task
                 }
             }
 
-            if ($this->dbOptions['is-empty-market-id']) {
-                MasterEventMarket::where(function($cond) use ($removeEventMarket) {
-                    $cond->where('master_event_market_unique_id', $removeEventMarket['master_event_market_unique_id'])
-                        ->where('odd_type_id', $removeEventMarket['odd_type_id']);
-                })->delete();
+            if (!empty($removeEventMarket) && ($this->swoole->eventMarketsTable->exists($removeEventMarket['swt_key']))) {
+                foreach ($removeEventMarket AS $_row) {
+                    MasterEventMarket::where(function($cond) use ($_row) {
+                        $cond->where('master_event_market_unique_id', $_row['master_event_market_unique_id'])
+                            ->where('odd_type_id', $_row['odd_type_id']);
+                    })->delete();
 
-                EventMarket::where(function($cond) use ($removeEventMarket) {
-                    $cond->where('master_event_unique_id', $removeEventMarket['uid'])
-                        ->where('odd_type_id', $removeEventMarket['odd_type_id'])
-                        ->where('is_main', $removeEventMarket['is_main'])
-                        ->where('market_flag', $removeEventMarket['market_flag']);
-                })->delete();
+                    EventMarket::where(function($cond) use ($_row) {
+                        $cond->where('master_event_unique_id', $_row['uid'])
+                            ->where('odd_type_id', $_row['odd_type_id'])
+                            ->where('is_main', $_row['is_main'])
+                            ->where('market_flag', $_row['market_flag']);
+                    })->delete();
+                }
             }
 
             DB::commit();
@@ -153,7 +155,7 @@ class TransformKafkaMessageOddsSaveToDb extends Task
 
             if (!empty($this->eventMarketsData)) {
                 foreach ($this->eventMarketsData as $eventMarket) {
-                    if ($this->dbOptions['is-empty-market-id']) {
+                    if (!empty($removeEventMarket) && ($this->swoole->eventMarketsTable->exists($removeEventMarket['swt_key']))) {
                         $this->swoole->eventMarketsTable->del($removeEventMarket['swt_key']);
                     } else {
                         $array = [
