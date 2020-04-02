@@ -100,11 +100,13 @@ class SwtToWs implements CustomProcessInterface
                     if (!empty($updatedMarkets)) {
                         if (strpos($key, 'fd:') === 0) {
                             foreach ($topicTable as $topic) {
-                                if ($topic['user_id'] == $row['value']) {
-                                    $fd = $table->get('uid:' . $row['value']);
-                                    $swoole->push($fd['value'], json_encode(['getUpdatedOdds' => $updatedMarkets]));
-                                    $table->del($k);
-                                    break;
+                                if (strpos($topic['topic_name'], 'market-id-') === 0) {
+                                    if ($topic['user_id'] == $row['value']) {
+                                        $fd = $table->get('uid:' . $row['value']);
+                                        $swoole->push($fd['value'], json_encode(['getUpdatedOdds' => $updatedMarkets]));
+                                        $table->del($k);
+                                        break;
+                                    }
                                 }
                             }
                         }
