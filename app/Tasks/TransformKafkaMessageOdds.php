@@ -386,7 +386,7 @@ class TransformKafkaMessageOdds extends Task
                                 ];
 
                                 foreach ($eventMarketsTable AS $emKey => $emRow) {
-                                    if (($emptyMarket) && ($emRow['uid'] == $uid) && ($emRow['odd_type_id'] == $oddTypeId)) {
+                                    if (($emptyMarket) && ($emRow['master_event_unique_id'] == $uid) && ($emRow['odd_type_id'] == $oddTypeId)) {
                                         $this->subTasks['remove-event-market'][] = [
                                             'uid'                           => $uid,
                                             'odd_type_id'                   => $oddTypeId,
