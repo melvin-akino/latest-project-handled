@@ -397,9 +397,8 @@ class TransformKafkaMessageOdds extends Task
                                             'master_event_market_unique_id' => $memUID,
                                             'is_main'                       => $event->market_type == 1 ? true : false,
                                             'market_flag'                   => strtoupper($markets->indicator),
+                                            'swt_key'                        => $emKey,
                                         ];
-
-                                        $eventMarketsTable->del($emKey);
                                     }
                                 }
 

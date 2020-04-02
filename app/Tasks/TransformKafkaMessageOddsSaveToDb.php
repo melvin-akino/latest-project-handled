@@ -153,19 +153,23 @@ class TransformKafkaMessageOddsSaveToDb extends Task
 
             if (!empty($this->eventMarketsData)) {
                 foreach ($this->eventMarketsData as $eventMarket) {
-                    $array = [
-                        'odd_type_id'                   => $eventMarket['MasterEventMarket']['data']['odd_type_id'],
-                        'master_event_market_unique_id' => $eventMarket['MasterEventMarket']['data']['master_event_market_unique_id'],
-                        'master_event_unique_id'        => $eventMarket['MasterEventMarket']['data']['master_event_unique_id'],
-                        'provider_id'                   => $eventMarket['EventMarket']['data']['provider_id'],
-                        'odds'                          => $eventMarket['EventMarket']['data']['odds'],
-                        'odd_label'                     => $eventMarket['EventMarket']['data']['odd_label'],
-                        'bet_identifier'                => $eventMarket['EventMarket']['data']['bet_identifier'],
-                        'is_main'                       => $eventMarket['MasterEventMarket']['data']['is_main'],
-                        'market_flag'                   => $eventMarket['MasterEventMarket']['data']['market_flag'],
-                    ];
+                    if ($this->dbOptions['is-empty-market-id']) {
+                        $this->swoole->eventMarketsTable->del($removeEventMarket['swt_key']);
+                    } else {
+                        $array = [
+                            'odd_type_id'                   => $eventMarket['MasterEventMarket']['data']['odd_type_id'],
+                            'master_event_market_unique_id' => $eventMarket['MasterEventMarket']['data']['master_event_market_unique_id'],
+                            'master_event_unique_id'        => $eventMarket['MasterEventMarket']['data']['master_event_unique_id'],
+                            'provider_id'                   => $eventMarket['EventMarket']['data']['provider_id'],
+                            'odds'                          => $eventMarket['EventMarket']['data']['odds'],
+                            'odd_label'                     => $eventMarket['EventMarket']['data']['odd_label'],
+                            'bet_identifier'                => $eventMarket['EventMarket']['data']['bet_identifier'],
+                            'is_main'                       => $eventMarket['MasterEventMarket']['data']['is_main'],
+                            'market_flag'                   => $eventMarket['MasterEventMarket']['data']['market_flag'],
+                        ];
 
-                    $this->swoole->eventMarketsTable->set($eventMarket['MasterEventMarket']['swtKey'], $array);
+                        $this->swoole->eventMarketsTable->set($eventMarket['MasterEventMarket']['swtKey'], $array);
+                    }
                 }
             }
 
