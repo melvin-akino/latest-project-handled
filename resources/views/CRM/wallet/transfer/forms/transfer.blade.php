@@ -7,7 +7,7 @@
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
-                    <h4 class="modal-title">{{ $page_title }} funds : <strong id="username"></strong></h4>
+                    <h4 class="modal-title">{{ $page_title }} funds : <strong id="email"></strong></h4>
                 </div>
                 <div class="modal-body">
                     <input type="hidden" id="user-id-input" name="user_id">

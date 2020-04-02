@@ -105,7 +105,7 @@ class TransferController extends Controller
             trans('swal.transfer.success.html', [
                 'mode'   => $mode_text,
                 'amount' => $amount,
-                'user'   => $receiver->firstname
+                'user'   => $receiver->email
             ]),
             trans('swal.transfer.success.type')
         ));

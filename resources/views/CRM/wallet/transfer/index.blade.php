@@ -82,14 +82,10 @@
                     {
                        "data": 'code' ,
 
-                        "render": function (data, type, row, meta) {
-                            
-                            
+                        "render": function (data, type, row, meta) {                            
                             balance = row.balance;
                             if (balance==null) balance ='0.00'; 
-                            return  row.code + ' '+ balance;
-                                
-                                    
+                            return  row.code + ' '+ balance;            
                         }
                     },
                         
@@ -97,11 +93,8 @@
                         
                         "render": function (data, type, row, meta) {
                             data = '';
-                            
-                                
-                                    data += '<a href="#" data-currency-id="' + row.currency_id + '" data-user-id="' + row.userid + '" class="transfer-wallet-link"><i class="fa fa-share-square-o"></i>{{ $page_title }} Funds</a>';
-                               
-                            
+                                                            
+                                    data += '<a href="#" data-currency-id="' + row.currency_id + '" data-user-id="' + row.userid + '" class="transfer-wallet-link"><i class="fa fa-share-square-o"></i>{{ $page_title }} Funds</a>';                           
                             return data;
                         }
                     }
@@ -112,7 +105,7 @@
             $('#transfer-table').on('click', '.transfer-wallet-link', function () {
                 var tr = $(this).closest('tr');
                     var form = $('#form-transfer');
-                form.find('#username').text(tr.find('td:eq(0)').text());
+                form.find('#email').text(tr.find('td:eq(2)').text());
                 form.find('input[name=user_id]').val($(this).data('user-id'));
 
                 $('#currency-id-select').val($(this).data('currency-id')).trigger('change');
