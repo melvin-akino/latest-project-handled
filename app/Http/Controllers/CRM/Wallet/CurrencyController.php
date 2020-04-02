@@ -17,11 +17,11 @@ class CurrencyController extends Controller
 
     public function index()
     {
+        $data['wallet_menu']      = true;
+        $data['currency_menu']    = true;
+        $data['page_title']       = 'Currency';
+        $data['page_description'] = 'Wallet';
 
-        $data['wallet_menu'] = true;
-        $data['currency_menu'] = true;
-        $data['page_title'] = 'Currency';
-        $data['page_description'] ='Wallet';
        return view('CRM.wallet.currency.index')->with($data);
     }
 
@@ -49,7 +49,6 @@ class CurrencyController extends Controller
             'code'   => $request->currency_code,
            
         ]);
-
         $currency->save();
 
         return response()->json([
@@ -60,6 +59,7 @@ class CurrencyController extends Controller
     public function setDefaultRegistration($boolA, $boolB)
     {
         $default = $boolA === '1' ? 1 : 0;
+        
         return $this->setAppCurrency($boolB) ? 0 : $default;
     }
 

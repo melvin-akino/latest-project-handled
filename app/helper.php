@@ -22,7 +22,7 @@
 
 
 use Illuminate\Pagination\Paginator;
-use Illuminate\Support\Facades\{Blade,File,Route,Cookie};
+use Illuminate\Support\Facades\{Blade, File, Route, Cookie};
 use Illuminate\Http\Request;
 use App\Models\{
     Sport,
@@ -38,13 +38,12 @@ use RdKafka\Conf as KafkaConf;
 
 function dataTable(Request $request, $query, $cols = null)
 {
-    $order = collect($request->input('order')[0]);
-    $col = collect($request->input('columns')[$order->get('column')])->get('data');
-    $dir = $order->get('dir');
-
-    $q = trim($request->input('search')['value']);
-    $len = $request->input('length');
-    $page = ($request->input('start') / $len) + 1;
+    $order  = collect($request->input('order')[0]);
+    $col    = collect($request->input('columns')[$order->get('column')])->get('data');
+    $dir    = $order->get('dir');
+    $q      = trim($request->input('search')['value']);
+    $len    = $request->input('length');
+    $page   = ($request->input('start') / $len) + 1;
 
     Paginator::currentPageResolver(function () use ($page) {
         return $page;
@@ -59,8 +58,8 @@ function dataTable(Request $request, $query, $cols = null)
     }
 
     return response()->json([
-        "draw" => intval($request->input('draw')),
-        "recordsTotal" => $pagin->total(),
+        "draw"            => intval($request->input('draw')),
+        "recordsTotal"    => $pagin->total(),
         "recordsFiltered" => $pagin->total(),
         "data" => $pagin->items()
     ]);

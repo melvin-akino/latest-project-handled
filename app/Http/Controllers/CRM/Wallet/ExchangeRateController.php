@@ -6,7 +6,7 @@ namespace App\Http\Controllers\CRM\Wallet;
 use App\Http\Controllers\Controller;
 
 use App\Http\Requests\CRM\ExchangeRateRequest;
-use App\Models\{Currency,ExchangeRate};
+use App\Models\{Currency, ExchangeRate};
 use Illuminate\Http\Request;
 
 class ExchangeRateController extends Controller
@@ -19,12 +19,12 @@ class ExchangeRateController extends Controller
     public function index()
     {
        
-        $data['wallet_menu'] = true;
+        $data['wallet_menu']        = true;
         $data['exchange_rate_menu'] = true;
-        $data['page_title'] = 'Exchange Rate';
-        $data['page_description'] ='Exchange Rate';
-        $data['in_app_currencies'] = Currency::all();
-        $data['default_amount'] = ExchangeRate::$default_amount;
+        $data['page_title']         = 'Exchange Rate';
+        $data['page_description']   = 'Exchange Rate';
+        $data['in_app_currencies']  = Currency::all();
+        $data['default_amount']     = ExchangeRate::$default_amount;
      
         return view('CRM.wallet.exchange_rate.index')->with($data);
     }

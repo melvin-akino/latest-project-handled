@@ -19,10 +19,7 @@
                             <th>Name</th>
                             <th>Symbol</th>
                             <th>Currency Code</th>
-                         
-                            
                             <th>Actions</th>
-                          
                         </tr>
                         </thead>
                     </table>
@@ -97,8 +94,6 @@
                     {"data": "name"},
                     {"data": "symbol"},
                     {"data": "code"},{
-                
-                        
                         "render": function (data, type, row, meta) {
                             data = '';
 

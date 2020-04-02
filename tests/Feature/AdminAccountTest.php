@@ -3,7 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\CRM\User;
-use Illuminate\Foundation\Testing\{RefreshDatabase,WithFaker};
+use Illuminate\Foundation\Testing\{RefreshDatabase, WithFaker};
 use Tests\TestCase;
 use Illuminate\Support\Facades\Auth;
 
@@ -26,7 +26,5 @@ class AdminAccountTest extends TestCase
             'password'   => $password
         ]);
         $this->be($this->user);
-        
     }
-   
 }

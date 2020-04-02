@@ -48,7 +48,6 @@ class ExchangeRateRequest extends FormRequest
                  $unique = is_null($existing_exchange_rate) ? '' : '|unique:exchange_rates,from_currency_id';   
                 
                 return [
-
                     'from_currency' => "required|$unique",
                     'to_currency'   => "required|different:from_currency",                   
                     'exchange_rate' => 'required|regex:/^\d*(\.\d{1,12})?$/|numeric|min:0.000000000001'
