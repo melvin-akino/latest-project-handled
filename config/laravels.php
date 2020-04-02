@@ -76,7 +76,7 @@ return [
             // key format [updatedEvents:$uid] = [value = true]
             'size'   => env('SWT_MAX_SIZE', 102400),// The max size
             'column' => [// Define the columns
-                ['name' => 'value', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 1000 ],
+                ['name' => 'value', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 10000 ],
             ],
         ],
         'userSelectedLeagues' => [// key format [userId:1:sId:$sportId:schedule:early:uniqueId:uniquid()] => [league_name = $multileaguename, ...]
