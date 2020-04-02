@@ -110,7 +110,7 @@ Route::group([
             });
 
             Route::get('events', 'TradeController@getUserEvents');
-
+            Route::get('other-markets/{memUID}', 'TradeController@getEventOtherMarkets');
             /** Search Suggestions Route Endpoint */
             Route::post('search', 'TradeController@postSearchSuggestions');
         });

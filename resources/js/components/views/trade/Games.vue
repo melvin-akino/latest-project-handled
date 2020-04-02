@@ -7,7 +7,7 @@
         </div>
         <div class="games" :class="{'hidden': !isGameSchedTypeOpen}">
             <p class="text-sm text-gray-500 text-center pt-2 noeventspanel" v-if="checkIfGamesIsEmpty">No competitions watched in this market.</p>
-            <div v-else>
+            <div class="eventGroup" v-else>
                 <div class="bg-white text-white text-sm text-gray-700" v-for="(league, index) in games" :key="index">
                     <div class="flex justify-between py-2 px-4 font-bold border-t border-orange-500 leaguePanel">
                         <div>
@@ -22,28 +22,49 @@
                     </div>
                     <div class="gamesWrapper" :class="!closedLeagues.includes(index) ? 'h-full' : 'h-0 overflow-hidden'">
                         <div class="asianLayout"  v-if="tradeLayout==1">
-                            <div class="relative flex py-4 px-4 game" :class="[index % 2 != 0 ? 'alternateEvent' : '']" v-for="(game, index) in league" :key="game.uid">
-                                <div class="w-2/12 flex flex-col">
-                                    <div><span class="font-bold text-green-400 mr-2">H</span>{{game.home.name}}</div>
-                                    <div><span class="font-bold text-red-600 mr-2">A</span>{{game.away.name}}</div>
-                                    <div><span class="mr-3">&nbsp;</span>Draw</div>
+                            <div class="event" :class="[index % 2 != 0 ? 'alternateEvent' : '']" v-for="(game, index) in league" :key="game.uid">
+                                <div class="relative flex py-4 px-4 game" >
+                                    <div class="w-2/12 flex flex-col">
+                                        <div><span class="font-bold text-green-400 mr-2">H</span>{{game.home.name}}</div>
+                                        <div><span class="font-bold text-red-600 mr-2">A</span>{{game.away.name}}</div>
+                                        <div><span class="mr-3">&nbsp;</span>Draw</div>
+                                    </div>
+                                    <div class="w-1/12 flex justify-center">
+                                        <span>{{game.sport}}</span>
+                                    </div>
+                                    <div class="w-1/12 flex flex-col items-center">
+                                        <span>{{game.home.score}} - {{game.away.score}}</span>
+                                        <span>{{ gameSchedType === 'inplay' || (gameSchedType === 'watchlist' && game.game_schedule === 'inplay') ? game.running_time : game.ref_schedule.split(' ')[0]}}</span>
+                                        <span>{{ gameSchedType === 'inplay' || (gameSchedType === 'watchlist' && game.game_schedule === 'inplay') ? '' : game.ref_schedule.split(' ')[1]}}</span>
+                                    </div>
+                                    <div class="w-1/12"></div>
+                                    <div class="w-1/12 flex flex-col items-center" :class="column" v-for="(column, index) in oddsTypeBySport" :key="index">
+                                        <p class="relative" :class="[{'order-1' : index=='HOME'}, {'order-2' : index=='AWAY'}, {'order-3': index=='DRAW'}]" v-for="(odd, index) in game.market_odds.main[column]" :key="odd.market_id">
+                                            <span class="absolute text-gray-500 odds-label" :class="[odd.odds != '' ? 'left-label' : 'empty-left-label']">{{odd.points}}</span>
+                                            <a href="#" @click.prevent="openBetSlip(odd, game)" class="px-2 rounded-lg" :class="{'bet-click' : odd.odds != ''}" v-adjust-odd-color="odd.odds">{{odd.odds | formatOdds}}</a>
+                                        </p>
+                                    </div>
+                                    <div class="absolute eventStar" :class="[gameSchedType==='watchlist' ? 'in-watchlist-star' : 'text-white']" @click="gameSchedType==='watchlist' ? removeFromWatchlist('event', game.uid, game) : addToWatchlist('event', game.uid, game)">
+                                        <span><i class="fas fa-star"></i></span>
+                                    </div>
+                                    <button class="otherMarketsBtn absolute text-orange-500 hover:text-orange-600 focus:outline-none" @click="toggleOtherMarkets(game)" title="View other markets.">
+                                        <span v-show="game.market_odds.hasOwnProperty('other')"><i class="fas fa-minus-square"></i></span>
+                                        <span v-show="!game.market_odds.hasOwnProperty('other')"><i class="fas fa-plus-square"></i></span>
+                                    </button>
                                 </div>
-                                <div class="w-1/12 flex justify-center">
-                                    <span>{{game.sport}}</span>
-                                </div>
-                                <div class="w-1/12 flex flex-col items-center">
-                                    <span>{{game.home.score}} - {{game.away.score}}</span>
-                                    <span>{{ gameSchedType === 'inplay' || (gameSchedType === 'watchlist' && game.game_schedule === 'inplay') ? game.running_time : game.ref_schedule }}</span>
-                                </div>
-                                <div class="w-1/12"></div>
-                                <div class="w-1/12 flex flex-col items-center" :class="column" v-for="(column, index) in oddsTypeBySport" :key="index">
-                                    <p class="relative" :class="[{'order-1' : index=='HOME'}, {'order-2' : index=='AWAY'}, {'order-3': index=='DRAW'}]" v-for="(odd, index) in game.market_odds.main[column]" :key="odd.market_id">
-                                        <span class="absolute text-gray-500 odds-label" :class="[odd.odds != '' ? 'left-label' : 'empty-left-label']">{{odd.points}}</span>
-                                        <a href="#" @click.prevent="openBetSlip(odd)" class="px-2 rounded-lg" :class="{'bet-click' : odd.odds != ''}" v-adjust-odd-color="odd.odds">{{odd.odds | formatOdds}}</a>
-                                    </p>
-                                </div>
-                                <div class="absolute eventStar" :class="[gameSchedType==='watchlist' ? 'in-watchlist-star' : 'text-white']" @click="gameSchedType==='watchlist' ? removeFromWatchlist('event', game.uid, game) : addToWatchlist('event', game.uid, game)">
-                                    <span><i class="fas fa-star"></i></span>
+                                <div class="otherMarkets" v-if="'other' in game.market_odds">
+                                    <div class="relative flex py-4 px-4 game" v-for="(otherMarket, index) in game.market_odds.other" :key="index">
+                                        <div class="w-2/12"></div>
+                                        <div class="w-1/12 flex justify-center"></div>
+                                        <div class="w-1/12"></div>
+                                        <div class="w-1/12"></div>
+                                        <div class="w-1/12 flex flex-col items-center" :class="column" v-for="(column, index) in oddsTypeBySport" :key="index">
+                                            <p class="relative" :class="[{'order-1' : index=='HOME'}, {'order-2' : index=='AWAY'}, {'order-3': index=='DRAW'}]" v-for="(odd, index) in otherMarket[column]" :key="odd.market_id">
+                                                <span class="absolute text-gray-500 odds-label" :class="[odd.odds != '' ? 'left-label' : 'empty-left-label']">{{odd.points}}</span>
+                                                <a href="#" @click.prevent="openBetSlip(odd, game)" class="px-2 rounded-lg" :class="{'bet-click' : odd.odds != ''}" v-adjust-odd-color="odd.odds">{{odd.odds | formatOdds}}</a>
+                                            </p>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -60,14 +81,29 @@
                                     <div class="absolute european-event-star" :class="[gameSchedType==='watchlist' ? 'in-watchlist-star' : 'text-white']" @click="gameSchedType==='watchlist' ? removeFromWatchlist('event', game.uid, game) : addToWatchlist('event', game.uid, game)">
                                         <span><i class="fas fa-star"></i></span>
                                     </div>
+                                    <button class="europeanOtherMarketsBtn absolute text-orange-500 hover:text-orange-600 focus:outline-none" @click="toggleOtherMarkets(game)" title="View other markets.">
+                                        <span v-show="game.market_odds.hasOwnProperty('other')"><i class="fas fa-minus-square"></i></span>
+                                        <span v-show="!game.market_odds.hasOwnProperty('other')"><i class="fas fa-plus-square"></i></span>
+                                    </button>
                                 </div>
                                 <div class="flex">
                                     <div class="w-1/12"></div>
                                     <div class="w-1/12 flex justify-between mr-10" :class="column" v-for="(column, index) in oddsTypeBySport" :key="index">
                                         <p class="relative" :class="[{'order-1' : index=='HOME'}, {'order-2' : index=='DRAW'}, {'order-3': index=='AWAY'}]" v-for="(odd, index) in game.market_odds.main[column]" :key="odd.market_id">
                                             <span class="absolute text-gray-500 odds-label" :class="[odd.odds != '' ? 'left-label' : 'empty-left-label']">{{odd.points}}</span>
-                                            <a href="#"  @click.prevent="openBetSlip(odd)" class="px-2 rounded-lg" :class="{'bet-click' : odd.odds != ''}" v-adjust-odd-color="odd.odds">{{odd.odds | formatOdds}}</a>
+                                            <a href="#"  @click.prevent="openBetSlip(odd, game)" class="px-2 rounded-lg" :class="{'bet-click' : odd.odds != ''}" v-adjust-odd-color="odd.odds">{{odd.odds | formatOdds}}</a>
                                         </p>
+                                    </div>
+                                </div>
+                                <div class="otherMarkets" v-if="'other' in game.market_odds">
+                                    <div class="flex" v-for="(otherMarket, index) in game.market_odds.other" :key="index">
+                                        <div class="w-1/12"></div>
+                                        <div class="w-1/12 flex justify-between mr-10" :class="column" v-for="(column, index) in oddsTypeBySport" :key="index">
+                                            <p class="relative" :class="[{'order-1' : index=='HOME'}, {'order-2' : index=='DRAW'}, {'order-3': index=='AWAY'}]" v-for="(odd, index) in otherMarket[column]" :key="odd.market_id">
+                                                <span class="absolute text-gray-500 odds-label" :class="[odd.odds != '' ? 'left-label' : 'empty-left-label']">{{odd.points}}</span>
+                                                <a href="#"  @click.prevent="openBetSlip(odd, game)" class="px-2 rounded-lg" :class="{'bet-click' : odd.odds != ''}" v-adjust-odd-color="odd.odds">{{odd.odds | formatOdds}}</a>
+                                            </p>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -83,6 +119,7 @@
 import { mapState } from 'vuex'
 import Cookies from 'js-cookie'
 import _ from 'lodash'
+import Swal from 'sweetalert2'
 
 export default {
     props: ['gameSchedType', 'games'],
@@ -101,9 +138,47 @@ export default {
         }
     },
     methods: {
-        openBetSlip(odd) {
+        toggleOtherMarkets(game) {
+            let token = Cookies.get('mltoken')
+            axios.get(`v1/trade/other-markets/${game.uid}`, { headers: { 'Authorization': `Bearer ${token}` }})
+            .then(response => {
+                if(!_.isEmpty(response.data.data)) {
+                    if(this.tradePageSettings.sort_event == 1) {
+                        this.events[this.gameSchedType][game.league_name].map(event => {
+                            if(game.uid == event.uid) {
+                                if('other' in event.market_odds) {
+                                    this.$delete(event.market_odds, 'other')
+                                } else {
+                                    this.$set(event.market_odds, 'other', response.data.data)
+                                }
+                            }
+                        })
+                    } else if(this.tradePageSettings.sort_event == 2) {
+                        let eventStartTime = `[${game.ref_schedule.split(' ')[1]}] ${game.league_name}`
+                        this.events[this.gameSchedType][eventStartTime].map(event => {
+                            if(game.uid == event.uid) {
+                                if('other' in event.market_odds) {
+                                    this.$delete(event.market_odds, 'other')
+                                } else {
+                                    this.$set(event.market_odds, 'other', response.data.data)
+                                }
+                            }
+                        })
+                    }
+                } else {
+                    Swal.fire({
+                        icon: 'warning',
+                        text: 'No other markets available for that event.'
+                    })
+                }
+            })
+            .catch(err => {
+                this.$store.dispatch('auth/checkIfTokenIsValid', err.response.data.status_code)
+            })
+        },
+        openBetSlip(odd, game) {
             this.$store.commit('trade/CLOSE_BETSLIP', odd.market_id)
-            this.$store.commit('trade/OPEN_BETSLIP', odd)
+            this.$store.commit('trade/OPEN_BETSLIP', { odd: odd, game: game })
         },
         toggleLeague(index) {
             if(this.closedLeagues.includes(index)) {
@@ -127,35 +202,7 @@ export default {
             if(type=='league' && this.tradePageSettings.sort_event == 2) {
                 data = data.split('] ')[1]
             }
-            axios.post('v1/trade/watchlist/add', { type: type, data: data }, { headers: { 'Authorization': `Bearer ${token}` }})
-            .then(response => {
-                if(type==='league') {
-                    this.$store.dispatch('trade/toggleLeagueByName', { league_name: data, sport_id: this.selectedSport })
-                    this.$store.commit('trade/REMOVE_SELECTED_LEAGUE_BY_NAME', data)
-                    this.$store.commit('trade/REMOVE_FROM_EVENTS_BY_LEAGUE', data)
-                    this.$store.commit('trade/REMOVE_FROM_EVENT_LIST', { type: 'league_name', data: data })
-                } else if(type==='event') {
-                    if(this.tradePageSettings.sort_event == 1) {
-                        this.$store.commit('trade/REMOVE_EVENT', { schedule: this.gameSchedType, removedLeague: payload.league_name, removedEvent: payload.uid})
-                        this.leaguesLength = this.events[this.gameSchedType][payload.league_name].length
-                    } else if(this.tradePageSettings.sort_event == 2) {
-                        let eventStartTime = `[${payload.ref_schedule.split(' ')[1]}] ${payload.league_name}`
-                        this.$store.commit('trade/REMOVE_EVENT', { schedule: this.gameSchedType, removedLeague: eventStartTime, removedEvent: payload.uid})
-                        this.leaguesLength = this.events[this.gameSchedType][eventStartTime].length
-                    }
-
-                    if(this.leaguesLength == 0) {
-                        this.$store.dispatch('trade/toggleLeagueByName', { league_name: payload.league_name, sport_id: this.selectedSport })
-                        this.$store.commit('trade/REMOVE_SELECTED_LEAGUE_BY_NAME', payload.league_name)
-                        this.$store.commit('trade/REMOVE_FROM_EVENTS_BY_LEAGUE', payload.league_name)
-                        this.$store.commit('trade/REMOVE_FROM_EVENT_LIST', { type: 'uid', data: payload.uid })
-                    }
-                }
-                this.$socket.send('getWatchlist')
-            })
-            .catch(err => {
-                this.$store.dispatch('auth/checkIfTokenIsValid', err.response.data.status_code)
-            })
+            this.$store.dispatch('trade/addToWatchlist', { type: type, data: data, payload: payload })
         },
         removeFromWatchlist(type, data, payload) {
             let token = Cookies.get('mltoken')
@@ -225,6 +272,16 @@ export default {
 </script>
 
 <style>
+    .otherMarketsBtn {
+        bottom: 5px;
+        right: 15px;
+    }
+
+    .europeanOtherMarketsBtn {
+        right: -16px;
+        bottom: -25px;
+    }
+
     .gameSchedPanel {
         border-bottom: solid #ffe8cc 1px;
     }
