@@ -13,13 +13,13 @@
                     <a href="#" @click.prevent="openOddsHistory(odd_details)" lass="text-center py-1" title="Odds History"><i class="fas fa-bars"></i></a>
                 </div>
                 <div class="flex justify-between items-center w-full">
-                    <div class="flex justify-between w-2/4 items-center teams">
-                        <div class="home" :class="[market_details.market_flag==='HOME' ? 'p-3 bg-white shadow-xl' : '']">
+                    <div class="flex w-3/4 items-center">
+                        <div class="home p-3" :class="[market_details.market_flag==='HOME' ? 'mr-2 bg-white shadow-xl' : '']">
                             <span class="font-bold bg-green-500 text-white mr-1 p-2 rounded-lg">Home</span>
                             <span class="w-full text-gray-800 font-bold">{{market_details.home}}</span>
                         </div>
                         <span class="text-sm text-gray-800">VS.</span>
-                        <div class="away" :class="[market_details.market_flag==='AWAY' ? 'p-3 bg-white shadow-xl' : '']">
+                        <div class="away p-3" :class="[market_details.market_flag==='AWAY' ? 'ml-2 bg-white shadow-xl' : '']">
                             <span class="font-bold bg-red-600 text-white mr-1 p-2 rounded-lg">Away</span>
                             <span class="w-full text-gray-800 font-bold">{{market_details.away}}</span>
                         </div>
