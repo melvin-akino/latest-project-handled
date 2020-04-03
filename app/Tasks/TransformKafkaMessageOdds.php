@@ -236,6 +236,7 @@ class TransformKafkaMessageOdds extends Task
             }
 
             $updatedOdds = [];
+            $updatedPoints = [];
 
             $toInsert['Event']['data'] = [
                 'sport_id'         => $sportId,
@@ -343,7 +344,7 @@ class TransformKafkaMessageOdds extends Task
                                     }
                                 }
 
-                                $marketOdds = trim($marketOdds) == '' ? 0 : (float)$marketOdds;
+                                $marketOdds = trim($marketOdds) == '' ? 0 : (float) $marketOdds;
 
                                 if (array_key_exists('points', $markets)) {
                                     $marketPoints = $markets->points;
@@ -363,6 +364,7 @@ class TransformKafkaMessageOdds extends Task
                                 if ($eventMarketsTable->exist($masterEventMarketSwtId)) {
                                     $memUID = $eventMarketsTable->get($masterEventMarketSwtId)['master_event_market_unique_id'];
                                     $odds = $eventMarketsTable->get($masterEventMarketSwtId)['odds'];
+                                    $oddLabel = $eventMarketsTable->exist($masterEventMarketSwtId)['odd_label'];
 
                                     if ($odds != $marketOdds) {
                                         $eventMarketsTable[$key]['odds'] = $marketOdds;
@@ -370,6 +372,11 @@ class TransformKafkaMessageOdds extends Task
                                         $updatedOdds[] = ['market_id' => $memUID, 'odds' => $marketOdds, 'provider_id' => $providerId ];
                                     } else {
                                         $this->dbOptions['is-market-different'] = false;
+                                    }
+
+                                    if ($marketPoints != $oddLabel) {
+                                        $this->updatedPoints = true;
+                                        $updatedPoints[] = ['market_id' => $memUID, 'points' => $oddLabel, 'provider_id' => $providerId ];
                                     }
                                 } else {
                                     $memUID = uniqid();
@@ -434,6 +441,11 @@ class TransformKafkaMessageOdds extends Task
             $this->subTasks['updated-odds'] = [];
             if ($this->updated) {
                 $this->subTasks['updated-odds'] = $updatedOdds;
+            }
+
+            $this->subTasks['updated-points'] = [];
+            if ($this->updatedPoints) {
+                $this->subTasks['updated-points'] = $updatedPoints;
             }
 
             if (!empty($this->subTasks['event'])) {
