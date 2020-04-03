@@ -220,7 +220,7 @@
                             <img src="{{ asset('CRM/Capital7-1.0.0/img/user2-160x160.jpg') }}" class="img-circle" alt="User Image">
 
                             <p>
-                                {{ Auth::guard('crm')->user()->firstname }} {{ Auth::guard('crm')->user()->lastname }}
+                                {{ Auth::guard('crm')->user()->first_name }} {{ Auth::guard('crm')->user()->last_name }}
                                 <small>Member since {{ Auth::guard('crm')->user()->created_at->toFormattedDateString() }}.</small>
                             </p>
                         </li>
