@@ -261,17 +261,18 @@ if (!function_exists('userWalletTransaction')) {
         switch ($transactionType) {
             case 'PLACE_BET':
                 $userWallet  = UserWallet::where('user_id', $userId);
+                $walletId    = $userWallet->first()->id;
                 $userBalance = $userWallet->first()->balance;
                 $sourceId    = Source::where('source_name', $transactionType)->first()->id;
                 $newBalance  = $userBalance - $amount;
 
-                $insertId = $userWallet->update(
+                $userWallet->update(
                     [ 'balance' => $newBalance ]
-                )->id;
+                );
 
                 WalletLedger::create(
                     [
-                        'wallet_id' => $insertId,
+                        'wallet_id' => $walletId,
                         'source_id' => $sourceId,
                         'debit'     => 0,
                         'credit'    => $amount,

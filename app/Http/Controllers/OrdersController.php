@@ -12,13 +12,15 @@ use App\Models\{
     MasterEventMarketLog,
     OddType,
     Provider,
-    CRM\ProviderAccount,
     Sport,
     UserProviderConfiguration,
     Order,
     OrderLogs,
-    UserWallet,
-    CRM\WalletLedger
+    UserWallet
+};
+use App\Models\CRM\{
+    ProviderAccount,
+    WalletLedger
 };
 
 use Illuminate\Http\Request;
@@ -274,10 +276,10 @@ class OrdersController extends Controller
                 $baseCurrency = Currency::where('code', 'CNY')->first();
                 $userDetails  = User::find(auth()->user()->id);
                 $userCurrency = $userDetails->currency_id;
-                $isUserVIP    = false;
-                // $isUserVIP    = $userDetails->is_vip; /** TO DO: Uncomment after running migration script */
+                $isUserVIP    = $userDetails->is_vip;
                 $userProvider = UserProviderConfiguration::where('user_id', auth()->user()->id);
                 $percentage   = 0;
+                $alias        = "";
                 $exchangeRate = 1;
 
                 if ($baseCurrency->id != $userCurrency) {
@@ -293,6 +295,7 @@ class OrdersController extends Controller
 
                     if ($userProvider->active) {
                         $percentage   = $userProvider->punter_percentage;
+                        $alias        = $userProvider->alias;
                         $userProvider = $userProvider->provider_id;
                     } else {
                         if ($betType == "BEST_PRICE") {
@@ -312,6 +315,7 @@ class OrdersController extends Controller
 
                     if ($userProvider->is_enabled) {
                         $percentage   = $userProvider->punter_percentage;
+                        $alias        = $userProvider->alias;
                         $userProvider = $userProvider->id;
                     } else {
                         if ($betType == "BEST_PRICE") {
@@ -347,14 +351,6 @@ class OrdersController extends Controller
                         'status_code' => 400,
                         'message'     => trans('generic.bad-request') . ": Insufficient Wallet Balance"
                     ], 400);
-                }
-
-                if (!in_array($row['provider_id'], $userProvider->toArray())) {
-                    return response()->json([
-                        'status'      => false,
-                        'status_code' => 404,
-                        'message'     => trans('generic.not-found')
-                    ], 404);
                 }
 
                 $query = DB::table('master_events AS me')
@@ -417,7 +413,7 @@ class OrdersController extends Controller
                 $orderId = uniqid();
 
                 /** ROUNDING UP TO NEAREST 50 */
-                $actualStake = $actualStake * $exchangRate;
+                $actualStake = $actualStake * $exchangeRate;
                 $ceil        = ceil($actualStake);
                 $last2       = substr($ceil, -2);
 
@@ -431,10 +427,10 @@ class OrdersController extends Controller
                 }
 
                 $payload['user_id']       = auth()->user()->id;
-                $payload['provider_id']   = strtolower($userProvider->alias);
+                $payload['provider_id']   = strtolower($alias);
                 $payload['odds']          = $row['price'];
-                $payload['stake']         = ($payloadStake * $exchangRate);
-                $payload['to_win']        = (($payloadStake * $row['price']) * $exchangRate);
+                $payload['stake']         = ($payloadStake * $exchangeRate);
+                $payload['to_win']        = (($payloadStake * $row['price']) * $exchangeRate);
                 $payload['actual_stake']  = $actualStake;
                 $payload['actual_to_win'] = $actualStake * $row['price'];
                 $payload['market_id']     = $query->bet_identifier;
@@ -442,6 +438,7 @@ class OrdersController extends Controller
                 $payload['score']         = $query->score;
                 $payload['orderExpiry']   = $request->orderExpiry;
                 $payload['order_id']      = $orderId;
+                $payload['sport_id']      = $query->sport_id;
 
                 $incrementIds['payload'][] = $payload;
 
