@@ -2,7 +2,7 @@
     <div class="container mx-auto my-10">
         <h3 class="text-xl">My Orders</h3>
         <div class="relative h-full">
-            <div class="absolute text-sm totalPLdata" v-if="myorders.length != 0">
+            <div class="absolute text-sm totalPLdata" v-if="myorders.length != 0" v-adjust-pl-data-position="myorders.length">
                 <span>Total P/L</span>
                 <span class="totalPL">$ 0.00</span>
             </div>
@@ -52,6 +52,17 @@ export default {
             .catch(err => {
                 this.$store.dispatch('auth/checkIfTokenIsValid', err.response.data.status_code)
             })
+        }
+    },
+    directives: {
+        adjustPlDataPosition: {
+            bind(el, binding, vnode) {
+                if(binding.value > 10) {
+                    el.style.top = '55px'
+                } else {
+                    el.style.top = '17px'
+                }
+            }
         }
     }
 }
@@ -129,6 +140,5 @@ export default {
 
     .totalPLdata {
         right: 55px;
-        top: 55px;
     }
 </style>
