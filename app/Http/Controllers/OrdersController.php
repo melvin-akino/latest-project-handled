@@ -276,8 +276,7 @@ class OrdersController extends Controller
                 $baseCurrency = Currency::where('code', 'CNY')->first();
                 $userDetails  = User::find(auth()->user()->id);
                 $userCurrency = $userDetails->currency_id;
-                $isUserVIP    = false;
-                // $isUserVIP = $userDetails->is_vip; /** TO DO: Uncomment after running migration script */
+                $isUserVIP    = $userDetails->is_vip;
                 $userProvider = UserProviderConfiguration::where('user_id', auth()->user()->id);
                 $percentage   = 0;
                 $alias        = "";

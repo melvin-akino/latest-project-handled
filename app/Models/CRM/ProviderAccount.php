@@ -13,28 +13,26 @@ class ProviderAccount extends Model
 
     public static function getProviderAccount($stake, $isVIP)
     {
-        if (!$isVIP) {
-            $query = self::where('credits', '>=', $stake)
-                ->where('type', 'BET_NORMAL');
-        } else {
-            $query = self::where('credits', '>=', $stake)
-                ->where('type', 'BET_VIP');
-        }
+        $type  = $isVIP ? "BET_VIP" : "BET_NORMAL";
+        $query = self::where('credits', '>=', $stake)
+            ->where('type', $type);
 
         $isIdle = $query->where('is_idle', true);
 
-        if (!$isIdle->exists()) {
-            $query = $query->orderBy(
-                DB::raw(
-                    '(
-                        CASE
-                            WHEN is_idle = true THEN 1
-                            WHEN is_idle = false THEN 2
-                        END
-                    )'
-                )
-            )->orderBy('updated_at', 'ASC');
+        if ($isIdle->exists()) {
+            $query = $query->where('is_idle', true);
         }
+
+        $query = $query->orderBy(
+            DB::raw(
+                '(
+                    CASE
+                        WHEN is_idle = true THEN 1
+                        WHEN is_idle = false THEN 2
+                    END
+                )'
+            )
+        )->orderBy('updated_at', 'ASC');
 
         return $query->first()->username;
     }
