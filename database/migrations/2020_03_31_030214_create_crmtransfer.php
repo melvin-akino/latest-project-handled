@@ -23,6 +23,10 @@ class CreateCrmtransfer extends Migration
             $table->integer('user_id');
             $table->timestamps();
         });
+
+         Artisan::call('db:seed', [
+            '--class' => SourceSeederWithdraw::class
+        ]);
     }
 
     /**

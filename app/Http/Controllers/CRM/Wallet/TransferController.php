@@ -17,15 +17,15 @@ class TransferController extends Controller
    
     public function index(Request $request)
     {
-        if(!in_array($request->type, ['Deposit', 'Withdraw', 'Redeem']))  $request->type = 'Deposit';
+        if(!in_array($request->type, ['Deposit', 'Withdraw']))  $request->type = 'Deposit';
 
-        $data['wallet_menu'] = true;
-        $data[strtolower($request->type).'_menu'] = true;
-        $data['page_title'] = $request->type;
-        $data['in_app_currencies'] = Currency::all();
-        $data['global_currencies'] = Currency::all();
-        $data['page_title'] = $request->type;
-        $data['page_description'] = "Wallet Transaction";
+        $data['wallet_menu']                        = true;
+        $data[strtolower($request->type).'_menu']   = true;
+        $data['page_title']                         = $request->type;
+        $data['in_app_currencies']                  = Currency::all();
+        $data['page_title']                         = $request->type;
+        $data['page_description']                   = "Wallet Transaction";
+
         return view('CRM.wallet.transfer.index')->with($data);
     }
 
@@ -39,7 +39,7 @@ class TransferController extends Controller
     {
         
         $sender = Auth::guard('crm')->user();
-        $mode = $request->mode;
+        $mode   = $request->mode;
         $amount = $request->transfer_amount;
 
         try {
@@ -95,8 +95,6 @@ class TransferController extends Controller
         }
 
         $amount =  number_format($request->transfer_amount, 2) . ' ' . $currency->code;
-
-        
 
         return response()->json(swal(
             trans('swal.transfer.success.title', [

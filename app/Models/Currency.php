@@ -13,7 +13,6 @@ class Currency extends Model
         'name',
         'code',
         'symbol'
-       
     ];
 
     protected $hidden = [

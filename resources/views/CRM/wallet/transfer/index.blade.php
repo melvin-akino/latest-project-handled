@@ -20,7 +20,6 @@
                             <th>Last Name</th>
                             <th>Email</th>
                             <th> Wallet </th>
-                           
                             <th>Actions</th>
                            
                         </tr>
@@ -83,8 +82,10 @@
                        "data": 'code' ,
 
                         "render": function (data, type, row, meta) {                            
-                            balance = row.balance;
+                            balance = row.balance;;
                             if (balance==null) balance ='0.00'; 
+
+                            balance = parseFloat(balance).toFixed(2).replace(/(\d)(?=(\d{3})+\.)/g, '$1,');;
                             return  row.code + ' '+ balance;            
                         }
                     },

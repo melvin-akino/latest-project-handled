@@ -62,7 +62,9 @@ export default {
         },
         getOrders() {
             this.bets.map(bet => {
-                this.$socket.send(`getOrder_${bet.order_id}`)
+                if(this.$socket.readyState == 1) {
+                    this.$socket.send(`getOrder_${bet.order_id}`)
+                }
             })
         },
         getOrderStatus() {

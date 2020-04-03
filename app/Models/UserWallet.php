@@ -4,30 +4,30 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use App\User;
-use App\Models\{Currency,Source};
+use App\Models\{Currency, Source};
 use App\Models\CRM\WalletLedger;
 
 
 class UserWallet extends Model
 {
-	protected $table = "wallet";
-	protected $fillable = [
+    protected $table    = "wallet";
+    protected $fillable = [
         'balance',
         'currency_id',
         'user_id'
     ];
-	
-	const TYPE_CHARGE   		= 'Credit';
-    const TYPE_DISCHARGE 		= 'Debit';
-    const ERR_WALLET_DEDUCT 	= 'Wallet Deduction Exceeded';
+    
+    const TYPE_CHARGE           = 'Credit';
+    const TYPE_DISCHARGE        = 'Debit';
+    const ERR_WALLET_DEDUCT     = 'Wallet Deduction Exceeded';
     const ERR_NEW_WALLET_DEDUCT = 'Currency not Set';
 
-	public function Order() {
+    public function Order() {
 
-		return $this->hasMany('App\Models\Order','user_id','user_id');
+        return $this->hasMany('App\Models\Order','user_id','user_id');
 
-	}
-	public static function makeTransaction(User $receiver, $amount, Currency $currency, Source $source, $type)
+    }
+    public static function makeTransaction(User $receiver, $amount, Currency $currency, Source $source, $type)
     {
 
         $wallet = null;
@@ -42,7 +42,7 @@ class UserWallet extends Model
             }
 
             $wallet = $receiver->wallet()->create([
-                'balance' 	  => $amount,
+                'balance'     => $amount,
                 'currency_id' => $currency->id
             ]);
         } else {
@@ -50,7 +50,7 @@ class UserWallet extends Model
 
             if (is_null($wallet)) {
                 $wallet = $receiver->wallet()->create([
-                    'balance' 	  => $amount,
+                    'balance'     => $amount,
                     'currency_id' => $currency->id
                 ]);
             } else {
@@ -75,9 +75,9 @@ class UserWallet extends Model
         return WalletLedger::create([
             'wallet_id' => $wallet->id,
             'source_id' => $source->id,
-            'debit' 	=> $debit,
-            'credit' 	=> $credit,
-            'balance' 	=> $wallet->balance
+            'debit'     => $debit,
+            'credit'    => $credit,
+            'balance'   => $wallet->balance
         ]);
     }
 }

@@ -11,8 +11,7 @@ class SourceSeederWithdraw extends Seeder
      */
     public function run()
     {
-        
-        
+         
     	Source::firstOrCreate([ 'source_name' => 'WITHDRAW' ]);
     }
 }

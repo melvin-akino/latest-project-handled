@@ -92,6 +92,7 @@ export default {
                     if(this.tradePageSettings.sort_event == 1) {
                         watchlistLeagues.map(league => {
                             watchlist.map(event => {
+                                this.$delete(event.market_odds, 'other')
                                 if(event.league_name === league) {
                                     if(typeof(watchlistObject[league]) == "undefined") {
                                         watchlistObject[league] = []
@@ -103,6 +104,7 @@ export default {
                     } else if(this.tradePageSettings.sort_event == 2) {
                         watchlistStartTime.map(startTime => {
                             watchlist.map(event => {
+                                this.$delete(event.market_odds, 'other')
                                 let eventSchedLeague = `[${event.ref_schedule.split(' ')[1]}] ${event.league_name}`
                                 if(eventSchedLeague === startTime) {
                                     if(typeof(watchlistObject[startTime]) == "undefined") {
@@ -131,6 +133,7 @@ export default {
                     receivedEvents.map(receivedEvent => {
                         let eventsListCheckUID = this.eventsList.findIndex(event => event.uid === receivedEvent.uid)
                         let allEventsListCheckUID = this.allEventsList.findIndex(event => event.uid === receivedEvent.uid)
+                        this.$delete(receivedEvent.market_odds, 'other')
                         if(receivedEvent.sport_id == this.selectedSport) {
                             if(eventsListCheckUID === -1) {
                                 this.$store.commit('trade/SET_EVENTS_LIST', receivedEvent)
@@ -236,6 +239,7 @@ export default {
                                         this.$store.commit('trade/REMOVE_EVENT', { schedule: event.game_schedule, removedLeague: event.league_name, removedEvent: removedEvent })
                                         if(this.events[event.game_schedule][event.league_name].length === 0) {
                                             this.$store.commit('trade/REMOVE_SELECTED_LEAGUE', { schedule: event.game_schedule, league: event.league_name })
+                                            this.$store.commit('trade/REMOVE_FROM_LEAGUE', { schedule:  event.game_schedule, league: event.league_name })
                                             this.$delete(this.events[event.game_schedule], event.league_name)
                                         }
                                     }
@@ -250,6 +254,7 @@ export default {
                                         this.$store.commit('trade/REMOVE_EVENT', { schedule: event.game_schedule, removedLeague: eventStartTime, removedEvent: removedEvent })
                                         if(this.events[event.game_schedule][eventStartTime].length === 0) {
                                             this.$store.commit('trade/REMOVE_SELECTED_LEAGUE', { schedule: event.game_schedule, league: event.league_name })
+                                            this.$store.commit('trade/REMOVE_FROM_LEAGUE', { schedule:  event.game_schedule, league: event.league_name })
                                             this.$delete(this.events[event.game_schedule], eventStartTime)
                                         }
                                     }

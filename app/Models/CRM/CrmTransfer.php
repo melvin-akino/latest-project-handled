@@ -9,7 +9,6 @@ class CrmTransfer extends Model
     //
     protected $table = 'crmtransfer';
     
-
     protected $fillable = [
         'transfer_amount',
         'currency_id',
@@ -23,8 +22,6 @@ class CrmTransfer extends Model
     {
         return $this->belongsTo(Currency::class, 'currency_id','id');
     }
-
- 
 
     public function user()
     {

@@ -1,6 +1,6 @@
 <template>
     <div class="betslip flex justify-center items-center">
-        <dialog-drag :title="'Bet Slip - '+odd_details.market_id" :options="options" @close="closeBetSlip(odd_details.market_id)">
+        <dialog-drag :title="'Bet Slip - '+market_id" :options="options" @close="closeBetSlip(odd_details.market_id)">
             <div class="flex flex-col justify-center items-center loader" v-if="isLoadingMarketDetails">
                 <img :src="loader" />
                 <span class="text-center mt-2">Loading Market Details...</span>
@@ -13,13 +13,13 @@
                     <a href="#" @click.prevent="openOddsHistory(odd_details)" lass="text-center py-1" title="Odds History"><i class="fas fa-bars"></i></a>
                 </div>
                 <div class="flex justify-between items-center w-full">
-                    <div class="flex justify-between w-2/4 items-center teams">
-                        <div class="home" :class="[market_details.market_flag==='HOME' ? 'p-3 bg-white shadow-xl' : '']">
+                    <div class="flex w-3/4 items-center">
+                        <div class="home p-3" :class="[market_details.market_flag==='HOME' ? 'mr-2 bg-white shadow-xl' : '']">
                             <span class="font-bold bg-green-500 text-white mr-1 p-2 rounded-lg">Home</span>
                             <span class="w-full text-gray-800 font-bold">{{market_details.home}}</span>
                         </div>
                         <span class="text-sm text-gray-800">VS.</span>
-                        <div class="away" :class="[market_details.market_flag==='AWAY' ? 'p-3 bg-white shadow-xl' : '']">
+                        <div class="away p-3" :class="[market_details.market_flag==='AWAY' ? 'ml-2 bg-white shadow-xl' : '']">
                             <span class="font-bold bg-red-600 text-white mr-1 p-2 rounded-lg">Away</span>
                             <span class="w-full text-gray-800 font-bold">{{market_details.away}}</span>
                         </div>
@@ -92,17 +92,11 @@
                     </div>
                     <div class="flex flex-col mt-4 w-3/5 h-full">
                         <div class="flex flex-col items-center bg-white shadow shadow-xl mb-2" v-if="oddTypesWithSpreads.includes(market_details.odd_type)">
-                            <span class="text-white uppercase font-bold mr-2 my-3 px-2 bg-orange-500">{{market_details.odd_type}}</span>
-                            <div class="flex justify-around items-center">
-                                <a href="#" class="m-1 w-12 text-center text-gray-800"><i class="fas fa-chevron-left"></i></a>
-                                <a href="#" class="m-1 w-12 text-center text-sm text-white bg-orange-500 px-2 py-1">-0.75</a>
-                                <a href="#" class="m-1 w-12 text-center text-sm text-gray-800 bg-gray-200 px-2 py-1 hover:text-white hover:bg-orange-500">-0.50</a>
-                                <a href="#" class="m-1 w-12 text-center text-sm text-gray-800 bg-gray-200 px-2 py-1 hover:text-white hover:bg-orange-500">-0.25</a>
-                                <a href="#" class="m-1 w-12 text-center text-sm text-gray-800 bg-gray-200 px-2 py-1 hover:text-white hover:bg-orange-500">0</a>
-                                <a href="#" class="m-1 w-12 text-center text-sm text-gray-800 bg-gray-200 px-2 py-1 hover:text-white hover:bg-orange-500">0.25</a>
-                                <a href="#" class="m-1 w-12 text-center text-sm text-gray-800 bg-gray-200 px-2 py-1 hover:text-white hover:bg-orange-500">0.50</a>
-                                <a href="#" class="m-1 w-12 text-center text-sm text-gray-800 bg-gray-200 px-2 py-1 hover:text-white hover:bg-orange-500">0.75</a>
-                                <a href="#" class="m-1 w-12 text-center text-gray-800"><i class="fas fa-chevron-right"></i></a>
+                            <span class="text-white uppercase font-bold my-3 px-2 bg-orange-500">{{market_details.odd_type}}</span>
+                            <div class="flex justify-center items-center">
+                                <a href="#" class="m-1 w-12 text-center text-gray-800" @click="previousPoint" v-if="spreads.length > 1"><i class="fas fa-chevron-left"></i></a>
+                                <a href="#" class="m-1 w-16 text-center text-sm" :class="[spread.points == points ? 'text-white bg-orange-500 px-1 py-1' : 'text-gray-800']" v-for="(spread, index) in spreads" :key="index" @click="changePoint(spread.points, spread.market_id)">{{spread.points}}</a>
+                                <a href="#" class="m-1 w-12 text-center text-gray-800" @click="nextPoint" v-if="spreads.length > 1"><i class="fas fa-chevron-right"></i></a>
                             </div>
                         </div>
                         <div class="flex flex-col bg-white shadow shadow-xl py-8 px-3">
@@ -160,6 +154,8 @@ export default {
             market_details: {},
             formattedRefSchedule: [],
             initialPrice: this.odd_details.odds,
+            points: null,
+            market_id: this.odd_details.market_id,
             orderForm: {
                 stake: '',
                 orderExpiry: 'Now',
@@ -182,15 +178,14 @@ export default {
     },
     computed: {
         ...mapState('trade', ['openedBetMatrix', 'openedOddsHistory', 'betSlipSettings']),
-        points() {
+        spreads() {
             if(!_.isEmpty(this.market_details)) {
-                if(this.market_details.odd_type == 'HDP' || this.market_details.odd_type == 'HT HDP') {
-                    return Number(this.odd_details.points)
-                } else if(this.market_details.odd_type == 'OU' || this.market_details.odd_type == 'HT OU') {
-                    return Number(this.odd_details.points.split(' ')[1])
-                } else {
-                    return
-                }
+                return this.market_details.spreads
+            }
+        },
+        activePointIndex() {
+            if(!_.isEmpty(this.spreads)) {
+                return this.spreads.findIndex(spread => spread.points == this.points)
             }
         },
         orderPrompt() {
@@ -251,7 +246,7 @@ export default {
     },
     mounted() {
         this.getMarketDetails()
-        this.minmax()
+        this.minmax(this.market_id)
         this.$store.dispatch('trade/getBetSlipSettings')
     },
     methods: {
@@ -263,20 +258,39 @@ export default {
                 this.market_details = response.data.data
                 this.formattedRefSchedule = response.data.data.ref_schedule.split(' ')
                 this.isLoadingMarketDetails = false
+                this.points = this.odd_details.points
             })
             .catch(err => {
                 this.$store.dispatch('auth/checkIfTokenIsValid', err.response.data.status_code)
             })
         },
-        sendMinMax() {
+        changePoint(points, market_id) {
+            this.emptyMinMax(this.market_id)
+            this.points = points
+            this.market_id = market_id
+            this.minmax(market_id)
+        },
+        previousPoint() {
+            if(this.activePointIndex != 0) {
+                let previousSpread = this.spreads[this.activePointIndex - 1]
+                this.changePoint(previousSpread.points, previousSpread.market_id)
+            }
+        },
+        nextPoint() {
+            if(this.activePointIndex != (this.spreads.length - 1)) {
+                let nextSpread = this.spreads[this.activePointIndex + 1]
+                this.changePoint(nextSpread.points, nextSpread.market_id)
+            }
+        },
+        sendMinMax(market_id) {
             return new Promise((resolve) => {
-                this.$socket.send(`getMinMax_${this.odd_details.market_id}`)
+                this.$socket.send(`getMinMax_${market_id}`)
                 resolve()
             })
         },
-        removeMinMax() {
+        removeMinMax(market_id) {
             return new Promise((resolve) => {
-                this.$socket.send(`removeMinMax_${this.odd_details.market_id}`)
+                this.$socket.send(`removeMinMax_${market_id}`)
                 resolve()
             })
         },
@@ -326,14 +340,14 @@ export default {
                 }
             })
         },
-        emptyMinMax() {
-            this.removeMinMax()
+        emptyMinMax(market_id) {
+            this.removeMinMax(market_id)
             .then(() => {
                 this.getRemoveMinMax()
             })
         },
-        minmax() {
-            this.sendMinMax()
+        minmax(market_id) {
+            this.sendMinMax(market_id)
             .then(() => {
                 this.getMinMaxData()
                 this.getUpdatedPrice()
@@ -343,7 +357,7 @@ export default {
             this.$store.commit('trade/CLOSE_BETSLIP', this.odd_details.market_id)
             this.$store.commit('trade/CLOSE_BET_MATRIX', this.odd_details.market_id)
             this.$store.commit('trade/CLOSE_ODDS_HISTORY', this.odd_details.market_id)
-            this.emptyMinMax()
+            this.emptyMinMax(this.market_id)
         },
         openBetMatrix(odd_details) {
             this.$store.commit('trade/CLOSE_BET_MATRIX', odd_details.market_id)
@@ -360,6 +374,15 @@ export default {
         updatePrice(price) {
             this.initialPrice = price
         },
+        convertPointAsNumeric(points) {
+            if(this.market_details.odd_type == 'HDP' || this.market_details.odd_type == 'HT HDP') {
+                this.points =  Number(points)
+            } else if(this.market_details.odd_type == 'OU' || this.market_details.odd_type == 'HT OU') {
+                this.points = Number(points.split(' ')[1])
+            } else {
+                return
+            }
+        },
         placeOrder() {
             if(this.orderForm.stake == '' || this.initialPrice == '') {
                 this.orderMessage = 'Please input stake or price.'
@@ -368,7 +391,7 @@ export default {
                     betType: this.orderForm.betType,
                     stake: this.orderForm.stake,
                     orderExpiry: this.orderForm.orderExpiry,
-                    market_id: this.odd_details.market_id
+                    market_id: this.market_id
                 }
 
                 if(this.orderForm.betType == 'FAST_BET') {
@@ -432,12 +455,17 @@ export default {
                         let averagePrice = sumOfPrices / prices.length
                         this.analysisData = {
                             stake: data.stake,
-                            hdp: this.points,
+                            hdp: this.convertPointAsNumeric(this.points),
                             price: Math.floor(averagePrice * 100) / 100,
                             bet_score: this.bet_score,
                             against_score: this.against_score
                         }
                     }
+
+                    if(this.betSlipSettings.bets_to_fav == 1) {
+                        this.$store.dispatch('trade/addToWatchlist', { type: 'event', data: this.odd_details.game.uid, payload: this.odd_details.game })
+                    }
+
                     this.isDoneBetting = true
                 })
                 .catch(err => {

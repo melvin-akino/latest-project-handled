@@ -44,6 +44,8 @@ class DataToSwt implements CustomProcessInterface
         }
 
         $swoole->wsTable->set('data2Swt', ['value' => true]);
+
+        while (!self::$quit) {}
     }
 
     // Requirements: LaravelS >= v3.4.0 & callback() must be async non-blocking program.
@@ -206,6 +208,8 @@ class DataToSwt implements CustomProcessInterface
             ->get();
         $masterEventMarketsTable = $swoole->eventMarketsTable;
         array_map(function ($eventMarket) use ($masterEventMarketsTable) {
+            $odds = $eventMarket->bet_identifier == "" ? 0 : (float) $eventMarket->odds;
+
             $masterEventMarketsTable->set(
                 'pId:' . $eventMarket->provider_id .
                 ':meUID:' . $eventMarket->master_event_unique_id .
@@ -216,7 +220,7 @@ class DataToSwt implements CustomProcessInterface
                     'master_event_market_unique_id' => $eventMarket->master_event_market_unique_id,
                     'odd_type_id'                   => $eventMarket->odd_type_id,
                     'provider_id'                   => $eventMarket->provider_id,
-                    'odds'                          => $eventMarket->odds,
+                    'odds'                          => $odds,
                     'odd_label'                     => $eventMarket->odd_label,
                     'bet_identifier'                => $eventMarket->bet_identifier,
                     'is_main'                       => $eventMarket->is_main,

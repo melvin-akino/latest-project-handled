@@ -13,9 +13,9 @@ class AdminCurrencyTest extends AdminAccounttest
         $this->login();
         $response = $this->actingAs($this->user)->json('POST', 'admin/wallet/currencies', 
                 [
-                    'currency_name' => '',
-                    'currency_symbol'=>'',
-                    'currency_code' =>''
+                    'currency_name'   => '',
+                    'currency_symbol' => '',
+                    'currency_code'   => ''
                 ]
             );
        
@@ -29,8 +29,8 @@ class AdminCurrencyTest extends AdminAccounttest
         $response = $this->actingAs($this->user)->json('POST', 'admin/wallet/currencies', 
                 [
                     'currency_name'   => 'php',
-                    'currency_symbol' =>'Php',
-                    'currency_code'   =>'php'
+                    'currency_symbol' => 'Php',
+                    'currency_code'   => 'php'
                 ]
             );
        
