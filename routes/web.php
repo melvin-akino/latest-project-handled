@@ -23,21 +23,32 @@ Route::namespace('CRM')->prefix('admin')->group(function () {
     Route::middleware('auth:crm')->group(function () {
         Route::get('dashboard', 'DashboardController@index')->name('dashboard');
          /* Wallet route */
-    	Route::namespace('Wallet')->prefix('wallet')->group(function () {		
+    	Route::namespace('Wallet')->prefix('wallet')->group(function () {
 			Route::prefix('exchange_rates')->group(function () {
 				Route::get('datatable', 'ExchangeRateController@dataTable')->name('wallet.exchange_rates.dataTable');
 			});
+
 			Route::resource('exchange_rates', 'ExchangeRateController', ['only' => [
 				'index', 'store', 'update'
 			]]);
+
 			Route::prefix('currencies')->group(function () {
 				Route::get('datatable', 'CurrencyController@dataTable')->name('wallet.currencies.dataTable');
 			});
+
 			Route::resource('currencies', 'CurrencyController', ['only' => [
 				'index', 'store', 'update'
-			]]);		
+			]]);
+			  /* Transfer route */
+    		Route::prefix('transfer')->group(function () {
+				Route::get('/', 'TransferController@index')->name('wallet.transfer.index');
+				Route::post('/', 'TransferController@transfer')->name('wallet.transfer.transfer');
+				Route::get('datatable', 'TransferController@dataTable')->name('wallet.transfer.dataTable');
+			});
+   	 		/* end transfer route */		
 		});
-    	/* end wallet route */
+    /* end wallet route */
+
     });
 });
 

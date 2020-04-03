@@ -35,4 +35,5 @@ class Currency extends Model
     {
         return $this->hasMany(ExchangeRate::class);
     }
+
 }
