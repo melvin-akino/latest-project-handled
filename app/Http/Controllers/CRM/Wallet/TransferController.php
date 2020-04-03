@@ -6,9 +6,8 @@ use App\User;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\CRM\TransferRequest;
-
 use App\Models\CRM\CrmTransfer;
-use App\Models\{Currency,Source,UserWallet};
+use App\Models\{Currency, Source, UserWallet};
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\{Auth,DB};
 

@@ -7,8 +7,7 @@ use Illuminate\Auth\Passwords\CanResetPassword;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Passport\HasApiTokens;
-use App\Models\UserWallet;
-use App\Models\Currency;
+use App\Models\{UserWallet, Currency};
 
 class User extends Authenticatable
 {

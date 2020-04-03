@@ -1,7 +1,7 @@
 <?php
 
 namespace App\Models;
-
+use Exception;
 use Illuminate\Database\Eloquent\Model;
 use App\User;
 use App\Models\{Currency, Source};
@@ -38,7 +38,7 @@ class UserWallet extends Model
 
             if($type == self::TYPE_DISCHARGE) {
                 // no account yet but already deducted
-                throw new \Exception(self::ERR_NEW_WALLET_DEDUCT);
+                throw new Exception(self::ERR_NEW_WALLET_DEDUCT);
             }
 
             $wallet = $receiver->wallet()->create([
@@ -58,7 +58,7 @@ class UserWallet extends Model
                     $wallet->balance += $amount;
                 } else {
                     if($wallet->balance < $amount){
-                        throw new \Exception(self::ERR_WALLET_DEDUCT);
+                        throw new Exception(self::ERR_WALLET_DEDUCT);
                     }
                     $wallet->balance -= $amount;
                 }
