@@ -259,6 +259,13 @@ export default {
             }
         },
         toggleOdds: {
+            bind(el, binding, vnode) {
+                if(binding.value != 0) {
+                    el.style.display = 'block'
+                } else {
+                    el.style.display = 'none'
+                }
+            },
             componentUpdated(el, binding, vnode) {
                 if(binding.value != 0) {
                     el.style.display = 'block'
