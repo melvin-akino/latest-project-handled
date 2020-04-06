@@ -60,8 +60,7 @@ class TransformKafkaMessageMinMax extends Task
                             $userCurrency['id'] = $usersTable->get($userSwtId)['currency_id'];
                         }
 
-                        $maximum = $data->maximum;
-                        $maximum = $data->maximum * ($punterPercentage / 100);
+                        $maximum = (double) $data->maximum * ($punterPercentage / 100);
 
                         $transformed = [
                             "sport_id"    => $data->sport,

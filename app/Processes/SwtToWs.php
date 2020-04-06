@@ -131,10 +131,10 @@ class SwtToWs implements CustomProcessInterface
                             if (strpos($_row['topic_name'], 'min-max-') === 0) {
                                 $userId = $_row['user_id'];
                                 $fd     = $table->get('uid:' . $userId);
-
-                                $swoole->push($fd['value'], json_encode([ 'getUpdatedPrice' => $updatedMarkets ]));
+                                foreach ($updatedMarkets as $updatedMarket) {
+                                    $swoole->push($fd['value'], json_encode([ 'getUpdatedPrice' => $updatedMarket ]));
+                                } 
                                 $table->del($k);
-
                                 break;
                             }
                         }

@@ -343,10 +343,23 @@ class TransformKafkaMessageOdds extends Task
                                     }
                                 }
 
-                                $marketOdds = trim($marketOdds) == '' ? 0 : (float)$marketOdds;
+                                $marketOdds = trim($marketOdds) == '' ? 0 : (float) $marketOdds;
 
                                 if (array_key_exists('points', $markets)) {
                                     $marketPoints = $markets->points;
+                                }
+
+                                if ($markets->market_id == "") {
+                                    $marketOdds  = 0;
+
+                                    $this->subTasks['remove-event-market'][] = [
+                                        'odd_type_id'                   => $oddTypeId,
+                                        'provider_id'                   => $providerId,
+                                        'event_identifier'              => $event->eventId,
+                                        'market_flag'                   => strtoupper($markets->indicator),
+                                    ];
+                                    
+                                    continue;
                                 }
 
                                 $masterEventMarketSwtId = implode(':', [
@@ -355,19 +368,18 @@ class TransformKafkaMessageOdds extends Task
                                     "bId:" . $markets->market_id
                                 ]);
 
-                                if ($markets->market_id == "") {
-                                    $emptyMarket = true;
-                                    $marketOdds  = 0;
-                                }
-
-                                if ($eventMarketsTable->exist($masterEventMarketSwtId)) {
+                                if ($eventMarketsTable->exist($masterEventMarketSwtId) && !empty($markets->market_id)) {
                                     $memUID = $eventMarketsTable->get($masterEventMarketSwtId)['master_event_market_unique_id'];
                                     $odds = $eventMarketsTable->get($masterEventMarketSwtId)['odds'];
 
                                     if ($odds != $marketOdds) {
-                                        $eventMarketsTable[$key]['odds'] = $marketOdds;
+                                        $eventMarketsTable[$masterEventMarketSwtId]['odds'] = $marketOdds;
                                         $this->updated = true;
-                                        $updatedOdds[] = ['market_id' => $memUID, 'odds' => $marketOdds, 'provider_id' => $providerId ];
+                                        $oddsUpdated = ['market_id' => $memUID, 'odds' => $marketOdds, 'provider_id' => $providerId ];
+                                        if (!empty($marketPoints)) {
+                                            $oddsUpdated['points'] = $marketPoints;
+                                        }
+                                        $updatedOdds[] = $oddsUpdated;
                                     } else {
                                         $this->dbOptions['is-market-different'] = false;
                                     }
@@ -384,20 +396,6 @@ class TransformKafkaMessageOdds extends Task
                                     'is_main'                       => $event->market_type == 1 ? true : false,
                                     'market_flag'                   => strtoupper($markets->indicator),
                                 ];
-
-                                foreach ($eventMarketsTable AS $emKey => $emRow) {
-                                    if (($emptyMarket) && ($emRow['master_event_unique_id'] == $uid) && ($emRow['odd_type_id'] == $oddTypeId)) {
-                                        $this->subTasks['remove-event-market'][] = [
-                                            'uid'                           => $uid,
-                                            'odd_type_id'                   => $oddTypeId,
-                                            'provider_id'                   => $providerId,
-                                            'master_event_market_unique_id' => $memUID,
-                                            'is_main'                       => $event->market_type == 1 ? true : false,
-                                            'market_flag'                   => strtoupper($markets->indicator),
-                                            'swt_key'                       => $emKey,
-                                        ];
-                                    }
-                                }
 
                                 $toInsert['EventMarket']['data'] = [
                                     'provider_id'            => $providerId,
