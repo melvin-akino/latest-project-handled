@@ -39,9 +39,9 @@ class TransformKafkaMessageOddsSaveToDb extends Task
         $this->swoole            = app('swoole');
         $this->eventData         = $this->subTasks['event'];
         $this->eventRawData      = $this->subTasks['event-raw'];
-        $this->eventMarketsData  = $this->subTasks['event-market'];
-        $this->updatedOddsData   = $this->subTasks['updated-odds'];
-        $this->removeEventMarket = array_key_exists('remove-event-market', $this->subTasks) ? $this->subTasks['remove-event-market'] : [];
+        $this->eventMarketsData  = $this->subTasks['event-market'] ?? [];
+        $this->updatedOddsData   = $this->subTasks['updated-odds'] ?? [];
+        $this->removeEventMarket = $this->subTasks['remove-event-market'] ?? [];
 
         try {
             DB::beginTransaction();
