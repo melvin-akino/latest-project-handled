@@ -26,4 +26,8 @@ class Provider extends Model
         return self::where('is_enabled', true)
             ->orderBy('priority', 'asc');
     }
+
+    public static function getAllProviders() {
+        return self::orderBy('priority', 'asc')->get()->toArray();   
+    }
 }

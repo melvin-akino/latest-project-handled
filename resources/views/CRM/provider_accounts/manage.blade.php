@@ -1,0 +1,111 @@
+<div class="modal fade" id="modal-manage-provider-accounts" data-backdrop="static">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form class="form-horizontal" name="form-manage-provider-account" id="form-manage-provider-account"
+                  action="{{ route('provider_accounts.manage') }}"
+                  method="POST">
+                  {{ csrf_field() }}
+                  <input type="hidden" class="form-control" name="providerAccountId"
+                                   id="providerAccountId"
+                                   placeholder="ProviderId">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title">Manage Provider Account</h4>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="add-currency-name-input" class="col-sm-3 control-label">Username</label>
+                        <div class="col-sm-8">
+                            <input type="text" class="form-control" name="username"
+                                   id="username"
+                                   placeholder="Provider account username">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="add-parent-category-id-input" class="col-sm-3 control-label">Password</label>
+
+                        <div class="col-sm-8">
+                            <input type="text" class="form-control" name="password"
+                                   id="password"
+                                   placeholder="Provider account password">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="add-sort-input" class="col-sm-3 control-label">Provider</label>
+
+                        <div class="col-sm-8">
+                            <select id="provider_id" class="form-control" name="provider_id">
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="add-sort-input" class="col-sm-3 control-label">Type</label>
+
+                        <div class="col-sm-8">
+                            <select id="account_type" class="form-control" name="account_type">
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="add-parent-category-id-input" class="col-sm-3 control-label">Percentage</label>
+
+                        <div class="col-sm-8">
+                            <input type="text" class="form-control" name="pa_percentage"
+                                   id="pa_percentage"
+                                   placeholder="Punter percentage">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="add-status-id-input" class="col-sm-3 control-label">Enabled</label>
+
+                        <div class="col-sm-8">
+                            <div class="form-group">
+                              <div class="radio">
+                                <label>
+                                  <input type="radio" name="pa_is_enabled" id="pa_is_enabled1" value="1" checked>Yes
+                                </label>
+                              </div>
+                              <div class="radio">
+                                <label>
+                                  <input type="radio" name="pa_is_enabled" id="pa_is_enabled2" value="0">No                                  
+                                </label>
+                              </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="add-status-id-input" class="col-sm-3 control-label">Idle</label>
+
+                        <div class="col-sm-8">
+                            <div class="form-group">
+                              <div class="radio">
+                                <label>
+                                  <input type="radio" name="is_idle" id="is_idle1" value="1" checked>Yes
+                                </label>
+                              </div>
+                              <div class="radio">
+                                <label>
+                                  <input type="radio" name="is_idle" id="is_idle2" value="0">No                                  
+                                </label>
+                              </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default pull-left" data-dismiss="modal">Close</button>
+                    <button type="submit" role="button" data-loading-text='{{ trans('loading.please_wait') }}'
+                            class="btn btn-primary">
+                        Save
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
