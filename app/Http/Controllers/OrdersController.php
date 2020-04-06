@@ -104,11 +104,10 @@ class OrdersController extends Controller
             if ($userProvider->exists()) {
                 $userProvider = $userProvider->where('active', true);
             } else {
-                $userProvider = Provider::where('is_enabled', true);
+                $userProvider = Provider::where('is_enabled', true)->orderBy('priority', 'ASC');
             }
 
-            $userProvider = $userProvider->orderBy('priority', 'ASC')
-                ->first();
+            $userProvider = $userProvider->first();
 
             $masterEventMarket = MasterEventMarket::where('master_event_market_unique_id', $memUID);
 
