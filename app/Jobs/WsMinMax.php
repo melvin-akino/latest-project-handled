@@ -20,10 +20,19 @@ class WsMinMax implements ShouldQueue
     {
         $topicTable = app('swoole')->topicTable;
         $minMaxRequestsTable = app('swoole')->minMaxRequestsTable;
-        $topicTable->set('userId:' . $this->userId . ':unique:' . uniqid(), [
-            'user_id'    => $this->userId,
-            'topic_name' => 'min-max-' . $this->master_event_market_unique_id
-        ]);
+        $doesExist = false;
+        foreach($topicTable as $topic) {
+            if ($topic['topic_name'] == 'min-max-' . $this->master_event_market_unique_id &&
+                $topic['user_id'] == $this->userId) {
+                $doesExist = true;
+            }
+        }
+        if (empty($doesExist)) {
+            $topicTable->set('userId:' . $this->userId . ':unique:' . uniqid(), [
+                'user_id'    => $this->userId,
+                'topic_name' => 'min-max-' . $this->master_event_market_unique_id
+            ]);
+        }
 
         $eventMarket = DB::table('event_markets as em')
             ->join('master_event_market_links as meml', 'meml.event_market_id', 'em.id')

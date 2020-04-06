@@ -205,6 +205,16 @@ class TransformKafkaMessageOdds extends Task
                     $masterTeamHome = $eventsTable->get($eventSwtId)['master_home_team_name'];
                     $masterTeamAway = $eventsTable->get($eventSwtId)['master_away_team_name'];
 
+                    if ($this->message->data->schedule == 'early' && $eventsTable->get($eventSwtId)['game_schedule'] == 'today') {
+                        Log::info("Transformation ignored - event is already in today");
+                        return;
+                    }
+
+                    if ($this->message->data->schedule == 'today' && $eventsTable->get($eventSwtId)['game_schedule'] == 'inplay') {
+                        Log::info("Transformation ignored - event is already in play");
+                        return;
+                    }
+
                     if ($eventsTable->get($eventSwtId)['game_schedule'] != $this->message->data->schedule) {
                         $wsTable->set('eventScheduleChange:' . $uid, ['value' => json_encode([
                             'uid'           => $uid,
@@ -318,8 +328,9 @@ class TransformKafkaMessageOdds extends Task
                                  *      $eventMarket        swoole_table_value  string
                                  */
 
-                                $marketOdds = $markets->odds;
+                                $marketOdds   = $markets->odds;
                                 $marketPoints = "";
+                                $emptyMarket  = false;
 
                                 if (gettype($marketOdds) == 'string') {
                                     $marketOdds = explode(' ', $markets->odds);
@@ -344,6 +355,11 @@ class TransformKafkaMessageOdds extends Task
                                     "bId:" . $markets->market_id
                                 ]);
 
+                                if ($markets->market_id == "") {
+                                    $emptyMarket = true;
+                                    $marketOdds  = 0;
+                                }
+
                                 if ($eventMarketsTable->exist($masterEventMarketSwtId)) {
                                     $memUID = $eventMarketsTable->get($masterEventMarketSwtId)['master_event_market_unique_id'];
                                     $odds = $eventMarketsTable->get($masterEventMarketSwtId)['odds'];
@@ -360,7 +376,6 @@ class TransformKafkaMessageOdds extends Task
                                 }
 
                                 /** TO INSERT */
-
                                 $toInsert['MasterEventMarket']['swtKey'] = $masterEventMarketSwtId;
                                 $toInsert['MasterEventMarket']['data'] = [
                                     'master_event_unique_id'        => $uid,
@@ -369,6 +384,20 @@ class TransformKafkaMessageOdds extends Task
                                     'is_main'                       => $event->market_type == 1 ? true : false,
                                     'market_flag'                   => strtoupper($markets->indicator),
                                 ];
+
+                                foreach ($eventMarketsTable AS $emKey => $emRow) {
+                                    if (($emptyMarket) && ($emRow['master_event_unique_id'] == $uid) && ($emRow['odd_type_id'] == $oddTypeId)) {
+                                        $this->subTasks['remove-event-market'][] = [
+                                            'uid'                           => $uid,
+                                            'odd_type_id'                   => $oddTypeId,
+                                            'provider_id'                   => $providerId,
+                                            'master_event_market_unique_id' => $memUID,
+                                            'is_main'                       => $event->market_type == 1 ? true : false,
+                                            'market_flag'                   => strtoupper($markets->indicator),
+                                            'swt_key'                       => $emKey,
+                                        ];
+                                    }
+                                }
 
                                 $toInsert['EventMarket']['data'] = [
                                     'provider_id'            => $providerId,
@@ -379,6 +408,8 @@ class TransformKafkaMessageOdds extends Task
                                     'bet_identifier'         => $markets->market_id,
                                     'is_main'                => $event->market_type == 1 ? true : false,
                                     'market_flag'            => strtoupper($markets->indicator),
+                                    'event_identifier'       => $event->eventId,
+                                    'deleted_at'             => null,
                                 ];
 
                                 if ($this->dbOptions['is-market-different']) {

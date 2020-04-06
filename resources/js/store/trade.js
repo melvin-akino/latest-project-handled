@@ -4,6 +4,7 @@ import Cookies from 'js-cookie'
 const token = Cookies.get('mltoken')
 
 const state = {
+    leagues: [],
     selectedSport: null,
     selectedLeagues: {
         inplay: [],
@@ -16,7 +17,6 @@ const state = {
     oddsTypeBySport: [],
     columnsToDisplay: [],
     checkedColumns: [],
-    initialLeagues: [],
     allEventsList: [],
     eventsList: [],
     events: {
@@ -31,10 +31,26 @@ const state = {
     openedOddsHistory: [],
     openedBetMatrix: [],
     bookies: [],
-    bets: []
+    bets: [],
+    tradePageSettings: {},
+    betSlipSettings: {},
+    showSearch: true
 }
 
 const mutations = {
+    SET_LEAGUES: (state, leagues) => {
+        state.leagues = leagues
+    },
+    ADD_TO_LEAGUES: (state, data) => {
+        if(state.leagues.hasOwnProperty(data.schedule)) {
+            state.leagues[data.schedule].push(data.league)
+        }
+    },
+    REMOVE_FROM_LEAGUE: (state, data) => {
+        if(state.leagues.hasOwnProperty(data.schedule)) {
+            state.leagues[data.schedule] = state.leagues[data.schedule].filter(league => league.name != data.league)
+        }
+    },
     SET_SELECTED_SPORT: (state, selectedSport) => {
         state.selectedSport = selectedSport
     },
@@ -71,9 +87,6 @@ const mutations = {
     SET_CHECKED_COLUMNS: (state, columns) => {
         state.checkedColumns = columns
     },
-    SET_INITIAL_LEAGUES: (state, leagues) => {
-        state.initialLeagues = leagues
-    },
     SET_EVENTS_LIST: (state, event) => {
         state.eventsList.push(event)
     },
@@ -108,15 +121,30 @@ const mutations = {
         state.events[data.schedule][data.league].push(data.event)
     },
     REMOVE_FROM_EVENTS: (state, data) => {
-        Vue.delete(state.events[data.schedule], data.removedLeague)
-        if(data.schedule != 'watchlist') {
-            state.eventsList = state.eventsList.filter(event => event.league_name != data.removedLeague)
+        if(state.tradePageSettings.sort_event == 1) {
+            Vue.delete(state.events[data.schedule], data.removedLeague)
+        } else if(state.tradePageSettings.sort_event == 2) {
+            state.allEventsList.map(event => {
+                if(event.league_name == data.removedLeague) {
+                    let eventSchedLeague = `[${event.ref_schedule.split(' ')[1]}] ${event.league_name}`
+                    Vue.delete(state.events[data.schedule], eventSchedLeague)
+                }
+            })
         }
     },
     REMOVE_FROM_EVENTS_BY_LEAGUE: (state, removedLeague) => {
         let schedule = ['inplay', 'today', 'early']
         schedule.map(schedule => {
-            Vue.delete(state.events[schedule], removedLeague)
+            if(state.tradePageSettings.sort_event == 1) {
+                Vue.delete(state.events[schedule], removedLeague)
+            } else if(state.tradePageSettings.sort_event == 2) {
+                state.allEventsList.map(event => {
+                    if(event.league_name == removedLeague) {
+                        let eventSchedLeague = `[${event.ref_schedule.split(' ')[1]}] ${event.league_name}`
+                        Vue.delete(state.events[schedule], eventSchedLeague)
+                    }
+                })
+            }
         })
     },
     REMOVE_EVENT: (state, data) => {
@@ -125,8 +153,9 @@ const mutations = {
     SET_WATCHLIST: (state, watchlist) => {
         Vue.set(state.events, 'watchlist', watchlist)
     },
-    OPEN_BETSLIP: (state, odd) => {
-        state.openedBetSlips.push(odd)
+    OPEN_BETSLIP: (state, data) => {
+        Vue.set(data.odd, 'game', data.game)
+        state.openedBetSlips.push(data.odd)
     },
     CLOSE_BETSLIP: (state, market_id) => {
         state.openedBetSlips = state.openedBetSlips.filter(openedBetSlip => openedBetSlip.market_id != market_id)
@@ -148,6 +177,15 @@ const mutations = {
     },
     SET_BETS: (state, bets) => {
         state.bets = bets
+    },
+    SET_TRADE_PAGE_SETTINGS: (state, tradePageSettings) => {
+        state.tradePageSettings = tradePageSettings
+    },
+    SET_BET_SLIP_SETTINGS: (state, betSlipSettings) => {
+        state.betSlipSettings = betSlipSettings
+    },
+    SHOW_SEARCH: (state, data) => {
+        state.showSearch = data
     }
 }
 
@@ -181,8 +219,8 @@ const actions = {
             axios.get('v1/trade/leagues', { headers: { 'Authorization': `Bearer ${token}` }})
             .then(response => {
                 if(response.data.sport_id == state.selectedSport) {
-                    commit('SET_INITIAL_LEAGUES', response.data.data)
-                    resolve(state.initialLeagues)
+                    commit('SET_LEAGUES', response.data.data)
+                    resolve()
                 }
             })
             .catch(err => {
@@ -198,10 +236,15 @@ const actions = {
                 let schedule = ['inplay', 'today', 'early']
                 schedule.map(schedule => {
                     if(schedule in response.data.data.user_selected) {
-                        Object.keys(response.data.data.user_selected[schedule]).map(league => {
-                            response.data.data.user_selected[schedule][league].map(event => {
+                        let sortedUserSelected = {}
+                        Object.keys(response.data.data.user_selected[schedule]).sort().map(league => {
+                            if(typeof(sortedUserSelected[schedule]) == "undefined") {
+                                sortedUserSelected[schedule] = {}
+                            }
+                            sortedUserSelected[schedule][league] = response.data.data.user_selected[schedule][league]
+                            sortedUserSelected[schedule][league].map(event => {
                                 if(event.sport_id == state.selectedSport) {
-                                    commit('SET_EVENTS', { schedule: schedule, events: response.data.data.user_selected[schedule]})
+                                    commit('SET_EVENTS', { schedule: schedule, events:  sortedUserSelected[schedule]})
                                     commit('SET_EVENTS_LIST', event)
                                     commit('SET_ALL_EVENTS_LIST', event)
                                 }
@@ -212,9 +255,14 @@ const actions = {
             }
 
             if('user_watchlist' in response.data.data) {
-                commit('SET_WATCHLIST', response.data.data.user_watchlist)
-                Object.keys(response.data.data.user_watchlist).map(league => {
-                    response.data.data.user_watchlist[league].map(event => {
+                let sortedUserWatchlist = {}
+                Object.keys(response.data.data.user_watchlist).sort().map(league => {
+                    if(typeof(sortedUserWatchlist[league]) == "undefined") {
+                        sortedUserWatchlist[league] = {}
+                    }
+                    sortedUserWatchlist[league] = response.data.data.user_watchlist[league]
+                    sortedUserWatchlist[league].map(event => {
+                        commit('SET_WATCHLIST', sortedUserWatchlist)
                         commit('SET_ALL_EVENTS_LIST', event)
                     })
                 })
@@ -227,7 +275,7 @@ const actions = {
     getBetbarData({commit, state, dispatch}) {
         axios.get('v1/trade/betbar', { headers: { 'Authorization': `Bearer ${token}` }})
         .then(response => {
-            commit('SET_BETS', response.data.data.reverse())
+            commit('SET_BETS', response.data.data)
             if(state.bets.length != 0) {
                 commit('TOGGLE_BETBAR', true)
             }
@@ -236,10 +284,18 @@ const actions = {
             dispatch('auth/checkIfTokenIsValid', err.response.data.status_code, { root: true })
         })
     },
-    toggleLeague(context, data) {
+    async getTradePageSettings({dispatch, commit}) {
+        let tradePageSettings = await dispatch('settings/getUserSettingsConfig', 'trade-page', { root: true })
+        commit('SET_TRADE_PAGE_SETTINGS', tradePageSettings)
+    },
+    async getBetSlipSettings({dispatch, commit}) {
+        let betSlipSettings = await dispatch('settings/getUserSettingsConfig', 'bet-slip', { root: true })
+        commit('SET_BET_SLIP_SETTINGS', betSlipSettings)
+    },
+    toggleLeague({dispatch}, data) {
         axios.post('v1/trade/leagues/toggle', { league_name: data.league_name, sport_id: data.sport_id, schedule: data.schedule}, { headers: { 'Authorization': `Bearer ${token}` } })
         .catch(err => {
-            this.$store.dispatch('auth/checkIfTokenIsValid', err.response.data.status_code)
+            dispatch('auth/checkIfTokenIsValid', err.response.data.status_code, { root: true })
         })
     },
     toggleLeagueByName({dispatch}, data) {
@@ -248,6 +304,40 @@ const actions = {
             if(state.selectedLeagues[schedule].length != 0 && state.selectedLeagues[schedule].includes(data.league_name)) {
                 dispatch('toggleLeague', { league_name: data.league_name, sport_id: data.sport_id, schedule: schedule })
             }
+        })
+    },
+    addToWatchlist({dispatch, state, commit}, data) {
+        axios.post('v1/trade/watchlist/add', { type: data.type, data: data.data }, { headers: { 'Authorization': `Bearer ${token}` }})
+        .then(response => {
+            if(data.type=='league') {
+                dispatch('toggleLeagueByName', { league_name: data.data, sport_id: state.selectedSport })
+                commit('REMOVE_SELECTED_LEAGUE_BY_NAME', data.data)
+                commit('REMOVE_FROM_EVENTS_BY_LEAGUE', data.data)
+                commit('REMOVE_FROM_EVENT_LIST', { type: 'league_name', data: data.data })
+            } else if(data.type=='event') {
+                if(!_.isEmpty(data.payload)) {
+                    let leaguesLength = 0
+                    if(state.tradePageSettings.sort_event == 1) {
+                        commit('REMOVE_EVENT', { schedule: data.payload.game_schedule, removedLeague: data.payload.league_name, removedEvent: data.payload.uid})
+                        leaguesLength = state.events[data.payload.game_schedule][data.payload.league_name].length
+                    } else if(state.tradePageSettings.sort_event == 2) {
+                        let eventStartTime = `[${data.payload.ref_schedule.split(' ')[1]}] ${data.payload.league_name}`
+                        commit('REMOVE_EVENT', { schedule: data.payload.game_schedule, removedLeague: eventStartTime, removedEvent: data.payload.uid})
+                        leaguesLength = state.events[data.payload.game_schedule][eventStartTime].length
+                    }
+
+                    if(leaguesLength == 0) {
+                        dispatch('toggleLeague', { league_name: data.payload.league_name,  schedule: data.payload.game_schedule, sport_id: state.selectedSport })
+                        commit('REMOVE_SELECTED_LEAGUE', {schedule: data.payload.game_schedule, league: data.payload.league_name })
+                        commit('REMOVE_FROM_EVENTS', { schedule: data.payload.game_schedule, removedLeague: data.payload.league_name })
+                    }
+                    commit('REMOVE_FROM_EVENT_LIST', { type: 'uid', data: data.payload.uid })
+                }
+            }
+            Vue.prototype.$socket.send('getWatchlist')
+        })
+        .catch(err => {
+            dispatch('auth/checkIfTokenIsValid', err.response.data.status_code, { root: true })
         })
     }
 }

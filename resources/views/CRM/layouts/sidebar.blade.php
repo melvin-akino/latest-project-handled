@@ -44,8 +44,7 @@
             @endusercan
             --}}
 
-            {{--
-            @if(Auth::guard('crm')->user()->canAccess('view', 'currencies.index') || Auth::guard('crm')->user()->canAccess('view', 'wallet.transfer.transfer'))
+         
                 <li class="treeview @isset($wallet_menu) active menu-open @endisset" id="wallet-treeview">
                     <a href="javascript:void(0);">
                         <i class="fa fa-id-card-o" aria-hidden="true"></i>
@@ -54,45 +53,44 @@
                     </a>
 
                     <ul class="treeview-menu">
-                        @usercan('view', 'currencies.index')
+                       
                         <li class=" @isset($currency_menu) active @endisset ">
                             <a href="/admin/wallet/currencies">
                                 <i class="fa fa-usd" aria-hidden="true"></i>
                                 <span>Currency</span>
                             </a>
                         </li>
-                        @endusercan
+                     
 
-                        @usercan('view', 'exchange_rates.index')
+                       
                         <li class="@isset($exchange_rate_menu) active @endisset">
                             <a href="/admin/wallet/exchange_rates">
                                 <i class="fa fa-exchange" aria-hidden="true"></i>
                                 <span>Exchange Rate</span>
                             </a>
                         </li>
-                        @endusercan
+                        
 
-                        @usercan('view', 'wallet.transfer.transfer')
+                       
                         <li class=" @isset($deposit_menu) active @endisset ">
                             <a href="/admin/wallet/transfer?type=Deposit">
                                 <i class="fa fa-share-square-o" aria-hidden="true"></i>
                                 <span>Deposit</span>
                             </a>
                         </li>
-                        @endusercan
+                    
 
-                        @usercan('view', 'wallet.transfer.transfer')
+                       
                         <li class=" @isset($withdraw_menu) active @endisset ">
                             <a href="/admin/wallet/transfer?type=Withdraw">
                                 <i class="fa fa-share-square-o" aria-hidden="true"></i>
                                 <span>Withdraw</span>
                             </a>
                         </li>
-                        @endusercan
+                     
                     </ul>
                 </li>
-            @endif
-            --}}
+          
 
             {{--
             @if(Auth::guard('crm')->user()->canAccess('view', 'roles.index') || Auth::guard('crm')->user()->canAccess('view', 'permissions.index') || Auth::guard('crm')->user()->canAccess('view', 'assignuser.index'))

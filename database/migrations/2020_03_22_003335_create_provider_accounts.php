@@ -26,6 +26,7 @@ class CreateProviderAccounts extends Migration
             $table->boolean('is_idle')->default(true);
             $table->softDeletes();
             $table->timestamps();
+
             $table->foreign('provider_id')
                 ->references('id')
                 ->on('providers')

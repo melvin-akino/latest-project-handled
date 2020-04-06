@@ -3,6 +3,7 @@
 namespace App\Processes;
 
 use App\Handlers\ProducerHandler;
+use App\Jobs\KafkaPush;
 use Illuminate\Support\Str;
 use Hhxsv5\LaravelS\Swoole\Process\CustomProcessInterface;
 use Illuminate\Support\Facades\Log;
@@ -30,16 +31,19 @@ class KafkaProduce implements CustomProcessInterface
                 'req_order'        => env('KAFKA_SCRAPE_ORDER_REQUEST_POSTFIX', '_bet_req'),
                 'req_open_order'   => env('KAFKA_SCRAPE_OPEN_ORDERS_POSTFIX', '_openorder_req'),
                 'push_place_order' => env('KAFKA_BET_PLACED', 'PLACED-BET'),
+                'req_settlements'  => env('KAFKA_SCRAPE_SETTLEMENT_POSTFIX', '_settlement_req'),
             ];
 
             if ($swoole->wsTable->exist('data2Swt')) {
-                $topicTable          = $swoole->topicTable;
-                $minMaxRequestsTable = $swoole->minMaxRequestsTable;
-                $ordersTable         = $swoole->ordersTable;
-                $sportsTable         = $swoole->sportsTable;
-                $providersTable      = $swoole->providersTable;
-                $payloadsTable       = $swoole->payloadsTable;
-                $initialTime         = Carbon::createFromFormat('H:i:s', Carbon::now()->format('H:i:s'));
+                $topicTable                 = $swoole->topicTable;
+                $minMaxRequestsTable        = $swoole->minMaxRequestsTable;
+                $ordersTable                = $swoole->ordersTable;
+                $sportsTable                = $swoole->sportsTable;
+                $providersTable             = $swoole->providersTable;
+                $payloadsTable              = $swoole->payloadsTable;
+                $providerAccountsTable      = $swoole->providerAccountsTable;
+                $initialTime                = Carbon::createFromFormat('H:i:s', Carbon::now()->format('H:i:s'));
+                $providerAccountInitialTime = Carbon::createFromFormat('H:i:s', Carbon::now()->format('H:i:s'));
 
                 while (!self::$quit) {
                     $newTime = Carbon::createFromFormat('H:i:s', Carbon::now()->format('H:i:s'));
@@ -81,11 +85,38 @@ class KafkaProduce implements CustomProcessInterface
                                 ];
 
                                 $payload['data'] = [
-                                    'sport_id' => $sportId,
+                                    'sport' => $sportId,
                                     'provider' => $providerAlias
                                 ];
 
                                 self::pushToKafka($payload, $requestId, $kafkaTopics['req_open_order']);
+                            }
+
+                            //checking if 30 minutest interval
+                            if ($newTime->diffInSeconds(Carbon::parse($providerAccountInitialTime)) >= (60 * 30)) {
+                                foreach ($providerAccountsTable AS $sKey => $sRow) {
+                                    $randomRangeInMinutes = rand(0, 10);
+
+                                    $requestId     = Str::uuid();
+                                    $requestTs     = self::milliseconds();
+
+                                    $payload = [
+                                        'request_uid' => $requestId,
+                                        'request_ts'  => $requestTs,
+                                        'sub_command' => 'scrape',
+                                        'command'     => 'settlement'
+                                    ];
+
+                                    $payload['data'] = [
+                                        'sport'     => $sportId,
+                                        'provider'  => $sRow['provider_id'],
+                                        'username'  => $sRow['username']
+                                    ];
+
+                                    self::pushToKafka($payload, $requestId, strtolower($sRow['provider_alias']) . $kafkaTopics['req_settlements'], $randomRangeInMinutes);
+
+                                    $providerAccountInitialTime = $newTime;
+                                }
                             }
                         }
 
@@ -121,16 +152,22 @@ class KafkaProduce implements CustomProcessInterface
         return bcadd($mt[1], $mt[0], 8);
     }
 
-    private static function pushToKafka(array $message = [], string $key, string $kafkaTopic)
+    private static function pushToKafka(array $message = [], string $key, string $kafkaTopic, int $delayInMinutes = 0)
     {
         try {
-            self::$producerHandler->setTopic($kafkaTopic)
-                ->send($message, $key);
+            if (empty($delayInMinutes)) {
+                self::$producerHandler->setTopic($kafkaTopic)
+                    ->send($message, $key);
+            } else {
+                KafkaPush::dispatch(self::$producerHandler, $kafkaTopic, $message, $key)->delay(now()->addMinutes($delayInMinutes));
+            }
         } catch (Exception $e) {
-            Log::critical(self::PUBLISH_ERROR_MESSAGE, [
+            Log::critical('Sending Kafka Message Failed', [
                 'error' => $e->getMessage(),
                 'code' => $e->getCode()
             ]);
+        } finally {
+            Log::channel('kafkalog')->info(json_encode($message));
         }
     }
 }

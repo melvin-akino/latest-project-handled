@@ -78,6 +78,7 @@ class WsEvents implements ShouldQueue
                 'ot.type', 'em.odds', 'em.odd_label', 'em.provider_id')
             ->where('ml.master_league_name', $this->master_league_name)
             ->where('me.game_schedule', $this->schedule)
+            ->where('mem.is_main', true)
             ->whereNull('ml.deleted_at')
             ->whereNull('me.deleted_at')
             ->distinct()->get();

@@ -95,6 +95,10 @@ return [
             'driver' => 'monolog',
             'handler' => NullHandler::class,
         ],
+        'kafkalog' => [
+            'driver' => 'single',
+            'path' => '/tmp/odds.logs',
+        ],
     ],
 
 ];

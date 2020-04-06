@@ -35,6 +35,7 @@ class DataToSwt implements CustomProcessInterface
             'ExchangeRates',
             'Currencies',
             'UserInfo',
+            'ProviderAccounts'
         ];
 
         foreach ($swooleProcesses as $process) {
@@ -43,6 +44,8 @@ class DataToSwt implements CustomProcessInterface
         }
 
         $swoole->wsTable->set('data2Swt', ['value' => true]);
+
+        while (!self::$quit) {}
     }
 
     // Requirements: LaravelS >= v3.4.0 & callback() must be async non-blocking program.
@@ -205,6 +208,8 @@ class DataToSwt implements CustomProcessInterface
             ->get();
         $masterEventMarketsTable = $swoole->eventMarketsTable;
         array_map(function ($eventMarket) use ($masterEventMarketsTable) {
+            $odds = $eventMarket->bet_identifier == "" ? 0 : (float) $eventMarket->odds;
+
             $masterEventMarketsTable->set(
                 'pId:' . $eventMarket->provider_id .
                 ':meUID:' . $eventMarket->master_event_unique_id .
@@ -215,7 +220,7 @@ class DataToSwt implements CustomProcessInterface
                     'master_event_market_unique_id' => $eventMarket->master_event_market_unique_id,
                     'odd_type_id'                   => $eventMarket->odd_type_id,
                     'provider_id'                   => $eventMarket->provider_id,
-                    'odds'                          => $eventMarket->odds,
+                    'odds'                          => $odds,
                     'odd_label'                     => $eventMarket->odd_label,
                     'bet_identifier'                => $eventMarket->bet_identifier,
                     'is_main'                       => $eventMarket->is_main,
@@ -297,13 +302,26 @@ class DataToSwt implements CustomProcessInterface
     private static function db2SwtOrders(Server $swoole)
     {
         $orders = DB::table('orders as o')
-                ->join('master_event_markets as mem', 'mem.master_event_market_unique_id', 'o.master_event_market_unique_id')
-                ->join('master_events as me', 'me.master_event_unique_id', 'mem.master_event_unique_id')
-                ->join('master_event_links as mel', 'mel.master_event_unique_id', 'me.master_event_unique_id')
-                ->join('events as e', 'e.id', 'mel.event_id')
-                ->select('o.id', 'o.stake', 'o.actual_stake', 'o.odds', 'o.market_id', 'mem.master_event_unique_id', 'mem.master_event_market_unique_id', 'me.score', 'o.bet_id')
+            ->join('master_event_markets as mem', 'mem.master_event_market_unique_id', 'o.master_event_market_unique_id')
+            ->join('master_events as me', 'me.master_event_unique_id', 'mem.master_event_unique_id')
+            ->join('master_event_links as mel', 'mel.master_event_unique_id', 'me.master_event_unique_id')
+            ->join('events as e', 'e.id', 'mel.event_id')
+            ->select([
+                'o.id',
+                'o.stake',
+                'o.actual_stake',
+                'o.odds',
+                'o.market_id',
+                'mem.master_event_unique_id',
+                'mem.master_event_market_unique_id',
+                'me.score',
+                'o.bet_id',
+                'o.order_expiry',
+            ])
             ->get();
+
         $ordersTable = $swoole->ordersTable;
+
         array_map(function ($order) use ($ordersTable) {
             $ordersTable->set('orderId:' . $order->id, [
                 'stake'         => $order->stake,
@@ -312,7 +330,8 @@ class DataToSwt implements CustomProcessInterface
                 'market_id'     => $order->market_id,
                 'event_id'      => explode('-', $order->master_event_unique_id)[3],
                 'score'         => $order->score,
-                'bet_id'        => $order->bet_id
+                'bet_id'        => $order->bet_id,
+                'orderExpiry'   => $order->order_expiry,
             ]);
         }, $orders->toArray());
     }
@@ -380,5 +399,33 @@ class DataToSwt implements CustomProcessInterface
                 'currency_id' => $users->currency_id,
             ]);
         }, $users->toArray());
+    }
+
+    private static function db2SwtProviderAccounts(Server $swoole)
+    {
+        $providerAccounts = DB::table('provider_accounts as pa')
+                            ->join('providers as p', 'p.id', 'pa.provider_id')
+                            ->select('pa.id', 'pa.provider_id', 'pa.type', 'pa.username', 'pa.password', 'pa.punter_percentage', 'pa.credits', 'p.alias')
+                                ->get();
+
+        $providerAccountsTable = $swoole->providerAccountsTable;
+
+        array_map(function ($providerAccount) use ($providerAccountsTable) {
+            $swtId = implode(':', [
+                "providerId:" . $providerAccount->provider_id,
+                'uniqueId:' . uniqid()
+            ]);
+
+            $providerAccountsTable->set($swtId, [
+                'id'                => $providerAccount->id,
+                'provider_id'       => $providerAccount->provider_id,
+                'provider_alias'    => $providerAccount->alias,
+                'type'              => $providerAccount->type,
+                'username'          => $providerAccount->username,
+                'password'          => $providerAccount->password,
+                'punter_percentage' => $providerAccount->punter_percentage,
+                'credits'           => $providerAccount->credits,
+            ]);
+        }, $providerAccounts->toArray());
     }
 }

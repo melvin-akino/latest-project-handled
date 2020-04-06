@@ -20,10 +20,65 @@
 |
 */
 
-use App\Models\{Sport, UserConfiguration};
 
-use Illuminate\Support\Facades\Cookie;
+use Illuminate\Pagination\Paginator;
+use Illuminate\Support\Facades\{Blade, File, Route, Cookie};
+use Illuminate\Http\Request;
+use App\Models\{
+    Sport,
+    UserConfiguration,
+    UserWallet,
+    Source,
+    CRM\WalletLedger
+};
+
 use RdKafka\Conf as KafkaConf;
+
+/* Datatable for CRM admin */
+
+function dataTable(Request $request, $query, $cols = null)
+{
+    $order  = collect($request->input('order')[0]);
+    $col    = collect($request->input('columns')[$order->get('column')])->get('data');
+    $dir    = $order->get('dir');
+    $q      = trim($request->input('search')['value']);
+    $len    = $request->input('length');
+    $page   = ($request->input('start') / $len) + 1;
+
+    Paginator::currentPageResolver(function () use ($page) {
+        return $page;
+    });
+
+    $pagin = null;
+
+    if (!empty($q)) {
+        $pagin = $query->search($q, $cols)->orderBy($col, $dir)->paginate($len);
+    } else {
+        $pagin = $query->orderBy($col, $dir)->paginate($len);
+    }
+
+    return response()->json([
+        "draw"            => intval($request->input('draw')),
+        "recordsTotal"    => $pagin->total(),
+        "recordsFiltered" => $pagin->total(),
+        "data" => $pagin->items()
+    ]);
+}
+/* end databtable */
+
+/* Swal CRM popup container*/
+
+function swal($title, $html, $type)
+{
+    $swal = [
+        'title' => $title,
+        'html'  => $html,
+        'type'  => $type
+    ];
+
+    return compact('swal');
+}
+/* End SWal CRM popup container */
 
 /**
  * Delete Cookie by Name
@@ -106,6 +161,7 @@ if (!function_exists('getUserDefault')) {
         $types = [
             'sport',
             'league',
+            'sort-event'
         ];
 
         if (in_array($type, $types)) {
@@ -127,7 +183,22 @@ if (!function_exists('getUserDefault')) {
                         'default_sport' => $sport,
                     ];
                 break;
+                case 'sort-event':
+                    $defaultEventSort = UserConfiguration::where('type', 'sort_event')
+                        ->where('menu', 'trade-page')
+                        ->where('user_id', $userId);
 
+                    if ($defaultEventSort->count() == 0) {
+                        $sort = config('default_config.trade-page.sort_event');
+                    } else {
+                        $sort = $defaultEventSort->first()->value;
+                    }
+
+                    $data = [
+                        'status'        => true,
+                        'default_sort'  => $sort,
+                    ];
+                    break;
                 case 'league':
                     //
                 break;
@@ -177,4 +248,40 @@ if (!function_exists('wsEmit')) {
     }
 }
 
+/**
+ * Handle User Wallet related Transactions
+ *
+ * @param  int     $userId          Authenticated User's ID
+ * @param  string  $transactionType 'source_name' from 'source' Database Table
+ * @param  float   $amount          Amount from Transaction (MUST already be converted to Application's Base Currency [CNY])
+ */
+if (!function_exists('userWalletTransaction')) {
+    function userWalletTransaction($userId, $transactionType, $amount)
+    {
+        switch ($transactionType) {
+            case 'PLACE_BET':
+                $userWallet  = UserWallet::where('user_id', $userId);
+                $walletId    = $userWallet->first()->id;
+                $userBalance = $userWallet->first()->balance;
+                $sourceId    = Source::where('source_name', $transactionType)->first()->id;
+                $newBalance  = $userBalance - $amount;
 
+                $userWallet->update(
+                    [ 'balance' => $newBalance ]
+                );
+
+                WalletLedger::create(
+                    [
+                        'wallet_id' => $walletId,
+                        'source_id' => $sourceId,
+                        'debit'     => 0,
+                        'credit'    => $amount,
+                        'balance'   => $newBalance,
+                    ]
+                );
+            break;
+
+            /** TO DO: Add more cases for every User Transaction catered by the application */
+        }
+    }
+}

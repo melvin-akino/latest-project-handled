@@ -23,7 +23,9 @@ import Cookies from 'js-cookie'
 const token = Cookies.get('mltoken')
 
 import VueNativeSock from 'vue-native-websocket'
-Vue.use(VueNativeSock, `${process.env.MIX_WEBSOCKET_URL}?token=${token}`, { reconnection: true })
+if(Cookies.get('mltoken')) {
+    Vue.use(VueNativeSock, `${process.env.MIX_WEBSOCKET_URL}?token=${token}`, { reconnection: true, reconnectionDelay: 500 })
+}
 
 const app = new Vue({
     el: '#app',
