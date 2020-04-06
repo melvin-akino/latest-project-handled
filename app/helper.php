@@ -56,7 +56,7 @@ function dataTable(Request $request, $query, $cols = null)
     } else {
         $pagin = $query->orderBy($col, $dir)->paginate($len);
     }
-
+  
     return response()->json([
         "draw"            => intval($request->input('draw')),
         "recordsTotal"    => $pagin->total(),

@@ -75,27 +75,6 @@
                 clearErr(form);
             });
 
-            {{--$('#formaddusers').submit(function (e) {--}}
-                {{--e.preventDefault();--}}
-                {{--var form = $(this);--}}
-                {{--var btn = form.find(':submit').button('loading');--}}
-
-                {{--$.ajax({--}}
-                    {{--type: form.prop('method'),--}}
-                    {{--url: form.prop('action'),--}}
-                    {{--data: form.serialize(),--}}
-                    {{--success: function (response) {--}}
-                        {{--if (response.status == '{{ config('response.type.success') }}') {--}}
-                            {{--location.reload();--}}
-                            {{--return;--}}
-                        {{--} else if (response.status == '{{ config('response.type.error') }}') {--}}
-                            {{--assocErr(response.errors, form);--}}
-                        {{--}--}}
-                    {{--}--}}
-                {{--}).done(function () {--}}
-                    {{--btn.button('reset');--}}
-                {{--});--}}
-            {{--});--}}
 
 
             $('#accounts-table').DataTable({
@@ -134,7 +113,7 @@
                     },
 
                     {
-                        "data": "firstnamne",
+                        "data": "firstname",
                         "render": function (data, type, row, meta) {
                             if (type === 'display') {
                                 data = !row.firstname ? 'N/A' : row.firstname;

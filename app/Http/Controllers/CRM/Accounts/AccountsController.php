@@ -33,6 +33,7 @@ class AccountsController extends Controller
 
     public function dataTable(Request $request)
     {
+        
         return dataTable($request, User::query());
     }
 

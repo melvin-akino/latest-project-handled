@@ -70,10 +70,6 @@
                     @endif
                 </div>
 
-           
-
-
-
                 <div class="form-group{{ $errors->has('birthdate') ? ' has-error' : '' }}">
                     <label for="birth_date-input" class="control-label">Date of Birth</label>
                     <input type="text" class="form-control" data-date-end-date="-18y" id="birth-date-input" name="birth_date" placeholder="Select Date of Birth" value="{{ old('birthdate', $account->birthdate) }}">

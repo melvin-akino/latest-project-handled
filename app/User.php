@@ -8,6 +8,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Passport\HasApiTokens;
 use App\Models\{UserWallet, Currency};
+use Illuminate\Support\Arr;
 
 class User extends Authenticatable
 {
@@ -67,5 +68,29 @@ class User extends Authenticatable
     {
         return $this->hasMany(WalletDeposit::class, 'user_id', 'id');
     }
+
+     public function scopeSearch($query, $search, $cols = null)
+    {
+        if (is_null($cols)) {
+            $except = [
+                array_search('status', $this->fillable),
+                array_search('password', $this->fillable),
+                array_search('birthdate', $this->fillable),
+                array_search('currency_id', $this->fillable),
+                array_search('address', $this->fillable)
+            ];
+
+            $cols = Arr::except($this->fillable, $except);
+        }
+
+        foreach ($cols as $key => $value) {
+            if ($key == 0) {
+                $query->where($value, 'ILIKE', "%$search%");
+            }
+            $query->orWhere($value, 'ILIKE', "%$search%");
+        }
+        return $query;
+    }
+
 
 }
