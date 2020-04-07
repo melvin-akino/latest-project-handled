@@ -139,17 +139,13 @@ class OrdersController extends Controller
             $masterEvent = $masterEvent->first();
 
             $getOtherMarkets = DB::table('event_markets AS em')
-                ->join('master_event_markets AS mem', function ($join) {
-                    $join->on('em.master_event_unique_id', '=', 'mem.master_event_unique_id');
-                    $join->on('em.odd_type_id', '=', 'mem.odd_type_id');
-                    $join->on('em.is_main', '=', 'mem.is_main');
-                    $join->on('em.market_flag', '=', 'mem.market_flag');
-                })
-                ->distinct()
+                ->join('master_event_market_links AS meml', 'meml.event_market_id', 'em.id')
+                ->join('master_event_markets AS mem', 'mem.master_event_market_unique_id', 'meml.master_event_market_unique_id')
                 ->where('mem.master_event_unique_id', $masterEventMarket->master_event_unique_id)
                 ->where('mem.odd_type_id', $masterEventMarket->odd_type_id)
                 ->where('em.market_flag', $masterEventMarket->market_flag)
                 ->where('em.provider_id', $userProvider->id)
+                ->distinct()
                 ->get(
                     [
                         'mem.master_event_market_unique_id',

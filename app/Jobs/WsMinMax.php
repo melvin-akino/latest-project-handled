@@ -25,6 +25,7 @@ class WsMinMax implements ShouldQueue
             if ($topic['topic_name'] == 'min-max-' . $this->master_event_market_unique_id &&
                 $topic['user_id'] == $this->userId) {
                 $doesExist = true;
+                break;
             }
         }
         if (empty($doesExist)) {
