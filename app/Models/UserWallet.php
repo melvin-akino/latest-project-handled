@@ -38,6 +38,10 @@ class UserWallet extends Model
           
         ]);
     }
+     public function wallet_ledger()
+    {
+        return $this->hasMany(WalletLedger::class, 'wallet_id');
+    }
 
     public function currency()
     {

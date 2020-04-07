@@ -77,7 +77,10 @@ class User extends Authenticatable
                 array_search('password', $this->fillable),
                 array_search('birthdate', $this->fillable),
                 array_search('currency_id', $this->fillable),
-                array_search('address', $this->fillable)
+                array_search('address', $this->fillable),
+                array_search('country_id', $this->fillable),
+                array_search('postcode', $this->fillable),
+                array_search('phone', $this->fillable),
             ];
 
             $cols = Arr::except($this->fillable, $except);

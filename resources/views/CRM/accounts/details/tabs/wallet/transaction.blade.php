@@ -16,10 +16,10 @@
                     <tr>
                         <td>Transaction ID</td>
                         <td>Created At</td>
-                        <td>Credit</td>
                         <td>Debit</td>
+                        <td>Credit</td>
                         <td>Balance</td>
-                        <td>Status</td>
+                        <td>Method</td>
                     </tr>
                     </thead>
                 </table>
@@ -91,7 +91,7 @@
             var modal = $('#modal-transaction-source');
             modal.find('#source').text(btn.data('source-name'));
 
-            $.getJSON('/admin/wallet/ledger/' + btn.data('wallet-ledger-id') + '/source-info', function (data) {
+            $.getJSON('ledger/' + btn.data('wallet-ledger-id') + '/source-info', function (data) {
                 modal.find('.modal-body').html(data.html);
             }).done(function () {
                 btn.button('reset');
@@ -121,7 +121,7 @@
                     "processing": true,
                     "serverSide": true,
                     "responsive": true,
-                    "ajax": '/admin/accounts/wallet/' + walletId + '/datatable',
+                    "ajax": 'wallet/datatable/'+ walletId,
                     columnDefs: [{
                         targets: 5,
                         orderable: false
@@ -132,47 +132,15 @@
                     "columns": [
                         {
                             "data": "id",
-//                            "render" : function (data, type, row, meta) {
-//                                //console.log(row.json);
-//                                //return row.json;
-//                                json_data = JSON.parse(row.json_datwallet-ida_output);
-//
-//                                if(row.transaction_number) {
-//                                    return row.transaction_number;
-//                                }
-//
-//                                var type_initial = '';
-//
-//                                var trans_type =  Object.keys(json_data)[0];
-//                                switch(trans_type) {
-//                                    case 'Deposited':
-//                                        type_initial = 'DP';
-//                                        break;
-//                                    case 'Withdrawn':
-//                                        type_initial = 'WP';
-//                                        break;
-//                                    case 'Redeemed':
-//                                        type_initial = 'RP';
-//                                        break;
-//                                    default:
-//                                        type_initial = 'ERR'
-//                                }
-//
-//                                var dy1   = parseInt(json_data.time.substring(0,2));
-//                                var mon1  = parseInt(json_data.time.substring(3,5));
-//                                var yr1   = parseInt(json_data.time.substring(6,10));
-//
-//                                return 'SP' + type_initial + yr1 + mon1 + dy1 + pad(row.wallet_ledger_id, 4)
-//
-//
-//                            }
+
                         },
-                        {"data": "created_at"},
+                        {"data": "created_at"}, 
                         {
                             "data": "debit",
                             "render": function (data, type, row, meta) {
                                 if (type === 'display') {
-                                    data = row.wallet.currency.currency_symbol + ' ' + parseFloat(row.debit).toFixed(2).replace(/(\d)(?=(\d{3})+\.)/g, "$1,");
+                                    data = row.userwallet.currency.code + ' ' + parseFloat(row.debit).toFixed(2).replace(/(\d)(?=(\d{3})+\.)/g, "$1,");
+
                                 }
                                 return data;
                             }
@@ -181,7 +149,7 @@
                             "data": "credit",
                             "render": function (data, type, row, meta) {
                                 if (type === 'display') {
-                                    data = row.wallet.currency.currency_symbol + ' ' + parseFloat(row.credit).toFixed(2).replace(/(\d)(?=(\d{3})+\.)/g, "$1,");
+                                    data = row.userwallet.currency.code + ' ' + parseFloat(row.credit).toFixed(2).replace(/(\d)(?=(\d{3})+\.)/g, "$1,");
                                 }
                                 return data;
                             }
@@ -190,7 +158,7 @@
                             "data": "balance",
                             "render": function (data, type, row, meta) {
                                 if (type === 'display') {
-                                    data = row.wallet.currency.currency_symbol + ' ' + parseFloat(row.balance).toFixed(2).replace(/(\d)(?=(\d{3})+\.)/g, "$1,");
+                                    data = row.userwallet.currency.code + ' ' + parseFloat(row.balance).toFixed(2).replace(/(\d)(?=(\d{3})+\.)/g, "$1,");
                                 }
                                 return data;
                             }

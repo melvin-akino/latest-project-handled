@@ -26,12 +26,12 @@
                         <thead>
                         <tr>
 
-                            <th>Username</th>
+                            <th>Display Name</th>
                             <th>First Name</th>
                             <th>Last Name</th>
 
                             <th>Email</th>
-                            
+                            <th> Status </th>
                             <th>Registered At</th>
                             <th>Actions</th>
                         </tr>
@@ -138,6 +138,16 @@
 
                             if (type === 'display') {
                                 data = !row.email ? 'N/A' : row.email;
+                            }
+                            return data;
+                        }
+                    },
+                    {
+                        "data":"status",
+                        "render": function (data, type, row, meta) {
+                            if (type === 'display') {
+                                data = "Active";
+                                if (row.status == 0) data="Inactive";
                             }
                             return data;
                         }

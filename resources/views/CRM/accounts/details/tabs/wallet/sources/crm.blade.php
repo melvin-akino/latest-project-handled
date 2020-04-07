@@ -1,7 +1,7 @@
 <div class="wallet-source text-center">
 
     <h5>
-        <small><i class="fa fa-sign-out"></i> SENDER</small>
+        <small><i class="fa fa-sign-out"></i> PROCESS BY:</small>
         <br>
         <img src="{{ asset("CRM/Capital7-1.0.0/img/user2-160x160.jpg") }}" class="img-circle" alt="User Image">
         <br>

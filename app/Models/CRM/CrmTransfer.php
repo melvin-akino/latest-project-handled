@@ -3,6 +3,7 @@
 namespace App\Models\CRM;
 
 use Illuminate\Database\Eloquent\Model;
+use App\Models\Currency;
 
 class CrmTransfer extends Model
 {
@@ -20,7 +21,7 @@ class CrmTransfer extends Model
 
     public function currency()
     {
-        return $this->belongsTo(Currency::class, 'currency_id','id');
+        return $this->belongsTo(Currency::class, 'currency_id');
     }
 
     public function user()

@@ -59,7 +59,7 @@ Route::namespace('CRM')->prefix('admin')->group(function () {
 				Route::get('{account}', 'AccountsController@details')->name('accounts.details');
 				Route::put('{account}', 'AccountsController@update')->name('accounts.update');
 				Route::get('ledger/{ledger}/source-info', 'WalletController@ledgerSourceInfo')->name('userwallet.ledgerSourceInfo');
-				Route::get('wallet/{wallet}/datatable', 'WalletController@dataTable')->name('userwallet.dataTable');
+				Route::get('wallet/datatable/{wallet}', 'WalletController@dataTable')->name('userwallet.dataTable');
 
 			});
 		

@@ -15,10 +15,7 @@ use Illuminate\Validation\Validator;
 class AccountsController extends Controller
 {
    
-    public function __construct()
-    {
-        $this->middleware('auth:crm');
-    }
+    
 
     public function index()
     {
