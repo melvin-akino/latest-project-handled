@@ -298,20 +298,30 @@ export default {
             this.$options.sockets.onmessage = (response => {
                 if(getSocketKey(response.data) === 'getMinMax') {
                     let minmax = getSocketValue(response.data, 'getMinMax')
+                    let minMaxObject = {}
+                    Object.keys(minmax).map(key => {
+                        let mustBeNumeric = ['min', 'max', 'price']
+                        if(mustBeNumeric.includes(key)) {
+                            this.$set(minMaxObject, key, Number(minmax[key]))
+                        } else {
+                            this.$set(minMaxObject, key, minmax[key])
+                        }
+                    })
                     if(!_.isEmpty(this.minMaxData)) {
                         let providerIds = this.minMaxData.map(minMaxData => minMaxData.provider_id)
                         if(providerIds.includes(minmax.provider_id)) {
                             this.minMaxData.map(minMaxData => {
                                 if(minMaxData.provider_id == minmax.provider_id) {
-                                    minMaxData.min = minmax.min
-                                    minMaxData.max = minmax.max
+                                    minMaxData.min = Number(minmax.min)
+                                    minMaxData.max = Number(minmax.max)
+                                    minMaxData.price = Number(minmax.price)
                                 }
                             })
                         } else {
-                            this.minMaxData.push(minmax)
+                            this.minMaxData.push(minMaxObject)
                         }
                     } else {
-                        this.minMaxData.push(minmax)
+                        this.minMaxData.push(minMaxObject)
                     }
                 }
             })
@@ -323,7 +333,7 @@ export default {
                     if(!_.isEmpty(this.minMaxData)) {
                         this.minMaxData.map(minMaxData => {
                             if(minMaxData.provider_id == updatedPrice.provider_id) {
-                                minMaxData.price = updatedPrice.odds
+                                minMaxData.price = Number(updatedPrice.odds)
                             }
                         })
                     }
