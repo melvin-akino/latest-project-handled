@@ -8,6 +8,7 @@ use App\Handlers\ProducerHandler;
 use Exception;
 use Illuminate\Support\Facades\{DB, Log};
 use Illuminate\Support\Str;
+use Storage;
 
 class ScrapeRequestCommand extends Command
 {
@@ -166,7 +167,8 @@ class ScrapeRequestCommand extends Command
                 'code' => $e->getCode()
             ]);
         } finally {
-            Log::channel('kafkalog')->info(json_encode($message));
+            Storage::append('producers-'. date('Y-m-d') . '.log', json_encode($message));
+            Log::channel('kafkaproducelog')->info(json_encode($message));
         }
     }
 }
