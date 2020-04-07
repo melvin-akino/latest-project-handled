@@ -43,8 +43,6 @@
             </ul>
             <div class="tab-content">
                 @include('CRM.accounts.details.tabs.personal')
-                @include('CRM.accounts.details.tabs.user_activity')
-             
                 @include('CRM.accounts.details.tabs.wallet.index')
                
 

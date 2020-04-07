@@ -121,7 +121,7 @@
                     "processing": true,
                     "serverSide": true,
                     "responsive": true,
-                    "ajax": '/admin/wallet/' + walletId + '/datatable',
+                    "ajax": '/admin/accounts/wallet/' + walletId + '/datatable',
                     columnDefs: [{
                         targets: 5,
                         orderable: false
@@ -131,11 +131,11 @@
                     ],
                     "columns": [
                         {
-                            "data": "wallet_ledger_id",
+                            "data": "id",
 //                            "render" : function (data, type, row, meta) {
 //                                //console.log(row.json);
 //                                //return row.json;
-//                                json_data = JSON.parse(row.json_data_output);
+//                                json_data = JSON.parse(row.json_datwallet-ida_output);
 //
 //                                if(row.transaction_number) {
 //                                    return row.transaction_number;
@@ -202,7 +202,7 @@
                                     var sourceName = row.source.source_name.replace(/([A-Z]+)/g, " $1").replace(/([A-Z][a-z])/g, " $1");
 
 
-                                    data = '<button type="button" onclick="getSourceInfo(this);" data-loading-text="{{ trans('loading.default') }}" class="btn btn-primary btn-xs source-link" data-wallet-ledger-id="' + row.wallet_ledger_id + '" data-source-name="' + sourceName + '">' + sourceName + '</button>';
+                                    data = '<button type="button" onclick="getSourceInfo(this);" data-loading-text="{{ trans('loading.default') }}" class="btn btn-primary btn-xs source-link" data-wallet-ledger-id="' + row.id + '" data-source-name="' + sourceName + '">' + sourceName + '</button>';
                                 }
                                 return data;
                             }

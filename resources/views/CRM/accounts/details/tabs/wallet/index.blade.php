@@ -24,7 +24,7 @@
                             <div class="col-md-12">
                                 <div class="pull-right">
                                     
-                                    <button type="button" class="btn btn-link more-details-link" data-loading-text='{{ trans('loading.default') }}' data-wallet-id="{{ $wallet->wallet_id }}" style="padding: 0;">
+                                    <button type="button" class="btn btn-link more-details-link" data-loading-text='{{ trans('loading.default') }}' data-wallet-id="{{ $wallet->id }}" style="padding: 0;">
                                         <i class="ion ion-android-checkbox-outline"></i> more details
                                     </button>
                                   
