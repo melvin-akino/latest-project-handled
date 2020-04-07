@@ -97,7 +97,11 @@ return [
         ],
         'kafkalog' => [
             'driver' => 'single',
-            'path' => '/tmp/odds.logs',
+            'path' => '/tmp/consumer.logs',
+        ],
+        'kafkaproducelog' => [
+            'driver' => 'single',
+            'path' => '/tmp/producer.logs',
         ],
     ],
 
