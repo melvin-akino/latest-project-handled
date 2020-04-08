@@ -20,7 +20,6 @@
 |
 */
 
-
 use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Facades\{Blade, File, Route, Cookie};
 use Illuminate\Http\Request;
@@ -28,8 +27,11 @@ use App\Models\{
     Sport,
     UserConfiguration,
     UserWallet,
-    Source,
-    CRM\WalletLedger
+    Source
+};
+use App\Models\CRM\{
+    OrderTransaction,
+    WalletLedger
 };
 
 use RdKafka\Conf as KafkaConf;
@@ -254,9 +256,10 @@ if (!function_exists('wsEmit')) {
  * @param  int     $userId          Authenticated User's ID
  * @param  string  $transactionType 'source_name' from 'source' Database Table
  * @param  float   $amount          Amount from Transaction (MUST already be converted to Application's Base Currency [CNY])
+ * @param  float   $orderLogsId     Order Logs ID
  */
 if (!function_exists('userWalletTransaction')) {
-    function userWalletTransaction($userId, $transactionType, $amount)
+    function userWalletTransaction($userId, $transactionType, $amount, $orderLogsId)
     {
         switch ($transactionType) {
             case 'PLACE_BET':
@@ -270,13 +273,26 @@ if (!function_exists('userWalletTransaction')) {
                     [ 'balance' => $newBalance ]
                 );
 
-                WalletLedger::create(
+                $ledgerId = WalletLedger::create(
                     [
                         'wallet_id' => $walletId,
                         'source_id' => $sourceId,
-                        'debit'     => 0,
-                        'credit'    => $amount,
+                        'credit'    => 0,
+                        'debit'     => $amount,
                         'balance'   => $newBalance,
+                    ]
+                )->id;
+
+                OrderTransaction::create(
+                    [
+                        'wallet_ledger_id'    => $ledgerId,
+                        'provider_account_id' => "",
+                        'order_logs_id'       => $orderLogsId,
+                        'user_id'             => $userId,
+                        'source_id'           => $sourceId,
+                        'currency_id'         => $userWallet->first()->currency_id,
+                        'reason'              => "Placed Bet",
+                        'amount'              => $amount,
                     ]
                 );
             break;
