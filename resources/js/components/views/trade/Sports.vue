@@ -34,8 +34,6 @@ import _ from 'lodash'
 export default {
     data() {
         return {
-            sports: [],
-            leagues: {},
             isSportsListOpen: false,
             isSelectingSport: false
         }
@@ -44,7 +42,7 @@ export default {
         Leagues
     },
     computed: {
-        ...mapState('trade', ['selectedSport', 'selectedLeagues']),
+        ...mapState('trade', ['sports', 'selectedSport', 'selectedLeagues']),
         sportsList() {
             if(this.isSportsListOpen) {
                 let sports = this.sports.filter(sport => sport.id != this.selectedSport)
@@ -55,9 +53,6 @@ export default {
                 return this.sports.filter(sport => sport.id == this.selectedSport)
             }
         }
-    },
-    mounted() {
-        this.getSports()
     },
     methods: {
         selectSport(sport) {
@@ -74,19 +69,6 @@ export default {
                 this.$socket.send(`getSelectedSport_${sport}`)
                 this.$store.dispatch('trade/getInitialEvents')
             }
-        },
-        getSports() {
-            let token = Cookies.get('mltoken')
-
-            axios.get('v1/sports', { headers: { 'Authorization': `Bearer ${token}` } })
-            .then(response => {
-                this.sports = response.data.data
-                this.$store.commit('trade/SET_SELECTED_SPORT', response.data.default_sport)
-                this.$store.dispatch('trade/getBetColumns', response.data.default_sport)
-            })
-            .catch(err => {
-                this.$store.dispatch('auth/checkIfTokenIsValid', err.response.data.status_code)
-            })
         }
     }
 }

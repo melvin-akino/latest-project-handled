@@ -516,14 +516,14 @@ class TradeController extends Controller
                         'me.ref_schedule', 'me.game_schedule', 'me.score', 'me.running_time',
                         'me.home_penalty', 'me.away_penalty', 'mem.odd_type_id', 'mem.master_event_market_unique_id',
                         'mem.is_main', 'mem.market_flag',
-                        'ot.type', 'em.odds', 'em.odd_label', 'em.provider_id')
+                        'ot.type', 'em.odds', 'em.odd_label', 'em.provider_id', 'em.event_identifier')
                     ->distinct()->get();
 
             $data = [];
             array_map(function ($transformed) use (&$data) {
                 if (!empty($transformed->odd_label)) {
-                    if (empty($data[preg_replace("/[^0-9\-.]/", "", $transformed->odd_label)][$transformed->type][$transformed->market_flag])) {
-                        $data[preg_replace("/[^0-9\-.]/", "", $transformed->odd_label)][$transformed->type][$transformed->market_flag] = [
+                    if (empty($data[$transformed->event_identifier][$transformed->type][$transformed->market_flag])) {
+                        $data[$transformed->event_identifier][$transformed->type][$transformed->market_flag] = [
                             'odds'      => (double) $transformed->odds,
                             'market_id' => $transformed->master_event_market_unique_id,
                             'points'    => $transformed->odd_label

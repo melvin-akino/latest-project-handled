@@ -139,17 +139,13 @@ class OrdersController extends Controller
             $masterEvent = $masterEvent->first();
 
             $getOtherMarkets = DB::table('event_markets AS em')
-                ->join('master_event_markets AS mem', function ($join) {
-                    $join->on('em.master_event_unique_id', '=', 'mem.master_event_unique_id');
-                    $join->on('em.odd_type_id', '=', 'mem.odd_type_id');
-                    $join->on('em.is_main', '=', 'mem.is_main');
-                    $join->on('em.market_flag', '=', 'mem.market_flag');
-                })
-                ->distinct()
+                ->join('master_event_market_links AS meml', 'meml.event_market_id', 'em.id')
+                ->join('master_event_markets AS mem', 'mem.master_event_market_unique_id', 'meml.master_event_market_unique_id')
                 ->where('mem.master_event_unique_id', $masterEventMarket->master_event_unique_id)
                 ->where('mem.odd_type_id', $masterEventMarket->odd_type_id)
                 ->where('em.market_flag', $masterEventMarket->market_flag)
                 ->where('em.provider_id', $userProvider->id)
+                ->distinct()
                 ->get(
                     [
                         'mem.master_event_market_unique_id',
@@ -271,19 +267,24 @@ class OrdersController extends Controller
             ];
 
             foreach ($request->markets AS $row) {
-                $betType      = $request->betType;
-                $baseCurrency = Currency::where('code', 'CNY')->first();
-                $userDetails  = User::find(auth()->user()->id);
-                $userCurrency = $userDetails->currency_id;
-                $isUserVIP    = $userDetails->is_vip;
-                $userProvider = UserProviderConfiguration::where('user_id', auth()->user()->id);
-                $percentage   = 0;
-                $alias        = "";
-                $exchangeRate = 1;
+                $betType         = $request->betType;
+                $baseCurrency    = Currency::where('code', 'CNY')->first();
+                $userCurrency    = auth()->user()->currency_id;
+                $isUserVIP       = auth()->user()->is_vip;
+                $userProvider    = UserProviderConfiguration::where('user_id', auth()->user()->id);
+                $percentage      = 0;
+                $alias           = "";
+                $exchangeRate    = 1; // FROM CNY
+                $revExchangeRate = 1; // TO CNY
 
                 if ($baseCurrency->id != $userCurrency) {
                     $exchangeRate = ExchangeRate::where('from_currency_id', $baseCurrency->id)
                         ->where('to_currency_id', $userCurrency)
+                        ->first()
+                        ->exchange_rate;
+
+                    $revExchangeRate = ExchangeRate::where('to_currency_id', $baseCurrency->id)
+                        ->where('from_currency_id', $userCurrency)
                         ->first()
                         ->exchange_rate;
                 }
@@ -293,9 +294,26 @@ class OrdersController extends Controller
                         ->first();
 
                     if ($userProvider->active) {
-                        $percentage   = $userProvider->punter_percentage;
-                        $alias        = $userProvider->alias;
-                        $userProvider = $userProvider->provider_id;
+                        $userProvider = Provider::find($row['provider_id']);
+
+                        if ($userProvider->is_enabled) {
+                            $providerCurrency = $userProvider->currency_id;
+                            $percentage       = $userProvider->punter_percentage;
+                            $alias            = $userProvider->alias;
+                            $userProvider     = $userProvider->provider_id;
+                        } else {
+                            if ($betType == "BEST_PRICE") {
+                                return response()->json([
+                                    'status'      => false,
+                                    'status_code' => 400,
+                                    'message'     => trans('generic.bad-request')
+                                ], 400);
+                            }
+
+                            if ($betType == "FAST_BET") {
+                                continue;
+                            }
+                        }
                     } else {
                         if ($betType == "BEST_PRICE") {
                             return response()->json([
@@ -313,9 +331,10 @@ class OrdersController extends Controller
                     $userProvider = Provider::find($row['provider_id']);
 
                     if ($userProvider->is_enabled) {
-                        $percentage   = $userProvider->punter_percentage;
-                        $alias        = $userProvider->alias;
-                        $userProvider = $userProvider->id;
+                        $providerCurrency = $userProvider->currency_id;
+                        $percentage       = $userProvider->punter_percentage;
+                        $alias            = $userProvider->alias;
+                        $userProvider     = $userProvider->id;
                     } else {
                         if ($betType == "BEST_PRICE") {
                             return response()->json([
@@ -411,10 +430,21 @@ class OrdersController extends Controller
 
                 $orderId = uniqid();
 
+                if ($providerCurrency == $baseCurrency->id) {
+                    if ($userCurrency != $providerCurrency) {
+                        $payloadStake *= $revExchangeRate;
+                        $actualStake  *= $revExchangeRate;
+                    }
+                } else {
+                    if ($userCurrency != $providerCurrency) {
+                        $payloadStake *= $exchangeRate;
+                        $actualStake  *= $exchangeRate;
+                    }
+                }
+
                 /** ROUNDING UP TO NEAREST 50 */
-                $actualStake = $actualStake * $exchangeRate;
-                $ceil        = ceil($actualStake);
-                $last2       = substr($ceil, -2);
+                $ceil  = ceil($actualStake);
+                $last2 = substr($ceil, -2);
 
                 if (($last2 >= 0) && ($last2 <= 50)) {
                     $actualStake = substr($ceil, 0, -2) . '50';
@@ -463,7 +493,7 @@ class OrdersController extends Controller
 
                 $incrementIds['id'][] = $orderIncrementId;
 
-                OrderLogs::create([
+                $orderLogsId = OrderLogs::create([
                     'user_id'       => auth()->user()->id,
                     'provider_id'   => $row['provider_id'],
                     'sport_id'      => $query->sport_id,
@@ -474,9 +504,9 @@ class OrdersController extends Controller
                     'reason'        => "",
                     'profit_loss'   => 0.00,
                     'order_id'      => $orderIncrementId,
-                ]);
+                ])->id;
 
-                userWalletTransaction(auth()->user()->id, 'PLACE_BET', ($payloadStake * $exchangeRate));
+                userWalletTransaction(auth()->user()->id, 'PLACE_BET', ($payloadStake * $exchangeRate), $orderLogsId);
 
                 if ($request->betType == "FAST_BET") {
                     if ($prevStake == 0) {

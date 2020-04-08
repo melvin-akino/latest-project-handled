@@ -5,6 +5,7 @@ const token = Cookies.get('mltoken')
 
 const state = {
     leagues: [],
+    sports: [],
     selectedSport: null,
     selectedLeagues: {
         inplay: [],
@@ -50,6 +51,9 @@ const mutations = {
         if(state.leagues.hasOwnProperty(data.schedule)) {
             state.leagues[data.schedule] = state.leagues[data.schedule].filter(league => league.name != data.league)
         }
+    },
+    SET_SPORTS: (state, sports) => {
+        state.sports = sports
     },
     SET_SELECTED_SPORT: (state, selectedSport) => {
         state.selectedSport = selectedSport
@@ -229,48 +233,59 @@ const actions = {
             })
         })
     },
-    getInitialEvents({commit, dispatch, state}) {
-        axios.get('v1/trade/events', { headers: { 'Authorization': `Bearer ${token}` }})
+    getSports({commit, dispatch}) {
+        return axios.get('v1/sports', { headers: { 'Authorization': `Bearer ${token}` } })
         .then(response => {
-            if('user_selected' in response.data.data) {
-                let schedule = ['inplay', 'today', 'early']
-                schedule.map(schedule => {
-                    if(schedule in response.data.data.user_selected) {
-                        let sortedUserSelected = {}
-                        Object.keys(response.data.data.user_selected[schedule]).sort().map(league => {
-                            if(typeof(sortedUserSelected[schedule]) == "undefined") {
-                                sortedUserSelected[schedule] = {}
-                            }
-                            sortedUserSelected[schedule][league] = response.data.data.user_selected[schedule][league]
-                            sortedUserSelected[schedule][league].map(event => {
-                                if(event.sport_id == state.selectedSport) {
-                                    commit('SET_EVENTS', { schedule: schedule, events:  sortedUserSelected[schedule]})
-                                    commit('SET_EVENTS_LIST', event)
-                                    commit('SET_ALL_EVENTS_LIST', event)
-                                }
-                            })
-                        })
-                    }
-                })
-            }
-
-            if('user_watchlist' in response.data.data) {
-                let sortedUserWatchlist = {}
-                Object.keys(response.data.data.user_watchlist).sort().map(league => {
-                    if(typeof(sortedUserWatchlist[league]) == "undefined") {
-                        sortedUserWatchlist[league] = {}
-                    }
-                    sortedUserWatchlist[league] = response.data.data.user_watchlist[league]
-                    sortedUserWatchlist[league].map(event => {
-                        commit('SET_WATCHLIST', sortedUserWatchlist)
-                        commit('SET_ALL_EVENTS_LIST', event)
-                    })
-                })
-            }
+            commit('SET_SPORTS', response.data.data)
+            commit('SET_SELECTED_SPORT', response.data.default_sport)
+            dispatch('getBetColumns', response.data.default_sport)
         })
         .catch(err => {
             dispatch('auth/checkIfTokenIsValid', err.response.data.status_code, { root: true })
         })
+    },
+    getInitialEvents({commit, dispatch, state}) {
+        return axios.get('v1/trade/events', { headers: { 'Authorization': `Bearer ${token}` }})
+        .then(response => {
+            let schedule = ['inplay', 'today', 'early']
+            schedule.map(schedule => {
+                if(response.data.data.user_selected.hasOwnProperty(schedule)) {
+                    let sortedUserSelected = {}
+                    Object.keys(response.data.data.user_selected[schedule]).sort().map(league => {
+                        if(typeof(sortedUserSelected[schedule]) == "undefined") {
+                            sortedUserSelected[schedule] = {}
+                        }
+                        sortedUserSelected[schedule][league] = response.data.data.user_selected[schedule][league]
+                        sortedUserSelected[schedule][league].map(event => {
+                            if(event.sport_id == state.selectedSport) {
+                                commit('SET_EVENTS', { schedule: schedule, events: sortedUserSelected[schedule]})
+                                commit('SET_EVENTS_LIST', event)
+                                commit('SET_ALL_EVENTS_LIST', event)
+                            }
+                        })
+                    })
+                }
+            })
+
+            let sortedUserWatchlist = {}
+            Object.keys(response.data.data.user_watchlist).sort().map(league => {
+                if(typeof(sortedUserWatchlist[league]) == "undefined") {
+                    sortedUserWatchlist[league] = {}
+                }
+                sortedUserWatchlist[league] = response.data.data.user_watchlist[league]
+                sortedUserWatchlist[league].map(event => {
+                    commit('SET_WATCHLIST', sortedUserWatchlist)
+                    commit('SET_ALL_EVENTS_LIST', event)
+                })
+            })
+        })
+        .catch(err => {
+            dispatch('auth/checkIfTokenIsValid', err.response.data.status_code, { root: true })
+        })
+    },
+    async getSportsAndEvents({dispatch}) {
+        await dispatch('getSports')
+        await dispatch('getInitialEvents')
     },
     getBetbarData({commit, state, dispatch}) {
         axios.get('v1/trade/betbar', { headers: { 'Authorization': `Bearer ${token}` }})

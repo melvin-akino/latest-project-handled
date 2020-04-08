@@ -11,6 +11,7 @@ use Swoole\Http\Server;
 use Swoole\Process;
 use Exception;
 use Carbon\Carbon;
+use Storage;
 
 class KafkaProduce implements CustomProcessInterface
 {
@@ -167,7 +168,10 @@ class KafkaProduce implements CustomProcessInterface
                 'code' => $e->getCode()
             ]);
         } finally {
-            Log::channel('kafkalog')->info(json_encode($message));
+            if (env('KAFKA_LOG', false)) {
+                Storage::append('producers-'. date('Y-m-d') . '.log', json_encode($message));
+            }
+            Log::channel('kafkaproducelog')->info(json_encode($message));
         }
     }
 }

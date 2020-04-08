@@ -114,30 +114,13 @@ class TransformKafkaMessageOddsSaveToDb extends Task
                 }
             }
 
-            foreach ($this->removeEventMarket AS $_row) {
-                if (!empty($_row) && ($this->swoole->eventMarketsTable->exists($_row['swt_key']))) {
-                    MasterEventMarketLink::where('master_event_market_unique_id', $_row['master_event_market_unique_id'])
-                        ->delete();
-
-                    $_masterEventMarket = MasterEventMarket::where(function($cond) use ($_row) {
-                        $cond->where('master_event_market_unique_id', $_row['master_event_market_unique_id'])
-                            ->where('odd_type_id', $_row['odd_type_id']);
-                    });
-
-                    $_masterEventMarketIds = $_masterEventMarket->get('id')->toArray();
-
-                    MasterEventMarketLog::whereIn('master_event_market_id', $_masterEventMarketIds)
-                        ->delete();
-
-                    $_masterEventMarket->delete();
-
-                    EventMarket::where(function($cond) use ($_row) {
-                        $cond->where('master_event_unique_id', $_row['uid'])
-                            ->where('odd_type_id', $_row['odd_type_id'])
-                            ->where('is_main', $_row['is_main'])
-                            ->where('market_flag', $_row['market_flag']);
-                    })->delete();
-                }
+            $removeEventMarket = [];
+            foreach ($this->removeEventMarket AS $key => $_row) {
+                $eventMarket = EventMarket::where('event_identifier', $_row['event_identifier'])
+                                ->where('odd_type_id', $_row['odd_type_id'])
+                                ->where('provider_id', $_row['provider_id'])
+                                ->where('market_flag', $_row['market_flag'])
+                                ->delete();
             }
 
             DB::commit();
@@ -183,18 +166,20 @@ class TransformKafkaMessageOddsSaveToDb extends Task
                 }
             }
 
-            if (!empty($this->removeEventMarket)) {
-                foreach ($this->removeEventMarket AS $row) {
-                    if ($this->swoole->eventMarketsTable->exists($row['swt_key'])) {
-                        $this->swoole->eventMarketsTable->del($row['swt_key']);
-                    }
-                }
-            }
-
             if (!empty($this->updatedOddsData)) {
                 $uid = $this->uid;
                 $WSOddsSwtId = "updatedEvents:" . $uid;
                 $this->swoole->wsTable->set($WSOddsSwtId, ['value' => json_encode($this->updatedOddsData)]);
+
+                $updatedPrice = [];
+                array_map(function($updatedPriceValue) use ($updatedPrice) {
+                    $eventIdentifier = $updatedPriceValue['event_identifier'];
+                    unset($updatedPriceValue['event_identifier']);
+                    $updatedPrice[$eventIdentifier][] = $$updatedPriceValue;
+                }, $this->updatedOddsData);
+
+                $WSOddsSwtId = "updatedEventPrices:" . $uid;
+                $this->swoole->wsTable->set($WSOddsSwtId, ['value' => json_encode(array_values($updatedPrice))]);
             }
         } catch (Exception $e) {
             Log::info($e->getMessage());

@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Log;
 use Swoole\Http\Server;
 use Swoole\Process;
 use Exception;
+use Storage;
 
 class KafkaConsume implements CustomProcessInterface
 {
@@ -44,6 +45,11 @@ class KafkaConsume implements CustomProcessInterface
                                 Task::deliver(new TransformKafkaMessageEvents($payload));
                                 break;
                             case 'minmax':
+                                if (empty($payload->data->min) || empty($payload->data->max) || empty($payload->data->odds)) {
+                                    Log::info("MIN MAX Transformation ignored - Empty Found");
+                                    break;
+                                }
+
                                 Task::deliver(new TransformKafkaMessageMinMax($payload));
                                 break;
                             case 'bet':
@@ -86,6 +92,9 @@ class KafkaConsume implements CustomProcessInterface
                                 break;
                         }
                         $kafkaConsumer->commitAsync($message);
+                        if (env('KAFKA_LOG', false)) {
+                            Storage::append('consumer-'. date('Y-m-d') . '.log', json_encode($message));
+                        }
                         Log::channel('kafkalog')->info(json_encode($message));
                     } else {
                         Log::error(json_encode([$message]));
