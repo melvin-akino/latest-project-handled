@@ -169,8 +169,8 @@ class ScrapeRequestCommand extends Command
         } finally {
             if (env('KAFKA_LOG', false)) {
                 Storage::append('producers-'. date('Y-m-d') . '.log', json_encode($message));
-                Log::channel('kafkaproducelog')->info(json_encode($message));
             }
+            Log::channel('kafkaproducelog')->info(json_encode($message));
         }
     }
 }
