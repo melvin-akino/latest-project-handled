@@ -2,8 +2,7 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\{Model, SoftDeletes};
 
 class ProviderAccount extends Model
 {
@@ -31,7 +30,8 @@ class ProviderAccount extends Model
         return $this->belongsTo('App\Models\Provider');
     }
 
-    public static function getProviderAccounts($providerId) {
+    public static function getProviderAccounts($providerId) 
+    {
     	return self::where('provider_id', $providerId)->get()->toArray();
     }
 }

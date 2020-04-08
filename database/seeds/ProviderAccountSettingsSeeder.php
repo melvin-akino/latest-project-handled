@@ -12,10 +12,10 @@ class ProviderAccountSettingsSeeder extends Seeder
     public function run()
     {
         $scheduleTimers = [
-            'BET_NORMAL'           => ['value' => 3600, 'module' => 'ProviderAccount'],
-            'BET_VIP'            => ['value' => 3600, 'module' => 'ProviderAccount'],
-            'SCRAPER'            => ['value' => 1, 'module' => 'ProviderAccount'],
-            'SCRAPER_MIN_MAX' => ['value' => 1, 'module' => 'ProviderAccount'],
+            'BET_NORMAL'        => ['value' => 3600,    'module' => 'ProviderAccount'],
+            'BET_VIP'           => ['value' => 3600,    'module' => 'ProviderAccount'],
+            'SCRAPER'           => ['value' => 1,       'module' => 'ProviderAccount'],
+            'SCRAPER_MIN_MAX'   => ['value' => 1,       'module' => 'ProviderAccount'],
         ];
 
         foreach ($scheduleTimers as $key => $value) {

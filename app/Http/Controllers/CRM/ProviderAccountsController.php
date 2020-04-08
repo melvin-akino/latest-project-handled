@@ -3,17 +3,11 @@
 namespace App\Http\Controllers\CRM;
 
 use App\Http\Controllers\Controller;
-use App\Models\ProviderAccount;
-use App\Models\SystemConfiguration;
+use App\Models\{ProviderAccount, SystemConfiguration};
 use Illuminate\Http\Request;
 
 class ProviderAccountsController extends Controller
 {
-    public function __construct()
-    {
-        $this->middleware('auth:crm');
-    }
-
     public function index($id)
     {
         if (!session()->has('crm_user')) {
@@ -40,13 +34,12 @@ class ProviderAccountsController extends Controller
         return response()->json($data);
     }
 
-    public function manage(Request $request) {
-        try {
-            if (!session()->has('crm_user')) {
-                return redirect()->route('crm');
-            }
+    public function manage(Request $request) 
+    {
+        try 
+        {
             if (!empty($request)) {                
-                !empty($request->id) ? $data['id'] = $request->providerAccountId : null;
+                !empty($request->providerAccountId) ? $data['id'] = $request->providerAccountId : null;
                 !empty($request->username) ? $data['username'] = $request->username : null;
                 !empty($request->password) ? $data['password'] = $request->password : null;
                 !empty($request->provider_id) ? $data['provider_id'] = $request->provider_id : 0;
@@ -78,7 +71,8 @@ class ProviderAccountsController extends Controller
             }
             
         }
-        catch (Exception $e) {
+        catch (Exception $e) 
+        {
             return response()->json([
                 'status'      => false,
                 'status_code' => 500,
@@ -87,11 +81,9 @@ class ProviderAccountsController extends Controller
         }
     }
 
-    public function softDelete($id) {
+    public function softDelete($id) 
+    {
         try {
-            if (!session()->has('crm_user')) {
-                return redirect()->route('crm');
-            }
 
             $deleted = ProviderAccount::find($id)->delete();
             $message = 'failed';
@@ -115,7 +107,8 @@ class ProviderAccountsController extends Controller
         }
     }
 
-    public function reorderPriority(Request $request) {
+    public function reorderPriority(Request $request) 
+    {
         dd($request);
     }
 

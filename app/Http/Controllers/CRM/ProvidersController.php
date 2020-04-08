@@ -8,18 +8,12 @@ use Illuminate\Http\Request;
 
 class ProvidersController extends Controller
 {
-    public function __construct()
-    {
-        $this->middleware('auth:crm');
-    }
-    public function index() {
-        if (!session()->has('crm_user')) {
-            return redirect()->route('crm');
-        }
 
+    public function index() 
+    {
         $data = [
             'page_title'       => "Providers",
-            'page_description' => "Lists all provider accounts",
+            'page_description' => "Lists all providers and accounts",
             'dashboard_menu'   => true,
         ];
         return view('CRM.providers.providers')->with($data);
@@ -27,10 +21,6 @@ class ProvidersController extends Controller
 
     public function list()
     {
-        if (!session()->has('crm_user')) {
-            return redirect()->route('crm');
-        }
-
         $providers = Provider::getAllProviders();
         foreach ($providers as $provider) {
             $data['data'][] = [
@@ -46,7 +36,8 @@ class ProvidersController extends Controller
         return response()->json($data);
     }
 
-    public function manage(Request $request) {
+    public function manage(Request $request) 
+    {
         try {
             
             if (!empty($request)) {
@@ -62,7 +53,7 @@ class ProvidersController extends Controller
                     $provider = Provider::where('id', $data['id'])->first();
                     $provider->id = $data['id'];
                     !empty($data['name']) ? $provider->name = $data['name'] : null;
-                    !empty($data['alias']) ? $provider->alias = $data['name'] : null;
+                    !empty($data['alias']) ? $provider->alias = $data['alias'] : null;
                     !empty($data['percentage']) ? $provider->punter_percentage = $data['percentage'] : null;
                     !empty($data['is_enabled']) ? $provider->is_enabled = $data['is_enabled'] : null;
                     

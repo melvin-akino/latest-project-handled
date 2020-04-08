@@ -119,7 +119,7 @@
                 
                 $.post(url, form.serialize(), function (response) {
                     if (response.data == 'success') {
-                        //console.log(form.find('input[name=providerAccountId]').val());
+
                         swal('Provider Account', 'Provider account successfully saved', response.data).then(() => {
                             
                             if (form.find('input[name=providerAccountId]').val() == '') {
