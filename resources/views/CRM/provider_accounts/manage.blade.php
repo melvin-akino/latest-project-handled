@@ -119,10 +119,33 @@
                 
                 $.post(url, form.serialize(), function (response) {
                     if (response.data == 'success') {
-                        form.trigger('reset');
+                        //console.log(form.find('input[name=providerAccountId]').val());
                         swal('Provider Account', 'Provider account successfully saved', response.data).then(() => {
-                            $('#modal-manage-provider-accounts').modal('toggle');
+                            
+                            if (form.find('input[name=providerAccountId]').val() == '') {
+                                swal({
+                                    title: 'Add more?',
+                                    type: 'info',
+                                    showCancelButton: true,
+                                    confirmButtonColor: '#3085d6',
+                                    cancelButtonColor: '#d33',
+                                    confirmButtonText: 'Yes'
+                                })
+                                .then((result) => {
+                                    if (result.value) {
+                                        form.trigger('reset');
+                                    }
+                                    else {
+                                        $('#modal-manage-provider-accounts').modal('toggle');
+                                    }
+                                });
+                            }
+                            else {
+                                $('#modal-manage-provider-accounts').modal('toggle');
+                            }
+
                             childTable.ajax.reload();
+                            
                         });
                     } 
                     return;

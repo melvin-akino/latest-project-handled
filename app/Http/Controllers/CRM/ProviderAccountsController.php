@@ -115,4 +115,8 @@ class ProviderAccountsController extends Controller
         }
     }
 
+    public function reorderPriority(Request $request) {
+        dd($request);
+    }
+
 }

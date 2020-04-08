@@ -38,6 +38,7 @@ class ProvidersController extends Controller
                 'name'              => $provider['name'],
                 'alias'             => $provider['alias'],
                 'percentage'        => $provider['punter_percentage'],
+                'priority'          => $provider['priority'],
                 'is_enabled'        => $provider['is_enabled']
             ];
         }
@@ -56,7 +57,7 @@ class ProvidersController extends Controller
                 !empty($requestData['alias']) ? $data['alias'] = $requestData['alias'] : null;
                 !empty($requestData['percentage']) ? $data['punter_percentage'] = $requestData['percentage'] : null;
                 !empty($requestData['is_enabled']) ? $data['is_enabled'] = ($requestData['is_enabled'] == 'true') ? 1 : 0 : 0;
-
+                
                 if (!empty($data['id'])) {
                     $provider = Provider::where('id', $data['id'])->first();
                     $provider->id = $data['id'];
@@ -65,11 +66,17 @@ class ProvidersController extends Controller
                     !empty($data['percentage']) ? $provider->punter_percentage = $data['percentage'] : null;
                     !empty($data['is_enabled']) ? $provider->is_enabled = $data['is_enabled'] : null;
                     
+
                     if ($provider->update($data)) {
                         $message = 'success';
                     }
                 }
-                else {                  
+                else {
+                    //get the latest priority
+                    $latest = Provider::getLatestPriority();
+                    
+                    $data['priority'] = $latest->priority + 1;
+
                     if (Provider::create($data)) {
                         $message = 'success';
                     }                    

@@ -84,7 +84,8 @@
                 $.post(url, form.serialize(), function (response) {
                     if (response.data == 'success') {
                         swal('Provider', 'Provider successfully saved', response.data).then(() => {
-                            location.href = 'providers';
+                            $('#modal-manage-provider').modal('toggle');
+                            table.ajax.reload();
                         });
                     } 
                     return;
@@ -132,7 +133,7 @@
                     }
                 }
                 return this.optional( element ) || unique;
-            }, 'Name already taken.');
+            }, 'Alias already taken.');
 
             $('#form-manage-provider').validate({
                 rules: {

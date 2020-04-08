@@ -27,20 +27,11 @@
             margin: 0 auto;
         }
         td.details-control {
-            background: url('https://www.datatables.net/examples/resources/details_open.png') no-repeat center center;
+            background: url('{{url('/images/details_open.png')}}') no-repeat center center;
             cursor: pointer;
         }
         tr.shown td.details-control {
-            background: url('https://www.datatables.net/examples/resources/details_close.png') no-repeat center center;
-        }
-
-
-        td.details-control1 {
-            background: url('https://www.datatables.net/examples/resources/details_open.png') no-repeat center center;
-            cursor: pointer;
-        }
-        tr.shown td.details-control1 {
-            background: url('https://www.datatables.net/examples/resources/details_close.png') no-repeat center center;
+            background: url('{{url('/images/details_close.png')}}') no-repeat center center;
         }
     </style>
 @endsection
@@ -52,7 +43,7 @@
 @endsection
 @section('content')
     <div class="row">
-        <table class="table" id="ProviderTable">
+        <table class="table table-striped" id="ProviderTable">
         <thead>
             <tr>
                 <th colspan="6"><button class='add-modal btn btn-info'><span class='glyphicon glyphicon-add'></span> Add</button></th>
@@ -62,6 +53,7 @@
                 <th class="text-left">Name</th>
                 <th class="text-left">Alias</th>
                 <th class="text-left">Percentage</th>
+                <th class="text-left">Priority</th>
                 <th class="text-left">Enabled</th>
                 <th class="text-left">Options</th>
             </tr>
@@ -73,22 +65,14 @@
 @endsection
 
 @section('styles')
-    <!-- DateRagePicker -->
-    <link rel="stylesheet" href="{{ asset("CRM/AdminLTE-2.4.2/bower_components/bootstrap-daterangepicker/daterangepicker.css") }}">
     <!-- DataTables -->
     <link rel="stylesheet" href="{{ asset("CRM/AdminLTE-2.4.2/bower_components/datatables.net-bs/css/dataTables.bootstrap.min.css") }}">
 @endsection
 
 @section('scripts')
-    <!-- ChartJS -->
-    <script src="{{ asset("CRM/AdminLTE-2.4.2/bower_components/chart.js/dist/Chart.min.js") }}"></script>
-    <script src="{{ asset("CRM/Capital7-1.0.0/js/utils.js") }}"></script>
-    <!-- MomentJS -->
-    <script src="{{ asset("CRM/Capital7-1.0.0/plugins/moment/moment.min.js") }}"></script>
-    <!-- DateRagePicker -->
-    <script src="{{ asset("CRM/AdminLTE-2.4.2/bower_components/bootstrap-daterangepicker/daterangepicker.js") }}"></script>
     <!-- DataTables -->
     <script src="{{ asset("CRM/AdminLTE-2.4.2/bower_components/datatables.net/js/jquery.dataTables.min.js") }}"></script>
+    <script src="{{ asset("CRM/AdminLTE-2.4.2/bower_components/datatables.net-bs/js/dataTables.bootstrap.min.js") }}"></script>
     <script src="{{ asset("js-validate/jquery.validate.min.js") }}"></script>
     <script type="text/javascript" >
         var providerList = [];
@@ -97,7 +81,7 @@
         var childTable;
 
         $(document).ready(function() {
-            var table = $('#ProviderTable').DataTable( {
+            table = $('#ProviderTable').DataTable( {
                 paging:   false,
                 info:     false,
                 searching: false,
@@ -132,7 +116,8 @@
                     },
                     { "data": "name" },
                     { "data": "alias" },
-                    { "data": "percentage" },
+                    { "data": "percentage", "orderable": false },
+                    { "data": "priority" },
                     { 
                         "data": "is_enabled",
                         render : function (data, type, row) {
@@ -145,12 +130,14 @@
                             }
 
                             return renderIcon;
-                        }
+                        },
+                        "orderable": false
 
                     },
                     { 
                         "data": null, 
-                        "defaultContent": "<button class='edit-modal btn btn-info'><span class='glyphicon glyphicon-edit'></span> Edit</button>" 
+                        "defaultContent": "<button class='edit-modal btn btn-info'><span class='glyphicon glyphicon-edit'></span> Edit</button>",
+                        "orderable": false 
                     }
                 ],
                 initComplete: function () {
@@ -217,12 +204,13 @@
                 else {
                     // Open this row
                     row.child( 
-                       '<table class="child_table" id = "child_details' + index + '" cellpadding="5" cellspacing="0" border="0">'+
+                       '<table class="child_table table table-striped" id = "child_details' + index + '" cellpadding="5" cellspacing="0" border="0">'+
                        '<thead><tr><th colspan="8"><button class="add-pa-modal btn btn-info"><span class="glyphicon glyphicon-add"></span> Add</button></th></tr>'+
                        '<tr><th>Username</th><th>Password</th><th>Type</th><th>Percentage</th><th>Credits</th><th>Enabled</th><th>Idle</th><th>Options</th></tr>'+
                        '</thead><tbody></tbody></table>').show();
               
                     childTable = $('#child_details' + index).DataTable({
+                        autoWidth : true,
                         ajax: function (data, callback, settings) {
                             $.ajax({
                                 url: "provider_accounts/" + providerId, 
@@ -242,10 +230,10 @@
                         },
                         columns: [
                             { "data": "username" },
-                            { "data": "password" },
+                            { "data": "password", "orderable": false },
                             { "data": "type" },
-                            { "data": "percentage" },
-                            { "data": "credits" },
+                            { "data": "percentage", "orderable": false },
+                            { "data": "credits", "orderable": false },
                             { 
                                 "data": "is_enabled",
                                 render : function (data, type, row) {
@@ -258,7 +246,8 @@
                                     }
 
                                     return renderIcon; 
-                                }
+                                },
+                                "orderable": false
                             },
                             { 
                                 "data": "is_idle", 
@@ -272,18 +261,18 @@
                                     }
 
                                     return renderIcon;
-                                }
+                                },
+                                "orderable": false
                             },
                             { 
                                 "data": null, 
-                                "defaultContent": "<button class='edit-pa-modal btn btn-info'><span class='glyphicon glyphicon-edit'></span> Edit</button> <button class='delete-pa-modal btn btn-danger'><span class='glyphicon glyphicon-remove'></span> Delete</button>" 
+                                "defaultContent": "<button class='edit-pa-modal btn btn-info'><span class='glyphicon glyphicon-edit'></span> Edit</button> <button class='delete-pa-modal btn btn-danger'><span class='glyphicon glyphicon-remove'></span> Delete</button>",
+                                "orderable": false 
                             }
                         ],
                         createdRow: function ( row, data, index ) {
                             //assign the provider id into the row
-                            $(row).attr('id', 'provider-account-id-'+data.id);
-                            //console.log(data);
-                            
+                            $(row).attr('id', 'provider-account-id-'+data.id);                          
 
                             if (data.extn === '') {
                               var td = $(row).find("td:first");
@@ -317,10 +306,12 @@
 
                     }
 
+                    //Clicking this will open the manage provider account interface
                     $('#child_details'+index+' thead').on('click', 'button.add-pa-modal', function () {
                         $('#modal-manage-provider-accounts').modal('show');
                     });
 
+                    //Clicking this will open the manage provider interace with pre-set data from the databale
                     $('#child_details'+index+' tbody').on('click', 'button.edit-pa-modal', function () {
                         var pa_tr = $(this).closest('tr');
                         var providerAccountId = $(this).closest('tr').attr('id').replace('provider-account-id-', '');
@@ -344,6 +335,7 @@
 
                     });
 
+                    //Clicking this will open the delete popup with confirmation - the method only perform softDelete
                     $('#child_details'+index+' tbody').on('click', 'button.delete-pa-modal', function () {
                         var pa_tr = $(this).closest('tr');
                         var providerAccountId = $(this).closest('tr').attr('id').replace('provider-account-id-', '');
