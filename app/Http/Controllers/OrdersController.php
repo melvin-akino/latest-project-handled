@@ -493,7 +493,7 @@ class OrdersController extends Controller
 
                 $incrementIds['id'][] = $orderIncrementId;
 
-                OrderLogs::create([
+                $orderLogsId = OrderLogs::create([
                     'user_id'       => auth()->user()->id,
                     'provider_id'   => $row['provider_id'],
                     'sport_id'      => $query->sport_id,
@@ -504,9 +504,9 @@ class OrdersController extends Controller
                     'reason'        => "",
                     'profit_loss'   => 0.00,
                     'order_id'      => $orderIncrementId,
-                ]);
+                ])->id;
 
-                userWalletTransaction(auth()->user()->id, 'PLACE_BET', ($payloadStake * $exchangeRate));
+                userWalletTransaction(auth()->user()->id, 'PLACE_BET', ($payloadStake * $exchangeRate), $orderLogsId);
 
                 if ($request->betType == "FAST_BET") {
                     if ($prevStake == 0) {
