@@ -69,7 +69,7 @@ class User extends Authenticatable
         return $this->hasMany(WalletDeposit::class, 'user_id', 'id');
     }
 
-     public function scopeSearch($query, $search, $cols = null)
+    public function scopeSearch($query, $search, $cols = null)
     {
         if (is_null($cols)) {
             $except = [

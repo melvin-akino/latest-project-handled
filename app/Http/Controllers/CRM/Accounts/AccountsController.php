@@ -30,7 +30,8 @@ class AccountsController extends Controller
         return dataTable($request, User::query());
     }
 
-    public function update(AccountsRequests $request, User $account){
+    public function update(AccountsRequests $request, User $account)
+    {
         $account->update($request->except(['password']));
 
         if($request->password){

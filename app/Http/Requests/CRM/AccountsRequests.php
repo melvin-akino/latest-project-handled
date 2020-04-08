@@ -5,12 +5,15 @@ namespace App\Http\Requests\CRM;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Auth;
 
-class AccountsRequests extends FormRequest{
-    public function authorize(){
+class AccountsRequests extends FormRequest
+{
+    public function authorize()
+    {
         return Auth::guard('crm')->check();
     }
 
-    public function rules(){
+    public function rules()
+    {
 
         switch($this->method())
         {
@@ -33,9 +36,6 @@ class AccountsRequests extends FormRequest{
             }
             default:break;
         }
-
-
-
 
     }
 }

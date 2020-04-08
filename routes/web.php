@@ -49,10 +49,9 @@ Route::namespace('CRM')->prefix('admin')->group(function () {
 		});
     /* end wallet route */
 	    /* Account Route */
-	    Route::namespace('Accounts')->group(function(){
+	    Route::namespace('Accounts')->group(function() {
 			
-
-			Route::prefix('accounts')->group(function(){
+			Route::prefix('accounts')->group(function() {
 				Route::get('/', 'AccountsController@index')->name('accounts.index');
 				Route::get('datatable', 'AccountsController@dataTable')->name('accounts.dataTable');
 				Route::post('change_password', 'AccountsController@changePassword')->name('accounts.change_pwd');
