@@ -40,7 +40,7 @@
 
                 <div class="info-box-content">
                     <span class="info-box-text">TOTAL ACCOUNTS</span>
-                    {{-- <span class="info-box-number">{{ number_format(Accounts::withoutGuest()->count()) }}</span> --}}
+                    <span class="info-box-number">{{ $total_accounts }}</span> 
                 </div>
             </div>
         </div>
@@ -51,7 +51,7 @@
 
                 <div class="info-box-content">
                     <span class="info-box-text">REGISTERED TODAY</span>
-                    {{-- <span class="info-box-number">{{ number_format(Accounts::getRegisteredToday()->count()) }}</span> --}}
+                    <span class="info-box-number">{{ $registered_today }}</span>
                 </div>
             </div>
         </div>

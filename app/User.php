@@ -95,5 +95,10 @@ class User extends Authenticatable
         return $query;
     }
 
+    public static function getRegisteredToday()
+    {
+        return self::whereDate('created_at', '=', date('Y-m-d'));
+    }
+
 
 }
