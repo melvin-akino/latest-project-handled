@@ -120,6 +120,7 @@
                 var table = $('#transactions-table').DataTable({
                     "processing": true,
                     "serverSide": true,
+                    "bFilter": false,
                     "responsive": true,
                     "ajax": 'wallet/datatable/'+ walletId,
                     columnDefs: [{

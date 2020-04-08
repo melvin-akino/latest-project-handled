@@ -29,7 +29,6 @@
                             <th>Display Name</th>
                             <th>First Name</th>
                             <th>Last Name</th>
-
                             <th>Email</th>
                             <th> Status </th>
                             <th>Registered At</th>
@@ -41,8 +40,7 @@
                 <!-- /.box-body -->
                 
                 <div class="box-footer">
-                    <button type="button" class="btn btn-success btn-xs" data-toggle="modal" data-target="#modal-add-account" title="Add"><i
-                                class="fa fa-plus"></i></button>
+                    
                 </div><!-- /.box-footer-->
                 
             </div>

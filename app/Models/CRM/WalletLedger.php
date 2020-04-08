@@ -27,7 +27,7 @@ class WalletLedger extends Model
         return $this->belongsTo(Source::class, 'source_id');
     }
 
-     public function crm_transfer_resource()
+    public function crm_transfer_resource()
     {
         return $this->belongsTo(CrmTransfer::class, 'id','wallet_ledger_id');
     }

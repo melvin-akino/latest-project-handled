@@ -162,23 +162,7 @@
 
                     </div>
                 </div>
-                 <div class="row" >  
-                    <div class="col-md-6">
-                        <div class="form-group">
-                            <label for="currency-select" class="control-label">Default Currency</label>
-                            <select name="currency_id" id="currency-select" class="form-control" {{ $account->currency_id ? 'disabled' : '' }}>
-                                <option value="" disabled selected>Select to currency</option>
-                                @foreach($currencies as $currency)
-                                    <option value="{{ $currency->id }}">{{ $currency->name.': '.$currency->code.' ('.$currency->symbol.')' }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-                    </div>
-                </div>
-
-
-
-
+               
 
                 {{--<div class="form-group">--}}
                     {{--<button type="button" id="reset-password-button" role="button" class="btn btn-warning">Reset Password</button>--}}
