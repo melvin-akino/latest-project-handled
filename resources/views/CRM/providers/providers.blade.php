@@ -89,14 +89,14 @@
     <script src="{{ asset("CRM/AdminLTE-2.4.2/bower_components/bootstrap-daterangepicker/daterangepicker.js") }}"></script>
     <!-- DataTables -->
     <script src="{{ asset("CRM/AdminLTE-2.4.2/bower_components/datatables.net/js/jquery.dataTables.min.js") }}"></script>
-    <script src="{{ asset("js/jquery.validate.min.js") }}"></script>
+    <script src="{{ asset("js-validate/jquery.validate.min.js") }}"></script>
     <script type="text/javascript" >
+        var providerList = [];
+        var systemConfigurations = [];
+        var table;
+        var childTable;
+
         $(document).ready(function() {
-
-            var providerList = [];
-            var systemConfigurations = [];
-            var childTable;
-
             var table = $('#ProviderTable').DataTable( {
                 paging:   false,
                 info:     false,
@@ -116,7 +116,7 @@
                         }).then ( function(json) {
                             $.each(json.data,function(key, value) 
                             {
-                                systemConfigurations[key] = { 'id' : value['type'], 'name' : value['type']};
+                                systemConfigurations[key] = { 'id' : value['type'].trim(), 'name' : value['type'].trim()};
                             });        
                         });
                         callback(json);            
@@ -133,7 +133,21 @@
                     { "data": "name" },
                     { "data": "alias" },
                     { "data": "percentage" },
-                    { "data": "is_enabled" },
+                    { 
+                        "data": "is_enabled",
+                        render : function (data, type, row) {
+                            var renderIcon;
+                            if (data === true) {
+                                renderIcon = "<span class='glyphicon glyphicon-ok'></span>"
+                            }
+                            else {
+                                renderIcon = "<span class='glyphicon glyphicon-remove'></span>"
+                            }
+
+                            return renderIcon;
+                        }
+
+                    },
                     { 
                         "data": null, 
                         "defaultContent": "<button class='edit-modal btn btn-info'><span class='glyphicon glyphicon-edit'></span> Edit</button>" 
@@ -232,11 +246,37 @@
                             { "data": "type" },
                             { "data": "percentage" },
                             { "data": "credits" },
-                            { "data": "is_enabled" },
-                            { "data": "is_idle" },
+                            { 
+                                "data": "is_enabled",
+                                render : function (data, type, row) {
+                                    var renderIcon;
+                                    if (data === true) {
+                                        renderIcon = "<span class='glyphicon glyphicon-ok'></span>"
+                                    }
+                                    else {
+                                        renderIcon = "<span class='glyphicon glyphicon-remove'></span>"
+                                    }
+
+                                    return renderIcon; 
+                                }
+                            },
+                            { 
+                                "data": "is_idle", 
+                                render : function (data, type, row) {
+                                    var renderIcon;
+                                    if (data === true) {
+                                        renderIcon = "<span class='glyphicon glyphicon-ok'></span>"
+                                    }
+                                    else {
+                                        renderIcon = "<span class='glyphicon glyphicon-remove'></span>"
+                                    }
+
+                                    return renderIcon;
+                                }
+                            },
                             { 
                                 "data": null, 
-                                "defaultContent": "<button class='edit-pa-modal btn btn-info'><span class='glyphicon glyphicon-edit'></span> Edit</button> <button class='delete-pa-modal btn btn-danger'><span class='glyphicon glyphicon-delete'></span> Delete</button>" 
+                                "defaultContent": "<button class='edit-pa-modal btn btn-info'><span class='glyphicon glyphicon-edit'></span> Edit</button> <button class='delete-pa-modal btn btn-danger'><span class='glyphicon glyphicon-remove'></span> Delete</button>" 
                             }
                         ],
                         createdRow: function ( row, data, index ) {
@@ -285,16 +325,16 @@
                         var pa_tr = $(this).closest('tr');
                         var providerAccountId = $(this).closest('tr').attr('id').replace('provider-account-id-', '');
 
-                        var pa_is_enabled = ($(pa_tr).find('td:eq(5)').html() == 'true') ? 1 : 0;
-                        var is_idle = ($(pa_tr).find('td:eq(6)').html() == 'true') ? 1 : 0;
+                        var pa_is_enabled = ($(pa_tr).find('td:eq(5)').html().search('ok') !== -1) ? 1 : 0;
+                        var is_idle = ($(pa_tr).find('td:eq(6)').html().search('ok') !== -1) ? 1 : 0;
 
                         var form = $('#form-manage-provider-account');
                         form.attr('data-provider-account-id', providerAccountId);
                         form.find('input[name=providerAccountId]').val(providerAccountId);
-                        form.find('input[name=username]').val($(pa_tr).find('td:eq(0)').html());
-                        form.find('input[name=password]').val($(pa_tr).find('td:eq(1)').html());
-                        form.find('select[name=account_type]').val($(pa_tr).find('td:eq(2)').html());
-                        form.find('input[name=pa_percentage]').val($(pa_tr).find('td:eq(3)').html());                        
+                        form.find('input[name=username]').val($(pa_tr).find('td:eq(0)').html().trim());
+                        form.find('input[name=password]').val($(pa_tr).find('td:eq(1)').html().trim());
+                        form.find('select[name=account_type]').val($(pa_tr).find('td:eq(2)').html().trim());
+                        form.find('input[name=pa_percentage]').val($(pa_tr).find('td:eq(3)').html().trim());                        
                         form.find('select[name=provider_id]').val(providerId);
                         form.find("input[name=pa_is_enabled][value=" + pa_is_enabled + "]").prop('checked', true);
                         form.find("input[name=is_idle][value=" + is_idle + "]").prop('checked', true);
@@ -309,14 +349,16 @@
                         var providerAccountId = $(this).closest('tr').attr('id').replace('provider-account-id-', '');
 
                         swal({
-                            title: "Are you sure?",
-                            text: "Once deleted, you will not be able to recover this account!",
-                            icon: "warning",
-                            buttons: true,
-                            dangerMode: true,
+                            title: 'Are you sure?',
+                            text: "You won't be able to revert this!",
+                            type: 'warning',
+                            showCancelButton: true,
+                            confirmButtonColor: '#3085d6',
+                            cancelButtonColor: '#d33',
+                            confirmButtonText: 'Yes, delete it!'
                         })
-                        .then((willDelete) => {
-                            if (willDelete) {
+                        .then((result) => {
+                            if (result.value) {
                                 $.get('provider_accounts/delete/'+providerAccountId, function (response) {
                                     if (response.data == 'success') {
                                         swal('Provider Account', 'Provider account successfully deleted', response.data).then(() => {
@@ -324,183 +366,13 @@
                                         });
                                     }
                                 });
-                            } else {
-                                swal("Provider account is safe!");
                             }
-                        });                                
+                        });
+                                                       
                     });
 
                     tr.addClass('shown');
                 }          
-            });
-
-            var manageProvider = function (form) {
-                var btn = form.find(':submit').button('loading');
-                var url = form.prop('action');
-                
-                $.post(url, form.serialize(), function (response) {
-                    if (response.data == 'success') {
-                        form.trigger('reset');
-                        swal('Provider', 'Provider successfully saved', response.data).then(() => {
-                            table.ajax.reload();
-                        });
-                    } 
-                    return;
-                }).done(function () {
-                    btn.button('reset');
-                });
-            };
-
-            $("#modal-manage-provider").on("hidden.bs.modal", function () {
-                var form = $('#form-manage-provider');
-                form.trigger('reset');
-            });
-
-            $.validator.setDefaults({
-                submitHandler: function () {
-                    var form = $('#form-manage-provider');
-                    manageProvider(form);
-                }
-            });
-            $.validator.addMethod("isUnique", function(value, element) {
-                var providerLen = providerList.length;
-                var unique = true;
-                var isNew = $('input[name="providerId"]').val();
-
-                for(var i = 0; i<providerLen; i++){
-                    var name = providerList[i]['name'];
-                    if (isNew == '' && name == value) {
-                        unique = false;
-                        break;
-                    }
-                }
-                return this.optional( element ) || unique;
-            }, 'Name already taken.');
-
-            $.validator.addMethod("isUniqueAlias", function(value, element) {
-                var providerLen = providerList.length;
-                var unique = true;
-                var isNew = $('input[name="providerId"]').val();
-
-                for(var i = 0; i<providerLen; i++){
-                    var name = providerList[i]['alias'];
-                    if (isNew == '' && name == value) {
-                        unique = false;
-                        break;
-                    }
-                }
-                return this.optional( element ) || unique;
-            }, 'Name already taken.');
-
-            $('#form-manage-provider').validate({
-                rules: {
-                    name: {
-                        required: true,
-                        isUnique: true
-                    },
-                    alias: {
-                        required: true,
-                        isUniqueAlias: true
-                    },
-                    percentage: {
-                        required: true,
-                        digits: true
-
-                    },
-                },
-                messages: {
-                    name: {
-                        required: "Please enter a provider name",
-                    },
-                    alias: {
-                        required: "Please provide an alias"
-                    },
-                    percentage: { 
-                        required: "Percentage is required",
-                        digits: "Please enter a valid percentage"
-                    }
-
-                },
-                errorElement: 'span',
-                    errorPlacement: function (error, element) {
-                        error.addClass('invalid-feedback');
-                        element.closest('div').append(error);
-                    },
-                    highlight: function (element, errorClass, validClass) {
-                        $(element).addClass('is-invalid');
-                    },
-                    unhighlight: function (element, errorClass, validClass) {
-                        $(element).removeClass('is-invalid');
-                    }
-            });
-
-            var manageProviderAccount = function (form) {
-                var btn = form.find(':submit').button('loading');
-                var url = form.prop('action');
-                
-                $.post(url, form.serialize(), function (response) {
-                    if (response.data == 'success') {
-                        form.trigger('reset');
-                        swal('Provider Account', 'Provider account successfully saved', response.data).then(() => {
-                            $('#modal-manage-provider-accounts').modal('toggle');
-                            childTable.ajax.reload();
-                        });
-                    } 
-                    return;
-                }).done(function () {
-                    btn.button('reset');
-                });
-            };
-
-            $("#modal-manage-provider-accounts").on("hidden.bs.modal", function () {
-                var form = $('#form-manage-provider-account');
-                form.trigger('reset');
-            });
-
-            $.validator.setDefaults({
-                submitHandler: function () {
-                    var form = $('#form-manage-provider-account');
-                    manageProviderAccount(form);
-                }
-            });
-            $('#form-manage-provider-account').validate({
-                rules: {
-                    username: {
-                        required: true,
-                    },
-                    password: {
-                        required: true,
-                    },
-                    pa_percentage: {
-                        required: true,
-                        digits: true
-
-                    },
-                },
-                messages: {
-                    username: {
-                        required: "Please enter a provider account username",
-                    },
-                    password: {
-                        required: "Please provide a password"
-                    },
-                    pa_percentage: { 
-                        required: "Percentage is required",
-                        digits: "Please enter a valid percentage"
-                    }
-
-                },
-                errorElement: 'span',
-                    errorPlacement: function (error, element) {
-                        error.addClass('invalid-feedback');
-                        element.closest('div').append(error);
-                    },
-                    highlight: function (element, errorClass, validClass) {
-                        $(element).addClass('is-invalid');
-                    },
-                    unhighlight: function (element, errorClass, validClass) {
-                        $(element).removeClass('is-invalid');
-                    }
             });
         });
     </script>

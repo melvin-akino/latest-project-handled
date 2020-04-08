@@ -109,3 +109,78 @@
         </div>
     </div>
 </div>
+@section('script')
+    @parent
+    <script>
+        $(function () {
+          var manageProviderAccount = function (form) {
+                var btn = form.find(':submit').button('loading');
+                var url = form.prop('action');
+                
+                $.post(url, form.serialize(), function (response) {
+                    if (response.data == 'success') {
+                        form.trigger('reset');
+                        swal('Provider Account', 'Provider account successfully saved', response.data).then(() => {
+                            $('#modal-manage-provider-accounts').modal('toggle');
+                            childTable.ajax.reload();
+                        });
+                    } 
+                    return;
+                }).done(function () {
+                    btn.button('reset');
+                });
+            };
+
+            $("#modal-manage-provider-accounts").on("hidden.bs.modal", function () {
+                var form = $('#form-manage-provider-account');
+                form.trigger('reset');
+            });
+
+            $.validator.setDefaults({
+                submitHandler: function () {
+                    var form = $('#form-manage-provider-account');
+                    manageProviderAccount(form);
+                }
+            });
+            $('#form-manage-provider-account').validate({
+                rules: {
+                    username: {
+                        required: true,
+                    },
+                    password: {
+                        required: true,
+                    },
+                    pa_percentage: {
+                        required: true,
+                        digits: true
+
+                    },
+                },
+                messages: {
+                    username: {
+                        required: "Please enter a provider account username",
+                    },
+                    password: {
+                        required: "Please provide a password"
+                    },
+                    pa_percentage: { 
+                        required: "Percentage is required",
+                        digits: "Please enter a valid percentage"
+                    }
+
+                },
+                errorElement: 'span',
+                    errorPlacement: function (error, element) {
+                        error.addClass('invalid-feedback');
+                        element.closest('div').append(error);
+                    },
+                    highlight: function (element, errorClass, validClass) {
+                        $(element).addClass('is-invalid');
+                    },
+                    unhighlight: function (element, errorClass, validClass) {
+                        $(element).removeClass('is-invalid');
+                    }
+            });
+          });
+        </script>
+        @endsection
