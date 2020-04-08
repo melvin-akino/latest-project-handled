@@ -10,9 +10,6 @@ class ProviderAccountsController extends Controller
 {
     public function index($id)
     {
-        if (!session()->has('crm_user')) {
-            return redirect()->route('crm');
-        }
 
         $accounts = ProviderAccount::getProviderAccounts($id);
         $data = [];
