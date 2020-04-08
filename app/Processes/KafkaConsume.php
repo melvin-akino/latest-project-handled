@@ -94,8 +94,8 @@ class KafkaConsume implements CustomProcessInterface
                         $kafkaConsumer->commitAsync($message);
                         if (env('KAFKA_LOG', false)) {
                             Storage::append('consumer-'. date('Y-m-d') . '.log', json_encode($message));
-                            Log::channel('kafkalog')->info(json_encode($message));
                         }
+                        Log::channel('kafkalog')->info(json_encode($message));
                     } else {
                         Log::error(json_encode([$message]));
                     }
