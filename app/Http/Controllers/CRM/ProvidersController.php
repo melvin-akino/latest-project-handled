@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\CRM;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Support\Facades\Validator;
 use App\Models\Provider;
 use Illuminate\Http\Request;
 

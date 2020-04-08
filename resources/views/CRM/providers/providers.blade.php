@@ -89,12 +89,13 @@
     <script src="{{ asset("CRM/AdminLTE-2.4.2/bower_components/bootstrap-daterangepicker/daterangepicker.js") }}"></script>
     <!-- DataTables -->
     <script src="{{ asset("CRM/AdminLTE-2.4.2/bower_components/datatables.net/js/jquery.dataTables.min.js") }}"></script>
-    <script src="https://ajax.aspnetcdn.com/ajax/jquery.validate/1.11.1/jquery.validate.min.js"></script>
+    <script src="{{ asset("js/jquery.validate.min.js") }}"></script>
     <script type="text/javascript" >
         $(document).ready(function() {
 
             var providerList = [];
             var systemConfigurations = [];
+            var childTable;
 
             var table = $('#ProviderTable').DataTable( {
                 paging:   false,
@@ -116,13 +117,12 @@
                             $.each(json.data,function(key, value) 
                             {
                                 systemConfigurations[key] = { 'id' : value['type'], 'name' : value['type']};
-                            });
-                            console.log(systemConfigurations);          
+                            });        
                         });
                         callback(json);            
                     });
                 },
-                pageLength: 5,
+                pageLength: 50,
                 columns: [
                     {
                         "className":      'details-control',
@@ -152,7 +152,7 @@
                     }
                 },
                 rowCallback: function ( row, data, index ) {
-                    //console.log('rowCallback');
+
                 }
             });
 
@@ -161,10 +161,10 @@
                 var providerId = $(this).closest('tr').attr('id').replace('provider-id-', '');;
                 var row = table.row( tr );
                 var rowData = row.data();
-                //alert('edit ' + providerId);
+
                 var providerInfo = {};
                 $.each(rowData, function( key, value ) {
-                  //alert( key + ": " + value );
+
                   providerInfo[key] = value;
                 });
 
@@ -181,16 +181,6 @@
 
             });
 
-            $('#ProviderTable tbody').on('click', 'button.delete-modal', function () {
-                var tr = $(this).closest('tr');
-                var providerId = $(this).closest('tr').attr('id').replace('provider-id-', '');;
-                var row = table.row( tr );
-                var rowData = row.data();
-                alert('delete ' + providerId);
-
-                $('#modal-manage-provider').modal('show');
-            });
-
             $('#ProviderTable thead').on('click', 'button.add-modal', function () {
                 $('#modal-manage-provider').modal('show');
             });
@@ -201,10 +191,9 @@
                 var providerId = $(this).closest('tr').attr('id').replace('provider-id-', '');
                 var row = table.row( tr );
                 var rowData = row.data();
-                //console.log(providerId);
+
                 //get index to use for child table ID
                 var index = row.index();
-                //console.log(index);
          
                 if ( row.child.isShown() ) {
                     // This row is already open - close it
@@ -219,7 +208,7 @@
                        '<tr><th>Username</th><th>Password</th><th>Type</th><th>Percentage</th><th>Credits</th><th>Enabled</th><th>Idle</th><th>Options</th></tr>'+
                        '</thead><tbody></tbody></table>').show();
               
-                    var childTable = $('#child_details' + index).DataTable({
+                    childTable = $('#child_details' + index).DataTable({
                         ajax: function (data, callback, settings) {
                             $.ajax({
                                 url: "provider_accounts/" + providerId, 
@@ -247,40 +236,14 @@
                             { "data": "is_idle" },
                             { 
                                 "data": null, 
-                                "defaultContent": "<button class='edit-pa-modal btn btn-info'><span class='glyphicon glyphicon-edit'></span> Edit</button>" 
+                                "defaultContent": "<button class='edit-pa-modal btn btn-info'><span class='glyphicon glyphicon-edit'></span> Edit</button> <button class='delete-pa-modal btn btn-danger'><span class='glyphicon glyphicon-delete'></span> Delete</button>" 
                             }
                         ],
                         createdRow: function ( row, data, index ) {
                             //assign the provider id into the row
                             $(row).attr('id', 'provider-account-id-'+data.id);
-
-                            $('#child_details'+index+' tbody').on('click', 'button.edit-pa-modal', function () {
-                                var pa_tr = $(this).closest('tr');
-                                var providerAccountId = $(this).closest('tr').attr('id').replace('provider-account-id-', '');;
-                                var pa_row = childTable.row( tr );
-                                var pa_rowData = pa_row.data();
-                                //alert('edit ' + providerId);
-                                var providerAccountInfo = {};
-                                $.each(pa_rowData, function( key, value ) {
-                                  console.log(key + ' - '+ value);
-                                  providerAccountInfo[key] = value;
-                                });
-
-                                var form = $('#form-manage-provider-account');
-                                form.attr('data-provider-account-id', providerAccountId);
-                                form.find('input[name=providerAccountId]').val(providerAccountId);
-                                form.find('input[name=username]').val(providerAccountInfo['username']);
-                                form.find('input[name=password]').val(providerAccountInfo['password']);
-                                form.find('input[name=pa_percentage]').val(providerAccountInfo['percentage']);
-                                form.find('select[name=account_type]').val(providerAccountInfo['type']);
-                                form.find('select[name=provider_id]').val(providerId);
-                                form.find("input[name=pa_is_enabled][value=" + providerAccountInfo['is_enabled'] + "]").prop('checked', true);
-                                form.find("input[name=pa_is_idle][value=" + providerAccountInfo['is_idle'] + "]").prop('checked', true);
-
-
-                                $('#modal-manage-provider-accounts').modal('show');
-
-                            });
+                            //console.log(data);
+                            
 
                             if (data.extn === '') {
                               var td = $(row).find("td:first");
@@ -318,16 +281,69 @@
                         $('#modal-manage-provider-accounts').modal('show');
                     });
 
+                    $('#child_details'+index+' tbody').on('click', 'button.edit-pa-modal', function () {
+                        var pa_tr = $(this).closest('tr');
+                        var providerAccountId = $(this).closest('tr').attr('id').replace('provider-account-id-', '');
+
+                        var pa_is_enabled = ($(pa_tr).find('td:eq(5)').html() == 'true') ? 1 : 0;
+                        var is_idle = ($(pa_tr).find('td:eq(6)').html() == 'true') ? 1 : 0;
+
+                        var form = $('#form-manage-provider-account');
+                        form.attr('data-provider-account-id', providerAccountId);
+                        form.find('input[name=providerAccountId]').val(providerAccountId);
+                        form.find('input[name=username]').val($(pa_tr).find('td:eq(0)').html());
+                        form.find('input[name=password]').val($(pa_tr).find('td:eq(1)').html());
+                        form.find('select[name=account_type]').val($(pa_tr).find('td:eq(2)').html());
+                        form.find('input[name=pa_percentage]').val($(pa_tr).find('td:eq(3)').html());                        
+                        form.find('select[name=provider_id]').val(providerId);
+                        form.find("input[name=pa_is_enabled][value=" + pa_is_enabled + "]").prop('checked', true);
+                        form.find("input[name=is_idle][value=" + is_idle + "]").prop('checked', true);
+
+
+                        $('#modal-manage-provider-accounts').modal('show');
+
+                    });
+
+                    $('#child_details'+index+' tbody').on('click', 'button.delete-pa-modal', function () {
+                        var pa_tr = $(this).closest('tr');
+                        var providerAccountId = $(this).closest('tr').attr('id').replace('provider-account-id-', '');
+
+                        swal({
+                            title: "Are you sure?",
+                            text: "Once deleted, you will not be able to recover this account!",
+                            icon: "warning",
+                            buttons: true,
+                            dangerMode: true,
+                        })
+                        .then((willDelete) => {
+                            if (willDelete) {
+                                $.get('provider_accounts/delete/'+providerAccountId, function (response) {
+                                    if (response.data == 'success') {
+                                        swal('Provider Account', 'Provider account successfully deleted', response.data).then(() => {
+                                            childTable.ajax.reload();
+                                        });
+                                    }
+                                });
+                            } else {
+                                swal("Provider account is safe!");
+                            }
+                        });                                
+                    });
+
                     tr.addClass('shown');
                 }          
             });
+
             var manageProvider = function (form) {
                 var btn = form.find(':submit').button('loading');
                 var url = form.prop('action');
                 
                 $.post(url, form.serialize(), function (response) {
                     if (response.data == 'success') {
-                        location.href = 'providers';
+                        form.trigger('reset');
+                        swal('Provider', 'Provider successfully saved', response.data).then(() => {
+                            table.ajax.reload();
+                        });
                     } 
                     return;
                 }).done(function () {
@@ -352,7 +368,6 @@
                 var isNew = $('input[name="providerId"]').val();
 
                 for(var i = 0; i<providerLen; i++){
-;
                     var name = providerList[i]['name'];
                     if (isNew == '' && name == value) {
                         unique = false;
@@ -368,7 +383,6 @@
                 var isNew = $('input[name="providerId"]').val();
 
                 for(var i = 0; i<providerLen; i++){
-;
                     var name = providerList[i]['alias'];
                     if (isNew == '' && name == value) {
                         unique = false;
@@ -426,8 +440,11 @@
                 
                 $.post(url, form.serialize(), function (response) {
                     if (response.data == 'success') {
-                        //Reload provider accounts table
-                        //location.href = 'providers';
+                        form.trigger('reset');
+                        swal('Provider Account', 'Provider account successfully saved', response.data).then(() => {
+                            $('#modal-manage-provider-accounts').modal('toggle');
+                            childTable.ajax.reload();
+                        });
                     } 
                     return;
                 }).done(function () {
@@ -454,7 +471,7 @@
                     password: {
                         required: true,
                     },
-                    percentage: {
+                    pa_percentage: {
                         required: true,
                         digits: true
 
@@ -462,12 +479,12 @@
                 },
                 messages: {
                     username: {
-                        required: "Please enter a provider name",
+                        required: "Please enter a provider account username",
                     },
                     password: {
-                        required: "Please provide an alias"
+                        required: "Please provide a password"
                     },
-                    percentage: { 
+                    pa_percentage: { 
                         required: "Percentage is required",
                         digits: "Please enter a valid percentage"
                     }

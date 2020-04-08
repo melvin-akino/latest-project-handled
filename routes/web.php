@@ -27,6 +27,7 @@ Route::namespace('CRM')->prefix('admin')->group(function () {
         Route::get('providers/list', 'ProvidersController@list')->name('providers.list');
         Route::post('providers/manage', 'ProvidersController@manage')->name('providers.manage');
         Route::get('provider_accounts/{id}', 'ProviderAccountsController@index')->name('provider.accounts');
+        Route::get('provider_accounts/delete/{id}', 'ProviderAccountsController@softDelete')->name('provider_accounts.softdelete');
         Route::post('provider_accounts/manage', 'ProviderAccountsController@manage')->name('provider_accounts.manage');
         Route::get('system_configurations/list', 'SystemConfigurationsController@list')->name('system_configurations.list');
 
