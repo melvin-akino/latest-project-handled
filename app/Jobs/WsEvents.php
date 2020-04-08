@@ -124,10 +124,20 @@ class WsEvents implements ShouldQueue
                     $data[$transformed->master_event_unique_id]['market_odds'][$mainOrOther][$transformed->type][$transformed->market_flag]['points'] = $transformed->odd_label;
                 }
 
-                $topicTable->set('userId:' . $userId . ':unique:' . uniqid(), [
-                    'user_id'       => $userId,
-                    'topic_name'    => 'market-id-' . $transformed->master_event_market_unique_id
-                ]);
+                $doesExist = false;
+                foreach($topicTable as $topic) {
+                    if ($topic['topic_name'] == 'market-id-' . $transformed->master_event_market_unique_id &&
+                        $topic['user_id'] == $userId) {
+                        $doesExist = true;
+                        break;
+                    }
+                }
+                if (empty($doesExist)) {
+                    $topicTable->set('userId:' . $userId . ':unique:' . uniqid(), [
+                        'user_id'       => $userId,
+                        'topic_name'    => 'market-id-' . $transformed->master_event_market_unique_id
+                    ]);
+                }
             }
 
         }, $transformed->toArray());
