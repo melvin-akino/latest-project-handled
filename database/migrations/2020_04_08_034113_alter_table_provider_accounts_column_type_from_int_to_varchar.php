@@ -2,7 +2,7 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\{DB, Schema};
 
 class AlterTableProviderAccountsColumnTypeFromIntToVarchar extends Migration
 {
@@ -28,8 +28,6 @@ class AlterTableProviderAccountsColumnTypeFromIntToVarchar extends Migration
      */
     public function down()
     {
-        Schema::table($this->tablename, function (Blueprint $table) {
-            $table->integer($this->column)->change();
-        });
+        DB::statement("ALTER TABLE " . $this->tablename . " ALTER COLUMN " . $this->column . " TYPE integer USING (trim(" . $this->column . ")::integer);");
     }
 }
