@@ -33,9 +33,9 @@
                                         <span>{{game.sport}}</span>
                                     </div>
                                     <div class="w-1/12 flex flex-col items-center">
-                                        <span>{{game.home.score}} - {{game.away.score}}</span>
-                                        <span>{{ gameSchedType === 'inplay' || (gameSchedType === 'watchlist' && game.game_schedule === 'inplay') ? game.running_time : game.ref_schedule.split(' ')[0]}}</span>
-                                        <span>{{ gameSchedType === 'inplay' || (gameSchedType === 'watchlist' && game.game_schedule === 'inplay') ? '' : game.ref_schedule.split(' ')[1]}}</span>
+                                        <span v-if="gameSchedType === 'inplay' || (gameSchedType === 'watchlist' && game.game_schedule === 'inplay')">{{game.home.score}} - {{game.away.score}}</span>
+                                        <span>{{ gameSchedType === 'inplay' || (gameSchedType === 'watchlist' && game.game_schedule === 'inplay') ? game.running_time.split(' ')[0] : game.ref_schedule.split(' ')[0]}}</span>
+                                        <span>{{ gameSchedType === 'inplay' || (gameSchedType === 'watchlist' && game.game_schedule === 'inplay') ? game.running_time.split(' ')[1] : game.ref_schedule.split(' ')[1]}}</span>
                                     </div>
                                     <div class="w-1/12"></div>
                                     <div class="w-1/12 flex flex-col items-center" :class="column" v-for="(column, index) in oddsTypeBySport" :key="index">
