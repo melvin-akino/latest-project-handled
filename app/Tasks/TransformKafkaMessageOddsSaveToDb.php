@@ -176,7 +176,7 @@ class TransformKafkaMessageOddsSaveToDb extends Task
                     $eventIdentifier = $updatedPriceValue['event_identifier'];
                     unset($updatedPriceValue['event_identifier']);
                     $updatedPrice[$eventIdentifier][] = $$updatedPriceValue;
-                }, $this->updatedOddsPrices);
+                }, $this->updatedOddsData);
 
                 $WSOddsSwtId = "updatedEventPrices:" . $uid;
                 $this->swoole->wsTable->set($WSOddsSwtId, ['value' => json_encode(array_values($updatedPrice))]);

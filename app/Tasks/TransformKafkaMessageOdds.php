@@ -375,7 +375,7 @@ class TransformKafkaMessageOdds extends Task
                                     if ($odds != $marketOdds) {
                                         $eventMarketsTable[$masterEventMarketSwtId]['odds'] = $marketOdds;
                                         $this->updated = true;
-                                        $oddsUpdated = ['market_id' => $memUID, 'odds' => $marketOdds, 'provider_id' => $providerId ];
+                                        $oddsUpdated = ['market_id' => $memUID, 'odds' => $marketOdds, 'provider_id' => $providerId, 'event_identifier' => $event->eventId ];
                                         if (!empty($marketPoints)) {
                                             $oddsUpdated['points'] = $marketPoints;
                                         }
