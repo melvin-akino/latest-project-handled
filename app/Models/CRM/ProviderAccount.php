@@ -15,6 +15,7 @@ class ProviderAccount extends Model
     {
         $type  = $isVIP ? "BET_VIP" : "BET_NORMAL";
         $query = self::where('credits', '>=', $stake)
+            ->where('is_enabled', true)
             ->where('type', $type);
 
         $isIdle = $query->where('is_idle', true);
