@@ -5,6 +5,7 @@ namespace App\Jobs;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Support\Facades\Log;
+use App\Handlers\ProducerHandler;
 
 class KafkaPush implements ShouldQueue
 {
@@ -15,9 +16,8 @@ class KafkaPush implements ShouldQueue
      *
      * @return void
      */
-    public function __construct($producerHandler, $kafkaTopic, $message, $key)
+    public function __construct($kafkaTopic, $message, $key)
     {
-        $this->producerHandler = $producerHandler;
         $this->kafkaTopic = $kafkaTopic;
         $this->message = $message;
         $this->key = $key;
@@ -30,7 +30,10 @@ class KafkaPush implements ShouldQueue
      */
     public function handle()
     {
-        $this->producerHandler->setTopic($this->kafkaTopic)->send($this->message, $this->key);
+        $kafkaProducer   = app('KafkaProducer');
+        $producerHandler = new ProducerHandler($kafkaProducer);
+
+        $producerHandler->setTopic($this->kafkaTopic)->send($this->message, $this->key);
         Log::channel('kafkalog')->info(json_encode($this->message));
     }
 }
