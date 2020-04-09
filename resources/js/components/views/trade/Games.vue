@@ -194,6 +194,7 @@ export default {
             let token = Cookies.get('mltoken')
             this.$store.commit('trade/REMOVE_SELECTED_LEAGUE', { schedule: this.gameSchedType, league: league })
             this.$store.commit('trade/REMOVE_FROM_EVENTS', { schedule: this.gameSchedType, removedLeague: league })
+            this.$store.commit('trade/REMOVE_FROM_EVENT_LIST', { type: 'league_name', data: league })
             this.$store.commit('trade/REMOVE_FROM_ALL_EVENT_LIST', { type: 'league_name', data: league })
             this.$store.dispatch('trade/toggleLeague', { league_name: league, sport_id: this.selectedSport, schedule: this.gameSchedType })
         },
@@ -217,15 +218,58 @@ export default {
                         this.$store.dispatch('trade/toggleLeague', { league_name: event.league_name, sport_id: this.selectedSport, schedule: event.game_schedule  })
                         this.$store.commit('trade/ADD_TO_SELECTED_LEAGUE', { schedule: event.game_schedule, league: event.league_name })
                         this.$socket.send(`getEvents_${event.league_name}_${event.game_schedule}`)
+                        this.$store.commit('trade/SET_EVENTS_LIST', event)
                     })
                 } else if(type==='event') {
                     if(this.tradePageSettings.sort_event == 1) {
                         this.$store.commit('trade/REMOVE_EVENT', { schedule: 'watchlist', removedLeague: payload.league_name, removedEvent: data })
                         this.leaguesLength = this.events.watchlist[payload.league_name].length
+                        if(payload.league_name in this.events[payload.game_schedule]) {
+                            Object.keys(this.events[payload.game_schedule]).map(league => {
+                                let checkEventUID = this.events[payload.game_schedule][league].findIndex(event => event.uid === payload.uid)
+                                if(payload.league_name == league && checkEventUID === -1) {
+                                    this.events[payload.game_schedule][league].push(payload)
+                                }
+                            })
+                        } else {
+                            if(typeof(this.events[payload.game_schedule][payload.league_name]) == "undefined") {
+                                this.events[payload.game_schedule][payload.league_name] = []
+                            }
+                            this.events[payload.game_schedule][payload.league_name].push(payload)
+                            let sortedEventObject = {}
+                            Object.keys(this.events[payload.game_schedule]).sort().map(league => {
+                                if(typeof(sortedEventObject[payload.game_schedule]) == "undefined") {
+                                    sortedEventObject[payload.game_schedule] = {}
+                                }
+                                sortedEventObject[payload.game_schedule][league] = this.events[payload.game_schedule][league]
+                            })
+                            this.$store.commit('trade/SET_EVENTS', { schedule: payload.game_schedule, events: sortedEventObject[payload.game_schedule] })
+                        }
                     } else if(this.tradePageSettings.sort_event == 2) {
                         let eventStartTime = `[${payload.ref_schedule.split(' ')[1]}] ${payload.league_name}`
                         this.$store.commit('trade/REMOVE_EVENT', { schedule: 'watchlist', removedLeague: eventStartTime, removedEvent: data })
                         this.leaguesLength = this.events.watchlist[eventStartTime].length
+                        if(eventStartTime in this.events[payload.game_schedule]) {
+                            Object.keys(this.events[payload.game_schedule]).map(startTime => {
+                                let checkEventUID = this.events[payload.game_schedule][startTime].findIndex(event => event.uid === payload.uid)
+                                if(eventStartTime == startTime && checkEventUID === -1) {
+                                    this.events[payload.game_schedule][eventStartTime].push(payload)
+                                }
+                            })
+                        } else {
+                            if(typeof(this.events[payload.game_schedule][eventStartTime]) == "undefined") {
+                                this.events[payload.game_schedule][eventStartTime] = []
+                            }
+                            this.events[payload.game_schedule][eventStartTime].push(payload)
+                            let sortedEventObject = {}
+                            Object.keys(this.events[payload.game_schedule]).sort().map(startTime => {
+                                if(typeof(sortedEventObject[payload.game_schedule]) == "undefined") {
+                                    sortedEventObject[payload.game_schedule] = {}
+                                }
+                                sortedEventObject[payload.game_schedule][startTime] = this.events[payload.game_schedule][startTime]
+                            })
+                            this.$store.commit('trade/SET_EVENTS', { schedule: payload.game_schedule, events: sortedEventObject[payload.game_schedule] })
+                        }
                     }
 
                     if(this.leaguesLength == 0) {
@@ -233,7 +277,10 @@ export default {
                     }
                     this.$store.dispatch('trade/toggleLeague', { league_name: payload.league_name, sport_id: this.selectedSport, schedule: payload.game_schedule  })
                     this.$store.commit('trade/ADD_TO_SELECTED_LEAGUE', { schedule: payload.game_schedule, league: payload.league_name })
-                    this.$socket.send(`getEvents_${payload.league_name}_${payload.game_schedule}`)
+                    let eventsListCheckUID = this.eventsList.findIndex(event => event.uid === payload.uid)
+                    if(eventsListCheckUID === -1) {
+                        this.$store.commit('trade/SET_EVENTS_LIST', payload)
+                    }
                 }
                 this.$socket.send('getWatchlist')
             })

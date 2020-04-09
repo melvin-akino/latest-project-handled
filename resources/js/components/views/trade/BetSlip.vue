@@ -9,7 +9,7 @@
                 <div class="flex items-center w-1/2">
                     <span class="text-white uppercase font-bold mr-2 my-2 px-2 bg-orange-500">{{market_details.odd_type}}</span>
                     <span class="text-gray-800 font-bold my-2 pr-6">{{market_details.league_name}}</span>
-                    <a href="#" @click.prevent="openBetMatrix(odd_details)" class="text-center py-1 pr-1" title="Bet Matrix" v-if="oddTypesWithSpreads.includes(market_details.odd_type) && isDoneBetting"><i class="fas fa-chart-area"></i></a>
+                    <a href="#" @click.prevent="openBetMatrix(odd_details)" class="text-center py-1 pr-1" title="Bet Matrix" v-if="oddTypesWithSpreads.includes(market_details.odd_type) && isDoneBetting && isBetSuccessful"><i class="fas fa-chart-area"></i></a>
                     <a href="#" @click.prevent="openOddsHistory(odd_details)" lass="text-center py-1" title="Odds History"><i class="fas fa-bars"></i></a>
                 </div>
                 <div class="flex justify-between items-center w-full">
@@ -173,7 +173,8 @@ export default {
             },
             analysisData: {},
             isDoneBetting: false,
-            isLoadingMarketDetails: true
+            isLoadingMarketDetails: true,
+            isBetSuccessful: null
         }
     },
     computed: {
@@ -418,12 +419,15 @@ export default {
                             this.orderForm.stake = this.orderForm.stake - sortedByPriority.max
                             this.orderForm.markets.push(sortedByPriority)
                             this.orderError = ''
+                            this.isBetSuccessful = true
                         } else if(this.orderForm.stake <= sortedByPriority.max && this.orderForm.stake >= sortedByPriority.min) {
                             this.orderForm.stake = 0
                             this.orderForm.markets.push(sortedByPriority)
                             this.orderError = ''
+                            this.isBetSuccessful = true
                         } else if(this.orderForm.stake < sortedByPriority.min && this.orderForm.stake != 0) {
                             this.orderError = 'Stake lower than minimum stake or cannot proceed to next provider.'
+                            this.isBetSuccessful = false
                         }
                     })
                 } else if(this.orderForm.betType == 'BEST_PRICE') {
@@ -441,12 +445,15 @@ export default {
                             this.orderForm.stake = this.orderForm.stake - mostPriority.max
                             this.orderForm.markets = mostPriorityArray
                             this.orderError = ''
+                            this.isBetSuccessful = true
                         } else if(this.orderForm.stake <= mostPriority.max && this.orderForm.stake >= mostPriority.min) {
                             this.orderForm.stake = 0
                             this.orderForm.markets = mostPriorityArray
                             this.orderError = ''
+                            this.isBetSuccessful = true
                         } else if(this.orderForm.stake < mostPriority.min && this.orderForm.stake != 0) {
-                            this.orderMessage = 'Stake lower than minimum stake.'
+                            this.orderError = 'Stake lower than minimum stake.'
+                            this.isBetSuccessful = false
                         }
                     })
                 }
@@ -472,7 +479,7 @@ export default {
                         }
                     }
 
-                    if(this.betSlipSettings.bets_to_fav == 1) {
+                    if(this.betSlipSettings.bets_to_fav == 1 && this.isBetSuccessful) {
                         this.$store.dispatch('trade/addToWatchlist', { type: 'event', data: this.odd_details.game.uid, payload: this.odd_details.game })
                     }
 
