@@ -266,6 +266,7 @@ if (!function_exists('userWalletTransaction')) {
                 $userWallet  = UserWallet::where('user_id', $userId);
                 $walletId    = $userWallet->first()->id;
                 $userBalance = $userWallet->first()->balance;
+                $currencyId  = $userWallet->first()->currency_id;
                 $sourceId    = Source::where('source_name', $transactionType)->first()->id;
                 $newBalance  = $userBalance - $amount;
 
@@ -286,11 +287,11 @@ if (!function_exists('userWalletTransaction')) {
                 OrderTransaction::create(
                     [
                         'wallet_ledger_id'    => $ledgerId,
-                        'provider_account_id' => "",
+                        'provider_account_id' => 0,
                         'order_logs_id'       => $orderLogsId,
                         'user_id'             => $userId,
                         'source_id'           => $sourceId,
-                        'currency_id'         => $userWallet->first()->currency_id,
+                        'currency_id'         => $currencyId,
                         'reason'              => "Placed Bet",
                         'amount'              => $amount,
                     ]
