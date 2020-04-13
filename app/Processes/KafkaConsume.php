@@ -47,7 +47,7 @@ class KafkaConsume implements CustomProcessInterface
                                 Task::deliver(new TransformKafkaMessageEvents($payload));
                                 break;
                             case 'minmax':
-                                if (empty($payload->data->min) || empty($payload->data->max) || empty($payload->data->odds)) {
+                                if (empty($payload->data->minimum) || empty($payload->data->maximum) || empty($payload->data->odds)) {
                                     Log::info("MIN MAX Transformation ignored - No Data Found");
                                     break;
                                 }
