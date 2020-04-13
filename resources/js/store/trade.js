@@ -1,5 +1,6 @@
 import Vue from 'vue'
 import _ from 'lodash'
+import { sortByObjectKeys } from '../helpers/array'
 import Cookies from 'js-cookie'
 const token = Cookies.get('mltoken')
 
@@ -35,7 +36,8 @@ const state = {
     bets: [],
     tradePageSettings: {},
     betSlipSettings: {},
-    showSearch: true
+    showSearch: true,
+    activeBetSlip: null
 }
 
 const mutations = {
@@ -190,6 +192,9 @@ const mutations = {
     },
     SHOW_SEARCH: (state, data) => {
         state.showSearch = data
+    },
+    SET_ACTIVE_BETSLIP: (state, data) => {
+        state.activeBetSlip = data
     }
 }
 
@@ -354,6 +359,24 @@ const actions = {
         .catch(err => {
             dispatch('auth/checkIfTokenIsValid', err.response.data.status_code, { root: true })
         })
+    },
+    transformEvents({commit, state}, data) {
+        if(data.league in state.events[data.schedule]) {
+            Object.keys(state.events[data.schedule]).map(league => {
+                let checkEventUID = state.events[data.schedule][league].findIndex(event => event.uid === data.payload.uid)
+                if(data.league == league && checkEventUID === -1) {
+                    state.events[data.schedule][league].push(data.payload)
+                }
+            })
+        } else {
+            if(typeof(state.events[data.schedule][data.league]) == "undefined") {
+                state.events[data.schedule][data.league] = []
+            }
+            state.events[data.schedule][data.league].push(data.payload)
+            let sortedEventObject = {}
+            let sortedEvents = sortByObjectKeys(state.events[data.schedule], sortedEventObject[data.schedule])
+            commit('SET_EVENTS', { schedule: data.schedule, events: sortedEvents })
+        }
     }
 }
 

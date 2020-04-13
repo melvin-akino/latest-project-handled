@@ -36,6 +36,7 @@ import Games from './Games'
 import Betbar from './Betbar'
 import Betslip from './BetSlip'
 import { getSocketKey, getSocketValue } from '../../../helpers/socket'
+import { sortByObjectKeys } from '../../../helpers/array'
 
 export default {
     components: {
@@ -116,13 +117,8 @@ export default {
                         })
                     }
                     let sortedWatchlistObject = {}
-                    Object.keys(watchlistObject).sort().map(league => {
-                        if(typeof(sortedWatchlistObject[league]) == "undefined") {
-                            sortedWatchlistObject[league] = []
-                        }
-                        sortedWatchlistObject[league] = watchlistObject[league]
-                    })
-                    this.$store.commit('trade/SET_WATCHLIST', sortedWatchlistObject)
+                    let watchlistEvents = sortByObjectKeys(watchlistObject, sortedWatchlistObject)
+                    this.$store.commit('trade/SET_WATCHLIST', watchlistEvents)
                 }
             })
         },
@@ -182,15 +178,8 @@ export default {
                     })
                     let sortedEventObject = {}
                     Object.keys(eventObject).map(schedule => {
-                        Object.keys(eventObject[schedule]).sort().map(league => {
-                            if(typeof(sortedEventObject[schedule]) == "undefined") {
-                                sortedEventObject[schedule] = {}
-                            }
-                            sortedEventObject[schedule][league] = eventObject[schedule][league]
-                        })
-                    })
-                    Object.keys(eventObject).map(schedule => {
-                        this.$store.commit('trade/SET_EVENTS', { schedule: schedule, events: sortedEventObject[schedule] })
+                        let events = sortByObjectKeys(eventObject[schedule], sortedEventObject[schedule])
+                        this.$store.commit('trade/SET_EVENTS', { schedule: schedule, events: events })
                     })
                 }
             })
@@ -278,24 +267,7 @@ export default {
                                     this.$delete(this.events[event.game_schedule], event.league_name)
                                 }
                                 this.$set(event, 'game_schedule', updatedEventSchedule.game_schedule)
-                                if(event.league_name in this.events[updatedEventSchedule.game_schedule]) {
-                                    Object.keys(this.events[updatedEventSchedule.game_schedule]).map(league => {
-                                        this.events[updatedEventSchedule.game_schedule][league].push(event)
-                                    })
-                                } else {
-                                    if(typeof(this.events[updatedEventSchedule.game_schedule][event.league_name]) == "undefined") {
-                                        this.events[updatedEventSchedule.game_schedule][event.league_name] = []
-                                    }
-                                    this.events[updatedEventSchedule.game_schedule][event.league_name].push(event)
-                                    let sortedEventObject = {}
-                                    Object.keys(this.events[updatedEventSchedule.game_schedule]).sort().map(league => {
-                                        if(typeof(sortedEventObject[updatedEventSchedule.game_schedule]) == "undefined") {
-                                            sortedEventObject[updatedEventSchedule.game_schedule] = {}
-                                        }
-                                        sortedEventObject[updatedEventSchedule.game_schedule][league] = this.events[updatedEventSchedule.game_schedule][league]
-                                    })
-                                    this.$store.commit('trade/SET_EVENTS', { schedule: updatedEventSchedule.game_schedule, events: sortedEventObject[updatedEventSchedule.game_schedule] })
-                                }
+                                this.$store.dispatch('trade/transformEvents', { schedule: event.game_schedule, league: event.league_name, payload: event })
                             } else if(this.tradePageSettings.sort_event == 2) {
                                 let eventStartTime = `[${event.ref_schedule.split(' ')[1]}] ${event.league_name}`
                                 this.$store.commit('trade/REMOVE_EVENT', { schedule: event.game_schedule, removedLeague: eventStartTime, removedEvent: event.uid })
@@ -304,24 +276,7 @@ export default {
                                     this.$delete(this.events[event.game_schedule], eventStartTime)
                                 }
                                 this.$set(event, 'game_schedule', updatedEventSchedule.game_schedule)
-                                if(eventStartTime in this.events[updatedEventSchedule.game_schedule]) {
-                                    Object.keys(this.events[updatedEventSchedule.game_schedule]).map(eventStartTime => {
-                                        this.events[updatedEventSchedule.game_schedule][eventStartTime].push(event)
-                                    })
-                                } else {
-                                    if(typeof(this.events[updatedEventSchedule.game_schedule][eventStartTime]) == "undefined") {
-                                        this.events[updatedEventSchedule.game_schedule][eventStartTime] = []
-                                    }
-                                    this.events[updatedEventSchedule.game_schedule][eventStartTime].push(event)
-                                    let sortedEventObject = {}
-                                    Object.keys(this.events[updatedEventSchedule.game_schedule]).sort().map(startTime => {
-                                        if(typeof(sortedEventObject[updatedEventSchedule.game_schedule]) == "undefined") {
-                                            sortedEventObject[updatedEventSchedule.game_schedule] = {}
-                                        }
-                                        sortedEventObject[updatedEventSchedule.game_schedule][startTime] = this.events[updatedEventSchedule.game_schedule][startTime]
-                                    })
-                                    this.$store.commit('trade/SET_EVENTS', { schedule: updatedEventSchedule.game_schedule, events: sortedEventObject[updatedEventSchedule.game_schedule] })
-                                }
+                                this.$store.dispatch('trade/transformEvents', { schedule: event.game_schedule, eventStartTime, payload: event })
                             }
                         }
                     })
