@@ -95,4 +95,22 @@ class ProvidersController extends Controller
         }
     }
 
+    public function prioritize(Request $request)
+    {
+        $providers = Provider::all();
+
+        foreach ($providers as $provider) {
+            foreach ($request->order as $order) {
+                if ($order['id'] == $provider->id) {
+                    $provider->update(['priority' => $order['position']]);
+                }
+            }
+        }
+        return response()->json([
+            'status'      => true,
+            'status_code' => 200,
+            'data'        => 'success'
+        ], 200);
+    }
+
 }
