@@ -23,6 +23,8 @@ class AlterTableProviderAccountsAddColumnsAccountState extends Migration
             foreach ($this->booleans AS $boolean) {
                 $table->boolean($boolean)->default(true);
             }
+
+            $table->float('credits')->default(0)->change();
         });
     }
 
