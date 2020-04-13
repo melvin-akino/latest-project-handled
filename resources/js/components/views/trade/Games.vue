@@ -217,61 +217,26 @@ export default {
                     payload.map(event => {
                         this.$store.dispatch('trade/toggleLeague', { league_name: event.league_name, sport_id: this.selectedSport, schedule: event.game_schedule  })
                         this.$store.commit('trade/ADD_TO_SELECTED_LEAGUE', { schedule: event.game_schedule, league: event.league_name })
-                        this.$socket.send(`getEvents_${event.league_name}_${event.game_schedule}`)
                         this.$store.commit('trade/SET_EVENTS_LIST', event)
+
+                        if(this.tradePageSettings.sort_event == 1) {
+                            this.$store.dispatch('trade/transformEvents', { schedule: event.game_schedule, league: event.league_name, payload: event })
+                        } else if(this.tradePageSettings.sort_event == 2) {
+                            let eventStartTime = `[${event.ref_schedule.split(' ')[1]}] ${event.league_name}`
+                            this.$store.dispatch('trade/transformEvents', { schedule: event.game_schedule, league: eventStartTime, payload: event })
+                        }
                     })
                 } else if(type==='event') {
                     if(this.tradePageSettings.sort_event == 1) {
                         this.$store.commit('trade/REMOVE_EVENT', { schedule: 'watchlist', removedLeague: payload.league_name, removedEvent: data })
                         this.leaguesLength = this.events.watchlist[payload.league_name].length
-                        if(payload.league_name in this.events[payload.game_schedule]) {
-                            Object.keys(this.events[payload.game_schedule]).map(league => {
-                                let checkEventUID = this.events[payload.game_schedule][league].findIndex(event => event.uid === payload.uid)
-                                if(payload.league_name == league && checkEventUID === -1) {
-                                    this.events[payload.game_schedule][league].push(payload)
-                                }
-                            })
-                        } else {
-                            if(typeof(this.events[payload.game_schedule][payload.league_name]) == "undefined") {
-                                this.events[payload.game_schedule][payload.league_name] = []
-                            }
-                            this.events[payload.game_schedule][payload.league_name].push(payload)
-                            let sortedEventObject = {}
-                            Object.keys(this.events[payload.game_schedule]).sort().map(league => {
-                                if(typeof(sortedEventObject[payload.game_schedule]) == "undefined") {
-                                    sortedEventObject[payload.game_schedule] = {}
-                                }
-                                sortedEventObject[payload.game_schedule][league] = this.events[payload.game_schedule][league]
-                            })
-                            this.$store.commit('trade/SET_EVENTS', { schedule: payload.game_schedule, events: sortedEventObject[payload.game_schedule] })
-                        }
+                        this.$store.dispatch('trade/transformEvents', { schedule: payload.game_schedule, league: payload.league_name, payload: payload })
                     } else if(this.tradePageSettings.sort_event == 2) {
                         let eventStartTime = `[${payload.ref_schedule.split(' ')[1]}] ${payload.league_name}`
                         this.$store.commit('trade/REMOVE_EVENT', { schedule: 'watchlist', removedLeague: eventStartTime, removedEvent: data })
                         this.leaguesLength = this.events.watchlist[eventStartTime].length
-                        if(eventStartTime in this.events[payload.game_schedule]) {
-                            Object.keys(this.events[payload.game_schedule]).map(startTime => {
-                                let checkEventUID = this.events[payload.game_schedule][startTime].findIndex(event => event.uid === payload.uid)
-                                if(eventStartTime == startTime && checkEventUID === -1) {
-                                    this.events[payload.game_schedule][eventStartTime].push(payload)
-                                }
-                            })
-                        } else {
-                            if(typeof(this.events[payload.game_schedule][eventStartTime]) == "undefined") {
-                                this.events[payload.game_schedule][eventStartTime] = []
-                            }
-                            this.events[payload.game_schedule][eventStartTime].push(payload)
-                            let sortedEventObject = {}
-                            Object.keys(this.events[payload.game_schedule]).sort().map(startTime => {
-                                if(typeof(sortedEventObject[payload.game_schedule]) == "undefined") {
-                                    sortedEventObject[payload.game_schedule] = {}
-                                }
-                                sortedEventObject[payload.game_schedule][startTime] = this.events[payload.game_schedule][startTime]
-                            })
-                            this.$store.commit('trade/SET_EVENTS', { schedule: payload.game_schedule, events: sortedEventObject[payload.game_schedule] })
-                        }
+                        this.$store.dispatch('trade/transformEvents', { schedule: payload.game_schedule, league: eventStartTime, payload: payload })
                     }
-
                     if(this.leaguesLength == 0) {
                         this.$store.commit('trade/REMOVE_FROM_EVENTS', { schedule: 'watchlist', removedLeague: payload.league_name })
                     }
@@ -282,7 +247,6 @@ export default {
                         this.$store.commit('trade/SET_EVENTS_LIST', payload)
                     }
                 }
-                this.$socket.send('getWatchlist')
             })
             .catch(err => {
                 this.$store.dispatch('auth/checkIfTokenIsValid', err.response.data.status_code)
