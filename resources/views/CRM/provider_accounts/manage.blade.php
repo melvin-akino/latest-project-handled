@@ -170,10 +170,28 @@
                     manageProviderAccount(form);
                 }
             });
+            $.validator.addMethod("isUniqueUsername", function(value, element) {
+                var providerAccountLen = providerAccountList.length;
+                var unique = true;
+                var isNew = $('input[name="providerAccountId"]').val();
+
+                for(var i = 0; i<providerAccountLen; i++){
+                    var name = providerAccountList[i]['username'];
+
+                    console.log('name: ' + name + ' | value: ' + value);
+                    if (isNew == '' && name == value) {
+                        unique = false;
+                        break;
+                    }
+                }
+                return this.optional( element ) || unique;
+            }, 'Username already taken.');
+
             $('#form-manage-provider-account').validate({
                 rules: {
                     username: {
                         required: true,
+                        isUniqueUsername: true
                     },
                     password: {
                         required: true,
@@ -186,7 +204,7 @@
                 },
                 messages: {
                     username: {
-                        required: "Please enter a provider account username",
+                        required: "Please enter a provider account username"
                     },
                     password: {
                         required: "Please provide a password"
@@ -200,12 +218,14 @@
                 errorElement: 'span',
                     errorPlacement: function (error, element) {
                         error.addClass('invalid-feedback');
+                        element.closest('div').addClass('has-error');
                         element.closest('div').append(error);
                     },
                     highlight: function (element, errorClass, validClass) {
                         $(element).addClass('is-invalid');
                     },
                     unhighlight: function (element, errorClass, validClass) {
+                        $(element).closest('div').removeClass('has-error');
                         $(element).removeClass('is-invalid');
                     }
             });

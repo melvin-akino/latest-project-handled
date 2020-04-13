@@ -78,11 +78,11 @@
     <script src="{{ asset("CRM/AdminLTE-2.4.2/bower_components/jquery-ui/ui/mouse.js") }}"></script>
     <script src="{{ asset("CRM/AdminLTE-2.4.2/bower_components/jquery-ui/ui/sortable.js") }}"></script>
     <script src="{{ asset("js-validate/jquery.validate.min.js") }}"></script>
-    <script src="{{ asset("CRM/Capital7-1.0.0/js/form-validation.js") }}"></script>
     <!-- ClubNine -->
 
     <script type="text/javascript" >
         var providerList = [];
+        var providerAccountList = [];
         var systemConfigurations = [];
         var table;
         var childTable;
@@ -233,6 +233,14 @@
                                         }
                                     }                                       
                                 }
+
+                                providerAccountList = [];
+
+                                $.each(json.data,function(key, value) 
+                                {
+                                    providerAccountList[key] = {'username' : value['username']};
+                                });
+
                                 callback({data: display});               
                             });
                         },
