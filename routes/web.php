@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\Route;
 | contains the "web" middleware group. Now create something great!
 |
 */
-
+Route::get('/testlog','TestlogController@testlog');
 Route::namespace('CRM')->prefix('admin')->group(function () {
     Route::namespace('Auth')->group(function () {
         Route::get('/', 'LoginController@index')->name('crm');
