@@ -11,10 +11,11 @@ class ProviderAccount extends Model
 
     protected $fillable = [];
 
-    public static function getProviderAccount($stake, $isVIP)
+    public static function getProviderAccount($providerId, $stake, $isVIP)
     {
         $type  = $isVIP ? "BET_VIP" : "BET_NORMAL";
         $query = self::where('credits', '>=', $stake)
+            ->where('provider_id', $providerId)
             ->where('is_enabled', true)
             ->where('type', $type);
 
