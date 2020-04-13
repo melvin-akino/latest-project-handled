@@ -27,11 +27,13 @@ class Provider extends Model
             ->orderBy('priority', 'asc');
     }
 
-    public static function getAllProviders() {
+    public static function getAllProviders() 
+    {
         return self::orderBy('priority', 'asc')->orderBy('id', 'asc')->get()->toArray();   
     }
 
-    public static function getLatestPriority() {
+    public static function getLatestPriority() 
+    {
         return self::orderBy('priority', 'desc')->get()->first();
     }
 }
