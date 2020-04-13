@@ -151,6 +151,11 @@
                     return;
                 }).done(function () {
                     btn.button('reset');
+                }).fail(function(xhr, status, error) {
+                    // error handling
+                    assocErr(xhr.responseJSON.errors, form);
+
+                    btn.button('reset');
                 });
             };
 
