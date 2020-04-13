@@ -561,7 +561,7 @@ class OrdersController extends Controller
                     'market_id'    => $incrementIds['payload'][$i]['market_id'],
                     'event_id'     => $incrementIds['payload'][$i]['event_id'],
                     'score'        => $incrementIds['payload'][$i]['score'],
-                    'username'     => ProviderAccount::getProviderAccount($incrementIds['payload'][$i]['actual_stake'], $isUserVIP),
+                    'username'     => ProviderAccount::getProviderAccount($incrementIds['payload'][$i]['provider_id'], $incrementIds['payload'][$i]['actual_stake'], $isUserVIP),
                 ];
 
                 $payloadsSwtId = implode(':', [
