@@ -36,15 +36,11 @@ class KafkaProduce implements CustomProcessInterface
             ];
 
             if ($swoole->wsTable->exist('data2Swt')) {
-                $topicTable                 = $swoole->topicTable;
                 $minMaxRequestsTable        = $swoole->minMaxRequestsTable;
-                $ordersTable                = $swoole->ordersTable;
                 $sportsTable                = $swoole->sportsTable;
                 $providersTable             = $swoole->providersTable;
                 $payloadsTable              = $swoole->payloadsTable;
-                $providerAccountsTable      = $swoole->providerAccountsTable;
                 $initialTime                = Carbon::createFromFormat('H:i:s', Carbon::now()->format('H:i:s'));
-                $providerAccountInitialTime = Carbon::createFromFormat('H:i:s', Carbon::now()->format('H:i:s'));
 
                 while (!self::$quit) {
                     $newTime = Carbon::createFromFormat('H:i:s', Carbon::now()->format('H:i:s'));
@@ -85,33 +81,6 @@ class KafkaProduce implements CustomProcessInterface
                                 ];
 
                                 self::pushToKafka($payload, $requestId, $kafkaTopics['req_open_order']);
-                            }
-
-                            //checking if 30 minutest interval
-                            if ($newTime->diffInSeconds(Carbon::parse($providerAccountInitialTime)) >= (60 * 30)) {
-                                foreach ($providerAccountsTable AS $sKey => $sRow) {
-                                    $randomRangeInMinutes = rand(0, 10);
-
-                                    $requestId     = Str::uuid();
-                                    $requestTs     = self::milliseconds();
-
-                                    $payload = [
-                                        'request_uid' => $requestId,
-                                        'request_ts'  => $requestTs,
-                                        'sub_command' => 'scrape',
-                                        'command'     => 'settlement'
-                                    ];
-
-                                    $payload['data'] = [
-                                        'sport'     => $sportId,
-                                        'provider'  => $sRow['provider_id'],
-                                        'username'  => $sRow['username']
-                                    ];
-
-                                    self::pushToKafka($payload, $requestId, strtolower($sRow['provider_alias']) . $kafkaTopics['req_settlements'], $randomRangeInMinutes);
-
-                                    $providerAccountInitialTime = $newTime;
-                                }
                             }
                         }
 
