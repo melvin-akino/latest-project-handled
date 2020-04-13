@@ -22,6 +22,15 @@ Route::namespace('CRM')->prefix('admin')->group(function () {
 
     Route::middleware('auth:crm')->group(function () {
         Route::get('dashboard', 'DashboardController@index')->name('dashboard');
+
+        Route::get('providers', 'ProvidersController@index')->name('providers');
+        Route::get('providers/list', 'ProvidersController@list')->name('providers.list');
+        Route::post('providers/manage', 'ProvidersController@manage')->name('providers.manage');
+        Route::get('provider_accounts/{id}', 'ProviderAccountsController@index')->name('provider.accounts');
+        Route::get('provider_accounts/delete/{id}', 'ProviderAccountsController@softDelete')->name('provider_accounts.softdelete');
+        Route::post('provider_accounts/manage', 'ProviderAccountsController@manage')->name('provider_accounts.manage');
+        Route::get('system_configurations/list', 'SystemConfigurationsController@list')->name('system_configurations.list');
+
          /* Wallet route */
     	Route::namespace('Wallet')->prefix('wallet')->group(function () {
 			Route::prefix('exchange_rates')->group(function () {
@@ -64,7 +73,6 @@ Route::namespace('CRM')->prefix('admin')->group(function () {
 		
 		});
 	    /* end Account Route */
-
     });
 });
 
