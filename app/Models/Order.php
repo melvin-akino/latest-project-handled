@@ -6,9 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Order extends Model
 {
-
     protected $table = "orders";
-
 
     protected $fillable = [
         'master_event_market_unique_id',
@@ -31,7 +29,6 @@ class Order extends Model
 
     protected $hidden = [];
 
-
     public function UserWallet() {
         return $this->belongsTo(App/Models/UserWallet::class, 'user_id','user_id');
     }
@@ -49,10 +46,9 @@ class Order extends Model
             ->get()
             ->toArray();
     }
+
     public static function countAllOrders()
     {
         return self::where('user_id', auth()->user()->id)->count();
-
     }
 }
-

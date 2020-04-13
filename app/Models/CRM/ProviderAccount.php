@@ -2,14 +2,26 @@
 
 namespace App\Models\CRM;
 
-use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\{Model, SoftDeletes};
 use Illuminate\Support\Facades\DB;
 
 class ProviderAccount extends Model
 {
+    use SoftDeletes;
+
     protected $table = "provider_accounts";
 
-    protected $fillable = [];
+    protected $fillable = [
+        'provider_id',
+        'type',
+        'username',
+        'password',
+        'punter_percentage',
+        'credits',
+        'deleted_at',
+        'is_idle',
+        'is_enabled',
+    ];
 
     public static function getProviderAccount($providerId, $stake, $isVIP)
     {
