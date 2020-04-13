@@ -22,7 +22,7 @@ class WsRemoveMinMax implements ShouldQueue
         $topicTable  = $server->topicTable;
         $wsTable     = $server->wsTable;
         $minMaxRequestsTable = app('swoole')->minMaxRequestsTable;
- 
+
         $eventMarket = DB::table('event_markets as em')
             ->join('master_event_market_links as meml', 'meml.event_market_id', 'em.id')
             ->join('master_event_markets as mem', 'mem.master_event_market_unique_id',
@@ -49,7 +49,18 @@ class WsRemoveMinMax implements ShouldQueue
                     $topicTable->del($key);
                     break;
                 }
-            }       
+            }
+
+            $noSubscription = true;
+            foreach($topicTable as $key => $topic) {
+                if ($topic['topic_name'] == 'min-max-' . $this->master_event_market_unique_id) {
+                    $noSubscription = false;
+                    break;
+                }
+            }
+            if ($noSubscription) {
+                $minMaxRequestsTable->del('memUID:' . $this->master_event_market_unique_id);
+            }
         }
     }
 }
