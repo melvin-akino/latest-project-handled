@@ -92,8 +92,6 @@ class ProducerHandler
         $topic->produce(RD_KAFKA_PARTITION_UA, 0, $this->payload, $key);
 
         $this->producer->poll(0);
-
-        $this->flush();
     }
 
     /**

@@ -1,18 +1,18 @@
 <template>
     <div class="betslip flex justify-center items-center">
-        <dialog-drag :title="'Bet Slip - '+market_id" :options="options" @close="closeBetSlip(odd_details.market_id)">
+        <dialog-drag :title="'Bet Slip - '+market_id" :options="options" @close="closeBetSlip(odd_details.market_id)" @click.native="setActiveBetSlip(odd_details.market_id)" v-overlap-all-betslip="activeBetSlip==odd_details.market_id">
             <div class="flex flex-col justify-center items-center loader" v-if="isLoadingMarketDetails">
                 <img :src="loader" />
                 <span class="text-center mt-2">Loading Market Details...</span>
             </div>
             <div class="container mx-auto p-2" v-else>
-                <div class="flex items-center w-1/2">
+                <div class="flex items-center w-1/2 leagueAndTeamDetails">
                     <span class="text-white uppercase font-bold mr-2 my-2 px-2 bg-orange-500">{{market_details.odd_type}}</span>
                     <span class="text-gray-800 font-bold my-2 pr-6">{{market_details.league_name}}</span>
-                    <a href="#" @click.prevent="openBetMatrix(odd_details)" class="text-center py-1 pr-1" title="Bet Matrix" v-if="oddTypesWithSpreads.includes(market_details.odd_type) && isDoneBetting"><i class="fas fa-chart-area"></i></a>
+                    <a href="#" @click.prevent="openBetMatrix(odd_details)" class="text-center py-1 pr-1" title="Bet Matrix" v-if="oddTypesWithSpreads.includes(market_details.odd_type) && isDoneBetting && isBetSuccessful"><i class="fas fa-chart-area"></i></a>
                     <a href="#" @click.prevent="openOddsHistory(odd_details)" lass="text-center py-1" title="Odds History"><i class="fas fa-bars"></i></a>
                 </div>
-                <div class="flex justify-between items-center w-full">
+                <div class="flex justify-between items-center w-full leagueAndTeamDetails">
                     <div class="flex w-3/4 items-center">
                         <div class="home p-3" :class="[market_details.market_flag==='HOME' ? 'mr-2 bg-white shadow-xl' : '']">
                             <span class="font-bold bg-green-500 text-white mr-1 p-2 rounded-lg">Home</span>
@@ -173,11 +173,12 @@ export default {
             },
             analysisData: {},
             isDoneBetting: false,
-            isLoadingMarketDetails: true
+            isLoadingMarketDetails: true,
+            isBetSuccessful: null
         }
     },
     computed: {
-        ...mapState('trade', ['openedBetMatrix', 'openedOddsHistory', 'betSlipSettings']),
+        ...mapState('trade', ['activeBetSlip', 'openedBetMatrix', 'openedOddsHistory', 'betSlipSettings']),
         spreads() {
             if(!_.isEmpty(this.market_details)) {
                 return this.market_details.spreads
@@ -264,6 +265,9 @@ export default {
                 this.$store.dispatch('auth/checkIfTokenIsValid', err.response.data.status_code)
             })
         },
+        setActiveBetSlip(market_id) {
+            this.$store.commit('trade/SET_ACTIVE_BETSLIP', market_id)
+        },
         changePoint(points, market_id) {
             this.emptyMinMax(this.market_id)
             this.points = points
@@ -307,21 +311,23 @@ export default {
                             this.$set(minMaxObject, key, minmax[key])
                         }
                     })
-                    if(!_.isEmpty(this.minMaxData)) {
-                        let providerIds = this.minMaxData.map(minMaxData => minMaxData.provider_id)
-                        if(providerIds.includes(minmax.provider_id)) {
-                            this.minMaxData.map(minMaxData => {
-                                if(minMaxData.provider_id == minmax.provider_id) {
-                                    minMaxData.min = Number(minmax.min)
-                                    minMaxData.max = Number(minmax.max)
-                                    minMaxData.price = Number(minmax.price)
-                                }
-                            })
+                    if(minmax.market_id == this.market_id) {
+                        if(!_.isEmpty(this.minMaxData)) {
+                            let providerIds = this.minMaxData.map(minMaxData => minMaxData.provider_id)
+                            if(providerIds.includes(minmax.provider_id)) {
+                                this.minMaxData.map(minMaxData => {
+                                    if(minMaxData.provider_id == minmax.provider_id) {
+                                        minMaxData.min = Number(minmax.min)
+                                        minMaxData.max = Number(minmax.max)
+                                        minMaxData.price = Number(minmax.price)
+                                    }
+                                })
+                            } else {
+                                this.minMaxData.push(minMaxObject)
+                            }
                         } else {
                             this.minMaxData.push(minMaxObject)
                         }
-                    } else {
-                        this.minMaxData.push(minMaxObject)
                     }
                 }
             })
@@ -418,12 +424,15 @@ export default {
                             this.orderForm.stake = this.orderForm.stake - sortedByPriority.max
                             this.orderForm.markets.push(sortedByPriority)
                             this.orderError = ''
+                            this.isBetSuccessful = true
                         } else if(this.orderForm.stake <= sortedByPriority.max && this.orderForm.stake >= sortedByPriority.min) {
                             this.orderForm.stake = 0
                             this.orderForm.markets.push(sortedByPriority)
                             this.orderError = ''
+                            this.isBetSuccessful = true
                         } else if(this.orderForm.stake < sortedByPriority.min && this.orderForm.stake != 0) {
                             this.orderError = 'Stake lower than minimum stake or cannot proceed to next provider.'
+                            this.isBetSuccessful = false
                         }
                     })
                 } else if(this.orderForm.betType == 'BEST_PRICE') {
@@ -441,12 +450,15 @@ export default {
                             this.orderForm.stake = this.orderForm.stake - mostPriority.max
                             this.orderForm.markets = mostPriorityArray
                             this.orderError = ''
+                            this.isBetSuccessful = true
                         } else if(this.orderForm.stake <= mostPriority.max && this.orderForm.stake >= mostPriority.min) {
                             this.orderForm.stake = 0
                             this.orderForm.markets = mostPriorityArray
                             this.orderError = ''
+                            this.isBetSuccessful = true
                         } else if(this.orderForm.stake < mostPriority.min && this.orderForm.stake != 0) {
-                            this.orderMessage = 'Stake lower than minimum stake.'
+                            this.orderError = 'Stake lower than minimum stake.'
+                            this.isBetSuccessful = false
                         }
                     })
                 }
@@ -472,7 +484,7 @@ export default {
                         }
                     }
 
-                    if(this.betSlipSettings.bets_to_fav == 1) {
+                    if(this.betSlipSettings.bets_to_fav == 1 && this.isBetSuccessful) {
                         this.$store.dispatch('trade/addToWatchlist', { type: 'event', data: this.odd_details.game.uid, payload: this.odd_details.game })
                     }
 
@@ -483,6 +495,17 @@ export default {
                 })
             }
         }
+    },
+    directives: {
+        overlapAllBetslip: {
+            componentUpdated(el, binding, vnode)  {
+                if(binding.value) {
+                    el.style.zIndex = '150'
+                } else {
+                    el.style.zIndex = '101'
+                }
+            }
+        }
     }
 }
 </script>
@@ -490,6 +513,10 @@ export default {
 <style>
     .orderExpiryInput {
         width: 10.2rem;
+    }
+
+    .leagueAndTeamDetails {
+        font-size: 15px;
     }
 
     .dialog-drag {

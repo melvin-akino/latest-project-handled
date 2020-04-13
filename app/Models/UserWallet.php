@@ -27,6 +27,26 @@ class UserWallet extends Model
         return $this->hasMany('App\Models\Order','user_id','user_id');
 
     }
+      public function account()
+    {
+        return $this->belongsTo(User::class, 'user_id')->select([
+            "id",
+            "firstname",
+            "lastname",
+            "email",
+            "name",
+          
+        ]);
+    }
+     public function wallet_ledger()
+    {
+        return $this->hasMany(WalletLedger::class, 'wallet_id');
+    }
+
+    public function currency()
+    {
+        return $this->belongsTo(Currency::class, 'currency_id');
+    }
     public static function makeTransaction(User $receiver, $amount, Currency $currency, Source $source, $type)
     {
 

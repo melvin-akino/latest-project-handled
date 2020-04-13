@@ -2,7 +2,7 @@
 
 namespace App\Processes;
 
-use App\Tasks\{TransformKafkaMessageEvents, TransformKafkaMessageLeagues, TransformKafkaMessageOdds, TransformKafkaMessageMinMax};
+use App\Tasks\{TransformKafkaMessageEvents, TransformKafkaMessageLeagues, TransformKafkaMessageOdds, TransformKafkaMessageMinMax, TransformKafkaMessageBalance};
 use Hhxsv5\LaravelS\Swoole\Process\CustomProcessInterface;
 use Hhxsv5\LaravelS\Swoole\Task\Task;
 use Illuminate\Support\Facades\Log;
@@ -29,9 +29,11 @@ class KafkaConsume implements CustomProcessInterface
                     env('KAFKA_SCRAPE_EVENTS', 'SCRAPING-PROVIDER-EVENTS'),
                     env('KAFKA_SCRAPE_MINMAX_ODDS', 'MINMAX-ODDS'),
                     env('KAFKA_BET_PLACED', 'PLACED-BET'),
-                    env('KAFKA_SCRAPE_OPEN_ORDERS', 'OPEN-ORDERS')
+                    env('KAFKA_SCRAPE_OPEN_ORDERS', 'OPEN-ORDERS'),
+                    env('KAFKA_SCRAPE_BALANCE', 'BALANCE'),
                 ]);
 
+                echo '.';
                 while (!self::$quit) {
                     $message = $kafkaConsumer->consume(120 * 1000);
                     if ($message->err == RD_KAFKA_RESP_ERR_NO_ERROR) {
@@ -45,15 +47,21 @@ class KafkaConsume implements CustomProcessInterface
                                 Task::deliver(new TransformKafkaMessageEvents($payload));
                                 break;
                             case 'minmax':
-                                if (empty($payload->data->min) || empty($payload->data->max) || empty($payload->data->odds)) {
-                                    Log::info("MIN MAX Transformation ignored - Empty Found");
+                                if (empty($payload->data->minimum) || empty($payload->data->maximum) || empty($payload->data->odds)) {
+                                    Log::info("MIN MAX Transformation ignored - No Data Found");
                                     break;
                                 }
-
                                 Task::deliver(new TransformKafkaMessageMinMax($payload));
                                 break;
                             case 'bet':
                                 Task::deliver(new TransformKafkaMessageBet($payload));
+                                break;
+                            case 'balance':
+                                if (empty($payload->data->provider) || empty($payload->data->username) || empty($payload->data->available_balance) || empty($payload->data->currency)) {
+                                    Log::info("Balance Transformation ignored - No Data Found");
+                                    break;
+                                }
+                                Task::deliver(new TransformKafkaMessageBalance($payload));
                                 break;
                             case 'open orders':
                                 Task::deliver(new TransformKafkaMessageOpenOrders($payload));
@@ -87,7 +95,6 @@ class KafkaConsume implements CustomProcessInterface
                                         'hash' => md5(json_encode((array) $payload->data))
                                     ]);
                                 }
-
                                 Task::deliver(new TransformKafkaMessageOdds($payload));
                                 break;
                         }

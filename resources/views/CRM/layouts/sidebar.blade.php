@@ -13,7 +13,7 @@
 
         <ul class="sidebar-menu" data-widget="tree">
             <li class="header">MENU</li>
-            @usercan('view', 'crm.dashboard.index')
+           
                 <li class="@isset($dashboard_menu) active @endisset">
                     <a href="/admin/dashboard">
                         <i class="fa fa-dashboard" aria-hidden="true"></i>
@@ -29,17 +29,14 @@
                     </a>
                 </li>
             @endusercan
-
-            {{--
-            @usercan('view', 'accounts.index')
+            
                 <li class="@isset($accounts_menu) active @endisset">
                     <a href="/admin/accounts">
                         <i class="fa fa-user" aria-hidden="true"></i>
                         <span>Accounts</span>
                     </a>
                 </li>
-            @endusercan
-            --}}
+          
 
             {{--
             @usercan('view', 'bet.logs')
