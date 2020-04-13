@@ -91,6 +91,11 @@
                     return;
                 }).done(function () {
                     btn.button('reset');
+                }).fail(function(xhr, status, error) {
+                    // error handling
+                    assocErr(xhr.responseJSON.errors, form);
+
+                    btn.button('reset');
                 });
             };
 
@@ -167,12 +172,14 @@
                 errorElement: 'span',
                     errorPlacement: function (error, element) {
                         error.addClass('invalid-feedback');
+                        element.closest('div').addClass('has-error');
                         element.closest('div').append(error);
                     },
                     highlight: function (element, errorClass, validClass) {
                         $(element).addClass('is-invalid');
                     },
                     unhighlight: function (element, errorClass, validClass) {
+                        $(element).closest('div').removeClass('has-error');
                         $(element).removeClass('is-invalid');
                     }
             });

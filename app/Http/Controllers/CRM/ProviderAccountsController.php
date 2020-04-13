@@ -3,8 +3,10 @@
 namespace App\Http\Controllers\CRM;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\CRM\ProviderAccountRequest;
 use App\Models\{ProviderAccount, SystemConfiguration};
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class ProviderAccountsController extends Controller
 {
@@ -35,7 +37,8 @@ class ProviderAccountsController extends Controller
     {
         try 
         {
-            if (!empty($request)) {                
+            if (!empty($request)) {
+                DB::beginTransaction();                
                 !empty($request->providerAccountId) ? $data['id'] = $request->providerAccountId : null;
                 !empty($request->username) ? $data['username'] = $request->username : null;
                 !empty($request->password) ? $data['password'] = $request->password : null;
@@ -59,7 +62,7 @@ class ProviderAccountsController extends Controller
                         $message = 'success';    
                     }                   
                 }
-
+                DB::commit();
                 return response()->json([
                     'status'      => true,
                     'status_code' => 200,
@@ -70,10 +73,11 @@ class ProviderAccountsController extends Controller
         }
         catch (Exception $e) 
         {
+            DB::rollBack();
             return response()->json([
                 'status'      => false,
                 'status_code' => 500,
-                'message'     => trans('generic.internal-server-error')
+                'errors'     => $e->getMessages()
             ], 500);
         }
     }

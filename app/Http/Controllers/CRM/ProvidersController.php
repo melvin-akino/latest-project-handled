@@ -3,8 +3,11 @@
 namespace App\Http\Controllers\CRM;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\CRM\ProviderRequest;
 use App\Models\Provider;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+
 
 class ProvidersController extends Controller
 {
@@ -41,7 +44,7 @@ class ProvidersController extends Controller
         try {
             
             if (!empty($request)) {
-
+                DB::beginTransaction();
                 $requestData = $request->all();
                 !empty($requestData['providerId']) ? $data['id'] = $requestData['providerId'] : null;
                 !empty($requestData['name']) ? $data['name'] = $requestData['name'] : null;
@@ -73,6 +76,8 @@ class ProvidersController extends Controller
                     }                    
                 }
 
+                DB::commit();
+
                 return response()->json([
                     'status'      => true,
                     'status_code' => 200,
@@ -81,10 +86,11 @@ class ProvidersController extends Controller
             }            
         }  
         catch (Exception $e) {
+            DB::rollBack();
             return response()->json([
                 'status'      => false,
                 'status_code' => 500,
-                'message'     => trans('generic.internal-server-error')
+                'errors'     => $e->getMessages()
             ], 500);
         }
     }
