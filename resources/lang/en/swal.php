@@ -17,8 +17,8 @@ return [
         'update' => [
             'success' => [
                 'title' => 'Update Success!',
-                'html' => 'Account information was successfully updated.',
-                'type' => 'success'
+                'html'  => 'Account information was successfully updated.',
+                'type'  => 'success'
             ]
         ]
     ],

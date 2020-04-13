@@ -22,8 +22,8 @@ class WalletLedger extends Model
     {
         return $this->belongsTo(UserWallet::class, 'wallet_id');
     }
-    
-     public function source()
+
+    public function source()
     {
         return $this->belongsTo(Source::class, 'source_id');
     }
