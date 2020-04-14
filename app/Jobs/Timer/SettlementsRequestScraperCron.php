@@ -9,7 +9,7 @@ use App\Jobs\KafkaPush;
 
 class SettlementsRequestScraperCron extends CronJob
 {
-	protected $i = 0;
+    protected $i = 0;
     protected $providerAccounts = [];
 
     // !!! The `interval` and `isImmediate` of cron job can be configured in two ways(pick one of two): one is to overload the corresponding method, and the other is to pass parameters when registering cron job.
