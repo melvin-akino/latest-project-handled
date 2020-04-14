@@ -84,7 +84,7 @@ class KafkaProduce implements CustomProcessInterface
                                     'provider' => $providerAlias
                                 ];
 
-                                self::pushToKafka($payload, $requestId, $kafkaTopics['req_open_order']);
+                                self::pushToKafka($payload, $requestId, $providerAlias . $kafkaTopics['req_open_order']);
                             }
 
                             //checking if 30 minutest interval
