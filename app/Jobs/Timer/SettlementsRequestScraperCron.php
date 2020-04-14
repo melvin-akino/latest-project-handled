@@ -9,7 +9,6 @@ use App\Jobs\KafkaPush;
 
 class SettlementsRequestScraperCron extends CronJob
 {
-	protected $type = 'SCRAPER';
 	protected $i = 0;
     protected $providerAccounts = [];
 

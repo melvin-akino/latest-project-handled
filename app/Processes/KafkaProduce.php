@@ -46,19 +46,6 @@ class KafkaProduce implements CustomProcessInterface
                     $newTime = Carbon::createFromFormat('H:i:s', Carbon::now()->format('H:i:s'));
 
                     if ($newTime->diffInSeconds(Carbon::parse($initialTime)) >= 1) {
-                        foreach ($minMaxRequestsTable as $minMaxRequest) {
-                            $requestId = Str::uuid();
-                            $requestTs = self::milliseconds();
-
-                            $payload = [
-                                'request_uid' => $requestId,
-                                'request_ts'  => $requestTs,
-                                'sub_command' => 'scrape',
-                                'command'     => 'minmax'
-                            ];
-                            $payload['data'] = $minMaxRequest;
-                            self::pushToKafka($payload, $requestId, strtolower($minMaxRequest['provider']) . $kafkaTopics['req_minmax']);
-                        }
 
                         foreach ($sportsTable AS $sKey => $sRow) {
                             $sportId = $sportsTable->get($sKey)['id'];

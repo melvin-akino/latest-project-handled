@@ -11,7 +11,6 @@ use App\Models\SystemConfiguration;
 
 class BalanceRequestScraperCron extends CronJob
 {
-	protected $type = 'SCRAPER';
 	protected $i = 1;
     protected $systemConfigurationsTimers = [];
 
@@ -28,7 +27,7 @@ class BalanceRequestScraperCron extends CronJob
     // --- Override the corresponding method to return the configuration: end
     public function run()
     {
-    	$this->i++;	
+    	$this->i++;
 
         $refreshDBInterval = config('balance.refresh-db-interval');
 
