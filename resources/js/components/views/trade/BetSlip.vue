@@ -2,7 +2,7 @@
     <div class="betslip flex justify-center items-center">
         <dialog-drag :title="'Bet Slip - '+market_id" :options="options" @close="closeBetSlip(odd_details.market_id)" @click.native="setActiveBetSlip(odd_details.market_id)" v-overlap-all-betslip="activeBetSlip==odd_details.market_id">
             <div class="flex flex-col justify-center items-center loader" v-if="isLoadingMarketDetails">
-                <img :src="loader" />
+                <span class="betSlipSpinner"><i class="fas fa-circle-notch fa-spin"></i></span>
                 <span class="text-center mt-2">Loading Market Details...</span>
             </div>
             <div class="container mx-auto p-2" v-else>
@@ -34,19 +34,19 @@
                         <div class="advanceBetSlipInfo" :class="{'hidden': betSlipSettings.adv_betslip_info == 0, 'block': betSlipSettings.adv_betslip_info == 1}">
                             <div class="flex justify-between items-center py-2">
                                 <span class="text-sm">Min Stake</span>
-                                <span class="text-sm">{{lowestMin}}</span>
+                                <span class="text-sm">{{lowestMin | formatBetSlipNumbers}}</span>
                             </div>
                             <div class="flex justify-between items-center py-2">
                                 <span class="text-sm">Max Stake</span>
-                                <span class="text-sm">{{highestMax}}</span>
+                                <span class="text-sm">{{highestMax | formatBetSlipNumbers}}</span>
                             </div>
                             <div class="flex justify-between items-center py-2">
                                 <span class="text-sm">Average Price</span>
-                                <span class="text-sm">{{displayedAveragePrice}}</span>
+                                <span class="text-sm">{{displayedAveragePrice | formatBetSlipNumbers}}</span>
                             </div>
                             <div class="flex justify-between items-center py-2">
                                 <span class="text-sm">Towin</span>
-                                <span class="text-sm">{{towin}}</span>
+                                <span class="text-sm">{{towin | formatBetSlipNumbers}}</span>
                             </div>
                         </div>
                         <div class="flex justify-between items-center py-2">
@@ -95,7 +95,7 @@
                             <span class="text-white uppercase font-bold my-3 px-2 bg-orange-500">{{market_details.odd_type}}</span>
                             <div class="flex justify-center items-center">
                                 <a href="#" class="m-1 w-12 text-center text-gray-800" @click="previousPoint" v-if="spreads.length > 1"><i class="fas fa-chevron-left"></i></a>
-                                <a href="#" class="m-1 w-16 text-center text-sm" :class="[spread.points == points ? 'text-white bg-orange-500 px-1 py-1' : 'text-gray-800']" v-for="(spread, index) in spreads" :key="index" @click="changePoint(spread.points, spread.market_id)">{{spread.points}}</a>
+                                <a href="#" class="m-1 w-16 text-center text-sm" :class="[spread.points == points ? 'text-white bg-orange-500 px-1 py-1' : 'text-gray-800']" v-for="(spread, index) in spreads" :key="index" @click="changePoint(spread.points, spread.market_id, spread.odds)">{{spread.points}}</a>
                                 <a href="#" class="m-1 w-12 text-center text-gray-800" @click="nextPoint" v-if="spreads.length > 1"><i class="fas fa-chevron-right"></i></a>
                             </div>
                         </div>
@@ -109,19 +109,20 @@
                             <div v-if="minMaxData.length != 0">
                                 <div class="flex justify-between items-center p-1" v-for="minmax in minMaxData" :key="minmax.provider_id">
                                     <span class="w-1/4 text-sm font-bold">{{minmax.provider}}</span>
-                                    <span class="w-1/4 text-sm">{{minmax.min}}</span>
-                                    <span class="w-1/4 text-sm">{{minmax.max}}</span>
-                                    <a href="#" @click.prevent="updatePrice(minmax.price)" class="w-1/4 text-sm font-bold underline">{{minmax.price}}</a>
+                                    <span class="w-1/4 text-sm">{{minmax.min | formatBetSlipNumbers}}</span>
+                                    <span class="w-1/4 text-sm">{{minmax.max | formatBetSlipNumbers}}</span>
+                                    <a href="#" @click.prevent="updatePrice(minmax.price)" class="w-1/4 text-sm font-bold underline">{{minmax.price | formatBetSlipNumbers}}</a>
                                 </div>
                             </div>
                             <div v-else class="flex justify-center">
-                                <span class="text-sm mt-2">No markets available.</span>
+                                <span class="text-sm mt-2">Loading minmax data <i class="fas fa-circle-notch fa-spin"></i></span>
                             </div>
                         </div>
                     </div>
                 </div>
                 <div class="flex justify-center w-full">
-                    <button @click="placeOrder" class="bg-orange-500 text-white rounded-lg w-full text-sm uppercase p-2 mt-2" :class="[minMaxData.length === 0 ? 'opacity-75' : 'hover:bg-orange-600']" :disabled="minMaxData.length === 0">Place Order</button>
+                    <button v-if="isPlacingOrder" @click="placeOrder" class="bg-orange-500 text-white rounded-lg w-full text-sm uppercase p-2 mt-2" :class="[minMaxData.length === 0 ? 'opacity-75' : 'hover:bg-orange-600']" disabled>Placing Order... <span class="text-sm"><i class="fas fa-circle-notch fa-spin"></i></span></button>
+                    <button v-if="!isPlacingOrder" @click="placeOrder" class="bg-orange-500 text-white rounded-lg w-full text-sm uppercase p-2 mt-2" :class="[minMaxData.length === 0 ? 'opacity-75' : 'hover:bg-orange-600']" :disabled="minMaxData.length === 0">Place Order</button>
                 </div>
             </div>
         </dialog-drag>
@@ -131,7 +132,6 @@
 </template>
 
 <script>
-import loader from '../../../../assets/images/loader.gif'
 import { mapState } from 'vuex'
 import Cookies from 'js-cookie'
 import _ from 'lodash'
@@ -150,7 +150,6 @@ export default {
     },
     data() {
         return {
-            loader: loader,
             market_details: {},
             formattedRefSchedule: [],
             initialPrice: this.odd_details.odds,
@@ -172,13 +171,14 @@ export default {
                 centered: "viewport"
             },
             analysisData: {},
+            isPlacingOrder: null,
             isDoneBetting: false,
             isLoadingMarketDetails: true,
             isBetSuccessful: null
         }
     },
     computed: {
-        ...mapState('trade', ['activeBetSlip', 'openedBetMatrix', 'openedOddsHistory', 'betSlipSettings']),
+        ...mapState('trade', ['activeBetSlip', 'openedBetMatrix', 'openedOddsHistory', 'betSlipSettings', 'wallet']),
         spreads() {
             if(!_.isEmpty(this.market_details)) {
                 return this.market_details.spreads
@@ -234,11 +234,15 @@ export default {
         },
         displayedAveragePrice() {
             if(!_.isEmpty(this.minMaxData)) {
-                let prices = this.minMaxData.map(minmax => minmax.price)
-                let sumOfPrices = prices.reduce((firstPrice, secondPrice) => firstPrice + secondPrice, 0)
-                return Math.floor(sumOfPrices / prices.length * 100) / 100
+                if(this.minMaxData.length > 1) {
+                    let prices = this.minMaxData.map(minmax => minmax.price)
+                    let sumOfPrices = prices.reduce((firstPrice, secondPrice) => firstPrice + secondPrice, 0)
+                    return Math.floor(sumOfPrices / prices.length * 100) / 100
+                } else {
+                    return this.minMaxData.map(minmax => minmax.price)[0]
+                }
             } else {
-                return this.odd_details.odds
+                return 0
             }
         },
         towin() {
@@ -268,22 +272,23 @@ export default {
         setActiveBetSlip(market_id) {
             this.$store.commit('trade/SET_ACTIVE_BETSLIP', market_id)
         },
-        changePoint(points, market_id) {
+        changePoint(points, market_id, odds) {
             this.emptyMinMax(this.market_id)
             this.points = points
             this.market_id = market_id
+            this.initialPrice = odds
             this.minmax(market_id)
         },
         previousPoint() {
             if(this.activePointIndex != 0) {
                 let previousSpread = this.spreads[this.activePointIndex - 1]
-                this.changePoint(previousSpread.points, previousSpread.market_id)
+                this.changePoint(previousSpread.points, previousSpread.market_id, previousSpread.odds)
             }
         },
         nextPoint() {
             if(this.activePointIndex != (this.spreads.length - 1)) {
                 let nextSpread = this.spreads[this.activePointIndex + 1]
-                this.changePoint(nextSpread.points, nextSpread.market_id)
+                this.changePoint(nextSpread.points, nextSpread.market_id, nextSpread.odds)
             }
         },
         sendMinMax(market_id) {
@@ -392,9 +397,9 @@ export default {
         },
         convertPointAsNumeric(points) {
             if(this.market_details.odd_type == 'HDP' || this.market_details.odd_type == 'HT HDP') {
-                this.points =  Number(points)
+                return  Number(points)
             } else if(this.market_details.odd_type == 'OU' || this.market_details.odd_type == 'HT OU') {
-                this.points = Number(points.split(' ')[1])
+                return Number(points.split(' ')[1])
             } else {
                 return
             }
@@ -402,7 +407,12 @@ export default {
         placeOrder() {
             if(this.orderForm.stake == '' || this.initialPrice == '') {
                 this.orderMessage = 'Please input stake or price.'
+                 this.isBetSuccessful = false
+            } else if(this.wallet.credit == 0 || this.orderForm.stake > this.wallet.credit) {
+                this.orderMessage = 'Insufficient wallet balance.'
+                 this.isBetSuccessful = false
             } else {
+                this.isPlacingOrder = true
                 let data = {
                     betType: this.orderForm.betType,
                     stake: this.orderForm.stake,
@@ -472,8 +482,8 @@ export default {
                     this.$store.dispatch('trade/getBetbarData')
                     this.$store.commit('trade/TOGGLE_BETBAR', true)
                     this.$store.dispatch('trade/getWalletData')
-                    
-                    if(this.oddTypesWithSpreads.includes(this.market_details.odd_type)) {
+
+                    if(this.oddTypesWithSpreads.includes(this.market_details.odd_type) && this.isBetSuccessful) {
                         let prices = data.markets.map(market => market.price)
                         let sumOfPrices = prices.reduce((firstPrice, secondPrice) => firstPrice + secondPrice, 0)
                         let averagePrice = sumOfPrices / prices.length
@@ -491,9 +501,11 @@ export default {
                     }
 
                     this.isDoneBetting = true
+                    this.isPlacingOrder = false
                 })
                 .catch(err => {
                     this.orderMessage = ''
+                    this.isPlacingOrder = false
                     this.$store.dispatch('auth/checkIfTokenIsValid', err.response.data.status_code)
                 })
             }
@@ -507,6 +519,13 @@ export default {
                 } else {
                     el.style.zIndex = '101'
                 }
+            }
+        }
+    },
+    filters: {
+        formatBetSlipNumbers(value) {
+            if(value != null) {
+                return value.toFixed(2)
             }
         }
     }
@@ -552,5 +571,9 @@ export default {
 
     .loader {
         height: 510px;
+    }
+
+    .betSlipSpinner {
+        font-size: 120px;
     }
 </style>

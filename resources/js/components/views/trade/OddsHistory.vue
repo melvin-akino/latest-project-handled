@@ -7,11 +7,7 @@
                         <p class="text-white">Order logs for Market: {{odd_details.market_id}}</p>
                     </div>
                 </div>
-
                 <div class="flex flex-col">
-                    <div class="container mx-auto">
-                        <span class="text-sm p-2 font-bold text-gray-800">{{market_details.sport}}: {{market_details.odd_type}} ({{market_details.market_flag}})</span>
-                    </div>
                     <div v-if="!loadingOddsHistory">
                         <div class="order w-full my-1" v-for="(log, index) in logs" :key="index">
                             <div class="orderHeading bg-gray-400 p-2 cursor-pointer" @click="toggleOrderLog(index)">
