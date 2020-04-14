@@ -15,10 +15,12 @@ class MinMaxRequestScraperCron extends CronJob
     {
         return 1000;// Run every 1000ms
     }
+
     public function isImmediate()
     {
         return true;// Whether to trigger `run` immediately after setting up
     }
+
     // --- Override the corresponding method to return the configuration: end
     public function run()
     {

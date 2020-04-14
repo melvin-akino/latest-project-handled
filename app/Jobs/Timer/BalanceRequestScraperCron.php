@@ -11,7 +11,7 @@ use App\Models\SystemConfiguration;
 
 class BalanceRequestScraperCron extends CronJob
 {
-	protected $i = 1;
+    protected $i = 1;
     protected $systemConfigurationsTimers = [];
 
     // !!! The `interval` and `isImmediate` of cron job can be configured in two ways(pick one of two): one is to overload the corresponding method, and the other is to pass parameters when registering cron job.
@@ -20,14 +20,16 @@ class BalanceRequestScraperCron extends CronJob
     {
         return 1000;// Run every 1000ms
     }
+
     public function isImmediate()
     {
         return false;// Whether to trigger `run` immediately after setting up
     }
+
     // --- Override the corresponding method to return the configuration: end
     public function run()
     {
-    	$this->i++;
+        $this->i++;
 
         $refreshDBInterval = config('balance.refresh-db-interval');
 
@@ -37,7 +39,7 @@ class BalanceRequestScraperCron extends CronJob
 
         if (!empty($this->systemConfigurationsTimers)) {
             foreach ($this->systemConfigurationsTimers as $systemConfigurationsTimer) {
-                if ($this->i % (int) $systemConfigurationsTimer['value'] == 0) {
+                if ($this->i % (int)$systemConfigurationsTimer['value'] == 0) {
                     $this->sendPayload($systemConfigurationsTimer['type']);
                 }
             }
@@ -59,21 +61,18 @@ class BalanceRequestScraperCron extends CronJob
     {
         $kafkaTopic = env('KAFKA_SCRAPE_BALANCE_POSTFIX', '_balance_req');
 
-        $kafkaProducer   = app('KafkaProducer');
-        $producerHandler = new ProducerHandler($kafkaProducer);
-
         $providerAccount = DB::table('provider_accounts as pa')
-                            ->join('providers as p', 'p.id', 'pa.provider_id')
-                            ->where('p.is_enabled', true)
-                            ->where('type', $type)
-                            ->whereNull('deleted_at')
-                            ->select('username', 'alias')
-                            ->first();
+            ->join('providers as p', 'p.id', 'pa.provider_id')
+            ->where('p.is_enabled', true)
+            ->where('type', $type)
+            ->whereNull('deleted_at')
+            ->select('username', 'alias')
+            ->first();
 
         $username = $providerAccount->username;
         $provider = strtolower($providerAccount->alias);
 
-        $requestId = (string) Str::uuid();
+        $requestId = (string)Str::uuid();
         $requestTs = $this->milliseconds();
 
         $payload = [
@@ -83,8 +82,8 @@ class BalanceRequestScraperCron extends CronJob
             'command'     => 'balance'
         ];
         $payload['data'] = [
-            'provider'  => $provider,
-            'username'  => $username
+            'provider' => $provider,
+            'username' => $username
         ];
 
         KafkaPush::dispatch($provider . $kafkaTopic, $payload, $requestId);
