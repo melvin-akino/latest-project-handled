@@ -6,7 +6,7 @@ use Tests\TestCase;
 
 class ProviderTest extends AdminAccountTest
 {
-  
+    
     /** @test */
     public function InsertProviderNodataTest() {
               
@@ -19,8 +19,8 @@ class ProviderTest extends AdminAccountTest
                     'is_enabled' => 0
                 ]
             );
-       
-         $response->assertStatus(500);
+        
+        $response->assertStatus(500);
         
     }
      /** @test */
