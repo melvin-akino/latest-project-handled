@@ -75,7 +75,7 @@ class BalanceRequestScraperCron extends CronJob
         $requestId = (string)Str::uuid();
         $requestTs = $this->milliseconds();
 
-        $payload = [
+        $payload         = [
             'request_uid' => $requestId,
             'request_ts'  => $requestTs,
             'sub_command' => 'scrape',

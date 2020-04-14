@@ -30,7 +30,7 @@ class SettlementsRequestScraperCron extends CronJob
         $this->i++;
 
         $refreshDBInterval = config('settlements.refresh-db-interval');
-        $requestInterval = config('settlements.request-interval');
+        $requestInterval   = config('settlements.request-interval');
 
         if ($this->i % $refreshDBInterval == 0) {
             $this->providerAccounts = $this->refreshDbConfig();

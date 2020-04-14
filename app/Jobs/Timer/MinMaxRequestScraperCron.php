@@ -30,14 +30,14 @@ class MinMaxRequestScraperCron extends CronJob
             $requestId = Str::uuid();
             $requestTs = self::milliseconds();
 
-            $payload = [
+            $payload         = [
                 'request_uid' => $requestId,
                 'request_ts'  => $requestTs,
                 'sub_command' => 'scrape',
                 'command'     => 'minmax'
             ];
             $payload['data'] = $minMaxRequest;
-            $kafkaTopic = env('KAFKA_SCRAPE_MINMAX_REQUEST_POSTFIX', '_minmax_req');
+            $kafkaTopic      = env('KAFKA_SCRAPE_MINMAX_REQUEST_POSTFIX', '_minmax_req');
             KafkaPush::dispatch(strtolower($minMaxRequest['provider']) . $kafkaTopic, $payload, $requestId);
         }
     }
