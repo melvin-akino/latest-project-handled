@@ -37,7 +37,8 @@ const state = {
     tradePageSettings: {},
     betSlipSettings: {},
     showSearch: true,
-    activeBetSlip: null
+    activeBetSlip: null,
+    wallet: {}
 }
 
 const mutations = {
@@ -195,6 +196,9 @@ const mutations = {
     },
     SET_ACTIVE_BETSLIP: (state, data) => {
         state.activeBetSlip = data
+    },
+    SET_WALLET: (state, data) => {
+        state.wallet = data
     }
 }
 
@@ -299,6 +303,15 @@ const actions = {
             if(state.bets.length != 0) {
                 commit('TOGGLE_BETBAR', true)
             }
+        })
+        .catch(err => {
+            dispatch('auth/checkIfTokenIsValid', err.response.data.status_code, { root: true })
+        })
+    },
+    getWalletData({commit, dispatch}) {
+        axios.get('v1/user/wallet', { headers: { 'Authorization': `Bearer ${token}` }})
+        .then(response => {
+            commit('SET_WALLET', response.data.data)
         })
         .catch(err => {
             dispatch('auth/checkIfTokenIsValid', err.response.data.status_code, { root: true })
