@@ -471,6 +471,8 @@ export default {
                     this.orderMessage = response.data.data
                     this.$store.dispatch('trade/getBetbarData')
                     this.$store.commit('trade/TOGGLE_BETBAR', true)
+                    this.$store.dispatch('trade/getWalletData')
+                    
                     if(this.oddTypesWithSpreads.includes(this.market_details.odd_type)) {
                         let prices = data.markets.map(market => market.price)
                         let sumOfPrices = prices.reduce((firstPrice, secondPrice) => firstPrice + secondPrice, 0)
@@ -491,6 +493,7 @@ export default {
                     this.isDoneBetting = true
                 })
                 .catch(err => {
+                    this.orderMessage = ''
                     this.$store.dispatch('auth/checkIfTokenIsValid', err.response.data.status_code)
                 })
             }

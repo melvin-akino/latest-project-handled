@@ -84,7 +84,7 @@ class KafkaProduce implements CustomProcessInterface
                                     'provider' => $providerAlias
                                 ];
 
-                                self::pushToKafka($payload, $requestId, $kafkaTopics['req_open_order']);
+                                self::pushToKafka($payload, $requestId, $providerAlias . $kafkaTopics['req_open_order']);
                             }
 
                             //checking if 30 minutest interval
@@ -122,8 +122,9 @@ class KafkaProduce implements CustomProcessInterface
                         if (strpos($pKey, 'place-bet-') === 0) {
                             $payload   = json_decode($pRow['payload']);
                             $requestId = $payload->request_uid;
+                            $provider  = $payload->data->provider;
 
-                            self::pushToKafka((array) $payload, $requestId, $kafkaTopics['req_order']);
+                            self::pushToKafka((array) $payload, $requestId, $provider . $kafkaTopics['req_order']);
                         }
 
                         $payloadsTable->del($pKey);
