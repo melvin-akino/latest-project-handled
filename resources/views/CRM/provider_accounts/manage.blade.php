@@ -178,7 +178,6 @@
                 for(var i = 0; i<providerAccountLen; i++){
                     var name = providerAccountList[i]['username'];
 
-                    console.log('name: ' + name + ' | value: ' + value);
                     if (isNew == '' && name == value) {
                         unique = false;
                         break;

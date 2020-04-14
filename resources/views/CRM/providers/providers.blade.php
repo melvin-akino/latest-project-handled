@@ -79,6 +79,7 @@
     <script src="{{ asset("CRM/AdminLTE-2.4.2/bower_components/jquery-ui/ui/sortable.js") }}"></script>
     <script src="{{ asset("js-validate/jquery.validate.min.js") }}"></script>
     <!-- ClubNine -->
+    <script src="{{ asset("CRM/Capital7-1.0.0/js/form-validation.js") }}"></script>
 
     <script type="text/javascript" >
         var providerList = [];
