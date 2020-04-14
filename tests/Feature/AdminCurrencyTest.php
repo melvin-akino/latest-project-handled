@@ -4,7 +4,7 @@ namespace Tests\Feature;
 use Illuminate\Foundation\Testing\{WithoutMiddleware,RefreshDatabase,WithFaker};
 use Tests\TestCase;
 
-class AdminCurrencyTest extends AdminAccounttest
+class AdminCurrencyTest extends AdminAccountTest
 {
   
     /** @test */
