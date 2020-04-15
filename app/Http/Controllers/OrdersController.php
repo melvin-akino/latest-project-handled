@@ -256,6 +256,7 @@ class OrdersController extends Controller
             $swt          = app('swoole');
             $topics       = $swt->topicTable;
             $payloadsSwt  = $swt->payloadsTable;
+            $ordersTable  = $swt->ordersTable;
             $betType      = "";
             $return       = "";
             $returnCode   = 200;
@@ -578,6 +579,9 @@ class OrdersController extends Controller
                 if (!$payloadsSwt->exists($payloadsSwtId)) {
                     $payloadsSwt->set($payloadsSwtId, [ 'payload' => json_encode($payload) ]);
                 }
+
+                $ordersTable['orderId:' . $orderIds[$i]]['username']    = $payload['data']['username'];
+                $ordersTable['orderId:' . $orderIds[$i]]['orderExpiry'] = $payload['data']['orderExpiry'];
             }
 
             return response()->json([

@@ -53,30 +53,7 @@ class TransformKafkaMessageOpenOrders extends Task
 
                             if (!$ws->exists($removalSwtId)) {
                                 if (in_array(strtoupper($order->status), $forBetBarRemoval)) {
-                                    if ($expiry == "Now") {
-                                        WSForBetBarRemoval::dispatch($fd['value'], $orderId);
-                                    } else {
-                                        $delay    = substr($row, strlen($row) - 1); // s - Seconds, m - Minutes, h - Hours
-                                        $duration = substr($row, 0, strlen($row) - 1);
-
-                                        switch ($delay) {
-                                            case 's':
-                                                WSForBetBarRemoval::dispatch($fd['value'], $orderId)
-                                                    ->delay(now()->addSeconds($duration));
-                                                break;
-
-                                            case 'm':
-                                                WSForBetBarRemoval::dispatch($fd['value'], $orderId)
-                                                    ->delay(now()->addMinutes($duration));
-                                                break;
-
-                                            case 'h':
-                                                WSForBetBarRemoval::dispatch($fd['value'], $orderId)
-                                                    ->delay(now()->addHours($duration));
-                                                break;
-                                        }
-                                    }
-
+                                    WSForBetBarRemoval::dispatch($fd['value'], $orderId);
                                     $ws->set($removalSwtId, [ 'value' => $orderId, ]);
                                 }
                             }
