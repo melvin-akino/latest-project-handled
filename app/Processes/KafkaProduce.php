@@ -131,7 +131,6 @@ class KafkaProduce implements CustomProcessInterface
                                     }
                                 }
                             }
-
                             $betInitialTime = $newTime;
                         }
 

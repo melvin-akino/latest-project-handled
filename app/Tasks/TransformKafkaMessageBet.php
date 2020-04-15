@@ -44,7 +44,7 @@ class TransformKafkaMessageBet extends Task
                     ]);
 
                     $ordersTable['orderId:' . $orderId]['bet_id'] = $this->message->data->bet_id;
-                }                
+                }
             }
         }
     }
