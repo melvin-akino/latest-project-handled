@@ -65,13 +65,13 @@
                             <label class="text-sm">Order Expiry</label>
                             <div class="relative orderExpiryInput">
                                 <select class="shadow appearance-none border rounded text-sm w-full py-1 px-3 text-gray-700 leading-tight focus:outline-none" v-model="orderForm.orderExpiry">
-                                    <option value="Now">Now</option>
-                                    <option value="2m">2 mins</option>
-                                    <option value="5m">5 mins</option>
-                                    <option value="10m">10 mins</option>
-                                    <option value="30m">30 mins</option>
-                                    <option value="1h">1 hour</option>
-                                    <option value="2h">2 hours</option>
+                                    <option value="30">Now</option>
+                                    <option value="120">2 mins</option>
+                                    <option value="300">5 mins</option>
+                                    <option value="600">10 mins</option>
+                                    <option value="1800">30 mins</option>
+                                    <option value="3600">1 hour</option>
+                                    <option value="7200">2 hours</option>
                                 </select>
                                 <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
                                     <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
@@ -158,7 +158,7 @@ export default {
             market_id: this.odd_details.market_id,
             orderForm: {
                 stake: '',
-                orderExpiry: 'Now',
+                orderExpiry: '30',
                 betType: 'BEST_PRICE',
                 markets: []
             },
