@@ -39,7 +39,7 @@ class ProvidersController extends Controller
         return response()->json($data);
     }
 
-    public function manage(Request $request) 
+    public function manage(ProviderRequest $request) 
     {
         try {
             
@@ -49,7 +49,7 @@ class ProvidersController extends Controller
                 !empty($requestData['providerId']) ? $data['id'] = $requestData['providerId'] : null;
                 !empty($requestData['name']) ? $data['name'] = $requestData['name'] : null;
                 !empty($requestData['alias']) ? $data['alias'] = $requestData['alias'] : null;
-                !empty($requestData['percentage']) ? $data['punter_percentage'] = $requestData['percentage'] : null;
+                !empty($requestData['percentage']) ? $data['punter_percentage'] = $requestData['percentage'] : 0;
                 !empty($requestData['is_enabled']) ? $data['is_enabled'] = ($requestData['is_enabled'] == 'true') ? 1 : 0 : 0;
                 
                 if (!empty($data['id'])) {

@@ -24,7 +24,7 @@ class ProviderAccountTest extends AdminAccountTest
                 ]
             );
        
-         $response->assertStatus(500);
+         $response->assertStatus(422);
         
     }
      /** @test */
@@ -38,7 +38,7 @@ class ProviderAccountTest extends AdminAccountTest
                     'password' => 'pass8888',
                     'provider_id' => '2',
                     'account_type' => 'BET_NORMAL',
-                    'credits' => '',
+                    'credits' => 0,
                     'pa_percentage'   => '45',
                     'pa_is_enabled' => 1,
                     'is_idle' => 1

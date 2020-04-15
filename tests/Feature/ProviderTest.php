@@ -20,7 +20,7 @@ class ProviderTest extends AdminAccountTest
                 ]
             );
         
-        $response->assertStatus(500);
+        $response->assertStatus(422);
         
     }
      /** @test */
@@ -31,7 +31,7 @@ class ProviderTest extends AdminAccountTest
                 [
                     'name'   => 'Test1',
                     'alias' => 'Test1',
-                    'punter_percentage'   => '45',
+                    'punter_percentage'   => 45,
                     'is_enabled' => 1
                 ]
             );
