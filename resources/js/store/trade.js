@@ -30,8 +30,6 @@ const state = {
     watchlist: [],
     previouslySelectedEvents: [],
     openedBetSlips: [],
-    openedOddsHistory: [],
-    openedBetMatrix: [],
     bookies: [],
     bets: [],
     tradePageSettings: {},
@@ -166,18 +164,6 @@ const mutations = {
     },
     CLOSE_BETSLIP: (state, market_id) => {
         state.openedBetSlips = state.openedBetSlips.filter(openedBetSlip => openedBetSlip.market_id != market_id)
-    },
-    OPEN_BET_MATRIX: (state, odd) => {
-        state.openedBetMatrix.push(odd)
-    },
-    CLOSE_BET_MATRIX: (state, market_id) => {
-        state.openedBetMatrix = state.openedBetMatrix.filter(betMatrix => betMatrix.market_id != market_id)
-    },
-    OPEN_ODDS_HISTORY: (state, odd) => {
-        state.openedOddsHistory.push(odd)
-    },
-    CLOSE_ODDS_HISTORY: (state, market_id) => {
-        state.openedOddsHistory = state.openedOddsHistory.filter(oddHistory => oddHistory.market_id != market_id)
     },
     SET_BOOKIES: (state, bookies) => {
         state.bookies = bookies
@@ -390,7 +376,18 @@ const actions = {
             let sortedEvents = sortByObjectKeys(state.events[data.schedule], sortedEventObject[data.schedule])
             commit('SET_EVENTS', { schedule: data.schedule, events: sortedEvents })
         }
-    }
+    },
+    getOrderLogs({dispatch}, market_id) {
+        return new Promise((resolve) => {
+            axios.get(`v1/orders/logs/${market_id}`, { headers: { 'Authorization': `Bearer ${token}` }})
+            .then(response => {
+                resolve(response.data.data)
+            })
+            .catch(err => {
+                dispatch('auth/checkIfTokenIsValid', err.response.data.status_code, { root: true })
+            })
+        })
+    }   
 }
 
 export default {

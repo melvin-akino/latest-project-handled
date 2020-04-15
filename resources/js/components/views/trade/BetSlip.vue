@@ -1,6 +1,6 @@
 <template>
     <div class="betslip flex justify-center items-center">
-        <dialog-drag :title="'Bet Slip - '+market_id" :options="options" @close="closeBetSlip(odd_details.market_id)" @click.native="setActiveBetSlip(odd_details.market_id)" v-overlap-all-betslip="activeBetSlip==odd_details.market_id">
+        <dialog-drag :title="'Bet Slip - '+market_id" :options="options" @close="closeBetSlip(odd_details.market_id)" @click.native="setActiveBetSlip(market_id)" v-overlap-all-betslip="activeBetSlip==market_id">
             <div class="flex flex-col justify-center items-center loader" v-if="isLoadingMarketDetails">
                 <span class="betSlipSpinner"><i class="fas fa-circle-notch fa-spin"></i></span>
                 <span class="text-center mt-2">Loading Market Details...</span>
@@ -9,8 +9,8 @@
                 <div class="flex items-center w-1/2 leagueAndTeamDetails">
                     <span class="text-white uppercase font-bold mr-2 my-2 px-2 bg-orange-500">{{market_details.odd_type}}</span>
                     <span class="text-gray-800 font-bold my-2 pr-6">{{market_details.league_name}}</span>
-                    <a href="#" @click.prevent="openBetMatrix(odd_details)" class="text-center py-1 pr-1" title="Bet Matrix" v-if="oddTypesWithSpreads.includes(market_details.odd_type) && isDoneBetting && isBetSuccessful"><i class="fas fa-chart-area"></i></a>
-                    <a href="#" @click.prevent="openOddsHistory(odd_details)" lass="text-center py-1" title="Odds History"><i class="fas fa-bars"></i></a>
+                    <a href="#" @click.prevent="showBetMatrix = true" class="text-center py-1 pr-1" title="Bet Matrix" v-if="oddTypesWithSpreads.includes(market_details.odd_type) && isDoneBetting && isBetSuccessful"><i class="fas fa-chart-area"></i></a>
+                    <a href="#" @click.prevent="showOddsHistory = true" class="text-center py-1" title="Odds History"><i class="fas fa-bars"></i></a>
                 </div>
                 <div class="flex justify-between items-center w-full leagueAndTeamDetails">
                     <div class="flex w-3/4 items-center">
@@ -34,19 +34,19 @@
                         <div class="advanceBetSlipInfo" :class="{'hidden': betSlipSettings.adv_betslip_info == 0, 'block': betSlipSettings.adv_betslip_info == 1}">
                             <div class="flex justify-between items-center py-2">
                                 <span class="text-sm">Min Stake</span>
-                                <span class="text-sm">{{lowestMin | formatBetSlipNumbers}}</span>
+                                <span class="text-sm">{{lowestMin | moneyFormat}}</span>
                             </div>
                             <div class="flex justify-between items-center py-2">
                                 <span class="text-sm">Max Stake</span>
-                                <span class="text-sm">{{highestMax | formatBetSlipNumbers}}</span>
+                                <span class="text-sm">{{highestMax | moneyFormat}}</span>
                             </div>
                             <div class="flex justify-between items-center py-2">
                                 <span class="text-sm">Average Price</span>
-                                <span class="text-sm">{{displayedAveragePrice | formatBetSlipNumbers}}</span>
+                                <span class="text-sm">{{displayedAveragePrice | twoDecimalPlacesFormat}}</span>
                             </div>
                             <div class="flex justify-between items-center py-2">
                                 <span class="text-sm">Towin</span>
-                                <span class="text-sm">{{towin | formatBetSlipNumbers}}</span>
+                                <span class="text-sm">{{towin | moneyFormat}}</span>
                             </div>
                         </div>
                         <div class="flex justify-between items-center py-2">
@@ -65,13 +65,13 @@
                             <label class="text-sm">Order Expiry</label>
                             <div class="relative orderExpiryInput">
                                 <select class="shadow appearance-none border rounded text-sm w-full py-1 px-3 text-gray-700 leading-tight focus:outline-none" v-model="orderForm.orderExpiry">
-                                    <option value="Now">Now</option>
-                                    <option value="2m">2 mins</option>
-                                    <option value="5m">5 mins</option>
-                                    <option value="10m">10 mins</option>
-                                    <option value="30m">30 mins</option>
-                                    <option value="1h">1 hour</option>
-                                    <option value="2h">2 hours</option>
+                                    <option value="30">Now</option>
+                                    <option value="120">2 mins</option>
+                                    <option value="300">5 mins</option>
+                                    <option value="600">10 mins</option>
+                                    <option value="1800">30 mins</option>
+                                    <option value="3600">1 hour</option>
+                                    <option value="7200">2 hours</option>
                                 </select>
                                 <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
                                     <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
@@ -92,42 +92,42 @@
                     </div>
                     <div class="flex flex-col mt-4 w-3/5 h-full">
                         <div class="flex flex-col items-center bg-white shadow shadow-xl mb-2" v-if="oddTypesWithSpreads.includes(market_details.odd_type)">
-                            <span class="text-white uppercase font-bold my-3 px-2 bg-orange-500">{{market_details.odd_type}}</span>
-                            <div class="flex justify-center items-center">
+                            <div class="text-white uppercase font-bold p-2 bg-orange-500 w-full text-center">{{market_details.odd_type}}</div>
+                            <div class="flex justify-center items-center p-2">
                                 <a href="#" class="m-1 w-12 text-center text-gray-800" @click="previousPoint" v-if="spreads.length > 1"><i class="fas fa-chevron-left"></i></a>
                                 <a href="#" class="m-1 w-16 text-center text-sm" :class="[spread.points == points ? 'text-white bg-orange-500 px-1 py-1' : 'text-gray-800']" v-for="(spread, index) in spreads" :key="index" @click="changePoint(spread.points, spread.market_id, spread.odds)">{{spread.points}}</a>
                                 <a href="#" class="m-1 w-12 text-center text-gray-800" @click="nextPoint" v-if="spreads.length > 1"><i class="fas fa-chevron-right"></i></a>
                             </div>
                         </div>
-                        <div class="flex flex-col bg-white shadow shadow-xl py-8 px-3">
-                            <div class="flex justify-between items-center p-1">
+                        <div class="flex flex-col bg-white shadow shadow-xl">
+                            <div class="flex justify-between items-center py-2 bg-orange-500 text-white">
                                 <span class="w-1/4"></span>
-                                <span class="w-1/4 text-sm font-bold">Min</span>
-                                <span class="w-1/4 text-sm font-bold">Max</span>
-                                <span class="w-1/4 text-sm font-bold">Price</span>
+                                <span class="w-1/4 text-sm font-bold text-center">Min</span>
+                                <span class="w-1/4 text-sm font-bold text-center">Max</span>
+                                <span class="w-1/4 text-sm font-bold text-center">Price</span>
                             </div>
                             <div v-if="minMaxData.length != 0">
-                                <div class="flex justify-between items-center p-1" v-for="minmax in minMaxData" :key="minmax.provider_id">
-                                    <span class="w-1/4 text-sm font-bold">{{minmax.provider}}</span>
-                                    <span class="w-1/4 text-sm">{{minmax.min | formatBetSlipNumbers}}</span>
-                                    <span class="w-1/4 text-sm">{{minmax.max | formatBetSlipNumbers}}</span>
-                                    <a href="#" @click.prevent="updatePrice(minmax.price)" class="w-1/4 text-sm font-bold underline">{{minmax.price | formatBetSlipNumbers}}</a>
+                                <div class="flex justify-between items-center py-2" v-for="minmax in minMaxData" :key="minmax.provider_id">
+                                    <span class="w-1/4 text-sm font-bold text-center pl-3">{{minmax.provider}}</span>
+                                    <span class="w-1/4 text-sm text-center">{{minmax.min | moneyFormat}}</span>
+                                    <span class="w-1/4 text-sm text-center">{{minmax.max | moneyFormat}}</span>
+                                    <a href="#" @click.prevent="updatePrice(minmax.price)" class="w-1/4 text-sm font-bold underline text-center">{{minmax.price | twoDecimalPlacesFormat}}</a>
                                 </div>
                             </div>
-                            <div v-else class="flex justify-center">
+                            <div v-else class="flex justify-center py-2">
                                 <span class="text-sm mt-2">Loading minmax data <i class="fas fa-circle-notch fa-spin"></i></span>
                             </div>
                         </div>
                     </div>
                 </div>
                 <div class="flex justify-center w-full">
-                    <button v-if="isPlacingOrder" @click="placeOrder" class="bg-orange-500 text-white rounded-lg w-full text-sm uppercase p-2 mt-2" :class="[minMaxData.length === 0 ? 'opacity-75' : 'hover:bg-orange-600']" disabled>Placing Order... <span class="text-sm"><i class="fas fa-circle-notch fa-spin"></i></span></button>
+                    <button v-if="isPlacingOrder" @click="placeOrder" class="bg-orange-500 text-white rounded-lg w-full text-sm uppercase p-2 mt-2 opacity-75" disabled>Placing Order... <span class="text-sm"><i class="fas fa-circle-notch fa-spin"></i></span></button>
                     <button v-if="!isPlacingOrder" @click="placeOrder" class="bg-orange-500 text-white rounded-lg w-full text-sm uppercase p-2 mt-2" :class="[minMaxData.length === 0 ? 'opacity-75' : 'hover:bg-orange-600']" :disabled="minMaxData.length === 0">Place Order</button>
                 </div>
             </div>
         </dialog-drag>
-        <bet-matrix v-for="odd in openedBetMatrix" :key="odd.market_id" :odd_details="odd" :analysis-data="analysisData"></bet-matrix>
-        <odds-history v-for="odd in openedOddsHistory" :key="odd.market_id" :odd_details="odd" :market_details="market_details"></odds-history>
+        <odds-history v-if="showOddsHistory" @close="closeOddsHistory" :market_id="market_id" :logs="orderLogs"></odds-history>
+        <bet-matrix v-if="showBetMatrix" @close="closeBetMatrix" :market_id="market_id" :analysis-data="analysisData"></bet-matrix>
     </div>
 </template>
 
@@ -135,18 +135,19 @@
 import { mapState } from 'vuex'
 import Cookies from 'js-cookie'
 import _ from 'lodash'
-import BetMatrix from './BetMatrix'
 import OddsHistory from './OddsHistory'
+import BetMatrix from './BetMatrix'
 import 'vue-dialog-drag/dist/vue-dialog-drag.css'
 import DialogDrag from 'vue-dialog-drag'
 import { getSocketKey, getSocketValue } from '../../../helpers/socket'
+import { twoDecimalPlacesFormat, moneyFormat } from '../../../helpers/numberFormat'
 
 export default {
     props: ['odd_details'],
     components: {
         DialogDrag,
-        BetMatrix,
-        OddsHistory
+        OddsHistory,
+        BetMatrix
     },
     data() {
         return {
@@ -157,7 +158,7 @@ export default {
             market_id: this.odd_details.market_id,
             orderForm: {
                 stake: '',
-                orderExpiry: 'Now',
+                orderExpiry: 30,
                 betType: 'BEST_PRICE',
                 markets: []
             },
@@ -174,11 +175,14 @@ export default {
             isPlacingOrder: null,
             isDoneBetting: false,
             isLoadingMarketDetails: true,
-            isBetSuccessful: null
+            isBetSuccessful: null,
+            orderLogs: [],
+            showOddsHistory: false,
+            showBetMatrix: false
         }
     },
     computed: {
-        ...mapState('trade', ['activeBetSlip', 'openedBetMatrix', 'openedOddsHistory', 'betSlipSettings', 'wallet']),
+        ...mapState('trade', ['activeBetSlip', 'betSlipSettings', 'wallet']),
         spreads() {
             if(!_.isEmpty(this.market_details)) {
                 return this.market_details.spreads
@@ -247,11 +251,24 @@ export default {
         },
         towin() {
             return Math.floor(this.orderForm.stake * this.initialPrice * 100) / 100
+        },
+        numberOfQualifiedProviders() {
+            if(!_.isEmpty(this.minMaxData)) {
+                let prices = this.minMaxData.map(minmax => minmax.price)
+                let qualifiedPrices = []
+                prices.map(price => {
+                    if(price >= this.initialPrice) {
+                        qualifiedPrices.push(price)
+                    }
+                })
+                return qualifiedPrices.length
+            }
         }
     },
     mounted() {
         this.getMarketDetails()
         this.minmax(this.market_id)
+        this.setOrderLogs(this.market_id)
         this.$store.dispatch('trade/getBetSlipSettings')
     },
     methods: {
@@ -272,12 +289,19 @@ export default {
         setActiveBetSlip(market_id) {
             this.$store.commit('trade/SET_ACTIVE_BETSLIP', market_id)
         },
+        async setOrderLogs(market_id) {
+            let orderLogs = await this.$store.dispatch('trade/getOrderLogs', market_id)
+            this.orderLogs = orderLogs
+        },
         changePoint(points, market_id, odds) {
             this.emptyMinMax(this.market_id)
             this.points = points
             this.market_id = market_id
-            this.initialPrice = odds
+            this.initialPrice = Number(odds)
+            this.setActiveBetSlip(market_id)
             this.minmax(market_id)
+            this.showBetMatrix = false
+            this.setOrderLogs(market_id)
         },
         previousPoint() {
             if(this.activePointIndex != 0) {
@@ -376,17 +400,13 @@ export default {
         },
         closeBetSlip(market_id) {
             this.$store.commit('trade/CLOSE_BETSLIP', this.odd_details.market_id)
-            this.$store.commit('trade/CLOSE_BET_MATRIX', this.odd_details.market_id)
-            this.$store.commit('trade/CLOSE_ODDS_HISTORY', this.odd_details.market_id)
             this.emptyMinMax(this.market_id)
         },
-        openBetMatrix(odd_details) {
-            this.$store.commit('trade/CLOSE_BET_MATRIX', odd_details.market_id)
-            this.$store.commit('trade/OPEN_BET_MATRIX', odd_details)
+        closeOddsHistory() {
+            this.showOddsHistory = false
         },
-        openOddsHistory(odd_details) {
-            this.$store.commit('trade/CLOSE_ODDS_HISTORY', odd_details.market_id)
-            this.$store.commit('trade/OPEN_ODDS_HISTORY', odd_details)
+        closeBetMatrix() {
+            this.showBetMatrix = false
         },
         clearOrderMessage() {
             this.orderMessage = ''
@@ -407,10 +427,13 @@ export default {
         placeOrder() {
             if(this.orderForm.stake == '' || this.initialPrice == '') {
                 this.orderMessage = 'Please input stake or price.'
-                 this.isBetSuccessful = false
+                this.isBetSuccessful = false
             } else if(this.wallet.credit == 0 || this.orderForm.stake > this.wallet.credit) {
                 this.orderMessage = 'Insufficient wallet balance.'
-                 this.isBetSuccessful = false
+                this.isBetSuccessful = false
+            } else if(this.numberOfQualifiedProviders == 0) {
+                this.orderMessage = 'Prices in minmax should be greater than or equal to the price input to qualify for the bet.'
+                this.isBetSuccessful = false
             } else {
                 this.isPlacingOrder = true
                 let data = {
@@ -523,11 +546,8 @@ export default {
         }
     },
     filters: {
-        formatBetSlipNumbers(value) {
-            if(value != null) {
-                return value.toFixed(2)
-            }
-        }
+        twoDecimalPlacesFormat,
+        moneyFormat
     }
 }
 </script>
