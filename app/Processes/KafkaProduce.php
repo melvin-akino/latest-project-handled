@@ -125,9 +125,9 @@ class KafkaProduce implements CustomProcessInterface
                             $provider  = $payload->data->provider;
 
                             self::pushToKafka((array) $payload, $requestId, $provider . $kafkaTopics['req_order']);
-                        }
 
-                        $payloadsTable->del($pKey);
+                            $payloadsTable->del($pKey);
+                        }
                     }
                 }
             }

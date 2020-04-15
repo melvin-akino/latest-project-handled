@@ -41,8 +41,8 @@ class TransformKafkaMessageBet extends Task
                         'topic_name' => 'open-order-' . $this->message->data->bet_id
                     ]);
 
-                    $ordersTable['orderId:' . $orderId]['bet_id'] = $this->message->data->bet_id
-                }                
+                    $ordersTable['orderId:' . $orderId]['bet_id'] = $this->message->data->bet_id;
+                }
             }
         }
     }
