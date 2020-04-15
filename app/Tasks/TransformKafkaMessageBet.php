@@ -25,8 +25,9 @@ class TransformKafkaMessageBet extends Task
 
         foreach ($topics AS $key => $row) {
             if (strpos($row['topic_name'], 'order-') === 0) {
-                $orderId        = substr($row['topic_name'], strlen('order-'));
-                $messageOrderId = end(explode('-', $this->message->request_uid));
+                $orderId         = substr($row['topic_name'], strlen('order-'));
+                $requestUIDArray = explode('-', $this->message->request_uid);
+                $messageOrderId  = end($requestUIDArray);
 
                 if ($orderId == $messageOrderId) {
                     Order::updateOrCreate([
@@ -41,7 +42,7 @@ class TransformKafkaMessageBet extends Task
                         'topic_name' => 'open-order-' . $this->message->data->bet_id
                     ]);
 
-                    $ordersTable['orderId:' . $orderId]['bet_id'] = $this->message->data->bet_id;
+                    $ordersTable['orderId:' . $orderId]['bet_id'] = $this->message->data->bet_id
                 }                
             }
         }
