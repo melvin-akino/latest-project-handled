@@ -63,7 +63,7 @@ class KafkaConsume implements CustomProcessInterface
                                 }
                                 Task::deliver(new TransformKafkaMessageBalance($payload));
                                 break;
-                            case 'open orders':
+                            case 'orders':
                                 Task::deliver(new TransformKafkaMessageOpenOrders($payload));
                                 break;
                             default:
