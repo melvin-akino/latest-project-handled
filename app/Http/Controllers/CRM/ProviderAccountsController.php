@@ -33,7 +33,7 @@ class ProviderAccountsController extends Controller
         return response()->json($data);
     }
 
-    public function manage(Request $request) 
+    public function manage(ProviderAccountRequest $request) 
     {
         try 
         {
@@ -44,7 +44,7 @@ class ProviderAccountsController extends Controller
                 !empty($request->password) ? $data['password'] = $request->password : null;
                 !empty($request->provider_id) ? $data['provider_id'] = $request->provider_id : 0;
                 !empty($request->account_type) ? $data['type'] = $request->account_type : null;
-                !empty($request->pa_percentage) ? $data['punter_percentage'] = $request->pa_percentage : null;
+                !empty($request->pa_percentage) ? $data['punter_percentage'] = $request->pa_percentage : 0;
                 !empty($request->credits) ? $data['credits'] = $request->credits : 0;
                 !empty($request->pa_is_enabled) ? $data['is_enabled'] = true : $data['is_enabled'] = false;
                 !empty($request->is_idle) ? $data['is_idle'] = true : $data['is_idle'] = false;

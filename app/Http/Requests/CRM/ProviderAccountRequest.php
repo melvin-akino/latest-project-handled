@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\CRM;
 
+use App\Models\ProviderAccount;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Auth;
 
@@ -24,12 +25,15 @@ class ProviderAccountRequest extends FormRequest
      */
     public function rules()
     {
+        $existingProviderAccount = ProviderAccount::where('id', $this->input('providerAccountId'))->first();
+
+        $update = !empty($existingProviderAccount->id) ? ",$existingProviderAccount->id" : ''; 
+        
+        $uniqueUsername = "|unique:provider_accounts,username$update";
         return [
-            'username'   => 'required|max:50|unique:provider_account,username',
+            'username'   => 'required|max:50'.$uniqueUsername,
             'password' => 'required',
-            'punter_percentage'   => 'required|numeric',
-            'provider_id' => 'required|numeric',
-            'type' =>  'required'
+            'pa_percentage'   => 'required|numeric'
         ];
     }
 
