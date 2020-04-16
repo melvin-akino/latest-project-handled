@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\CRM;
 
+use App\Models\Provider;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Auth;
 
@@ -24,11 +25,18 @@ class ProviderRequest extends FormRequest
      */
     public function rules()
     {
+        
+        $existingProvider = Provider::where('id', $this->input('providerId'))->first();
+
+        $update = !empty($existingProvider->id) ? ",$existingProvider->id" : ''; 
+        
+        $uniqueName = "|unique:providers,name$update";
+        $uniqueAlias= "|unique:providers,alias$update";
+
         return [
-            'name'   => 'required|min:2|max:50|unique:provider,name',
-            'alias' => 'required|max:5|unique:provider,alias',
-            'punter_percentage'   => 'required|numeric',
-            'priority' => 'required|numeric'
+            'name'   => "required|min:2|max:50$uniqueName",
+            'alias' => "required|max:5$uniqueAlias",
+            'percentage'   => 'required|numeric'
         ];
     }
 

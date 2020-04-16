@@ -19,7 +19,7 @@
                 </div>
             </div>
         </div>
-        <Betslip v-for="odd in openedBetSlips" :key="odd.market_id" :odd_details="odd"></Betslip>
+        <bet-slip v-for="odd in openedBetSlips" :odd_details="odd" :key="odd.market_id"></bet-slip>
         <Betbar></Betbar>
     </div>
 </template>
@@ -34,7 +34,7 @@ import Watchlist from './Watchlist'
 import Columns from './Columns'
 import Games from './Games'
 import Betbar from './Betbar'
-import Betslip from './BetSlip'
+import BetSlip from './BetSlip'
 import { getSocketKey, getSocketValue } from '../../../helpers/socket'
 import { sortByObjectKeys } from '../../../helpers/array'
 
@@ -46,7 +46,7 @@ export default {
         Columns,
         Games,
         Betbar,
-        Betslip
+        BetSlip,
     },
     head: {
         title() {

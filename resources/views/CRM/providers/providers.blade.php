@@ -70,14 +70,17 @@
 @endsection
 
 @section('scripts')
-    <!-- DataTables -->
+
+    <!-- DataTables -->  
     <script src="{{ asset("CRM/AdminLTE-2.4.2/bower_components/datatables.net/js/jquery.dataTables.min.js") }}"></script>
-    <script src="{{ asset("CRM/AdminLTE-2.4.2/bower_components/datatables.net-bs/js/dataTables.bootstrap.min.js") }}"></script>
-    <script src="{{ asset("js-validate/jquery.validate.min.js") }}"></script>
-    <!-- ClubNine -->
+    <script src="{{ asset("CRM/AdminLTE-2.4.2/bower_components/jquery-ui/ui/core.js") }}"></script>
+    <script src="{{ asset("CRM/AdminLTE-2.4.2/bower_components/jquery-ui/ui/widget.js") }}"></script>
+    <script src="{{ asset("CRM/AdminLTE-2.4.2/bower_components/jquery-ui/ui/mouse.js") }}"></script>
+    <script src="{{ asset("CRM/AdminLTE-2.4.2/bower_components/jquery-ui/ui/sortable.js") }}"></script>
     <script src="{{ asset("CRM/Capital7-1.0.0/js/form-validation.js") }}"></script>
     <script type="text/javascript" >
         var providerList = [];
+        var providerAccountList = [];
         var systemConfigurations = [];
         var table;
         var childTable;
@@ -87,6 +90,7 @@
                 paging:   false,
                 info:     false,
                 searching: false,
+                ordering: false,
                 ajax: function (data, callback, settings) {
                     $.ajax({
                         url: "providers/list",
@@ -148,7 +152,7 @@
                 createdRow: function ( row, data, index ) {
                     //assign the provider id into the row
                     $(row).attr('id', 'provider-id-'+data.id);
-
+                    $(row).addClass('row-sortable');
                     if (data.extn === '') {
                       var td = $(row).find("td:first");
                       td.removeClass( 'details-control' );
@@ -227,6 +231,14 @@
                                         }
                                     }                                       
                                 }
+
+                                providerAccountList = [];
+
+                                $.each(json.data,function(key, value) 
+                                {
+                                    providerAccountList[key] = {'username' : value['username']};
+                                });
+
                                 callback({data: display});               
                             });
                         },
@@ -368,6 +380,46 @@
                     tr.addClass('shown');
                 }          
             });
+
+            $('#ProviderTable tbody').sortable({
+                items: "tr",
+                cursor: 'move',
+                opacity: 0.6,
+                update: function() {
+                    updateProviderPriority();
+                }
+            });
+            
+            function updateProviderPriority() {
+                var order = [];
+                var token = $('meta[name="csrf-token"]').attr('content');
+
+                $('tr.row-sortable').each(function(index,element) {
+                    order.push({
+                        id: $(this).attr('id').replace('provider-id-', ''),
+                        position: index+1
+                    });
+                });
+
+                $.ajax({
+                    type: "POST", 
+                    dataType: "json", 
+                    url: "providers/sort",
+                    data: {
+                        order: order,
+                        _token: token
+                    },
+                    success: function(response) {
+                        if (response.data == "success") {
+                            swal('Provider', 'Provider priority successfully updated.', response.data).then(() => {
+                                table.ajax.reload();
+                            });
+                        } else {
+                            console.log(response);
+                        }
+                    }
+                });
+            }
         });
     </script>
 @endsection

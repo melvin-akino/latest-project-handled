@@ -149,6 +149,7 @@ class OrdersController extends Controller
                 ->get(
                     [
                         'mem.master_event_market_unique_id',
+                        'em.odds',
                         'em.odd_label',
                         'em.is_main'
                     ]
@@ -159,6 +160,7 @@ class OrdersController extends Controller
             foreach ($getOtherMarkets AS $row) {
                 $spreads[] = [
                     'market_id' => $row->master_event_market_unique_id,
+                    'odds'      => $row->odds,
                     'points'    => $row->odd_label,
                     'is_main'   => $row->is_main
                 ];
