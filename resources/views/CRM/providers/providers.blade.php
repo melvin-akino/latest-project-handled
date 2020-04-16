@@ -165,7 +165,7 @@
 
             $('#ProviderTable tbody').on('click', 'button.edit-modal', function () {
                 var tr = $(this).closest('tr');
-                var providerId = $(this).closest('tr').attr('id').replace('provider-id-', '');;
+                var providerId = $(this).closest('tr').attr('id').replace('provider-id-', '');
                 var row = table.row( tr );
                 var rowData = row.data();
 
