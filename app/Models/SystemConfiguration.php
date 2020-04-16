@@ -11,6 +11,7 @@ class SystemConfiguration extends Model
     protected $fillable = [
         'type',
         'value',
+        'module'
     ];
 
     protected $hidden = [
