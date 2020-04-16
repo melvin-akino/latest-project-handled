@@ -34,7 +34,8 @@ class TransformKafkaMessageBet extends Task
                         'id' => $messageOrderId
                     ], [
                         'bet_id' => $this->message->data->bet_id,
-                        'reason' => $this->message->data->reason
+                        'reason' => $this->message->data->reason,
+                        'status' => 'SUCCESS'
                     ]);
 
                     $topics->set('unique:' . uniqid(), [

@@ -473,7 +473,7 @@ class OrdersController extends Controller
 
                 $incrementIds['payload'][] = $payload;
 
-                $orderIncrementId = Order::create([
+                $orderIncrement = Order::create([
                     'user_id'                       => auth()->user()->id,
                     'master_event_market_unique_id' => $request->market_id,
                     'market_id'                     => $query->bet_identifier,
@@ -491,9 +491,10 @@ class OrdersController extends Controller
                     'reason'                        => "",
                     'profit_loss'                   => 0.00,
                     'order_expiry'                  => $request->orderExpiry,
-                ])->id;
+                ]);
 
-                $incrementIds['id'][] = $orderIncrementId;
+                $incrementIds['id'][] = $orderIncrement->id;
+                $incrementIds['created_at'][] = $orderIncrement->created_at;
 
                 $orderLogsId = OrderLogs::create([
                     'user_id'       => auth()->user()->id,
@@ -505,7 +506,7 @@ class OrdersController extends Controller
                     'settled_date'  => "",
                     'reason'        => "",
                     'profit_loss'   => 0.00,
-                    'order_id'      => $orderIncrementId,
+                    'order_id'      => $orderIncrement->id,
                 ])->id;
 
                 userWalletTransaction(auth()->user()->id, 'PLACE_BET', ($payloadStake * $exchangeRate), $orderLogsId);
@@ -564,6 +565,9 @@ class OrdersController extends Controller
                     'event_id'     => $incrementIds['payload'][$i]['event_id'],
                     'score'        => $incrementIds['payload'][$i]['score'],
                     'username'     => ProviderAccount::getProviderAccount($row['provider_id'], $incrementIds['payload'][$i]['actual_stake'], $isUserVIP),
+                    'created_at'   => $incrementIds['created_at'][$i],
+                    'orderExpiry'  => $incrementIds['payload'][$i]['orderExpiry'],
+
                 ];
 
                 $payloadsSwtId = implode(':', [
