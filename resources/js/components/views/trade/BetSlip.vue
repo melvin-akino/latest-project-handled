@@ -104,6 +104,7 @@
                                 <span class="w-1/4"></span>
                                 <span class="w-1/4 text-sm font-bold text-center">Min</span>
                                 <span class="w-1/4 text-sm font-bold text-center">Max</span>
+                                <span class="w-1/4 text-sm font-bold text-center">Age</span>
                                 <span class="w-1/4 text-sm font-bold text-center">Price</span>
                             </div>
                             <div v-if="minMaxData.length != 0">
@@ -111,6 +112,7 @@
                                     <span class="w-1/4 text-sm font-bold text-center pl-3">{{minmax.provider}}</span>
                                     <span class="w-1/4 text-sm text-center">{{minmax.min | moneyFormat}}</span>
                                     <span class="w-1/4 text-sm text-center">{{minmax.max | moneyFormat}}</span>
+                                    <span class="w-1/4 text-sm text-center">{{minmax.age}}</span>
                                     <a href="#" @click.prevent="updatePrice(minmax.price)" class="w-1/4 text-sm font-bold underline text-center">{{minmax.price | twoDecimalPlacesFormat}}</a>
                                 </div>
                             </div>

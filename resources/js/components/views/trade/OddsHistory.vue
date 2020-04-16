@@ -52,10 +52,12 @@ export default {
     computed: {
         ...mapState('trade', ['activeBetSlip'])
     },
-    mounted() {
-        this.setOpenedOrderLog()
+    watch: {
+        logs() {
+            this.setOpenedOrderLog()
+        }
     },
-    updated() {
+    mounted() {
         this.setOpenedOrderLog()
     },
     methods: {

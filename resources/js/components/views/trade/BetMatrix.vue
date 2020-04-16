@@ -96,7 +96,7 @@ export default {
                     if(against_team_counter <= this.analysisData.against_score || bet_team_counter <= this.analysisData.bet_score) {
                         var color = 'grey'
                     }
-                    table.push({ 'color': color, 'result': Math.floor(result) })
+                    table.push({ 'color': color, 'result': Math.floor(result * 100) / 100 })
                     against_team_counter++
                 }
                 this.matrix_table.push(table)
