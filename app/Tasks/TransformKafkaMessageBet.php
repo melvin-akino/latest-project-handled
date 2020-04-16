@@ -38,7 +38,7 @@ class TransformKafkaMessageBet extends Task
                         'status' => 'SUCCESS'
                     ]);
 
-                    $fd = $swoole->ws->get('uid:' . $row['user_id']);
+                    $fd = $wsTable->get('uid:' . $row['user_id']);
                     $swoole->push($fd['value'], json_encode([
                         'getOrderStatus' => [
                             'order_id' => $orderId,
