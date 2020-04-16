@@ -96,7 +96,8 @@ class KafkaProduce implements CustomProcessInterface
                             }
 
                             //checking if 30 minutest interval
-                            if ($newTime->diffInSeconds(Carbon::parse($providerAccountInitialTime)) >= (60 * 30)) {
+                            // if ($newTime->diffInSeconds(Carbon::parse($providerAccountInitialTime)) >= (60 * 30)) {
+                            if ($newTime->diffInSeconds(Carbon::parse($providerAccountInitialTime)) >= (60)) {
                                 foreach ($providerAccountsTable AS $sKey => $sRow) {
                                     $randomRangeInMinutes = rand(0, 10);
 
