@@ -4,7 +4,7 @@
         <div class="relative h-full">
             <div class="absolute text-sm totalPLdata" v-if="myorders.length != 0" v-adjust-pl-data-position="myorders.length">
                 <span>Total P/L</span>
-                <span class="totalPL">$ 0.00</span>
+                <span class="totalPL">{{wallet.currency_symbol}} {{totalPL | moneyFormat}}</span>
             </div>
             <v-client-table name="My Orders" :data="myorders" :columns="columns" :options="options"></v-client-table>
         </div>
@@ -13,11 +13,15 @@
 
 <script>
 import Cookies from 'js-cookie'
+import _ from 'lodash'
+import { mapState } from 'vuex'
+import { moneyFormat } from '../../../helpers/numberFormat'
 
 export default {
     data() {
         return {
             myorders: [],
+            totalPL: '',
             columns: ['bet_id', 'created', 'bet_selection', 'provider', 'settled', 'odds', 'stake', 'towin', 'pl'],
             options: {
                 headings: {
@@ -40,6 +44,10 @@ export default {
     },
     mounted() {
         this.getMyOrders()
+        this.$store.dispatch('trade/getWalletData')
+    },
+    computed: {
+        ...mapState('trade', ['wallet'])
     },
     methods: {
         getMyOrders() {
@@ -47,7 +55,22 @@ export default {
 
             axios.get(`v1/orders/all`, { headers: { 'Authorization': `Bearer ${token}` }})
             .then(response => {
-                this.myorders = response.data.data.orders
+                let orders = []
+                let formattedColumns = ['stake', 'towin']
+                response.data.data.orders.map(order => {
+                    let orderObj = {}
+                    Object.keys(order).map(key => {
+                        if(formattedColumns.includes(key)) {
+                            this.$set(orderObj, key, moneyFormat(Number(order[key])))
+                        } else {
+                            this.$set(orderObj, key, order[key])
+                        }
+                    })
+                    orders.push(orderObj)
+                })
+                this.myorders = orders
+                let pls = this.myorders.map(order => Number(order.pl))
+                this.totalPL = pls.reduce((firstPL, secondPL) => firstPL + secondPL, 0)
             })
             .catch(err => {
                 this.$store.dispatch('auth/checkIfTokenIsValid', err.response.data.status_code)
@@ -64,6 +87,9 @@ export default {
                 }
             }
         }
+    },
+    filters: {
+        moneyFormat
     }
 }
 </script>

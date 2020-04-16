@@ -3,15 +3,15 @@
         <div class="px-6">
             <div class="flex justify-between">
                 <span class="text-sm">Credit</span>
-                <span class="text-sm">{{wallet.currency_symbol}} {{wallet.credit | toFixed}}</span>
+                <span class="text-sm">{{wallet.currency_symbol}} {{wallet.credit | moneyFormat}}</span>
             </div>
             <div class="flex justify-between">
                 <p class="text-sm">Profit/Loss</p>
-                <p class="text-sm">{{wallet.currency_symbol}} {{wallet.profit_loss  | toFixed}}</p>
+                <p class="text-sm">{{wallet.currency_symbol}} {{wallet.profit_loss  | moneyFormat}}</p>
             </div>
             <div class="flex justify-between">
                 <p class="text-sm">Open Orders</p>
-                <p class="text-sm">{{wallet.currency_symbol}} {{wallet.orders  | toFixed}}</p>
+                <p class="text-sm">{{wallet.currency_symbol}} {{wallet.orders  | moneyFormat}}</p>
             </div>
         </div>
     </div>
@@ -20,6 +20,7 @@
 <script>
 import Cookies from 'js-cookie'
 import { mapState } from 'vuex';
+import { moneyFormat } from '../../../helpers/numberFormat'
 
 export default {
     computed: {
@@ -29,11 +30,7 @@ export default {
         this.$store.dispatch('trade/getWalletData')
     },
     filters: {
-        toFixed(value) {
-            if(value != null) {
-                return value.toFixed(2)
-            }
-        }
+        moneyFormat
     }
 }
 </script>
