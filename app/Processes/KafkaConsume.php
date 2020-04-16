@@ -2,7 +2,7 @@
 
 namespace App\Processes;
 
-use App\Tasks\{TransformKafkaMessageEvents, TransformKafkaMessageLeagues, TransformKafkaMessageOdds, TransformKafkaMessageMinMax, TransformKafkaMessageBalance, TransformKafkaMessageBet};
+use App\Tasks\{TransformKafkaMessageEvents, TransformKafkaMessageLeagues, TransformKafkaMessageOdds, TransformKafkaMessageMinMax, TransformKafkaMessageBalance, TransformKafkaMessageBet, TransformKafkaMessageOpenOrders};
 use Hhxsv5\LaravelS\Swoole\Process\CustomProcessInterface;
 use Hhxsv5\LaravelS\Swoole\Task\Task;
 use Illuminate\Support\Facades\Log;
@@ -63,7 +63,7 @@ class KafkaConsume implements CustomProcessInterface
                                 }
                                 Task::deliver(new TransformKafkaMessageBalance($payload));
                                 break;
-                            case 'open orders':
+                            case 'orders':
                                 Task::deliver(new TransformKafkaMessageOpenOrders($payload));
                                 break;
                             default:

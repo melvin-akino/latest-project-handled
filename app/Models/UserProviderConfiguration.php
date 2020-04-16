@@ -62,7 +62,7 @@ class UserProviderConfiguration extends Model
                     );
                 }
 
-                if (!$_SERVER['_PHPUNIT']) {
+                if (empty($_SERVER['_PHPUNIT'])) {
                     $swoole = app('swoole')->userProviderConfigTable;
                     $swooleId = implode(':', [
                         "userId:" . auth()->user()->id,

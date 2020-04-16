@@ -34,8 +34,17 @@ class TransformKafkaMessageBet extends Task
                         'id' => $messageOrderId
                     ], [
                         'bet_id' => $this->message->data->bet_id,
-                        'reason' => $this->message->data->reason
+                        'reason' => $this->message->data->reason,
+                        'status' => 'SUCCESS'
                     ]);
+
+                    $fd = $wsTable->get('uid:' . $row['user_id']);
+                    $swoole->push($fd['value'], json_encode([
+                        'getOrderStatus' => [
+                            'order_id' => $orderId,
+                            'status'   => 'SUCCESS'
+                        ]
+                    ]));
 
                     $topics->set('unique:' . uniqid(), [
                         'user_id'    => $row['user_id'],

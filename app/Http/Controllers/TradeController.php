@@ -32,7 +32,6 @@ class TradeController extends Controller
     {
         try {
             $betBarData = DB::table('orders AS o')
-                ->join('order_logs AS ol', 'o.id', '=', 'ol.order_id')
                 ->join('providers AS p', 'p.id', 'o.provider_id')
                 ->join('master_event_markets AS mem', 'mem.master_event_market_unique_id', 'o.master_event_market_unique_id')
                 ->join('master_events AS me', 'me.master_event_unique_id', 'mem.master_event_unique_id')
@@ -52,10 +51,10 @@ class TradeController extends Controller
                     'sot.name',
                     'o.odds',
                     'o.stake',
-                    'ol.status',
-                    'ol.created_at',
+                    'o.status',
+                    'o.created_at',
                 ])
-                ->orderBy('ol.created_at', 'desc')
+                ->orderBy('o.created_at', 'desc')
                 ->get();
 
             $data = [];
@@ -299,7 +298,7 @@ class TradeController extends Controller
 
                                 continue;
                             }
-                            
+
                         }
                     }
                 }

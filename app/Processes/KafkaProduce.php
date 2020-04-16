@@ -45,6 +45,8 @@ class KafkaProduce implements CustomProcessInterface
                 $providerAccountsTable      = $swoole->providerAccountsTable;
                 $initialTime                = Carbon::createFromFormat('H:i:s', Carbon::now()->format('H:i:s'));
                 $providerAccountInitialTime = Carbon::createFromFormat('H:i:s', Carbon::now()->format('H:i:s'));
+                $betInitialTime             = Carbon::createFromFormat('H:i:s', Carbon::now()->format('H:i:s'));
+                $openOrderInitialTime       = Carbon::createFromFormat('H:i:s', Carbon::now()->format('H:i:s'));
 
                 while (!self::$quit) {
                     $newTime = Carbon::createFromFormat('H:i:s', Carbon::now()->format('H:i:s'));
@@ -67,24 +69,30 @@ class KafkaProduce implements CustomProcessInterface
                         foreach ($sportsTable AS $sKey => $sRow) {
                             $sportId = $sportsTable->get($sKey)['id'];
 
-                            foreach ($providersTable AS $pKey => $pRow) {
-                                $providerAlias = $providersTable->get($pKey)['alias'];
-                                $requestId     = Str::uuid();
-                                $requestTs     = self::milliseconds();
+                            if ($newTime->diffInSeconds(Carbon::parse($openOrderInitialTime)) >= (60 * 10)) {
+                                foreach ($providerAccountsTable AS $pKey => $pRow) {
+                                    $providerAlias = $providersTable->get($pKey)['provider_alias'];
+                                    $username      = $providersTable->get($pKey)['username'];
+                                    $requestId     = Str::uuid();
+                                    $requestTs     = self::milliseconds();
 
-                                $payload = [
-                                    'request_uid' => $requestId,
-                                    'request_ts'  => $requestTs,
-                                    'sub_command' => 'scrape',
-                                    'command'     => 'bet'
-                                ];
+                                    $payload = [
+                                        'request_uid' => $requestId,
+                                        'request_ts'  => $requestTs,
+                                        'sub_command' => 'scrape',
+                                        'command'     => 'orders'
+                                    ];
 
-                                $payload['data'] = [
-                                    'sport' => $sportId,
-                                    'provider' => $providerAlias
-                                ];
+                                    $payload['data'] = [
+                                        'sport'     => $sportId,
+                                        'provider'  => $providerAlias,
+                                        'username'  => $username
+                                    ];
 
-                                self::pushToKafka($payload, $requestId, $providerAlias . $kafkaTopics['req_open_order']);
+                                    self::pushToKafka($payload, $requestId, $providerAlias . $kafkaTopics['req_open_order']);
+                                }
+                                
+                                $openOrderInitialTime = $newTime;
                             }
 
                             //checking if 30 minutest interval
@@ -115,19 +123,25 @@ class KafkaProduce implements CustomProcessInterface
                             }
                         }
 
-                        $initialTime = $newTime;
-                    }
+                        if ($newTime->diffInSeconds(Carbon::parse($betInitialTime)) >= 10) {
+                            foreach ($payloadsTable AS $pKey => $pRow) {
+                                if (strpos($pKey, 'place-bet-') === 0) {
+                                    $payload   = json_decode($pRow['payload']);
+                                    $requestId = $payload->request_uid;
+                                    $provider  = $payload->data->provider;
 
-                    foreach ($payloadsTable AS $pKey => $pRow) {
-                        if (strpos($pKey, 'place-bet-') === 0) {
-                            $payload   = json_decode($pRow['payload']);
-                            $requestId = $payload->request_uid;
-                            $provider  = $payload->data->provider;
-
-                            self::pushToKafka((array) $payload, $requestId, $provider . $kafkaTopics['req_order']);
-
-                            $payloadsTable->del($pKey);
+                                    $dateNow = Carbon::now()->toDateTimeString();
+                                    if (strtotime($dateNow) - strtotime($payload->data->created_at) < (int) $payload->data->orderExpiry) {
+                                        self::pushToKafka((array) $payload, $requestId, $provider . $kafkaTopics['req_order']);
+                                    } else {
+                                        $payloadsTable->del($pKey);
+                                    }
+                                }
+                            }
+                            $betInitialTime = $newTime;
                         }
+
+                        $initialTime = $newTime;
                     }
                 }
             }
