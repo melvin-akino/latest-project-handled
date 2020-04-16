@@ -382,6 +382,7 @@ class OrdersController extends Controller
                         $join->on('mem.is_main', '=', 'em.is_main');
                         $join->on('mem.market_flag', '=', 'em.market_flag');
                     })
+                    ->join('odd_types AS ot', 'ot.id', '=', 'mem.odd_type_id')
                     ->whereNull('me.deleted_at')
                     ->where('mem.master_event_market_unique_id', $request->market_id)
                     ->orderBy('mem.odd_type_id', 'asc')
@@ -400,6 +401,9 @@ class OrdersController extends Controller
                         'mem.odd_type_id',
                         'em.bet_identifier',
                         'em.provider_id',
+                        'em.odds',
+                        'em.odd_label',
+                        'ot.type AS column_type',
                     ])
                     ->first();
 
@@ -474,13 +478,21 @@ class OrdersController extends Controller
 
                 $incrementIds['payload'][] = $payload;
 
+                $teamname = $query->market_flag == "HOME" ? $query->master_home_team_name : $query->master_away_team_name;
+
+                $betSelection = implode('<br />', [
+                    $query->master_home_team_name . " vs " . $query->master_away_team_name,
+                    $query->column_type . " " . $query->odd_label . "(" . $query->score . ")",
+                    $teamname . " @ " . $query->odds,
+                ]);
+
                 $orderIncrement = Order::create([
                     'user_id'                       => auth()->user()->id,
                     'master_event_market_unique_id' => $request->market_id,
                     'market_id'                     => $query->bet_identifier,
                     'status'                        => "PENDING",
                     'bet_id'                        => "",
-                    'bet_selection'                 => "",
+                    'bet_selection'                 => $betSelection,
                     'provider_id'                   => $row['provider_id'],
                     'sport_id'                      => $query->sport_id,
                     'odds'                          => $row['price'],
@@ -502,7 +514,7 @@ class OrdersController extends Controller
                     'provider_id'   => $row['provider_id'],
                     'sport_id'      => $query->sport_id,
                     'bet_id'        => "",
-                    'bet_selection' => "",
+                    'bet_selection' => $betSelection,
                     'status'        => "PENDING",
                     'settled_date'  => "",
                     'reason'        => "",
