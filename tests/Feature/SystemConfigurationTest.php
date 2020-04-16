@@ -29,9 +29,9 @@ class SystemConfigurationTest extends AdminAccountTest
         $this->login();
         $response = $this->actingAs($this->user)->json('POST', 'admin/system_configurations/manage', 
                 [
-                    'id'        => 7,
-                    'type'      => 'SCRAPER',
-                    'value'     => 1000,
+                    'id'        => 1,
+                    'type'      => 'SCHEDULE_INPLAY_TIMER',
+                    'value'     => 1,
                     'module'    => ''
                 ]
             );
