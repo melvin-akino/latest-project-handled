@@ -6,6 +6,7 @@ use App\Exceptions\ServerException;
 use App\Http\Requests\SettingsRequests;
 use App\Models\{UserConfiguration, UserProviderConfiguration, UserSportOddConfiguration};
 use App\Notifications\PasswordResetSuccess;
+use Illuminate\Support\Facades\Log;
 use App\User;
 use Hash;
 use Throwable;
@@ -90,6 +91,7 @@ class SettingsController extends Controller
                 'message'       => trans('notifications.save.success')
             ], 200);
         } catch (Throwable $e) {
+            Log::error($e->getMessage());
             return response()->json([
                 'status'        => false,
                 'status_code'   => 500,
