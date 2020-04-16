@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Database\Seeder;
+use App\Models\SystemConfiguration;
 
 class ProviderAccountSettingsSeeder extends Seeder
 {
@@ -19,11 +20,11 @@ class ProviderAccountSettingsSeeder extends Seeder
         ];
 
         foreach ($scheduleTimers as $key => $value) {
-            DB::table('system_configurations')->insert([
+            SystemConfiguration::updateOrCreate([
                 'type'  => $key,
                 'value' => $value['value'],
                 'module'=> $value['module']
-            ]);
+            ], []);
         }
     }
 }
