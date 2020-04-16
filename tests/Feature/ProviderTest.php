@@ -15,7 +15,7 @@ class ProviderTest extends AdminAccountTest
                 [
                     'name'   => '',
                     'alias' => '',
-                    'punter_percentage'   => '',
+                    'percentage'   => '',
                     'is_enabled' => 0
                 ]
             );
@@ -29,9 +29,9 @@ class ProviderTest extends AdminAccountTest
         $this->login();
         $response = $this->actingAs($this->user)->json('POST', 'admin/providers/manage', 
                 [
-                    'name'   => 'Test1',
+                    'name'   => 'Singbet1111',
                     'alias' => 'Test1',
-                    'punter_percentage'   => 45,
+                    'percentage'   => 45,
                     'is_enabled' => 1
                 ]
             );
