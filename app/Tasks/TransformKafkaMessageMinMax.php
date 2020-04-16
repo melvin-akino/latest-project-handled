@@ -62,6 +62,9 @@ class TransformKafkaMessageMinMax extends Task
 
                         $maximum = (double) $data->maximum * ($punterPercentage / 100);
 
+                        $timeDiff = time() - (int) $data->timestamp;
+                        $age = ($timeDiff > 60) ? floor($timeDiff / 60) . 'm' : $timeDiff . 's';
+
                         $transformed = [
                             "sport_id"    => $data->sport,
                             "provider_id" => $provTable->get($providerSwtId)['id'],
@@ -71,6 +74,7 @@ class TransformKafkaMessageMinMax extends Task
                             "price"       => $data->odds,
                             "priority"    => $provTable->get($providerSwtId)['priority'],
                             'market_id'   => $memUID,
+                            'age'         => $age
                         ];
 
                         if (!$providerCurrency['id'] == $userCurrency['id']) {
