@@ -20,16 +20,18 @@
                         <span>Dashboard</span>
                     </a>
                 </li>
-            @endusercan
-            @usercan('view', 'crm.providers.index')
-                <li class="@isset($dashboard_menu) active @endisset">
+                <li class="@isset($providers_menu) active @endisset">
                     <a href="/admin/providers">
                         <i class="fa fa-dashboard" aria-hidden="true"></i>
                         <span>Providers</span>
                     </a>
                 </li>
-            @endusercan
-            
+                <li class="@isset($system_configuration_menu) active @endisset">
+                    <a href="/admin/system_configurations">
+                        <i class="fa fa-dashboard" aria-hidden="true"></i>
+                        <span>System Configurations</span>
+                    </a>
+                </li> 
                 <li class="@isset($accounts_menu) active @endisset">
                     <a href="/admin/accounts">
                         <i class="fa fa-user" aria-hidden="true"></i>
