@@ -38,6 +38,14 @@ class TransformKafkaMessageBet extends Task
                         'status' => 'SUCCESS'
                     ]);
 
+                    $fd = $swoole->ws->get('uid:' . $row['user_id']);
+                    $swoole->push($fd['value'], json_encode([
+                        'getOrderStatus' => [
+                            'order_id' => $orderId,
+                            'status'   => 'SUCCESS'
+                        ]
+                    ]));
+
                     $topics->set('unique:' . uniqid(), [
                         'user_id'    => $row['user_id'],
                         'topic_name' => 'open-order-' . $this->message->data->bet_id

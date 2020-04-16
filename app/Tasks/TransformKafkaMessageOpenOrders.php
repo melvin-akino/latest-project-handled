@@ -4,7 +4,7 @@ namespace App\Tasks;
 
 use App\Jobs\{
     WSForBetBarRemoval,
-    WsMinMax
+    DbOrderStatus
 };
 use Hhxsv5\LaravelS\Swoole\Task\Task;
 
@@ -33,30 +33,11 @@ class TransformKafkaMessageOpenOrders extends Task
 
                     foreach ($ordersTable as $_key => $orderTable) {
                         if ($orderTable['bet_id'] == $betId) {
-                            $fd      = $wsTable->get('uid:' . $userId);
+
                             $expiry  = $orderTable['orderExpiry'];
-                            $orderid = substr($_key, strlen('orderId:'));
+                            $orderId = substr($_key, strlen('orderId:'));
 
-                            $swoole->push($fd['value'], json_encode([
-                                'getOrderStatus' => [
-                                    'order_id' => $orderId,
-                                    'status'   => $order->status
-                                ]
-                            ]));
-
-                            $forBetBarRemoval = [
-                                'FAILED',
-                                'CANCELLED',
-                            ];
-
-                            $removalSwtId = "remove-bet-bar-" . $orderId;
-
-                            if (!$ws->exists($removalSwtId)) {
-                                if (in_array(strtoupper($order->status), $forBetBarRemoval)) {
-                                    WSForBetBarRemoval::dispatch($fd['value'], $orderId);
-                                    $ws->set($removalSwtId, [ 'value' => $orderId, ]);
-                                }
-                            }
+                            DbOrderStatus::dispatch($userId, $orderId, $order->status);
                         }
                     }
                 }
