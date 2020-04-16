@@ -213,6 +213,17 @@ const actions = {
             dispatch('auth/checkIfTokenIsValid', err.response.data.status_code, { root: true })
         })
     },
+    getSports({commit, dispatch}) {
+        return axios.get('v1/sports', { headers: { 'Authorization': `Bearer ${token}` } })
+        .then(response => {
+            commit('SET_SPORTS', response.data.data)
+            commit('SET_SELECTED_SPORT', response.data.default_sport)
+            dispatch('getBetColumns', response.data.default_sport)
+        })
+        .catch(err => {
+            dispatch('auth/checkIfTokenIsValid', err.response.data.status_code, { root: true })
+        })
+    },
     getInitialLeagues({commit, dispatch, state}) {
         return new Promise((resolve, reject) => {
             axios.get('v1/trade/leagues', { headers: { 'Authorization': `Bearer ${token}` }})
@@ -226,17 +237,6 @@ const actions = {
                 dispatch('auth/checkIfTokenIsValid', err.response.data.status_code,  { root: true })
                 reject(err)
             })
-        })
-    },
-    getSports({commit, dispatch}) {
-        return axios.get('v1/sports', { headers: { 'Authorization': `Bearer ${token}` } })
-        .then(response => {
-            commit('SET_SPORTS', response.data.data)
-            commit('SET_SELECTED_SPORT', response.data.default_sport)
-            dispatch('getBetColumns', response.data.default_sport)
-        })
-        .catch(err => {
-            dispatch('auth/checkIfTokenIsValid', err.response.data.status_code, { root: true })
         })
     },
     getInitialEvents({commit, dispatch, state}) {
@@ -278,8 +278,9 @@ const actions = {
             dispatch('auth/checkIfTokenIsValid', err.response.data.status_code, { root: true })
         })
     },
-    async getSportsAndEvents({dispatch}) {
+    async getTradeWindowDatas({dispatch}) {
         await dispatch('getSports')
+        await dispatch('getInitialLeagues')
         await dispatch('getInitialEvents')
     },
     getBetbarData({commit, state, dispatch}) {
@@ -387,7 +388,7 @@ const actions = {
                 dispatch('auth/checkIfTokenIsValid', err.response.data.status_code, { root: true })
             })
         })
-    }   
+    }
 }
 
 export default {
