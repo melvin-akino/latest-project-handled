@@ -28,7 +28,7 @@ class BalanceRequestScraperCron extends CronJob
     // --- Override the corresponding method to return the configuration: end
     public function run()
     {
-    	$this->i++;	
+        $this->i++;
 
         $refreshDBInterval = config('balance.refresh-db-interval');
 
@@ -38,8 +38,10 @@ class BalanceRequestScraperCron extends CronJob
 
         if (!empty($this->systemConfigurationsTimers)) {
             foreach ($this->systemConfigurationsTimers as $systemConfigurationsTimer) {
-                if ($this->i % (int) $systemConfigurationsTimer['value'] == 0) {
-                    $this->sendPayload($systemConfigurationsTimer['type']);
+                if (!empty((int) $systemConfigurationsTimer['value'])) {
+                    if ($this->i % (int) $systemConfigurationsTimer['value'] == 0) {
+                        $this->sendPayload($systemConfigurationsTimer['type']);
+                    }
                 }
             }
         }
