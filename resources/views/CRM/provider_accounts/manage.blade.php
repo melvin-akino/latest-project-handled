@@ -159,6 +159,8 @@
 
                     btn.button('reset');
                 });
+
+                form.find('input[name=providerAccountId]').val('');
             };
 
             $("#modal-manage-provider-accounts").on("hidden.bs.modal", function () {

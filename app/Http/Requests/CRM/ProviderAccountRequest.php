@@ -25,12 +25,19 @@ class ProviderAccountRequest extends FormRequest
      */
     public function rules()
     {
-        $existingProviderAccount = ProviderAccount::where('username', $this->input('username'))->where('provider_id', $this->input('provider_id'))->first();
+        $existingProviderAccounts = ProviderAccount::where('username', $this->input('username'))->get();
+        $uniqueUsername = '';
 
+        foreach ($existingProviderAccounts as $providerAccount) {
+            //check if this retrieved username has the same provider_id as this value being validated
+            if ($providerAccount->id == $this->input('providerAccountId')/*updating this record*/ && $providerAccount->provider_id == $this->input('provider_id')/*same provider*/) {
+                $uniqueUsername = "|unique:provider_accounts,username,$providerAccount->id";
+            }
+            elseif (empty($this->input('providerAccountId'))/*new input*/ && $providerAccount->provider_id == $this->input('provider_id')/*same provider*/ && is_null($providerAccount->deleted_at)/*not deleted*/) {
+                $uniqueUsername = "|unique:provider_accounts";
+            }
+        }
 
-        $update = !empty($existingProviderAccount->id) ? ",$existingProviderAccount->id" : ''; 
-        
-        $uniqueUsername = "|unique:provider_accounts,username$update";
         return [
             'username'   => 'required|max:50'.$uniqueUsername,
             'password' => 'required',

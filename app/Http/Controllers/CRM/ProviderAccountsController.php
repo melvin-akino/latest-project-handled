@@ -49,13 +49,19 @@ class ProviderAccountsController extends Controller
                 !empty($request->pa_is_enabled) ? $data['is_enabled'] = true : $data['is_enabled'] = false;
                 !empty($request->is_idle) ? $data['is_idle'] = true : $data['is_idle'] = false;
 
-                //Check first if this username and provider_id exists
-                $providerAccount = ProviderAccount::where('username', $request->username)
-                    ->where('provider_id', $request->provider_id)->first();
+                //Record is on update process
+                if (!empty($request->providerAccountId)) {
+                    $providerAccount = ProviderAccount::where('id', $request->providerAccountId)->first();
+                }
+                else {
+                    //Trying to add a new record
+                    $providerAccount = ProviderAccount::where('username', $request->username)
+                        ->where('provider_id', $request->provider_id)->first();    
+                }               
 
                 if (!empty($providerAccount)) {
                     //check if this record was previously deleted and if so, delete the deleted_at value
-                    if (!null($providerAccount->deleted_at)) {
+                    if (!empty($providerAccount->deleted_at)) {
                         $data['deleted_at'] = null;
                     }
                     if ($providerAccount->update($data)) {
