@@ -2,10 +2,7 @@
 
 namespace App\Tasks;
 
-use App\Jobs\{
-    WSForBetBarRemoval,
-    WsMinMax
-};
+use App\Jobs\WsSettledBets;
 use Hhxsv5\LaravelS\Swoole\Task\Task;
 
 class TransformKafkaMessageSettlement extends Task
