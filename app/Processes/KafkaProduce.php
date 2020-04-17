@@ -91,7 +91,7 @@ class KafkaProduce implements CustomProcessInterface
 
                                     self::pushToKafka($payload, $requestId, $providerAlias . $kafkaTopics['req_open_order']);
                                 }
-                                
+
                                 $openOrderInitialTime = $newTime;
                             }
 
@@ -99,6 +99,9 @@ class KafkaProduce implements CustomProcessInterface
                             // if ($newTime->diffInSeconds(Carbon::parse($providerAccountInitialTime)) >= (60 * 30)) {
                             if ($newTime->diffInSeconds(Carbon::parse($providerAccountInitialTime)) >= (60)) {
                                 foreach ($providerAccountsTable AS $sKey => $sRow) {
+                                    $providerAlias = $providersTable->get($sKey)['provider_alias'];
+                                    $username      = $providersTable->get($sKey)['username'];
+
                                     $randomRangeInMinutes = rand(0, 10);
 
                                     $requestId     = Str::uuid();
@@ -113,8 +116,8 @@ class KafkaProduce implements CustomProcessInterface
 
                                     $payload['data'] = [
                                         'sport'     => $sportId,
-                                        'provider'  => $sRow['provider_id'],
-                                        'username'  => $sRow['username']
+                                        'provider'  => $providerAlias,
+                                        'username'  => $username
                                     ];
 
                                     self::pushToKafka($payload, $requestId, strtolower($sRow['provider_alias']) . $kafkaTopics['req_settlements'], $randomRangeInMinutes);
