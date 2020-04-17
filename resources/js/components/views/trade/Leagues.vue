@@ -38,21 +38,14 @@ export default {
     },
     watch: {
         leagues() {
+            this.modifyLeaguesFromSocket()
             this.filterLeaguesBySched(this.selectedLeagueSchedMode)
         }
     },
     mounted() {
-        this.getLeagues()
         this.selectedLeagueSchedMode = Cookies.get('leagueSchedMode') || 'today'
     },
     methods: {
-        getLeagues() {
-            this.$store.dispatch('trade/getInitialLeagues')
-            .then(response => {
-                this.modifyLeaguesFromSocket()
-                this.filterLeaguesBySched(this.selectedLeagueSchedMode)
-            })
-        },
         filterLeaguesBySched(schedMode) {
             if(this.leagues != null) {
                 this.displayedLeagues = this.leagues[schedMode].map(league => {
