@@ -596,6 +596,7 @@ class OrdersController extends Controller
 
                 $ordersTable['orderId:' . $orderIds[$i]]['username']    = $payload['data']['username'];
                 $ordersTable['orderId:' . $orderIds[$i]]['orderExpiry'] = $payload['data']['orderExpiry'];
+                $ordersTable['orderId:' . $orderIds[$i]]['created_at']  = $incrementIds['created_at'][$i];
             }
 
             return response()->json([
