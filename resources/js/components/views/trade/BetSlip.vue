@@ -101,23 +101,24 @@
                         </div>
                         <div class="flex flex-col bg-white shadow shadow-xl">
                             <div class="flex justify-between items-center py-2 bg-orange-500 text-white">
-                                <span class="w-1/4"></span>
-                                <span class="w-1/4 text-sm font-bold text-center">Min</span>
-                                <span class="w-1/4 text-sm font-bold text-center">Max</span>
-                                <span class="w-1/4 text-sm font-bold text-center">Age</span>
-                                <span class="w-1/4 text-sm font-bold text-center">Price</span>
+                                <span class="w-1/5"></span>
+                                <span class="w-1/5 text-sm font-bold text-center">Min</span>
+                                <span class="w-1/5 text-sm font-bold text-center">Max</span>
+                                <span class="w-1/5 text-sm font-bold text-center">Price</span>
+                                <span class="w-1/5"></span>
                             </div>
                             <div v-if="minMaxData.length != 0">
-                                <div class="flex justify-between items-center py-2" v-for="minmax in minMaxData" :key="minmax.provider_id">
-                                    <span class="w-1/4 text-sm font-bold text-center pl-3">{{minmax.provider}}</span>
-                                    <span class="w-1/4 text-sm text-center">{{minmax.min | moneyFormat}}</span>
-                                    <span class="w-1/4 text-sm text-center">{{minmax.max | moneyFormat}}</span>
-                                    <span class="w-1/4 text-sm text-center">{{minmax.age}}</span>
-                                    <a href="#" @click.prevent="updatePrice(minmax.price)" class="w-1/4 text-sm font-bold underline text-center">{{minmax.price | twoDecimalPlacesFormat}}</a>
+                                <div class="flex items-center py-2" v-for="minmax in minMaxData" :key="minmax.provider_id">
+                                    <span class="w-1/5 text-sm font-bold text-center pl-3">{{minmax.provider}}</span>
+                                    <span class="w-1/5 text-sm text-center" v-if="minmax.hasMarketData">{{minmax.min | moneyFormat}}</span>
+                                    <span class="w-1/5 text-sm text-center" v-if="minmax.hasMarketData">{{minmax.max | moneyFormat}}</span>
+                                    <a href="#" @click.prevent="updatePrice(minmax.price)" class="w-1/5 text-sm font-bold underline text-center" v-if="minmax.hasMarketData">{{minmax.price | twoDecimalPlacesFormat}}</a>
+                                    <span class="w-1/5 text-sm text-center" v-if="minmax.hasMarketData">{{minmax.age}}</span>
+                                    <div class="text-sm text-center" v-if="!minmax.hasMarketData">{{marketDataMessage}} <span v-if="!retrievedMarketData" class="pl-1"><i class="fas fa-circle-notch fa-spin"></i></span></div>
                                 </div>
                             </div>
                             <div v-else class="flex justify-center py-2">
-                                <span class="text-sm mt-2">Loading minmax data <i class="fas fa-circle-notch fa-spin"></i></span>
+                                <span class="text-sm mt-2">Loading providers <i class="fas fa-circle-notch fa-spin"></i></span>
                             </div>
                         </div>
                     </div>
@@ -180,11 +181,14 @@ export default {
             isBetSuccessful: null,
             orderLogs: [],
             showOddsHistory: false,
-            showBetMatrix: false
+            showBetMatrix: false,
+            disabledBookies: [],
+            marketDataMessage: '',
+            retrievedMarketData: false
         }
     },
     computed: {
-        ...mapState('trade', ['activeBetSlip', 'betSlipSettings', 'wallet']),
+        ...mapState('trade', ['activeBetSlip', 'bookies', 'betSlipSettings', 'wallet']),
         spreads() {
             if(!_.isEmpty(this.market_details)) {
                 return this.market_details.spreads
@@ -224,28 +228,36 @@ export default {
         },
         lowestMin() {
             if(!_.isEmpty(this.minMaxData)) {
-                let minValues = this.minMaxData.map(minmax => minmax.min)
-                return Math.min(...minValues)
+                let minValues = this.minMaxData.filter(minmax => minmax.min != null).map(minmax => minmax.min)
+                if(!_.isEmpty(minValues)) {
+                    return Math.max(...minValues)
+                } else {
+                    return 0
+                }
             } else {
                 return 0
             }
         },
         highestMax() {
             if(!_.isEmpty(this.minMaxData)) {
-                let maxValues = this.minMaxData.map(minmax => minmax.max)
-                return Math.max(...maxValues)
+                let maxValues = this.minMaxData.filter(minmax => minmax.max != null).map(minmax => minmax.max)
+                if(!_.isEmpty(maxValues)) {
+                    return Math.max(...maxValues)
+                } else {
+                    return 0
+                }
             } else {
                 return 0
             }
         },
         displayedAveragePrice() {
             if(!_.isEmpty(this.minMaxData)) {
-                if(this.minMaxData.length > 1) {
-                    let prices = this.minMaxData.map(minmax => minmax.price)
-                    let sumOfPrices = prices.reduce((firstPrice, secondPrice) => firstPrice + secondPrice, 0)
-                    return Math.floor(sumOfPrices / prices.length * 100) / 100
+                let prices = this.minMaxData.filter(minmax => minmax.price != null).map(minmax => minmax.price)
+                let sumOfPrices = prices.reduce((firstPrice, secondPrice) => firstPrice + secondPrice, 0)
+                if(!_.isEmpty(prices)) {
+                    return sumOfPrices / prices.length
                 } else {
-                    return this.minMaxData.map(minmax => minmax.price)[0]
+                    return 0
                 }
             } else {
                 return 0
@@ -271,6 +283,7 @@ export default {
         this.getMarketDetails()
         this.minmax(this.market_id)
         this.setOrderLogs(this.market_id)
+        this.setMinMaxProviders()
         this.$store.dispatch('trade/getBetSlipSettings')
     },
     methods: {
@@ -290,6 +303,14 @@ export default {
         },
         setActiveBetSlip(market_id) {
             this.$store.commit('trade/SET_ACTIVE_BETSLIP', market_id)
+        },
+        async setMinMaxProviders() {
+            await this.$store.dispatch('trade/getBookies')
+            let settingsConfig = await this.$store.dispatch('settings/getUserSettingsConfig', 'bookies')
+            this.disabledBookies = settingsConfig.disabled_bookies
+            let enabledBookies = this.bookies.filter(bookie => !this.disabledBookies.includes(bookie.id))
+            enabledBookies.map(bookie => this.minMaxData.push({ provider_id: bookie.id, provider: bookie.alias, min: null, max: null, price: null, priority: null, age: null, hasMarketData: false }))
+            this.marketDataMessage = 'Retrieving Market'
         },
         async setOrderLogs(market_id) {
             let orderLogs = await this.$store.dispatch('trade/getOrderLogs', market_id)
@@ -333,15 +354,6 @@ export default {
             this.$options.sockets.onmessage = (response => {
                 if(getSocketKey(response.data) === 'getMinMax') {
                     let minmax = getSocketValue(response.data, 'getMinMax')
-                    let minMaxObject = {}
-                    Object.keys(minmax).map(key => {
-                        let mustBeNumeric = ['min', 'max', 'price']
-                        if(mustBeNumeric.includes(key)) {
-                            this.$set(minMaxObject, key, Number(minmax[key]))
-                        } else {
-                            this.$set(minMaxObject, key, minmax[key])
-                        }
-                    })
                     if(minmax.market_id == this.market_id) {
                         if(!_.isEmpty(this.minMaxData)) {
                             let providerIds = this.minMaxData.map(minMaxData => minMaxData.provider_id)
@@ -351,13 +363,14 @@ export default {
                                         minMaxData.min = Number(minmax.min)
                                         minMaxData.max = Number(minmax.max)
                                         minMaxData.price = Number(minmax.price)
+                                        minMaxData.priority = Number(minmax.priority)
+                                        minMaxData.age = minmax.age
+                                        minMaxData.hasMarketData = true
+                                        this.retrievedMarketData = true
+                                        this.marketDataMessage = 'No Available Market'
                                     }
                                 })
-                            } else {
-                                this.minMaxData.push(minMaxObject)
                             }
-                        } else {
-                            this.minMaxData.push(minMaxObject)
                         }
                     }
                 }
@@ -434,7 +447,7 @@ export default {
                 this.orderMessage = 'Insufficient wallet balance.'
                 this.isBetSuccessful = false
             } else if(this.numberOfQualifiedProviders == 0) {
-                this.orderMessage = 'Prices in minmax should be greater than or equal to the price input to qualify for the bet.'
+                this.orderMessage = 'Available markets are too low.'
                 this.isBetSuccessful = false
             } else {
                 this.isPlacingOrder = true

@@ -84,9 +84,9 @@ class SystemConfigurationsController extends Controller
         catch (Exception $e) {
             DB::rollBack();
             return response()->json([
-                'status'      => false,
-                'status_code' => 500,
-                'errors'     => $e->getMessages()
+                'status'        => false,
+                'status_code'   => 500,
+                'errors'        => $e->getMessages()
             ], 500);
         }
         

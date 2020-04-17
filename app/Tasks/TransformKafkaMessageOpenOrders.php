@@ -2,10 +2,8 @@
 
 namespace App\Tasks;
 
-use App\Jobs\{
-    WSForBetBarRemoval,
-    DbOrderStatus
-};
+use App\Models\Order;
+use App\Jobs\WSOrderStatus;
 use Hhxsv5\LaravelS\Swoole\Task\Task;
 
 class TransformKafkaMessageOpenOrders extends Task
@@ -33,11 +31,15 @@ class TransformKafkaMessageOpenOrders extends Task
 
                     foreach ($ordersTable as $_key => $orderTable) {
                         if ($orderTable['bet_id'] == $betId) {
-
-                            $expiry  = $orderTable['orderExpiry'];
                             $orderId = substr($_key, strlen('orderId:'));
+                            $expiry  = $orderTable['orderExpiry'];
 
-                            DbOrderStatus::dispatch($userId, $orderId, $order->status);
+                            Order::where('id', $this->orderId)->update([
+                                'status' => $order->status,
+                                'odds'   => $order->odds,
+                            ]);
+
+                            WSOrderStatus::dispatch($userId, $orderId, $order->status, $order->odds, $expiry, $orderTable['created_at']);
                         }
                     }
                 }

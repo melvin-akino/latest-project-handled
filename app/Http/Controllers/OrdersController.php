@@ -480,7 +480,7 @@ class OrdersController extends Controller
 
                 $teamname = $query->market_flag == "HOME" ? $query->master_home_team_name : $query->master_away_team_name;
 
-                $betSelection = implode('<br />', [
+                $betSelection = implode("\n", [
                     $query->master_home_team_name . " vs " . $query->master_away_team_name,
                     $query->column_type . " " . $query->odd_label . "(" . $query->score . ")",
                     $teamname . " @ " . $query->odds,
@@ -492,7 +492,7 @@ class OrdersController extends Controller
                     'market_id'                     => $query->bet_identifier,
                     'status'                        => "PENDING",
                     'bet_id'                        => "",
-                    'bet_selection'                 => $betSelection,
+                    'bet_selection'                 => nl2br($betSelection),
                     'provider_id'                   => $row['provider_id'],
                     'sport_id'                      => $query->sport_id,
                     'odds'                          => $row['price'],
@@ -514,7 +514,7 @@ class OrdersController extends Controller
                     'provider_id'   => $row['provider_id'],
                     'sport_id'      => $query->sport_id,
                     'bet_id'        => "",
-                    'bet_selection' => $betSelection,
+                    'bet_selection' => nl2br($betSelection),
                     'status'        => "PENDING",
                     'settled_date'  => "",
                     'reason'        => "",
@@ -596,6 +596,7 @@ class OrdersController extends Controller
 
                 $ordersTable['orderId:' . $orderIds[$i]]['username']    = $payload['data']['username'];
                 $ordersTable['orderId:' . $orderIds[$i]]['orderExpiry'] = $payload['data']['orderExpiry'];
+                $ordersTable['orderId:' . $orderIds[$i]]['created_at']  = $incrementIds['created_at'][$i];
             }
 
             return response()->json([

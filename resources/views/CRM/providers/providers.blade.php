@@ -27,11 +27,11 @@
             margin: 0 auto;
         }
         td.details-control {
-            background: url('{{url('/images/details_open.png')}}') no-repeat center center;
+            background: url('{{url('/crm-images/details_open.png')}}') no-repeat center center;
             cursor: pointer;
         }
         tr.shown td.details-control {
-            background: url('{{url('/images/details_close.png')}}') no-repeat center center;
+            background: url('{{url('/crm-images/details_close.png')}}') no-repeat center center;
         }
     </style>
 @endsection

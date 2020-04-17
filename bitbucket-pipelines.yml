@@ -14,6 +14,7 @@ commonBuild: &commonBuild
     - php artisan view:clear
     - php artisan cache:clear
     - npm install
+    - npm install --save babel-helper-vue-jsx-merge-props
     - npm run dev
   artifacts:
     - storage/**

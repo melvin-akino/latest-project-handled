@@ -64,6 +64,11 @@ class KafkaConsume implements CustomProcessInterface
                                 Task::deliver(new TransformKafkaMessageMinMax($payload));
                                 break;
                             case 'bet':
+                                if (empty($payload->data->status) || empty($payload->data->odds)) {
+                                    Log::info("Bet Transformation ignored - Status Or Odds Not Found");
+                                    break;
+                                }
+
                                 Task::deliver(new TransformKafkaMessageBet($payload));
                                 break;
                             case 'balance':
