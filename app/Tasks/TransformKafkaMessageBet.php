@@ -2,8 +2,8 @@
 
 namespace App\Tasks;
 
+use App\Jobs\WSOrderStatus;
 use App\Models\Order;
-use App\Jobs\WsMinMax;
 use Hhxsv5\LaravelS\Swoole\Task\Task;
 
 class TransformKafkaMessageBet extends Task
@@ -30,21 +30,23 @@ class TransformKafkaMessageBet extends Task
                 $messageOrderId  = end($requestUIDArray);
 
                 if ($orderId == $messageOrderId) {
+                    $status = !empty($this->message->data->reason) ? 'FAILED' : 'SUCCESS';
                     Order::updateOrCreate([
                         'id' => $messageOrderId
                     ], [
                         'bet_id' => $this->message->data->bet_id,
                         'reason' => $this->message->data->reason,
-                        'status' => 'SUCCESS'
+                        'status' => $status
                     ]);
 
-                    $fd = $wsTable->get('uid:' . $row['user_id']);
-                    $swoole->push($fd['value'], json_encode([
-                        'getOrderStatus' => [
-                            'order_id' => $orderId,
-                            'status'   => 'SUCCESS'
-                        ]
-                    ]));
+                    WSOrderStatus::dispatch(
+                        $row['user_id'],
+                        $orderId,
+                        $status,
+                        $this->message->data->odds,
+                        $ordersTable['orderId:' . $orderId]['orderExpiry'],
+                        $ordersTable['orderId:' . $orderId]['created_at']
+                    );
 
                     $topics->set('unique:' . uniqid(), [
                         'user_id'    => $row['user_id'],

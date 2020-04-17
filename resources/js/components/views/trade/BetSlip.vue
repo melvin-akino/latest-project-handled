@@ -117,7 +117,7 @@
                                 </div>
                             </div>
                             <div v-else class="flex justify-center py-2">
-                                <span class="text-sm mt-2">Loading minmax data <i class="fas fa-circle-notch fa-spin"></i></span>
+                                <span class="text-sm mt-2">Loading market data <i class="fas fa-circle-notch fa-spin"></i></span>
                             </div>
                         </div>
                     </div>
@@ -434,7 +434,7 @@ export default {
                 this.orderMessage = 'Insufficient wallet balance.'
                 this.isBetSuccessful = false
             } else if(this.numberOfQualifiedProviders == 0) {
-                this.orderMessage = 'Prices in minmax should be greater than or equal to the price input to qualify for the bet.'
+                this.orderMessage = 'Available markets are too low.'
                 this.isBetSuccessful = false
             } else {
                 this.isPlacingOrder = true

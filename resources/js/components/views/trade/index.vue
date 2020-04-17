@@ -59,7 +59,7 @@ export default {
         ...mapState('trade', ['isBetBarOpen', 'selectedSport', 'selectedLeagues', 'oddsTypeBySport', 'allEventsList', 'eventsList', 'events', 'openedBetSlips', 'tradePageSettings'])
     },
     mounted() {
-        this.$store.dispatch('trade/getTradeWindowDatas')
+        this.$store.dispatch('trade/getTradeWindowData')
         this.$store.dispatch('trade/getTradePageSettings')
         this.getWatchlist()
         this.getUserTradeLayout()

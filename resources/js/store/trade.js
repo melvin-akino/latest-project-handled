@@ -278,7 +278,7 @@ const actions = {
             dispatch('auth/checkIfTokenIsValid', err.response.data.status_code, { root: true })
         })
     },
-    async getTradeWindowDatas({dispatch}) {
+    async getTradeWindowData({dispatch}) {
         await dispatch('getSports')
         await dispatch('getInitialLeagues')
         await dispatch('getInitialEvents')
