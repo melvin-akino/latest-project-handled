@@ -17,7 +17,8 @@ class ProviderAccount extends Model
         'punter_percentage',
         'provider_id',
         'is_enabled',
-        'is_idle'
+        'is_idle',
+        'deleted_at'
     ];
 
     protected $hidden = [

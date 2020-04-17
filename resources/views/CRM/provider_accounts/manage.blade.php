@@ -116,10 +116,17 @@
           var manageProviderAccount = function (form) {
                 var btn = form.find(':submit').button('loading');
                 var url = form.prop('action');
+                var formArray = form.serializeArray();
+                var selectedProviderId;
+
+                $.each(formArray, function() {
+                    if (this.name == 'provider_id') {
+                        selectedProviderId = this.value;
+                    }
+                });
                 
                 $.post(url, form.serialize(), function (response) {
-                    if (response.data == 'success') {
-
+                    if (response.data == 'success') {                        
                         swal('Provider Account', 'Provider account successfully saved', response.data).then(() => {
                             
                             if (form.find('input[name=providerAccountId]').val() == '') {
@@ -136,6 +143,8 @@
                                     if (result.value) {
                                         clearErr(form);
                                         form.trigger('reset');
+                                        form.find('input[name=providerAccountId]').val('');
+                                        form.find('select[name=provider_id]').val(selectedProviderId);                                        
                                     }
                                     else {
                                         $('#modal-manage-provider-accounts').modal('toggle');
@@ -153,6 +162,7 @@
                     return;
                 }).done(function () {
                     btn.button('reset');
+
                 }).fail(function(xhr, status, error) {
                     // error handling
                     assocErr(xhr.responseJSON.errors, form);
@@ -160,7 +170,7 @@
                     btn.button('reset');
                 });
 
-                form.find('input[name=providerAccountId]').val('');
+
             };
 
             $("#modal-manage-provider-accounts").on("hidden.bs.modal", function () {

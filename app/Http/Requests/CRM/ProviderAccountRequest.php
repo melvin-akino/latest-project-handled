@@ -25,19 +25,21 @@ class ProviderAccountRequest extends FormRequest
      */
     public function rules()
     {
-        $existingProviderAccounts = ProviderAccount::where('username', $this->input('username'))->get();
-        $uniqueUsername = '';
-
-        foreach ($existingProviderAccounts as $providerAccount) {
-            //check if this retrieved username has the same provider_id as this value being validated
-            if ($providerAccount->id == $this->input('providerAccountId')/*updating this record*/ && $providerAccount->provider_id == $this->input('provider_id')/*same provider*/) {
-                $uniqueUsername = "|unique:provider_accounts,username,$providerAccount->id";
-            }
-            elseif (empty($this->input('providerAccountId'))/*new input*/ && $providerAccount->provider_id == $this->input('provider_id')/*same provider*/ && is_null($providerAccount->deleted_at)/*not deleted*/) {
-                $uniqueUsername = "|unique:provider_accounts";
-            }
-        }
-
+        $accounts = ProviderAccount::withTrashed()->where('username', $this->input('username'))->where('provider_id', $this->input('provider_id'))->get();
+        $uniqueUsername = "|unique:provider_accounts,username";
+        if (!empty($accounts)) {
+            foreach($accounts as $account) {
+                if (!is_null($account->deleted_at)) {
+                    $uniqueUsername = '';
+                    break;
+                }
+                elseif ($account->id == $this->input('providerAccountId')){
+                    $uniqueUsername = "|unique:provider_accounts,username,$account->id";
+                    break;
+                }
+            }    
+        }      
+        
         return [
             'username'   => 'required|max:50'.$uniqueUsername,
             'password' => 'required',

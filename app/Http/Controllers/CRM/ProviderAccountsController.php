@@ -54,16 +54,18 @@ class ProviderAccountsController extends Controller
                     $providerAccount = ProviderAccount::where('id', $request->providerAccountId)->first();
                 }
                 else {
-                    //Trying to add a new record
-                    $providerAccount = ProviderAccount::where('username', $request->username)
-                        ->where('provider_id', $request->provider_id)->first();    
+                    $providerAccount = ProviderAccount::withTrashed()->where('username', $request->username)
+                        ->where('provider_id', $request->provider_id)->first();
+
+                    if (!empty($providerAccount)) {
+                        ProviderAccount::withTrashed()->where('username', $request->username)
+                            ->where('provider_id', $request->provider_id)->first()->restore();
+                    }    
+                    
                 }               
 
                 if (!empty($providerAccount)) {
-                    //check if this record was previously deleted and if so, delete the deleted_at value
-                    if (!empty($providerAccount->deleted_at)) {
-                        $data['deleted_at'] = null;
-                    }
+
                     if ($providerAccount->update($data)) {
 
                         $message = 'success';   
