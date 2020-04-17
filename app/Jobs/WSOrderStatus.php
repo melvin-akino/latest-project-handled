@@ -22,7 +22,7 @@ class WSOrderStatus implements ShouldQueue
     public function handle()
     {
         $swoole = app('swoole');
-        $fd     = $swoole->ws->get('uid:' . $this->userId);
+        $fd     = $swoole->wsTable->get('uid:' . $this->userId);
 
         $swoole->push($fd['value'], json_encode([
             'getOrderStatus' => [

@@ -125,7 +125,7 @@
                 </div>
                 <div class="flex justify-center w-full">
                     <button v-if="isPlacingOrder" @click="placeOrder" class="bg-orange-500 text-white rounded-lg w-full text-sm uppercase p-2 mt-2 opacity-75" disabled>Placing Order... <span class="text-sm"><i class="fas fa-circle-notch fa-spin"></i></span></button>
-                    <button v-if="!isPlacingOrder" @click="placeOrder" class="bg-orange-500 text-white rounded-lg w-full text-sm uppercase p-2 mt-2" :class="[minMaxData.length === 0 ? 'opacity-75' : 'hover:bg-orange-600']" :disabled="minMaxData.length === 0">Place Order</button>
+                    <button v-if="!isPlacingOrder" @click="placeOrder" class="bg-orange-500 text-white rounded-lg w-full text-sm uppercase p-2 mt-2 focus:outline-none" :class="[!retrievedMarketData ? 'opacity-75' : 'hover:bg-orange-600']" :disabled="!retrievedMarketData">Place Order</button>
                 </div>
             </div>
         </dialog-drag>

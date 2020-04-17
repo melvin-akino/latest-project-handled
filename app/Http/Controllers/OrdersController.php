@@ -28,6 +28,7 @@ use Illuminate\Support\{
     Facades\DB,
     Str
 };
+use Illuminate\Support\Facades\Log;
 
 class OrdersController extends Controller
 {
@@ -593,10 +594,9 @@ class OrdersController extends Controller
                 if (!$payloadsSwt->exists($payloadsSwtId)) {
                     $payloadsSwt->set($payloadsSwtId, [ 'payload' => json_encode($payload) ]);
                 }
-
-                $ordersTable['orderId:' . $orderIds[$i]]['username']    = $payload['data']['username'];
-                $ordersTable['orderId:' . $orderIds[$i]]['orderExpiry'] = $payload['data']['orderExpiry'];
-                $ordersTable['orderId:' . $orderIds[$i]]['created_at']  = $incrementIds['created_at'][$i];
+                $ordersTable['orderId:' . $incrementIds['id'][$i]]['username']    = $payload['data']['username'];
+                $ordersTable['orderId:' . $incrementIds['id'][$i]]['orderExpiry'] = $payload['data']['orderExpiry'];
+                $ordersTable['orderId:' . $incrementIds['id'][$i]]['created_at']  = $incrementIds['created_at'][$i];
             }
 
             return response()->json([

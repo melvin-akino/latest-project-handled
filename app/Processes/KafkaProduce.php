@@ -71,8 +71,8 @@ class KafkaProduce implements CustomProcessInterface
 
                             if ($newTime->diffInSeconds(Carbon::parse($openOrderInitialTime)) >= (60 * 10)) {
                                 foreach ($providerAccountsTable AS $pKey => $pRow) {
-                                    $providerAlias = $providersTable->get($pKey)['provider_alias'];
-                                    $username      = $providersTable->get($pKey)['username'];
+                                    $providerAlias = strtolower($pRow['provider_alias']);
+                                    $username      = $pRow['username'];
                                     $requestId     = Str::uuid();
                                     $requestTs     = self::milliseconds();
 
@@ -91,7 +91,7 @@ class KafkaProduce implements CustomProcessInterface
 
                                     self::pushToKafka($payload, $requestId, $providerAlias . $kafkaTopics['req_open_order']);
                                 }
-                                
+
                                 $openOrderInitialTime = $newTime;
                             }
 
@@ -99,6 +99,9 @@ class KafkaProduce implements CustomProcessInterface
                             // if ($newTime->diffInSeconds(Carbon::parse($providerAccountInitialTime)) >= (60 * 30)) {
                             if ($newTime->diffInSeconds(Carbon::parse($providerAccountInitialTime)) >= (60)) {
                                 foreach ($providerAccountsTable AS $sKey => $sRow) {
+                                    $providerAlias = strtolower($sRow['provider_alias']);
+                                    $username      = $sRow['username'];
+
                                     $randomRangeInMinutes = rand(0, 10);
 
                                     $requestId     = Str::uuid();
@@ -113,11 +116,11 @@ class KafkaProduce implements CustomProcessInterface
 
                                     $payload['data'] = [
                                         'sport'     => $sportId,
-                                        'provider'  => $sRow['provider_id'],
-                                        'username'  => $sRow['username']
+                                        'provider'  => $providerAlias,
+                                        'username'  => $username
                                     ];
 
-                                    self::pushToKafka($payload, $requestId, strtolower($sRow['provider_alias']) . $kafkaTopics['req_settlements'], $randomRangeInMinutes);
+                                    self::pushToKafka($payload, $requestId, $providerAlias . $kafkaTopics['req_settlements'], $randomRangeInMinutes);
 
                                     $providerAccountInitialTime = $newTime;
                                 }
