@@ -47,6 +47,7 @@ export default {
     watch: {
         bets() {
             this.getOrders()
+            this.getOrderStatus()
         }
     },
     methods: {
