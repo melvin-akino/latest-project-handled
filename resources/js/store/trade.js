@@ -205,7 +205,7 @@ const actions = {
         }
     },
     getBookies({commit, dispatch}) {
-        axios.get('v1/bookies', { headers: { 'Authorization': `Bearer ${token}` }})
+        return axios.get('v1/bookies', { headers: { 'Authorization': `Bearer ${token}` }})
         .then(response => {
             commit('SET_BOOKIES', response.data.data)
         })
