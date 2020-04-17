@@ -480,7 +480,7 @@ class OrdersController extends Controller
 
                 $teamname = $query->market_flag == "HOME" ? $query->master_home_team_name : $query->master_away_team_name;
 
-                $betSelection = implode('<br />', [
+                $betSelection = implode("\n", [
                     $query->master_home_team_name . " vs " . $query->master_away_team_name,
                     $query->column_type . " " . $query->odd_label . "(" . $query->score . ")",
                     $teamname . " @ " . $query->odds,

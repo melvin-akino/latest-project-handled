@@ -37,7 +37,7 @@ class TransformKafkaMessageOpenOrders extends Task
                             $expiry  = $orderTable['orderExpiry'];
                             $orderId = substr($_key, strlen('orderId:'));
 
-                            DbOrderStatus::dispatch($userId, $orderId, $order->status);
+                            DbOrderStatus::dispatch($userId, $orderId, $order->status, $order->odds);
                         }
                     }
                 }

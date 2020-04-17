@@ -10,20 +10,22 @@ class DbOrderStatus implements ShouldQueue
 {
     use Dispatchable;
 
-    public function __construct($userId, $orderId, $status)
+    public function __construct($userId, $orderId, $status, $odds)
     {
         $this->userId  = $userId;
         $this->orderId = $orderId;
         $this->status  = $status;
+        $this->odds    = $odds;
     }
 
     public function handle()
     {
-        $swoole    = app('swoole');
-        $fd      = $swoole->ws->get('uid:' . $this->userId);
+        $swoole = app('swoole');
+        $fd     = $swoole->ws->get('uid:' . $this->userId);
 
         Order::where('id', $this->orderId)->update([
-            'status' => $this->status
+            'status' => $this->status,
+            'odds'   => $this->odds,
         ]);
 
         $swoole->push($fd['value'], json_encode([
