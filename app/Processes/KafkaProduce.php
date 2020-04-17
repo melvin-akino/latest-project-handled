@@ -71,8 +71,8 @@ class KafkaProduce implements CustomProcessInterface
 
                             if ($newTime->diffInSeconds(Carbon::parse($openOrderInitialTime)) >= (60 * 10)) {
                                 foreach ($providerAccountsTable AS $pKey => $pRow) {
-                                    $providerAlias = $providersTable->get($pKey)['provider_alias'];
-                                    $username      = $providersTable->get($pKey)['username'];
+                                    $providerAlias = $providerAccountsTable->get($pKey)['provider_alias'];
+                                    $username      = $providerAccountsTable->get($pKey)['username'];
                                     $requestId     = Str::uuid();
                                     $requestTs     = self::milliseconds();
 
@@ -99,8 +99,8 @@ class KafkaProduce implements CustomProcessInterface
                             // if ($newTime->diffInSeconds(Carbon::parse($providerAccountInitialTime)) >= (60 * 30)) {
                             if ($newTime->diffInSeconds(Carbon::parse($providerAccountInitialTime)) >= (60)) {
                                 foreach ($providerAccountsTable AS $sKey => $sRow) {
-                                    $providerAlias = $providersTable->get($sKey)['provider_alias'];
-                                    $username      = $providersTable->get($sKey)['username'];
+                                    $providerAlias = $providerAccountsTable->get($sKey)['provider_alias'];
+                                    $username      = $providerAccountsTable->get($sKey)['username'];
 
                                     $randomRangeInMinutes = rand(0, 10);
 
