@@ -25,7 +25,8 @@ class ProviderAccountRequest extends FormRequest
      */
     public function rules()
     {
-        $existingProviderAccount = ProviderAccount::where('id', $this->input('providerAccountId'))->first();
+        $existingProviderAccount = ProviderAccount::where('username', $this->input('username'))->where('provider_id', $this->input('provider_id'))->first();
+
 
         $update = !empty($existingProviderAccount->id) ? ",$existingProviderAccount->id" : ''; 
         
