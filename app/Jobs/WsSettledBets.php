@@ -49,7 +49,7 @@ class WsSettledBets implements ShouldQueue
             ->where('user_id', $orders->user_id)
             ->first();
 
-        $sourceId = DB::table('source')
+        $sourceId = DB::table('sources')
             ->where('source_name', 'LIKE', 'PLACE_BET')
             ->first();
 
