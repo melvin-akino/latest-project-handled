@@ -50,4 +50,11 @@ class ProviderAccount extends Model
 
         return $query->first()->username;
     }
+
+    public static function getUsernameId($username)
+    {
+        return self::where('username', $username)
+            ->first()
+            ->id;
+    }
 }
