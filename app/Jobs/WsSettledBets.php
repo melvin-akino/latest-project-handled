@@ -69,17 +69,18 @@ class WsSettledBets implements ShouldQueue
 
         DB::table('order_logs')
             ->insert([
-                'provider_id'  => $this->providerId,
-                'sport_id'     => $this->data->sport,
-                'bet_id'       => $this->data->bet_id,
-                'status'       => $status,
-                'user_id'      => $orders->user_id,
-                'reason'       => $this->data->reason,
-                'profit_loss'  => $this->data->profit_loss,
-                'order_id'     => $orders->id,
-                'settled_date' => Carbon::now(),
-                'created_at'   => Carbon::now(),
-                'updated_at'   => Carbon::now(),
+                'provider_id'   => $this->providerId,
+                'sport_id'      => $this->data->sport,
+                'bet_id'        => $this->data->bet_id,
+                'bet_selection' => $orders->bet_selection,
+                'status'        => $status,
+                'user_id'       => $orders->user_id,
+                'reason'        => $this->data->reason,
+                'profit_loss'   => $this->data->profit_loss,
+                'order_id'      => $orders->id,
+                'settled_date'  => Carbon::now(),
+                'created_at'    => Carbon::now(),
+                'updated_at'    => Carbon::now(),
             ]);
 
         switch ($status) {
