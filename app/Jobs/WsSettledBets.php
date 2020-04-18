@@ -54,8 +54,8 @@ class WsSettledBets implements ShouldQueue
             ->first();
 
         $exchangeRate = DB::table('exchange_rates')
-            ->where('from_currency', $this->providerCurrency)
-            ->where('to_currency', 1)
+            ->where('from_currency_id', $this->providerCurrency)
+            ->where('to_currency_id', 1)
             ->first();
 
         $orders->update([
