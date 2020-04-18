@@ -137,7 +137,8 @@ class WsSettledBets implements ShouldQueue
         $balance   *= $exchangeRate->exchange_rate;
         $newBalance = $userWallet->balance + $balance;
 
-        $userWallet->update([
+        DB::table('wallet')->where('user_id', $orders->user_id)
+            ->update([
             'balance'    => $newBalance,
             'updated_at' => Carbon::now(),
         ]);
@@ -145,7 +146,7 @@ class WsSettledBets implements ShouldQueue
         DB::table('wallet_ledger')
             ->insert([
                 'wallet_id'  => $userWallet->id,
-                'source_id'  => $sourceId,
+                'source_id'  => $sourceId->id,
                 'debit'      => $debit,
                 'credit'     => $credit,
                 'balance'    => $newBalance,
