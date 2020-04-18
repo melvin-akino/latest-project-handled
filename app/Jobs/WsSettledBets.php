@@ -50,7 +50,7 @@ class WsSettledBets implements ShouldQueue
             ->first();
 
         $sourceId = DB::table('source')
-            ->where('source_name', 'ILIKE', 'PLACE_BET')
+            ->where('source_name', 'LIKE', 'PLACE_BET')
             ->first();
 
         $exchangeRate = DB::table('exchange_rates')
