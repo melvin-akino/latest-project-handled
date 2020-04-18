@@ -505,6 +505,7 @@ class OrdersController extends Controller
                     'reason'                        => "",
                     'profit_loss'                   => 0.00,
                     'order_expiry'                  => $request->orderExpiry,
+                    'provider_account_id'           => '',
                 ]);
 
                 $incrementIds['id'][] = $orderIncrement->id;

@@ -25,6 +25,7 @@ class Order extends Model
         'settled_date',
         'reason',
         'profit_loss',
+        'provider_account_id',
     ];
 
     protected $hidden = [];
