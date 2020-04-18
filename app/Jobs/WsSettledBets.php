@@ -58,7 +58,8 @@ class WsSettledBets implements ShouldQueue
             ->where('to_currency_id', 1)
             ->first();
 
-        $orders->update([
+        DB::table('orders')->where('bet_id', $this->data->bet_id)
+            ->update([
             'status'       => strtoupper($this->data->status),
             'profit_loss'  => $this->data->profit_loss,
             'reason'       => $this->data->reason,
