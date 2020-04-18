@@ -2,10 +2,8 @@
 
 namespace App\Tasks;
 
-use App\Models\{
-    Order,
-    ProviderAccount
-};
+use App\Models\Order;
+use App\Models\CRM\ProviderAccount;
 use App\Jobs\WSOrderStatus;
 use Hhxsv5\LaravelS\Swoole\Task\Task;
 

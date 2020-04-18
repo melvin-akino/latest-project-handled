@@ -62,7 +62,7 @@ class OrdersController extends Controller
                 foreach($myOrders as $myOrder) {
                     $data['orders'][] = [
                         'bet_id'        => $myOrder->bet_id,
-                        'bet_selection' => $myOrder->bet_selection,
+                        'bet_selection' => nl2br($myOrder->bet_selection),
                         'provider'      => strtoupper($myOrder->alias),
                         'odds'          => $myOrder->odds,
                         'stake'         => $myOrder->stake,
@@ -487,13 +487,16 @@ class OrdersController extends Controller
                     $teamname . " @ " . $query->odds,
                 ]);
 
+                $providerAccountUserName = ProviderAccount::getProviderAccount($row['provider_id'], $actualStake, $isUserVIP);
+                $providerAccountId = ProviderAccount::getUsernameId($providerAccountUserName);
+
                 $orderIncrement = Order::create([
                     'user_id'                       => auth()->user()->id,
                     'master_event_market_unique_id' => $request->market_id,
                     'market_id'                     => $query->bet_identifier,
                     'status'                        => "PENDING",
                     'bet_id'                        => "",
-                    'bet_selection'                 => nl2br($betSelection),
+                    'bet_selection'                 => $betSelection,
                     'provider_id'                   => $row['provider_id'],
                     'sport_id'                      => $query->sport_id,
                     'odds'                          => $row['price'],
@@ -505,7 +508,7 @@ class OrdersController extends Controller
                     'reason'                        => "",
                     'profit_loss'                   => 0.00,
                     'order_expiry'                  => $request->orderExpiry,
-                    'provider_account_id'           => '',
+                    'provider_account_id'           => $providerAccountId,
                 ]);
 
                 $incrementIds['id'][] = $orderIncrement->id;
