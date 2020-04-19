@@ -5,7 +5,7 @@ namespace App\Processes;
 use App\Handlers\ProducerHandler;
 use App\Jobs\KafkaPush;
 use App\Models\SystemConfiguration;
-use Illuminate\Support\Facades\{DB, Log};
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Hhxsv5\LaravelS\Swoole\Process\CustomProcessInterface;
 use Swoole\Http\Server;
@@ -68,7 +68,7 @@ class KafkaProduce implements CustomProcessInterface
                             foreach ($systemConfigurationsTimers as $systemConfigurationsTimer) {
                                 if (!empty((int) $systemConfigurationsTimer['value'])) {
                                     if ($balanceTime % (int) $systemConfigurationsTimer['value'] == 0) {
-                                        self::sendBalancePayload($systemConfigurationsTimer['type'], $kafkaTopics['req_balance']);
+                                        self::sendBalancePayload($systemConfigurationsTimer['type'], $kafkaTopics['req_balance'], $swoole);
                                     }
                                 }
                             }
@@ -218,19 +218,13 @@ class KafkaProduce implements CustomProcessInterface
         return SystemConfiguration::whereIn('type', ['BET_VIP', 'BET_NORMAL'])->get()->toArray();
     }
 
-    private static function sendBalancePayload($type, $topic)
+    private static function sendBalancePayload($type, $topic, $swoole)
     {
-        $providerAccounts = DB::table('provider_accounts as pa')
-            ->join('providers as p', 'p.id', 'pa.provider_id')
-            ->where('p.is_enabled', true)
-            ->where('type', $type)
-            ->whereNull('deleted_at')
-            ->select('username', 'alias')
-            ->get();
+        $providerAccounts = $swoole->providerAccountsTable;
 
         foreach ($providerAccounts as $providerAccount) {
-            $username = $providerAccount->username;
-            $provider = strtolower($providerAccount->alias);
+            $username = $providerAccount['username;'];
+            $provider = strtolower($providerAccount['provider_alias']);
 
             $requestId = (string) Str::uuid();
             $requestTs = self::milliseconds();
