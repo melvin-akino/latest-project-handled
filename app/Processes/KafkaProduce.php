@@ -64,10 +64,11 @@ class KafkaProduce implements CustomProcessInterface
                             $systemConfigurationsTimers = self::refreshBalanceDbConfig();
                         }
 
-                        if (!empty($systemConfigurationsTimers)) {
+                        if (!empty($systemConfigurationsTimers)) {Log::info('Balance check');
                             foreach ($systemConfigurationsTimers as $systemConfigurationsTimer) {
                                 if (!empty((int) $systemConfigurationsTimer['value'])) {
                                     if ($balanceTime % (int) $systemConfigurationsTimer['value'] == 0) {
+                                        Log::info('Balance send');
                                         self::sendBalancePayload($systemConfigurationsTimer['type'], $kafkaTopics['req_balance']);
                                     }
                                 }
@@ -244,7 +245,7 @@ class KafkaProduce implements CustomProcessInterface
             'provider'  => $provider,
             'username'  => $username
         ];
-
+        Log::info('Balance sent');
         self::pushToKafka($payload, $requestId, $provider . $topic);
     }
 }
