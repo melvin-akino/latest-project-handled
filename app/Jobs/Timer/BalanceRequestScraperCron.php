@@ -97,6 +97,12 @@ class BalanceRequestScraperCron extends CronJob
         ];
 
         Log::info('Balance Dispatch ' . $provider . $kafkaTopic);
-        KafkaPush::dispatch($provider . $kafkaTopic, $payload, $requestId);
+
+        $kafkaProducer   = app('KafkaProducer');
+        $producerHandler = new ProducerHandler($kafkaProducer);
+
+        Log::info('Sending to Kafka ' . $this->kafkaTopic);
+        $producerHandler->setTopic($provider . $kafkaTopic)->send($payload, $requestId);
+        Log::channel('kafkaproducelog')->info(json_encode($this->message));
     }
 }
