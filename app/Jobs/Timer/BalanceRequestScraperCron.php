@@ -108,6 +108,6 @@ class BalanceRequestScraperCron extends CronJob
         } catch (Exception $e) {
             Log::error($e->getMessage());
         }
-        Log::channel('kafkaproducelog')->info(json_encode($this->message));
+        Log::channel('kafkaproducelog')->info(json_encode($payload));
     }
 }
