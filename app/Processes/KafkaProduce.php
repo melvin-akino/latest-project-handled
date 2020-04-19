@@ -4,6 +4,8 @@ namespace App\Processes;
 
 use App\Handlers\ProducerHandler;
 use App\Jobs\KafkaPush;
+use App\Models\SystemConfiguration;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Hhxsv5\LaravelS\Swoole\Process\CustomProcessInterface;
 use Illuminate\Support\Facades\Log;
@@ -33,6 +35,7 @@ class KafkaProduce implements CustomProcessInterface
                 'req_open_order'   => env('KAFKA_SCRAPE_OPEN_ORDERS_POSTFIX', '_openorder_req'),
                 'push_place_order' => env('KAFKA_BET_PLACED', 'PLACED-BET'),
                 'req_settlements'  => env('KAFKA_SCRAPE_SETTLEMENT_POSTFIX', '_settlement_req'),
+                'req_balance'      => env('KAFKA_SCRAPE_BALANCE_POSTFIX', '_balance_req')
             ];
 
             if ($swoole->wsTable->exist('data2Swt')) {
@@ -47,11 +50,39 @@ class KafkaProduce implements CustomProcessInterface
                 $providerAccountInitialTime = Carbon::createFromFormat('H:i:s', Carbon::now()->format('H:i:s'));
                 $betInitialTime             = Carbon::createFromFormat('H:i:s', Carbon::now()->format('H:i:s'));
                 $openOrderInitialTime       = Carbon::createFromFormat('H:i:s', Carbon::now()->format('H:i:s'));
+                $balanceTime                = 0;
+                $systemConfigurationsTimers = [];
 
                 while (!self::$quit) {
                     $newTime = Carbon::createFromFormat('H:i:s', Carbon::now()->format('H:i:s'));
 
                     if ($newTime->diffInSeconds(Carbon::parse($initialTime)) >= 1) {
+                        //Balance Process
+                        $balanceTime++;
+
+                        Log::info('Balance ' . $balanceTime);
+                        if ($balanceTime == 20) {
+                            Log::info('Balance Send Payload');
+                            self::sendBalancePayload('BET_NORMAL', $kafkaTopics['req_balance']);
+                        }
+
+                        $refreshDBInterval = config('balance.refresh-db-interval');
+                        if ($balanceTime % $refreshDBInterval == 0) {
+                            $systemConfigurationsTimers = self::refreshBalanceDbConfig();
+                        }
+
+                        if (!empty($systemConfigurationsTimers)) {
+                            foreach ($systemConfigurationsTimers as $systemConfigurationsTimer) {
+                                if (!empty((int) $systemConfigurationsTimer['value'])) {
+                                    if ($balanceTime % (int) $systemConfigurationsTimer['value'] == 0) {
+                                        self::sendBalancePayload($systemConfigurationsTimer['type'], $kafkaTopics['req_balance']);
+                                    }
+                                }
+                            }
+                        }
+                        //END of Balance Process
+
+                        //Minmax Process
                         foreach ($minMaxRequestsTable as $minMaxRequest) {
                             $requestId = Str::uuid();
                             $requestTs = self::milliseconds();
@@ -65,6 +96,7 @@ class KafkaProduce implements CustomProcessInterface
                             $payload['data'] = $minMaxRequest;
                             self::pushToKafka($payload, $requestId, strtolower($minMaxRequest['provider']) . $kafkaTopics['req_minmax']);
                         }
+                        //END of Minmax Process
 
                         foreach ($sportsTable AS $sKey => $sRow) {
                             $sportId = $sportsTable->get($sKey)['id'];
@@ -186,5 +218,40 @@ class KafkaProduce implements CustomProcessInterface
             }
             Log::channel('kafkaproducelog')->info(json_encode($message));
         }
+    }
+
+    private static function refreshBalanceDbConfig()
+    {
+        return SystemConfiguration::whereIn('type', ['BET_VIP', 'BET_NORMAL'])->get()->toArray();
+    }
+
+    private static function sendBalancePayload($type, $topic)
+    {
+        $providerAccount = DB::table('provider_accounts as pa')
+            ->join('providers as p', 'p.id', 'pa.provider_id')
+            ->where('p.is_enabled', true)
+            ->where('type', $type)
+            ->whereNull('deleted_at')
+            ->select('username', 'alias')
+            ->first();
+
+        $username = $providerAccount->username;
+        $provider = strtolower($providerAccount->alias);
+
+        $requestId = (string) Str::uuid();
+        $requestTs = self::milliseconds();
+
+        $payload = [
+            'request_uid' => $requestId,
+            'request_ts'  => $requestTs,
+            'sub_command' => 'scrape',
+            'command'     => 'balance'
+        ];
+        $payload['data'] = [
+            'provider'  => $provider,
+            'username'  => $username
+        ];
+
+        self::pushToKafka($payload, $requestId, $provider . $topic);
     }
 }
