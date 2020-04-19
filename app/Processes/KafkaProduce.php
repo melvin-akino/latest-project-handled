@@ -191,14 +191,14 @@ class KafkaProduce implements CustomProcessInterface
         return bcadd($mt[1], $mt[0], 8);
     }
 
-    private static function pushToKafka(array $message = [], string $key, string $kafkaTopic, int $delayInMinutes = 0)
+    private static function pushToKafka(array $message = [], string $key, string $kafkaTopic, int $delayInSeconds = 0)
     {
         try {
             if (empty($delayInMinutes)) {
                 self::$producerHandler->setTopic($kafkaTopic)
                     ->send($message, $key);
             } else {
-                KafkaPush::dispatch($kafkaTopic, $message, $key)->delay(now()->addMinutes($delayInMinutes));
+                KafkaPush::dispatch($kafkaTopic, $message, $key)->delay(now()->addSeconds($delayInSeconds));
             }
         } catch (Exception $e) {
             Log::critical('Sending Kafka Message Failed', [
@@ -220,30 +220,33 @@ class KafkaProduce implements CustomProcessInterface
 
     private static function sendBalancePayload($type, $topic)
     {
-        $providerAccount = DB::table('provider_accounts as pa')
+        $providerAccounts = DB::table('provider_accounts as pa')
             ->join('providers as p', 'p.id', 'pa.provider_id')
             ->where('p.is_enabled', true)
             ->where('type', $type)
             ->whereNull('deleted_at')
             ->select('username', 'alias')
-            ->first();
+            ->get();
 
-        $username = $providerAccount->username;
-        $provider = strtolower($providerAccount->alias);
+        foreach ($providerAccounts as $providerAccount) {
+            $username = $providerAccount->username;
+            $provider = strtolower($providerAccount->alias);
 
-        $requestId = (string) Str::uuid();
-        $requestTs = self::milliseconds();
+            $requestId = (string) Str::uuid();
+            $requestTs = self::milliseconds();
 
-        $payload = [
-            'request_uid' => $requestId,
-            'request_ts'  => $requestTs,
-            'sub_command' => 'scrape',
-            'command'     => 'balance'
-        ];
-        $payload['data'] = [
-            'provider'  => $provider,
-            'username'  => $username
-        ];
-        self::pushToKafka($payload, $requestId, $provider . $topic);
+            $payload = [
+                'request_uid' => $requestId,
+                'request_ts'  => $requestTs,
+                'sub_command' => 'scrape',
+                'command'     => 'balance'
+            ];
+            $payload['data'] = [
+                'provider'  => $provider,
+                'username'  => $username
+            ];
+
+            self::pushToKafka($payload, $requestId, $provider . $topic, rand(1, 180));
+        }
     }
 }
