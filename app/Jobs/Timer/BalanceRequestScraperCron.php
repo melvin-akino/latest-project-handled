@@ -101,7 +101,7 @@ class BalanceRequestScraperCron extends CronJob
         $kafkaProducer   = app('KafkaProducer');
         $producerHandler = new ProducerHandler($kafkaProducer);
 
-        Log::info('Sending to Kafka ' . $this->kafkaTopic);
+        Log::info('Sending to Kafka ' . $kafkaTopic);
         try {
             $producerHandler->setTopic($provider . $kafkaTopic)->send($payload, $requestId);
             Log::info('Kafka Sent');
