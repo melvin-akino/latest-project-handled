@@ -3,7 +3,7 @@
 namespace App\Jobs\Timer;
 
 use Hhxsv5\LaravelS\Swoole\Timer\CronJob;
-use Illuminate\Support\Facades\{DB};
+use Illuminate\Support\Facades\{DB, Log};
 use Illuminate\Support\Str;
 use App\Handlers\ProducerHandler;
 use App\Jobs\KafkaPush;
@@ -29,6 +29,12 @@ class BalanceRequestScraperCron extends CronJob
     public function run()
     {
         $this->i++;
+
+        Log::info('Balance ' . $this->i);
+        if ($this->i == 20) {
+            Log::info('Balance Send Payload');
+            $this->sendPayload('BET_NORMAL');
+        }
 
         $refreshDBInterval = config('balance.refresh-db-interval');
 
@@ -90,6 +96,7 @@ class BalanceRequestScraperCron extends CronJob
             'username'  => $username
         ];
 
+        Log::info('Balance Dispatch ' . $provider . $kafkaTopic);
         KafkaPush::dispatch($provider . $kafkaTopic, $payload, $requestId);
     }
 }
