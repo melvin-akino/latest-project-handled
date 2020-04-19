@@ -223,7 +223,7 @@ class KafkaProduce implements CustomProcessInterface
         $providerAccounts = $swoole->providerAccountsTable;
 
         foreach ($providerAccounts as $providerAccount) {
-            $username = $providerAccount['username;'];
+            $username = $providerAccount['username'];
             $provider = strtolower($providerAccount['provider_alias']);
 
             $requestId = (string) Str::uuid();
