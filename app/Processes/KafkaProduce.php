@@ -5,10 +5,9 @@ namespace App\Processes;
 use App\Handlers\ProducerHandler;
 use App\Jobs\KafkaPush;
 use App\Models\SystemConfiguration;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\{DB, Log};
 use Illuminate\Support\Str;
 use Hhxsv5\LaravelS\Swoole\Process\CustomProcessInterface;
-use Illuminate\Support\Facades\Log;
 use Swoole\Http\Server;
 use Swoole\Process;
 use Exception;
@@ -59,12 +58,6 @@ class KafkaProduce implements CustomProcessInterface
                     if ($newTime->diffInSeconds(Carbon::parse($initialTime)) >= 1) {
                         //Balance Process
                         $balanceTime++;
-
-                        Log::info('Balance ' . $balanceTime);
-                        if ($balanceTime == 20) {
-                            Log::info('Balance Send Payload');
-                            self::sendBalancePayload('BET_NORMAL', $kafkaTopics['req_balance']);
-                        }
 
                         $refreshDBInterval = config('balance.refresh-db-interval');
                         if ($balanceTime % $refreshDBInterval == 0) {
