@@ -25,11 +25,21 @@ class ProviderAccountRequest extends FormRequest
      */
     public function rules()
     {
-        $existingProviderAccount = ProviderAccount::where('id', $this->input('providerAccountId'))->first();
-
-        $update = !empty($existingProviderAccount->id) ? ",$existingProviderAccount->id" : ''; 
+        $accounts = ProviderAccount::withTrashed()->where('username', $this->input('username'))->where('provider_id', $this->input('provider_id'))->get();
+        $uniqueUsername = "|unique:provider_accounts,username";
+        if (!empty($accounts)) {
+            foreach($accounts as $account) {
+                if (!is_null($account->deleted_at)) {
+                    $uniqueUsername = '';
+                    break;
+                }
+                elseif ($account->id == $this->input('providerAccountId')){
+                    $uniqueUsername = "|unique:provider_accounts,username,$account->id";
+                    break;
+                }
+            }    
+        }      
         
-        $uniqueUsername = "|unique:provider_accounts,username$update";
         return [
             'username'   => 'required|max:50'.$uniqueUsername,
             'password' => 'required',

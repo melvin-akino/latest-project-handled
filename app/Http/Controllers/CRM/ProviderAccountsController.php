@@ -49,19 +49,33 @@ class ProviderAccountsController extends Controller
                 !empty($request->pa_is_enabled) ? $data['is_enabled'] = true : $data['is_enabled'] = false;
                 !empty($request->is_idle) ? $data['is_idle'] = true : $data['is_idle'] = false;
 
+                //Record is on update process
                 if (!empty($request->providerAccountId)) {
                     $providerAccount = ProviderAccount::where('id', $request->providerAccountId)->first();
+                }
+                else {
+                    $providerAccount = ProviderAccount::withTrashed()->where('username', $request->username)
+                        ->where('provider_id', $request->provider_id)->first();
+
+                    if (!empty($providerAccount)) {
+                        ProviderAccount::withTrashed()->where('username', $request->username)
+                            ->where('provider_id', $request->provider_id)->first()->restore();
+                    }    
+                    
+                }               
+
+                if (!empty($providerAccount)) {
+
                     if ($providerAccount->update($data)) {
 
                         $message = 'success';   
                     }
                     
                 }
-                else {
-                    if (ProviderAccount::create($data)) {
+                else if (ProviderAccount::create($data)) {
                         $message = 'success';    
-                    }                   
                 }
+                                   
                 DB::commit();
                 return response()->json([
                     'status'      => true,
