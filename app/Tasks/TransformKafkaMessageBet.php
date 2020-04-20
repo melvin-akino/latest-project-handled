@@ -30,7 +30,7 @@ class TransformKafkaMessageBet extends Task
                 $messageOrderId  = end($requestUIDArray);
 
                 if ($orderId == $messageOrderId) {
-                    $status = !empty($this->message->data->reason) ? 'FAILED' : 'SUCCESS';
+                    $status = strtoupper($this->message->data->status);
                     Order::updateOrCreate([
                         'id' => $messageOrderId
                     ], [

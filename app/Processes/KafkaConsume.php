@@ -79,9 +79,19 @@ class KafkaConsume implements CustomProcessInterface
                                 Task::deliver(new TransformKafkaMessageBalance($payload));
                                 break;
                             case 'orders':
+                                if (empty($payload->data)) {
+                                    Log::info("Open Order Transformation ignored - No Data Found");
+                                    break;
+                                }
+
                                 Task::deliver(new TransformKafkaMessageOpenOrders($payload));
                                 break;
                             case 'settlement':
+                                if (empty($payload->data)) {
+                                    Log::info("Settlement Transformation ignored - No Data Found");
+                                    break;
+                                }
+
                                 Task::deliver(new TransformKafkaMessageSettlement($payload));
                                 break;
                             default:
