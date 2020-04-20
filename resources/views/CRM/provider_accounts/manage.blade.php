@@ -7,7 +7,7 @@
                   {{ csrf_field() }}
                 <input type="hidden" class="form-control" name="providerAccountId"
                                    id="providerAccountId"
-                                   placeholder="ProviderId">
+                                   placeholder="ProviderAccountId">
                 <div class="modal-header">
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span></button>
@@ -116,10 +116,17 @@
           var manageProviderAccount = function (form) {
                 var btn = form.find(':submit').button('loading');
                 var url = form.prop('action');
+                var formArray = form.serializeArray();
+                var selectedProviderId;
+
+                $.each(formArray, function() {
+                    if (this.name == 'provider_id') {
+                        selectedProviderId = this.value;
+                    }
+                });
                 
                 $.post(url, form.serialize(), function (response) {
-                    if (response.data == 'success') {
-
+                    if (response.data == 'success') {                        
                         swal('Provider Account', 'Provider account successfully saved', response.data).then(() => {
                             
                             if (form.find('input[name=providerAccountId]').val() == '') {
@@ -136,6 +143,8 @@
                                     if (result.value) {
                                         clearErr(form);
                                         form.trigger('reset');
+                                        form.find('input[name=providerAccountId]').val('');
+                                        form.find('select[name=provider_id]').val(selectedProviderId);                                        
                                     }
                                     else {
                                         $('#modal-manage-provider-accounts').modal('toggle');
@@ -153,12 +162,15 @@
                     return;
                 }).done(function () {
                     btn.button('reset');
+
                 }).fail(function(xhr, status, error) {
                     // error handling
                     assocErr(xhr.responseJSON.errors, form);
 
                     btn.button('reset');
                 });
+
+
             };
 
             $("#modal-manage-provider-accounts").on("hidden.bs.modal", function () {
@@ -169,6 +181,8 @@
 
             $('#form-manage-provider-account').submit(function(e) {
                 e.preventDefault();
+                $(this).find('input[name=username]').removeAttr("disabled");
+                $(this).find('select[name=provider_id]').removeAttr("disabled");
                 manageProviderAccount($(this));
             });           
         });

@@ -22,9 +22,9 @@ class ProviderAccountSettingsSeeder extends Seeder
         foreach ($scheduleTimers as $key => $value) {
             SystemConfiguration::updateOrCreate([
                 'type'  => $key,
-                'module'=> $value['module']
             ], [
                 'value' => $value['value'],
+                'module'=> $value['module']
             ]);
         }
     }
