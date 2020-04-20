@@ -26,11 +26,11 @@ class ProviderAccountRequest extends FormRequest
     public function rules()
     {
         $accounts = ProviderAccount::withTrashed()->where('username', $this->input('username'))->where('provider_id', $this->input('provider_id'))->get();
-        $uniqueUsername = "|unique:provider_accounts,username";
+        $uniqueUsername = "";
         if (!empty($accounts)) {
             foreach($accounts as $account) {
-                if (!is_null($account->deleted_at)) {
-                    $uniqueUsername = '';
+                if (is_null($account->deleted_at)) {
+                    $uniqueUsername = "|unique:provider_accounts,username";
                     break;
                 }
                 elseif ($account->id == $this->input('providerAccountId')){
