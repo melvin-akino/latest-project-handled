@@ -82,7 +82,7 @@ export default {
         renderBetSelectionAsHTML() {
             Object.keys(this.$refs.ordersTable.$el.children[1].children[0].tBodies[0].rows).map(row => {
                 let betSelection = this.$refs.ordersTable.$el.children[1].children[0].tBodies[0].rows[row].cells[2]
-                betSelection.innerHTML = `${betSelection.innerText}`
+                betSelection.innerHTML = this.myorders[row].bet_selection
             })
         }
     },
