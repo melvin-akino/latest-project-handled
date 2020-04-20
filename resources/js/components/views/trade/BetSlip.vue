@@ -395,7 +395,16 @@ export default {
                 if(getSocketKey(response.data) === 'removeMinMax') {
                     let removeMinMax = getSocketValue(response.data, 'removeMinMax')
                     if(removeMinMax.status) {
-                        this.minMaxData = []
+                        this.minMaxData.map(minmax => {
+                            minmax.min = null
+                            minmax.max = null
+                            minmax.price = null
+                            minmax.priority = null
+                            minmax.age = null
+                            minmax.hasMarketData = false
+                            this.retrievedMarketData = false
+                            this.marketDataMessage = 'Retrieving Market'
+                        })
                     }
                 }
             })

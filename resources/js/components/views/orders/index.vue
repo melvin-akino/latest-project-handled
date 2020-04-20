@@ -6,7 +6,7 @@
                 <span>Total P/L</span>
                 <span class="totalPL">{{wallet.currency_symbol}} {{totalPL | moneyFormat}}</span>
             </div>
-            <v-client-table name="My Orders" :data="myorders" :columns="columns" :options="options"></v-client-table>
+            <v-client-table name="My Orders" :data="myorders" :columns="columns" :options="options" ref="ordersTable"></v-client-table>
         </div>
     </div>
 </template>
@@ -49,6 +49,9 @@ export default {
     computed: {
         ...mapState('trade', ['wallet'])
     },
+    updated() {
+        this.renderBetSelectionAsHTML()
+    },
     methods: {
         getMyOrders() {
             let token = Cookies.get('mltoken')
@@ -74,6 +77,12 @@ export default {
             })
             .catch(err => {
                 this.$store.dispatch('auth/checkIfTokenIsValid', err.response.data.status_code)
+            })
+        },
+        renderBetSelectionAsHTML() {
+            Object.keys(this.$refs.ordersTable.$el.children[1].children[0].tBodies[0].rows).map(row => {
+                let betSelection = this.$refs.ordersTable.$el.children[1].children[0].tBodies[0].rows[row].cells[2]
+                betSelection.innerHTML = `${betSelection.innerText}`
             })
         }
     },
