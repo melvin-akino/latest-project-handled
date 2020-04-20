@@ -3,6 +3,7 @@
 namespace App\Tasks;
 
 use App\Models\Order;
+use App\Models\CRM\ProviderAccount;
 use App\Jobs\WSOrderStatus;
 use Hhxsv5\LaravelS\Swoole\Task\Task;
 
@@ -35,8 +36,9 @@ class TransformKafkaMessageOpenOrders extends Task
                             $expiry  = $orderTable['orderExpiry'];
 
                             Order::where('id', $this->orderId)->update([
-                                'status' => $order->status,
-                                'odds'   => $order->odds,
+                                'provider_account_id' => ProviderAccount::getUsernameId($orderTable['username']),
+                                'status'              => $order->status,
+                                'odds'                => $order->odds,
                             ]);
 
                             WSOrderStatus::dispatch($userId, $orderId, $order->status, $order->odds, $expiry, $orderTable['created_at']);

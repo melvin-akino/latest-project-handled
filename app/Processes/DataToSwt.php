@@ -302,6 +302,7 @@ class DataToSwt implements CustomProcessInterface
     private static function db2SwtOrders(Server $swoole)
     {
         $orders = DB::table('orders as o')
+            ->join('provider_accounts AS pa', 'o.provider_account_id', '=', 'pa.id')
             ->join('master_event_markets as mem', 'mem.master_event_market_unique_id', 'o.master_event_market_unique_id')
             ->join('master_events as me', 'me.master_event_unique_id', 'mem.master_event_unique_id')
             ->join('master_event_links as mel', 'mel.master_event_unique_id', 'me.master_event_unique_id')
@@ -317,6 +318,8 @@ class DataToSwt implements CustomProcessInterface
                 'me.score',
                 'o.bet_id',
                 'o.order_expiry',
+                'pa.id AS provider_account_id',
+                'pa.username',
             ])
             ->get();
 
@@ -332,6 +335,7 @@ class DataToSwt implements CustomProcessInterface
                 'score'         => $order->score,
                 'bet_id'        => $order->bet_id,
                 'orderExpiry'   => $order->order_expiry,
+                'username'      => $order->username,
             ]);
         }, $orders->toArray());
     }
