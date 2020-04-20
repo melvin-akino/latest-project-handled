@@ -42,6 +42,7 @@ class TransformKafkaMessageOddsSaveToDb extends Task
         $this->eventMarketsData  = $this->subTasks['event-market'] ?? [];
         $this->updatedOddsData   = $this->subTasks['updated-odds'] ?? [];
         $this->removeEventMarket = $this->subTasks['remove-event-market'] ?? [];
+        $this->removePreviousMarket = $this->subTasks['remove-previous-market'] ?? [];
 
         try {
             DB::beginTransaction();
@@ -63,6 +64,13 @@ class TransformKafkaMessageOddsSaveToDb extends Task
                     ], []);
                 }
 
+                if (!empty($this->removePreviousMarket)) {
+                    foreach ($this->removePreviousMarket AS $prevMarket) {
+                        EventMarket::where('master_event_unique_id', $prevMarket['uid'])
+                            ->delete();
+                    }
+                }
+
                 if (!empty($this->eventMarketsData)) {
                     foreach ($this->eventMarketsData as $eventMarket) {
                         $eventMarketModel = EventMarket::withTrashed()->updateOrCreate([
@@ -70,7 +78,6 @@ class TransformKafkaMessageOddsSaveToDb extends Task
                             'master_event_unique_id' => $eventMarket['EventMarket']['data']['master_event_unique_id']
                         ], $eventMarket['EventMarket']['data']);
                         $eventMarketId = $eventMarketModel->id;
-
 
                         $masterEventMarketLink = MasterEventMarketLink::where('event_market_id', $eventMarketId);
                         if ($masterEventMarketLink->exists()) {
@@ -80,7 +87,6 @@ class TransformKafkaMessageOddsSaveToDb extends Task
                         $masterEventMarketModel = MasterEventMarket::updateOrCreate([
                             'master_event_market_unique_id' => $eventMarket['MasterEventMarket']['data']['master_event_market_unique_id']
                         ], $eventMarket['MasterEventMarket']['data']);
-
 
                         if ($masterEventMarketModel) {
                             $masterEventMarketId = $masterEventMarketModel->id;
@@ -117,10 +123,10 @@ class TransformKafkaMessageOddsSaveToDb extends Task
             $removeEventMarket = [];
             foreach ($this->removeEventMarket AS $key => $_row) {
                 $eventMarket = EventMarket::where('event_identifier', $_row['event_identifier'])
-                                ->where('odd_type_id', $_row['odd_type_id'])
-                                ->where('provider_id', $_row['provider_id'])
-                                ->where('market_flag', $_row['market_flag'])
-                                ->delete();
+                    ->where('odd_type_id', $_row['odd_type_id'])
+                    ->where('provider_id', $_row['provider_id'])
+                    ->where('market_flag', $_row['market_flag'])
+                    ->delete();
             }
 
             DB::commit();
@@ -143,6 +149,16 @@ class TransformKafkaMessageOddsSaveToDb extends Task
                             'uid'      => $this->eventData['MasterEvent']['data']['master_event_unique_id']
                         ])
                     ]);
+                }
+            }
+
+            if (!empty($this->removePreviousMarket)) {
+                foreach ($this->removePreviousMarket AS $prevMarket) {
+                    foreach ($this->swoole->eventMarketsTable AS $emKey => $emRow) {
+                        if ($emKey, strpos($prevMarket['swtKey']) === 0) {
+                            $this->swoole->eventMarketsTable->del($emKey);
+                        }
+                    }
                 }
             }
 

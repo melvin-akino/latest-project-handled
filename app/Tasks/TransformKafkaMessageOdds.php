@@ -216,6 +216,14 @@ class TransformKafkaMessageOdds extends Task
                     }
 
                     if ($eventsTable->get($eventSwtId)['game_schedule'] != $this->message->data->schedule) {
+                        $this->subTasks['remove-previous-market'][] = [
+                            'uid'    => $uid,
+                            'swtKey' => implode(':', [
+                                    "pId:"   . $providerId,
+                                    "meUID:" . $uid,
+                                ]),
+                        ];
+
                         $wsTable->set('eventScheduleChange:' . $uid, ['value' => json_encode([
                             'uid'           => $uid,
                             'game_schedule' => $this->message->data->schedule,
