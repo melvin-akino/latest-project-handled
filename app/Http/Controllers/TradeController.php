@@ -504,9 +504,11 @@ class TradeController extends Controller
                     ->join('sports as s', 's.id', 'me.sport_id')
                     ->join('master_event_markets as mem', 'mem.master_event_unique_id', 'me.master_event_unique_id')
                     ->join('odd_types as ot', 'ot.id', 'mem.odd_type_id')
-                    ->join('master_event_market_links as meml', 'meml.master_event_market_unique_id',
-                        'mem.master_event_market_unique_id')
                     ->join('event_markets as em', 'em.id', 'meml.event_market_id')
+                    ->join('master_event_market_links as meml', function ($join) {
+                        $join->on('meml.master_event_market_unique_id', '=', 'mem.master_event_market_unique_id');
+                        $join->on('em.id', '=', 'meml.event_market_id');
+                    })
                     ->whereNull('me.deleted_at')
                     ->where('mem.is_main', false)
                     ->where('me.master_event_unique_id', $memUID)
