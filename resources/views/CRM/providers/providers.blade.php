@@ -324,6 +324,8 @@
                     $('#child_details'+index+' thead').on('click', 'button.add-pa-modal', function () {
                         var form = $('#form-manage-provider-account');
                         form.find('input[name=providerAccountId]').val('');
+                        form.find('input[name=username]').removeAttr("disabled");
+                        form.find('select[name=provider_id]').removeAttr("disabled");
                         $('#modal-manage-provider-accounts').modal('show');
                     });
 
@@ -338,11 +340,11 @@
                         var form = $('#form-manage-provider-account');
                         form.attr('data-provider-account-id', providerAccountId);
                         form.find('input[name=providerAccountId]').val(providerAccountId);
-                        form.find('input[name=username]').val($(pa_tr).find('td:eq(0)').html().trim());
+                        form.find('input[name=username]').val($(pa_tr).find('td:eq(0)').html().trim()).attr('disabled', 'disabled');
                         form.find('input[name=password]').val($(pa_tr).find('td:eq(1)').html().trim());
                         form.find('select[name=account_type]').val($(pa_tr).find('td:eq(2)').html().trim());
                         form.find('input[name=pa_percentage]').val($(pa_tr).find('td:eq(3)').html().trim());                        
-                        form.find('select[name=provider_id]').val(providerId);
+                        form.find('select[name=provider_id]').val(providerId).attr('disabled', 'disabled');
                         form.find("input[name=pa_is_enabled][value=" + pa_is_enabled + "]").prop('checked', true);
                         form.find("input[name=is_idle][value=" + is_idle + "]").prop('checked', true);
 

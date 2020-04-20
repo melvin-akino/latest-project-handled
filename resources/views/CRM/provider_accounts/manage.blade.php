@@ -7,7 +7,7 @@
                   {{ csrf_field() }}
                 <input type="hidden" class="form-control" name="providerAccountId"
                                    id="providerAccountId"
-                                   placeholder="ProviderId">
+                                   placeholder="ProviderAccountId">
                 <div class="modal-header">
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span></button>
@@ -181,6 +181,8 @@
 
             $('#form-manage-provider-account').submit(function(e) {
                 e.preventDefault();
+                $(this).find('input[name=username]').removeAttr("disabled");
+                $(this).find('select[name=provider_id]').removeAttr("disabled");
                 manageProviderAccount($(this));
             });           
         });
