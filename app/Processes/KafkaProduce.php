@@ -152,7 +152,7 @@ class KafkaProduce implements CustomProcessInterface
                             }
                         }
 
-                        if ($newTime->diffInSeconds(Carbon::parse($betInitialTime)) >= 10) {
+                        if ($newTime->diffInSeconds(Carbon::parse($betInitialTime)) >= 20) {
                             foreach ($payloadsTable AS $pKey => $pRow) {
                                 if (strpos($pKey, 'place-bet-') === 0) {
                                     $payload   = json_decode($pRow['payload']);

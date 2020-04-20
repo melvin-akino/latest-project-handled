@@ -35,13 +35,13 @@ class TransformKafkaMessageOpenOrders extends Task
                             $orderId = substr($_key, strlen('orderId:'));
                             $expiry  = $orderTable['orderExpiry'];
 
-                            Order::where('id', $this->orderId)->update([
+                            Order::where('id', $orderId)->update([
                                 'provider_account_id' => ProviderAccount::getUsernameId($orderTable['username']),
-                                'status'              => $order->status,
+                                'status'              => strtoupper($order->status),
                                 'odds'                => $order->odds,
                             ]);
 
-                            WSOrderStatus::dispatch($userId, $orderId, $order->status, $order->odds, $expiry, $orderTable['created_at']);
+                            WSOrderStatus::dispatch($userId, $orderId, strtoupper($order->status), $order->odds, $expiry, $orderTable['created_at']);
                         }
                     }
                 }
