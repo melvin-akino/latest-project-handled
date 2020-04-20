@@ -29,12 +29,12 @@ class ProviderAccountRequest extends FormRequest
         $uniqueUsername = "";
         if (!empty($accounts)) {
             foreach($accounts as $account) {
-                if (is_null($account->deleted_at)) {
-                    $uniqueUsername = "|unique:provider_accounts,username";
+                if ($account->id == $this->input('providerAccountId')){
+                    $uniqueUsername = "|unique:provider_accounts,username,$account->id";
                     break;
                 }
-                elseif ($account->id == $this->input('providerAccountId')){
-                    $uniqueUsername = "|unique:provider_accounts,username,$account->id";
+                elseif (is_null($account->deleted_at) && empty($this->input('providerAccountId'))) {
+                    $uniqueUsername = "|unique:provider_accounts,username";
                     break;
                 }
             }    

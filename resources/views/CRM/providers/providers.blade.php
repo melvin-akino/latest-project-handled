@@ -322,6 +322,8 @@
 
                     //Clicking this will open the manage provider account interface
                     $('#child_details'+index+' thead').on('click', 'button.add-pa-modal', function () {
+                        var form = $('#form-manage-provider-account');
+                        form.find('input[name=providerAccountId]').val('');
                         $('#modal-manage-provider-accounts').modal('show');
                     });
 
