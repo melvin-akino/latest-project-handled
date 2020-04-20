@@ -36,7 +36,7 @@ class ProvidersController extends Controller
             ];
         }
 
-        return response()->json($data);
+        return response()->json(!empty($data) ? $data : []);
     }
 
     public function manage(ProviderRequest $request) 
