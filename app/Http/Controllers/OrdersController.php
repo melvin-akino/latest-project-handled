@@ -70,6 +70,7 @@ class OrdersController extends Controller
                         'created'       => $myOrder->created_at,
                         'settled'       => $myOrder->settled_date,
                         'pl'            => $myOrder->profit_loss,
+                        'status'        => $myOrder->status,
                     ];
                 }
 
