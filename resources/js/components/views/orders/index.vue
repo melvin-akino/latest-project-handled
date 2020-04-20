@@ -1,4 +1,4 @@
-<template>
+er <template>
     <div class="container mx-auto my-10">
         <h3 class="text-xl">My Orders</h3>
         <div class="relative h-full">
@@ -22,7 +22,7 @@ export default {
         return {
             myorders: [],
             totalPL: '',
-            columns: ['bet_id', 'created', 'bet_selection', 'provider', 'settled', 'odds', 'stake', 'towin', 'pl'],
+            columns: ['bet_id', 'created', 'bet_selection', 'provider', 'status', 'odds', 'stake', 'towin', 'pl'],
             options: {
                 headings: {
                     bet_id: 'Bet ID',
@@ -30,7 +30,7 @@ export default {
                     created: 'Transaction Date & Time',
                     pl: 'Profit/Loss',
                     towin: 'To Win',
-                    settled: 'Status'
+                    status: 'Status'
                 }
             }
         }
