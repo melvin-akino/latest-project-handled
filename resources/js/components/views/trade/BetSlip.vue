@@ -357,6 +357,7 @@ export default {
 
                     if (minmax.message != '') {
                         this.marketDataMessage = 'No Available Market'
+                        this.retrievedMarketData = true
                     } else {
                         if(minmax.market_id == this.market_id) {
                             if(!_.isEmpty(this.minMaxData)) {
