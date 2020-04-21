@@ -34,20 +34,21 @@ class TransformKafkaMessageMinMax extends Task
             if ($row['market_id'] == $data->market_id) {
                 $memUID = substr($key, strlen('memUID:'));
 
-                if (!empty($this->data->message)) {
-                    $minMaxRequests->del('memUID:' . $memUID);
-                    $swoole->push($fd['value'], json_encode([
-                        'getMinMax' => ['message' => $this->data->message]
-                    ]));
-
-                    Log::info("MIN MAX Transformation did not continue - Message Found");
-                    break;
-                }
-
                 foreach ($topics AS $_key => $_row) {
                     if (strpos($_row['topic_name'], 'min-max-' . $memUID) === 0) {
                         $userId = explode(':', $_key)[1];
                         $fd     = $wsTable->get('uid:' . $userId);
+
+                        if (!empty($this->data->message)) {
+                            $minMaxRequests->del('memUID:' . $memUID);
+                            $swoole->push($fd['value'], json_encode([
+                                'getMinMax' => ['message' => $this->data->message]
+                            ]));
+
+                            Log::info("MIN MAX Transformation did not continue - Message Found");
+                            break;
+                        }
+
 
                         /** AS DEFAULT */
                         $providerCurrency = [
