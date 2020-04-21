@@ -356,7 +356,7 @@ export default {
                     let minmax = getSocketValue(response.data, 'getMinMax')
 
                     if (minmax.message != '') {
-                        this.marketDataMessage = minmax.message
+                        this.marketDataMessage = 'No Available Market'
                     } else {
                         if(minmax.market_id == this.market_id) {
                             if(!_.isEmpty(this.minMaxData)) {
@@ -378,6 +378,7 @@ export default {
                             }
                         }
                     }
+                    
                 }
             })
         },
