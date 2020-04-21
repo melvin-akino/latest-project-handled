@@ -4,7 +4,7 @@ namespace App\Tasks;
 
 use Hhxsv5\LaravelS\Swoole\Task\Task;
 use Illuminate\Support\Facades\Log;
-use App\Jobs\WsMinMax;
+// use App\Jobs\WsMinMax;
 
 class TransformKafkaMessageMinMax extends Task
 {
@@ -43,30 +43,30 @@ class TransformKafkaMessageMinMax extends Task
 
                         if (!empty($this->data->message)) {
                             $minMaxRequests->del('memUID:' . $memUID);
-                            if ($this->data->message != 'onqueue') {
+                            // if ($this->data->message != 'onqueue') {
                                 $swoole->push($fd['value'], json_encode([
                                     'getMinMax' => ['message' => $this->data->message]
                                 ]));
 
                                 Log::info("MIN MAX Transformation did not continue - Message Found");
-                            } else {
-                                $minMaxQueues->set('bId:' . $row['market_id'], [
-                                    'onqueue' => 1
-                                ]);
-                                Log::info("MIN MAX Transformation did not continue - Waiting For Queue");
-                            }
+                            // } else {
+                            //     $minMaxQueues->set('bId:' . $row['market_id'], [
+                            //         'onqueue' => 1
+                            //     ]);
+                            //     Log::info("MIN MAX Transformation did not continue - Waiting For Queue");
+                            // }
                             return;
                         }
 
-                        if ($minMaxQueues->exists('bId:' . $row['market_id'])) {
-                            Log::info("MIN MAX Transformation continue - Queueing continue");
+                        // if ($minMaxQueues->exists('bId:' . $row['market_id'])) {
+                        //     Log::info("MIN MAX Transformation continue - Queueing continue");
 
-                            $minMaxQueues->del('bId:' . $row['market_id']);
+                        //     $minMaxQueues->del('bId:' . $row['market_id']);
 
-                            WsMinMax::dispatch($userId, [
-                                1 => $memUID
-                            ]);
-                        }
+                        //     WsMinMax::dispatch($userId, [
+                        //         1 => $memUID
+                        //     ]);
+                        // }
 
 
                         /** AS DEFAULT */
