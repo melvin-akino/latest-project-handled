@@ -40,6 +40,7 @@ class TradeController extends Controller
                 ->distinct()
                 ->where('sot.sport_id', DB::raw('o.sport_id'))
                 ->where('o.user_id', auth()->user()->id)
+                ->whereNull('o.settled_date')
                 ->select([
                     'o.id AS order_id',
                     'p.alias',
@@ -61,7 +62,7 @@ class TradeController extends Controller
             $data = [];
             foreach ($betBarData as $betData) {
                 //check if this order is still valid based on the expiry
-                if (strtotime($betData->created_at) <= (strtotime($betData->created_at) + intval($betData->order_expiry))) {
+                if (time() <= (strtotime($betData->created_at) + intval($betData->order_expiry))) {
                     $data[] = [
                         'order_id'       => $betData->order_id,
                         'provider_alias' => $betData->alias,
