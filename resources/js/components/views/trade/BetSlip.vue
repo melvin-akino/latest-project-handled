@@ -175,11 +175,11 @@ export default {
                 centered: "viewport"
             },
             analysisData: {},
+            orderLogs: [],
             isPlacingOrder: null,
             isDoneBetting: false,
             isLoadingMarketDetails: true,
             isBetSuccessful: null,
-            orderLogs: [],
             showOddsHistory: false,
             showBetMatrix: false,
             disabledBookies: [],
@@ -379,7 +379,7 @@ export default {
                             }
                         }
                     }
-                    
+
                 }
             })
         },
@@ -445,15 +445,6 @@ export default {
         },
         updatePrice(price) {
             this.initialPrice = price
-        },
-        convertPointAsNumeric(points) {
-            if(this.market_details.odd_type == 'HDP' || this.market_details.odd_type == 'HT HDP') {
-                return  Number(points)
-            } else if(this.market_details.odd_type == 'OU' || this.market_details.odd_type == 'HT OU') {
-                return Number(points.split(' ')[1])
-            } else {
-                return
-            }
         },
         placeOrder() {
             if(this.orderForm.stake == '' || this.initialPrice == '') {
@@ -543,10 +534,11 @@ export default {
                         let averagePrice = sumOfPrices / prices.length
                         this.analysisData = {
                             stake: data.stake,
-                            hdp: this.convertPointAsNumeric(this.points),
+                            points: this.points,
                             price: Math.floor(averagePrice * 100) / 100,
                             bet_score: this.bet_score,
-                            against_score: this.against_score
+                            against_score: this.against_score,
+                            odd_type: this.market_details.odd_type
                         }
                     }
 

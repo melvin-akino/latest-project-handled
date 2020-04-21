@@ -39,8 +39,11 @@ class Order extends Model
         $whereClause[] = ['user_id', auth()->user()->id];
 
         return DB::table('orders')
-            ->join('providers', 'orders.provider_id', '=', 'providers.id')
-            ->select('orders.bet_id', 'orders.bet_selection', 'providers.alias', 'orders.odds', 'orders.stake', 'orders.to_win', 'orders.created_at', 'orders.settled_date', 'orders.profit_loss', 'orders.status')
+            ->join('providers', 'providers.id', 'orders.provider_id')
+            ->join('master_event_markets AS mem', 'mem.master_event_market_unique_id', 'orders.master_event_market_unique_id')
+            ->join('master_events AS me', 'me.master_event_unique_id', 'mem.master_event_unique_id')
+            ->join('odd_types AS ot', 'ot.id', 'mem.odd_type_id')
+            ->select('orders.id', 'orders.bet_id', 'orders.bet_selection', 'providers.alias', 'orders.odds', 'orders.master_event_market_unique_id', 'orders.stake', 'orders.to_win', 'orders.created_at', 'orders.settled_date', 'orders.profit_loss', 'orders.status', 'me.master_event_unique_id', 'me.score', 'ot.id AS odd_type_id', 'mem.market_flag')
             ->where($whereClause)
             ->orderBy('orders.created_at', 'desc')
             ->limit($limit)->offset(($page - 1) * $limit)

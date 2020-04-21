@@ -6,23 +6,33 @@ er <template>
                 <span>Total P/L</span>
                 <span class="totalPL">{{wallet.currency_symbol}} {{totalPL | moneyFormat}}</span>
             </div>
-            <v-client-table name="My Orders" :data="myorders" :columns="columns" :options="options" ref="ordersTable"></v-client-table>
+            <v-client-table name="My Orders" :data="myorders" :columns="columns" :options="options" ref="ordersTable">
+                <div slot="betData" slot-scope="props">
+                    <a href="#" @click.prevent="openBetMatrix(props.row.order_id)" class="text-center py-1 pr-3"><i class="fas fa-chart-area" title="Bet Matrix"></i></a>
+                    <a href="#" @click.prevent="openOddsHistory(props.row.order_id)" class="text-center py-1"><i class="fas fa-bars" title="Odds History"></i></a>
+                </div>
+            </v-client-table>
+            <order-data v-for="order in myorders" :key="order.order_id" :openedOddsHistory="openedOddsHistory" :openedBetMatrix="openedBetMatrix" @closeOddsHistory="closeOddsHistory" @closeBetMatrix="closeBetMatrix" :order="order"></order-data>
         </div>
     </div>
 </template>
 
 <script>
 import Cookies from 'js-cookie'
+import OrderData from './OrderData'
 import _ from 'lodash'
 import { mapState } from 'vuex'
 import { moneyFormat } from '../../../helpers/numberFormat'
 
 export default {
+    components: {
+        OrderData
+    },
     data() {
         return {
             myorders: [],
             totalPL: '',
-            columns: ['bet_id', 'created', 'bet_selection', 'provider', 'status', 'odds', 'stake', 'towin', 'pl'],
+            columns: ['bet_id', 'created', 'bet_selection', 'provider', 'status', 'odds', 'stake', 'towin', 'pl', 'betData'],
             options: {
                 headings: {
                     bet_id: 'Bet ID',
@@ -30,9 +40,12 @@ export default {
                     created: 'Transaction Date & Time',
                     pl: 'Profit/Loss',
                     towin: 'To Win',
-                    status: 'Status'
+                    status: 'Status',
+                    betData: ''
                 }
-            }
+            },
+            openedOddsHistory: [],
+            openedBetMatrix: []
         }
     },
     head: {
@@ -84,6 +97,18 @@ export default {
                 let betSelection = this.$refs.ordersTable.$el.children[1].children[0].tBodies[0].rows[row].cells[2]
                 betSelection.innerHTML = this.myorders[row].bet_selection
             })
+        },
+        openOddsHistory(id) {
+            this.openedOddsHistory.push(id)
+        },
+        openBetMatrix(id) {
+            this.openedBetMatrix.push(id)
+        },
+        closeOddsHistory(id) {
+             this.openedOddsHistory = this.openedOddsHistory.filter(oddHistory => oddHistory != id)
+        },
+        closeBetMatrix(id) {
+            this.openedBetMatrix = this.openedBetMatrix.filter(betmatrix => betmatrix != id)
         }
     },
     directives: {
@@ -175,5 +200,23 @@ export default {
 
     .totalPLdata {
         right: 55px;
+    }
+
+    .dialog-drag {
+        border: solid 1px #ed8936;
+        box-shadow: none;
+        background-color: #edf2f7;
+        animation-duration: .2s;
+        animation-name: fadeIn;
+        animation-timing-function: ease-in-out;
+        position: fixed;
+    }
+
+    .dialog-drag .dialog-body {
+        padding: 0;
+    }
+
+    .dialog-drag .dialog-header {
+        background-color:#ed8936;
     }
 </style>
