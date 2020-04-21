@@ -42,7 +42,7 @@ class TransformKafkaMessageBet extends Task
 
                     $betSelectionArray = explode('@ ', $order->bet_selection);
                     $order->bet_selection = $betSelectionArray[0] . '@ ' .$order->odds;
-                    $order->save()
+                    $order->save();
 
                     WSOrderStatus::dispatch(
                         $row['user_id'],
