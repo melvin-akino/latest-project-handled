@@ -30,6 +30,7 @@
                             <th>First Name</th>
                             <th>Last Name</th>
                             <th>Email</th>
+                            <th> VIP </th>
                             <th> Status </th>
                             <th>Registered At</th>
                             <th>Actions</th>
@@ -96,7 +97,7 @@
                     targets: 4,
                     render: $.fn.dataTable.render.ellipsis(16, true)
                 },  {
-                    targets: 5,
+                    targets: 6,
                     orderable: false
                 }],
                 "columns": [
@@ -136,6 +137,17 @@
 
                             if (type === 'display') {
                                 data = !row.email ? 'N/A' : row.email;
+                            }
+                            return data;
+                        }
+                    },
+                    {
+                        "data":"is_vip",
+                        "render": function (data, type, row, meta) {
+                            if (type === 'display') {
+                                data = "Yes";
+
+                                if (row.is_vip == false) data="No";
                             }
                             return data;
                         }
