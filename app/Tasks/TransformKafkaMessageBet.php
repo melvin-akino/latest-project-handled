@@ -59,6 +59,7 @@ class TransformKafkaMessageBet extends Task
                     ]);
 
                     $ordersTable['orderId:' . $orderId]['bet_id'] = $this->message->data->bet_id;
+                    $ordersTable['orderId:' . $orderId]['status'] = $status;
 
                     $payloadsSwtId = implode(':', [
                         "place-bet-" . $orderId,

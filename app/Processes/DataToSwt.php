@@ -309,6 +309,7 @@ class DataToSwt implements CustomProcessInterface
             ->join('events as e', 'e.id', 'mel.event_id')
             ->select([
                 'o.id',
+                'o.status',
                 'o.stake',
                 'o.actual_stake',
                 'o.odds',
@@ -327,15 +328,11 @@ class DataToSwt implements CustomProcessInterface
 
         array_map(function ($order) use ($ordersTable) {
             $ordersTable->set('orderId:' . $order->id, [
-                'stake'         => $order->stake,
-                'actual_stake'  => $order->actual_stake,
-                'odds'          => $order->odds,
-                'market_id'     => $order->market_id,
-                'event_id'      => explode('-', $order->master_event_unique_id)[3],
-                'score'         => $order->score,
+                'created_at'    => $order->created_at,
                 'bet_id'        => $order->bet_id,
                 'orderExpiry'   => $order->order_expiry,
                 'username'      => $order->username,
+                'status'        => $order->status,
             ]);
         }, $orders->toArray());
     }
