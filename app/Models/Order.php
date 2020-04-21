@@ -26,6 +26,7 @@ class Order extends Model
         'reason',
         'profit_loss',
         'provider_account_id',
+        'order_expiry'
     ];
 
     protected $hidden = [];
