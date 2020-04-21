@@ -40,7 +40,8 @@ class TradeController extends Controller
                 ->distinct()
                 ->where('sot.sport_id', DB::raw('o.sport_id'))
                 ->where('o.user_id', auth()->user()->id)
-                ->whereNull('o.settled_date')
+                ->where('o.settled_date','=','')
+                ->orWhereNull('o.settled_date')
                 ->select([
                     'o.id AS order_id',
                     'p.alias',
@@ -64,9 +65,18 @@ class TradeController extends Controller
 
             $data = [];
             foreach ($betBarData as $betData) {
+                //check if this order isn't pending and expired
+                if ($betData->status == 'SUCCESS') {
+                    $proceed = true;
+                }
+                elseif ($betData->status == 'PENDING') {
+                    $proceed = false;
+                    if (time() <= (strtotime($betData->created_at) + intval($betData->order_expiry))) {
+                        $proceed = true;
+                    }
+                }
                 //check if this order is still valid based on the expiry
-
-                if (time() <= (strtotime($betData->created_at) + intval($betData->order_expiry))) {
+                if ($proceed) {
                     $score = explode(" - ", $betData->score);
                     $points = DB::table('event_markets AS em')
                     ->where('em.master_event_unique_id', $betData->master_event_unique_id)
