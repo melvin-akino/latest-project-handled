@@ -58,31 +58,6 @@ class WsSettledBets implements ShouldQueue
             ->where('to_currency_id', 1)
             ->first();
 
-        DB::table('orders')->where('bet_id', $this->data->bet_id)
-            ->update([
-            'status'       => strtoupper($this->data->status),
-            'profit_loss'  => $this->data->profit_loss,
-            'reason'       => $this->data->reason,
-            'settled_date' => Carbon::now(),
-            'updated_at'   => Carbon::now(),
-        ]);
-
-        DB::table('order_logs')
-            ->insert([
-                'provider_id'   => $this->providerId,
-                'sport_id'      => $this->data->sport,
-                'bet_id'        => $this->data->bet_id,
-                'bet_selection' => $orders->bet_selection,
-                'status'        => $status,
-                'user_id'       => $orders->user_id,
-                'reason'        => $this->data->reason,
-                'profit_loss'   => $this->data->profit_loss,
-                'order_id'      => $orders->id,
-                'settled_date'  => Carbon::now(),
-                'created_at'    => Carbon::now(),
-                'updated_at'    => Carbon::now(),
-            ]);
-
         switch ($status) {
             case 'WIN':
                 $balance = $orders->to_win;
@@ -133,6 +108,31 @@ class WsSettledBets implements ShouldQueue
 
                 break;
         }
+
+        DB::table('orders')->where('bet_id', $this->data->bet_id)
+            ->update([
+            'status'       => strtoupper($this->data->status),
+            'profit_loss'  => $balance,
+            'reason'       => $this->data->reason,
+            'settled_date' => Carbon::now(),
+            'updated_at'   => Carbon::now(),
+        ]);
+
+        DB::table('order_logs')
+            ->insert([
+                'provider_id'   => $this->providerId,
+                'sport_id'      => $this->data->sport,
+                'bet_id'        => $this->data->bet_id,
+                'bet_selection' => $orders->bet_selection,
+                'status'        => $status,
+                'user_id'       => $orders->user_id,
+                'reason'        => $this->data->reason,
+                'profit_loss'   => $balance,
+                'order_id'      => $orders->id,
+                'settled_date'  => Carbon::now(),
+                'created_at'    => Carbon::now(),
+                'updated_at'    => Carbon::now(),
+            ]);
 
         $balance   *= $exchangeRate->exchange_rate;
         $newBalance = $userWallet->balance + $balance;
