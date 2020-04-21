@@ -46,7 +46,7 @@ class TransformKafkaMessageMinMax extends Task
                             ]));
 
                             Log::info("MIN MAX Transformation did not continue - Message Found");
-                            break;
+                            return;
                         }
 
 
