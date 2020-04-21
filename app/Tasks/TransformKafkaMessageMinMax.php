@@ -4,6 +4,7 @@ namespace App\Tasks;
 
 use Hhxsv5\LaravelS\Swoole\Task\Task;
 use Illuminate\Support\Facades\Log;
+use App\Jobs\WsMinMax;
 
 class TransformKafkaMessageMinMax extends Task
 {
@@ -58,11 +59,12 @@ class TransformKafkaMessageMinMax extends Task
                         }
 
                         if ($minMaxQueues->exists('bId:' . $row['market_id'])) {
+                            Log::info("MIN MAX Transformation continue - Queueing continue");
+
                             $minMaxQueues->del('bId:' . $row['market_id']);
-                            $minMaxRequests->set('memUID:' . $memUID, [
-                                'provider'  => $data->provider,
-                                'sport_id'  => $data->sport_id,
-                                'market_id' => $data->market_id
+
+                            WsMinMax::dispatch($userId, [
+                                1 => $memUID
                             ]);
                         }
 
