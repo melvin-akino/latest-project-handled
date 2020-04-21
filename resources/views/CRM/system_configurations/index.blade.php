@@ -77,14 +77,20 @@
             });
 
             $('#SystemConfigTable tbody').on('click', 'button.edit', function (e) {
-                e.preventDefault(e);    
+                e.preventDefault(e);
+
                 var $row = $(this).closest("tr").off("mousedown");
+
+
                 var configId = $(this).closest("tr").attr('id').replace('config-id-','');
+                revertUpdateInterface(configId);
+
                 var type = $row.find("td:first").text();              
                 //Find the editable fields
-                $row.find("td:first").append("<input type='hidden' name='id' id='id' value='"+configId+"'/>");
-                $row.find("td:first").append("<input type='hidden' name='type' id='type' value='"+type+"'/>");
+                $row.find("td:first").append("<input type='hidden' name='id' value='"+configId+"'/>");
+                $row.find("td:first").append("<input type='hidden' name='type' value='"+type+"'/>");
                 var $tds = $row.find("td").not(':first').not(':last');
+
                 var nameId = '';
                 $.each($tds, function(i, el) {
                     switch(i) {
@@ -96,12 +102,14 @@
                             break;
                     }
                     var txt = $(this).text();
-                    $(this).html("").append("<div class='form-group'><input type='text' name='"+nameId+"' id='"+nameId+"' value='"+txt+"'/></div>");
+                    $(this).html("").append("<div class='form-group'><input type='text' name='"+nameId+"' value='"+txt+"'/></div>");
                 });                          
                 
                 $(this).removeClass().addClass("save btn btn-success").text('Save');
                 //Create a new button called Cancel
                 $(this).closest("td").append(" <button class='cancel btn btn-danger'>Cancel</button>");
+
+                
 
             });
 
@@ -119,21 +127,39 @@
             $('#SystemConfigTable tbody').on('click', 'button.cancel', function (e) {
                 e.preventDefault(e);
                 $(this).removeClass().addClass("edit btn btn-info").text('Edit');
-                $('button.save').remove();
 
                 var $row = $(this).closest("tr");
+                $row.find("td:last > button.save").remove();
                 var $tds = $row.find("td").not(':first').not(':last');
 
                 $.each($tds, function(i, el) {
-                    var txt = $(this).find("input").val()
+                    var txt = $(this).find("input").val();
                     $(this).html(txt);
                 });
             });
 
+            var revertUpdateInterface = function(configId) {
+                //get all rows and skip the current configId in reverting the interface
+                $("#SystemConfigTable > tbody > tr").each(function () {
+                    var dataId = $(this).closest("tr").attr('id').replace('config-id-','');
+                    if (dataId != configId) {
+                        var $row = $(this).closest("tr");
+                        var $tds = $row.find("td").not(':first').not(':last');
+
+                        $row.find("td:first > input[type='hidden']").remove();
+                        $row.find("td:last > button.cancel").removeClass().addClass("edit btn btn-info").text('Edit');
+                        $row.find("td:last > button.save").remove();
+
+                        $.each($tds, function(i, el) {
+                            var txt = $(this).find("input").val();
+                            $(this).html(txt);
+                        });                       
+                    }                       
+                });
+            }
+
             var manageConfig = function (form) {
-                var url = form.prop('action'); 
-                console.log(url);
-                console.log(form.serialize);              
+                var url = form.prop('action');            
                 $.post(url, form.serialize(), function (response) {
                   
                     if (response.data == 'success') {
