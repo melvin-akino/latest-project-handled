@@ -20,6 +20,7 @@ class TransformKafkaMessageMinMax extends Task
 
         $topics             = $swoole->topicTable;
         $minMaxRequests     = $swoole->minMaxRequestsTable;
+        $minMaxQueues       = $swoole->minMaxQueuesTable;
         $wsTable            = $swoole->wsTable;
         $provTable          = $swoole->providersTable;
         $usersTable         = $swoole->usersTable;
@@ -41,12 +42,28 @@ class TransformKafkaMessageMinMax extends Task
 
                         if (!empty($this->data->message)) {
                             $minMaxRequests->del('memUID:' . $memUID);
-                            $swoole->push($fd['value'], json_encode([
-                                'getMinMax' => ['message' => $this->data->message]
-                            ]));
+                            if ($this->data->message != 'onqueue') {
+                                $swoole->push($fd['value'], json_encode([
+                                    'getMinMax' => ['message' => $this->data->message]
+                                ]));
 
-                            Log::info("MIN MAX Transformation did not continue - Message Found");
+                                Log::info("MIN MAX Transformation did not continue - Message Found");
+                            } else {
+                                $minMaxQueues->set('bId:' . $row['market_id'], [
+                                    'onqueue' => 1
+                                ]);
+                                Log::info("MIN MAX Transformation did not continue - Waiting For Queue");
+                            }
                             return;
+                        }
+
+                        if ($minMaxQueues->exists('bId:' . $row['market_id'])) {
+                            $minMaxQueues->del('bId:' . $row['market_id']);
+                            $minMaxRequests->set('memUID:' . $memUID, [
+                                'provider'  => $data->provider,
+                                'sport_id'  => $data->sport_id,
+                                'market_id' => $data->market_id
+                            ]);
                         }
 
 

@@ -264,6 +264,12 @@ return [
                 [ 'name' => 'credits', 'type' => \Swoole\Table::TYPE_FLOAT ]
             ],
         ],
+        'minMaxQueues' => [ // KEY FORMAT: [bId:$betIdentifier]
+            'size' => 10000,
+            'column' => [
+                [ 'name' => 'onqueue', 'type' => \Swoole\Table::TYPE_INT ],
+            ],
+        ],
     ],
     'register_providers'       => [
         \Laravel\Passport\PassportServiceProvider::class
