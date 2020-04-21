@@ -8,7 +8,7 @@ er <template>
             </div>
             <v-client-table name="My Orders" :data="myorders" :columns="columns" :options="options" ref="ordersTable">
                 <div slot="betData" slot-scope="props">
-                    <a href="#" @click.prevent="openBetMatrix(props.row.order_id)" class="text-center py-1 pr-3"><i class="fas fa-chart-area" title="Bet Matrix"></i></a>
+                    <a href="#" @click.prevent="openBetMatrix(props.row.order_id)" class="text-center py-1 pr-3"><i class="fas fa-chart-area" title="Bet Matrix" v-if="oddTypesWithSpreads.includes(order.odd_type_id)"></i></a>
                     <a href="#" @click.prevent="openOddsHistory(props.row.order_id)" class="text-center py-1"><i class="fas fa-bars" title="Odds History"></i></a>
                 </div>
             </v-client-table>
@@ -45,7 +45,8 @@ export default {
                 }
             },
             openedOddsHistory: [],
-            openedBetMatrix: []
+            openedBetMatrix: [],
+            oddTypesWithSpreads: [3, 4, 11, 12]
         }
     },
     head: {

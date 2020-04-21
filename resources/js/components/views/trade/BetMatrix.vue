@@ -85,7 +85,6 @@ export default {
                             var result = this.towin
                             var color = 'green'
                         }
-
                     } else if(difference < 0) {
                         if(difference == -0.25 || difference == -0.75) {
                             var result = this.halflose * -1
@@ -94,13 +93,9 @@ export default {
                             var result = this.matrix_data.stake * -1
                             var color = 'red'
                         }
-
-                    } else {
-                        var result = 'push'
-                        var color = 'white'
                     }
 
-                    if(against_team_counter <= this.matrix_data.against_score || bet_team_counter <= this.matrix_data.bet_score) {
+                    if(against_team_counter < this.matrix_data.against_score || bet_team_counter < this.matrix_data.bet_score) {
                         var color = 'grey'
                     }
                     table.push({ 'color': color, 'result': Math.floor(result * 100) / 100 })

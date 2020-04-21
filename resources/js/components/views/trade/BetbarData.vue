@@ -1,8 +1,8 @@
 <template>
     <div class="flex border-b text-white text-sm">
         <div class="w-3/12 py-1 text-center">{{bet.league_name}}</div>
-        <div class="w-3/12 py-1 text-center">{{bet.home}} vs {{bet.away}}</div>
-        <div class="w-3/12 py-1 text-center">{{bet.create_at}}</div>
+        <div class="w-4/12 py-1 text-center">{{bet.home}} vs {{bet.away}}</div>
+        <div class="w-3/12 py-1 text-center">{{bet.created_at}}</div>
         <div class="w-3/12 py-1 text-center">
             <span v-if="bet.bet_info[0]==='HOME'">{{bet.home}}</span>
             <span v-if="bet.bet_info[0]==='AWAY'">{{bet.away}}</span>
