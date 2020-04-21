@@ -155,7 +155,7 @@ class TransformKafkaMessageOddsSaveToDb extends Task
             if (!empty($this->removePreviousMarket)) {
                 foreach ($this->removePreviousMarket AS $prevMarket) {
                     foreach ($this->swoole->eventMarketsTable AS $emKey => $emRow) {
-                        if ($emKey, strpos($prevMarket['swtKey']) === 0) {
+                        if (strpos($emKey, $prevMarket['swtKey']) === 0) {
                             $this->swoole->eventMarketsTable->del($emKey);
                         }
                     }
