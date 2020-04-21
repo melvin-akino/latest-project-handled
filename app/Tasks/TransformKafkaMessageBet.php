@@ -61,7 +61,7 @@ class TransformKafkaMessageBet extends Task
                         "uId:"       . $row['user_id'],
                         "mId:"       . $order->market_id
                     ]);
-                    if ($payloadsTable->exists()) {
+                    if ($payloadsTable->exists($payloadsSwtId)) {
                         $payloadsTable->del($payloadsSwtId);
                     }
                 }
