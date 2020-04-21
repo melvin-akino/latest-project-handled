@@ -311,6 +311,7 @@ class DataToSwt implements CustomProcessInterface
                 'o.id',
                 'o.status',
                 'o.stake',
+                'o.created_at',
                 'o.actual_stake',
                 'o.odds',
                 'o.market_id',
