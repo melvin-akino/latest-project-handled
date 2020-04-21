@@ -5,17 +5,6 @@
                   method="POST">
                 {{ csrf_field() }}
                 {{ method_field('PUT') }}
-                 
-                <div class="form-group">
-                    <label for="modal-edit-status" class="control-label">Status </label>
-                    <select class="form-control" id="status_select" name="status">
-                       
-                        <option value="1" @if ($account->status == 1) SELECTED @endif >Active</option>
-                        <option value="0" @if ($account->status == 0) SELECTED @endif >Inactive</option>
-                      
-
-                        </select>
-                </div>
 
                 <div class="form-group">
                     <label for="username-input" class="control-label">Display Name</label>
@@ -33,7 +22,30 @@
                             <strong>{{ $errors->first('email') }}</strong>
                         </span>
                     @endif
+                </div>                
+                <div class="form-group">
+                    <label for="modal-edit-status" class="control-label">VIP </label>
+                    <select class="form-control" id="is_vip" name="is_vip">
+                       
+                        <option value="false" @if ($account->is_vip == false) SELECTED @endif >No</option>
+                        <option value="true" @if ($account->is_vip == true) SELECTED @endif >Yes</option>
+                      
+
+                        </select>
+                </div>                
+                 
+                <div class="form-group">
+                    <label for="modal-edit-status" class="control-label">Status </label>
+                    <select class="form-control" id="status_select" name="status">
+                       
+                        <option value="1" @if ($account->status == 1) SELECTED @endif >Active</option>
+                        <option value="0" @if ($account->status == 0) SELECTED @endif >Inactive</option>
+                      
+
+                        </select>
                 </div>
+
+
 
                 <div class="form-group{{ $errors->has('firstname') ? ' has-error' : '' }}">
                     <label for="first-name-input" class="control-label">First Name</label>
