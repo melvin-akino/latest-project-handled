@@ -22,7 +22,7 @@ class TransformKafkaMessageBet extends Task
         $topics = $swoole->topicTable;
         $ordersTable = $swoole->ordersTable;
         $wsTable = $swoole->wsTable;
-        $payloadsTable  = $swt->payloadsTable;
+        $payloadsTable  = $swoole->payloadsTable;
 
         foreach ($topics AS $key => $row) {
             if (strpos($row['topic_name'], 'order-') === 0) {
