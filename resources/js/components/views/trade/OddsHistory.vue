@@ -1,5 +1,5 @@
 <template>
-    <div class="oddsHistory">
+    <div class="oddsHistory text-sm">
         <dialog-drag title="Order Logs" :options="options" @close="$emit('close')" v-overlap-all-order-logs="activeBetSlip==market_id">
             <div class="flex flex-col">
                 <div class="bg-gray-800 w-full p-2">
@@ -7,8 +7,8 @@
                         <p class="text-white">Order logs for Market: {{market_id}}</p>
                     </div>
                 </div>
-                <div class="flex flex-col">
-                    <div class="order w-full my-1" v-for="(log, index) in logs" :key="index">
+                <div class="flex flex-col orderLogs">
+                    <div class="order w-full my-1 text-gray-700" v-for="(log, index) in logs" :key="index">
                         <div class="orderHeading bg-gray-400 p-2 cursor-pointer" @click="toggleOrderLog(index)">
                             <div class="container mx-auto text-sm">{{index}}</div>
                         </div>
@@ -88,7 +88,7 @@ export default {
 </script>
 
 <style>
-    .oddsHistory .dialog-drag .dialog-body {
+    .orderLogs {
         padding: 0;
         max-height: 440px;
         overflow-y: auto;

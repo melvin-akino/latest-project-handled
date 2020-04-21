@@ -14,7 +14,18 @@ const moneyFormat = (value) => {
     }
 }
 
+const convertPointAsNumeric = (points, oddType) => {
+    if(oddType == 'HDP' || oddType == 3 || oddType == 'HT HDP' || oddType == 11) {
+        return Number(points)
+    } else if(oddType=='OU' || oddType == 4 || oddType == 'HT OU' || oddType == 12) {
+        return  Number(points.split(' ')[1])
+    } else {
+        return
+    }
+}
+
 module.exports = {
     twoDecimalPlacesFormat,
-    moneyFormat
+    moneyFormat,
+    convertPointAsNumeric
 }

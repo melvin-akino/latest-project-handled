@@ -1,9 +1,8 @@
 <template>
-    <div class="betMatrix">
+    <div class="betMatrix text-sm">
         <dialog-drag title="Bet Matrix" :options="options" @close="$emit('close')" v-overlap-all-bet-matrix="activeBetSlip==market_id">
             <div class="p-6">
-                <p>Bet Matrix for Market ID: {{market_id}}</p>
-                <p>Current Score: {{this.analysisData.bet_score}} - {{this.analysisData.against_score}}</p>
+                <p class="text-gray-700 mb-2">Current Score: {{this.analysisData.bet_score}} - {{this.analysisData.against_score}}</p>
                 <div class="flex items-center bg-black text-white pl-4">
                     <i class="material-icons sportsIcon pr-3">sports_soccer</i>
                     <div class="result p-1 text-center" v-for="(matrix, index) in matrix_table" :key="index">
@@ -25,6 +24,7 @@
 import { mapState } from 'vuex'
 import 'vue-dialog-drag/dist/vue-dialog-drag.css'
 import DialogDrag from 'vue-dialog-drag'
+import { convertPointAsNumeric } from '../../../helpers/numberFormat'
 
 export default {
     props: ['market_id', 'analysisData'],
@@ -34,23 +34,30 @@ export default {
     data() {
         return {
             options: {
-                width:868,
+                width: 868,
                 buttonPin: false,
                 centered: "viewport"
             },
-            matrix_table: []
+            matrix_table: [],
+            matrix_data: {
+                stake: Number(this.analysisData.stake),
+                price: Number(this.analysisData.price),
+                bet_score: Number(this.analysisData.bet_score),
+                against_score: Number(this.analysisData.against_score),
+                points: convertPointAsNumeric(this.analysisData.points, this.analysisData.odd_type)
+            }
         }
     },
     computed: {
         ...mapState('trade', ['activeBetSlip']),
         towin() {
-            return this.analysisData.stake * this.analysisData.price
+            return this.matrix_data.stake * this.matrix_data.price
         },
         halfwin() {
             return this.towin / 2
         },
         halflose() {
-            return this.analysisData.stake / 2
+            return this.matrix_data.stake / 2
         }
     },
     watch: {
@@ -69,7 +76,7 @@ export default {
                 var table = []
                 var against_team_counter = 0;
                 while(against_team_counter <= 10) {
-                    let difference = (this.analysisData.hdp + bet_team_counter) - against_team_counter
+                    let difference = (this.matrix_data.points + bet_team_counter) - against_team_counter
                     if(difference > 0) {
                         if(difference == 0.25 || difference == 0.75) {
                             var result = this.halfwin
@@ -84,7 +91,7 @@ export default {
                             var result = this.halflose * -1
                             var color = 'lightred'
                         } else {
-                            var result = this.analysisData.stake * -1
+                            var result = this.matrix_data.stake * -1
                             var color = 'red'
                         }
 
@@ -93,7 +100,7 @@ export default {
                         var color = 'white'
                     }
 
-                    if(against_team_counter <= this.analysisData.against_score || bet_team_counter <= this.analysisData.bet_score) {
+                    if(against_team_counter <= this.matrix_data.against_score || bet_team_counter <= this.matrix_data.bet_score) {
                         var color = 'grey'
                     }
                     table.push({ 'color': color, 'result': Math.floor(result * 100) / 100 })

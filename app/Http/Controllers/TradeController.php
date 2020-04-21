@@ -45,10 +45,13 @@ class TradeController extends Controller
                     'o.id AS order_id',
                     'p.alias',
                     'o.master_event_market_unique_id',
+                    'me.master_event_unique_id',
                     'me.master_league_name',
                     'me.master_home_team_name',
                     'me.master_away_team_name',
+                    'me.score',
                     'mem.market_flag',
+                    'ot.id AS odd_type_id',
                     'sot.name',
                     'o.odds',
                     'o.stake',
@@ -62,11 +65,22 @@ class TradeController extends Controller
             $data = [];
             foreach ($betBarData as $betData) {
                 //check if this order is still valid based on the expiry
+
                 if (time() <= (strtotime($betData->created_at) + intval($betData->order_expiry))) {
+                    $score = explode(" - ", $betData->score);
+                    $points = DB::table('event_markets AS em')
+                    ->where('em.master_event_unique_id', $betData->master_event_unique_id)
+                    ->where('em.odd_type_id', $betData->odd_type_id)
+                    ->select([
+                        'em.odd_label'
+                    ])
+                    ->first();
+    
                     $data[] = [
                         'order_id'       => $betData->order_id,
                         'provider_alias' => $betData->alias,
                         'market_id'      => $betData->master_event_market_unique_id,
+                        'odd_type_id'    => $betData->odd_type_id,
                         'league_name'    => $betData->master_league_name,
                         'home'           => $betData->master_home_team_name,
                         'away'           => $betData->master_away_team_name,
@@ -74,11 +88,14 @@ class TradeController extends Controller
                             $betData->market_flag,
                             $betData->name,
                             $betData->odds,
-                            $betData->stake
+                            $betData->stake,
+                            $points->odd_label
                         ],
+                        'bet_score'      => $betData->market_flag == 'HOME' ? $score[0] : $score[1],
+                        'against_score'  => $betData->market_flag == 'HOME' ? $score[1] : $score[0],
                         'status'         => $betData->status,
                         'created_at'     => $betData->created_at
-                    ];       
+                    ];
                 }
             }
 
