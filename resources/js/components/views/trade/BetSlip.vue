@@ -354,22 +354,27 @@ export default {
             this.$options.sockets.onmessage = (response => {
                 if(getSocketKey(response.data) === 'getMinMax') {
                     let minmax = getSocketValue(response.data, 'getMinMax')
-                    if(minmax.market_id == this.market_id) {
-                        if(!_.isEmpty(this.minMaxData)) {
-                            let providerIds = this.minMaxData.map(minMaxData => minMaxData.provider_id)
-                            if(providerIds.includes(minmax.provider_id)) {
-                                this.minMaxData.map(minMaxData => {
-                                    if(minMaxData.provider_id == minmax.provider_id) {
-                                        minMaxData.min = Number(minmax.min)
-                                        minMaxData.max = Number(minmax.max)
-                                        minMaxData.price = Number(minmax.price)
-                                        minMaxData.priority = Number(minmax.priority)
-                                        minMaxData.age = minmax.age
-                                        minMaxData.hasMarketData = true
-                                        this.retrievedMarketData = true
-                                        this.marketDataMessage = 'No Available Market'
-                                    }
-                                })
+
+                    if (minmax.message != '') {
+                        this.marketDataMessage = minmax.message
+                    } else {
+                        if(minmax.market_id == this.market_id) {
+                            if(!_.isEmpty(this.minMaxData)) {
+                                let providerIds = this.minMaxData.map(minMaxData => minMaxData.provider_id)
+                                if(providerIds.includes(minmax.provider_id)) {
+                                    this.minMaxData.map(minMaxData => {
+                                        if(minMaxData.provider_id == minmax.provider_id) {
+                                            minMaxData.min = Number(minmax.min)
+                                            minMaxData.max = Number(minmax.max)
+                                            minMaxData.price = Number(minmax.price)
+                                            minMaxData.priority = Number(minmax.priority)
+                                            minMaxData.age = minmax.age
+                                            minMaxData.hasMarketData = true
+                                            this.retrievedMarketData = true
+                                            this.marketDataMessage = 'No Available Market'
+                                        }
+                                    })
+                                }
                             }
                         }
                     }

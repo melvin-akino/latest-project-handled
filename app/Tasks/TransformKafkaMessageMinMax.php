@@ -3,6 +3,7 @@
 namespace App\Tasks;
 
 use Hhxsv5\LaravelS\Swoole\Task\Task;
+use Illuminate\Support\Facades\Log;
 
 class TransformKafkaMessageMinMax extends Task
 {
@@ -27,6 +28,15 @@ class TransformKafkaMessageMinMax extends Task
 
         $transformed = [];
         $fd          = "";
+
+        if (!empty($this->data->message)) {
+            $swoole->push($fd['value'], json_encode([
+                'getMinMax' => ['message' => $this->data->message]
+            ]));
+
+            Log::info("MIN MAX Transformation did not continue - Message Found");
+            break;
+        }
 
         foreach ($minMaxRequests AS $key => $row) {
             $data = $this->data->data;
@@ -74,7 +84,8 @@ class TransformKafkaMessageMinMax extends Task
                             "price"       => $data->odds,
                             "priority"    => $provTable->get($providerSwtId)['priority'],
                             'market_id'   => $memUID,
-                            'age'         => $age
+                            'age'         => $age,
+                            'message'     => ''
                         ];
 
                         if (!$providerCurrency['id'] == $userCurrency['id']) {
