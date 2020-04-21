@@ -45,8 +45,8 @@ class OrdersController extends Controller
 
             !empty($request->status) ? !($request->status  == "All") ? $conditions[] = ['status', $request->status] : null : null;
 
-            !empty($request->created_from) ? $conditions[] = ['created_at', '>=', $request->created_from] : null;
-            !empty($request->created_to) ? $conditions[]   = ['created_at', '<=', $request->created_to] : !empty($request->created_from) ? ['created_at', '<=', now()] : null;
+            !empty($request->created_from) ? $conditions[] = ['orders.created_at', '>=', $request->created_from] : null;
+            !empty($request->created_to) ? $conditions[]   = ['orders.created_at', '<=', $request->created_to] : !empty($request->created_from) ? ['orders.created_at', '<=', now()] : null;
 
             !empty($request->settled_from) ? $conditions[] = ['settled_date', '>=', $request->settled_from] : null;
             !empty($request->settled_to) ? $conditions[]   = ['settled_date', '<=', $request->settled_to] : !empty($request->settled_to) ? ['settled_date', '<=', now()] : null;
@@ -60,10 +60,19 @@ class OrdersController extends Controller
                 $myOrders = Order::getAllOrders($conditions, $page, $limit);
 
                 foreach($myOrders as $myOrder) {
+                    $score = explode(' - ', $myOrder->score);
+                    $points = DB::table('event_markets as em')
+                    ->where('master_event_unique_id', $myOrder->master_event_unique_id)
+                    ->where('odd_type_id', $myOrder->odd_type_id)
+                    ->select(['em.odd_label'])
+                    ->first();
+
                     $data['orders'][] = [
+                        'order_id'      => $myOrder->id,
                         'bet_id'        => $myOrder->bet_id,
                         'bet_selection' => nl2br($myOrder->bet_selection),
                         'provider'      => strtoupper($myOrder->alias),
+                        'market_id'     => $myOrder->master_event_market_unique_id,
                         'odds'          => $myOrder->odds,
                         'stake'         => $myOrder->stake,
                         'towin'         => $myOrder->to_win,
@@ -71,6 +80,11 @@ class OrdersController extends Controller
                         'settled'       => $myOrder->settled_date,
                         'pl'            => $myOrder->profit_loss,
                         'status'        => $myOrder->status,
+                        'market_flag'   => $myOrder->market_flag,
+                        'bet_score'     => $myOrder->market_flag=="HOME" ? $score[0] : $score[1],
+                        'against_score' => $myOrder->market_flag=="HOME" ? $score[1] : $score[0],
+                        'odd_type_id'   => $myOrder->odd_type_id,
+                        'points'        => $points->odd_label
                     ];
                 }
 

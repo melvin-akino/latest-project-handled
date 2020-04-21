@@ -40,41 +40,73 @@ class TradeController extends Controller
                 ->distinct()
                 ->where('sot.sport_id', DB::raw('o.sport_id'))
                 ->where('o.user_id', auth()->user()->id)
+                ->where('o.settled_date','=','')
+                ->orWhereNull('o.settled_date')
                 ->select([
                     'o.id AS order_id',
                     'p.alias',
                     'o.master_event_market_unique_id',
+                    'me.master_event_unique_id',
                     'me.master_league_name',
                     'me.master_home_team_name',
                     'me.master_away_team_name',
+                    'me.score',
                     'mem.market_flag',
+                    'ot.id AS odd_type_id',
                     'sot.name',
                     'o.odds',
                     'o.stake',
                     'o.status',
                     'o.created_at',
+                    'o.order_expiry'
                 ])
                 ->orderBy('o.created_at', 'desc')
                 ->get();
 
             $data = [];
             foreach ($betBarData as $betData) {
-                $data[] = [
-                    'order_id'       => $betData->order_id,
-                    'provider_alias' => $betData->alias,
-                    'market_id'      => $betData->master_event_market_unique_id,
-                    'league_name'    => $betData->master_league_name,
-                    'home'           => $betData->master_home_team_name,
-                    'away'           => $betData->master_away_team_name,
-                    'bet_info'       => [
-                        $betData->market_flag,
-                        $betData->name,
-                        $betData->odds,
-                        $betData->stake
-                    ],
-                    'status'         => $betData->status,
-                    'created_at'     => $betData->created_at
-                ];
+                //check if this order isn't pending and expired
+                if ($betData->status == 'SUCCESS') {
+                    $proceed = true;
+                }
+                elseif ($betData->status == 'PENDING') {
+                    $proceed = false;
+                    if (time() <= (strtotime($betData->created_at) + intval($betData->order_expiry))) {
+                        $proceed = true;
+                    }
+                }
+                //check if this order is still valid based on the expiry
+                if ($proceed) {
+                    $score = explode(" - ", $betData->score);
+                    $points = DB::table('event_markets AS em')
+                    ->where('em.master_event_unique_id', $betData->master_event_unique_id)
+                    ->where('em.odd_type_id', $betData->odd_type_id)
+                    ->select([
+                        'em.odd_label'
+                    ])
+                    ->first();
+    
+                    $data[] = [
+                        'order_id'       => $betData->order_id,
+                        'provider_alias' => $betData->alias,
+                        'market_id'      => $betData->master_event_market_unique_id,
+                        'odd_type_id'    => $betData->odd_type_id,
+                        'league_name'    => $betData->master_league_name,
+                        'home'           => $betData->master_home_team_name,
+                        'away'           => $betData->master_away_team_name,
+                        'bet_info'       => [
+                            $betData->market_flag,
+                            $betData->name,
+                            $betData->odds,
+                            $betData->stake,
+                            $points->odd_label
+                        ],
+                        'bet_score'      => $betData->market_flag == 'HOME' ? $score[0] : $score[1],
+                        'against_score'  => $betData->market_flag == 'HOME' ? $score[1] : $score[0],
+                        'status'         => $betData->status,
+                        'created_at'     => $betData->created_at
+                    ];
+                }
             }
 
             return response()->json([

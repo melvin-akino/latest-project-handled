@@ -17,9 +17,9 @@ return [
     'bet-slip'                      => [
         'use_equivalent_bets'       => '0',
         'offers_on_exchanges'       => '0',
-        'adv_placement_opt'         => '0',
+        'adv_placement_opt'         => '1',
         'bets_to_fav'               => '0',
-        'adv_betslip_info'          => '0',
+        'adv_betslip_info'          => '1',
         'tint_bookies'              => '0',
         'adaptive_selection'        => 2,
     ],
