@@ -592,8 +592,7 @@ class OrdersController extends Controller
                 $payloadsSwtId = implode(':', [
                     "place-bet-" . $incrementIds['id'][$i],
                     "uId:"       . $incrementIds['payload'][$i]['user_id'],
-                    "mId:"       . $incrementIds['payload'][$i]['market_id'],
-                    "oId:"       . $incrementIds['payload'][$i]['order_id']
+                    "mId:"       . $incrementIds['payload'][$i]['market_id']
                 ]);
 
                 if (!$payloadsSwt->exists($payloadsSwtId)) {

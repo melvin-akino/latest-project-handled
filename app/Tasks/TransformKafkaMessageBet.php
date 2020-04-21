@@ -22,6 +22,7 @@ class TransformKafkaMessageBet extends Task
         $topics = $swoole->topicTable;
         $ordersTable = $swoole->ordersTable;
         $wsTable = $swoole->wsTable;
+        $payloadsTable  = $swt->payloadsTable;
 
         foreach ($topics AS $key => $row) {
             if (strpos($row['topic_name'], 'order-') === 0) {
@@ -31,7 +32,7 @@ class TransformKafkaMessageBet extends Task
 
                 if ($orderId == $messageOrderId) {
                     $status = strtoupper($this->message->data->status);
-                    Order::updateOrCreate([
+                    $order = Order::updateOrCreate([
                         'id' => $messageOrderId
                     ], [
                         'bet_id' => $this->message->data->bet_id,
@@ -54,6 +55,15 @@ class TransformKafkaMessageBet extends Task
                     ]);
 
                     $ordersTable['orderId:' . $orderId]['bet_id'] = $this->message->data->bet_id;
+
+                    $payloadsSwtId = implode(':', [
+                        "place-bet-" . $orderId,
+                        "uId:"       . $row['user_id'],
+                        "mId:"       . $order->market_id
+                    ]);
+                    if ($payloadsTable->exists()) {
+                        $payloadsTable->del($payloadsSwtId);
+                    }
                 }
             }
         }
