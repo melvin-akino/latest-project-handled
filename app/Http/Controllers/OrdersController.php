@@ -45,8 +45,8 @@ class OrdersController extends Controller
 
             !empty($request->status) ? !($request->status  == "All") ? $conditions[] = ['status', $request->status] : null : null;
 
-            !empty($request->created_from) ? $conditions[] = ['created_at', '>=', $request->created_from] : null;
-            !empty($request->created_to) ? $conditions[]   = ['created_at', '<=', $request->created_to] : !empty($request->created_from) ? ['created_at', '<=', now()] : null;
+            !empty($request->created_from) ? $conditions[] = ['orders.created_at', '>=', $request->created_from] : null;
+            !empty($request->created_to) ? $conditions[]   = ['orders.created_at', '<=', $request->created_to] : !empty($request->created_from) ? ['orders.created_at', '<=', now()] : null;
 
             !empty($request->settled_from) ? $conditions[] = ['settled_date', '>=', $request->settled_from] : null;
             !empty($request->settled_to) ? $conditions[]   = ['settled_date', '<=', $request->settled_to] : !empty($request->settled_to) ? ['settled_date', '<=', now()] : null;

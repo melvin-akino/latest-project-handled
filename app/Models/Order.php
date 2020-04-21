@@ -42,7 +42,7 @@ class Order extends Model
             ->join('providers', 'orders.provider_id', '=', 'providers.id')
             ->select('orders.bet_id', 'orders.bet_selection', 'providers.alias', 'orders.odds', 'orders.stake', 'orders.to_win', 'orders.created_at', 'orders.settled_date', 'orders.profit_loss', 'orders.status')
             ->where($whereClause)
-            ->orderBy('created_at', 'desc')
+            ->orderBy('orders.created_at', 'desc')
             ->limit($limit)->offset(($page - 1) * $limit)
             ->get()
             ->toArray();

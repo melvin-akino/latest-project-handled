@@ -53,28 +53,32 @@ class TradeController extends Controller
                     'o.stake',
                     'o.status',
                     'o.created_at',
+                    'o.order_expiry'
                 ])
                 ->orderBy('o.created_at', 'desc')
                 ->get();
 
             $data = [];
             foreach ($betBarData as $betData) {
-                $data[] = [
-                    'order_id'       => $betData->order_id,
-                    'provider_alias' => $betData->alias,
-                    'market_id'      => $betData->master_event_market_unique_id,
-                    'league_name'    => $betData->master_league_name,
-                    'home'           => $betData->master_home_team_name,
-                    'away'           => $betData->master_away_team_name,
-                    'bet_info'       => [
-                        $betData->market_flag,
-                        $betData->name,
-                        $betData->odds,
-                        $betData->stake
-                    ],
-                    'status'         => $betData->status,
-                    'created_at'     => $betData->created_at
-                ];
+                //check if this order is still valid based on the expiry
+                if (strtotime($betData->created_at) <= (strtotime($betData->created_at) + intval($betData->order_expiry))) {
+                    $data[] = [
+                        'order_id'       => $betData->order_id,
+                        'provider_alias' => $betData->alias,
+                        'market_id'      => $betData->master_event_market_unique_id,
+                        'league_name'    => $betData->master_league_name,
+                        'home'           => $betData->master_home_team_name,
+                        'away'           => $betData->master_away_team_name,
+                        'bet_info'       => [
+                            $betData->market_flag,
+                            $betData->name,
+                            $betData->odds,
+                            $betData->stake
+                        ],
+                        'status'         => $betData->status,
+                        'created_at'     => $betData->created_at
+                    ];       
+                }
             }
 
             return response()->json([
