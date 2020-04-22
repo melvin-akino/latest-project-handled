@@ -501,7 +501,7 @@ class OrdersController extends Controller
                 $betSelection = implode("\n", [
                     $query->master_home_team_name . " vs " . $query->master_away_team_name,
                     $query->column_type . " " . $query->odd_label . "(" . $query->score . ")",
-                    $teamname . " @ " . $query->odds,
+                    $teamname . " @ " . $row['price'],
                 ]);
 
                 $providerAccountUserName = ProviderAccount::getProviderAccount($row['provider_id'], $actualStake, $isUserVIP);
