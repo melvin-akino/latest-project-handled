@@ -615,6 +615,7 @@ class OrdersController extends Controller
                 $ordersTable['orderId:' . $incrementIds['id'][$i]]['username']    = $payload['data']['username'];
                 $ordersTable['orderId:' . $incrementIds['id'][$i]]['orderExpiry'] = $payload['data']['orderExpiry'];
                 $ordersTable['orderId:' . $incrementIds['id'][$i]]['created_at']  = $incrementIds['created_at'][$i];
+                $ordersTable['orderId:' . $incrementIds['id'][$i]]['status']      = 'PENDING';
             }
 
             return response()->json([
