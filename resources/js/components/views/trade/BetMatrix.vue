@@ -24,7 +24,7 @@
 import { mapState } from 'vuex'
 import 'vue-dialog-drag/dist/vue-dialog-drag.css'
 import DialogDrag from 'vue-dialog-drag'
-import { convertPointAsNumeric } from '../../../helpers/numberFormat'
+import { twoDecimalPlacesFormat, convertPointAsNumeric } from '../../../helpers/numberFormat'
 
 export default {
     props: ['market_id', 'analysisData'],
@@ -101,7 +101,7 @@ export default {
                     if(against_team_counter < this.matrix_data.against_score || bet_team_counter < this.matrix_data.bet_score) {
                         var color = 'grey'
                     }
-                    table.push({ 'color': color, 'result': Math.floor(result * 100) / 100 })
+                    table.push({ 'color': color, 'result': twoDecimalPlacesFormat(result) })
                     against_team_counter++
                 }
                 this.matrix_table.push(table)

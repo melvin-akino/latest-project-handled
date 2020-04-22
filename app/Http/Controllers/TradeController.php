@@ -66,20 +66,19 @@ class TradeController extends Controller
 
             $data = [];
             foreach ($betBarData as $betData) {
+                $proceed = false;
                 if ($betData->status == 'SUCCESS') {
                     $proceed = true;
-                }
-
-                if ($betData->status == 'PENDING') {
-                    $current_time = Carbon::now()->toDateTimeString();
-                    $expire_time = Carbon::parse($betData->created_at)->addSeconds($betData->order_expiry)->toDateTimeString();
-                    if ($current_time <= $expire_time) {
+                } else if ($betData->status == 'PENDING') {
+                    $currentTime = Carbon::now()->toDateTimeString();
+                    $expireTime = Carbon::parse($betData->created_at)->addSeconds($betData->order_expiry)->toDateTimeString();
+                    if ($currentTime <= $expireTime) {
                         $proceed = true;
                     } else {
                         $proceed = false;
                     }
                 }
-                
+
                 if ($proceed) {
                     $score = explode(" - ", $betData->score);
                     $points = DB::table('event_markets AS em')
