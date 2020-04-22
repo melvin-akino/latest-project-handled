@@ -7,6 +7,10 @@ er <template>
                 <span class="totalPL">{{wallet.currency_symbol}} {{totalPL | moneyFormat}}</span>
             </div>
             <v-client-table name="My Orders" :data="myorders" :columns="columns" :options="options" ref="ordersTable">
+                <div slot="betSelection" slot-scope="props" v-html="props.row.bet_selection"></div>
+                <div slot="pl" slot-scope="props">
+                    <span :class="{'greenPL': props.row.status == 'WIN' || props.row.status == 'HALF WIN', 'redPL': props.row.status == 'LOSE' || props.row.status == 'HALF LOSE'}" >{{props.row.pl | formatPL}}</span>
+                </div>
                 <div class="flex justify-start" slot="betData" slot-scope="props">
                     <a href="#" @click.prevent="openBetMatrix(props.row.order_id)" class="text-center py-1 w-1/2"><i class="fas fa-chart-area" title="Bet Matrix" v-if="oddTypesWithSpreads.includes(props.row.odd_type_id)"></i></a>
                     <a href="#" @click.prevent="openOddsHistory(props.row.order_id)" class="text-center py-1 w-1/2"><i class="fas fa-bars" title="Odds History"></i></a>
@@ -22,7 +26,7 @@ import Cookies from 'js-cookie'
 import OrderData from './OrderData'
 import _ from 'lodash'
 import { mapState } from 'vuex'
-import { moneyFormat } from '../../../helpers/numberFormat'
+import { twoDecimalPlacesFormat, moneyFormat } from '../../../helpers/numberFormat'
 
 export default {
     components: {
@@ -32,16 +36,22 @@ export default {
         return {
             myorders: [],
             totalPL: '',
-            columns: ['bet_id', 'created', 'bet_selection', 'provider', 'status', 'odds', 'stake', 'towin', 'pl', 'betData'],
+            columns: ['bet_id', 'created', 'betSelection', 'provider', 'status', 'odds', 'stake', 'towin', 'pl', 'betData'],
             options: {
                 headings: {
                     bet_id: 'Bet ID',
-                    bet_selection: 'Bet Selection',
+                    betSelection: 'Bet Selection',
                     created: 'Transaction Date & Time',
                     pl: 'Profit/Loss',
                     towin: 'To Win',
                     status: 'Status',
                     betData: ''
+                },
+                columnsClasses: {
+                    odds: 'alignRight',
+                    stake: 'alignRight',
+                    towin: 'alignRight',
+                    pl: 'alignRight'
                 }
             },
             openedOddsHistory: [],
@@ -60,13 +70,9 @@ export default {
         this.getMyOrders()
         this.getPriceFormat()
         this.$store.dispatch('trade/getWalletData')
-        this.renderBetSelectionAsHTML()
     },
     computed: {
         ...mapState('trade', ['wallet'])
-    },
-    updated() {
-        this.renderBetSelectionAsHTML()
     },
     methods: {
         getMyOrders() {
@@ -75,12 +81,14 @@ export default {
             axios.get(`v1/orders/all`, { headers: { 'Authorization': `Bearer ${token}` }})
             .then(response => {
                 let orders = []
-                let formattedColumns = ['stake', 'towin']
+                let formattedColumns = ['stake', 'towin', 'pl']
                 response.data.data.orders.map(order => {
                     let orderObj = {}
                     Object.keys(order).map(key => {
                         if(formattedColumns.includes(key)) {
                             this.$set(orderObj, key, moneyFormat(Number(order[key])))
+                        } else if(key=='odds') {
+                            this.$set(orderObj, key, twoDecimalPlacesFormat(Number(order[key])))
                         } else {
                             this.$set(orderObj, key, order[key])
                         }
@@ -94,14 +102,6 @@ export default {
             .catch(err => {
                 this.$store.dispatch('auth/checkIfTokenIsValid', err.response.data.status_code)
             })
-        },
-        renderBetSelectionAsHTML() {
-            if(!_.isEmpty(this.myorders)) {
-                Object.keys(this.$refs.ordersTable.$el.children[1].children[0].tBodies[0].rows).map(row => {
-                    let betSelection = this.$refs.ordersTable.$el.children[1].children[0].tBodies[0].rows[row].cells[2]
-                    betSelection.innerHTML = this.myorders[row].bet_selection
-                })
-            }
         },
         getPriceFormat() {
             if(!this.$store.state.settings.defaultPriceFormat) {
@@ -136,7 +136,14 @@ export default {
         }
     },
     filters: {
-        moneyFormat
+        moneyFormat,
+        formatPL(value) {
+            if(value == "0.00" || value=="0") {
+                return "-"
+            } else {
+                return value
+            }
+        }
     }
 }
 </script>
@@ -153,8 +160,8 @@ export default {
         color: #ffffff;
     }
 
-    .VueTables__sortable,  .VueTables__row td {
-        text-align: center;
+    .alignRight {
+        text-align: right;
     }
 
     .VueTables__table > tbody {
@@ -208,11 +215,11 @@ export default {
     }
 
     .totalPL {
-        margin-left: 40px;
+        margin-left: 39px;
     }
 
     .totalPLdata {
-        right: 88px;
+        right: 72px;
     }
 
     .dialog-drag {
@@ -231,5 +238,13 @@ export default {
 
     .dialog-drag .dialog-header {
         background-color:#ed8936;
+    }
+
+    .greenPL {
+        color: #4cbb17;
+    }
+
+    .redPL {
+        color: #ff0000;
     }
 </style>
