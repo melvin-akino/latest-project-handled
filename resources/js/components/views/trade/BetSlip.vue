@@ -189,6 +189,7 @@ export default {
     },
     computed: {
         ...mapState('trade', ['activeBetSlip', 'bookies', 'betSlipSettings', 'wallet']),
+        ...mapState('settings', ['defaultPriceFormat']),
         spreads() {
             if(!_.isEmpty(this.market_details)) {
                 return this.market_details.spreads
@@ -538,7 +539,11 @@ export default {
                             price: Math.floor(averagePrice * 100) / 100,
                             bet_score: this.bet_score,
                             against_score: this.against_score,
-                            odd_type: this.market_details.odd_type
+                            odd_type: this.market_details.odd_type,
+                            created_at: response.data.created_at,
+                            bet_team: this.market_details.market_flag == "HOME" ?  this.market_details.home :  this.market_details.away,
+                            price_format: this.defaultPriceFormat,
+                            currency_symbol: this.wallet.currency_symbol
                         }
                     }
 

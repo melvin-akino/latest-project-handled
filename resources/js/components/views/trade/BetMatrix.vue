@@ -2,7 +2,10 @@
     <div class="betMatrix text-sm">
         <dialog-drag title="Bet Matrix" :options="options" @close="$emit('close')" v-overlap-all-bet-matrix="activeBetSlip==market_id">
             <div class="p-6">
-                <p class="text-gray-700 mb-2">Current Score: {{this.analysisData.bet_score}} - {{this.analysisData.against_score}}</p>
+                <p class="text-gray-700 mb-2">Current Score: {{analysisData.bet_score}} - {{analysisData.against_score}}</p>
+                <div class="bg-gray-400 p-2">
+                    <div class="container mx-auto text-sm text-gray-700">Order placed at {{analysisData.created_at}}</div>
+                </div>
                 <div class="flex items-center bg-black text-white pl-4">
                     <i class="material-icons sportsIcon pr-3">sports_soccer</i>
                     <div class="result p-1 text-center" v-for="(matrix, index) in matrix_table" :key="index">
@@ -15,6 +18,16 @@
                         {{data.result}}
                     </div>
                 </div>
+                <div class="flex items-center bg-black text-white p-1 pl-4">
+                    <span class="w-2/3">Bet Type</span>
+                    <span class="w-1/3">Price</span>
+                    <span class="w-1/3">Stake</span>
+                </div>
+                <div class="flex items-center text-gray-700 text-white p-1 pl-4">
+                    <span class="w-2/3">{{analysisData.bet_team}} {{analysisData.points}} {{`(${analysisData.price_format})`}}</span>
+                    <span class="w-1/3">{{analysisData.price}}</span>
+                    <span class="w-1/3">{{analysisData.currency_symbol}} {{matrix_data.stake | moneyFormat}}</span>
+                </div>
             </div>
         </dialog-drag>
     </div>
@@ -24,7 +37,7 @@
 import { mapState } from 'vuex'
 import 'vue-dialog-drag/dist/vue-dialog-drag.css'
 import DialogDrag from 'vue-dialog-drag'
-import { twoDecimalPlacesFormat, convertPointAsNumeric } from '../../../helpers/numberFormat'
+import { twoDecimalPlacesFormat, convertPointAsNumeric, moneyFormat } from '../../../helpers/numberFormat'
 
 export default {
     props: ['market_id', 'analysisData'],
@@ -119,6 +132,9 @@ export default {
                 }
             }
         }
+    },
+    filters: {
+        moneyFormat
     }
 }
 </script>

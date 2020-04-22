@@ -1,6 +1,6 @@
 <template>
     <div class="column">
-        <div class="betColumns flex bg-gray-800 text-white text-xs fixed z-10 w-5/6 pl-6 pr-8" :class="[tradeLayout==1 ? 'items-center py-2' : 'py-1']">
+        <div class="betColumns flex bg-gray-800 text-white text-xs fixed w-5/6 pl-6 pr-8" :class="[tradeLayout==1 ? 'items-center py-2' : 'py-1']">
             <div class="w-2/12" v-if="tradeLayout==1"></div>
             <div class="w-1/12 text-center" v-if="tradeLayout==1">Sport</div>
             <div class="w-1/12 text-center" v-if="tradeLayout==1">Score & <br>Schedule</div>
