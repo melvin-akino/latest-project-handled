@@ -165,6 +165,19 @@ return [
                 [ 'name' => 'away_penalty',           'type' => \Swoole\Table::TYPE_STRING, 'size' => 30 ],
             ],
         ],
+        'rawEvents'     => [
+            'size'   => env('SWT_MAX_SIZE', 102400),
+            'column' => [
+                [ 'name' => 'sport_id',          'type' => \Swoole\Table::TYPE_INT ],
+                [ 'name' => 'provider_id',       'type' => \Swoole\Table::TYPE_INT ],
+                [ 'name' => 'league_name',       'type' => \Swoole\Table::TYPE_STRING ],
+                [ 'name' => 'home_team_name',    'type' => \Swoole\Table::TYPE_STRING ],
+                [ 'name' => 'away_team_name',    'type' => \Swoole\Table::TYPE_STRING ],
+                [ 'name' => 'ref_schedule',      'type' => \Swoole\Table::TYPE_STRING ],
+                [ 'name' => 'game_schedule',     'type' => \Swoole\Table::TYPE_STRING ],
+                [ 'name' => 'event_identifier',  'type' => \Swoole\Table::TYPE_STRING ]
+            ],
+        ],
         'eventMarkets'  => [ //key format [pId:$providerId:meUID:$meUID:betIdentifier:$betIdentifier] = [id = $id, ...]
             'size' => env('SWT_MAX_SIZE', 102400),
             'column' => [
