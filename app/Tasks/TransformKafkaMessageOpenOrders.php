@@ -71,7 +71,7 @@ class TransformKafkaMessageOpenOrders extends Task
                             'reason'              => 'No Kafka payload received',
                             'updated_at'          => Carbon::now(),
                         ]);
-                        
+
                         DB::table('order_logs')
                             ->insert([
                                 'provider_id'   => $orderData->provider_id,
