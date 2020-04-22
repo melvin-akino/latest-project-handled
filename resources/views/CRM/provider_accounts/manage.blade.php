@@ -5,9 +5,9 @@
                   action="{{ route('provider_accounts.manage') }}"
                   method="POST">
                   {{ csrf_field() }}
-                  <input type="hidden" class="form-control" name="providerAccountId"
+                <input type="hidden" class="form-control" name="providerAccountId"
                                    id="providerAccountId"
-                                   placeholder="ProviderId">
+                                   placeholder="ProviderAccountId">
                 <div class="modal-header">
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span></button>
@@ -116,24 +116,35 @@
           var manageProviderAccount = function (form) {
                 var btn = form.find(':submit').button('loading');
                 var url = form.prop('action');
+                var formArray = form.serializeArray();
+                var selectedProviderId;
+
+                $.each(formArray, function() {
+                    if (this.name == 'provider_id') {
+                        selectedProviderId = this.value;
+                    }
+                });
                 
                 $.post(url, form.serialize(), function (response) {
-                    if (response.data == 'success') {
-
+                    if (response.data == 'success') {                        
                         swal('Provider Account', 'Provider account successfully saved', response.data).then(() => {
                             
                             if (form.find('input[name=providerAccountId]').val() == '') {
                                 swal({
-                                    title: 'Add more?',
+                                    title: 'Add more accounts?',
                                     type: 'info',
                                     showCancelButton: true,
                                     confirmButtonColor: '#3085d6',
                                     cancelButtonColor: '#d33',
+                                    cancelButtonText: 'No',
                                     confirmButtonText: 'Yes'
                                 })
                                 .then((result) => {
                                     if (result.value) {
+                                        clearErr(form);
                                         form.trigger('reset');
+                                        form.find('input[name=providerAccountId]').val('');
+                                        form.find('select[name=provider_id]').val(selectedProviderId);                                        
                                     }
                                     else {
                                         $('#modal-manage-provider-accounts').modal('toggle');
@@ -151,64 +162,29 @@
                     return;
                 }).done(function () {
                     btn.button('reset');
+
                 }).fail(function(xhr, status, error) {
                     // error handling
                     assocErr(xhr.responseJSON.errors, form);
 
                     btn.button('reset');
                 });
+
+
             };
 
             $("#modal-manage-provider-accounts").on("hidden.bs.modal", function () {
                 var form = $('#form-manage-provider-account');
+                clearErr(form);
                 form.trigger('reset');
             });
 
-            $.validator.setDefaults({
-                submitHandler: function () {
-                    var form = $('#form-manage-provider-account');
-                    manageProviderAccount(form);
-                }
-            });
-            $('#form-manage-provider-account').validate({
-                rules: {
-                    username: {
-                        required: true,
-                    },
-                    password: {
-                        required: true,
-                    },
-                    pa_percentage: {
-                        required: true,
-                        digits: true
-
-                    },
-                },
-                messages: {
-                    username: {
-                        required: "Please enter a provider account username",
-                    },
-                    password: {
-                        required: "Please provide a password"
-                    },
-                    pa_percentage: { 
-                        required: "Percentage is required",
-                        digits: "Please enter a valid percentage"
-                    }
-
-                },
-                errorElement: 'span',
-                    errorPlacement: function (error, element) {
-                        error.addClass('invalid-feedback');
-                        element.closest('div').append(error);
-                    },
-                    highlight: function (element, errorClass, validClass) {
-                        $(element).addClass('is-invalid');
-                    },
-                    unhighlight: function (element, errorClass, validClass) {
-                        $(element).removeClass('is-invalid');
-                    }
-            });
-          });
-        </script>
-        @endsection
+            $('#form-manage-provider-account').submit(function(e) {
+                e.preventDefault();
+                $(this).find('input[name=username]').removeAttr("disabled");
+                $(this).find('select[name=provider_id]').removeAttr("disabled");
+                manageProviderAccount($(this));
+            });           
+        });
+    </script>
+@endsection

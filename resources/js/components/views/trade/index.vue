@@ -19,7 +19,7 @@
                 </div>
             </div>
         </div>
-        <Betslip v-for="odd in openedBetSlips" :key="odd.market_id" :odd_details="odd"></Betslip>
+        <bet-slip v-for="odd in openedBetSlips" :odd_details="odd" :key="odd.market_id"></bet-slip>
         <Betbar></Betbar>
     </div>
 </template>
@@ -34,7 +34,7 @@ import Watchlist from './Watchlist'
 import Columns from './Columns'
 import Games from './Games'
 import Betbar from './Betbar'
-import Betslip from './BetSlip'
+import BetSlip from './BetSlip'
 import { getSocketKey, getSocketValue } from '../../../helpers/socket'
 import { sortByObjectKeys } from '../../../helpers/array'
 
@@ -46,7 +46,7 @@ export default {
         Columns,
         Games,
         Betbar,
-        Betslip
+        BetSlip,
     },
     head: {
         title() {
@@ -56,10 +56,10 @@ export default {
         }
     },
     computed: {
-        ...mapState('trade', ['isBetBarOpen', 'selectedSport', 'oddsTypeBySport', 'allEventsList', 'eventsList', 'events', 'openedBetSlips', 'tradePageSettings'])
+        ...mapState('trade', ['isBetBarOpen', 'selectedSport', 'selectedLeagues', 'oddsTypeBySport', 'allEventsList', 'eventsList', 'events', 'openedBetSlips', 'tradePageSettings'])
     },
     mounted() {
-        this.$store.dispatch('trade/getSportsAndEvents')
+        this.$store.dispatch('trade/getTradeWindowData')
         this.$store.dispatch('trade/getTradePageSettings')
         this.getWatchlist()
         this.getUserTradeLayout()
@@ -127,18 +127,24 @@ export default {
                 if(getSocketKey(response.data) === 'getEvents') {
                     let receivedEvents = getSocketValue(response.data, 'getEvents')
                     receivedEvents.map(receivedEvent => {
-                        let eventsListCheckUID = this.eventsList.findIndex(event => event.uid === receivedEvent.uid)
-                        let allEventsListCheckUID = this.allEventsList.findIndex(event => event.uid === receivedEvent.uid)
-                        this.$delete(receivedEvent.market_odds, 'other')
-                        if(receivedEvent.sport_id == this.selectedSport) {
-                            if(eventsListCheckUID === -1) {
-                                this.$store.commit('trade/SET_EVENTS_LIST', receivedEvent)
-                            }
+                        Object.keys(this.selectedLeagues).map(schedule => {
+                            this.selectedLeagues[schedule].map(league => {
+                                if(receivedEvent.game_schedule == schedule && receivedEvent.league_name == league) {
+                                    let eventsListCheckUID = this.eventsList.findIndex(event => event.uid === receivedEvent.uid)
+                                    let allEventsListCheckUID = this.allEventsList.findIndex(event => event.uid === receivedEvent.uid)
+                                    this.$delete(receivedEvent.market_odds, 'other')
+                                    if(receivedEvent.sport_id == this.selectedSport) {
+                                        if(eventsListCheckUID === -1) {
+                                            this.$store.commit('trade/SET_EVENTS_LIST', receivedEvent)
+                                        }
 
-                            if(allEventsListCheckUID === -1) {
-                                this.$store.commit('trade/SET_ALL_EVENTS_LIST', receivedEvent)
-                            }
-                        }
+                                        if(allEventsListCheckUID === -1) {
+                                            this.$store.commit('trade/SET_ALL_EVENTS_LIST', receivedEvent)
+                                        }
+                                    }
+                                }
+                            })
+                        })
                     })
                     let eventsSchedule = _.uniq(this.eventsList.map(event => event.game_schedule))
                     let eventsLeague = _.uniq(this.eventsList.map(event => event.league_name))

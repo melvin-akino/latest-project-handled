@@ -3,15 +3,15 @@
         <div class="px-6">
             <div class="flex justify-between">
                 <span class="text-sm">Credit</span>
-                <span class="text-sm">{{currency_symbol}} {{credit}}</span>
+                <span class="text-sm">{{wallet.currency_symbol}} {{wallet.credit | moneyFormat}}</span>
             </div>
             <div class="flex justify-between">
                 <p class="text-sm">Profit/Loss</p>
-                <p class="text-sm">{{currency_symbol}} {{profit_loss}}</p>
+                <p class="text-sm">{{wallet.currency_symbol}} {{wallet.profit_loss  | moneyFormat}}</p>
             </div>
             <div class="flex justify-between">
                 <p class="text-sm">Open Orders</p>
-                <p class="text-sm">{{currency_symbol}} {{orders}}</p>
+                <p class="text-sm">{{wallet.currency_symbol}} {{wallet.orders  | moneyFormat}}</p>
             </div>
         </div>
     </div>
@@ -19,36 +19,18 @@
 
 <script>
 import Cookies from 'js-cookie'
+import { mapState } from 'vuex';
+import { moneyFormat } from '../../../helpers/numberFormat'
 
 export default {
-    data() {
-        return {
-            currency_symbol: '',
-            credit: '',
-            orders: '',
-            profit_loss: '',
-        }
+    computed: {
+        ...mapState('trade', ['wallet'])
     },
     mounted() {
-        this.getWalletData()
+        this.$store.dispatch('trade/getWalletData')
     },
-    methods: {
-        getWalletData() {
-            let token = Cookies.get('mltoken')
-
-            axios.get('v1/user/wallet', { headers: { 'Authorization': `Bearer ${token}` }})
-            .then(response => {
-                let { currency_symbol, credit, orders, profit_loss } = response.data.data
-                this.currency_symbol = currency_symbol.trim()
-                this.credit = credit.toFixed(2)
-                this.orders = orders.toFixed(2)
-                this.profit_loss = profit_loss.toFixed(2)
-
-            })
-            .catch(err => {
-                this.$store.dispatch('auth/checkIfTokenIsValid', err.response.data.status_code)
-            })
-        }
+    filters: {
+        moneyFormat
     }
 }
 </script>

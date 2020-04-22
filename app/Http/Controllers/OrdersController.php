@@ -28,6 +28,7 @@ use Illuminate\Support\{
     Facades\DB,
     Str
 };
+use Illuminate\Support\Facades\Log;
 
 class OrdersController extends Controller
 {
@@ -44,8 +45,8 @@ class OrdersController extends Controller
 
             !empty($request->status) ? !($request->status  == "All") ? $conditions[] = ['status', $request->status] : null : null;
 
-            !empty($request->created_from) ? $conditions[] = ['created_at', '>=', $request->created_from] : null;
-            !empty($request->created_to) ? $conditions[]   = ['created_at', '<=', $request->created_to] : !empty($request->created_from) ? ['created_at', '<=', now()] : null;
+            !empty($request->created_from) ? $conditions[] = ['orders.created_at', '>=', $request->created_from] : null;
+            !empty($request->created_to) ? $conditions[]   = ['orders.created_at', '<=', $request->created_to] : !empty($request->created_from) ? ['orders.created_at', '<=', now()] : null;
 
             !empty($request->settled_from) ? $conditions[] = ['settled_date', '>=', $request->settled_from] : null;
             !empty($request->settled_to) ? $conditions[]   = ['settled_date', '<=', $request->settled_to] : !empty($request->settled_to) ? ['settled_date', '<=', now()] : null;
@@ -59,16 +60,31 @@ class OrdersController extends Controller
                 $myOrders = Order::getAllOrders($conditions, $page, $limit);
 
                 foreach($myOrders as $myOrder) {
+                    $score = explode(' - ', $myOrder->score);
+                    $points = DB::table('event_markets as em')
+                    ->where('master_event_unique_id', $myOrder->master_event_unique_id)
+                    ->where('odd_type_id', $myOrder->odd_type_id)
+                    ->select(['em.odd_label'])
+                    ->first();
+
                     $data['orders'][] = [
+                        'order_id'      => $myOrder->id,
                         'bet_id'        => $myOrder->bet_id,
-                        'bet_selection' => $myOrder->bet_selection,
+                        'bet_selection' => nl2br($myOrder->bet_selection),
                         'provider'      => strtoupper($myOrder->alias),
+                        'market_id'     => $myOrder->master_event_market_unique_id,
                         'odds'          => $myOrder->odds,
                         'stake'         => $myOrder->stake,
                         'towin'         => $myOrder->to_win,
                         'created'       => $myOrder->created_at,
                         'settled'       => $myOrder->settled_date,
                         'pl'            => $myOrder->profit_loss,
+                        'status'        => $myOrder->status,
+                        'market_flag'   => $myOrder->market_flag,
+                        'bet_score'     => $myOrder->market_flag=="HOME" ? $score[0] : $score[1],
+                        'against_score' => $myOrder->market_flag=="HOME" ? $score[1] : $score[0],
+                        'odd_type_id'   => $myOrder->odd_type_id,
+                        'points'        => $points->odd_label
                     ];
                 }
 
@@ -149,6 +165,7 @@ class OrdersController extends Controller
                 ->get(
                     [
                         'mem.master_event_market_unique_id',
+                        'em.odds',
                         'em.odd_label',
                         'em.is_main'
                     ]
@@ -159,6 +176,7 @@ class OrdersController extends Controller
             foreach ($getOtherMarkets AS $row) {
                 $spreads[] = [
                     'market_id' => $row->master_event_market_unique_id,
+                    'odds'      => $row->odds,
                     'points'    => $row->odd_label,
                     'is_main'   => $row->is_main
                 ];
@@ -256,6 +274,7 @@ class OrdersController extends Controller
             $swt          = app('swoole');
             $topics       = $swt->topicTable;
             $payloadsSwt  = $swt->payloadsTable;
+            $ordersTable  = $swt->ordersTable;
             $betType      = "";
             $return       = "";
             $returnCode   = 200;
@@ -379,6 +398,7 @@ class OrdersController extends Controller
                         $join->on('mem.is_main', '=', 'em.is_main');
                         $join->on('mem.market_flag', '=', 'em.market_flag');
                     })
+                    ->join('odd_types AS ot', 'ot.id', '=', 'mem.odd_type_id')
                     ->whereNull('me.deleted_at')
                     ->where('mem.master_event_market_unique_id', $request->market_id)
                     ->orderBy('mem.odd_type_id', 'asc')
@@ -397,6 +417,9 @@ class OrdersController extends Controller
                         'mem.odd_type_id',
                         'em.bet_identifier',
                         'em.provider_id',
+                        'em.odds',
+                        'em.odd_label',
+                        'ot.type AS column_type',
                     ])
                     ->first();
 
@@ -471,13 +494,24 @@ class OrdersController extends Controller
 
                 $incrementIds['payload'][] = $payload;
 
-                $orderIncrementId = Order::create([
+                $teamname = $query->market_flag == "HOME" ? $query->master_home_team_name : $query->master_away_team_name;
+
+                $betSelection = implode("\n", [
+                    $query->master_home_team_name . " vs " . $query->master_away_team_name,
+                    $query->column_type . " " . $query->odd_label . "(" . $query->score . ")",
+                    $teamname . " @ " . $query->odds,
+                ]);
+
+                $providerAccountUserName = ProviderAccount::getProviderAccount($row['provider_id'], $actualStake, $isUserVIP);
+                $providerAccountId = ProviderAccount::getUsernameId($providerAccountUserName);
+
+                $orderIncrement = Order::create([
                     'user_id'                       => auth()->user()->id,
                     'master_event_market_unique_id' => $request->market_id,
                     'market_id'                     => $query->bet_identifier,
                     'status'                        => "PENDING",
                     'bet_id'                        => "",
-                    'bet_selection'                 => "",
+                    'bet_selection'                 => $betSelection,
                     'provider_id'                   => $row['provider_id'],
                     'sport_id'                      => $query->sport_id,
                     'odds'                          => $row['price'],
@@ -489,21 +523,23 @@ class OrdersController extends Controller
                     'reason'                        => "",
                     'profit_loss'                   => 0.00,
                     'order_expiry'                  => $request->orderExpiry,
-                ])->id;
+                    'provider_account_id'           => $providerAccountId,
+                ]);
 
-                $incrementIds['id'][] = $orderIncrementId;
+                $incrementIds['id'][] = $orderIncrement->id;
+                $incrementIds['created_at'][] = $orderIncrement->created_at;
 
                 $orderLogsId = OrderLogs::create([
                     'user_id'       => auth()->user()->id,
                     'provider_id'   => $row['provider_id'],
                     'sport_id'      => $query->sport_id,
                     'bet_id'        => "",
-                    'bet_selection' => "",
+                    'bet_selection' => nl2br($betSelection),
                     'status'        => "PENDING",
                     'settled_date'  => "",
                     'reason'        => "",
                     'profit_loss'   => 0.00,
-                    'order_id'      => $orderIncrementId,
+                    'order_id'      => $orderIncrement->id,
                 ])->id;
 
                 userWalletTransaction(auth()->user()->id, 'PLACE_BET', ($payloadStake * $exchangeRate), $orderLogsId);
@@ -562,18 +598,23 @@ class OrdersController extends Controller
                     'event_id'     => $incrementIds['payload'][$i]['event_id'],
                     'score'        => $incrementIds['payload'][$i]['score'],
                     'username'     => ProviderAccount::getProviderAccount($row['provider_id'], $incrementIds['payload'][$i]['actual_stake'], $isUserVIP),
+                    'created_at'   => $incrementIds['created_at'][$i],
+                    'orderExpiry'  => $incrementIds['payload'][$i]['orderExpiry'],
+
                 ];
 
                 $payloadsSwtId = implode(':', [
                     "place-bet-" . $incrementIds['id'][$i],
                     "uId:"       . $incrementIds['payload'][$i]['user_id'],
-                    "mId:"       . $incrementIds['payload'][$i]['market_id'],
-                    "oId:"       . $incrementIds['payload'][$i]['order_id']
+                    "mId:"       . $incrementIds['payload'][$i]['market_id']
                 ]);
 
                 if (!$payloadsSwt->exists($payloadsSwtId)) {
                     $payloadsSwt->set($payloadsSwtId, [ 'payload' => json_encode($payload) ]);
                 }
+                $ordersTable['orderId:' . $incrementIds['id'][$i]]['username']    = $payload['data']['username'];
+                $ordersTable['orderId:' . $incrementIds['id'][$i]]['orderExpiry'] = $payload['data']['orderExpiry'];
+                $ordersTable['orderId:' . $incrementIds['id'][$i]]['created_at']  = $incrementIds['created_at'][$i];
             }
 
             return response()->json([

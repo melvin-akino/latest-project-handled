@@ -3,6 +3,8 @@
 namespace App\Tasks;
 
 use Hhxsv5\LaravelS\Swoole\Task\Task;
+use Illuminate\Support\Facades\Log;
+// use App\Jobs\WsMinMax;
 
 class TransformKafkaMessageMinMax extends Task
 {
@@ -19,6 +21,7 @@ class TransformKafkaMessageMinMax extends Task
 
         $topics             = $swoole->topicTable;
         $minMaxRequests     = $swoole->minMaxRequestsTable;
+        $minMaxQueues       = $swoole->minMaxQueuesTable;
         $wsTable            = $swoole->wsTable;
         $provTable          = $swoole->providersTable;
         $usersTable         = $swoole->usersTable;
@@ -38,68 +41,82 @@ class TransformKafkaMessageMinMax extends Task
                         $userId = explode(':', $_key)[1];
                         $fd     = $wsTable->get('uid:' . $userId);
 
-                        /** AS DEFAULT */
-                        $providerCurrency = [
-                            'id'   => 1,
-                            'code' => "CNY",
-                        ];
-                        $providerSwtId    = "providerAlias:" . $data->provider;
+                        if (!empty($this->data->message)) {
+                            $minMaxRequests->del('memUID:' . $memUID);
+                            $swoole->push($fd['value'], json_encode([
+                                'getMinMax' => ['message' => $this->data->message]
+                            ]));
 
-                        if ($provTable->exists($providerSwtId)) {
-                            $providerCurrency['id'] = $provTable->get($providerSwtId)['currency_id'];
-                            $punterPercentage       = $provTable->get($providerSwtId)['punter_percentage'];
-                        }
+                            Log::info("MIN MAX Transformation - Message Found");
+                        } else {
+                            /** AS DEFAULT */
+                            $providerCurrency = [
+                                'id'   => 1,
+                                'code' => "CNY",
+                            ];
+                            $providerSwtId    = "providerAlias:" . $data->provider;
 
-                        $userCurrency = [
-                            'id'   => 1,
-                            'code' => "CNY",
-                        ];
-                        $userSwtId    = "userId:" . $userId;
-
-                        if ($usersTable->exists($userSwtId)) {
-                            $userCurrency['id'] = $usersTable->get($userSwtId)['currency_id'];
-                        }
-
-                        $maximum = (double) $data->maximum * ($punterPercentage / 100);
-
-                        $transformed = [
-                            "sport_id"    => $data->sport,
-                            "provider_id" => $provTable->get($providerSwtId)['id'],
-                            "provider"    => strtoupper($data->provider),
-                            "min"         => $data->minimum,
-                            "max"         => $maximum,
-                            "price"       => $data->odds,
-                            "priority"    => $provTable->get($providerSwtId)['priority'],
-                            'market_id'   => $memUID,
-                        ];
-
-                        if (!$providerCurrency['id'] == $userCurrency['id']) {
-                            foreach ($currenciesTable AS $currencyKey => $currencyRow) {
-                                if (strpos($currencyKey, 'currencyId:' . $userCurrency['id']) === 0) {
-                                    $userCurrency['code'] = $currenciesTable->get($currencyKey)['code'];
-                                }
-
-                                if (strpos($currencyKey, 'currencyId:' . $providerCurrency['id']) === 0) {
-                                    $providerCurrency['code'] = $currenciesTable->get($currencyKey)['code'];
-                                }
+                            if ($provTable->exists($providerSwtId)) {
+                                $providerCurrency['id'] = $provTable->get($providerSwtId)['currency_id'];
+                                $punterPercentage       = $provTable->get($providerSwtId)['punter_percentage'];
                             }
 
-                            $erSwtId = implode(':', [
-                                "from:" . $userCurrency['code'],
-                                "to:"   . $providerCurrency['code'],
-                            ]);
+                            $userCurrency = [
+                                'id'   => 1,
+                                'code' => "CNY",
+                            ];
+                            $userSwtId    = "userId:" . $userId;
 
-                            if ($exchangeRatesTable->exists($erSwtId)) {
-                                $exchangeRate = $exchangeRatesTable->get($erSwtId)['exchange_rate'];
+                            if ($usersTable->exists($userSwtId)) {
+                                $userCurrency['id'] = $usersTable->get($userSwtId)['currency_id'];
                             }
 
-                            $transformed['min'] = $data->minimum / $exchangeRate;
-                            $transformed['max'] = $data->maximum / $exchangeRate;
-                        }
+                            $maximum = (double) $data->maximum * ($punterPercentage / 100);
 
-                        $swoole->push($fd['value'], json_encode([
-                            'getMinMax' => $transformed
-                        ]));
+                            $timeDiff = time() - (int) $data->timestamp;
+                            $age = ($timeDiff > 60) ? floor($timeDiff / 60) . 'm' : $timeDiff . 's';
+
+                            $transformed = [
+                                "sport_id"    => $data->sport,
+                                "provider_id" => $provTable->get($providerSwtId)['id'],
+                                "provider"    => strtoupper($data->provider),
+                                "min"         => $data->minimum,
+                                "max"         => $maximum,
+                                "price"       => $data->odds,
+                                "priority"    => $provTable->get($providerSwtId)['priority'],
+                                'market_id'   => $memUID,
+                                'age'         => $age,
+                                'message'     => ''
+                            ];
+
+                            if (!$providerCurrency['id'] == $userCurrency['id']) {
+                                foreach ($currenciesTable AS $currencyKey => $currencyRow) {
+                                    if (strpos($currencyKey, 'currencyId:' . $userCurrency['id']) === 0) {
+                                        $userCurrency['code'] = $currenciesTable->get($currencyKey)['code'];
+                                    }
+
+                                    if (strpos($currencyKey, 'currencyId:' . $providerCurrency['id']) === 0) {
+                                        $providerCurrency['code'] = $currenciesTable->get($currencyKey)['code'];
+                                    }
+                                }
+
+                                $erSwtId = implode(':', [
+                                    "from:" . $userCurrency['code'],
+                                    "to:"   . $providerCurrency['code'],
+                                ]);
+
+                                if ($exchangeRatesTable->exists($erSwtId)) {
+                                    $exchangeRate = $exchangeRatesTable->get($erSwtId)['exchange_rate'];
+                                }
+
+                                $transformed['min'] = $data->minimum / $exchangeRate;
+                                $transformed['max'] = $data->maximum / $exchangeRate;
+                            }
+
+                            $swoole->push($fd['value'], json_encode([
+                                'getMinMax' => $transformed
+                            ]));
+                        }
                     }
                 }
             }

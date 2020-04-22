@@ -49,7 +49,7 @@ class ProviderAccountSeeder extends Seeder
     public function run()
     {
         foreach ($this->data AS $row) {
-            ProviderAccount::create($row);
+            ProviderAccount::updateOrCreate($row, []);
         }
     }
 }

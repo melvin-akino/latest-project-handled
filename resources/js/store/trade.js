@@ -30,14 +30,13 @@ const state = {
     watchlist: [],
     previouslySelectedEvents: [],
     openedBetSlips: [],
-    openedOddsHistory: [],
-    openedBetMatrix: [],
     bookies: [],
     bets: [],
     tradePageSettings: {},
     betSlipSettings: {},
     showSearch: true,
-    activeBetSlip: null
+    activeBetSlip: null,
+    wallet: {}
 }
 
 const mutations = {
@@ -166,18 +165,6 @@ const mutations = {
     CLOSE_BETSLIP: (state, market_id) => {
         state.openedBetSlips = state.openedBetSlips.filter(openedBetSlip => openedBetSlip.market_id != market_id)
     },
-    OPEN_BET_MATRIX: (state, odd) => {
-        state.openedBetMatrix.push(odd)
-    },
-    CLOSE_BET_MATRIX: (state, market_id) => {
-        state.openedBetMatrix = state.openedBetMatrix.filter(betMatrix => betMatrix.market_id != market_id)
-    },
-    OPEN_ODDS_HISTORY: (state, odd) => {
-        state.openedOddsHistory.push(odd)
-    },
-    CLOSE_ODDS_HISTORY: (state, market_id) => {
-        state.openedOddsHistory = state.openedOddsHistory.filter(oddHistory => oddHistory.market_id != market_id)
-    },
     SET_BOOKIES: (state, bookies) => {
         state.bookies = bookies
     },
@@ -195,6 +182,9 @@ const mutations = {
     },
     SET_ACTIVE_BETSLIP: (state, data) => {
         state.activeBetSlip = data
+    },
+    SET_WALLET: (state, data) => {
+        state.wallet = data
     }
 }
 
@@ -215,9 +205,20 @@ const actions = {
         }
     },
     getBookies({commit, dispatch}) {
-        axios.get('v1/bookies', { headers: { 'Authorization': `Bearer ${token}` }})
+        return axios.get('v1/bookies', { headers: { 'Authorization': `Bearer ${token}` }})
         .then(response => {
             commit('SET_BOOKIES', response.data.data)
+        })
+        .catch(err => {
+            dispatch('auth/checkIfTokenIsValid', err.response.data.status_code, { root: true })
+        })
+    },
+    getSports({commit, dispatch}) {
+        return axios.get('v1/sports', { headers: { 'Authorization': `Bearer ${token}` } })
+        .then(response => {
+            commit('SET_SPORTS', response.data.data)
+            commit('SET_SELECTED_SPORT', response.data.default_sport)
+            dispatch('getBetColumns', response.data.default_sport)
         })
         .catch(err => {
             dispatch('auth/checkIfTokenIsValid', err.response.data.status_code, { root: true })
@@ -236,17 +237,6 @@ const actions = {
                 dispatch('auth/checkIfTokenIsValid', err.response.data.status_code,  { root: true })
                 reject(err)
             })
-        })
-    },
-    getSports({commit, dispatch}) {
-        return axios.get('v1/sports', { headers: { 'Authorization': `Bearer ${token}` } })
-        .then(response => {
-            commit('SET_SPORTS', response.data.data)
-            commit('SET_SELECTED_SPORT', response.data.default_sport)
-            dispatch('getBetColumns', response.data.default_sport)
-        })
-        .catch(err => {
-            dispatch('auth/checkIfTokenIsValid', err.response.data.status_code, { root: true })
         })
     },
     getInitialEvents({commit, dispatch, state}) {
@@ -288,8 +278,9 @@ const actions = {
             dispatch('auth/checkIfTokenIsValid', err.response.data.status_code, { root: true })
         })
     },
-    async getSportsAndEvents({dispatch}) {
+    async getTradeWindowData({dispatch}) {
         await dispatch('getSports')
+        await dispatch('getInitialLeagues')
         await dispatch('getInitialEvents')
     },
     getBetbarData({commit, state, dispatch}) {
@@ -299,6 +290,15 @@ const actions = {
             if(state.bets.length != 0) {
                 commit('TOGGLE_BETBAR', true)
             }
+        })
+        .catch(err => {
+            dispatch('auth/checkIfTokenIsValid', err.response.data.status_code, { root: true })
+        })
+    },
+    getWalletData({commit, dispatch}) {
+        axios.get('v1/user/wallet', { headers: { 'Authorization': `Bearer ${token}` }})
+        .then(response => {
+            commit('SET_WALLET', response.data.data)
         })
         .catch(err => {
             dispatch('auth/checkIfTokenIsValid', err.response.data.status_code, { root: true })
@@ -377,6 +377,17 @@ const actions = {
             let sortedEvents = sortByObjectKeys(state.events[data.schedule], sortedEventObject[data.schedule])
             commit('SET_EVENTS', { schedule: data.schedule, events: sortedEvents })
         }
+    },
+    getOrderLogs({dispatch}, market_id) {
+        return new Promise((resolve) => {
+            axios.get(`v1/orders/logs/${market_id}`, { headers: { 'Authorization': `Bearer ${token}` }})
+            .then(response => {
+                resolve(response.data.data)
+            })
+            .catch(err => {
+                dispatch('auth/checkIfTokenIsValid', err.response.data.status_code, { root: true })
+            })
+        })
     }
 }
 

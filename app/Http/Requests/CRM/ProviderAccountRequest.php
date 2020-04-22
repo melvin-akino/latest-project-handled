@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\CRM;
 
+use App\Models\ProviderAccount;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Auth;
 
@@ -24,12 +25,25 @@ class ProviderAccountRequest extends FormRequest
      */
     public function rules()
     {
+        $accounts = ProviderAccount::withTrashed()->where('username', $this->input('username'))->where('provider_id', $this->input('provider_id'))->get();
+        $uniqueUsername = "";
+        if (!empty($accounts)) {
+            foreach($accounts as $account) {
+                if ($account->id == $this->input('providerAccountId')){
+                    $uniqueUsername = "|unique:provider_accounts,username,$account->id";
+                    break;
+                }
+                elseif (is_null($account->deleted_at) && empty($this->input('providerAccountId'))) {
+                    $uniqueUsername = "|unique:provider_accounts,username";
+                    break;
+                }
+            }    
+        }      
+        
         return [
-            'username'   => 'required|max:50|unique:provider_account,username',
+            'username'   => 'required|max:50'.$uniqueUsername,
             'password' => 'required',
-            'punter_percentage'   => 'required|numeric',
-            'provider_id' => 'required|numeric',
-            'type' =>  'required'
+            'pa_percentage'   => 'required|numeric'
         ];
     }
 

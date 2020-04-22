@@ -2,6 +2,7 @@
 
 namespace App\Jobs;
 
+use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Support\Facades\Log;
@@ -9,7 +10,7 @@ use App\Handlers\ProducerHandler;
 
 class KafkaPush implements ShouldQueue
 {
-    use Dispatchable;
+    use Dispatchable, Queueable;
 
     /**
      * Create a new job instance.
@@ -33,7 +34,8 @@ class KafkaPush implements ShouldQueue
         $kafkaProducer   = app('KafkaProducer');
         $producerHandler = new ProducerHandler($kafkaProducer);
 
+        Log::info('Sending to Kafka ' . $this->kafkaTopic);
         $producerHandler->setTopic($this->kafkaTopic)->send($this->message, $this->key);
-        Log::channel('kafkalog')->info(json_encode($this->message));
+        Log::channel('kafkaproducelog')->info(json_encode($this->message));
     }
 }

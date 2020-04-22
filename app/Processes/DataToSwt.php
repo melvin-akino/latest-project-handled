@@ -302,13 +302,16 @@ class DataToSwt implements CustomProcessInterface
     private static function db2SwtOrders(Server $swoole)
     {
         $orders = DB::table('orders as o')
+            ->join('provider_accounts AS pa', 'o.provider_account_id', '=', 'pa.id')
             ->join('master_event_markets as mem', 'mem.master_event_market_unique_id', 'o.master_event_market_unique_id')
             ->join('master_events as me', 'me.master_event_unique_id', 'mem.master_event_unique_id')
             ->join('master_event_links as mel', 'mel.master_event_unique_id', 'me.master_event_unique_id')
             ->join('events as e', 'e.id', 'mel.event_id')
             ->select([
                 'o.id',
+                'o.status',
                 'o.stake',
+                'o.created_at',
                 'o.actual_stake',
                 'o.odds',
                 'o.market_id',
@@ -317,6 +320,8 @@ class DataToSwt implements CustomProcessInterface
                 'me.score',
                 'o.bet_id',
                 'o.order_expiry',
+                'pa.id AS provider_account_id',
+                'pa.username',
             ])
             ->get();
 
@@ -324,14 +329,11 @@ class DataToSwt implements CustomProcessInterface
 
         array_map(function ($order) use ($ordersTable) {
             $ordersTable->set('orderId:' . $order->id, [
-                'stake'         => $order->stake,
-                'actual_stake'  => $order->actual_stake,
-                'odds'          => $order->odds,
-                'market_id'     => $order->market_id,
-                'event_id'      => explode('-', $order->master_event_unique_id)[3],
-                'score'         => $order->score,
+                'created_at'    => $order->created_at,
                 'bet_id'        => $order->bet_id,
                 'orderExpiry'   => $order->order_expiry,
+                'username'      => $order->username,
+                'status'        => $order->status,
             ]);
         }, $orders->toArray());
     }

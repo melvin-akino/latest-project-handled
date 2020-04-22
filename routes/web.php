@@ -23,12 +23,19 @@ Route::namespace('CRM')->prefix('admin')->group(function () {
     Route::middleware('auth:crm')->group(function () {
         Route::get('dashboard', 'DashboardController@index')->name('dashboard');
 
+        /*Providers related routes*/
         Route::get('providers', 'ProvidersController@index')->name('providers');
         Route::get('providers/list', 'ProvidersController@list')->name('providers.list');
         Route::post('providers/manage', 'ProvidersController@manage')->name('providers.manage');
+        Route::post('providers/sort','ProvidersController@prioritize')->name('providers.sort');
         Route::get('provider_accounts/{id}', 'ProviderAccountsController@index')->name('provider.accounts');
         Route::get('provider_accounts/delete/{id}', 'ProviderAccountsController@softDelete')->name('provider_accounts.softdelete');
         Route::post('provider_accounts/manage', 'ProviderAccountsController@manage')->name('provider_accounts.manage');
+        
+        /*System Configurations Routes*/
+        Route::get('system_configurations', 'SystemConfigurationsController@index')->name('system_configurations');
+        Route::get('system_configurations/all', 'SystemConfigurationsController@all')->name('system_configurations.all');
+        Route::post('system_configurations/manage', 'SystemConfigurationsController@manage')->name('system_configurations.manage');
         Route::get('system_configurations/list', 'SystemConfigurationsController@list')->name('system_configurations.list');
 
          /* Wallet route */

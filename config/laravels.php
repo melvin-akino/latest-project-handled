@@ -58,9 +58,6 @@ return [
             // Two ways to configure parameters:
             // [\App\Jobs\XxxCronJob::class, [1000, true]], // Pass in parameters when registering
             // \App\Jobs\XxxCronJob::class, // Override the corresponding method to return the configuration
-            App\Jobs\Timer\BalanceRequestScraperCron::class,
-            App\Jobs\Timer\SettlementsRequestScraperCron::class,
-            App\Jobs\Timer\MinMaxRequestScraperCron::class
         ],
         'max_wait_time' => 5,
     ],
@@ -214,16 +211,11 @@ return [
         'orders' => [
             'size'   => 10000,
             'column' => [ // KEY FORMAT: [orderId:$oriderId]
-                [ 'name' => 'odds',          'type' => \Swoole\Table::TYPE_FLOAT ],
-                [ 'name' => 'stake',         'type' => \Swoole\Table::TYPE_FLOAT ],
-                [ 'name' => 'to_win',        'type' => \Swoole\Table::TYPE_FLOAT ],
-                [ 'name' => 'actual_stake',  'type' => \Swoole\Table::TYPE_FLOAT ],
-                [ 'name' => 'actual_to_win', 'type' => \Swoole\Table::TYPE_FLOAT ],
-                [ 'name' => 'market_id',     'type' => \Swoole\Table::TYPE_STRING, 'size' => 50 ],
-                [ 'name' => 'event_id',      'type' => \Swoole\Table::TYPE_STRING, 'size' => 30 ],
-                [ 'name' => 'score',         'type' => \Swoole\Table::TYPE_STRING, 'size' => 30 ],
+                [ 'name' => 'username',         'type' => \Swoole\Table::TYPE_STRING, 'size' => 100 ],
                 [ 'name' => 'orderExpiry',   'type' => \Swoole\Table::TYPE_STRING, 'size' => 50 ],
+                [ 'name' => 'created_at',    'type' => \Swoole\Table::TYPE_STRING, 'size' => 50 ],
                 [ 'name' => 'bet_id',        'type' => \Swoole\Table::TYPE_STRING, 'size' => 50 ],
+                [ 'name' => 'status',        'type' => \Swoole\Table::TYPE_STRING, 'size' => 20 ],
             ],
         ],
         'minMaxRequests' => [
@@ -270,6 +262,12 @@ return [
                 [ 'name' => 'username', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 50 ],
                 [ 'name' => 'punter_percentage', 'type' => \Swoole\Table::TYPE_INT ],
                 [ 'name' => 'credits', 'type' => \Swoole\Table::TYPE_FLOAT ]
+            ],
+        ],
+        'minMaxQueues' => [ // KEY FORMAT: [bId:$betIdentifier]
+            'size' => 10000,
+            'column' => [
+                [ 'name' => 'onqueue', 'type' => \Swoole\Table::TYPE_INT ],
             ],
         ],
     ],

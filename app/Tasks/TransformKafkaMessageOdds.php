@@ -216,6 +216,14 @@ class TransformKafkaMessageOdds extends Task
                     }
 
                     if ($eventsTable->get($eventSwtId)['game_schedule'] != $this->message->data->schedule) {
+                        $this->subTasks['remove-previous-market'][] = [
+                            'uid'    => $uid,
+                            'swtKey' => implode(':', [
+                                    "pId:"   . $providerId,
+                                    "meUID:" . $uid,
+                                ]),
+                        ];
+
                         $wsTable->set('eventScheduleChange:' . $uid, ['value' => json_encode([
                             'uid'           => $uid,
                             'game_schedule' => $this->message->data->schedule,
@@ -271,7 +279,7 @@ class TransformKafkaMessageOdds extends Task
                     'ref_schedule'           => date("Y-m-d H:i:s", strtotime($this->message->data->referenceSchedule)),
                     'game_schedule'          => $this->message->data->schedule,
                     'score'                  => $this->message->data->home_score . " - " . $this->message->data->away_score,
-                    'running_time'           => $this->message->data->running_time,
+                    'running_time'           => $this->message->data->runningtime,
                     'home_penalty'           => $this->message->data->home_redcard,
                     'away_penalty'           => $this->message->data->away_redcard,
                     'deleted_at'             => null
@@ -358,7 +366,7 @@ class TransformKafkaMessageOdds extends Task
                                         'event_identifier'              => $event->eventId,
                                         'market_flag'                   => strtoupper($markets->indicator),
                                     ];
-                                    
+
                                     continue;
                                 }
 

@@ -5,38 +5,24 @@
             <span v-show="isBetBarOpen"><i class="fas fa-chevron-down"></i></span>
             <span v-show="!isBetBarOpen"><i class="fas fa-chevron-up"></i></span>
         </div>
-        <div class="overflow-y-auto">
-            <div class="flex border-b text-white text-sm" v-for="bet in bets" :key="bet.order_id" v-show="isBetBarOpen">
-                <div class="w-3/12 py-1 text-center">{{bet.league_name}}</div>
-                <div class="w-3/12 py-1 text-center">{{bet.home}} vs {{bet.away}}</div>
-                <div class="w-3/12 py-1 text-center">{{bet.create_at}}</div>
-                <div class="w-3/12 py-1 text-center">
-                    <span v-if="bet.bet_info[0]==='HOME'">{{bet.home}}</span>
-                    <span v-if="bet.bet_info[0]==='AWAY'">{{bet.away}}</span>
-                    <span v-if="bet.bet_info[0]==='DRAW'">Draw</span>
-                </div>
-                <div class="w-4/12 py-1 text-center">{{defaultPriceFormat}} {{bet.bet_info[1]}} {{bet.bet_info[2]}}</div>
-                <div class="w-4/12 py-1 text-center" :class="{'success': bet.status==='SUCCESS', 'failed': bet.status==='FAILED', 'processing': bet.status==='PENDING'}">
-                    {{bet.provider_alias}} - {{Number(bet.bet_info[3]).toFixed(2)}}@{{bet.bet_info[2]}} - {{bet.status}}
-                </div>
-                <div class="flex justify-center items-center w-1/12">
-                    <a href="#" class="text-center py-1 pr-3"><i class="fas fa-chart-area"></i></a>
-                    <a href="#" class="text-center py-1"><i class="fas fa-bars"></i></a>
-                </div>
-            </div>
+        <div class="overflow-y-auto" v-show="isBetBarOpen">
+            <betbar-data v-for="bet in bets" :key="bet.order_id" :bet="bet"></betbar-data>
         </div>
     </div>
 </template>
 
 <script>
+import BetbarData from './BetbarData'
 import { mapState } from 'vuex'
 import Cookies from 'js-cookie'
 import { getSocketKey, getSocketValue } from '../../../helpers/socket'
 
 export default {
+    components: {
+        BetbarData
+    },
     computed: {
-        ...mapState('trade', ['isBetBarOpen', 'bets']),
-        ...mapState('settings', ['defaultPriceFormat'])
+        ...mapState('trade', ['isBetBarOpen', 'bets'])
     },
     mounted() {
         this.getPriceFormat()
@@ -46,6 +32,7 @@ export default {
     watch: {
         bets() {
             this.getOrders()
+            this.getOrderStatus()
         }
     },
     methods: {
