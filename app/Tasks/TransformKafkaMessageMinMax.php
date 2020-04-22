@@ -41,7 +41,7 @@ class TransformKafkaMessageMinMax extends Task
                         $userId = explode(':', $_key)[1];
                         $fd     = $wsTable->get('uid:' . $userId);
 
-                        if (!empty($this->data->message)) {
+                        if (!empty($this->data->message) || empty($data->odds)) {
                             $minMaxRequests->del('memUID:' . $memUID);
                             $swoole->push($fd['value'], json_encode([
                                 'getMinMax' => ['message' => $this->data->message]
