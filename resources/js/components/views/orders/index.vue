@@ -7,9 +7,9 @@ er <template>
                 <span class="totalPL">{{wallet.currency_symbol}} {{totalPL | moneyFormat}}</span>
             </div>
             <v-client-table name="My Orders" :data="myorders" :columns="columns" :options="options" ref="ordersTable">
-                <div slot="betData" slot-scope="props">
-                    <a href="#" @click.prevent="openBetMatrix(props.row.order_id)" class="text-center py-1 pr-3"><i class="fas fa-chart-area" title="Bet Matrix"></i></a>
-                    <a href="#" @click.prevent="openOddsHistory(props.row.order_id)" class="text-center py-1"><i class="fas fa-bars" title="Odds History"></i></a>
+                <div class="flex justify-start" slot="betData" slot-scope="props">
+                    <a href="#" @click.prevent="openBetMatrix(props.row.order_id)" class="text-center py-1 w-1/2"><i class="fas fa-chart-area" title="Bet Matrix" v-if="oddTypesWithSpreads.includes(props.row.odd_type_id)"></i></a>
+                    <a href="#" @click.prevent="openOddsHistory(props.row.order_id)" class="text-center py-1 w-1/2"><i class="fas fa-bars" title="Odds History"></i></a>
                 </div>
             </v-client-table>
             <order-data v-for="order in myorders" :key="order.order_id" :openedOddsHistory="openedOddsHistory" :openedBetMatrix="openedBetMatrix" @closeOddsHistory="closeOddsHistory" @closeBetMatrix="closeBetMatrix" :order="order"></order-data>
@@ -45,7 +45,8 @@ export default {
                 }
             },
             openedOddsHistory: [],
-            openedBetMatrix: []
+            openedBetMatrix: [],
+            oddTypesWithSpreads: [3, 4, 11, 12]
         }
     },
     head: {
@@ -58,6 +59,7 @@ export default {
     mounted() {
         this.getMyOrders()
         this.$store.dispatch('trade/getWalletData')
+        this.renderBetSelectionAsHTML()
     },
     computed: {
         ...mapState('trade', ['wallet'])
@@ -93,10 +95,12 @@ export default {
             })
         },
         renderBetSelectionAsHTML() {
-            Object.keys(this.$refs.ordersTable.$el.children[1].children[0].tBodies[0].rows).map(row => {
-                let betSelection = this.$refs.ordersTable.$el.children[1].children[0].tBodies[0].rows[row].cells[2]
-                betSelection.innerHTML = this.myorders[row].bet_selection
-            })
+            if(!_.isEmpty(this.myorders)) {
+                Object.keys(this.$refs.ordersTable.$el.children[1].children[0].tBodies[0].rows).map(row => {
+                    let betSelection = this.$refs.ordersTable.$el.children[1].children[0].tBodies[0].rows[row].cells[2]
+                    betSelection.innerHTML = this.myorders[row].bet_selection
+                })
+            }
         },
         openOddsHistory(id) {
             this.openedOddsHistory.push(id)
@@ -105,7 +109,7 @@ export default {
             this.openedBetMatrix.push(id)
         },
         closeOddsHistory(id) {
-             this.openedOddsHistory = this.openedOddsHistory.filter(oddHistory => oddHistory != id)
+            this.openedOddsHistory = this.openedOddsHistory.filter(oddHistory => oddHistory != id)
         },
         closeBetMatrix(id) {
             this.openedBetMatrix = this.openedBetMatrix.filter(betmatrix => betmatrix != id)

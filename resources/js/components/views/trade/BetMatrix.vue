@@ -11,7 +11,7 @@
                 </div>
                 <div class="flex flex-wrap items-center" v-for="(matrix, index) in matrix_table" :key="index">
                     <span class="w-12 label block p-1 text-center bg-black text-white">{{index}}</span>
-                    <div class="result p-1 text-center text-white border border-white" :class="{'grey': data.color=='grey', 'green': data.color=='green', 'lightgreen': data.color=='lightgreen', 'red': data.color=='red', 'lightred': data.color=='lightred'}" v-for="(data, index) in matrix" :key="index">
+                    <div class="result p-1 text-center text-white border border-white" :class="{'grey': data.color=='grey', 'green': data.color=='green', 'lightgreen': data.color=='lightgreen', 'red': data.color=='red', 'lightred': data.color=='lightred', 'white': data.color=='white'}" v-for="(data, index) in matrix" :key="index">
                         {{data.result}}
                     </div>
                 </div>
@@ -24,7 +24,7 @@
 import { mapState } from 'vuex'
 import 'vue-dialog-drag/dist/vue-dialog-drag.css'
 import DialogDrag from 'vue-dialog-drag'
-import { convertPointAsNumeric } from '../../../helpers/numberFormat'
+import { twoDecimalPlacesFormat, convertPointAsNumeric } from '../../../helpers/numberFormat'
 
 export default {
     props: ['market_id', 'analysisData'],
@@ -85,7 +85,6 @@ export default {
                             var result = this.towin
                             var color = 'green'
                         }
-
                     } else if(difference < 0) {
                         if(difference == -0.25 || difference == -0.75) {
                             var result = this.halflose * -1
@@ -94,16 +93,15 @@ export default {
                             var result = this.matrix_data.stake * -1
                             var color = 'red'
                         }
-
                     } else {
-                        var result = 'push'
+                        var result = 'Push'
                         var color = 'white'
                     }
 
-                    if(against_team_counter <= this.matrix_data.against_score || bet_team_counter <= this.matrix_data.bet_score) {
+                    if(against_team_counter < this.matrix_data.against_score || bet_team_counter < this.matrix_data.bet_score) {
                         var color = 'grey'
                     }
-                    table.push({ 'color': color, 'result': Math.floor(result * 100) / 100 })
+                    table.push({ 'color': color, 'result': twoDecimalPlacesFormat(result) })
                     against_team_counter++
                 }
                 this.matrix_table.push(table)
@@ -144,6 +142,11 @@ export default {
 
     .grey {
         background-color: #aaaaaa;
+    }
+
+    .white {
+        background-color: #fefefe;
+        color: #000000
     }
 
     .result {

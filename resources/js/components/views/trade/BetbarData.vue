@@ -1,8 +1,8 @@
 <template>
     <div class="flex border-b text-white text-sm">
         <div class="w-3/12 py-1 text-center">{{bet.league_name}}</div>
-        <div class="w-3/12 py-1 text-center">{{bet.home}} vs {{bet.away}}</div>
-        <div class="w-3/12 py-1 text-center">{{bet.create_at}}</div>
+        <div class="w-4/12 py-1 text-center">{{bet.home}} vs {{bet.away}}</div>
+        <div class="w-3/12 py-1 text-center">{{bet.created_at}}</div>
         <div class="w-3/12 py-1 text-center">
             <span v-if="bet.bet_info[0]==='HOME'">{{bet.home}}</span>
             <span v-if="bet.bet_info[0]==='AWAY'">{{bet.away}}</span>
@@ -12,9 +12,9 @@
         <div class="w-4/12 py-1 text-center" :class="{'success': bet.status==='SUCCESS', 'failed': bet.status==='FAILED', 'processing': bet.status==='PENDING'}">
             {{bet.provider_alias}} - {{Number(bet.bet_info[3]) | moneyFormat}}@{{bet.bet_info[2]}} - {{bet.status}}
         </div>
-        <div class="flex justify-center items-center w-1/12">
-            <a href="#" @click.prevent="showBetMatrix = true" class="text-center py-1 pr-3" v-if="oddTypesWithBetMatrix.includes(bet.odd_type_id)" title="Bet Matrix"><i class="fas fa-chart-area"></i></a>
-            <a href="#" @click.prevent="showOddsHistory = true" class="text-center py-1" title="Odds History"><i class="fas fa-bars"></i></a>
+        <div class="flex items-center w-24">
+            <a href="#" @click.prevent="showBetMatrix = true" class="text-center py-1 w-1/2" v-if="oddTypesWithBetMatrix.includes(bet.odd_type_id)" title="Bet Matrix"><i class="fas fa-chart-area"></i></a>
+            <a href="#" @click.prevent="showOddsHistory = true" class="text-center py-1 w-1/2" title="Odds History"><i class="fas fa-bars"></i></a>
         </div>
         <odds-history v-if="showOddsHistory" @close="closeOddsHistory" :market_id="bet.market_id" :logs="orderLogs"></odds-history>
         <bet-matrix v-if="showBetMatrix" @close="closeBetMatrix" :market_id="bet.market_id" :analysis-data="analysisData"></bet-matrix>
