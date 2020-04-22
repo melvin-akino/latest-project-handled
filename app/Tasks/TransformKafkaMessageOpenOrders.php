@@ -31,36 +31,39 @@ class TransformKafkaMessageOpenOrders extends Task
             $openOrders  = $this->data->data;
 
             foreach ($openOrders as $order) {
-                $betId  = $order['bet_id'];
+                $betId  = $order->bet_id;
                 foreach ($ordersTable as $_key => $orderTable) {
                     $orderId = substr($_key, strlen('orderId:'));
                     $expiry  = $orderTable['orderExpiry'];
                     $status  = $orderTable['status'];
+
+                    $providerCurrency = $providers->get('providerAlias:' . $order->provider)['currency_id'];
+
+                    $exchangeRate = DB::table('exchange_rates')
+                        ->where('from_currency_id', $providerCurrency)
+                        ->where('to_currency_id', 1)
+                        ->first();
+
+
+                    $orderData = DB::table('orders')
+                        ->where('id', $orderId)
+                        ->first();
+
+                    $userWallet = DB::table('wallet')
+                        ->where('user_id', $orderData->user_id)
+                        ->first();
+
+                    $sourceId = DB::table('sources')
+                        ->where('source_name', 'LIKE', 'PLACE_BET')
+                        ->first();
+
+                    $userId = $orderData->user_id;
+
                     Log::info('Open ORDER - ' . (time() - strtotime($orderTable['created_at']) > $expiry));
                     Log::info('Open ORDER - ' . $status);
                     if (time() - strtotime($orderTable['created_at']) > $expiry &&
                         $status == 'PENDING'
                     ) {
-                        $providerCurrency = $providers->get('providerAlias:' . $order->provider)['currency_id'];
-
-                        $exchangeRate = DB::table('exchange_rates')
-                            ->where('from_currency_id', $providerCurrency)
-                            ->where('to_currency_id', 1)
-                            ->first();
-
-
-                        $orderData = DB::table('orders')
-                            ->where('id', $orderId)
-                            ->first();
-
-                        $userWallet = DB::table('wallet')
-                            ->where('user_id', $orderData->user_id)
-                            ->first();
-
-                        $sourceId = DB::table('sources')
-                            ->where('source_name', 'LIKE', 'PLACE_BET')
-                            ->first();
-
                         Order::where('id', $orderId)->update([
                             'provider_account_id' => ProviderAccount::getUsernameId($orderTable['username']),
                             'status'              => 'FAILED',
@@ -68,9 +71,7 @@ class TransformKafkaMessageOpenOrders extends Task
                             'reason'              => 'No Kafka payload received',
                             'updated_at'          => Carbon::now(),
                         ]);
-
-                        $userId = $orderData->user_id;
-
+                        
                         DB::table('order_logs')
                             ->insert([
                                 'provider_id'   => $orderData->provider_id,
