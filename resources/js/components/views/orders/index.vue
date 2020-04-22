@@ -58,6 +58,7 @@ export default {
     },
     mounted() {
         this.getMyOrders()
+        this.getPriceFormat()
         this.$store.dispatch('trade/getWalletData')
         this.renderBetSelectionAsHTML()
     },
@@ -99,6 +100,14 @@ export default {
                 Object.keys(this.$refs.ordersTable.$el.children[1].children[0].tBodies[0].rows).map(row => {
                     let betSelection = this.$refs.ordersTable.$el.children[1].children[0].tBodies[0].rows[row].cells[2]
                     betSelection.innerHTML = this.myorders[row].bet_selection
+                })
+            }
+        },
+        getPriceFormat() {
+            if(!this.$store.state.settings.defaultPriceFormat) {
+                this.$store.dispatch('settings/getDefaultPriceFormat')
+                .then(response => {
+                    this.$store.commit('settings/SET_DEFAULT_PRICE_FORMAT', response)
                 })
             }
         },
@@ -199,11 +208,11 @@ export default {
     }
 
     .totalPL {
-        margin-left: 53px;
+        margin-left: 40px;
     }
 
     .totalPLdata {
-        right: 55px;
+        right: 88px;
     }
 
     .dialog-drag {
