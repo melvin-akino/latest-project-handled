@@ -52,6 +52,7 @@ class TradeController extends Controller
                     'me.master_home_team_name',
                     'me.master_away_team_name',
                     'me.score',
+                    'me.game_schedule',
                     'mem.market_flag',
                     'ot.id AS odd_type_id',
                     'sot.name',
@@ -84,6 +85,7 @@ class TradeController extends Controller
                     $points = DB::table('event_markets AS em')
                     ->where('em.master_event_unique_id', $betData->master_event_unique_id)
                     ->where('em.odd_type_id', $betData->odd_type_id)
+                    ->where('em.market_flag', $betData->market_flag)
                     ->select([
                         'em.odd_label'
                     ])
@@ -95,6 +97,7 @@ class TradeController extends Controller
                         'market_id'      => $betData->master_event_market_unique_id,
                         'odd_type_id'    => $betData->odd_type_id,
                         'league_name'    => $betData->master_league_name,
+                        'game_schedule'  => $betData->game_schedule,
                         'home'           => $betData->master_home_team_name,
                         'away'           => $betData->master_away_team_name,
                         'bet_info'       => [
@@ -102,8 +105,10 @@ class TradeController extends Controller
                             $betData->name,
                             $betData->odds,
                             $betData->stake,
-                            $points->odd_label
+                            $points->odd_label,
+                            $betData->market_flag == 'HOME' ? $betData->master_home_team_name : $betData->master_away_team_name
                         ],
+                        'score'          => $betData->score,
                         'bet_score'      => $betData->market_flag == 'HOME' ? $score[0] : $score[1],
                         'against_score'  => $betData->market_flag == 'HOME' ? $score[1] : $score[0],
                         'status'         => $betData->status,

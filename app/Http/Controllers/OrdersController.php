@@ -29,7 +29,7 @@ use Illuminate\Support\{
     Str
 };
 use Illuminate\Support\Facades\Log;
-
+use Carbon\Carbon;
 class OrdersController extends Controller
 {
     /**
@@ -62,8 +62,9 @@ class OrdersController extends Controller
                 foreach($myOrders as $myOrder) {
                     $score = explode(' - ', $myOrder->score);
                     $points = DB::table('event_markets as em')
-                    ->where('master_event_unique_id', $myOrder->master_event_unique_id)
-                    ->where('odd_type_id', $myOrder->odd_type_id)
+                    ->where('em.master_event_unique_id', $myOrder->master_event_unique_id)
+                    ->where('em.odd_type_id', $myOrder->odd_type_id)
+                    ->where('em.market_flag', $myOrder->market_flag)
                     ->select(['em.odd_label'])
                     ->first();
 
@@ -81,6 +82,7 @@ class OrdersController extends Controller
                         'pl'            => $myOrder->profit_loss,
                         'status'        => $myOrder->status,
                         'market_flag'   => $myOrder->market_flag,
+                        'bet_team'      => $myOrder->market_flag=="HOME" ? $myOrder->master_home_team_name : $myOrder->master_away_team_name,
                         'bet_score'     => $myOrder->market_flag=="HOME" ? $score[0] : $score[1],
                         'against_score' => $myOrder->market_flag=="HOME" ? $score[1] : $score[0],
                         'odd_type_id'   => $myOrder->odd_type_id,
@@ -623,6 +625,7 @@ class OrdersController extends Controller
                 'status_code' => $returnCode,
                 'data'        => $return,
                 'order_id'    => $orderIds,
+                'created_at'  => Carbon::parse($orderIncrement->created_at)->toDateTimeString()
             ], $returnCode);
         } catch (Exception $e) {
             DB::rollback();
