@@ -17,6 +17,7 @@ use App\Jobs\WsEvents;
 use Illuminate\Http\Request;
 use Exception;
 use DateTime;
+use Carbon\Carbon;
 
 class TradeController extends Controller
 {
@@ -65,17 +66,19 @@ class TradeController extends Controller
 
             $data = [];
             foreach ($betBarData as $betData) {
-                //check if this order isn't pending and expired
+                $proceed = false;
                 if ($betData->status == 'SUCCESS') {
                     $proceed = true;
-                }
-                elseif ($betData->status == 'PENDING') {
-                    $proceed = false;
-                    if (time() <= (strtotime($betData->created_at) + intval($betData->order_expiry))) {
+                } else if ($betData->status == 'PENDING') {
+                    $currentTime = Carbon::now()->toDateTimeString();
+                    $expireTime = Carbon::parse($betData->created_at)->addSeconds($betData->order_expiry)->toDateTimeString();
+                    if ($currentTime <= $expireTime) {
                         $proceed = true;
+                    } else {
+                        $proceed = false;
                     }
                 }
-                //check if this order is still valid based on the expiry
+
                 if ($proceed) {
                     $score = explode(" - ", $betData->score);
                     $points = DB::table('event_markets AS em')
@@ -85,7 +88,7 @@ class TradeController extends Controller
                         'em.odd_label'
                     ])
                     ->first();
-    
+
                     $data[] = [
                         'order_id'       => $betData->order_id,
                         'provider_alias' => $betData->alias,
@@ -112,7 +115,7 @@ class TradeController extends Controller
             return response()->json([
                 'status'      => true,
                 'status_code' => 200,
-                'data'        => $data,
+                'data'        => $data
             ], 200);
         } catch (Exception $e) {
             return response()->json([
