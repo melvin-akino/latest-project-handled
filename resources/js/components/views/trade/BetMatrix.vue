@@ -11,7 +11,7 @@
                 </div>
                 <div class="flex flex-wrap items-center" v-for="(matrix, index) in matrix_table" :key="index">
                     <span class="w-12 label block p-1 text-center bg-black text-white">{{index}}</span>
-                    <div class="result p-1 text-center text-white border border-white" :class="{'grey': data.color=='grey', 'green': data.color=='green', 'lightgreen': data.color=='lightgreen', 'red': data.color=='red', 'lightred': data.color=='lightred'}" v-for="(data, index) in matrix" :key="index">
+                    <div class="result p-1 text-center text-white border border-white" :class="{'grey': data.color=='grey', 'green': data.color=='green', 'lightgreen': data.color=='lightgreen', 'red': data.color=='red', 'lightred': data.color=='lightred', 'white': data.color=='white'}" v-for="(data, index) in matrix" :key="index">
                         {{data.result}}
                     </div>
                 </div>
@@ -93,6 +93,9 @@ export default {
                             var result = this.matrix_data.stake * -1
                             var color = 'red'
                         }
+                    } else {
+                        var result = 'Push'
+                        var color = 'white'
                     }
 
                     if(against_team_counter < this.matrix_data.against_score || bet_team_counter < this.matrix_data.bet_score) {
@@ -139,6 +142,11 @@ export default {
 
     .grey {
         background-color: #aaaaaa;
+    }
+
+    .white {
+        background-color: #fefefe;
+        color: #000000
     }
 
     .result {
