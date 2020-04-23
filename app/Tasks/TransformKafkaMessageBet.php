@@ -43,7 +43,7 @@ class TransformKafkaMessageBet extends Task
 
                     $betSelectionArray         = explode("\n", $order->bet_selection);
                     $betSelectionTeamOddsArray = explode('@ ', $betSelectionArray[1]);
-                    $updatedOrderOdds          = $betSelectionTeamOddsArray[0].' @ '.number_format($order->odds, 2);
+                    $updatedOrderOdds          = $betSelectionTeamOddsArray[0] . '@ ' . number_format($order->odds, 2);
                     $order->bet_selection      = implode("\n", [
                         $betSelectionArray[0],
                         $updatedOrderOdds,
