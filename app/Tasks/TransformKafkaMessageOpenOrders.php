@@ -137,10 +137,10 @@ class TransformKafkaMessageOpenOrders extends Task
                                     'provider_account_id' => ProviderAccount::getUsernameId($orderTable['username']),
                                     'status'              => strtoupper($order->status),
                                     'odds'                => $order->odds,
-                                    'actual_stake'        => $order->stake,
-                                    'actual_to_win'       => $order->to_win,
+                                    'actual_to_win'       => $orderData->actual_stake * $order->odds,
                                     'reason'              => $reason,
-                                    'bet_selection'       => $betSelection
+                                    'bet_selection'       => $betSelection,
+                                    'to_win'              => $orderData->stake * $order->odds,
                                 ]);
 
                                 $orderLogsId = DB::table('order_logs')
