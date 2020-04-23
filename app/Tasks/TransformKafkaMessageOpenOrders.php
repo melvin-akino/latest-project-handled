@@ -91,6 +91,27 @@ class TransformKafkaMessageOpenOrders extends Task
                                 'updated_at'    => Carbon::now(),
                             ]);
 
+                        $credit     = $orderData->stake;
+                        $balance    = $credit * $exchangeRate->exchange_rate;
+                        $newBalance = $userWallet->balance + $balance;
+
+                        DB::table('wallet')->where('user_id', $orderData->user_id)
+                            ->update([
+                                'balance'    => $newBalance,
+                                'updated_at' => Carbon::now(),
+                            ]);
+
+                        $walletLedgerId = DB::table('wallet_ledger')
+                            ->insertGetId([
+                                'wallet_id'  => $userWallet->id,
+                                'source_id'  => $sourceId->id,
+                                'debit'      => 0,
+                                'credit'     => $credit,
+                                'balance'    => $newBalance,
+                                'created_at' => Carbon::now(),
+                                'updated_at' => Carbon::now(),
+                            ]);
+
                         WSOrderStatus::dispatch($userId, $orderId, 'FAILED', $orderData->odds, $expiry,
                             $orderTable['created_at']);
 
@@ -174,25 +195,25 @@ class TransformKafkaMessageOpenOrders extends Task
                                 ])) {
                                     $ordersTable->del($_key);
                                 }
-
-                                DB::table('order_transactions')
-                                    ->insert(
-                                        [
-                                            'order_logs_id'       => $orderLogsId,
-                                            'user_id'             => $userId,
-                                            'source_id'           => $sourceId->id,
-                                            'currency_id'         => $providerCurrency,
-                                            'wallet_ledger_id'    => $walletLedgerId,
-                                            'provider_account_id' => ProviderAccount::getUsernameId($orderTable['username']),
-                                            'reason'              => $reason,
-                                            'amount'              => $credit,
-                                            'created_at'          => Carbon::now(),
-                                            'updated_at'          => Carbon::now(),
-                                        ]
-                                    );
                             }
                         }
                     }
+
+                    DB::table('order_transactions')
+                        ->insert(
+                            [
+                                'order_logs_id'       => $orderLogsId,
+                                'user_id'             => $userId,
+                                'source_id'           => $sourceId->id,
+                                'currency_id'         => $providerCurrency,
+                                'wallet_ledger_id'    => $walletLedgerId,
+                                'provider_account_id' => ProviderAccount::getUsernameId($orderTable['username']),
+                                'reason'              => $reason,
+                                'amount'              => $credit,
+                                'created_at'          => Carbon::now(),
+                                'updated_at'          => Carbon::now(),
+                            ]
+                        );
                 }
             }
             DB::commit();
