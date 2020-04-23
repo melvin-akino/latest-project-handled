@@ -22,7 +22,7 @@ class WalletController extends Controller
         if ($wallet) {
             $balance     = $wallet->balance;
             $profit_loss = $wallet->Order()->sum('profit_loss');
-            $orders      = $wallet->Order()->where('settled_date', '')->orWhereNull('settled_date')->whereIn('status', ['PENDING', 'SUCCESS'])->sum('stake');
+            $orders      = $wallet->Order()->whereIn('status', ['PENDING', 'SUCCESS'])->sum('stake');
         }
         return response()->json([
             'status'      => true,
