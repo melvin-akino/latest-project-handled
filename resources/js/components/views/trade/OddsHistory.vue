@@ -53,6 +53,13 @@ export default {
     },
     directives: {
         overlapAllOrderLogs: {
+            bind(el, binding, vnode) {
+                if(binding.value) {
+                    el.style.zIndex = '152'
+                } else {
+                    el.style.zIndex = '103'
+                }
+            },
             componentUpdated(el, binding, vnode) {
                 if(binding.value) {
                     el.style.zIndex = '152'
