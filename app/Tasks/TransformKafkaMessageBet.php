@@ -54,6 +54,8 @@ class TransformKafkaMessageBet extends Task
                         $updatedOrderOdds,
                         $betSelectionArray[2]
                     ]);
+
+                    $order->odds               = $order->odds;
                     $order->to_win             = $order->stake * $order->odds;
                     $order->actual_to_win      = $order->actual_stake * $order->odds;
                     $order->save();
