@@ -58,9 +58,6 @@ class TransformKafkaMessageOpenOrders extends Task
 
                     $userId = $orderData->user_id;
 
-                    Log::info('Open ORDER - ' . (time() - strtotime($orderTable['created_at']) > $expiry));
-                    Log::info('Open ORDER - ' . $status);
-
                     $orderLogsId    = 0;
                     $walletLedgerId = 0;
                     $credit         = 0;
@@ -117,9 +114,13 @@ class TransformKafkaMessageOpenOrders extends Task
 
                         WSOrderStatus::dispatch($userId, $orderId, 'FAILED', $order->odds, $expiry,
                             $orderTable['created_at']);
+
+                        $ordersTable->del($_key);
                     } else {
                         if ($orderTable['bet_id'] == $betId) {
                             if (strtoupper($order->status) != strtoupper($orderData->status)) {
+                                $ordersTable[$_key]['status'] = strtoupper($order->status);
+
                                 $reason = $order->reason;
 
                                 $betSelectionArray         = explode("\n", $orderData->bet_selection);
@@ -182,10 +183,18 @@ class TransformKafkaMessageOpenOrders extends Task
                                             'created_at' => Carbon::now(),
                                             'updated_at' => Carbon::now(),
                                         ]);
+
                                 }
 
                                 WSOrderStatus::dispatch($userId, $orderId, strtoupper($order->status), $order->odds,
                                     $expiry, $orderTable['created_at']);
+
+                                if (in_array(strtoupper($order->status), [
+                                    'FAILED',
+                                    'CANCELLED',
+                                ])) {
+                                    $ordersTable->del($_key);
+                                }
                             }
                         }
                     }
