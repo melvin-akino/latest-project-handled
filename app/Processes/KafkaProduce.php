@@ -94,7 +94,7 @@ class KafkaProduce implements CustomProcessInterface
                         foreach ($sportsTable AS $sKey => $sRow) {
                             $sportId = $sportsTable->get($sKey)['id'];
 
-                            if ($newTime->diffInSeconds(Carbon::parse($openOrderInitialTime)) >= (60 * 10)) {
+                            if ($newTime->diffInSeconds(Carbon::parse($openOrderInitialTime)) >= (60 * 3)) {
                                 foreach ($providerAccountsTable AS $pKey => $pRow) {
                                     $providerAlias = strtolower($pRow['provider_alias']);
                                     $username      = $pRow['username'];
