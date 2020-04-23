@@ -30,7 +30,8 @@ class TransformKafkaMessageOpenOrders extends Task
             $openOrders  = $this->data->data;
 
             foreach ($openOrders as $order) {
-                $betId  = $order->bet_id;
+                $betId = $order->bet_id;
+
                 foreach ($ordersTable as $_key => $orderTable) {
                     $orderId = substr($_key, strlen('orderId:'));
                     $expiry  = $orderTable['orderExpiry'];
@@ -42,7 +43,6 @@ class TransformKafkaMessageOpenOrders extends Task
                         ->where('from_currency_id', $providerCurrency)
                         ->where('to_currency_id', 1)
                         ->first();
-
 
                     $orderData = DB::table('orders')
                         ->where('id', $orderId)
@@ -60,26 +60,34 @@ class TransformKafkaMessageOpenOrders extends Task
 
                     Log::info('Open ORDER - ' . (time() - strtotime($orderTable['created_at']) > $expiry));
                     Log::info('Open ORDER - ' . $status);
+
+                    $orderLogsId    = 0;
+                    $walletLedgerId = 0;
+                    $credit         = 0;
+                    $reason         = "";
+
                     if (time() - strtotime($orderTable['created_at']) > $expiry &&
                         $status == 'PENDING' && empty($orderData->bet_id)
                     ) {
+                        $reason = "No Kafka payload received";
+
                         Order::where('id', $orderId)->update([
                             'provider_account_id' => ProviderAccount::getUsernameId($orderTable['username']),
                             'status'              => 'FAILED',
                             'odds'                => $order->odds,
-                            'reason'              => 'No Kafka payload received',
+                            'reason'              => $reason,
                             'updated_at'          => Carbon::now(),
                         ]);
 
-                        DB::table('order_logs')
-                            ->insert([
+                        $orderLogsId = DB::table('order_logs')
+                            ->insertGetId([
                                 'provider_id'   => $orderData->provider_id,
                                 'sport_id'      => $orderData->sport_id,
                                 'bet_id'        => $orderData->bet_id,
                                 'bet_selection' => $orderData->bet_selection,
                                 'status'        => 'FAILED',
                                 'user_id'       => $userId,
-                                'reason'        => 'No Kafka payload received',
+                                'reason'        => $reason,
                                 'profit_loss'   => $orderData->profit_loss,
                                 'order_id'      => $orderId,
                                 'settled_date'  => $orderData->settled_date,
@@ -97,8 +105,8 @@ class TransformKafkaMessageOpenOrders extends Task
                                 'updated_at' => Carbon::now(),
                             ]);
 
-                        DB::table('wallet_ledger')
-                            ->insert([
+                        $walletLedgerId = DB::table('wallet_ledger')
+                            ->insertGetId([
                                 'wallet_id'  => $userWallet->id,
                                 'source_id'  => $sourceId->id,
                                 'debit'      => 0,
@@ -113,31 +121,32 @@ class TransformKafkaMessageOpenOrders extends Task
                     } else {
                         if ($orderTable['bet_id'] == $betId) {
                             if (strtoupper($order->status) != strtoupper($orderData->status)) {
+                                $reason = $order->reason;
+
                                 Order::where('id', $orderId)->update([
                                     'provider_account_id' => ProviderAccount::getUsernameId($orderTable['username']),
                                     'status'              => strtoupper($order->status),
                                     'odds'                => $order->odds,
                                     'actual_stake'        => $order->stake,
                                     'actual_to_win'       => $order->to_win,
-                                    'reason'              => $order->reason
+                                    'reason'              => $reason
                                 ]);
 
-                                DB::table('order_logs')
-                                    ->insert([
+                                $orderLogsId = DB::table('order_logs')
+                                    ->insertGetId([
                                         'provider_id'   => $orderData->provider_id,
                                         'sport_id'      => $orderData->sport_id,
                                         'bet_id'        => $orderData->bet_id,
                                         'bet_selection' => $orderData->bet_selection,
                                         'status'        => strtoupper($order->status),
                                         'user_id'       => $userId,
-                                        'reason'        => $order->reason,
+                                        'reason'        => $reason,
                                         'profit_loss'   => $orderData->profit_loss,
                                         'order_id'      => $orderId,
                                         'settled_date'  => $orderData->settled_date,
                                         'created_at'    => Carbon::now(),
                                         'updated_at'    => Carbon::now(),
                                     ]);
-
 
                                 if (in_array(strtoupper($order->status), [
                                     'FAILED',
@@ -153,8 +162,8 @@ class TransformKafkaMessageOpenOrders extends Task
                                             'updated_at' => Carbon::now(),
                                         ]);
 
-                                    DB::table('wallet_ledger')
-                                        ->insert([
+                                    $walletLedgerId = DB::table('wallet_ledger')
+                                        ->insertGetId([
                                             'wallet_id'  => $userWallet->id,
                                             'source_id'  => $sourceId->id,
                                             'debit'      => 0,
@@ -170,6 +179,22 @@ class TransformKafkaMessageOpenOrders extends Task
                             }
                         }
                     }
+
+                    DB::table('order_transactions')
+                        ->insert(
+                            [
+                                'order_logs_id'       => $orderLogsId,
+                                'user_id'             => $userId,
+                                'source_id'           => $sourceId->id,
+                                'currency_id'         => $providerCurrency,
+                                'wallet_ledger_id'    => $walletLedgerId,
+                                'provider_account_id' => ProviderAccount::getUsernameId($orderTable['username']),
+                                'reason'              => $reason,
+                                'amount'              => $credit,
+                                'created_at'          => Carbon::now(),
+                                'updated_at'          => Carbon::now(),
+                            ]
+                        );
                 }
             }
             DB::commit();

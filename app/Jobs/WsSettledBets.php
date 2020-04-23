@@ -110,48 +110,72 @@ class WsSettledBets implements ShouldQueue
         }
 
         DB::table('orders')->where('bet_id', $this->data->bet_id)
-            ->update([
-            'status'       => strtoupper($this->data->status),
-            'profit_loss'  => $balance,
-            'reason'       => $this->data->reason,
-            'settled_date' => Carbon::now(),
-            'updated_at'   => Carbon::now(),
-        ]);
+            ->update(
+                [
+                    'status'       => strtoupper($this->data->status),
+                    'profit_loss'  => $balance,
+                    'reason'       => $this->data->reason,
+                    'settled_date' => Carbon::now(),
+                    'updated_at'   => Carbon::now(),
+                ]
+            );
 
-        DB::table('order_logs')
-            ->insert([
-                'provider_id'   => $this->providerId,
-                'sport_id'      => $this->data->sport,
-                'bet_id'        => $this->data->bet_id,
-                'bet_selection' => $orders->bet_selection,
-                'status'        => $status,
-                'user_id'       => $orders->user_id,
-                'reason'        => $this->data->reason,
-                'profit_loss'   => $balance,
-                'order_id'      => $orders->id,
-                'settled_date'  => Carbon::now(),
-                'created_at'    => Carbon::now(),
-                'updated_at'    => Carbon::now(),
-            ]);
+        $orderLogsId = DB::table('order_logs')
+            ->insertGetId(
+                [
+                    'provider_id'   => $this->providerId,
+                    'sport_id'      => $this->data->sport,
+                    'bet_id'        => $this->data->bet_id,
+                    'bet_selection' => $orders->bet_selection,
+                    'status'        => $status,
+                    'user_id'       => $orders->user_id,
+                    'reason'        => $this->data->reason,
+                    'profit_loss'   => $balance,
+                    'order_id'      => $orders->id,
+                    'settled_date'  => Carbon::now(),
+                    'created_at'    => Carbon::now(),
+                    'updated_at'    => Carbon::now(),
+                ]
+            );
 
         $balance   *= $exchangeRate->exchange_rate;
         $newBalance = $userWallet->balance + $balance;
 
         DB::table('wallet')->where('user_id', $orders->user_id)
-            ->update([
-            'balance'    => $newBalance,
-            'updated_at' => Carbon::now(),
-        ]);
+            ->update(
+                [
+                    'balance'    => $newBalance,
+                    'updated_at' => Carbon::now(),
+                ]
+            );
 
-        DB::table('wallet_ledger')
-            ->insert([
-                'wallet_id'  => $userWallet->id,
-                'source_id'  => $sourceId->id,
-                'debit'      => $debit,
-                'credit'     => $credit,
-                'balance'    => $newBalance,
-                'created_at' => Carbon::now(),
-                'updated_at' => Carbon::now(),
-            ]);
+        $walletLedgerId = DB::table('wallet_ledger')
+            ->insertGetId(
+                [
+                    'wallet_id'  => $userWallet->id,
+                    'source_id'  => $sourceId->id,
+                    'debit'      => $debit,
+                    'credit'     => $credit,
+                    'balance'    => $newBalance,
+                    'created_at' => Carbon::now(),
+                    'updated_at' => Carbon::now(),
+                ]
+            );
+
+        DB::table('order_transactions')
+            ->insert(
+                [
+                    'order_logs_id'       => $orderLogsId,
+                    'user_id'             => $orders->user_id,
+                    'source_id'           => $sourceId->id,
+                    'currency_id'         => $this->providerCurrency,
+                    'wallet_ledger_id'    => $walletLedgerId,
+                    'provider_account_id' => $orders->provider_account_id,
+                    'reason'              => $this->data->reason,
+                    'amount'              => $balance,
+                    'created_at'          => Carbon::now(),
+                    'updated_at'          => Carbon::now(),
+                ]
+            );
     }
 }
