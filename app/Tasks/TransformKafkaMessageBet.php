@@ -41,7 +41,7 @@ class TransformKafkaMessageBet extends Task
                     ]);
 
                     $betSelectionArray = explode('@ ', $order->bet_selection);
-                    $order->bet_selection = $betSelectionArray[0] . '@ ' .$order->odds;
+                    $order->bet_selection = $betSelectionArray[0] . '@ ' . number_format($order->odds, 2);
                     $order->save();
 
                     WSOrderStatus::dispatch(
