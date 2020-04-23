@@ -123,13 +123,24 @@ class TransformKafkaMessageOpenOrders extends Task
                             if (strtoupper($order->status) != strtoupper($orderData->status)) {
                                 $reason = $order->reason;
 
+                                $betSelectionArray         = explode("\n", $orderData->bet_selection);
+                                $betSelectionTeamOddsArray = explode('@ ', $betSelectionArray[1]);
+                                $updatedOrderOdds          = $betSelectionTeamOddsArray[0] . '@ ' . number_format($order->odds,
+                                        2);
+                                $betSelection              = implode("\n", [
+                                    $betSelectionArray[0],
+                                    $updatedOrderOdds,
+                                    $betSelectionArray[2]
+                                ]);
+
                                 Order::where('id', $orderId)->update([
                                     'provider_account_id' => ProviderAccount::getUsernameId($orderTable['username']),
                                     'status'              => strtoupper($order->status),
                                     'odds'                => $order->odds,
                                     'actual_stake'        => $order->stake,
                                     'actual_to_win'       => $order->to_win,
-                                    'reason'              => $reason
+                                    'reason'              => $reason,
+                                    'bet_selection'       => $betSelection
                                 ]);
 
                                 $orderLogsId = DB::table('order_logs')
@@ -137,7 +148,7 @@ class TransformKafkaMessageOpenOrders extends Task
                                         'provider_id'   => $orderData->provider_id,
                                         'sport_id'      => $orderData->sport_id,
                                         'bet_id'        => $orderData->bet_id,
-                                        'bet_selection' => $orderData->bet_selection,
+                                        'bet_selection' => $betSelection,
                                         'status'        => strtoupper($order->status),
                                         'user_id'       => $userId,
                                         'reason'        => $reason,
