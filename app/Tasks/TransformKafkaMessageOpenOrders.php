@@ -112,7 +112,7 @@ class TransformKafkaMessageOpenOrders extends Task
                                 'updated_at' => Carbon::now(),
                             ]);
 
-                        WSOrderStatus::dispatch($userId, $orderId, 'FAILED', $order->odds, $expiry,
+                        WSOrderStatus::dispatch($userId, $orderId, 'FAILED', $orderData->odds, $expiry,
                             $orderTable['created_at']);
 
                         $ordersTable->del($_key);
