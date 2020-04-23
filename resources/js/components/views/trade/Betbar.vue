@@ -61,6 +61,14 @@ export default {
                     this.bets.map(bet => {
                         if(bet.order_id == orderStatus.order_id) {
                             this.$set(bet, 'status', orderStatus.status)
+                            this.$set(bet, 'bet_info', [
+                                bet.bet_info[0],
+                                bet.bet_info[1],
+                                orderStatus.odds,
+                                bet.bet_info[3],
+                                bet.bet_info[4],
+                                bet.bet_info[5],
+                            ])
                         }
                     })
                 }
