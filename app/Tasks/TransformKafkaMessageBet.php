@@ -43,7 +43,8 @@ class TransformKafkaMessageBet extends Task
                     ], [
                         'bet_id' => $this->message->data->bet_id,
                         'reason' => $this->message->data->reason,
-                        'status' => $status
+                        'status' => $status,
+                        'odds'   => $this->message->data->odds
                     ]);
 
                     $betSelectionArray         = explode("\n", $order->bet_selection);
@@ -55,9 +56,8 @@ class TransformKafkaMessageBet extends Task
                         $betSelectionArray[2]
                     ]);
 
-                    $order->odds               = $order->odds;
-                    $order->to_win             = $order->stake * $order->odds;
-                    $order->actual_to_win      = $order->actual_stake * $order->odds;
+                    $order->to_win             = $order->stake * $this->message->data->odds;
+                    $order->actual_to_win      = $order->actual_stake * $this->message->data->odds;
                     $order->save();
 
                     DB::table('order_logs')
