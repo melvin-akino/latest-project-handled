@@ -8,11 +8,11 @@
                     </div>
                 </div>
                 <div class="flex flex-col orderLogs">
-                    <div class="order w-full my-1 text-gray-700" v-for="(log, index) in logs" :key="index">
-                        <div class="orderHeading bg-gray-400 p-2 cursor-pointer" @click="toggleOrderLog(index)">
-                            <div class="container mx-auto text-sm">{{index}}</div>
+                    <div class="flex px-3 my-1 text-gray-700" v-for="(log, index) in logs" :key="index">
+                        <div class="w-1/2">
+                            <div class="text-sm">{{index}}</div>
                         </div>
-                        <div class="container text-sm mx-auto p-2" :class="[openedOrderLog == index ? 'block' : 'hidden']">
+                        <div class="text-sm w-1/2">
                             <div v-for="(logType, index) in log" :key="index">
                                 <div v-for="(update, index) in logType" :key="index">
                                     <span class="font-bold">{{index}}</span> - {{update.description}} to {{update.data}}
@@ -41,37 +41,15 @@ export default {
     data() {
         return {
             options: {
-                width:400,
+                width:515,
                 buttonPin: false,
                 centered: "viewport"
             },
-            openedOrderLog: '',
             loadingOddsHistory: true
         }
     },
     computed: {
         ...mapState('trade', ['activeBetSlip'])
-    },
-    watch: {
-        logs() {
-            this.setOpenedOrderLog()
-        }
-    },
-    mounted() {
-        this.setOpenedOrderLog()
-    },
-    methods: {
-        toggleOrderLog(orderLog) {
-            if(this.openedOrderLog == orderLog) {
-                this.openedOrderLog = ''
-            } else {
-                this.openedOrderLog = orderLog
-            }
-        },
-        setOpenedOrderLog() {
-            let logTimeStamps = Object.keys(this.logs)
-            this.openedOrderLog = logTimeStamps[0]
-        }
     },
     directives: {
         overlapAllOrderLogs: {
