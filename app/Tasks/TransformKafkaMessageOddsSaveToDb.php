@@ -36,12 +36,12 @@ class TransformKafkaMessageOddsSaveToDb extends Task
 
     public function handle()
     {
-        $this->swoole            = app('swoole');
-        $this->eventData         = $this->subTasks['event'];
-        $this->eventRawData      = $this->subTasks['event-raw'];
-        $this->eventMarketsData  = $this->subTasks['event-market'] ?? [];
-        $this->updatedOddsData   = $this->subTasks['updated-odds'] ?? [];
-        $this->removeEventMarket = $this->subTasks['remove-event-market'] ?? [];
+        $this->swoole               = app('swoole');
+        $this->eventData            = $this->subTasks['event'];
+        $this->eventRawData         = $this->subTasks['event-raw'];
+        $this->eventMarketsData     = $this->subTasks['event-market'] ?? [];
+        $this->updatedOddsData      = $this->subTasks['updated-odds'] ?? [];
+        $this->removeEventMarket    = $this->subTasks['remove-event-market'] ?? [];
         $this->removePreviousMarket = $this->subTasks['remove-previous-market'] ?? [];
 
         try {
@@ -73,10 +73,28 @@ class TransformKafkaMessageOddsSaveToDb extends Task
 
                 if (!empty($this->eventMarketsData)) {
                     foreach ($this->eventMarketsData as $eventMarket) {
-                        $eventMarketModel = EventMarket::withTrashed()->updateOrCreate([
-                            'bet_identifier'         => $eventMarket['EventMarket']['data']['bet_identifier'],
-                            'master_event_unique_id' => $eventMarket['EventMarket']['data']['master_event_unique_id']
-                        ], $eventMarket['EventMarket']['data']);
+                        if (!empty($this->removePreviousMarket)) {
+                            foreach ($this->removePreviousMarket AS $prevMarket) {
+                                if ($prevMarket['uid'] == $eventMarket['EventMarket']['data']['master_event_unique_id']) {
+                                    $eventMarketModel = EventMarket::create($eventMarket['EventMarket']['data']);
+                                } else {
+                                    $eventMarketModel = EventMarket::withTrashed()->updateOrCreate(
+                                        [
+                                            'bet_identifier'         => $eventMarket['EventMarket']['data']['bet_identifier'],
+                                            'master_event_unique_id' => $eventMarket['EventMarket']['data']['master_event_unique_id']
+                                        ], $eventMarket['EventMarket']['data']
+                                    );
+                                }
+                            }
+                        } else {
+                            $eventMarketModel = EventMarket::withTrashed()->updateOrCreate(
+                                [
+                                    'bet_identifier'         => $eventMarket['EventMarket']['data']['bet_identifier'],
+                                    'master_event_unique_id' => $eventMarket['EventMarket']['data']['master_event_unique_id']
+                                ], $eventMarket['EventMarket']['data']
+                            );
+                        }
+
                         $eventMarketId = $eventMarketModel->id;
 
                         $masterEventMarketLink = MasterEventMarketLink::where('event_market_id', $eventMarketId);
@@ -137,6 +155,9 @@ class TransformKafkaMessageOddsSaveToDb extends Task
                     'master_league_name'     => $this->eventData['MasterEvent']['data']['master_league_name'],
                     'master_home_team_name'  => $this->eventData['MasterEvent']['data']['master_home_team_name'],
                     'master_away_team_name'  => $this->eventData['MasterEvent']['data']['master_away_team_name'],
+                    'game_schedule'          => $this->eventData['MasterEvent']['data']['game_schedule'],
+                    'home_penalty'           => $this->eventData['MasterEvent']['data']['home_penalty'],
+                    'away_penalty'           => $this->eventData['MasterEvent']['data']['away_penalty'],
                 ];
                 $this->swoole->eventsTable->set($this->eventData['MasterEvent']['swtKey'], $masterEventData);
 

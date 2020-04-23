@@ -52,7 +52,7 @@ class TransformKafkaMessageOdds extends Task
     public function handle()
     {
         try {
-            $swoole = $this->swoole = app('swoole');
+            $swoole  = $this->swoole = app('swoole');
             $wsTable = $this->swoole->wsTable;
 
             foreach ($this->disregard AS $disregard) {
@@ -63,17 +63,18 @@ class TransformKafkaMessageOdds extends Task
             }
 
             $toInsert = [];
+            $this->subTasks['remove-previous-market'] = [];
 
             /** DATABASE TABLES */
             /** LOOK-UP TABLES */
-            $providersTable = $swoole->providersTable;
-            $sportsTable = $swoole->sportsTable;
-            $leaguesTable = $swoole->leaguesTable;
-            $teamsTable = $swoole->teamsTable;
-            $eventsTable = $swoole->eventsTable;
-            $oddTypesTable = $swoole->oddTypesTable;
+            $providersTable     = $swoole->providersTable;
+            $sportsTable        = $swoole->sportsTable;
+            $leaguesTable       = $swoole->leaguesTable;
+            $teamsTable         = $swoole->teamsTable;
+            $eventsTable        = $swoole->eventsTable;
+            $oddTypesTable      = $swoole->oddTypesTable;
             $sportOddTypesTable = $swoole->sportOddTypesTable;
-            $eventMarketsTable = $swoole->eventMarketsTable;
+            $eventMarketsTable  = $swoole->eventMarketsTable;
 
             /**
              * PROVIDERS Swoole Table
@@ -200,8 +201,8 @@ class TransformKafkaMessageOdds extends Task
                 ]);
 
                 if ($eventsTable->exists($eventSwtId)) {
-                    $eventId = $eventsTable->get($eventSwtId)['id'];
-                    $uid = $eventsTable->get($eventSwtId)['master_event_unique_id'];
+                    $eventId        = $eventsTable->get($eventSwtId)['id'];
+                    $uid            = $eventsTable->get($eventSwtId)['master_event_unique_id'];
                     $masterTeamHome = $eventsTable->get($eventSwtId)['master_home_team_name'];
                     $masterTeamAway = $eventsTable->get($eventSwtId)['master_away_team_name'];
 
@@ -215,7 +216,7 @@ class TransformKafkaMessageOdds extends Task
                         return;
                     }
 
-                    if ($eventsTable->get($eventSwtId)['game_schedule'] != $this->message->data->schedule) {
+                    if (($eventsTable->get($eventSwtId)['game_schedule'] != "") && ($eventsTable->get($eventSwtId)['game_schedule'] != $this->message->data->schedule)) {
                         $this->subTasks['remove-previous-market'][] = [
                             'uid'    => $uid,
                             'swtKey' => implode(':', [
@@ -229,6 +230,8 @@ class TransformKafkaMessageOdds extends Task
                             'game_schedule' => $this->message->data->schedule,
                             'sport_id'      => $sportId
                         ])]);
+
+                        $eventsTable[$eventSwtId]['game_schedule'] = $this->message->data->schedule;
                     }
                 } else {
                     $masterTeamHome = $multiTeam['home']['name'];
