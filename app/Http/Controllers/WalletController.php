@@ -22,8 +22,8 @@ class WalletController extends Controller
         if ($wallet) {
             $balance     = $wallet->balance;
             $profit_loss = $wallet->Order()->sum('profit_loss');
-            $orders      = $wallet->Order()->whereNotNull('settled_date')->sum('stake');
-         }   
+            $orders      = $wallet->Order()->where('settled_date', '')->orWhereNull('settled_date')->whereIn('status', ['PENDING', 'SUCCESS'])->sum('stake');
+        }
         return response()->json([
             'status'      => true,
             'status_code' => 200,
