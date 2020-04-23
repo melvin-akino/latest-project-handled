@@ -74,7 +74,6 @@ class TransformKafkaMessageOpenOrders extends Task
                         Order::where('id', $orderId)->update([
                             'provider_account_id' => ProviderAccount::getUsernameId($orderTable['username']),
                             'status'              => 'FAILED',
-                            'odds'                => $order->odds,
                             'reason'              => $reason,
                             'updated_at'          => Carbon::now(),
                         ]);
