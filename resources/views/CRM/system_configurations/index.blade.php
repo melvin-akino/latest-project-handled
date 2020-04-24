@@ -126,16 +126,8 @@
 
             $('#SystemConfigTable tbody').on('click', 'button.cancel', function (e) {
                 e.preventDefault(e);
-                $(this).removeClass().addClass("edit btn btn-info").text('Edit');
 
-                var $row = $(this).closest("tr");
-                $row.find("td:last > button.save").remove();
-                var $tds = $row.find("td").not(':first').not(':last');
-
-                $.each($tds, function(i, el) {
-                    var txt = $(this).find("input").val();
-                    $(this).html(txt);
-                });
+                table.ajax.reload();
             });
 
             var revertUpdateInterface = function(configId) {
