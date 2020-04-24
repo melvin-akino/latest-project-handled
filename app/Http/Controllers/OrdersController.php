@@ -651,6 +651,7 @@ class OrdersController extends Controller
                 })
                 ->where('memuid', $memUID)
                 ->orderBy('timestamp', 'desc')
+                ->limit(20)
                 ->get();
 
             foreach ($view AS $row) {
