@@ -42,6 +42,8 @@ class TransformKafkaMessageMinMax extends Task
                                 'getMinMax' => ['message' => $this->data->message]
                             ]));
 
+                            $minMaxRequests->del('memUID:' . $memUID);
+
                             Log::info("MIN MAX Transformation - Message Found");
                         } else if ($this->data->message == 'onqueue') {
                             continue;
@@ -117,10 +119,6 @@ class TransformKafkaMessageMinMax extends Task
                             Log::info("MIN MAX Transformation - Transformed");
                         }
                     }
-                }
-
-                if (!empty($this->data->message) || empty($data->odds)) {
-                    $minMaxRequests->del('memUID:' . $memUID);
                 }
             }
         }
