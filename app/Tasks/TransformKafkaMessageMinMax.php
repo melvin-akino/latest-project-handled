@@ -21,15 +21,11 @@ class TransformKafkaMessageMinMax extends Task
 
         $topics             = $swoole->topicTable;
         $minMaxRequests     = $swoole->minMaxRequestsTable;
-        $minMaxQueues       = $swoole->minMaxQueuesTable;
         $wsTable            = $swoole->wsTable;
         $provTable          = $swoole->providersTable;
         $usersTable         = $swoole->usersTable;
         $currenciesTable    = $swoole->currenciesTable;
         $exchangeRatesTable = $swoole->exchangeRatesTable;
-
-        $transformed = [];
-        $fd          = "";
 
         foreach ($minMaxRequests AS $key => $row) {
             $data = $this->data->data;
@@ -42,7 +38,6 @@ class TransformKafkaMessageMinMax extends Task
                         $fd     = $wsTable->get('uid:' . $userId);
 
                         if (!empty($this->data->message) || empty($data->odds)) {
-                            $minMaxRequests->del('memUID:' . $memUID);
                             $swoole->push($fd['value'], json_encode([
                                 'getMinMax' => ['message' => $this->data->message]
                             ]));
@@ -116,8 +111,14 @@ class TransformKafkaMessageMinMax extends Task
                             $swoole->push($fd['value'], json_encode([
                                 'getMinMax' => $transformed
                             ]));
+
+                            Log::info("MIN MAX Transformation - Transformed");
                         }
                     }
+                }
+
+                if (!empty($this->data->message) || empty($data->odds)) {
+                    $minMaxRequests->del('memUID:' . $memUID);
                 }
             }
         }
