@@ -37,12 +37,14 @@ class TransformKafkaMessageMinMax extends Task
                         $userId = explode(':', $_key)[1];
                         $fd     = $wsTable->get('uid:' . $userId);
 
-                        if (!empty($this->data->message) || empty($data->odds)) {
+                        if (!empty($this->data->message) && $this->data->message != 'onqueue') {
                             $swoole->push($fd['value'], json_encode([
                                 'getMinMax' => ['message' => $this->data->message]
                             ]));
 
                             Log::info("MIN MAX Transformation - Message Found");
+                        } else if ($this->data->message == 'onqueue') {
+                            continue;
                         } else {
                             /** AS DEFAULT */
                             $providerCurrency = [
