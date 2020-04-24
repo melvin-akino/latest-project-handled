@@ -23,7 +23,7 @@ class WsSettledBets implements ShouldQueue
         $this->providerCurrency = $providerCurrency;
     }
 
-    private function updateledger($whategerparametersisneeded)
+    private function updateledger($charge, $receiver, $stake,$charge,$c)
     {
         // insert to order_transaction // ssource is now returned stake will ask ria about it 
 
@@ -82,7 +82,8 @@ class WsSettledBets implements ShouldQueue
                 $debit      = 0;
                 $credit     = $balance;
                 $sourceName = "BET_WINNING";
-                $stakereturntoledger = true
+                $stakereturntoledger = true;
+                $charge      = 'Credit';
 
 
                 break;
@@ -91,6 +92,7 @@ class WsSettledBets implements ShouldQueue
                 $debit      = $balance;
                 $credit     = 0;
                 $sourceName = "BET_LOSS";
+                $charge       ='Debit';
 
                 break;
             case 'HALF WIN':
@@ -99,7 +101,8 @@ class WsSettledBets implements ShouldQueue
                 $debit      = 0;
                 $credit     = $balance;
                 $sourceName = "BET_WINNING";
-                $stakereturntoledger = true
+                $stakereturntoledger = true;
+                $charge       ='Credit';
 
                 break;
             case 'HALF LOSE':
@@ -107,42 +110,49 @@ class WsSettledBets implements ShouldQueue
                 $debit      = $balance;
                 $credit     = 0;
                 $sourceName = "BET_LOSS";
+                $charge       ='Debit';
 
                 break;
             case 'PUSH':
                 $balance = $orders->stake;
                 $debit   = 0;
                 $credit  = $balance;
+                $charge       ='Credit';
 
                 break;
             case 'DRAW':
                 $balance = $orders->stake;
                 $debit   = 0;
                 $credit  = $balance;
+                 $charge       ='Credit';
 
                 break;
             case 'CANCELLED':
                 $balance = $orders->stake;
                 $debit   = 0;
                 $credit  = $balance;
+                 $charge       ='Credit';
 
                 break;
             case 'REJECTED':
                 $balance = $orders->stake;
                 $debit   = 0;
                 $credit  = $balance;
+                 $charge       ='Credit';
 
                 break;
             case 'ABNORMAL BET':
                 $balance = $orders->stake;
                 $debit   = 0;
                 $credit  = $balance;
+                 $charge       ='Credit';
 
                 break;
             case 'REFUNDED':
                 $balance = $orders->stake;
                 $debit   = 0;
                 $credit  = $balance;
+                 $charge       ='Credit';
 
                 break;
         }
@@ -157,34 +167,110 @@ class WsSettledBets implements ShouldQueue
             ->where('source_name', 'LIKE', 'RETURN_BET')
             ->first();
 
-        DB::table('orders')->where('bet_id', $this->data->bet_id)
-            ->update(
-                [
-                    'status'       => strtoupper($this->data->status),
-                    'profit_loss'  => $balance,
-                    'reason'       => $this->data->reason,
-                    'settled_date' => Carbon::now(),
-                    'updated_at'   => Carbon::now(),
-                ]
-            );
+        try {
 
-        $orderLogsId = DB::table('order_logs')
-            ->insertGetId(
-                [
-                    'provider_id'   => $this->providerId,
-                    'sport_id'      => $this->data->sport,
-                    'bet_id'        => $this->data->bet_id,
-                    'bet_selection' => $orders->bet_selection,
-                    'status'        => $status,
-                    'user_id'       => $orders->user_id,
-                    'reason'        => $this->data->reason,
-                    'profit_loss'   => $balance,
-                    'order_id'      => $orders->id,
-                    'settled_date'  => Carbon::now(),
-                    'created_at'    => Carbon::now(),
-                    'updated_at'    => Carbon::now(),
-                ]
-            );
+            DB::table('orders')->where('bet_id', $this->data->bet_id)
+                ->update(
+                    [
+                        'status'       => strtoupper($this->data->status),
+                        'profit_loss'  => $balance,
+                        'reason'       => $this->data->reason,
+                        'settled_date' => Carbon::now(),
+                        'updated_at'   => Carbon::now(),
+                    ]
+                );
+
+            $orderLogsId = DB::table('order_logs')
+                ->insertGetId(
+                    [
+                        'provider_id'   => $this->providerId,
+                        'sport_id'      => $this->data->sport,
+                        'bet_id'        => $this->data->bet_id,
+                        'bet_selection' => $orders->bet_selection,
+                        'status'        => $status,
+                        'user_id'       => $orders->user_id,
+                        'reason'        => $this->data->reason,
+                        'profit_loss'   => $balance,
+                        'order_id'      => $orders->id,
+                        'settled_date'  => Carbon::now(),
+                        'created_at'    => Carbon::now(),
+                        'updated_at'    => Carbon::now(),
+                    ]
+                );
+
+               $order_transaction_id = DB::table('order_transactions')
+                ->insert(
+                    [
+                        'order_logs_id'       => $orderLogsId,
+                        'user_id'             => $orders->user_id,
+                        'source_id'           => $sourceId->id,
+                        'currency_id'         => $this->providerCurrency,
+                        //'wallet_ledger_id'    => $walletLedgerId,
+                        'provider_account_id' => $orders->provider_account_id,
+                        'reason'              => $this->data->reason,
+                        'amount'              => $balance,
+                        'created_at'          => Carbon::now(),
+                        'updated_at'          => Carbon::now(),
+                    ]
+                );
+                
+                // create insertion of wallet and walelt ledger
+            // value should all be part of parameter
+            $charge_type =  $charge// or Debit, paramater
+            $receiver = // id of the user 
+            $transfer_amount = 
+            $currency  = // currency id
+            $source =// source id 
+            /* important :: userwallet::maketransaction will update wallet table wallet depende on $charge_type
+              if $charge_tyoe =='Credit' , add amount to wallet  otherwise deduct
+
+            */
+            $ledger = UserWallet::makeTransaction($receiver, $transfer_amount, $currency, $source,$charge_type);
+             DB::table('order_transactions')->where('id', $order_transaction_id)
+              ->update(
+                    [
+                        'wallet_ledger_id'       => $ledger_id,
+                    ]
+                );
+
+
+            if ( $stakereturntoledger==true)
+            {
+                // let us create new order_transaction insertion here with diferent source id 
+
+                $order_transaction_id = DB::table('order_transactions')
+                ->insert(
+                    [
+                        'order_logs_id'       => $orderLogsId,
+                        'user_id'             => $orders->user_id,
+                        'source_id'           => $sourceId->id,  // apply different source id 
+                        'currency_id'         => $this->providerCurrency,
+                        //'wallet_ledger_id'    => $walletLedgerId,
+                        'provider_account_id' => $orders->provider_account_id,
+                        'reason'              => $this->data->reason,
+                        'amount'              => $balance,
+                        'created_at'          => Carbon::now(),
+                        'updated_at'          => Carbon::now(),
+                    ]
+                );
+            $charge_type='Credit';
+            $ledger = UserWallet::makeTransaction($receiver, $transfer_amount, $currency, $source,$charge_type);
+             DB::table('order_transactions')->where('id', $order_transaction_id)
+              ->update(
+                    [
+                        'wallet_ledger_id'       => $ledger_id,
+                    ]
+                );
+
+            }
+            DB::commit();
+        } catch (\Exception $e) {
+            DB::rollBack();
+           // \log::info(json_encode($e->getMessage()))
+            // create a log or error something 
+        }
+
+
             /*
 
         $balance   *= $exchangeRate->exchange_rate;
@@ -209,8 +295,9 @@ class WsSettledBets implements ShouldQueue
                     'created_at' => Carbon::now(),
                     'updated_at' => Carbon::now(),
                 ]
-            );*/
+           
             
+
 
         DB::table('order_transactions')
             ->insert(
@@ -227,6 +314,9 @@ class WsSettledBets implements ShouldQueue
                     'updated_at'          => Carbon::now(),
                 ]
             );
+
+         );*/
+         /*
 
         if ($stake != 0) {
             $returnLedgerId = DB::table('wallet_ledger')
@@ -258,5 +348,6 @@ class WsSettledBets implements ShouldQueue
                     ]
                 );
         }
+        */
     }
 }
