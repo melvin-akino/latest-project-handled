@@ -88,8 +88,8 @@ class WsSettledBets implements ShouldQueue
                 break;
             case 'HALF LOSE':
                 $balance    = $orders->stake / 2;
-                $debit      = $balance;
-                $credit     = 0;
+                $debit      = 0;
+                $credit     = $balance;
                 $sourceName = "BET_HALF_LOSE";
                 $charge     = 'Debit';
 
@@ -184,7 +184,7 @@ class WsSettledBets implements ShouldQueue
                         'order_logs_id'       => $orderLogsId,
                         'user_id'             => $orders->user_id,
                         'source_id'           => $sourceId->id,
-                        'currency_id'         => $this->providerCurrency,
+                        'currency_id'         => $userWallet->currency_id,
                         'wallet_ledger_id'    => 0,
                         'provider_account_id' => $orders->provider_account_id,
                         'reason'              => $this->data->reason,
@@ -207,7 +207,7 @@ class WsSettledBets implements ShouldQueue
                         'order_logs_id'       => $orderLogsId,
                         'user_id'             => $orders->user_id,
                         'source_id'           => $sourceId->id,
-                        'currency_id'         => $this->providerCurrency,
+                        'currency_id'         => $userWallet->currency_id,
                         'wallet_ledger_id'    => $ledger->id,
                         'provider_account_id' => $orders->provider_account_id,
                         'reason'              => $this->data->reason,
@@ -231,7 +231,7 @@ class WsSettledBets implements ShouldQueue
                             'order_logs_id'       => $orderLogsId,
                             'user_id'             => $orders->user_id,
                             'source_id'           => $returnBetSourceId->id,
-                            'currency_id'         => $this->providerCurrency,
+                            'currency_id'         => $userWallet->currency_id,
                             'wallet_ledger_id'    => $ledger->id,
                             'provider_account_id' => $orders->provider_account_id,
                             'reason'              => $this->data->reason,
