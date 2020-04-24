@@ -22,10 +22,3 @@ export default {
     }
 }
 </script>
-
-<style>
-    .watchlistLeagues {
-        max-height: 145px;
-        overflow-y: auto;
-    }
-</style>

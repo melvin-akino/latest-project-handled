@@ -1,10 +1,10 @@
 er <template>
     <div class="container mx-auto my-10">
         <h3 class="text-xl">My Orders</h3>
-        <div class="relative h-full">
-            <div class="absolute text-sm totalPLdata" v-if="myorders.length != 0" v-adjust-pl-data-position="myorders.length">
-                <span>Total P/L</span>
-                <span class="totalPL">{{wallet.currency_symbol}} {{totalPL | moneyFormat}}</span>
+        <div class="h-full">
+            <div class="relative" v-if="myorders.length != 0" v-adjust-pl-data-position="myorders.length">
+                <span class="absolute totalPLlabel">Total P/L</span>
+                <span class="absolute totalPL" v-adjust-total-pl-color="totalPL">{{wallet.currency_symbol}} {{totalPL | moneyFormat}}</span>
             </div>
             <v-client-table name="My Orders" :data="myorders" :columns="columns" :options="options" ref="ordersTable">
                 <div slot="betSelection" slot-scope="props" v-html="props.row.bet_selection"></div>
@@ -48,6 +48,7 @@ export default {
                     betData: ''
                 },
                 columnsClasses: {
+                    betSelection: 'betSelection',
                     odds: 'alignRight',
                     stake: 'alignRight',
                     towin: 'alignRight',
@@ -133,6 +134,20 @@ export default {
                     el.style.top = '17px'
                 }
             }
+        },
+        adjustTotalPlColor: {
+            bind(el, binding, vnode) {
+                if(binding.value > 0) {
+                    el.classList.remove('redPL')
+                    el.classList.add('greenPL')
+                } else if(binding.value < 0) {
+                    el.classList.add('redPL')
+                    el.classList.remove('greenPL')
+                } else {
+                    el.classList.remove('redPL')
+                    el.classList.remove('greenPL')
+                }
+            }
         }
     },
     filters: {
@@ -167,6 +182,10 @@ export default {
     .VueTables__table > tbody {
         background-color: #ffffff;
         font-size: .875rem;
+    }
+
+    .VueTables__heading {
+        font-size: 14px;
     }
 
     .VueTables__row  {
@@ -214,12 +233,17 @@ export default {
         padding-bottom: 0.75rem;
     }
 
-    .totalPL {
-        margin-left: 39px;
+    .totalPLdata {
+        font-size: 15px;
     }
 
-    .totalPLdata {
-        right: 72px;
+    .totalPLlabel {
+        right: 161px;
+    }
+
+    .totalPL {
+        font-weight: 600;
+        right: 62px;
     }
 
     .dialog-drag {
@@ -246,5 +270,9 @@ export default {
 
     .redPL {
         color: #ff0000;
+    }
+
+    .betSelection {
+        width: 216px;
     }
 </style>

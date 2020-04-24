@@ -125,9 +125,4 @@ export default {
         -moz-box-shadow: inset 8px 0px 0px 0px rgba(237,137,54,1);
         box-shadow: inset 8px 0px 0px 0px rgba(237,137,54,1);
     }
-
-    .leaguesList {
-        max-height:302px;
-        overflow-y:auto;
-    }
 </style>

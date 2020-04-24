@@ -6,7 +6,12 @@
             <span v-show="!isBetBarOpen"><i class="fas fa-chevron-up"></i></span>
         </div>
         <div class="overflow-y-auto" v-show="isBetBarOpen">
-            <betbar-data v-for="bet in bets" :key="bet.order_id" :bet="bet"></betbar-data>
+            <div v-if="bets.length == 0">
+                <div class="text-base text-white text-center">No recent orders.</div>
+            </div>
+            <div v-else>
+                <betbar-data v-for="bet in bets" :key="bet.order_id" :bet="bet"></betbar-data>
+            </div>
         </div>
     </div>
 </template>
@@ -38,9 +43,7 @@ export default {
     },
     methods: {
         toggleBetBar() {
-            if(!_.isEmpty(this.bets)) {
-                this.$store.commit('trade/TOGGLE_BETBAR', !this.isBetBarOpen)
-            }
+            this.$store.commit('trade/TOGGLE_BETBAR', !this.isBetBarOpen)
         },
         getPriceFormat() {
             if(!this.$store.state.settings.defaultPriceFormat) {

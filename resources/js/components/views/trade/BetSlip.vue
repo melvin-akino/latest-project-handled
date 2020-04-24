@@ -6,27 +6,27 @@
                 <span class="text-center mt-2">Loading Market Details...</span>
             </div>
             <div class="container mx-auto p-2" v-else>
-                <div class="flex items-center w-1/2 leagueAndTeamDetails">
-                    <span class="text-white uppercase font-bold mr-2 my-2 px-2 bg-orange-500">{{market_details.odd_type}}</span>
-                    <span class="text-gray-800 font-bold my-2 pr-6">{{market_details.league_name}}</span>
-                    <a href="#" @click.prevent="showBetMatrix = true" class="text-center py-1 pr-1" title="Bet Matrix" v-if="oddTypesWithSpreads.includes(market_details.odd_type) && isDoneBetting && isBetSuccessful"><i class="fas fa-chart-area"></i></a>
-                    <a href="#" @click.prevent="showOddsHistory = true" class="text-center py-1" title="Odds History"><i class="fas fa-bars"></i></a>
-                </div>
                 <div class="flex justify-between items-center w-full leagueAndTeamDetails">
-                    <div class="flex w-3/4 items-center">
-                        <div class="home p-3" :class="[market_details.market_flag==='HOME' ? 'mr-2 bg-white shadow-xl' : '']">
-                            <span class="font-bold bg-green-500 text-white mr-1 p-2 rounded-lg">Home</span>
-                            <span class="w-full text-gray-800 font-bold">{{market_details.home}}</span>
-                        </div>
-                        <span class="text-sm text-gray-800">VS.</span>
-                        <div class="away p-3" :class="[market_details.market_flag==='AWAY' ? 'ml-2 bg-white shadow-xl' : '']">
-                            <span class="font-bold bg-red-600 text-white mr-1 p-2 rounded-lg">Away</span>
-                            <span class="w-full text-gray-800 font-bold">{{market_details.away}}</span>
-                        </div>
+                    <div class="flex items-center">
+                        <span class="text-white uppercase font-bold mr-2 my-2 px-2 bg-orange-500">{{market_details.odd_type}}</span>
+                        <span class="text-gray-800 font-bold my-2 pr-6">{{market_details.league_name}}</span>
+                        <a href="#" @click.prevent="showBetMatrix = true" class="text-center py-1 pr-1" title="Bet Matrix" v-if="oddTypesWithSpreads.includes(market_details.odd_type) && isDoneBetting && isBetSuccessful"><i class="fas fa-chart-area"></i></a>
+                        <a href="#" @click.prevent="showOddsHistory = true" class="text-center py-1" title="Odds History"><i class="fas fa-bars"></i></a>
                     </div>
                     <div class="flex items-center">
                         <a href="#" class="text-center py-1 pr-1 mr-2"><i class="far fa-calendar-alt"></i> {{formattedRefSchedule[0]}}</a>
                         <a href="#" class="text-center py-1"><i class="far fa-clock"></i> {{formattedRefSchedule[1]}}</a>
+                    </div>
+                </div>
+                <div class="flex items-center w-full leagueAndTeamDetails">
+                    <div class="home py-3" :class="[market_details.market_flag==='HOME' ? 'bg-white shadow-xl p-3' : '']">
+                        <span class="font-bold bg-green-500 text-white mr-1 p-2 rounded-lg">Home</span>
+                        <span class="w-full text-gray-800 font-bold">{{market_details.home}}</span>
+                    </div>
+                    <span class="text-sm text-gray-800 px-3">VS.</span>
+                    <div class="away py-3" :class="[market_details.market_flag==='AWAY' ? 'bg-white shadow-xl p-3' : '']">
+                        <span class="font-bold bg-red-600 text-white mr-1 p-2 rounded-lg">Away</span>
+                        <span class="w-full text-gray-800 font-bold">{{market_details.away}}</span>
                     </div>
                 </div>
                 <div class="flex w-full">
