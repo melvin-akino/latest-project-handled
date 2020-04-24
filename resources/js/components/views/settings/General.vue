@@ -64,7 +64,7 @@ export default {
         getTimezones() {
             axios.get('/v1/timezones')
             .then(response => {
-                this.timezones = response.data.data
+                this.timezones = response.data.data.sort((a, b) => parseFloat(a.timezone.replace(':', '.')) - parseFloat(b.timezone.replace(':', '.')))
             })
             .catch(err => console.log(err))
         },

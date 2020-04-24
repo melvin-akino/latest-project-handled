@@ -225,22 +225,18 @@ const actions = {
         })
     },
     getInitialLeagues({commit, dispatch, state}) {
-        return new Promise((resolve, reject) => {
-            axios.get('v1/trade/leagues', { headers: { 'Authorization': `Bearer ${token}` }})
-            .then(response => {
-                if(response.data.sport_id == state.selectedSport) {
-                    commit('SET_LEAGUES', response.data.data)
-                    resolve()
-                }
-            })
-            .catch(err => {
-                dispatch('auth/checkIfTokenIsValid', err.response.data.status_code,  { root: true })
-                reject(err)
-            })
+        axios.get('v1/trade/leagues', { headers: { 'Authorization': `Bearer ${token}` }})
+        .then(response => {
+            if(response.data.sport_id == state.selectedSport) {
+                commit('SET_LEAGUES', response.data.data)
+            }
+        })
+        .catch(err => {
+            dispatch('auth/checkIfTokenIsValid', err.response.data.status_code,  { root: true })
         })
     },
     getInitialEvents({commit, dispatch, state}) {
-        return axios.get('v1/trade/events', { headers: { 'Authorization': `Bearer ${token}` }})
+        axios.get('v1/trade/events', { headers: { 'Authorization': `Bearer ${token}` }})
         .then(response => {
             let schedule = ['inplay', 'today', 'early']
             schedule.map(schedule => {
@@ -280,8 +276,8 @@ const actions = {
     },
     async getTradeWindowData({dispatch}) {
         await dispatch('getSports')
-        await dispatch('getInitialLeagues')
-        await dispatch('getInitialEvents')
+        dispatch('getInitialLeagues')
+        dispatch('getInitialEvents')
     },
     getBetbarData({commit, state, dispatch}) {
         axios.get('v1/trade/betbar', { headers: { 'Authorization': `Bearer ${token}` }})
