@@ -8,14 +8,19 @@
                     </div>
                 </div>
                 <div class="flex flex-col orderLogs">
-                    <div class="flex px-3 my-1 text-gray-700" v-for="(log, index) in logs" :key="index">
-                        <div class="w-1/2">
-                            <div class="text-sm">{{index}}</div>
-                        </div>
-                        <div class="text-sm w-1/2">
-                            <div v-for="(logType, index) in log" :key="index">
-                                <div v-for="(update, index) in logType" :key="index">
-                                    <span class="font-bold">{{index}}</span> - {{update.description}} to {{update.data}}
+                    <div class="pl-2 py-4 text-gray-700" v-if="isLoadingOrderLogs">
+                        Loading order logs.. <span class="text-sm"><i class="fas fa-circle-notch fa-spin"></i></span>
+                    </div>
+                    <div v-else>
+                        <div class="flex px-3 my-1 text-gray-700" v-for="(log, index) in logs" :key="index">
+                            <div class="w-1/2">
+                                <div class="text-sm">{{index}}</div>
+                            </div>
+                            <div class="text-sm w-1/2">
+                                <div v-for="(logType, index) in log" :key="index">
+                                    <div v-for="(update, index) in logType" :key="index">
+                                        <span class="font-bold">{{index}}</span> - {{update.description}} to {{update.data}}
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -46,7 +51,7 @@ export default {
                 centered: "viewport"
             },
             logs: [],
-            loadingOddsHistory: true
+            isLoadingOrderLogs: true
         }
     },
     computed: {
@@ -64,6 +69,7 @@ export default {
         async setOrderLogs() {
             let orderLogs = await this.$store.dispatch('trade/getOrderLogs', this.market_id)
             this.logs = orderLogs
+            this.isLoadingOrderLogs = false
         }
     },
     directives: {
