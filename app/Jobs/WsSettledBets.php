@@ -30,8 +30,10 @@ class WsSettledBets implements ShouldQueue
      */
     public function handle()
     {
-        $status  = strtoupper($this->data->status);
-        $balance = 0;
+        $status     = strtoupper($this->data->status);
+        $balance    = 0;
+        $stake      = 0;
+        $sourceName = "RETURN_BET";
 
         if ($status == "WON") {
             $status = "WIN";
@@ -49,10 +51,6 @@ class WsSettledBets implements ShouldQueue
             ->where('user_id', $orders->user_id)
             ->first();
 
-        $sourceId = DB::table('sources')
-            ->where('source_name', 'LIKE', 'PLACE_BET')
-            ->first();
-
         $exchangeRate = DB::table('exchange_rates')
             ->where('from_currency_id', $this->providerCurrency)
             ->where('to_currency_id', 1)
@@ -60,39 +58,33 @@ class WsSettledBets implements ShouldQueue
 
         switch ($status) {
             case 'WIN':
-                $balance = $orders->to_win;
-                $debit   = 0;
-                $credit  = $balance;
+                $stake      = $orders->stake;
+                $balance    = $orders->to_win;
+                $debit      = 0;
+                $credit     = $balance;
+                $sourceName = "BET_WINNING";
 
                 break;
             case 'LOSE':
-                $balance = $orders->stake * -1;
-                $debit   = $balance;
-                $credit  = 0;
-
-                break;
-            case 'CANCELLED':
-                $balance = $orders->stake;
-                $debit   = 0;
-                $credit  = $balance;
-
-                break;
-            case 'REJECTED':
-                $balance = $orders->stake;
-                $debit   = 0;
-                $credit  = $balance;
+                $balance    = $orders->stake * -1;
+                $debit      = $balance;
+                $credit     = 0;
+                $sourceName = "BET_LOSS";
 
                 break;
             case 'HALF WIN':
-                $balance = $orders->to_win / 2;
-                $debit   = 0;
-                $credit  = $balance;
+                $stake      = $orders->stake;
+                $balance    = $orders->to_win / 2;
+                $debit      = 0;
+                $credit     = $balance;
+                $sourceName = "BET_WINNING";
 
                 break;
             case 'HALF LOSE':
-                $balance = ($orders->stake / 2) * -1;
-                $debit   = $balance;
-                $credit  = 0;
+                $balance    = $orders->stake / 2;
+                $debit      = $balance;
+                $credit     = 0;
+                $sourceName = "BET_LOSS";
 
                 break;
             case 'PUSH':
@@ -107,7 +99,41 @@ class WsSettledBets implements ShouldQueue
                 $credit  = $balance;
 
                 break;
+            case 'CANCELLED':
+                $balance = $orders->stake;
+                $debit   = 0;
+                $credit  = $balance;
+
+                break;
+            case 'REJECTED':
+                $balance = $orders->stake;
+                $debit   = 0;
+                $credit  = $balance;
+
+                break;
+            case 'ABNORMAL BET':
+                $balance = $orders->stake;
+                $debit   = 0;
+                $credit  = $balance;
+
+                break;
+            case 'REFUNDED':
+                $balance = $orders->stake;
+                $debit   = 0;
+                $credit  = $balance;
+
+                break;
         }
+
+        $balance += $stake;
+
+        $sourceId = DB::table('sources')
+            ->where('source_name', 'LIKE', $sourceName)
+            ->first();
+
+        $returnBetSourceId = DB::table('sources')
+            ->where('source_name', 'LIKE', 'RETURN_BET')
+            ->first();
 
         DB::table('orders')->where('bet_id', $this->data->bet_id)
             ->update(
@@ -177,5 +203,36 @@ class WsSettledBets implements ShouldQueue
                     'updated_at'          => Carbon::now(),
                 ]
             );
+
+        if ($stake != 0) {
+            $returnLedgerId = DB::table('wallet_ledger')
+                ->insertGetId(
+                    [
+                        'wallet_id'  => $userWallet->id,
+                        'source_id'  => $returnBetSourceId->id,
+                        'debit'      => 0,
+                        'credit'     => $stake,
+                        'balance'    => $newBalance,
+                        'created_at' => Carbon::now(),
+                        'updated_at' => Carbon::now(),
+                    ]
+                );
+
+            DB::table('order_transactions')
+                ->insert(
+                    [
+                        'order_logs_id'       => $orderLogsId,
+                        'user_id'             => $orders->user_id,
+                        'source_id'           => $returnBetSourceId->id,
+                        'currency_id'         => $this->providerCurrency,
+                        'wallet_ledger_id'    => $returnLedgerId,
+                        'provider_account_id' => $orders->provider_account_id,
+                        'reason'              => 'Returned Stake',
+                        'amount'              => $stake,
+                        'created_at'          => Carbon::now(),
+                        'updated_at'          => Carbon::now(),
+                    ]
+                );
+        }
     }
 }
