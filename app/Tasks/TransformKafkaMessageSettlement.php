@@ -29,9 +29,8 @@ class TransformKafkaMessageSettlement extends Task
                 if ($row['bet_id'] == $report->bet_id) {
                     if ($row['status'] == 'SUCCESS') {
                         WsSettledBets::dispatch($report, $providerId, $providerCurrency);
+                        $orders->del($key);
                     }
-
-                    $orders->del($key);
                 }
             }
         }
