@@ -229,7 +229,7 @@ class WsSettledBets implements ShouldQueue
              DB::table('order_transactions')->where('id', $order_transaction_id)
               ->update(
                     [
-                        'wallet_ledger_id'       => $ledger_id,
+                        'wallet_ledger_id'       => $ledger->id,
                     ]
                 );
 
@@ -253,12 +253,18 @@ class WsSettledBets implements ShouldQueue
                         'updated_at'          => Carbon::now(),
                     ]
                 );
+            $transfer_amount = $stake;
+            $receiver = // id of the user 
+             
+            $currency  = // currency id
+            $source =// source id 
+
             $charge_type='Credit';
             $ledger = UserWallet::makeTransaction($receiver, $transfer_amount, $currency, $source,$charge_type);
              DB::table('order_transactions')->where('id', $order_transaction_id)
               ->update(
                     [
-                        'wallet_ledger_id'       => $ledger_id,
+                        'wallet_ledger_id'       => $ledger->id,
                     ]
                 );
 
