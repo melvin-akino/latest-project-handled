@@ -1,5 +1,5 @@
 <template>
-    <div class="betbar flex flex-col w-full bg-gray-800 left-0 bottom-0 fixed shadow-inner" :class="{'openBetBar': isBetBarOpen}">
+    <div class="betbar flex flex-col w-full bg-gray-800 left-0 bottom-0 fixed shadow-inner z-30" :class="{'openBetBar': isBetBarOpen}">
         <div class="text-center text-white h-10 pt-2 cursor-pointer bg-orange-500" @click="toggleBetBar()">
             Recent Orders
             <span v-show="isBetBarOpen"><i class="fas fa-chevron-down"></i></span>
@@ -15,6 +15,7 @@
 import BetbarData from './BetbarData'
 import { mapState } from 'vuex'
 import Cookies from 'js-cookie'
+import _ from 'lodash'
 import { getSocketKey, getSocketValue } from '../../../helpers/socket'
 
 export default {
@@ -37,7 +38,9 @@ export default {
     },
     methods: {
         toggleBetBar() {
-            this.$store.commit('trade/TOGGLE_BETBAR', !this.isBetBarOpen)
+            if(!_.isEmpty(this.bets)) {
+                this.$store.commit('trade/TOGGLE_BETBAR', !this.isBetBarOpen)
+            }
         },
         getPriceFormat() {
             if(!this.$store.state.settings.defaultPriceFormat) {

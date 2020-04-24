@@ -16,7 +16,7 @@
             <a href="#" @click.prevent="showBetMatrix = true" class="text-center py-1 w-1/2" title="Bet Matrix"><i v-if="oddTypesWithBetMatrix.includes(bet.odd_type_id)" class="fas fa-chart-area"></i></a>
             <a href="#" @click.prevent="showOddsHistory = true" class="text-center py-1 w-1/2" title="Odds History"><i class="fas fa-bars"></i></a>
         </div>
-        <odds-history v-if="showOddsHistory" @close="closeOddsHistory" :market_id="bet.market_id" :logs="orderLogs"></odds-history>
+        <odds-history v-if="showOddsHistory" @close="closeOddsHistory" :market_id="bet.market_id"></odds-history>
         <bet-matrix v-if="showBetMatrix" @close="closeBetMatrix" :market_id="bet.market_id" :analysis-data="analysisData"></bet-matrix>
     </div>
 </template>
@@ -35,7 +35,6 @@ export default {
     },
     data() {
         return {
-            orderLogs: [],
             showOddsHistory: false,
             showBetMatrix: false,
             oddTypesWithBetMatrix: [3, 4, 11, 12]
@@ -59,19 +58,12 @@ export default {
             }
         }
     },
-    mounted() {
-        this.setOrderLogs(this.bet.market_id)
-    },
     methods: {
         closeOddsHistory() {
             this.showOddsHistory = false
         },
         closeBetMatrix() {
             this.showBetMatrix = false
-        },
-        async setOrderLogs(market_id) {
-            let orderLogs = await this.$store.dispatch('trade/getOrderLogs', market_id)
-            this.orderLogs = orderLogs
         }
     },
     filters: {

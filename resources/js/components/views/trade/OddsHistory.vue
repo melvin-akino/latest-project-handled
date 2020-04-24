@@ -8,14 +8,19 @@
                     </div>
                 </div>
                 <div class="flex flex-col orderLogs">
-                    <div class="flex px-3 my-1 text-gray-700" v-for="(log, index) in logs" :key="index">
-                        <div class="w-1/2">
-                            <div class="text-sm">{{index}}</div>
-                        </div>
-                        <div class="text-sm w-1/2">
-                            <div v-for="(logType, index) in log" :key="index">
-                                <div v-for="(update, index) in logType" :key="index">
-                                    <span class="font-bold">{{index}}</span> - {{update.description}} to {{update.data}}
+                    <div class="pl-2 py-4 text-gray-700" v-if="isLoadingOrderLogs">
+                        Loading order logs.. <span class="text-sm"><i class="fas fa-circle-notch fa-spin"></i></span>
+                    </div>
+                    <div v-else>
+                        <div class="flex px-3 my-1 text-gray-700" v-for="(log, index) in logs" :key="index">
+                            <div class="w-1/2">
+                                <div class="text-sm">{{index}}</div>
+                            </div>
+                            <div class="text-sm w-1/2">
+                                <div v-for="(logType, index) in log" :key="index">
+                                    <div v-for="(update, index) in logType" :key="index">
+                                        <span class="font-bold">{{index}}</span> - {{update.description}} to {{update.data}}
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -34,22 +39,38 @@ import 'vue-dialog-drag/dist/vue-dialog-drag.css'
 import DialogDrag from 'vue-dialog-drag'
 
 export default {
-    props: ['market_id', 'logs'],
+    props: ['market_id'],
     components: {
         DialogDrag
     },
     data() {
         return {
             options: {
-                width:515,
+                width:550,
                 buttonPin: false,
                 centered: "viewport"
             },
-            loadingOddsHistory: true
+            logs: [],
+            isLoadingOrderLogs: true
         }
     },
     computed: {
         ...mapState('trade', ['activeBetSlip'])
+    },
+    watch: {
+        market_id() {
+            this.setOrderLogs()
+        }
+    },
+    mounted() {
+        this.setOrderLogs()
+    },
+    methods: {
+        async setOrderLogs() {
+            let orderLogs = await this.$store.dispatch('trade/getOrderLogs', this.market_id)
+            this.logs = orderLogs
+            this.isLoadingOrderLogs = false
+        }
     },
     directives: {
         overlapAllOrderLogs: {

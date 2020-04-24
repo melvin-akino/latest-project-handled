@@ -1,6 +1,6 @@
 <template>
     <div class="betData">
-        <odds-history v-if="openedOddsHistory.includes(order.order_id)" @close="$emit('closeOddsHistory', order.order_id)" :market_id="order.market_id" :logs="orderLogs"></odds-history>
+        <odds-history v-if="openedOddsHistory.includes(order.order_id)" @close="$emit('closeOddsHistory', order.order_id)" :market_id="order.market_id"></odds-history>
         <bet-matrix v-if="openedBetMatrix.includes(order.order_id)" @close="$emit('closeBetMatrix', order.order_id)" :market_id="order.market_id" :analysis-data="analysisData"></bet-matrix>
     </div>
 </template>
@@ -18,13 +18,9 @@ export default {
     props: ['order', 'openedOddsHistory', 'openedBetMatrix'],
     data() {
         return {
-            orderLogs: [],
             showOddsHistory: false,
             showBetMatrix: false
         }
-    },
-    mounted() {
-        this.setOrderLogs(this.order.market_id)
     },
     computed: {
         ...mapState('settings', ['defaultPriceFormat']),
@@ -50,10 +46,6 @@ export default {
         },
         closeBetMatrix() {
             this.showBetMatrix = false
-        },
-        async setOrderLogs(market_id) {
-            let orderLogs = await this.$store.dispatch('trade/getOrderLogs', market_id)
-            this.orderLogs = orderLogs
         }
     }
 }
