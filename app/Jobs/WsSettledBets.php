@@ -6,7 +6,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
-
+use App\Models\UserWallet;
 class WsSettledBets implements ShouldQueue
 {
     use Dispatchable;
@@ -21,6 +21,24 @@ class WsSettledBets implements ShouldQueue
         $this->data             = $data;
         $this->providerId       = $providerId;
         $this->providerCurrency = $providerCurrency;
+    }
+
+    private function updateledger($whategerparametersisneeded)
+    {
+        // insert to order_transaction // ssource is now returned stake will ask ria about it 
+
+        // create insertion of wallet and walelt ledger
+        // value should all be part of parameter
+        $charge_type = 'Credit' // or Debit, paramater
+        $receiver = // id of the user 
+        $transfer_amount = //stake
+        $currency  = // currency id
+        $source =// source id 
+        /* important :: userwallet::maketransaction will update wallet table wallet depende on $charge_type
+          if $charge_tyoe =='Credit' , add amount to wallet  otherwise deduct
+
+        */
+        $ledger = UserWallet::makeTransaction($receiver, $transfer_amount, $currency, $source,$charge_type);
     }
 
     /**
@@ -55,6 +73,7 @@ class WsSettledBets implements ShouldQueue
             ->where('from_currency_id', $this->providerCurrency)
             ->where('to_currency_id', 1)
             ->first();
+        $stakereturntoledger=false
 
         switch ($status) {
             case 'WIN':
@@ -63,6 +82,8 @@ class WsSettledBets implements ShouldQueue
                 $debit      = 0;
                 $credit     = $balance;
                 $sourceName = "BET_WINNING";
+                $stakereturntoledger = true
+
 
                 break;
             case 'LOSE':
@@ -78,6 +99,7 @@ class WsSettledBets implements ShouldQueue
                 $debit      = 0;
                 $credit     = $balance;
                 $sourceName = "BET_WINNING";
+                $stakereturntoledger = true
 
                 break;
             case 'HALF LOSE':
@@ -163,6 +185,7 @@ class WsSettledBets implements ShouldQueue
                     'updated_at'    => Carbon::now(),
                 ]
             );
+            /*
 
         $balance   *= $exchangeRate->exchange_rate;
         $newBalance = $userWallet->balance + $balance;
@@ -186,7 +209,8 @@ class WsSettledBets implements ShouldQueue
                     'created_at' => Carbon::now(),
                     'updated_at' => Carbon::now(),
                 ]
-            );
+            );*/
+            
 
         DB::table('order_transactions')
             ->insert(
