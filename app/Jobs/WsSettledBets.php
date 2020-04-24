@@ -178,22 +178,6 @@ class WsSettledBets implements ShouldQueue
                     ]
                 );
 
-               $order_transaction_id = DB::table('order_transactions')
-                ->insert(
-                    [
-                        'order_logs_id'       => $orderLogsId,
-                        'user_id'             => $orders->user_id,
-                        'source_id'           => $sourceId->id,
-                        'currency_id'         => $userWallet->currency_id,
-                        'wallet_ledger_id'    => 0,
-                        'provider_account_id' => $orders->provider_account_id,
-                        'reason'              => $this->data->reason,
-                        'amount'              => $balance,
-                        'created_at'          => Carbon::now(),
-                        'updated_at'          => Carbon::now(),
-                    ]
-                );
-
             $charge_type     = $charge;
             $receiver        = $orders->user_id;
             $transfer_amount = $stake * $exchangeRate->exchange_rate;
