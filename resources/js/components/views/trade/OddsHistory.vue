@@ -34,22 +34,37 @@ import 'vue-dialog-drag/dist/vue-dialog-drag.css'
 import DialogDrag from 'vue-dialog-drag'
 
 export default {
-    props: ['market_id', 'logs'],
+    props: ['market_id'],
     components: {
         DialogDrag
     },
     data() {
         return {
             options: {
-                width:515,
+                width:550,
                 buttonPin: false,
                 centered: "viewport"
             },
+            logs: [],
             loadingOddsHistory: true
         }
     },
     computed: {
         ...mapState('trade', ['activeBetSlip'])
+    },
+    watch: {
+        market_id() {
+            this.setOrderLogs()
+        }
+    },
+    mounted() {
+        this.setOrderLogs()
+    },
+    methods: {
+        async setOrderLogs() {
+            let orderLogs = await this.$store.dispatch('trade/getOrderLogs', this.market_id)
+            this.logs = orderLogs
+        }
     },
     directives: {
         overlapAllOrderLogs: {

@@ -129,7 +129,7 @@
                 </div>
             </div>
         </dialog-drag>
-        <odds-history v-if="showOddsHistory" @close="closeOddsHistory" :market_id="market_id" :logs="orderLogs"></odds-history>
+        <odds-history v-if="showOddsHistory" @close="closeOddsHistory" :market_id="market_id"></odds-history>
         <bet-matrix v-if="showBetMatrix" @close="closeBetMatrix" :market_id="market_id" :analysis-data="analysisData"></bet-matrix>
     </div>
 </template>
@@ -175,7 +175,6 @@ export default {
                 centered: "viewport"
             },
             analysisData: {},
-            orderLogs: [],
             isPlacingOrder: null,
             isDoneBetting: false,
             isLoadingMarketDetails: true,
@@ -283,7 +282,6 @@ export default {
     mounted() {
         this.getMarketDetails()
         this.minmax(this.market_id)
-        this.setOrderLogs(this.market_id)
         this.setMinMaxProviders()
         this.$store.dispatch('trade/getBetSlipSettings')
     },
@@ -313,10 +311,6 @@ export default {
             enabledBookies.map(bookie => this.minMaxData.push({ provider_id: bookie.id, provider: bookie.alias, min: null, max: null, price: null, priority: null, age: null, hasMarketData: false }))
             this.marketDataMessage = 'Retrieving Market'
         },
-        async setOrderLogs(market_id) {
-            let orderLogs = await this.$store.dispatch('trade/getOrderLogs', market_id)
-            this.orderLogs = orderLogs
-        },
         changePoint(points, market_id, odds) {
             this.emptyMinMax(this.market_id)
             this.points = points
@@ -325,7 +319,6 @@ export default {
             this.setActiveBetSlip(market_id)
             this.minmax(market_id)
             this.showBetMatrix = false
-            this.setOrderLogs(market_id)
         },
         previousPoint() {
             if(this.activePointIndex != 0) {
