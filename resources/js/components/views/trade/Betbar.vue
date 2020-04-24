@@ -69,6 +69,7 @@ export default {
                                 bet.bet_info[4],
                                 bet.bet_info[5],
                             ])
+                            this.$store.dispatch('trade/getWalletData')
                         }
                     })
                 }
