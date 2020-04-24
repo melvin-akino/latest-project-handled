@@ -8,8 +8,10 @@
                     </div>
                 </div>
                 <div class="flex flex-col orderLogs">
-                    <div class="pl-2 py-4 text-gray-700" v-if="isLoadingOrderLogs">
-                        Loading order logs.. <span class="text-sm"><i class="fas fa-circle-notch fa-spin"></i></span>
+                    <div class="pl-2 py-4 text-gray-700" v-if="!retrievedOrderLogs">
+                        {{orderLogsPrompt}}
+                        <span class="text-sm pl-1" v-show="isLoadingOrderLogs"><i class="fas fa-circle-notch fa-spin"></i></span>
+                        <span class="text-sm pl-1" v-show="!isLoadingOrderLogs"><a href="#" class="text-sm underline" @click="getOrderLogs">Click here to try again</a></span>
                     </div>
                     <div v-else>
                         <div class="flex px-3 my-1 text-gray-700" v-for="(log, index) in logs" :key="index">
@@ -51,7 +53,9 @@ export default {
                 centered: "viewport"
             },
             logs: [],
-            isLoadingOrderLogs: true
+            isLoadingOrderLogs: true,
+            retrievedOrderLogs: false,
+            orderLogsPrompt: 'Loading order logs'
         }
     },
     computed: {
@@ -67,9 +71,25 @@ export default {
     },
     methods: {
         async setOrderLogs() {
-            let orderLogs = await this.$store.dispatch('trade/getOrderLogs', this.market_id)
-            this.logs = orderLogs
-            this.isLoadingOrderLogs = false
+            try {
+                let orderLogs = await this.$store.dispatch('trade/getOrderLogs', this.market_id)
+                this.logs = orderLogs
+                this.isLoadingOrderLogs = false
+                this.retrievedOrderLogs = true
+                this.orderLogsPrompt = ''
+            } catch(err) {
+                this.isLoadingOrderLogs = false
+                if(err.response.data.status_code == 504) {
+                    this.orderLogsPrompt = 'Cannot display order logs.'
+                } else {
+                    this.orderLogsPrompt = 'There was an error.'
+                }
+            }
+        },
+        getOrderLogs() {
+            this.isLoadingOrderLogs = true
+            this.orderLogsPrompt = 'Loading order logs'
+            this.setOrderLogs()
         }
     },
     directives: {
