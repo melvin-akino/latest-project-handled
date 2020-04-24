@@ -25,7 +25,7 @@ const mutations = {
 
 const actions = {
     checkIfTokenIsValid: ({commit}, status) => {
-        let allowedErrorStatuses = [422, 400]
+        let allowedErrorStatuses = [422, 400, 504]
         if(!allowedErrorStatuses.includes(status)) {
             location.reload('/login')
             Cookies.remove('mltoken')
