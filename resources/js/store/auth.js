@@ -31,7 +31,7 @@ const actions = {
             Cookies.remove('mltoken')
             Cookies.remove('display_name')
             setTimeout(() => {
-                commit('auth/SET_IS_AUTHENTICATED', false)
+                commit('SET_IS_AUTHENTICATED', false)
             }, 2000)
         }
     }
