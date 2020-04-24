@@ -218,25 +218,28 @@ class TradeController extends Controller
             /** Get Authenticated User's Default Initial Sport : Last Sport visited */
             $data = getUserDefault(auth()->user()->id, 'sport');
 
-            $leaguesQuery = DB::table('master_leagues')->where('sport_id', $data['default_sport'])->whereNull('deleted_at')->get();
+
             $dataSchedule = [
                 'inplay' => [],
                 'today'  => [],
                 'early'  => []
             ];
             foreach ($dataSchedule as $key => $sched) {
+                $leaguesQuery = DB::table('master_leagues')
+                    ->join('master_events', 'master_events.master_league_name', 'master_leagues.master_league_name')
+                    ->where('master_leagues.sport_id', $data['default_sport'])
+                    ->whereNull('master_leagues.deleted_at')
+                    ->whereNull('master_events.deleted_at')
+                    ->where('master_events.game_schedule', $key)
+                    ->groupBy('master_leagues.master_league_name')
+                    ->select('master_leagues.master_league_name', DB::raw('COUNT(master_leagues.master_league_name) as match_count'))
+                    ->get();
+
                 foreach ($leaguesQuery as $league) {
-                    $eventTodayCount = DB::table('master_events')
-                        ->where('master_league_name', $league->master_league_name)
-                        ->where('game_schedule', $key)
-                        ->whereNull('deleted_at')
-                        ->count();
-                    if ($eventTodayCount > 0) {
-                        $dataSchedule[$key][$league->master_league_name] = [
-                            'name'        => $league->master_league_name,
-                            'match_count' => $eventTodayCount
-                        ];
-                    }
+                    $dataSchedule[$key][$league->master_league_name] = [
+                        'name'        => $league->master_league_name,
+                        'match_count' => $league->match_count
+                    ];
                 }
                 $dataSchedule[$key] = array_values($dataSchedule[$key]);
             }
@@ -256,6 +259,7 @@ class TradeController extends Controller
                 'data'        => $dataSchedule
             ], 200);
         } catch (Exception $e) {
+            Log::error($e->getMessage());
             return response()->json([
                 'status'      => false,
                 'status_code' => 500,
