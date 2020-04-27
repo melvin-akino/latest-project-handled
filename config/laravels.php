@@ -73,7 +73,8 @@ return [
             // key format [teamLookUpId:unique()] = [value = $teamName]
             // key format [eventLookUpId:unique()] = [value = slug($masterEventUniqueId)]
             // key format [updatedEvents:$uid] = [value = json_encode([['market_id' => $marketId, 'odds' => $odds], ...])]
-            // key format [updatedEvents:$uid] = [value = true]
+            // key format [updatedEvents:$uid] = [value = $timestamp]
+            // key format [minmax-market:$marketId] = [value = true]
             'size'   => env('SWT_MAX_SIZE', 102400),// The max size
             'column' => [// Define the columns
                 ['name' => 'value', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 10000 ],

@@ -61,6 +61,15 @@ class KafkaConsume implements CustomProcessInterface
                                     Log::info("Min Max Transformation ignored - No Data Found");
                                     break;
                                 }
+
+                                if (!empty($payload->data->timestamp) && 
+                                    $swoole->wsTable->exist('minmax-market:' $payload->data->market_id) && 
+                                    $swoole->wsTable->get('minmax-market:' $payload->data->market_id)['value'] <= $payload->data->timestamp
+                                ) {
+                                    Log::info("Min Max Transformation ignored - Same or Old Timestamp");
+                                    break;
+                                }
+
                                 Task::deliver(new TransformKafkaMessageMinMax($payload));
                                 break;
                             case 'bet':
