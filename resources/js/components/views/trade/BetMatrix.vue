@@ -1,6 +1,6 @@
 <template>
     <div class="betMatrix text-sm">
-        <dialog-drag title="Bet Matrix" :options="options" @close="$emit('close')" v-overlap-all-bet-matrix="activeBetSlip==market_id">
+        <dialog-drag title="Bet Matrix" :options="options" @close="$emit('close')" v-bet-matrix="activeBetSlip==market_id">
             <div class="p-6">
                 <p class="text-gray-700 mb-2">Current Score: {{analysisData.bet_score}} - {{analysisData.against_score}}</p>
                 <div class="bg-gray-400 p-2">
@@ -49,7 +49,6 @@ export default {
             options: {
                 width: 868,
                 buttonPin: false,
-                centered: "viewport"
             },
             matrix_table: [],
             matrix_data: {
@@ -123,13 +122,20 @@ export default {
         }
     },
     directives: {
-        overlapAllBetMatrix: {
+        betMatrix: {
+            bind(el, binding, vnode) {
+                let { $set, options } = vnode.context
+                $set(options, 'top', window.innerHeight / 2)
+                $set(options, 'left', window.innerWidth / 2)
+            },
             componentUpdated(el, binding, vnode) {
                 if(binding.value) {
                     el.style.zIndex = '151'
                 } else {
                     el.style.zIndex = '102'
                 }
+                el.style.marginTop = 'calc(567px / 2 * -1)'
+                el.style.marginLeft = `calc(${el.offsetWidth}px / 2 * -1)`
             }
         }
     },

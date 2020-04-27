@@ -1,6 +1,6 @@
 <template>
     <div class="betslip flex justify-center items-center">
-        <dialog-drag :title="'Bet Slip - '+market_id" :options="options" @close="closeBetSlip(odd_details.market_id)" @click.native="setActiveBetSlip(market_id)" v-overlap-all-betslip="activeBetSlip==market_id">
+        <dialog-drag :title="'Bet Slip - '+market_id" :options="options" @close="closeBetSlip(odd_details.market_id)" @click.native="setActiveBetSlip(market_id)" v-betslip="activeBetSlip==market_id">
             <div class="flex flex-col justify-center items-center loader" v-if="isLoadingMarketDetails">
                 <span class="betSlipSpinner"><i class="fas fa-circle-notch fa-spin"></i></span>
                 <span class="text-center mt-2">Loading Market Details...</span>
@@ -172,7 +172,6 @@ export default {
             options: {
                 width: 825,
                 buttonPin: false,
-                centered: "viewport"
             },
             analysisData: {},
             isPlacingOrder: null,
@@ -556,13 +555,21 @@ export default {
         }
     },
     directives: {
-        overlapAllBetslip: {
+        betslip: {
+            bind(el, binding, vnode) {
+                let { $set, options } = vnode.context
+                $set(options, 'top', window.innerHeight / 2)
+                $set(options, 'left', window.innerWidth / 2)
+            },
             componentUpdated(el, binding, vnode)  {
                 if(binding.value) {
                     el.style.zIndex = '150'
                 } else {
                     el.style.zIndex = '101'
                 }
+
+                el.style.marginTop = 'calc(556px / 2 * -1)'
+                el.style.marginLeft = `calc(${el.offsetWidth}px / 2 * -1)`
             }
         }
     },
