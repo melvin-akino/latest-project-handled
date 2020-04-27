@@ -28,10 +28,10 @@ class TransformKafkaMessageMinMax extends Task
         $exchangeRatesTable = $swoole->exchangeRatesTable;
 
         try {
-            $wsTable->set('minmax-market:' $this->data->data->market_id, [
+            $wsTable->set('minmax-market:' . $this->data->data->market_id, [
                 'value' => $this->data->data->timestamp
             ]);
-            
+
             foreach ($minMaxRequests AS $key => $row) {
                 $data = $this->data->data;
                 if ($row['market_id'] == $data->market_id) {
