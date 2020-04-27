@@ -3,6 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\User;
+use App\Models\{
+    Source,
+    UserWallet
+};
 use App\Auth\PasswordReset;
 
 use App\Http\Requests\Auth\{ChangePasswordRequests, ForgotPasswordRequests, LoginRequests, RegistrationRequests};
@@ -60,6 +64,11 @@ class AuthController extends Controller
         ]);
 
         $user->save();
+
+        $sourceId = Source::getIdByName('REGISTRATION');
+
+        UserWallet::makeTransaction($user->id, 0, $request->currency_id, $sourceId, 'Credit');
+
         $user->notify(
             new RegistrationMail($request->name)
         );
