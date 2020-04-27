@@ -12,7 +12,7 @@ class AddRegistrationSource extends Seeder
      */
     public function run()
     {
-        Source::create([
+        Source::firstOrCreate([
             'source_name' => "REGISTRATION",
         ]);
     }
