@@ -70,7 +70,7 @@ export default {
                         .then(response => {
                             this.$store.commit('settings/SET_DEFAULT_TIMEZONE', response)
                             setInterval(() => {
-                                this.time = moment().tz(this.defaultTimezone.name).format('hh:mm:ss')
+                                this.time = moment().tz(this.defaultTimezone.name).format('HH:mm:ss')
                             }, 1000)
                         })
                     }

@@ -52,6 +52,7 @@ class TradeController extends Controller
                     'me.master_home_team_name',
                     'me.master_away_team_name',
                     'me.score',
+                    'me.game_schedule',
                     'mem.market_flag',
                     'ot.id AS odd_type_id',
                     'sot.name',
@@ -84,6 +85,7 @@ class TradeController extends Controller
                     $points = DB::table('event_markets AS em')
                     ->where('em.master_event_unique_id', $betData->master_event_unique_id)
                     ->where('em.odd_type_id', $betData->odd_type_id)
+                    ->where('em.market_flag', $betData->market_flag)
                     ->select([
                         'em.odd_label'
                     ])
@@ -95,6 +97,7 @@ class TradeController extends Controller
                         'market_id'      => $betData->master_event_market_unique_id,
                         'odd_type_id'    => $betData->odd_type_id,
                         'league_name'    => $betData->master_league_name,
+                        'game_schedule'  => $betData->game_schedule,
                         'home'           => $betData->master_home_team_name,
                         'away'           => $betData->master_away_team_name,
                         'bet_info'       => [
@@ -102,8 +105,10 @@ class TradeController extends Controller
                             $betData->name,
                             $betData->odds,
                             $betData->stake,
-                            $points->odd_label
+                            $points->odd_label,
+                            $betData->market_flag == 'HOME' ? $betData->master_home_team_name : $betData->master_away_team_name
                         ],
+                        'score'          => $betData->score,
                         'bet_score'      => $betData->market_flag == 'HOME' ? $score[0] : $score[1],
                         'against_score'  => $betData->market_flag == 'HOME' ? $score[1] : $score[0],
                         'status'         => $betData->status,
@@ -213,25 +218,28 @@ class TradeController extends Controller
             /** Get Authenticated User's Default Initial Sport : Last Sport visited */
             $data = getUserDefault(auth()->user()->id, 'sport');
 
-            $leaguesQuery = DB::table('master_leagues')->where('sport_id', $data['default_sport'])->whereNull('deleted_at')->get();
+
             $dataSchedule = [
                 'inplay' => [],
                 'today'  => [],
                 'early'  => []
             ];
             foreach ($dataSchedule as $key => $sched) {
+                $leaguesQuery = DB::table('master_leagues')
+                    ->join('master_events', 'master_events.master_league_name', 'master_leagues.master_league_name')
+                    ->where('master_leagues.sport_id', $data['default_sport'])
+                    ->whereNull('master_leagues.deleted_at')
+                    ->whereNull('master_events.deleted_at')
+                    ->where('master_events.game_schedule', $key)
+                    ->groupBy('master_leagues.master_league_name')
+                    ->select('master_leagues.master_league_name', DB::raw('COUNT(master_leagues.master_league_name) as match_count'))
+                    ->get();
+
                 foreach ($leaguesQuery as $league) {
-                    $eventTodayCount = DB::table('master_events')
-                        ->where('master_league_name', $league->master_league_name)
-                        ->where('game_schedule', $key)
-                        ->whereNull('deleted_at')
-                        ->count();
-                    if ($eventTodayCount > 0) {
-                        $dataSchedule[$key][$league->master_league_name] = [
-                            'name'        => $league->master_league_name,
-                            'match_count' => $eventTodayCount
-                        ];
-                    }
+                    $dataSchedule[$key][$league->master_league_name] = [
+                        'name'        => $league->master_league_name,
+                        'match_count' => $league->match_count
+                    ];
                 }
                 $dataSchedule[$key] = array_values($dataSchedule[$key]);
             }
@@ -251,6 +259,7 @@ class TradeController extends Controller
                 'data'        => $dataSchedule
             ], 200);
         } catch (Exception $e) {
+            Log::error($e->getMessage());
             return response()->json([
                 'status'      => false,
                 'status_code' => 500,

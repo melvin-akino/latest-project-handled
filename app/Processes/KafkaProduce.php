@@ -91,7 +91,7 @@ class KafkaProduce implements CustomProcessInterface
                         foreach ($sportsTable AS $sKey => $sRow) {
                             $sportId = $sportsTable->get($sKey)['id'];
 
-                            if ($newTime->diffInSeconds(Carbon::parse($openOrderInitialTime)) >= (60 * 10)) {
+                            if ($newTime->diffInSeconds(Carbon::parse($openOrderInitialTime)) >= (60 * 3)) {
                                 foreach ($providerAccountsTable AS $pKey => $pRow) {
                                     $providerAlias = strtolower($pRow['provider_alias']);
                                     $username      = $pRow['username'];
@@ -119,7 +119,7 @@ class KafkaProduce implements CustomProcessInterface
 
                             //checking if 30 minutest interval
                             // if ($newTime->diffInSeconds(Carbon::parse($providerAccountInitialTime)) >= (60 * 30)) {
-                            if ($newTime->diffInSeconds(Carbon::parse($providerAccountInitialTime)) >= (60)) {
+                            if ($newTime->diffInSeconds(Carbon::parse($providerAccountInitialTime)) >= (60 * 30)) {
                                 foreach ($providerAccountsTable AS $sKey => $sRow) {
                                     $providerAlias = strtolower($sRow['provider_alias']);
                                     $username      = $sRow['username'];

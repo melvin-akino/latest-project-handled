@@ -1,12 +1,17 @@
 <template>
-    <div class="betbar flex flex-col w-full bg-gray-800 left-0 bottom-0 fixed shadow-inner" :class="{'openBetBar': isBetBarOpen}">
+    <div class="betbar flex flex-col w-full bg-gray-800 left-0 bottom-0 fixed shadow-inner z-30" :class="{'openBetBar': isBetBarOpen}">
         <div class="text-center text-white h-10 pt-2 cursor-pointer bg-orange-500" @click="toggleBetBar()">
             Recent Orders
             <span v-show="isBetBarOpen"><i class="fas fa-chevron-down"></i></span>
             <span v-show="!isBetBarOpen"><i class="fas fa-chevron-up"></i></span>
         </div>
         <div class="overflow-y-auto" v-show="isBetBarOpen">
-            <betbar-data v-for="bet in bets" :key="bet.order_id" :bet="bet"></betbar-data>
+            <div v-if="bets.length == 0">
+                <div class="text-base text-white text-center">No recent orders.</div>
+            </div>
+            <div v-else>
+                <betbar-data v-for="bet in bets" :key="bet.order_id" :bet="bet"></betbar-data>
+            </div>
         </div>
     </div>
 </template>
@@ -15,6 +20,7 @@
 import BetbarData from './BetbarData'
 import { mapState } from 'vuex'
 import Cookies from 'js-cookie'
+import _ from 'lodash'
 import { getSocketKey, getSocketValue } from '../../../helpers/socket'
 
 export default {
@@ -61,6 +67,15 @@ export default {
                     this.bets.map(bet => {
                         if(bet.order_id == orderStatus.order_id) {
                             this.$set(bet, 'status', orderStatus.status)
+                            this.$set(bet, 'bet_info', [
+                                bet.bet_info[0],
+                                bet.bet_info[1],
+                                orderStatus.odds,
+                                bet.bet_info[3],
+                                bet.bet_info[4],
+                                bet.bet_info[5],
+                            ])
+                            this.$store.dispatch('trade/getWalletData')
                         }
                     })
                 }

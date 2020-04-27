@@ -6,27 +6,27 @@
                 <span class="text-center mt-2">Loading Market Details...</span>
             </div>
             <div class="container mx-auto p-2" v-else>
-                <div class="flex items-center w-1/2 leagueAndTeamDetails">
-                    <span class="text-white uppercase font-bold mr-2 my-2 px-2 bg-orange-500">{{market_details.odd_type}}</span>
-                    <span class="text-gray-800 font-bold my-2 pr-6">{{market_details.league_name}}</span>
-                    <a href="#" @click.prevent="showBetMatrix = true" class="text-center py-1 pr-1" title="Bet Matrix" v-if="oddTypesWithSpreads.includes(market_details.odd_type) && isDoneBetting && isBetSuccessful"><i class="fas fa-chart-area"></i></a>
-                    <a href="#" @click.prevent="showOddsHistory = true" class="text-center py-1" title="Odds History"><i class="fas fa-bars"></i></a>
-                </div>
                 <div class="flex justify-between items-center w-full leagueAndTeamDetails">
-                    <div class="flex w-3/4 items-center">
-                        <div class="home p-3" :class="[market_details.market_flag==='HOME' ? 'mr-2 bg-white shadow-xl' : '']">
-                            <span class="font-bold bg-green-500 text-white mr-1 p-2 rounded-lg">Home</span>
-                            <span class="w-full text-gray-800 font-bold">{{market_details.home}}</span>
-                        </div>
-                        <span class="text-sm text-gray-800">VS.</span>
-                        <div class="away p-3" :class="[market_details.market_flag==='AWAY' ? 'ml-2 bg-white shadow-xl' : '']">
-                            <span class="font-bold bg-red-600 text-white mr-1 p-2 rounded-lg">Away</span>
-                            <span class="w-full text-gray-800 font-bold">{{market_details.away}}</span>
-                        </div>
+                    <div class="flex items-center">
+                        <span class="text-white uppercase font-bold mr-2 my-2 px-2 bg-orange-500">{{market_details.odd_type}}</span>
+                        <span class="text-gray-800 font-bold my-2 pr-6">{{market_details.league_name}}</span>
+                        <a href="#" @click.prevent="showBetMatrix = true" class="text-center py-1 pr-1" title="Bet Matrix" v-if="oddTypesWithSpreads.includes(market_details.odd_type) && isDoneBetting && isBetSuccessful"><i class="fas fa-chart-area"></i></a>
+                        <a href="#" @click.prevent="showOddsHistory = true" class="text-center py-1" title="Odds History"><i class="fas fa-bars"></i></a>
                     </div>
                     <div class="flex items-center">
                         <a href="#" class="text-center py-1 pr-1 mr-2"><i class="far fa-calendar-alt"></i> {{formattedRefSchedule[0]}}</a>
                         <a href="#" class="text-center py-1"><i class="far fa-clock"></i> {{formattedRefSchedule[1]}}</a>
+                    </div>
+                </div>
+                <div class="flex items-center w-full leagueAndTeamDetails">
+                    <div class="home py-3" :class="[market_details.market_flag==='HOME' ? 'bg-white shadow-xl p-3' : '']">
+                        <span class="font-bold bg-green-500 text-white mr-1 p-2 rounded-lg">Home</span>
+                        <span class="w-full text-gray-800 font-bold">{{market_details.home}}</span>
+                    </div>
+                    <span class="text-sm text-gray-800 px-3">VS.</span>
+                    <div class="away py-3" :class="[market_details.market_flag==='AWAY' ? 'bg-white shadow-xl p-3' : '']">
+                        <span class="font-bold bg-red-600 text-white mr-1 p-2 rounded-lg">Away</span>
+                        <span class="w-full text-gray-800 font-bold">{{market_details.away}}</span>
                     </div>
                 </div>
                 <div class="flex w-full">
@@ -129,7 +129,7 @@
                 </div>
             </div>
         </dialog-drag>
-        <odds-history v-if="showOddsHistory" @close="closeOddsHistory" :market_id="market_id" :logs="orderLogs"></odds-history>
+        <odds-history v-if="showOddsHistory" @close="closeOddsHistory" :market_id="market_id"></odds-history>
         <bet-matrix v-if="showBetMatrix" @close="closeBetMatrix" :market_id="market_id" :analysis-data="analysisData"></bet-matrix>
     </div>
 </template>
@@ -175,7 +175,6 @@ export default {
                 centered: "viewport"
             },
             analysisData: {},
-            orderLogs: [],
             isPlacingOrder: null,
             isDoneBetting: false,
             isLoadingMarketDetails: true,
@@ -189,6 +188,7 @@ export default {
     },
     computed: {
         ...mapState('trade', ['activeBetSlip', 'bookies', 'betSlipSettings', 'wallet']),
+        ...mapState('settings', ['defaultPriceFormat']),
         spreads() {
             if(!_.isEmpty(this.market_details)) {
                 return this.market_details.spreads
@@ -282,7 +282,6 @@ export default {
     mounted() {
         this.getMarketDetails()
         this.minmax(this.market_id)
-        this.setOrderLogs(this.market_id)
         this.setMinMaxProviders()
         this.$store.dispatch('trade/getBetSlipSettings')
     },
@@ -312,10 +311,6 @@ export default {
             enabledBookies.map(bookie => this.minMaxData.push({ provider_id: bookie.id, provider: bookie.alias, min: null, max: null, price: null, priority: null, age: null, hasMarketData: false }))
             this.marketDataMessage = 'Retrieving Market'
         },
-        async setOrderLogs(market_id) {
-            let orderLogs = await this.$store.dispatch('trade/getOrderLogs', market_id)
-            this.orderLogs = orderLogs
-        },
         changePoint(points, market_id, odds) {
             this.emptyMinMax(this.market_id)
             this.points = points
@@ -324,7 +319,6 @@ export default {
             this.setActiveBetSlip(market_id)
             this.minmax(market_id)
             this.showBetMatrix = false
-            this.setOrderLogs(market_id)
         },
         previousPoint() {
             if(this.activePointIndex != 0) {
@@ -538,7 +532,11 @@ export default {
                             price: Math.floor(averagePrice * 100) / 100,
                             bet_score: this.bet_score,
                             against_score: this.against_score,
-                            odd_type: this.market_details.odd_type
+                            odd_type: this.market_details.odd_type,
+                            created_at: response.data.created_at,
+                            bet_team: this.market_details.market_flag == "HOME" ?  this.market_details.home :  this.market_details.away,
+                            price_format: this.defaultPriceFormat,
+                            currency_symbol: this.wallet.currency_symbol
                         }
                     }
 

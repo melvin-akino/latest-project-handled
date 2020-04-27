@@ -1,7 +1,7 @@
 <template>
     <div class="text-white mb-2 pl-4 shadow-xl">
         <div class="flex flex-col overflow-hidden">
-            <div class="sports overflow-y-auto flex flex-col bg-white text-gray-700">
+            <div class="sports flex flex-col bg-white text-gray-700">
                 <div class="sport" v-for="(sport, index) in sportsList" :key="sport.id">
                     <div class="flex text-left text-sm py-1 px-6"  :class="[selectedSport == sport.id ? 'bg-gray-900 text-white' : '']" >
                         <button type="button" class="flex justify-between items-center w-full focus:outline-none" @click="selectSport(sport.id)">
@@ -67,6 +67,7 @@ export default {
                 this.$store.commit('trade/SET_SELECTED_SPORT', sport)
                 this.$store.dispatch('trade/getBetColumns', this.selectedSport)
                 this.$socket.send(`getSelectedSport_${sport}`)
+                this.$store.dispatch('trade/getInitialLeagues')
                 this.$store.dispatch('trade/getInitialEvents')
             }
         }
@@ -75,11 +76,6 @@ export default {
 </script>
 
 <style>
-    .sports {
-        max-height:440px;
-        overflow-y:auto;
-    }
-
     .sportsIcon {
         font-size: 18px !important;
     }

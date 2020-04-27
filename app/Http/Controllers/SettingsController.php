@@ -39,7 +39,6 @@ class SettingsController extends Controller
                         'city'                  => $request->city,
                         'postcode'              => $request->postcode,
                         'phone'                 => $request->phone,
-                        'currency_id'           => $request->currency_id,
                     ]);
             } else if ($type == 'change-password') {
                 $user = User::find(auth()->user()->id);

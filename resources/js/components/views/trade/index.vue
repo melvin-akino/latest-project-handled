@@ -2,7 +2,7 @@
     <div class="trade">
         <div class="flex" v-adjust-trade-window-height="isBetBarOpen">
             <div class="w-1/6">
-                <div class="fixed sidebar bg-gray-800 w-1/6 h-screen pr-4">
+                <div class="fixed sidebar bg-gray-800 w-1/6 pr-4 overflow-y-auto h-screen" v-adjust-sidebar-height="isBetBarOpen">
                     <Wallet></Wallet>
                     <Watchlist :watchlist="events.watchlist"></Watchlist>
                     <Sports></Sports>
@@ -336,6 +336,15 @@ export default {
                 if(binding.value) {
                     el.style.height = 'calc(100vh - 256px)'
                     el.style.overflowY = 'auto'
+                } else {
+                    el.style.height = 'calc(100vh - 104px)'
+                }
+            }
+        },
+        adjustSidebarHeight: {
+            update(el, binding, vnode) {
+                if(binding.value) {
+                    el.style.height = 'calc(100vh - 256px)'
                 } else {
                     el.style.height = 'calc(100vh - 104px)'
                 }

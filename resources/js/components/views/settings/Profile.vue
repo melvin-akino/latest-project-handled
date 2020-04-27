@@ -66,15 +66,7 @@
                 </div>
                 <div class="w-1/3">
                     <label class="block capitalize text-gray-700 text-sm">Currency</label>
-                    <div class="relative">
-                        <select class="shadow appearance-none border w-full rounded py-2 px-3 text-gray-700 text-sm leading-tight focus:outline-none" :class="{'border-red-600': profileSettingsFormError.hasOwnProperty('currency_id')}" id="currency_id" v-model="profileSettingsForm.currency_id">
-                            <option v-for="currency in currencies" :key="currency.id" :value="currency.id" :selected="currency.id === profileSettingsForm.currency_id">{{currency.currency}}</option>
-                        </select>
-                        <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
-                            <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
-                        </div>
-                    </div>
-                    <span v-if="profileSettingsFormError.hasOwnProperty('currency_id')" class="text-xs text-red-600">{{profileSettingsFormError.currency_id[0]}}</span>
+                    <input type="text" id="currency" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 text-sm leading-tight focus:outline-none" :value="userCurrency" disabled>
                 </div>
             </div>
             <div class="mt-4">
@@ -116,6 +108,7 @@
 </template>
 
 <script>
+import _ from 'lodash';
 import Cookies from 'js-cookie'
 import Swal from 'sweetalert2'
 
@@ -135,6 +128,14 @@ export default {
             ],
             profileSettingsFormError: {},
             isChangingPassword: false
+        }
+    },
+    computed: {
+        userCurrency() {
+            if(!_.isEmpty(this.profileSettingsForm)) {
+                let currency = this.currencies.filter(currency => currency.id == this.profileSettingsForm.currency_id)[0]
+                return currency.currency
+            }
         }
     },
     head: {
@@ -170,8 +171,7 @@ export default {
                 state: this.profileSettingsForm.state,
                 city: this.profileSettingsForm.city,
                 postcode: `${this.profileSettingsForm.postcode}`,
-                phone: this.profileSettingsForm.phone,
-                currency_id: this.profileSettingsForm.currency_id
+                phone: this.profileSettingsForm.phone
             }
 
             axios.post('/v1/user/settings/profile', data, { headers: { 'Authorization': `Bearer ${token}` } })

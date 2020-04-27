@@ -63,6 +63,7 @@ class TransformKafkaMessageOdds extends Task
             }
 
             $toInsert = [];
+            $this->subTasks['remove-previous-market'] = [];
 
             /** DATABASE TABLES */
             /** LOOK-UP TABLES */
@@ -234,7 +235,7 @@ class TransformKafkaMessageOdds extends Task
                         return;
                     }
 
-                    if ($eventsTable->get($eventSwtId)['game_schedule'] != $this->message->data->schedule) {
+                    if (($eventsTable->get($eventSwtId)['game_schedule'] != "") && ($eventsTable->get($eventSwtId)['game_schedule'] != $this->message->data->schedule)) {
                         $this->subTasks['remove-previous-market'][] = [
                             'uid'    => $uid,
                             'swtKey' => implode(':', [
@@ -250,6 +251,8 @@ class TransformKafkaMessageOdds extends Task
                                 'sport_id'      => $sportId
                             ])
                         ]);
+
+                        $eventsTable[$eventSwtId]['game_schedule'] = $this->message->data->schedule;
                     }
                 } else {
                     $masterTeamHome = $multiTeam['home']['name'];
