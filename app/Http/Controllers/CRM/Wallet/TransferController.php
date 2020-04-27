@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\{Auth,DB};
 
 class TransferController extends Controller
 {
-   
+
     public function index(Request $request)
     {
         if(!in_array($request->type, ['Deposit', 'Withdraw']))  $request->type = 'Deposit';
@@ -31,12 +31,12 @@ class TransferController extends Controller
     public function dataTable(Request $request)
     {
         return dataTable($request,  User::leftjoin('wallet','users.id','=','wallet.user_id')->leftjoin('currency','users.currency_id','currency.id')->select('users.id as userid','users.firstname','users.lastname','users.email', 'currency.code','wallet.balance','users.currency_id'), ['firstname', 'lastname', 'email']);
-        
+
     }
 
     public function transfer(TransferRequest $request)
     {
-        
+
         $sender = Auth::guard('crm')->user();
         $mode   = $request->mode;
         $amount = $request->transfer_amount;
@@ -65,7 +65,7 @@ class TransferController extends Controller
             $mode_text       = 'deducted';
             $source          = Source::where('source_name', 'WITHDRAW')->first();
         }
-        
+
 
         try {
             DB::beginTransaction();
@@ -78,7 +78,7 @@ class TransferController extends Controller
                 'user_id'         => $receiver->id
             ]);
 
-            $ledger = UserWallet::makeTransaction($receiver, $request->transfer_amount, $currency, $source,$charge_type);
+            $ledger = UserWallet::makeTransaction($receiver->id, $request->transfer_amount, $currency->id, $source->id, $charge_type);
             $crm_transfer_update = CrmTransfer::find($crm_transfer->id);
             $crm_transfer_update->wallet_ledger_id = $ledger->id;
             $crm_transfer_update->save();
