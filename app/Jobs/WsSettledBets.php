@@ -2,11 +2,13 @@
 
 namespace App\Jobs;
 
+use App\Models\UserWallet;
+
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\{DB, Log};
 use Carbon\Carbon;
-use App\Models\UserWallet;
+
 class WsSettledBets implements ShouldQueue
 {
     use Dispatchable;
@@ -34,7 +36,7 @@ class WsSettledBets implements ShouldQueue
         $balance             = 0;
         $stake               = 0;
         $sourceName          = "RETURN_STAKE";
-        $stakereturntoledger = false;
+        $stakeReturnToLedger = false;
 
         if ($status == "WON") {
             $status = "WIN";
@@ -64,7 +66,7 @@ class WsSettledBets implements ShouldQueue
                 $debit               = 0;
                 $credit              = $balance;
                 $sourceName          = "BET_WIN";
-                $stakereturntoledger = true;
+                $stakeReturnToLedger = true;
                 $charge              = 'Credit';
 
                 break;
@@ -82,7 +84,7 @@ class WsSettledBets implements ShouldQueue
                 $debit               = 0;
                 $credit              = $balance;
                 $sourceName          = "BET_HALF_WIN";
-                $stakereturntoledger = true;
+                $stakeReturnToLedger = true;
                 $charge              = 'Credit';
 
                 break;
@@ -178,12 +180,12 @@ class WsSettledBets implements ShouldQueue
                     ]
                 );
 
-            $charge_type     = $charge;
-            $receiver        = $orders->user_id;
-            $transfer_amount = $stake * $exchangeRate->exchange_rate;
-            $currency        = $userWallet->currency_id;
-            $source          = $sourceId->id;
-            $ledger          = UserWallet::makeTransaction($receiver, $transfer_amount, $currency, $source, $charge_type);
+            $chargeType     = $charge;
+            $receiver       = $orders->user_id;
+            $transferAmount = $stake * $exchangeRate->exchange_rate;
+            $currency       = $userWallet->currency_id;
+            $source         = $sourceId->id;
+            $ledger         = UserWallet::makeTransaction($receiver, $transferAmount, $currency, $source, $chargeType);
 
             DB::table('order_transactions')
                 ->insert(
@@ -201,13 +203,13 @@ class WsSettledBets implements ShouldQueue
                     ]
                 );
 
-            if ($stakereturntoledger == true) {
-                $transfer_amount = $stake;
-                $receiver        = $orders->user_id;
-                $currency        = $userWallet->currency_id;
-                $source          = $returnBetSourceId->id;
-                $charge_type     = "Credit";
-                $ledger          = UserWallet::makeTransaction($receiver, $transfer_amount, $currency, $source, $charge_type);
+            if ($stakeReturnToLedger == true) {
+                $transferAmount = $stake;
+                $receiver       = $orders->user_id;
+                $currency       = $userWallet->currency_id;
+                $source         = $returnBetSourceId->id;
+                $chargeType     = "Credit";
+                $ledger         = UserWallet::makeTransaction($receiver, $transferAmount, $currency, $source, $chargeType);
 
                 DB::table('order_transactions')
                     ->insert(
@@ -228,7 +230,7 @@ class WsSettledBets implements ShouldQueue
 
             DB::commit();
         } catch (\Exception $e) {
-            \Log::error(json_encode(
+            Log::error(json_encode(
                 [
                     'message' => $e->getMessage(),
                     'line'    => $e->getLine(),
