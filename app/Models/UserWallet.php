@@ -1,12 +1,13 @@
 <?php
 
 namespace App\Models;
-use Exception;
-use Illuminate\Database\Eloquent\Model;
+
 use App\User;
 use App\Models\{Currency, Source};
 use App\Models\CRM\WalletLedger;
 
+use Exception;
+use Illuminate\Database\Eloquent\Model;
 
 class UserWallet extends Model
 {
@@ -16,18 +17,18 @@ class UserWallet extends Model
         'currency_id',
         'user_id'
     ];
-    
+
     const TYPE_CHARGE           = 'Credit';
     const TYPE_DISCHARGE        = 'Debit';
     const ERR_WALLET_DEDUCT     = 'Wallet Deduction Exceeded';
     const ERR_NEW_WALLET_DEDUCT = 'Currency not Set';
 
-    public function Order() {
-
+    public function Order()
+    {
         return $this->hasMany('App\Models\Order','user_id','user_id');
-
     }
-      public function account()
+
+    public function account()
     {
         return $this->belongsTo(User::class, 'user_id')->select([
             "id",
@@ -35,10 +36,10 @@ class UserWallet extends Model
             "lastname",
             "email",
             "name",
-          
         ]);
     }
-     public function wallet_ledger()
+
+    public function wallet_ledger()
     {
         return $this->hasMany(WalletLedger::class, 'wallet_id');
     }
@@ -47,15 +48,15 @@ class UserWallet extends Model
     {
         return $this->belongsTo(Currency::class, 'currency_id');
     }
-    public static function makeTransaction(User $receiver, $amount, Currency $currency, Source $source, $type)
-    {
 
-        $wallet = null;
-        $debit  = doubleval(0);
-        $credit = doubleval(0);
+    public static function makeTransaction($receiver, $amount, $currency, $source, $type)
+    {
+        $receiver = User::find($receiver);
+        $wallet   = null;
+        $debit    = doubleval(0);
+        $credit   = doubleval(0);
 
         if (!$receiver->wallet()->count()) {
-
             if($type == self::TYPE_DISCHARGE) {
                 // no account yet but already deducted
                 throw new Exception(self::ERR_NEW_WALLET_DEDUCT);
@@ -63,15 +64,15 @@ class UserWallet extends Model
 
             $wallet = $receiver->wallet()->create([
                 'balance'     => $amount,
-                'currency_id' => $currency->id
+                'currency_id' => $currency
             ]);
         } else {
-            $wallet = $receiver->wallet()->where('currency_id', $currency->id)->first();
+            $wallet = $receiver->wallet()->where('currency_id', $currency)->first();
 
             if (is_null($wallet)) {
                 $wallet = $receiver->wallet()->create([
                     'balance'     => $amount,
-                    'currency_id' => $currency->id
+                    'currency_id' => $currency
                 ]);
             } else {
                 if ($type == self::TYPE_CHARGE) {
@@ -80,8 +81,10 @@ class UserWallet extends Model
                     if($wallet->balance < $amount){
                         throw new Exception(self::ERR_WALLET_DEDUCT);
                     }
+
                     $wallet->balance -= $amount;
                 }
+
                 $wallet->save();
             }
         }
@@ -94,7 +97,7 @@ class UserWallet extends Model
 
         return WalletLedger::create([
             'wallet_id' => $wallet->id,
-            'source_id' => $source->id,
+            'source_id' => $source,
             'debit'     => $debit,
             'credit'    => $credit,
             'balance'   => $wallet->balance
