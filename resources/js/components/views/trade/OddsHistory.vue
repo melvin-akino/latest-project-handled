@@ -1,6 +1,6 @@
 <template>
     <div class="oddsHistory text-sm">
-        <dialog-drag title="Order Logs" :options="options" @close="$emit('close')" v-overlap-all-order-logs="activeBetSlip==market_id">
+        <dialog-drag title="Order Logs" :options="options" @close="$emit('close')" v-order-logs="activeBetSlip==market_id">
             <div class="flex flex-col">
                 <div class="bg-gray-800 w-full p-2">
                     <div class="container mx-auto">
@@ -50,7 +50,6 @@ export default {
             options: {
                 width:550,
                 buttonPin: false,
-                centered: "viewport"
             },
             logs: [],
             isLoadingOrderLogs: true,
@@ -93,13 +92,17 @@ export default {
         }
     },
     directives: {
-        overlapAllOrderLogs: {
+        orderLogs: {
             bind(el, binding, vnode) {
                 if(binding.value) {
                     el.style.zIndex = '152'
                 } else {
                     el.style.zIndex = '103'
                 }
+
+                let { $set, options } = vnode.context
+                $set(options, 'top', window.innerHeight / 2)
+                $set(options, 'left', window.innerWidth / 2)
             },
             componentUpdated(el, binding, vnode) {
                 if(binding.value) {
@@ -107,6 +110,9 @@ export default {
                 } else {
                     el.style.zIndex = '103'
                 }
+
+                el.style.marginTop = 'calc(316px / 2 * -1)'
+                el.style.marginLeft = `calc(${el.offsetWidth}px / 2 * -1)`
             }
         }
     }
