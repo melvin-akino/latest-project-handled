@@ -32,6 +32,13 @@ class TransformKafkaMessageMinMax extends Task
                 'value' => $this->data->data->timestamp
             ]);
 
+            Log::info(json_encode(
+                [
+                    'qwe' => 'test',
+                    'asd' => json_encode($minMaxRequests),
+                ]
+            ));
+
             foreach ($minMaxRequests AS $key => $row) {
                 $data = $this->data->data;
                 if ($row['market_id'] == $data->market_id) {
@@ -42,8 +49,15 @@ class TransformKafkaMessageMinMax extends Task
                             $userId = explode(':', $_key)[1];
                             $fd     = $wsTable->get('uid:' . $userId);
 
+                            Log::info(json_encode(
+                                [
+                                    'memuid' => $memUID,
+                                    'if'     => !empty($this->data->message) && $this->data->message != 'onqueue' ? "true" : "false",
+                                    'elseif' => $this->data->message == 'onqueue' ? "true" : "false"
+                                ]
+                            ));
+
                             if (!empty($this->data->message) && $this->data->message != 'onqueue') {
-                                Log::info('MIN/MAX WS pre-push message.');
                                 $swoole->push($fd['value'], json_encode([
                                     'getMinMax' => ['message' => $this->data->message]
                                 ]));
