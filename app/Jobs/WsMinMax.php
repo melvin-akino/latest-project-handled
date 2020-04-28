@@ -51,7 +51,7 @@ class WsMinMax implements ShouldQueue
                 'provider'      => strtolower($eventMarket->alias),
                 'market_id'     => $eventMarket->bet_identifier,
                 'sport'         => $eventMarket->sport_id,
-                'game_schedule' => $eventMarket->game_schedule,
+                'schedule' => $eventMarket->game_schedule,
             ]);
         }
 
