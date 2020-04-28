@@ -13,10 +13,12 @@ class TransformKafkaMessageMinMax extends Task
     public function __construct($data)
     {
         $this->data = $data;
+        Log::info('Task: MinMax construct');
     }
 
     public function handle()
     {
+        Log::info('Task: MinMax handle');
         $swoole = app('swoole');
 
         $topics             = $swoole->topicTable;
@@ -32,13 +34,6 @@ class TransformKafkaMessageMinMax extends Task
                 'value' => $this->data->data->timestamp
             ]);
 
-            Log::info(json_encode(
-                [
-                    'qwe' => 'test',
-                    'asd' => json_encode($minMaxRequests),
-                ]
-            ));
-
             foreach ($minMaxRequests AS $key => $row) {
                 $data = $this->data->data;
                 if ($row['market_id'] == $data->market_id) {
@@ -48,14 +43,6 @@ class TransformKafkaMessageMinMax extends Task
                         if (strpos($_row['topic_name'], 'min-max-' . $memUID) === 0) {
                             $userId = explode(':', $_key)[1];
                             $fd     = $wsTable->get('uid:' . $userId);
-
-                            Log::info(json_encode(
-                                [
-                                    'memuid' => $memUID,
-                                    'if'     => !empty($this->data->message) && $this->data->message != 'onqueue' ? "true" : "false",
-                                    'elseif' => $this->data->message == 'onqueue' ? "true" : "false"
-                                ]
-                            ));
 
                             if (!empty($this->data->message) && $this->data->message != 'onqueue') {
                                 $swoole->push($fd['value'], json_encode([
@@ -131,6 +118,8 @@ class TransformKafkaMessageMinMax extends Task
                                     $transformed['min'] = $data->minimum / $exchangeRate;
                                     $transformed['max'] = $data->maximum / $exchangeRate;
                                 }
+
+                                Log::info('Task: MinMax emitWS');
 
                                 $swoole->push($fd['value'], json_encode([
                                     'getMinMax' => $transformed

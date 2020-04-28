@@ -222,9 +222,10 @@ return [
         'minMaxRequests' => [
             'size' => 10000,
             'column' => [ // KEY FORMAT: [memUID:$memUID]
-                [ 'name' => 'provider',  'type' => \Swoole\Table::TYPE_STRING, 'size' => 5 ],
-                [ 'name' => 'market_id', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 50 ],
-                [ 'name' => 'sport',     'type' => \Swoole\Table::TYPE_INT ],
+                [ 'name' => 'provider',       'type' => \Swoole\Table::TYPE_STRING, 'size' => 5 ],
+                [ 'name' => 'market_id',      'type' => \Swoole\Table::TYPE_STRING, 'size' => 50 ],
+                [ 'name' => 'sport',          'type' => \Swoole\Table::TYPE_INT ],
+                [ 'name' => 'game_schedule',  'type' => \Swoole\Table::TYPE_STRING, 'size' => 10 ],
             ],
         ],
         'exchangeRates' => [

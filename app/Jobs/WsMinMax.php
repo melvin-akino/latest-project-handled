@@ -48,9 +48,10 @@ class WsMinMax implements ShouldQueue
 
         if ($eventMarket) {
             $minMaxRequestsTable->set('memUID:' . $this->master_event_market_unique_id, [
-                'provider'  => strtolower($eventMarket->alias),
-                'market_id' => $eventMarket->bet_identifier,
-                'sport'     => $eventMarket->sport_id
+                'provider'      => strtolower($eventMarket->alias),
+                'market_id'     => $eventMarket->bet_identifier,
+                'sport'         => $eventMarket->sport_id,
+                'game_schedule' => $eventMarket->game_schedule,
             ]);
         }
 
