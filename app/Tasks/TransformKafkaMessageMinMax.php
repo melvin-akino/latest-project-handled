@@ -43,6 +43,7 @@ class TransformKafkaMessageMinMax extends Task
                             $fd     = $wsTable->get('uid:' . $userId);
 
                             if (!empty($this->data->message) && $this->data->message != 'onqueue') {
+                                Log::info('MIN/MAX WS pre-push message.');
                                 $swoole->push($fd['value'], json_encode([
                                     'getMinMax' => ['message' => $this->data->message]
                                 ]));
