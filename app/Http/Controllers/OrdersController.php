@@ -81,6 +81,7 @@ class OrdersController extends Controller
                         'settled'       => $myOrder->settled_date,
                         'pl'            => $myOrder->profit_loss,
                         'status'        => $myOrder->status,
+                        'score'         => $myOrder->score,
                         'market_flag'   => $myOrder->market_flag,
                         'bet_team'      => $myOrder->market_flag=="HOME" ? $myOrder->master_home_team_name : $myOrder->master_away_team_name,
                         'bet_score'     => $myOrder->market_flag=="HOME" ? $score[0] : $score[1],

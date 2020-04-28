@@ -65,7 +65,7 @@ export default {
                 this.$store.commit('trade/CLEAR_EVENTS_LIST')
                 this.$store.commit('trade/CLEAR_SELECTED_LEAGUES')
                 this.$store.commit('trade/SET_SELECTED_SPORT', sport)
-                this.$store.dispatch('trade/getBetColumns', this.selectedSport)
+                this.$store.dispatch('trade/getBetColumns', sport)
                 this.$socket.send(`getSelectedSport_${sport}`)
                 this.$store.dispatch('trade/getInitialLeagues')
                 this.$store.dispatch('trade/getInitialEvents')
