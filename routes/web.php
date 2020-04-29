@@ -13,13 +13,14 @@ use Illuminate\Support\Facades\Route;
 |
 */
 Route::get('/prometheus_GGT8', 'PrometheusController@index');
-
-Route::namespace('CRM')->prefix('admin')->group(function () {
-    Route::namespace('Auth')->group(function () {
-        Route::get('/', 'LoginController@index')->name('crm');
-        Route::post('login', 'LoginController@login')->name('crm.login');
-        Route::get('logout', 'LoginController@logout')->name('crm.logout');
-    });
+Route::group(['middleware' => ['prometheuslog']], function () {
+	Route::namespace('CRM')->prefix('admin')->group(function () {
+	    Route::namespace('Auth')->group(function () {
+	        Route::get('/', 'LoginController@index')->name('crm');
+	        Route::post('login', 'LoginController@login')->name('crm.login');
+	        Route::get('logout', 'LoginController@logout')->name('crm.logout');
+	    });
+}
 
     Route::middleware('auth:crm')->group(function () {
         Route::get('dashboard', 'DashboardController@index')->name('dashboard');
