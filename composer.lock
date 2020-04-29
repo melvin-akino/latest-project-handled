@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "152cf411f85d8e8ac2dd8d6a4fe2ae29",
+    "content-hash": "d0908c9a28e758afd22c9c6a3d7b8cf8",
     "packages": [
         {
             "name": "aws/aws-sdk-php",
@@ -1129,6 +1129,54 @@
             "description": "Highlight PHP code in terminal",
             "abandoned": "php-parallel-lint/php-console-highlighter",
             "time": "2018-09-29T18:48:56+00:00"
+        },
+        {
+            "name": "jimdo/prometheus_client_php",
+            "version": "v0.9.1",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/Jimdo/prometheus_client_php.git",
+                "reference": "cf3ea93197400a97464ff9bee78cf2169f035327"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/Jimdo/prometheus_client_php/zipball/cf3ea93197400a97464ff9bee78cf2169f035327",
+                "reference": "cf3ea93197400a97464ff9bee78cf2169f035327",
+                "shasum": ""
+            },
+            "require": {
+                "guzzlehttp/guzzle": "^6.2",
+                "php": ">=5.6.3"
+            },
+            "require-dev": {
+                "phpunit/phpunit": "4.1.0"
+            },
+            "suggest": {
+                "ext-apc": "Required if using APCu.",
+                "ext-redis": "Required if using Redis."
+            },
+            "type": "library",
+            "autoload": {
+                "psr-0": {
+                    "Prometheus\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "Apache-2.0"
+            ],
+            "authors": [
+                {
+                    "name": "Joscha",
+                    "email": "joscha@schnipseljagd.org"
+                },
+                {
+                    "name": "Jan Brauer",
+                    "email": "jan.brauer@jimdo.com"
+                }
+            ],
+            "abandoned": true,
+            "time": "2017-11-06T11:00:07+00:00"
         },
         {
             "name": "laminas/laminas-diactoros",
@@ -2894,6 +2942,63 @@
                 "uuid"
             ],
             "time": "2020-02-21T04:36:14+00:00"
+        },
+        {
+            "name": "superbalist/laravel-prometheus-exporter",
+            "version": "1.0.5",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/Superbalist/laravel-prometheus-exporter.git",
+                "reference": "6e874128e893dec4e1f4e93c688b190c164df6de"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/Superbalist/laravel-prometheus-exporter/zipball/6e874128e893dec4e1f4e93c688b190c164df6de",
+                "reference": "6e874128e893dec4e1f4e93c688b190c164df6de",
+                "shasum": ""
+            },
+            "require": {
+                "illuminate/routing": "^5.3 || ^6.0 || ^7.0",
+                "illuminate/support": "^5.3 || ^6.0 || ^7.0",
+                "jimdo/prometheus_client_php": "^0.9.0",
+                "php": ">=5.6.0"
+            },
+            "require-dev": {
+                "mockery/mockery": "^0.9.5",
+                "phpunit/phpunit": "^5.5"
+            },
+            "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-master": "1.0-dev"
+                },
+                "laravel": {
+                    "providers": [
+                        "Superbalist\\LaravelPrometheusExporter\\PrometheusServiceProvider"
+                    ],
+                    "aliases": {
+                        "Prometheus": "Superbalist\\LaravelPrometheusExporter\\PrometheusFacade"
+                    }
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Superbalist\\LaravelPrometheusExporter\\": "src/",
+                    "Tests\\": "tests/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Superbalist.com a division of Takealot Online (Pty) Ltd",
+                    "email": "info@superbalist.com"
+                }
+            ],
+            "description": "A prometheus exporter for Laravel",
+            "time": "2020-03-16T09:02:49+00:00"
         },
         {
             "name": "swiftmailer/swiftmailer",

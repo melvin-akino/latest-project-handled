@@ -180,6 +180,7 @@ return [
 
         App\Providers\KafkaServiceProvider::class,
         App\Providers\TransformRequestOddsServiceProvider::class,
+        Superbalist\LaravelPrometheusExporter\PrometheusServiceProvider::class,
 
     ],
 
@@ -233,6 +234,7 @@ return [
         'View' => Illuminate\Support\Facades\View::class,
 
         'TransformOdds'=> App\Facades\TransformOdds::class,
+        'Prometheus' => Superbalist\LaravelPrometheusExporter\PrometheusFacade::class,
 
     ],
 
