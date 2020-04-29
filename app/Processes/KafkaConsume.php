@@ -78,6 +78,14 @@ class KafkaConsume implements CustomProcessInterface
                                     break;
                                 }
 
+                                $swoole->wsTable->set('minmax-payload:' . $payload->data->market_id, [
+                                    'value' => md5(json_encode([
+                                        'odds'    => $payload->data->odds,
+                                        'minimum' => $payload->data->minimum,
+                                        'maximum' => $payload->data->maximum
+                                    ]))
+                                ]);
+
                                 Log::debug('Minmax calling Task Worker');
                                 Task::deliver(new TransformKafkaMessageMinMax($payload));
                                 break;
