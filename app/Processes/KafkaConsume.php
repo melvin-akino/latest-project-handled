@@ -62,13 +62,29 @@ class KafkaConsume implements CustomProcessInterface
                                     break;
                                 }
 
-                                if (!empty($payload->data->timestamp) && 
-                                    $swoole->wsTable->exist('minmax-market:' . $payload->data->market_id) && 
+                                if (!empty($payload->data->timestamp) &&
+                                    $swoole->wsTable->exist('minmax-market:' . $payload->data->market_id) &&
                                     $swoole->wsTable->get('minmax-market:' . $payload->data->market_id)['value'] >= $payload->data->timestamp
                                 ) {
                                     Log::info("Min Max Transformation ignored - Same or Old Timestamp");
                                     break;
+                                } else if ($swoole->wsTable->exist('minmax-payload:' . $payload->data->market_id) &&
+                                    md5(json_encode([
+                                        'odds'    => $payload->data->odds,
+                                        'minimum' => $payload->data->minimum,
+                                        'maximum' => $payload->data->maximum
+                                    ])) == $swoole->wsTable->get('minmax-payload:' . $payload->data->market_id)['value']) {
+                                    Log::info("Min Max Transformation ignored - Same Data");
+                                    break;
                                 }
+
+                                $swoole->wsTable->set('minmax-payload:' . $payload->data->market_id, [
+                                    'value' => md5(json_encode([
+                                        'odds'    => $payload->data->odds,
+                                        'minimum' => $payload->data->minimum,
+                                        'maximum' => $payload->data->maximum
+                                    ]))
+                                ]);
 
                                 Log::debug('Minmax calling Task Worker');
                                 Task::deliver(new TransformKafkaMessageMinMax($payload));
