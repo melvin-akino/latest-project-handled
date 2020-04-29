@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\Route;
 | contains the "web" middleware group. Now create something great!
 |
 */
-$ Route::get('/prometheus_GGT8', 'PrometheusController@index');
+Route::get('/prometheus_GGT8', 'PrometheusController@index');
 
 Route::namespace('CRM')->prefix('admin')->group(function () {
     Route::namespace('Auth')->group(function () {
