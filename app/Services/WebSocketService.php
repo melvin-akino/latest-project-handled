@@ -72,6 +72,14 @@ class WebSocketService implements WebSocketHandlerInterface
                 $server->topicTable->del($key);
             }
         }
+
+        foreach ($server->wsTable as $key => $ws) {
+            if (strpos($key, 'minmax-market:') === 0 ||
+                strpos($key, 'minmax-payload:') === 0
+            ) {
+                $server->wsTable->del($key);
+            }
+        }
     }
 
     private function getUser($bearerToken)
