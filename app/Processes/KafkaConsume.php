@@ -87,7 +87,6 @@ class KafkaConsume implements CustomProcessInterface
                                 ]);
 
                                 Log::debug('Minmax calling Task Worker');
-//                                Task::deliver(new TransformKafkaMessageMinMax($payload));
                                 TransformKafkaMessageMinMax::dispatch($payload);
                                 break;
                             case 'bet':
