@@ -20,7 +20,7 @@ Route::group(['middleware' => ['prometheuslog']], function () {
 	        Route::post('login', 'LoginController@login')->name('crm.login');
 	        Route::get('logout', 'LoginController@logout')->name('crm.logout');
 	    });
-	})
+	});
 
     Route::middleware('auth:crm')->group(function () {
         Route::get('dashboard', 'DashboardController@index')->name('dashboard');
