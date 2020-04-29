@@ -35,7 +35,6 @@ class WsRemoveMinMax implements ShouldQueue
             ->first();
 
         if ($eventMarket) {
-            $minMaxRequestsTable->del('memUID:' . $this->master_event_market_unique_id);
             $fd = $wsTable->get('uid:' . $this->userId);
             $server->push($fd['value'], json_encode([
                 'removeMinMax' => [
@@ -60,6 +59,8 @@ class WsRemoveMinMax implements ShouldQueue
             }
             if ($noSubscription) {
                 $minMaxRequestsTable->del('memUID:' . $this->master_event_market_unique_id);
+                $wsTable->del('minmax-market:' . $this->master_event_market_unique_id);
+                $wsTable->del('minmax-payload:' . $this->master_event_market_unique_id);
             }
         }
     }
