@@ -23,7 +23,4 @@ class OrderLogs extends Model
 
     protected $hidden = [];
 
-
-
-    
 }

@@ -29,14 +29,14 @@ class WalletController extends Controller
         switch (Source::getName($ledger->source_id)){
             case 'WITHDRAW':
             case 'DEPOSIT':
-                    $crm_transfer = $ledger->crm_transfer_resource;
-                    $currency_symbol = $crm_transfer->currency->code;
+                    $crmTransfer = $ledger->crm_transfer_resource;
+                    $currencySymbol = $crmTransfer->currency->code;
 
                     $html = (string)view('CRM.accounts.details.tabs.wallet.sources.crm', [
-                        'sender'     => $crm_transfer->user->email,
-                        'amount'     => $currency_symbol . ' ' . number_format($crm_transfer->transfer_amount, 2),
+                        'sender'     => $crmTransfer->user->email,
+                        'amount'     => $currencySymbol . ' ' . number_format($crmTransfer->transfer_amount, 2),
                         'created_at' => $ledger->created_at->toDayDateTimeString(),
-                        'reason'     => $crm_transfer->reason
+                        'reason'     => $crmTransfer->reason
                     ]);
 
                 break;
@@ -44,16 +44,16 @@ class WalletController extends Controller
             case 'RETURN_STAKE':
             case 'RETURN_BET':
             case 'PLACE_BET':
-                    $bet_data = $ledger->place_bet;
-                    $bet_info = $bet_data->transaction_log;
-                    $currency_symbol = $bet_data->currency->code;
+                    $betData = $ledger->place_bet;
+                    $betInfo = $betData->transaction_log;
+                    $currencySymbol = $betInfo->currency->code;
                     
                     $html = (string)view('CRM.accounts.details.tabs.wallet.sources.bet', [
-                        'amount'     => $currency_symbol . ' ' . number_format($bet_data->amount, 2),
-                        'bet_action' => $bet_data->reason ,
-                        'bet_status' => $bet_info->status,
+                        'amount'     => $currencySymbol . ' ' . number_format($betData->amount, 2),
+                        'bet_action' => $betData->reason ,
+                        'bet_status' => $betInfo->status,
                         'created_at' => $ledger->created_at->toDayDateTimeString(),
-                        'game_info'  => $bet_info->bet_selection
+                        'game_info'  => $betInfo->bet_selection
                     ]);
 
                 break;
@@ -62,16 +62,16 @@ class WalletController extends Controller
             case 'BET_HALF_WIN':
             case 'BET_HALF_LOSE':
             case 'BET_WIN':
-                    $bet_data = $ledger->place_bet;
-                    $bet_info = $bet_data->transaction_log;
-                    $currency_symbol = $bet_data->currency->code;
+                    $betData = $ledger->place_bet;
+                    $betInfo = $betData->transaction_log;
+                    $currency_symbol = $betInfo->currency->code;
                     
                     $html = (string)view('CRM.accounts.details.tabs.wallet.sources.betresult', [
-                        'amount'       => $currency_symbol . ' ' . number_format($bet_data->amount, 2),
-                        'bet_status'   => $bet_info->status,
-                        'protif_loss'  => number_format($bet_info->profit_loss, 2),
+                        'amount'       => $currency_symbol . ' ' . number_format($betData->amount, 2),
+                        'bet_status'   => $betInfo->status,
+                        'protif_loss'  => number_format($betInfo->profit_loss, 2),
                         'created_at'   => $ledger->created_at->toDayDateTimeString(),
-                        'game_info'    => $bet_info->bet_selection,
+                        'game_info'    => $betInfo->bet_selection,
                     ]);
 
                 break;
