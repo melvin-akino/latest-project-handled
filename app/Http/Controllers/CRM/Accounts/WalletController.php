@@ -77,7 +77,7 @@ class WalletController extends Controller
                 break;
 
             case 'REGISTRATION':
-                  $html = (string)view('CRM.accounts.details.tabs.wallet.sources.betresult', [
+                  $html = (string)view('CRM.accounts.details.tabs.wallet.sources.register', [
                        
                         'created_at'  => $ledger->created_at->toDayDateTimeString(),
                     ]);
