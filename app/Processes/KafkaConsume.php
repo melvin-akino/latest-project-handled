@@ -6,12 +6,12 @@ use App\Tasks\{
     TransformKafkaMessageEvents,
     TransformKafkaMessageLeagues,
     TransformKafkaMessageOdds,
-    TransformKafkaMessageMinMax,
     TransformKafkaMessageBalance,
     TransformKafkaMessageBet,
     TransformKafkaMessageOpenOrders,
     TransformKafkaMessageSettlement
 };
+use App\Jobs\TransformKafkaMessageMinMax;
 use Hhxsv5\LaravelS\Swoole\Process\CustomProcessInterface;
 use Hhxsv5\LaravelS\Swoole\Task\Task;
 use Illuminate\Support\Facades\Log;
@@ -87,7 +87,8 @@ class KafkaConsume implements CustomProcessInterface
                                 ]);
 
                                 Log::debug('Minmax calling Task Worker');
-                                Task::deliver(new TransformKafkaMessageMinMax($payload));
+//                                Task::deliver(new TransformKafkaMessageMinMax($payload));
+                                TransformKafkaMessageMinMax::dispatch($payload);
                                 break;
                             case 'bet':
                                 if (empty($payload->data->status) || empty($payload->data->odds)) {
