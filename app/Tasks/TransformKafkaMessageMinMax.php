@@ -53,7 +53,7 @@ class TransformKafkaMessageMinMax extends Task
 
                                 Log::info("MIN MAX Transformation - Message Found");
                             } else if ($this->data->message == 'onqueue') {
-                                continue;
+                                break;
                             } else {
                                 /** AS DEFAULT */
                                 $providerCurrency = [
