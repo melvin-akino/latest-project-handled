@@ -30,89 +30,92 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
 | development of MOBILE application.
 |
 */
-Route::group([
-    'prefix' => 'v1',
-], function () {
-    /** User Authentication Route Endpoints*/
-    Route::group([
-        'prefix' => 'auth',
-    ], function () {
-        Route::post('login', 'AuthController@login');
-        Route::post('register', 'AuthController@register');
-        Route::middleware('auth:api')->post('logout', 'AuthController@logout');
+Route::group(['middleware' => ['prometheuslog']], function () {
 
-        /** Forgot Password and Reset Route Endpoints */
+    Route::group([
+        'prefix' => 'v1',
+    ], function () {
+        /** User Authentication Route Endpoints*/
         Route::group([
-            'middleware' => 'api',
-            'prefix'     => 'password',
-        ], function() {
-            Route::post('create', 'AuthController@create');
-            Route::get('find/{token}', 'AuthController@find');
-            Route::post('reset', 'AuthController@reset');
-        });
-    });
+            'prefix' => 'auth',
+        ], function () {
+            Route::post('login', 'AuthController@login');
+            Route::post('register', 'AuthController@register');
+            Route::middleware('auth:api')->post('logout', 'AuthController@logout');
 
-    /** Authenticated Routes :: User */
-    Route::group([
-        'middleware'    => 'auth:api',
-        'prefix'        => 'user',
-    ], function () {
-        Route::get('/', 'UserController@user');
-
-        /** Authenticated User Settings Management Route Endpoints */
-        Route::post('settings/{type}', 'SettingsController@postSettings')
-            ->where('type', '^(general|trade-page|bet-slip|notifications-and-sounds|language|bookies|bet-columns|profile|change-password|reset)$');
-        Route::post('settings/{type}/{sportId}', 'SettingsController@postSettings')
-            ->where('type', '^(bet-columns)$');
-        Route::get('settings/{type}', 'SettingsController@getSettings')
-            ->where('type', '^(general|trade-page|bet-slip|notifications-and-sounds|language|bookies|bet-columns)$');
-
-        /** Authenticated User Wallet Management Route Endpoints */
-        Route::get('wallet', 'WalletController@userWallet');
-    });
-
-    /** Resources Route Endpoints */
-    Route::get('timezones', 'ResourceController@getTimezones');
-
-    Route::group([
-        'middleware' => 'auth:api',
-        'prefix'     => 'sports'
-    ], function () {
-        Route::get('/', 'SportController@getSports');
-        Route::get('odds', 'SportController@configurationOdds');
-    });
-
-    Route::middleware('auth:api')->get('bookies', 'ResourceController@getProviders');
-
-    Route::middleware('auth:api')->group(function () {
-        /** Orders Route Endpoints */
-        Route::prefix('orders')->group(function () {
-            Route::get('all', 'OrdersController@myOrders');
-            Route::get('/{memUID}', 'OrdersController@getEventMarketsDetails');
-            Route::get('/{memUID}/logs', 'OrdersController@getEventMarketLogs');
-            Route::get('logs/{memUID}', 'OrdersController@getBetSlipLogs');
-
-            Route::post('bet', 'OrdersController@postPlaceBet');
+            /** Forgot Password and Reset Route Endpoints */
+            Route::group([
+                'middleware' => 'api',
+                'prefix'     => 'password',
+            ], function() {
+                Route::post('create', 'AuthController@create');
+                Route::get('find/{token}', 'AuthController@find');
+                Route::post('reset', 'AuthController@reset');
+            });
         });
 
-        /** Game Data Route Endpoints*/
-        Route::prefix('trade')->group(function () {
-            /** User Bet bar Management Route Endpoints */
-            Route::get('betbar', 'TradeController@getUserBetbar');
+        /** Authenticated Routes :: User */
+        Route::group([
+            'middleware'    => 'auth:api',
+            'prefix'        => 'user',
+        ], function () {
+            Route::get('/', 'UserController@user');
 
-            /** User Watchlist Management Route Endpoints */
-            Route::post('watchlist/{action}', 'TradeController@postManageWatchlist')->where('action', '^(add|remove)$');
+            /** Authenticated User Settings Management Route Endpoints */
+            Route::post('settings/{type}', 'SettingsController@postSettings')
+                ->where('type', '^(general|trade-page|bet-slip|notifications-and-sounds|language|bookies|bet-columns|profile|change-password|reset)$');
+            Route::post('settings/{type}/{sportId}', 'SettingsController@postSettings')
+                ->where('type', '^(bet-columns)$');
+            Route::get('settings/{type}', 'SettingsController@getSettings')
+                ->where('type', '^(general|trade-page|bet-slip|notifications-and-sounds|language|bookies|bet-columns)$');
 
-            /** League List Route Endpoints for Initial Page Load */
-            Route::prefix('leagues')->group(function () {
-                Route::get('/', 'TradeController@getInitialLeagues');
-                Route::post('toggle', 'TradeController@postManageSidebarLeagues');
+            /** Authenticated User Wallet Management Route Endpoints */
+            Route::get('wallet', 'WalletController@userWallet');
+        });
+
+        /** Resources Route Endpoints */
+        Route::get('timezones', 'ResourceController@getTimezones');
+
+        Route::group([
+            'middleware' => 'auth:api',
+            'prefix'     => 'sports'
+        ], function () {
+            Route::get('/', 'SportController@getSports');
+            Route::get('odds', 'SportController@configurationOdds');
+        });
+
+        Route::middleware('auth:api')->get('bookies', 'ResourceController@getProviders');
+
+        Route::middleware('auth:api')->group(function () {
+            /** Orders Route Endpoints */
+            Route::prefix('orders')->group(function () {
+                Route::get('all', 'OrdersController@myOrders');
+                Route::get('/{memUID}', 'OrdersController@getEventMarketsDetails');
+                Route::get('/{memUID}/logs', 'OrdersController@getEventMarketLogs');
+                Route::get('logs/{memUID}', 'OrdersController@getBetSlipLogs');
+
+                Route::post('bet', 'OrdersController@postPlaceBet');
             });
 
-            Route::get('events', 'TradeController@getUserEvents');
-            Route::get('other-markets/{memUID}', 'TradeController@getEventOtherMarkets');
-            /** Search Suggestions Route Endpoint */
-            Route::post('search', 'TradeController@postSearchSuggestions');
+            /** Game Data Route Endpoints*/
+            Route::prefix('trade')->group(function () {
+                /** User Bet bar Management Route Endpoints */
+                Route::get('betbar', 'TradeController@getUserBetbar');
+
+                /** User Watchlist Management Route Endpoints */
+                Route::post('watchlist/{action}', 'TradeController@postManageWatchlist')->where('action', '^(add|remove)$');
+
+                /** League List Route Endpoints for Initial Page Load */
+                Route::prefix('leagues')->group(function () {
+                    Route::get('/', 'TradeController@getInitialLeagues');
+                    Route::post('toggle', 'TradeController@postManageSidebarLeagues');
+                });
+
+                Route::get('events', 'TradeController@getUserEvents');
+                Route::get('other-markets/{memUID}', 'TradeController@getEventOtherMarkets');
+                /** Search Suggestions Route Endpoint */
+                Route::post('search', 'TradeController@postSearchSuggestions');
+            });
         });
     });
 });
