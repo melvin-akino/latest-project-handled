@@ -33,6 +33,13 @@ class TransformKafkaMessageMinMax extends Task
             $wsTable->set('minmax-market:' . $this->data->data->market_id, [
                 'value' => $this->data->data->timestamp
             ]);
+            $wsTable->set('minmax-payload:' . $this->data->data->market_id, [
+                'value' => md5(json_encode([
+                    'odds'    => $this->data->data->odds,
+                    'minimum' => $this->data->data->minimum,
+                    'maximum' => $this->data->data->maximum
+                ]))
+            ]);
 
             foreach ($minMaxRequests AS $key => $row) {
                 $data = $this->data->data;
