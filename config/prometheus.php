@@ -96,6 +96,9 @@ return [
             'host' => env('REDIS_HOST', 'localhost'),
             'port' => env('REDIS_PORT', 6379),
             'timeout' => 0.1,
+            'options' => [
+                'parameters' => ['password' => env('REDIS_PASSWORD', null)],
+            ],
             'read_timeout' => 10,
             'persistent_connections' => false,
             'prefix' => env('PROMETHEUS_REDIS_PREFIX', 'PROMETHEUS_'),

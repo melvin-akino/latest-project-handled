@@ -69,6 +69,7 @@ class PrometheusController extends Controller
        
         //return;
         $result = $renderer->render($test);
+       
 
         return response($result)
             ->header('Content-Type', RenderTextFormat::MIME_TYPE);
