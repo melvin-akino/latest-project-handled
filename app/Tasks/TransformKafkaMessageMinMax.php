@@ -135,4 +135,9 @@ class TransformKafkaMessageMinMax extends Task
             Log::error($e->getMessage());
         }
     }
+
+    public function finish()
+    {
+        Log::info("Task: MinMax Done");
+    }
 }
