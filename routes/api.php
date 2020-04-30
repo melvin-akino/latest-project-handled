@@ -94,7 +94,7 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
                 Route::get('/{memUID}/logs', 'OrdersController@getEventMarketLogs');
                 Route::get('logs/{memUID}', 'OrdersController@getBetSlipLogs');
 
-                Route::post('bet', 'OrdersController@postPlaceBet');
+                Route::post('bet', 'OrdersController@postPlaceBet')->middleware(['prometheusopenbet']);
             });
 
             /** Game Data Route Endpoints*/
