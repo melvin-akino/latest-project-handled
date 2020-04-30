@@ -34,9 +34,7 @@ class PrometheusLog
       try {
        
        $gauge = $exporter->getGauge('users_online_total');
-       //var_dump($gauge);
-       //if (!$gauge)
-         // $gauge = $exporter->registerGauge('users_online_total', 'The total number of users online.', ['group']);
+       
       } catch (\Exception $e) {
         $gauge = $exporter->registerGauge('users_online_total', 'The total number of users online.', ['group']);
         //echo $e->getMessage();

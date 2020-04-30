@@ -40,7 +40,7 @@ class PrometheusController extends Controller
             sort($keys);
                $f = Redis::hgetall('PROMETHEUS_:gauge:larvel_prom_users_online_total');
       echo 'dumping f';
-        //var_dump($f);
+        var_dump($f);
 
             $gauges = array();
             foreach ($keys as $key) {
