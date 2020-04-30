@@ -2,16 +2,20 @@
 
 namespace App\Processes;
 
+use App\Jobs\{
+    TransformKafkaMessageMinMax,
+    TransformKafkaMessageOpenOrders,
+    TransformKafkaMessageSettlement
+};
+
 use App\Tasks\{
     TransformKafkaMessageEvents,
     TransformKafkaMessageLeagues,
     TransformKafkaMessageOdds,
     TransformKafkaMessageBalance,
-    TransformKafkaMessageBet,
-    TransformKafkaMessageOpenOrders,
-    TransformKafkaMessageSettlement
+    TransformKafkaMessageBet
 };
-use App\Jobs\TransformKafkaMessageMinMax;
+
 use Hhxsv5\LaravelS\Swoole\Process\CustomProcessInterface;
 use Hhxsv5\LaravelS\Swoole\Task\Task;
 use Illuminate\Support\Facades\Log;
@@ -110,7 +114,7 @@ class KafkaConsume implements CustomProcessInterface
                                     break;
                                 }
 
-                                Task::deliver(new TransformKafkaMessageOpenOrders($payload));
+                                TransformKafkaMessageOpenOrders::dispatch($payload)
                                 break;
                             case 'settlement':
                                 if (empty($payload->data)) {
@@ -118,7 +122,7 @@ class KafkaConsume implements CustomProcessInterface
                                     break;
                                 }
 
-                                Task::deliver(new TransformKafkaMessageSettlement($payload));
+                                TransformKafkaMessageSettlement::dispatch($payload);
                                 break;
                             default:
                                 if (!isset($payload->data->events)) {
