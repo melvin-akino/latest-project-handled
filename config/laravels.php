@@ -303,7 +303,7 @@ return [
         'log_level'          => 4,
         'document_root'      => base_path('public'),
         'buffer_output_size' => 2 * 1024 * 1024,
-        'socket_buffer_size' => 128 * 1024 * 1024,
+        'socket_buffer_size' => 256 * 1024 * 1024,
         'package_max_length' => 4 * 1024 * 1024,
         'reload_async'       => true,
         'max_wait_time'      => 60,
