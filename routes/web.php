@@ -31,7 +31,7 @@ Route::namespace('CRM')->prefix('admin')->group(function () {
         Route::get('provider_accounts/{id}', 'ProviderAccountsController@index')->name('provider.accounts');
         Route::get('provider_accounts/delete/{id}', 'ProviderAccountsController@softDelete')->name('provider_accounts.softdelete');
         Route::post('provider_accounts/manage', 'ProviderAccountsController@manage')->name('provider_accounts.manage');
-        
+
         /*System Configurations Routes*/
         Route::get('system_configurations', 'SystemConfigurationsController@index')->name('system_configurations');
         Route::get('system_configurations/all', 'SystemConfigurationsController@all')->name('system_configurations.all');
@@ -61,12 +61,12 @@ Route::namespace('CRM')->prefix('admin')->group(function () {
 				Route::post('/', 'TransferController@transfer')->name('wallet.transfer.transfer');
 				Route::get('datatable', 'TransferController@dataTable')->name('wallet.transfer.dataTable');
 			});
-   	 		/* end transfer route */		
+   	 		/* end transfer route */
 		});
     /* end wallet route */
 	    /* Account Route */
 	    Route::namespace('Accounts')->group(function() {
-			
+
 			Route::prefix('accounts')->group(function() {
 				Route::get('/', 'AccountsController@index')->name('accounts.index');
 				Route::get('datatable', 'AccountsController@dataTable')->name('accounts.dataTable');
@@ -75,11 +75,12 @@ Route::namespace('CRM')->prefix('admin')->group(function () {
 				Route::put('{account}', 'AccountsController@update')->name('accounts.update');
 				Route::get('ledger/{ledger}/source-info', 'WalletController@ledgerSourceInfo')->name('userwallet.ledgerSourceInfo');
 				Route::get('wallet/datatable/{wallet}', 'WalletController@dataTable')->name('userwallet.dataTable');
-
 			});
-		
+
 		});
 	    /* end Account Route */
+
+        Route::get('swt', 'SwtController@index')->name('swt');
     });
 });
 
