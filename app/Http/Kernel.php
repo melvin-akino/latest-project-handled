@@ -64,6 +64,7 @@ class Kernel extends HttpKernel
         'verified' => \Illuminate\Auth\Middleware\EnsureEmailIsVerified::class,
         'prometheuslog'=> \App\Http\Middleware\PrometheusLog::class,
         'prometheusopenbet' => \App\Http\Middleware\PrometheusBetLog::class,
+        'prometheusurlog' => \App\Http\Middleware\PrometheusUrlLog::class,
     ];
 
     /**
