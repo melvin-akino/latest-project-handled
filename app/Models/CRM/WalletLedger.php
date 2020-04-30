@@ -4,7 +4,7 @@ namespace App\Models\CRM;
 
 use Illuminate\Database\Eloquent\Model;
 use App\Models\{UserWallet, Source};
-use App\Models\CRM\CrmTransfer;
+use App\Models\CRM\{CrmTransfer, OrderTransaction};
 class WalletLedger extends Model
 {
     protected $table    = 'wallet_ledger';
@@ -31,5 +31,10 @@ class WalletLedger extends Model
     public function crm_transfer_resource()
     {
         return $this->belongsTo(CrmTransfer::class, 'id','wallet_ledger_id');
+    }
+
+    public function place_bet()
+    {
+        return $this->belongsTo(OrderTransaction::class,'id','wallet_ledger_id');
     }
 }
