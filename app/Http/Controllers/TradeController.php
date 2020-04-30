@@ -13,7 +13,6 @@ use Illuminate\Support\Facades\{
     DB,
     Log
 };
-use App\Jobs\WsEvents;
 use Illuminate\Http\Request;
 use Exception;
 use DateTime;
@@ -296,12 +295,22 @@ class TradeController extends Controller
                             ]
                         );
                         if (empty($_SERVER['_PHPUNIT'])) {
-                            $userSelectedLeagueTable->set($swtKey, [
-                                'user_id'     => $userId,
-                                'schedule'    => $request->schedule,
-                                'league_name' => $request->league_name,
-                                'sport_id'    => $request->sport_id
-                            ]);
+                            foreach ($userSelectedLeagueTable as $key => $row) {
+                                if (strpos($key,
+                                        'userId:' . $userId . ':sId:' . $request->sport_id . ':schedule:' . $request->schedule) === 0) {
+                                    if ($row['league_name'] != $request->league_name) {
+                                        $userSelectedLeagueTable->set($swtKey, [
+                                            'user_id'     => $userId,
+                                            'schedule'    => $request->schedule,
+                                            'league_name' => $request->league_name,
+                                            'sport_id'    => $request->sport_id
+                                        ]);
+                                        break;
+                                    }
+                                }
+                            }
+
+
                         }
                     } else if (empty($_SERVER['_PHPUNIT'])) {
                         foreach ($userSelectedLeagueTable as $key => $row) {
@@ -309,6 +318,7 @@ class TradeController extends Controller
                                     'userId:' . $userId . ':sId:' . $request->sport_id . ':schedule:' . $request->schedule) === 0) {
                                 if ($row['league_name'] == $request->league_name) {
                                     $userSelectedLeagueTable->del($key);
+                                    break;
                                 }
                             }
                         }
@@ -509,10 +519,20 @@ class TradeController extends Controller
                             }
 
                             if (empty($_SERVER['_PHPUNIT'])) {
-                                $topicTable->set('userId:' . auth()->user()->id . ':unique:' . uniqid(), [
-                                    'user_id'       => auth()->user()->id,
-                                    'topic_name'    => 'market-id-' . $transformed->master_event_market_unique_id
-                                ]);
+                                $notFound = true;
+                                foreach ($topicTable as $key => $row) {
+                                    if ($row['topic_name'] == 'market-id-' . $transformed->master_event_market_unique_id) {
+                                        $notFound = false;
+                                        break;
+                                    }
+                                }
+
+                                if ($notFound) {
+                                    $topicTable->set('userId:' . auth()->user()->id . ':unique:' . uniqid(), [
+                                        'user_id'       => auth()->user()->id,
+                                        'topic_name'    => 'market-id-' . $transformed->master_event_market_unique_id
+                                    ]);
+                                }
                             }
                         }
                     }, $transformed->toArray());
