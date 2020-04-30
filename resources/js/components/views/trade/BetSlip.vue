@@ -280,8 +280,6 @@ export default {
     },
     mounted() {
         this.getMarketDetails()
-        this.minmax(this.market_id)
-        this.setMinMaxProviders()
         this.$store.dispatch('trade/getBetSlipSettings')
     },
     methods: {
@@ -294,6 +292,7 @@ export default {
                 this.formattedRefSchedule = response.data.data.ref_schedule.split(' ')
                 this.isLoadingMarketDetails = false
                 this.points = this.odd_details.points
+                this.setMinMaxProviders()
             })
             .catch(err => {
                 this.$store.dispatch('auth/checkIfTokenIsValid', err.response.data.status_code)
@@ -309,6 +308,7 @@ export default {
             let enabledBookies = this.bookies.filter(bookie => !this.disabledBookies.includes(bookie.id))
             enabledBookies.map(bookie => this.minMaxData.push({ provider_id: bookie.id, provider: bookie.alias, min: null, max: null, price: null, priority: null, age: null, hasMarketData: false }))
             this.marketDataMessage = 'Retrieving Market'
+            this.minmax(this.market_id)
         },
         changePoint(points, market_id, odds) {
             this.emptyMinMax(this.market_id)
