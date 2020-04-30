@@ -99,6 +99,7 @@ return [
             'options' => [
                 'parameters' => ['password' => env('REDIS_PASSWORD', null)],
             ],
+            'password' => env('REDIS_PASSWORD', null),
             'read_timeout' => 10,
             'persistent_connections' => false,
             'prefix' => env('PROMETHEUS_REDIS_PREFIX', 'PROMETHEUS_'),

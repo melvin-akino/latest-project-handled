@@ -30,7 +30,7 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
 | development of MOBILE application.
 |
 */
-Route::group(['middleware' => ['prometheuslog']], function () {
+#Route::group(['middleware' => ['prometheuslog']], function () {
 
     Route::group([
         'prefix' => 'v1',
@@ -118,7 +118,7 @@ Route::group(['middleware' => ['prometheuslog']], function () {
             });
         });
     });
-});
+#});
 
 Route::fallback(function () {
     return response()->json([

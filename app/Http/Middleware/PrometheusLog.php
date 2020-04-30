@@ -4,7 +4,7 @@ namespace App\Http\Middleware;
 
 use Closure;
 use Illuminate\Support\Facades\Redis;
-
+use Prometheus\Exception\MetricNotFoundException;
 //use Monolog\Processor\GitProcessor;
 //use Monolog\Processor\WebProcessor;
 //use Monolog\Processor\MemoryUsageProcessor;
@@ -30,15 +30,17 @@ class PrometheusLog
     {
 
        $this->pnamespace = env('PROMETHEUS_NAMESPACE', 'default');
- 
        $exporter = Prometheus::getFacadeRoot();
-
-
-        
-        
-
-
-       $gauge = $exporter->registerGauge('users_online_total', 'The total number of users online.', ['group']);
+      try {
+       
+       $gauge = $exporter->getGauge('users_online_total');
+       //var_dump($gauge);
+       //if (!$gauge)
+         // $gauge = $exporter->registerGauge('users_online_total', 'The total number of users online.', ['group']);
+      } catch (\Exception $e) {
+        $gauge = $exporter->registerGauge('users_online_total', 'The total number of users online.', ['group']);
+        //echo $e->getMessage();
+      }
        $gauge->inc(['users']); // increment by 1
   
 
@@ -54,15 +56,16 @@ class PrometheusLog
 
     public function terminate($request, $response)
     {
-     
+     /*
         $this->pnamespace = env('PROMETHEUS_NAMESPACE', 'default');
         $uri = str_replace("/","_",$request->getPathInfo());
+        //$uri = $request->getPathInfo();
         $executionTime = microtime(true) - $_SERVER["REQUEST_TIME_FLOAT"];
 
         $exporter = Prometheus::getFacadeRoot();
         // create a gauge (with labels)
         $gauge = $exporter->registerGauge('urls', 'Url access', ['url']);
-        $gauge->inc(["{$uri}"]); // increment by 1
+        $gauge->inc(["visitor"]); // increment by 1
 
 
         $ttl = Redis::ttl("PROMETHEUS_:gauge:{$this->pnamespace}_urls");
@@ -70,6 +73,7 @@ class PrometheusLog
         if($ttl < 0){
             Redis::expire("PROMETHEUS_:gauge:{$this->pnamespace}_urls", env('PROMETHEUS_EXPIRE')); 
         }
+        */
 
         
         
