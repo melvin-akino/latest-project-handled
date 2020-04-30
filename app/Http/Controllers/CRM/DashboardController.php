@@ -5,7 +5,7 @@ namespace App\Http\Controllers\CRM;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\User;
-use Illuminate\Support\Facades\Redis;
+
 class DashboardController extends Controller
 {
     public function __construct()
@@ -18,14 +18,6 @@ class DashboardController extends Controller
         if (!session()->has('crm_user')) {
             return redirect()->route('crm');
         }
-        $f = Redis::hgetall('PROMETHEUS_:gauge:larvel_prom_users_online_total');
-      echo 'dumping f';
-        var_dump($f);
-
-        $f = Redis::hgetall('PROMETHEUS_:gauge:larvel_prom_users_online_total');
-      echo 'dumping f';
-        var_dump($f);
-        /*
 
         $data = [
             'page_title'       => "Dashboard",
@@ -37,6 +29,5 @@ class DashboardController extends Controller
 
         return view('CRM.dashboard')
             ->with($data);
-            */
     }
 }
