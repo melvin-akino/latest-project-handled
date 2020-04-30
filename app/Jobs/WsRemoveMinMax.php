@@ -62,8 +62,8 @@ class WsRemoveMinMax implements ShouldQueue
                 if ($noSubscription) {
                     $minMaxRequestsTable->del('memUID:' . $this->master_event_market_unique_id);
                 }
-                $wsTable->del('minmax-market:' . $this->master_event_market_unique_id);
-                $wsTable->del('minmax-payload:' . $this->master_event_market_unique_id);
+                $wsTable->del('minmax-market:' . $eventMarket->bet_identifier);
+                $wsTable->del('minmax-payload:' . $eventMarket->bet_identifier);
             }
         } catch (Exception $e) {
             Log::error($e->getMessage());
