@@ -1,6 +1,6 @@
 <template>
-    <div class="column">
-        <div class="betColumns flex bg-gray-800 text-white text-xs fixed w-5/6 pl-6 pr-8 z-10" :class="[tradeLayout==1 ? 'items-center py-2' : 'py-1']">
+    <div class="oddTypes">
+        <div class="betColumns flex bg-gray-800 text-white text-xs pl-6 pr-8 z-10" :class="[tradeLayout==1 ? 'items-center py-2' : 'py-1']" v-adjust-odd-types-column-width>
             <div class="w-2/12" v-if="tradeLayout==1"></div>
             <div class="w-1/12 text-center" v-if="tradeLayout==1">Sport</div>
             <div class="w-1/12 text-center" v-if="tradeLayout==1">Score & <br>Schedule</div>
@@ -87,6 +87,22 @@ export default {
                 this.$store.dispatch('auth/checkIfTokenIsValid', err.response.data.status_code)
             })
         }
+    },
+    directives: {
+        adjustOddTypesColumnWidth: {
+            componentUpdated(el, binding, vnode) {
+                let { selectedSport, columnsToDisplay } = vnode.context
+                if(selectedSport == 3) {
+                    if(columnsToDisplay.length > 8) {
+                        el.style.width = '115rem'
+                    } else {
+                        el.style.width = '100%'
+                    }
+                } else {
+                    el.style.width = '100%'
+                }
+            }
+        }
     }
 }
 </script>
@@ -107,5 +123,9 @@ export default {
     .modalBtn {
         right: 10px;
         bottom: 40px;
+    }
+
+    .column {
+        width: 90px;
     }
 </style>
