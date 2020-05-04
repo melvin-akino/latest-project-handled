@@ -3,10 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\{Sport, SportOddType};
-
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Validator;
-
+use Illuminate\Support\Facades\Log;
 use Exception;
 
 class SportController extends Controller
@@ -39,6 +36,7 @@ class SportController extends Controller
                 'data'        => array_values($userConfig)
             ]);
         } catch (Exception $e) {
+            Log::error($e->getMessage());
             return response()->json([
                 'status'      => false,
                 'status_code' => 500,
@@ -59,7 +57,6 @@ class SportController extends Controller
                 ->where('is_enabled', true)
                 ->get([
                     'id',
-                    'is_enabled',
                     'icon',
                     'priority',
                     'sport'
@@ -72,11 +69,11 @@ class SportController extends Controller
                 'default_sport' => $userSport['default_sport']
             ]);
         } catch (Exception $e) {
+            Log::error($e->getMessage());
             return response()->json([
                 'status'      => false,
                 'status_code' => 500,
-                'message'     => trans('generic.internal-server-error'),
-                'data'        => $e->getMessage()
+                'message'     => trans('generic.internal-server-error')
             ], 500);
         }
     }

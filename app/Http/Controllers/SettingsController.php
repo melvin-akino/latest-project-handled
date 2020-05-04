@@ -2,14 +2,13 @@
 
 namespace App\Http\Controllers;
 
-use App\Exceptions\ServerException;
 use App\Http\Requests\SettingsRequests;
 use App\Models\{UserConfiguration, UserProviderConfiguration, UserSportOddConfiguration};
 use App\Notifications\PasswordResetSuccess;
 use Illuminate\Support\Facades\Log;
 use App\User;
 use Hash;
-use Throwable;
+use Exception;
 
 class SettingsController extends Controller
 {
@@ -31,17 +30,17 @@ class SettingsController extends Controller
             } else if ($type == 'profile') {
                 User::find(auth()->user()->id)
                     ->update([
-                        'firstname'             => $request->firstname,
-                        'lastname'              => $request->lastname,
-                        'address'               => $request->address,
-                        'country_id'            => $request->country_id,
-                        'state'                 => $request->state,
-                        'city'                  => $request->city,
-                        'postcode'              => $request->postcode,
-                        'phone'                 => $request->phone,
+                        'firstname'  => $request->firstname,
+                        'lastname'   => $request->lastname,
+                        'address'    => $request->address,
+                        'country_id' => $request->country_id,
+                        'state'      => $request->state,
+                        'city'       => $request->city,
+                        'postcode'   => $request->postcode,
+                        'phone'      => $request->phone,
                     ]);
             } else if ($type == 'change-password') {
-                $user = User::find(auth()->user()->id);
+                $user            = User::find(auth()->user()->id);
                 $currentPassword = $user->password;
 
                 if (Hash::check($request->old_password, $currentPassword)) {
@@ -55,24 +54,24 @@ class SettingsController extends Controller
 
                     /** Update Authenticated User's Password with applied encryption */
                     $response = User::find($user->id)
-                        ->update([ 'password' => bcrypt($request->password) ]);
+                        ->update(['password' => bcrypt($request->password)]);
 
                     /** Notify Authenticated User via e-mail that there has been an update with their password */
                     $user->notify(new PasswordResetSuccess($user));
                 } else {
                     return response()->json([
-                        'status'        => false,
-                        'status_code'   => 400,
-                        'message'       => trans('passwords.current.incorrect')
+                        'status'      => false,
+                        'status_code' => 400,
+                        'message'     => trans('passwords.current.incorrect')
                     ], 400);
                 }
             } else if ($type == 'reset') {
                 $this->resetSettings();
             } else {
                 return response()->json([
-                    'status'        => false,
-                    'status_code'   => 404,
-                    'message'       => trans('generic.not-found'),
+                    'status'      => false,
+                    'status_code' => 404,
+                    'message'     => trans('generic.not-found'),
                 ], 404);
             }
 
@@ -85,16 +84,16 @@ class SettingsController extends Controller
             }
 
             return response()->json([
-                'status'        => true,
-                'status_code'   => 200,
-                'message'       => trans('notifications.save.success')
+                'status'      => true,
+                'status_code' => 200,
+                'message'     => trans('notifications.save.success')
             ], 200);
-        } catch (Throwable $e) {
+        } catch (Exception $e) {
             Log::error($e->getMessage());
             return response()->json([
-                'status'        => false,
-                'status_code'   => 500,
-                'message'       => trans('generic.internal-server-error')
+                'status'      => false,
+                'status_code' => 500,
+                'message'     => trans('generic.internal-server-error')
             ], 500);
         }
     }
@@ -115,24 +114,30 @@ class SettingsController extends Controller
                 'status_code' => 200,
                 'data'        => $settings[$type],
             ]);
-        } catch (Throwable $e) {
+        } catch (Exception $e) {
+            Log::error($e->getMessage());
             return response()->json([
-                'status'        => false,
-                'status_code'   => 500,
-                'message'       => trans('generic.internal-server-error')
+                'status'      => false,
+                'status_code' => 500,
+                'message'     => trans('generic.internal-server-error')
             ], 500);
         }
     }
 
     protected function resetSettings(): bool
     {
-        foreach ($this->userConfig AS $config) {
-            UserConfiguration::saveSettings($config, config('default_config.' . $config));
+        try {
+            foreach ($this->userConfig AS $config) {
+                UserConfiguration::saveSettings($config, config('default_config.' . $config));
+            }
+
+            UserProviderConfiguration::saveSettings(config('default_config.bookies.disabled_bookies'));
+            UserSportOddConfiguration::saveSettings(config('default_config.bet-columns.disabled_columns'));
+
+            return true;
+        } catch (Exception $e) {
+            Log::error($e->getMessage());
+            return false;
         }
-
-        UserProviderConfiguration::saveSettings(config('default_config.bookies.disabled_bookies'));
-        UserSportOddConfiguration::saveSettings(config('default_config.bet-columns.disabled_columns'));
-
-        return true;
     }
 }

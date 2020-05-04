@@ -2,11 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use App\User;
 use App\Models\{
     Currency,
     ExchangeRate,
-    EventMarket,
     MasterEvent,
     MasterEventMarket,
     MasterEventMarketLog,
@@ -19,10 +17,8 @@ use App\Models\{
     UserWallet
 };
 use App\Models\CRM\{
-    ProviderAccount,
-    WalletLedger
+    ProviderAccount
 };
-
 use Illuminate\Http\Request;
 use Illuminate\Support\{
     Facades\DB,
@@ -30,12 +26,13 @@ use Illuminate\Support\{
 };
 use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
+
 class OrdersController extends Controller
 {
     /**
      * Get all orders made by the user using the parameters below
      *
-     * @param  Request $request
+     * @param Request $request
      * @return json
      */
     public function myOrders(Request $request)
@@ -43,13 +40,24 @@ class OrdersController extends Controller
         try {
             $conditions = [];
 
-            !empty($request->status) ? !($request->status  == "All") ? $conditions[] = ['status', $request->status] : null : null;
+            !empty($request->status) ? !($request->status == "All") ? $conditions[] = [
+                'status',
+                $request->status
+            ] : null : null;
 
             !empty($request->created_from) ? $conditions[] = ['orders.created_at', '>=', $request->created_from] : null;
-            !empty($request->created_to) ? $conditions[]   = ['orders.created_at', '<=', $request->created_to] : !empty($request->created_from) ? ['orders.created_at', '<=', now()] : null;
+            !empty($request->created_to) ? $conditions[] = [
+                'orders.created_at',
+                '<=',
+                $request->created_to
+            ] : !empty($request->created_from) ? ['orders.created_at', '<=', now()] : null;
 
             !empty($request->settled_from) ? $conditions[] = ['settled_date', '>=', $request->settled_from] : null;
-            !empty($request->settled_to) ? $conditions[]   = ['settled_date', '<=', $request->settled_to] : !empty($request->settled_to) ? ['settled_date', '<=', now()] : null;
+            !empty($request->settled_to) ? $conditions[] = [
+                'settled_date',
+                '<=',
+                $request->settled_to
+            ] : !empty($request->settled_to) ? ['settled_date', '<=', now()] : null;
 
             //Pagination part
             $page        = $request->has('page') ? $request->get('page') : 1;
@@ -59,14 +67,14 @@ class OrdersController extends Controller
             if (!empty($myAllOrders)) {
                 $myOrders = Order::getAllOrders($conditions, $page, $limit);
 
-                foreach($myOrders as $myOrder) {
-                    $score = explode(' - ', $myOrder->score);
+                foreach ($myOrders as $myOrder) {
+                    $score  = explode(' - ', $myOrder->score);
                     $points = DB::table('event_markets as em')
-                    ->where('em.master_event_unique_id', $myOrder->master_event_unique_id)
-                    ->where('em.odd_type_id', $myOrder->odd_type_id)
-                    ->where('em.market_flag', $myOrder->market_flag)
-                    ->select(['em.odd_label'])
-                    ->first();
+                        ->where('em.master_event_unique_id', $myOrder->master_event_unique_id)
+                        ->where('em.odd_type_id', $myOrder->odd_type_id)
+                        ->where('em.market_flag', $myOrder->market_flag)
+                        ->select(['em.odd_label'])
+                        ->first();
 
                     $data['orders'][] = [
                         'order_id'      => $myOrder->id,
@@ -83,9 +91,9 @@ class OrdersController extends Controller
                         'status'        => $myOrder->status,
                         'score'         => $myOrder->score,
                         'market_flag'   => $myOrder->market_flag,
-                        'bet_team'      => $myOrder->market_flag=="HOME" ? $myOrder->master_home_team_name : $myOrder->master_away_team_name,
-                        'bet_score'     => $myOrder->market_flag=="HOME" ? $score[0] : $score[1],
-                        'against_score' => $myOrder->market_flag=="HOME" ? $score[1] : $score[0],
+                        'bet_team'      => $myOrder->market_flag == "HOME" ? $myOrder->master_home_team_name : $myOrder->master_away_team_name,
+                        'bet_score'     => $myOrder->market_flag == "HOME" ? $score[0] : $score[1],
+                        'against_score' => $myOrder->market_flag == "HOME" ? $score[1] : $score[0],
                         'odd_type_id'   => $myOrder->odd_type_id,
                         'points'        => $points->odd_label
                     ];
@@ -100,6 +108,7 @@ class OrdersController extends Controller
                 'data'        => !empty($data) ? $data : null
             ], 200);
         } catch (Exception $e) {
+            Log::error($e->getMessage());
             return response()->json([
                 'status'      => false,
                 'status_code' => 500,
@@ -112,7 +121,7 @@ class OrdersController extends Controller
      * Get Event Details from the given parameter to display information
      * in the Bet Slip Interface
      *
-     * @param  string $memUID
+     * @param string $memUID
      * @return json
      */
     public function getEventMarketsDetails(string $memUID)
@@ -159,7 +168,8 @@ class OrdersController extends Controller
 
             $getOtherMarkets = DB::table('event_markets AS em')
                 ->join('master_event_market_links AS meml', 'meml.event_market_id', 'em.id')
-                ->join('master_event_markets AS mem', 'mem.master_event_market_unique_id', 'meml.master_event_market_unique_id')
+                ->join('master_event_markets AS mem', 'mem.master_event_market_unique_id',
+                    'meml.master_event_market_unique_id')
                 ->where('mem.master_event_unique_id', $masterEventMarket->master_event_unique_id)
                 ->where('mem.odd_type_id', $masterEventMarket->odd_type_id)
                 ->where('em.market_flag', $masterEventMarket->market_flag)
@@ -175,16 +185,7 @@ class OrdersController extends Controller
                     ]
                 );
 
-            $spreads = [];
-
-            foreach ($getOtherMarkets AS $row) {
-                $spreads[] = [
-                    'market_id' => $row->master_event_market_unique_id,
-                    'odds'      => $row->odds,
-                    'points'    => $row->odd_label,
-                    'is_main'   => $row->is_main
-                ];
-            }
+            $spreads = $getOtherMarkets->toArray();
 
             $data = [
                 'league_name'   => $masterEvent->master_league_name,
@@ -208,6 +209,7 @@ class OrdersController extends Controller
                 'data'        => $data
             ], 200);
         } catch (Exception $e) {
+            Log::error($e->getMessage());
             return response()->json([
                 'status'      => false,
                 'status_code' => 500,
@@ -220,7 +222,7 @@ class OrdersController extends Controller
      * Get Event Market Logs to keep track on every updates
      * the market offers
      *
-     * @param  string $memUID
+     * @param string $memUID
      * @return json
      */
     public function getEventMarketLogs(string $memUID)
@@ -262,6 +264,7 @@ class OrdersController extends Controller
                 'data'        => $data
             ], 200);
         } catch (Exception $e) {
+            Log::error($e->getMessage());
             return response()->json([
                 'status'      => false,
                 'status_code' => 500,
@@ -395,7 +398,8 @@ class OrdersController extends Controller
                 }
 
                 $query = DB::table('master_events AS me')
-                    ->join('master_event_markets AS mem', 'me.master_event_unique_id', '=', 'mem.master_event_unique_id')
+                    ->join('master_event_markets AS mem', 'me.master_event_unique_id', '=',
+                        'mem.master_event_unique_id')
                     ->join('event_markets AS em', function ($join) {
                         $join->on('me.master_event_unique_id', '=', 'em.master_event_unique_id');
                         $join->on('mem.odd_type_id', '=', 'em.odd_type_id');
@@ -506,8 +510,9 @@ class OrdersController extends Controller
                     $query->column_type . " " . $query->odd_label . "(" . $query->score . ")",
                 ]);
 
-                $providerAccountUserName = ProviderAccount::getProviderAccount($row['provider_id'], $actualStake, $isUserVIP);
-                $providerAccountId = ProviderAccount::getUsernameId($providerAccountUserName);
+                $providerAccountUserName = ProviderAccount::getProviderAccount($row['provider_id'], $actualStake,
+                    $isUserVIP);
+                $providerAccountId       = ProviderAccount::getUsernameId($providerAccountUserName);
 
                 $orderIncrement = Order::create([
                     'user_id'                       => auth()->user()->id,
@@ -530,7 +535,7 @@ class OrdersController extends Controller
                     'provider_account_id'           => $providerAccountId,
                 ]);
 
-                $incrementIds['id'][] = $orderIncrement->id;
+                $incrementIds['id'][]         = $orderIncrement->id;
                 $incrementIds['created_at'][] = $orderIncrement->created_at;
 
                 $orderLogsId = OrderLogs::create([
@@ -594,27 +599,28 @@ class OrdersController extends Controller
                 ];
 
                 $payload['data'] = [
-                    'provider'     => $incrementIds['payload'][$i]['provider_id'],
-                    'sport'        => $incrementIds['payload'][$i]['sport_id'],
-                    'stake'        => $incrementIds['payload'][$i]['actual_stake'],
-                    'odds'         => $incrementIds['payload'][$i]['odds'],
-                    'market_id'    => $incrementIds['payload'][$i]['market_id'],
-                    'event_id'     => $incrementIds['payload'][$i]['event_id'],
-                    'score'        => $incrementIds['payload'][$i]['score'],
-                    'username'     => ProviderAccount::getProviderAccount($row['provider_id'], $incrementIds['payload'][$i]['actual_stake'], $isUserVIP),
-                    'created_at'   => $incrementIds['created_at'][$i],
-                    'orderExpiry'  => $incrementIds['payload'][$i]['orderExpiry'],
+                    'provider'    => $incrementIds['payload'][$i]['provider_id'],
+                    'sport'       => $incrementIds['payload'][$i]['sport_id'],
+                    'stake'       => $incrementIds['payload'][$i]['actual_stake'],
+                    'odds'        => $incrementIds['payload'][$i]['odds'],
+                    'market_id'   => $incrementIds['payload'][$i]['market_id'],
+                    'event_id'    => $incrementIds['payload'][$i]['event_id'],
+                    'score'       => $incrementIds['payload'][$i]['score'],
+                    'username'    => ProviderAccount::getProviderAccount($row['provider_id'],
+                        $incrementIds['payload'][$i]['actual_stake'], $isUserVIP),
+                    'created_at'  => $incrementIds['created_at'][$i],
+                    'orderExpiry' => $incrementIds['payload'][$i]['orderExpiry'],
 
                 ];
 
                 $payloadsSwtId = implode(':', [
                     "place-bet-" . $incrementIds['id'][$i],
-                    "uId:"       . $incrementIds['payload'][$i]['user_id'],
-                    "mId:"       . $incrementIds['payload'][$i]['market_id']
+                    "uId:" . $incrementIds['payload'][$i]['user_id'],
+                    "mId:" . $incrementIds['payload'][$i]['market_id']
                 ]);
 
                 if (!$payloadsSwt->exists($payloadsSwtId)) {
-                    $payloadsSwt->set($payloadsSwtId, [ 'payload' => json_encode($payload) ]);
+                    $payloadsSwt->set($payloadsSwtId, ['payload' => json_encode($payload)]);
                 }
                 $ordersTable['orderId:' . $incrementIds['id'][$i]]['username']    = $payload['data']['username'];
                 $ordersTable['orderId:' . $incrementIds['id'][$i]]['orderExpiry'] = $payload['data']['orderExpiry'];
@@ -632,6 +638,7 @@ class OrdersController extends Controller
         } catch (Exception $e) {
             DB::rollback();
 
+            Log::error($e->getMessage());
             return response()->json([
                 'status'      => false,
                 'status_code' => 500,
@@ -669,6 +676,7 @@ class OrdersController extends Controller
                 'data'        => $data,
             ], 200);
         } catch (Exception $e) {
+            Log::error($e->getMessage());
             return response()->json([
                 'status'      => false,
                 'status_code' => 500,
