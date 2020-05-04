@@ -114,7 +114,7 @@ class KafkaConsume implements CustomProcessInterface
                                     break;
                                 }
 
-                                TransformKafkaMessageOpenOrders::dispatch($payload)
+                                TransformKafkaMessageOpenOrders::dispatch($payload);
                                 break;
                             case 'settlement':
                                 if (empty($payload->data)) {
