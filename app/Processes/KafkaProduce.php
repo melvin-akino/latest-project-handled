@@ -38,20 +38,15 @@ class KafkaProduce implements CustomProcessInterface
             ];
 
             if ($swoole->wsTable->exist('data2Swt')) {
-                $topicTable                 = $swoole->topicTable;
                 $minMaxRequestsTable        = $swoole->minMaxRequestsTable;
-                $ordersTable                = $swoole->ordersTable;
                 $sportsTable                = $swoole->sportsTable;
-                $providersTable             = $swoole->providersTable;
                 $payloadsTable              = $swoole->payloadsTable;
                 $providerAccountsTable      = $swoole->providerAccountsTable;
                 $initialTime                = Carbon::createFromFormat('H:i:s', Carbon::now()->format('H:i:s'));
-                $providerAccountInitialTime = Carbon::createFromFormat('H:i:s', Carbon::now()->format('H:i:s'));
-                $betInitialTime             = Carbon::createFromFormat('H:i:s', Carbon::now()->format('H:i:s'));
-                $openOrderInitialTime       = Carbon::createFromFormat('H:i:s', Carbon::now()->format('H:i:s'));
                 $balanceTime                = 0;
                 $systemConfigurationsTimers = [];
 
+                $startTime = $openOrderInitialTime = $betInitialTime = $providerAccountInitialTime = $initialTime;
                 while (!self::$quit) {
                     $newTime = Carbon::createFromFormat('H:i:s', Carbon::now()->format('H:i:s'));
 
@@ -66,9 +61,10 @@ class KafkaProduce implements CustomProcessInterface
 
                         if (!empty($systemConfigurationsTimers)) {
                             foreach ($systemConfigurationsTimers as $systemConfigurationsTimer) {
-                                if (!empty((int) $systemConfigurationsTimer['value'])) {
-                                    if ($balanceTime % (int) $systemConfigurationsTimer['value'] == 0) {
-                                        self::sendBalancePayload($systemConfigurationsTimer['type'], $kafkaTopics['req_balance'], $swoole);
+                                if (!empty((int)$systemConfigurationsTimer['value'])) {
+                                    if ($balanceTime % (int)$systemConfigurationsTimer['value'] == 0) {
+                                        self::sendBalancePayload($systemConfigurationsTimer['type'],
+                                            $kafkaTopics['req_balance'], $swoole);
                                     }
                                 }
                             }
@@ -80,14 +76,30 @@ class KafkaProduce implements CustomProcessInterface
                             $requestId = Str::uuid();
                             $requestTs = self::milliseconds();
 
-                            $payload = [
-                                'request_uid' => $requestId,
-                                'request_ts'  => $requestTs,
-                                'sub_command' => 'scrape',
-                                'command'     => 'minmax'
-                            ];
-                            $payload['data'] = $minMaxRequest;
-                            self::pushToKafka($payload, $requestId, strtolower($minMaxRequest['provider']) . $kafkaTopics['req_minmax']);
+                            switch ($minMaxRequest['schedule']) {
+                                case 'early':
+                                    $scheduleFrequency = 10;
+                                    break;
+                                case 'today':
+                                    $scheduleFrequency = 5;
+                                    break;
+                                case 'inplay':
+                                default:
+                                    $scheduleFrequency = 1;
+                                    break;
+                            }
+                            $nowTime = Carbon::createFromFormat('H:i:s', Carbon::now()->format('H:i:s'));
+                            if ($nowTime->diffInSeconds(Carbon::parse($startTime)) % $scheduleFrequency == 0) {
+                                $payload         = [
+                                    'request_uid' => $requestId,
+                                    'request_ts'  => $requestTs,
+                                    'sub_command' => 'scrape',
+                                    'command'     => 'minmax'
+                                ];
+                                $payload['data'] = $minMaxRequest;
+                                self::pushToKafka($payload, $requestId,
+                                    strtolower($minMaxRequest['provider']) . $kafkaTopics['req_minmax']);
+                            }
                         }
                         //END of Minmax Process
 
@@ -109,12 +121,13 @@ class KafkaProduce implements CustomProcessInterface
                                     ];
 
                                     $payload['data'] = [
-                                        'sport'     => $sportId,
-                                        'provider'  => $providerAlias,
-                                        'username'  => $username
+                                        'sport'    => $sportId,
+                                        'provider' => $providerAlias,
+                                        'username' => $username
                                     ];
 
-                                    self::pushToKafka($payload, $requestId, $providerAlias . $kafkaTopics['req_open_order']);
+                                    self::pushToKafka($payload, $requestId,
+                                        $providerAlias . $kafkaTopics['req_open_order']);
                                 }
 
                                 $openOrderInitialTime = $newTime;
@@ -129,8 +142,8 @@ class KafkaProduce implements CustomProcessInterface
 
                                     $randomRangeInMinutes = rand(0, 10);
 
-                                    $requestId     = Str::uuid();
-                                    $requestTs     = self::milliseconds();
+                                    $requestId = Str::uuid();
+                                    $requestTs = self::milliseconds();
 
                                     $payload = [
                                         'request_uid' => $requestId,
@@ -140,12 +153,13 @@ class KafkaProduce implements CustomProcessInterface
                                     ];
 
                                     $payload['data'] = [
-                                        'sport'     => $sportId,
-                                        'provider'  => $providerAlias,
-                                        'username'  => $username
+                                        'sport'    => $sportId,
+                                        'provider' => $providerAlias,
+                                        'username' => $username
                                     ];
 
-                                    self::pushToKafka($payload, $requestId, $providerAlias . $kafkaTopics['req_settlements'], $randomRangeInMinutes);
+                                    self::pushToKafka($payload, $requestId,
+                                        $providerAlias . $kafkaTopics['req_settlements'], $randomRangeInMinutes);
 
                                     $providerAccountInitialTime = $newTime;
                                 }
@@ -160,8 +174,9 @@ class KafkaProduce implements CustomProcessInterface
                                     $provider  = $payload->data->provider;
 
                                     $dateNow = Carbon::now()->toDateTimeString();
-                                    if (strtotime($dateNow) - strtotime($payload->data->created_at) < (int) $payload->data->orderExpiry) {
-                                        self::pushToKafka((array) $payload, $requestId, $provider . $kafkaTopics['req_order']);
+                                    if (strtotime($dateNow) - strtotime($payload->data->created_at) < (int)$payload->data->orderExpiry) {
+                                        self::pushToKafka((array)$payload, $requestId,
+                                            $provider . $kafkaTopics['req_order']);
                                     } else {
                                         $payloadsTable->del($pKey);
                                     }
@@ -203,11 +218,11 @@ class KafkaProduce implements CustomProcessInterface
         } catch (Exception $e) {
             Log::critical('Sending Kafka Message Failed', [
                 'error' => $e->getMessage(),
-                'code' => $e->getCode()
+                'code'  => $e->getCode()
             ]);
         } finally {
             if (env('KAFKA_LOG', false)) {
-                Storage::append('producers-'. date('Y-m-d') . '.log', json_encode($message));
+                Storage::append('producers-' . date('Y-m-d') . '.log', json_encode($message));
             }
             Log::channel('kafkaproducelog')->info(json_encode($message));
         }
@@ -226,18 +241,18 @@ class KafkaProduce implements CustomProcessInterface
             $username = $providerAccount['username'];
             $provider = strtolower($providerAccount['provider_alias']);
 
-            $requestId = (string) Str::uuid();
+            $requestId = (string)Str::uuid();
             $requestTs = self::milliseconds();
 
-            $payload = [
+            $payload         = [
                 'request_uid' => $requestId,
                 'request_ts'  => $requestTs,
                 'sub_command' => 'scrape',
                 'command'     => 'balance'
             ];
             $payload['data'] = [
-                'provider'  => $provider,
-                'username'  => $username
+                'provider' => $provider,
+                'username' => $username
             ];
 
             self::pushToKafka($payload, $requestId, $provider . $topic, rand(1, 180));
