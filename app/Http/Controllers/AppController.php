@@ -2,13 +2,12 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\{Country, League};
-
+use App\Models\Country;
 use Illuminate\Http\Request;
 
 class AppController extends Controller
 {
-    public function index(Request $request)
+    public function index()
     {
         $defaultData = [
             'price-format'               => config('constants.price-format'),

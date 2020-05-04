@@ -2,9 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Support\Facades\Artisan;
-use App\Models\{Provider, SportOddType, UserConfiguration, UserSportOddConfiguration};
-
+use Illuminate\Support\Facades\Log;
 use Illuminate\Http\Request;
 use Exception;
 
@@ -19,26 +17,34 @@ class UserController extends Controller
      */
     public function user(Request $request)
     {
-//        Artisan::call('cache:clear');
-        return response()->json(
-            [
-                'status'            => true,
-                'status_code'       => 200,
-                'data'              => $request->user()->only([
-                    'name',
-                    'email',
-                    'firstname',
-                    'lastname',
-                    'phone',
-                    'address',
-                    'country_id',
-                    'state',
-                    'city',
-                    'postcode',
-                    'currency_id',
-                    'birthdate',
-                ])
-            ]
-        );
+        try {
+            return response()->json(
+                [
+                    'status'            => true,
+                    'status_code'       => 200,
+                    'data'              => $request->user()->only([
+                        'name',
+                        'email',
+                        'firstname',
+                        'lastname',
+                        'phone',
+                        'address',
+                        'country_id',
+                        'state',
+                        'city',
+                        'postcode',
+                        'currency_id',
+                        'birthdate',
+                    ])
+                ]
+            );
+        } catch (Exception $e) {
+            Log::error($e->getMessage());
+            return response()->json([
+                'status'      => false,
+                'status_code' => 500,
+                'message'     => trans('generic.internal-server-error')
+            ], 500);
+        }
     }
 }
