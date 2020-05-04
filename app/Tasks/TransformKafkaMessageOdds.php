@@ -2,8 +2,7 @@
 
 namespace App\Tasks;
 
-use App\Tasks\TransformKafkaMessageOddsSaveToDb;
-// use App\Jobs\TransformKafkaMessageOddsSaveToDb;
+use App\Jobs\TransformKafkaMessageOddsSaveToDb;
 
 use Illuminate\Support\Facades\Log;
 use Hhxsv5\LaravelS\Swoole\Task\Task;
@@ -449,8 +448,7 @@ class TransformKafkaMessageOdds extends Task
             }
 
             if (!empty($this->subTasks['event'])) {
-                Task::deliver(new TransformKafkaMessageOddsSaveToDb($this->subTasks, $this->uid, $this->dbOptions));
-                // TransformKafkaMessageOddsSaveToDb::dispatch($this->subTasks, $this->uid, $this->dbOptions);
+                TransformKafkaMessageOddsSaveToDb::dispatch($this->subTasks, $this->uid, $this->dbOptions);
             }
         } catch (Exception $e) {
             Log::error($e->getMessage());
