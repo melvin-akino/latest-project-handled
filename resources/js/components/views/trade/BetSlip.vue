@@ -1,11 +1,11 @@
 <template>
     <div class="betslip flex justify-center items-center">
         <dialog-drag :title="'Bet Slip - '+market_id" :options="options" @close="closeBetSlip(odd_details.market_id)" @click.native="setActiveBetSlip(market_id)" v-betslip="activeBetSlip==market_id">
-            <div class="flex flex-col justify-center items-center loader" v-if="isLoadingMarketDetails">
+            <div class="flex flex-col justify-center items-center w-full h-full absolute top-0 left-0 bg-gray-200 z-10" :class="{'hidden': !isLoadingMarketDetails}">
                 <span class="betSlipSpinner"><i class="fas fa-circle-notch fa-spin"></i></span>
                 <span class="text-center mt-2">Loading Market Details...</span>
             </div>
-            <div class="container mx-auto p-2" v-else>
+            <div class="container mx-auto p-2">
                 <div class="flex justify-between items-center w-full leagueAndTeamDetails">
                     <div class="flex items-center">
                         <span class="text-white uppercase font-bold mr-2 my-2 px-2 bg-orange-500">{{market_details.odd_type}}</span>
@@ -280,6 +280,7 @@ export default {
     },
     mounted() {
         this.getMarketDetails()
+        this.minmax(this.market_id)
         this.$store.dispatch('trade/getBetSlipSettings')
     },
     methods: {
@@ -308,7 +309,6 @@ export default {
             let enabledBookies = this.bookies.filter(bookie => !this.disabledBookies.includes(bookie.id))
             enabledBookies.map(bookie => this.minMaxData.push({ provider_id: bookie.id, provider: bookie.alias, min: null, max: null, price: null, priority: null, age: null, hasMarketData: false }))
             this.marketDataMessage = 'Retrieving Market'
-            this.minmax(this.market_id)
         },
         changePoint(points, market_id, odds) {
             this.emptyMinMax(this.market_id)
@@ -601,6 +601,7 @@ export default {
 
     .dialog-drag .dialog-body {
         padding: 0;
+        position: relative;
     }
 
     @keyframes fadeIn {

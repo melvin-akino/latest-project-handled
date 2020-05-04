@@ -56,6 +56,7 @@ class SportController extends Controller
     {
         try {
             $sports = Sport::orderBy('priority', 'asc')
+                ->where('is_enabled', true)
                 ->get([
                     'id',
                     'is_enabled',

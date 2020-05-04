@@ -282,7 +282,7 @@ export default {
                                     this.$delete(this.events[event.game_schedule], eventStartTime)
                                 }
                                 this.$set(event, 'game_schedule', updatedEventSchedule.game_schedule)
-                                this.$store.dispatch('trade/transformEvents', { schedule: event.game_schedule, eventStartTime, payload: event })
+                                this.$store.dispatch('trade/transformEvents', { schedule: event.game_schedule, league: eventStartTime, payload: event })
                             }
                         }
                     })
