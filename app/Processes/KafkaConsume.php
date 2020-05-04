@@ -72,14 +72,6 @@ class KafkaConsume implements CustomProcessInterface
                                 ) {
                                     Log::info("Min Max Transformation ignored - Same or Old Timestamp");
                                     break;
-                                } else if ($swoole->wsTable->exist('minmax-payload:' . $payload->data->market_id) &&
-                                    md5(json_encode([
-                                        'odds'    => $payload->data->odds,
-                                        'minimum' => $payload->data->minimum,
-                                        'maximum' => $payload->data->maximum
-                                    ])) == $swoole->wsTable->get('minmax-payload:' . $payload->data->market_id)['value']) {
-                                    Log::info("Min Max Transformation ignored - Same Data");
-                                    break;
                                 }
 
                                 $swoole->wsTable->set('minmax-payload:' . $payload->data->market_id, [

@@ -6,6 +6,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Support\Facades\{DB, Log};
 use Exception;
+use Illuminate\Support\Str;
 
 class WsMinMax implements ShouldQueue
 {
@@ -20,10 +21,10 @@ class WsMinMax implements ShouldQueue
     public function handle()
     {
         try {
-            $topicTable = app('swoole')->topicTable;
+            $topicTable          = app('swoole')->topicTable;
             $minMaxRequestsTable = app('swoole')->minMaxRequestsTable;
-            $doesExist = false;
-            foreach($topicTable as $topic) {
+            $doesExist           = false;
+            foreach ($topicTable as $topic) {
                 if ($topic['topic_name'] == 'min-max-' . $this->master_event_market_unique_id &&
                     $topic['user_id'] == $this->userId) {
                     $doesExist = true;
@@ -50,14 +51,38 @@ class WsMinMax implements ShouldQueue
 
             if ($eventMarket) {
                 $minMaxRequestsTable->set('memUID:' . $this->master_event_market_unique_id, [
-                    'provider'      => strtolower($eventMarket->alias),
-                    'market_id'     => $eventMarket->bet_identifier,
-                    'sport'         => $eventMarket->sport_id,
-                    'schedule' => $eventMarket->game_schedule,
+                    'provider'  => strtolower($eventMarket->alias),
+                    'market_id' => $eventMarket->bet_identifier,
+                    'sport'     => $eventMarket->sport_id,
+                    'schedule'  => $eventMarket->game_schedule,
                 ]);
+
+                $requestId = (string)Str::uuid();
+                $requestTs = $this->milliseconds();
+
+                $payload         = [
+                    'request_uid' => $requestId,
+                    'request_ts'  => $requestTs,
+                    'sub_command' => 'scrape',
+                    'command'     => 'minmax'
+                ];
+                $payload['data'] = [
+                    'provider'  => strtolower($eventMarket->alias),
+                    'market_id' => $eventMarket->bet_identifier,
+                    'sport'     => $eventMarket->sport_id,
+                    'schedule'  => $eventMarket->game_schedule,
+                ];
+
+                KafkaPush::dispatch(strtolower($eventMarket->alias) . '_minmax_req', $payload, $requestId);
             }
         } catch (Exception $e) {
             Log::error($e->getMessage());
         }
+    }
+
+    private function milliseconds()
+    {
+        $mt = explode(' ', microtime());
+        return bcadd($mt[1], $mt[0], 8);
     }
 }
