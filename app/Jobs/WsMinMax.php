@@ -39,13 +39,15 @@ class WsMinMax implements ShouldQueue
             }
 
             $eventMarket = DB::table('event_markets as em')
+                ->join('master_event_links as mel', 'mel.master_event_unique_id', 'em.master_event_unique_id')
+                ->join('events as e', 'e.id', 'mel.event_id')
                 ->join('master_event_market_links as meml', 'meml.event_market_id', 'em.id')
                 ->join('master_event_markets as mem', 'mem.master_event_market_unique_id',
                     'meml.master_event_market_unique_id')
                 ->join('master_events as me', 'me.master_event_unique_id', 'mem.master_event_unique_id')
                 ->join('providers as p', 'p.id', 'em.provider_id')
                 ->where('mem.master_event_market_unique_id', $this->master_event_market_unique_id)
-                ->select('em.bet_identifier', 'p.alias', 'me.sport_id', 'me.game_schedule')
+                ->select('em.bet_identifier', 'p.alias', 'me.sport_id', 'me.game_schedule', 'e.event_identifier')
                 ->distinct()
                 ->first();
 
@@ -55,6 +57,7 @@ class WsMinMax implements ShouldQueue
                     'market_id' => $eventMarket->bet_identifier,
                     'sport'     => $eventMarket->sport_id,
                     'schedule'  => $eventMarket->game_schedule,
+                    'event_id'  => $eventMarket->event_identifier
                 ]);
 
                 $requestId = (string)Str::uuid();
