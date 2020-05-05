@@ -20,17 +20,17 @@ class TransformKafkaMessageEvents extends Task
     public function handle()
     {
         try {
-            $swoole  = app('swoole');
-            $wsTable = $swoole->wsTable;
+            $swoole             = app('swoole');
+            $eventScrapingTable = $swoole->eventScrapingTable;
 
             $timestampSwtId = 'eventScraping:' . implode(':', [
-                'sport:' . $this->message->data->sport,
-                'provider:' . $this->message->data->provider,
-                'schedule:' . $this->message->data->schedule
-            ]);
+                    'sport:' . $this->message->data->sport,
+                    'provider:' . $this->message->data->provider,
+                    'schedule:' . $this->message->data->schedule
+                ]);
 
-            if ($wsTable->exists($timestampSwtId)) {
-                $swooleTS = $wsTable[$timestampSwtId]['value'];
+            if ($eventScrapingTable->exists($timestampSwtId)) {
+                $swooleTS = $eventScrapingTable[$timestampSwtId]['value'];
 
                 if ($swooleTS > $this->message->request_ts) {
                     Log::info("League Transformation ignored - Old Timestamp");
@@ -38,13 +38,13 @@ class TransformKafkaMessageEvents extends Task
                 }
             }
 
-            $wsTable[$timestampSwtId]['value'] = $this->message->request_ts;
+            $eventScrapingTable[$timestampSwtId]['value'] = $this->message->request_ts;
 
             /** LOOK-UP TABLES */
-            $providersTable     = $swoole->providersTable;
-            $activeEventsTable  = $swoole->activeEventsTable;
-            $sportsTable        = $swoole->sportsTable;
-            $eventsTable        = $swoole->eventsTable;
+            $providersTable    = $swoole->providersTable;
+            $activeEventsTable = $swoole->activeEventsTable;
+            $sportsTable       = $swoole->sportsTable;
+            $eventsTable       = $swoole->eventsTable;
 
             /**
              * PROVIDERS Swoole Table
@@ -77,7 +77,6 @@ class TransformKafkaMessageEvents extends Task
 
             if ($sportsTable->exists($sportSwtId)) {
                 $sportId = $sportsTable->get($sportSwtId)['id'];
-                $sportName = $sportsTable->get($sportSwtId)['sport'];
             } else {
                 Log::info("League Transformation ignored - Sport doesn't exist");
                 return;
@@ -90,7 +89,7 @@ class TransformKafkaMessageEvents extends Task
             ]);
             if ($activeEventsTable->exists($activeEventsSwtId)) {
                 $eventsJson = $activeEventsTable->get($activeEventsSwtId);
-                $events = json_decode($eventsJson['events']);
+                $events     = json_decode($eventsJson['events']);
 
                 $inActiveEvents = array_diff($events, $this->message->data->event_ids);
 

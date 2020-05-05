@@ -55,7 +55,6 @@ class TransformKafkaMessageOdds extends Task
     {
         try {
             $swoole  = $this->swoole = app('swoole');
-            $wsTable = $this->swoole->wsTable;
 
             foreach ($this->disregard AS $disregard) {
                 if (strpos($this->message->data->leagueName, $disregard) === 0) {
@@ -69,14 +68,17 @@ class TransformKafkaMessageOdds extends Task
 
             /** DATABASE TABLES */
             /** LOOK-UP TABLES */
-            $providersTable     = $swoole->providersTable;
-            $sportsTable        = $swoole->sportsTable;
-            $leaguesTable       = $swoole->leaguesTable;
-            $teamsTable         = $swoole->teamsTable;
-            $eventsTable        = $swoole->eventsTable;
-            $oddTypesTable      = $swoole->oddTypesTable;
-            $sportOddTypesTable = $swoole->sportOddTypesTable;
-            $eventMarketsTable  = $swoole->eventMarketsTable;
+            $providersTable           = $swoole->providersTable;
+            $sportsTable              = $swoole->sportsTable;
+            $leaguesTable             = $swoole->leaguesTable;
+            $teamsTable               = $swoole->teamsTable;
+            $eventsTable              = $swoole->eventsTable;
+            $oddTypesTable            = $swoole->oddTypesTable;
+            $sportOddTypesTable       = $swoole->sportOddTypesTable;
+            $eventMarketsTable        = $swoole->eventMarketsTable;
+            $leagueLookUpTable        = $swoole->leagueLookUpTable;
+            $teamLookUpTable          = $swoole->teamLookUpTable;
+            $eventScheduleChangeTable = $swoole->eventScheduleChangeTable;
 
             /**
              * PROVIDERS Swoole Table
@@ -115,7 +117,7 @@ class TransformKafkaMessageOdds extends Task
             }
 
             $leagueLookupId = null;
-            foreach ($wsTable as $key => $value) {
+            foreach ($leagueLookUpTable as $key => $value) {
                 if (strpos($key, 'leagueLookUpId:') === 0) {
                     if ($value['value'] == $this->message->data->leagueName) {
                         $leagueLookupId = substr($key, strlen('leagueLookUpId:'));
@@ -154,12 +156,10 @@ class TransformKafkaMessageOdds extends Task
             ];
             foreach ($competitors AS $key => $row) {
                 $teamLookUpId = null;
-                foreach ($wsTable as $k => $value) {
-                    if (strpos($k, 'teamLookUpId:') === 0) {
-                        if ($value['value'] == $row) {
-                            $teamLookUpId = substr($k, strlen('teamLookUpId:'));
-                            break;
-                        }
+                foreach ($teamLookUpTable as $k => $value) {
+                    if ($value['value'] == $row) {
+                        $teamLookUpId = substr($k, strlen('teamLookUpId:'));
+                        break;
                     }
                 }
 
@@ -227,7 +227,7 @@ class TransformKafkaMessageOdds extends Task
                                 ]),
                         ];
 
-                        $wsTable->set('eventScheduleChange:' . $uid, ['value' => json_encode([
+                        $eventScheduleChangeTable->set('eventScheduleChange:' . $uid, ['value' => json_encode([
                             'uid'           => $uid,
                             'game_schedule' => $this->message->data->schedule,
                             'sport_id'      => $sportId

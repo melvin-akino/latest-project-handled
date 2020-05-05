@@ -155,7 +155,7 @@ class TransformKafkaMessageOddsSaveToDb extends Task
 
                 if ($this->dbOptions['is-event-new']) {
                     $additionalEventsSwtId = "additionalEvents:" . $this->eventData['MasterEvent']['data']['master_event_unique_id'];
-                    $this->swoole->wsTable->set($additionalEventsSwtId, [
+                    $this->swoole->additionalEventsTable->set($additionalEventsSwtId, [
                         'value' => json_encode([
                             'sport_id' => $this->eventRawData['Event']['data']['sport_id'],
                             'schedule' => $this->eventRawData['Event']['data']['game_schedule'],
@@ -198,7 +198,7 @@ class TransformKafkaMessageOddsSaveToDb extends Task
             if (!empty($this->updatedOddsData)) {
                 $uid = $this->uid;
                 $WSOddsSwtId = "updatedEvents:" . $uid;
-                $this->swoole->wsTable->set($WSOddsSwtId, ['value' => json_encode($this->updatedOddsData)]);
+                $this->swoole->updatedEventsTable->set($WSOddsSwtId, ['value' => json_encode($this->updatedOddsData)]);
 
                 $updatedPrice = [];
                 array_map(function($updatedPriceValue) use ($updatedPrice) {
@@ -208,7 +208,7 @@ class TransformKafkaMessageOddsSaveToDb extends Task
                 }, $this->updatedOddsData);
 
                 $WSOddsSwtId = "updatedEventPrices:" . $uid;
-                $this->swoole->wsTable->set($WSOddsSwtId, ['value' => json_encode(array_values($updatedPrice))]);
+                $this->swoole->updatedEventPricesTable->set($WSOddsSwtId, ['value' => json_encode(array_values($updatedPrice))]);
             }
         } catch (Exception $e) {
             Log::info($e->getMessage());

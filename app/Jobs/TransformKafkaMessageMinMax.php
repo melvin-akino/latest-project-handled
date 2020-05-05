@@ -31,9 +31,10 @@ class TransformKafkaMessageMinMax implements ShouldQueue
         $usersTable         = $swoole->usersTable;
         $currenciesTable    = $swoole->currenciesTable;
         $exchangeRatesTable = $swoole->exchangeRatesTable;
+        $minmaxMarketTable  = $swoole->minmaxMarketTable;
 
         try {
-            $wsTable->set('minmax-market:' . $this->data->data->market_id, [
+            $minmaxMarketTable->set('minmax-market:' . $this->data->data->market_id, [
                 'value' => $this->data->data->timestamp
             ]);
 
@@ -80,10 +81,10 @@ class TransformKafkaMessageMinMax implements ShouldQueue
                                     $userCurrency['id'] = $usersTable->get($userSwtId)['currency_id'];
                                 }
 
-                                $maximum = (double) $data->maximum * ($punterPercentage / 100);
+                                $maximum = (double)$data->maximum * ($punterPercentage / 100);
 
-                                $timeDiff = time() - (int) $data->timestamp;
-                                $age = ($timeDiff > 60) ? floor($timeDiff / 60) . 'm' : $timeDiff . 's';
+                                $timeDiff = time() - (int)$data->timestamp;
+                                $age      = ($timeDiff > 60) ? floor($timeDiff / 60) . 'm' : $timeDiff . 's';
 
                                 $transformed = [
                                     "sport_id"    => $data->sport,
@@ -111,7 +112,7 @@ class TransformKafkaMessageMinMax implements ShouldQueue
 
                                     $erSwtId = implode(':', [
                                         "from:" . $userCurrency['code'],
-                                        "to:"   . $providerCurrency['code'],
+                                        "to:" . $providerCurrency['code'],
                                     ]);
 
                                     if ($exchangeRatesTable->exists($erSwtId)) {

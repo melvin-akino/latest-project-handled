@@ -74,7 +74,7 @@ class TransformKafkaMessageOddsSaveToDb implements ShouldQueue
                 ], $this->eventData['MasterEvent']['data']);
 
                 if ($masterEventModel && $eventModel) {
-                    $rawEventId = $eventModel->id;
+                    $rawEventId      = $eventModel->id;
                     $masterEventLink = MasterEventLink::updateOrCreate([
                         'event_id'               => $rawEventId,
                         'master_event_unique_id' => $this->eventData['MasterEvent']['data']['master_event_unique_id']
@@ -172,8 +172,7 @@ class TransformKafkaMessageOddsSaveToDb implements ShouldQueue
 
                 if ($this->dbOptions['is-event-new']) {
                     $additionalEventsSwtId = "additionalEvents:" . $this->eventData['MasterEvent']['data']['master_event_unique_id'];
-
-                    $this->swoole->wsTable->set($additionalEventsSwtId, [
+                    $this->swoole->additionalEventsTable->set($additionalEventsSwtId, [
                         'value' => json_encode([
                             'sport_id' => $this->eventRawData['Event']['data']['sport_id'],
                             'schedule' => $this->eventRawData['Event']['data']['game_schedule'],
@@ -214,19 +213,20 @@ class TransformKafkaMessageOddsSaveToDb implements ShouldQueue
             }
 
             if (!empty($this->updatedOddsData)) {
-                $uid = $this->uid;
+                $uid         = $this->uid;
                 $WSOddsSwtId = "updatedEvents:" . $uid;
-                $this->swoole->wsTable->set($WSOddsSwtId, ['value' => json_encode($this->updatedOddsData)]);
+                $this->swoole->updatedEventsTable->set($WSOddsSwtId, ['value' => json_encode($this->updatedOddsData)]);
 
                 $updatedPrice = [];
-                array_map(function($updatedPriceValue) use ($updatedPrice) {
+                array_map(function ($updatedPriceValue) use ($updatedPrice) {
                     $eventIdentifier = $updatedPriceValue['event_identifier'];
                     unset($updatedPriceValue['event_identifier']);
                     $updatedPrice[$eventIdentifier][] = $$updatedPriceValue;
                 }, $this->updatedOddsData);
 
                 $WSOddsSwtId = "updatedEventPrices:" . $uid;
-                $this->swoole->wsTable->set($WSOddsSwtId, ['value' => json_encode(array_values($updatedPrice))]);
+                $this->swoole->updatedEventPricesTable->set($WSOddsSwtId,
+                    ['value' => json_encode(array_values($updatedPrice))]);
             }
         } catch (Exception $e) {
             Log::info($e->getMessage());

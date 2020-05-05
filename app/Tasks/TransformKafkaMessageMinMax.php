@@ -28,9 +28,10 @@ class TransformKafkaMessageMinMax extends Task
         $usersTable         = $swoole->usersTable;
         $currenciesTable    = $swoole->currenciesTable;
         $exchangeRatesTable = $swoole->exchangeRatesTable;
+        $minmaxMarketTable  = $swoole->minmaxMarketTable;
 
         try {
-            $wsTable->set('minmax-market:' . $this->data->data->market_id, [
+            $minmaxMarketTable->set('minmax-market:' . $this->data->data->market_id, [
                 'value' => $this->data->data->timestamp
             ]);
 
