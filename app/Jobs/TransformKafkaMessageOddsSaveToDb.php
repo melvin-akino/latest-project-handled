@@ -229,7 +229,13 @@ class TransformKafkaMessageOddsSaveToDb implements ShouldQueue
                 $this->swoole->wsTable->set($WSOddsSwtId, ['value' => json_encode(array_values($updatedPrice))]);
             }
         } catch (Exception $e) {
-            Log::info($e->getMessage());
+            Log::error(json_encode(
+                [
+                    'message' => $e->getMessage(),
+                    'line'    => $e->getLine(),
+                    'file'    => $e->getFile(),
+                ]
+            ));
             DB::rollBack();
         }
     }
