@@ -1,13 +1,16 @@
 <?php
 
-namespace App\Tasks;
+namespace App\Jobs;
 
-use Hhxsv5\LaravelS\Swoole\Task\Task;
+use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Support\Facades\Log;
 use Exception;
 
-class TransformKafkaMessageMinMax extends Task
+class TransformKafkaMessageMinMax implements ShouldQueue
 {
+    use Dispatchable;
+
     protected $data;
 
     public function __construct($data)
@@ -53,7 +56,7 @@ class TransformKafkaMessageMinMax extends Task
 
                                 Log::info("MIN MAX Transformation - Message Found");
                             } else if ($this->data->message == 'onqueue') {
-                                break;
+                                continue;
                             } else {
                                 /** AS DEFAULT */
                                 $providerCurrency = [

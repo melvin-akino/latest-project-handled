@@ -2,16 +2,20 @@
 
 namespace App\Processes;
 
+use App\Jobs\{
+    TransformKafkaMessageMinMax,
+    TransformKafkaMessageOpenOrders,
+    TransformKafkaMessageSettlement
+};
+
 use App\Tasks\{
     TransformKafkaMessageEvents,
     TransformKafkaMessageLeagues,
     TransformKafkaMessageOdds,
-    TransformKafkaMessageMinMax,
     TransformKafkaMessageBalance,
-    TransformKafkaMessageBet,
-    TransformKafkaMessageOpenOrders,
-    TransformKafkaMessageSettlement
+    TransformKafkaMessageBet
 };
+
 use Hhxsv5\LaravelS\Swoole\Process\CustomProcessInterface;
 use Hhxsv5\LaravelS\Swoole\Task\Task;
 use Illuminate\Support\Facades\Log;
@@ -45,7 +49,7 @@ class KafkaConsume implements CustomProcessInterface
 
                 echo '.';
                 while (!self::$quit) {
-                    $message = $kafkaConsumer->consume(120 * 1000);
+                    $message = $kafkaConsumer->consume(0);
                     if ($message->err == RD_KAFKA_RESP_ERR_NO_ERROR) {
                         $payload = json_decode($message->payload);
 
@@ -62,16 +66,24 @@ class KafkaConsume implements CustomProcessInterface
                                     break;
                                 }
 
-                                if (!empty($payload->data->timestamp) && 
-                                    $swoole->wsTable->exist('minmax-market:' . $payload->data->market_id) && 
+                                if (!empty($payload->data->timestamp) &&
+                                    $swoole->wsTable->exist('minmax-market:' . $payload->data->market_id) &&
                                     $swoole->wsTable->get('minmax-market:' . $payload->data->market_id)['value'] >= $payload->data->timestamp
                                 ) {
                                     Log::info("Min Max Transformation ignored - Same or Old Timestamp");
                                     break;
                                 }
 
+                                $swoole->wsTable->set('minmax-payload:' . $payload->data->market_id, [
+                                    'value' => md5(json_encode([
+                                        'odds'    => $payload->data->odds,
+                                        'minimum' => $payload->data->minimum,
+                                        'maximum' => $payload->data->maximum
+                                    ]))
+                                ]);
+
                                 Log::debug('Minmax calling Task Worker');
-                                Task::deliver(new TransformKafkaMessageMinMax($payload));
+                                TransformKafkaMessageMinMax::dispatch($payload);
                                 break;
                             case 'bet':
                                 if (empty($payload->data->status) || empty($payload->data->odds)) {
@@ -94,7 +106,7 @@ class KafkaConsume implements CustomProcessInterface
                                     break;
                                 }
 
-                                Task::deliver(new TransformKafkaMessageOpenOrders($payload));
+                                TransformKafkaMessageOpenOrders::dispatch($payload);
                                 break;
                             case 'settlement':
                                 if (empty($payload->data)) {
@@ -102,7 +114,7 @@ class KafkaConsume implements CustomProcessInterface
                                     break;
                                 }
 
-                                Task::deliver(new TransformKafkaMessageSettlement($payload));
+                                TransformKafkaMessageSettlement::dispatch($payload);
                                 break;
                             default:
                                 if (!isset($payload->data->events)) {
@@ -144,6 +156,7 @@ class KafkaConsume implements CustomProcessInterface
                     } else {
                         Log::error(json_encode([$message]));
                     }
+                    usleep(1000);
                 }
             }
         } catch(Exception $e) {

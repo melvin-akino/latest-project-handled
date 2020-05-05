@@ -1,6 +1,6 @@
 <template>
     <div class="trade">
-        <div class="flex" v-adjust-trade-window-height="isBetBarOpen">
+        <div class="flex">
             <div class="w-1/6">
                 <div class="fixed sidebar bg-gray-800 w-1/6 pr-4 overflow-y-auto h-screen" v-adjust-sidebar-height="isBetBarOpen">
                     <Wallet></Wallet>
@@ -11,7 +11,7 @@
 
             <div class="w-5/6 gameWindow">
                 <Columns></Columns>
-                <div class="gameScheds pb-4">
+                <div class="gameScheds" v-adjust-game-window-height="isBetBarOpen" v-adjust-game-window-width>
                     <Games gameSchedType="watchlist" :games="events.watchlist"></Games>
                     <Games gameSchedType="inplay" :games="events.inplay"></Games>
                     <Games gameSchedType="today" :games="events.today"></Games>
@@ -56,7 +56,7 @@ export default {
         }
     },
     computed: {
-        ...mapState('trade', ['isBetBarOpen', 'selectedSport', 'selectedLeagues', 'oddsTypeBySport', 'allEventsList', 'eventsList', 'events', 'openedBetSlips', 'tradePageSettings'])
+        ...mapState('trade', ['isBetBarOpen', 'selectedSport', 'selectedLeagues', 'oddsTypeBySport', 'columnsToDisplay', 'allEventsList', 'eventsList', 'events', 'openedBetSlips', 'tradePageSettings'])
     },
     mounted() {
         this.$store.dispatch('trade/getTradeWindowData')
@@ -282,7 +282,7 @@ export default {
                                     this.$delete(this.events[event.game_schedule], eventStartTime)
                                 }
                                 this.$set(event, 'game_schedule', updatedEventSchedule.game_schedule)
-                                this.$store.dispatch('trade/transformEvents', { schedule: event.game_schedule, eventStartTime, payload: event })
+                                this.$store.dispatch('trade/transformEvents', { schedule: event.game_schedule, league: eventStartTime, payload: event })
                             }
                         }
                     })
@@ -331,22 +331,35 @@ export default {
         }
     },
     directives: {
-        adjustTradeWindowHeight: {
-            update(el, binding, vnode) {
-                if(binding.value) {
-                    el.style.height = 'calc(100vh - 256px)'
-                    el.style.overflowY = 'auto'
-                } else {
-                    el.style.height = 'calc(100vh - 104px)'
-                }
-            }
-        },
         adjustSidebarHeight: {
             update(el, binding, vnode) {
                 if(binding.value) {
                     el.style.height = 'calc(100vh - 256px)'
                 } else {
                     el.style.height = 'calc(100vh - 104px)'
+                }
+            }
+        },
+        adjustGameWindowHeight: {
+            update(el, binding, vnode) {
+                if(binding.value) {
+                    el.style.height = 'calc(100vh - 320px)'
+                } else {
+                    el.style.height = 'calc(100vh - 168px)'
+                }
+            }
+        },
+        adjustGameWindowWidth: {
+            componentUpdated(el, binding, vnode) {
+                let { selectedSport, columnsToDisplay } = vnode.context
+                if(selectedSport == 3) {
+                    if(columnsToDisplay.length > 8) {
+                        el.style.width = '115rem'
+                    } else {
+                        el.style.width = '100%'
+                    }
+                } else {
+                    el.style.width = '100%'
                 }
             }
         }
@@ -362,10 +375,11 @@ export default {
 <style lang="scss">
     .gameWindow {
         position: relative;
-        overflow-x: hidden;
+        overflow-x: auto;
     }
 
     .gameScheds {
-        margin-top: 52px;
+        overflow-x: hidden;
+        overflow-y: auto;
     }
 </style>

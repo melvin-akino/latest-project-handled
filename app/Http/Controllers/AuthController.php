@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\User;
+use Illuminate\Support\Facades\Log;
 use App\Models\{
     Source,
     UserWallet
@@ -46,38 +47,47 @@ class AuthController extends Controller
      */
     public function register(RegistrationRequests $request)
     {
-        $user = new User([
-            'name'                  => $request->name,
-            'email'                 => $request->email,
-            'password'              => bcrypt($request->password),
-            'firstname'             => $request->firstname,
-            'lastname'              => $request->lastname,
-            'address'               => $request->address,
-            'country_id'            => $request->country_id,
-            'state'                 => $request->state,
-            'city'                  => $request->city,
-            'postcode'              => $request->postcode,
-            'phone'                 => $request->phone,
-            'currency_id'           => $request->currency_id,
-            'birthdate'             => $request->birthdate,
-            'status'                => 1
-        ]);
+        try {
+            $user = new User([
+                'name'                  => $request->name,
+                'email'                 => $request->email,
+                'password'              => bcrypt($request->password),
+                'firstname'             => $request->firstname,
+                'lastname'              => $request->lastname,
+                'address'               => $request->address,
+                'country_id'            => $request->country_id,
+                'state'                 => $request->state,
+                'city'                  => $request->city,
+                'postcode'              => $request->postcode,
+                'phone'                 => $request->phone,
+                'currency_id'           => $request->currency_id,
+                'birthdate'             => $request->birthdate,
+                'status'                => 1
+            ]);
 
-        $user->save();
+            $user->save();
 
-        $sourceId = Source::getIdByName('REGISTRATION');
+            $sourceId = Source::getIdByName('REGISTRATION');
 
-        UserWallet::makeTransaction($user->id, 0, $request->currency_id, $sourceId, 'Credit');
+            UserWallet::makeTransaction($user->id, 0, $request->currency_id, $sourceId, 'Credit');
 
-        $user->notify(
-            new RegistrationMail($request->name)
-        );
+            $user->notify(
+                new RegistrationMail($request->name)
+            );
 
-        return response()->json([
-            'status'                => true,
-            'status_code'           => 200,
-            'message'               => trans('auth.register.success'),
-        ], 200);
+            return response()->json([
+                'status'                => true,
+                'status_code'           => 200,
+                'message'               => trans('auth.register.success'),
+            ], 200);
+        } catch (Exception $e) {
+            Log::error($e->getMessage());
+            return response()->json([
+                'status'      => false,
+                'status_code' => 500,
+                'message'     => trans('generic.internal-server-error')
+            ], 500);
+        }
     }
 
     /**
@@ -134,6 +144,7 @@ class AuthController extends Controller
                 'token_type'   => 'Bearer',
             ], 200);
         } catch (Exception $e) {
+            Log::error($e->getMessage());
             return response()->json([
                 'status'      => false,
                 'status_code' => 500,
@@ -151,14 +162,18 @@ class AuthController extends Controller
      */
     public function logout(Request $request)
     {
-        $request->user()->token()->revoke();
-        deleteCookie('access_token');
+        try {
+            $request->user()->token()->revoke();
+            deleteCookie('access_token');
 
-        return response()->json([
-            'status'        => true,
-            'status_code'   => 200,
-            'message'       => trans('auth.logout.success'),
-        ], 200);
+            return response()->json([
+                'status'        => true,
+                'status_code'   => 200,
+                'message'       => trans('auth.logout.success'),
+            ], 200);
+        } catch (Exception $e) {
+            Log::error($e->getMessage());
+        }
     }
 
     /**
@@ -172,44 +187,48 @@ class AuthController extends Controller
      */
     public function create(ForgotPasswordRequests $request)
     {
-        $user = User::where('email', $request->email)
-            ->first();
+        try {
+            $user = User::where('email', $request->email)
+                ->first();
 
-        if (!$user) {
-            return response()->json([
-                'status'        => false,
-                'status_code'   => 404,
-                'message'       => trans('auth.password_reset.email.404'),
-            ], 404);
-        }
+            if (!$user) {
+                return response()->json([
+                    'status'        => false,
+                    'status_code'   => 404,
+                    'message'       => trans('auth.password_reset.email.404'),
+                ], 404);
+            }
 
-        if ($user->status == 0) {
-            return response()->json([
-                'status'      => false,
-                'status_code' => 451,
-                'message'     => trans('auth.login.451')
-            ], 451);
-        }
+            if ($user->status == 0) {
+                return response()->json([
+                    'status'      => false,
+                    'status_code' => 451,
+                    'message'     => trans('auth.login.451')
+                ], 451);
+            }
 
-        $passwordReset = PasswordReset::updateOrCreate(
-            ['email' => $user->email],
-            [
-                'email' => $user->email,
-                'token' => Str::random(60),
-            ]
-        );
-
-        if ($user && $passwordReset) {
-            $user->notify(
-                new PasswordResetRequest($passwordReset->token, $user->email)
+            $passwordReset = PasswordReset::updateOrCreate(
+                ['email' => $user->email],
+                [
+                    'email' => $user->email,
+                    'token' => Str::random(60),
+                ]
             );
-        }
 
-        return response()->json([
-            'status'            => true,
-            'status_code'       => 200,
-            'message'           => trans('auth.password_reset.email.sent'),
-        ], 200);
+            if ($user && $passwordReset) {
+                $user->notify(
+                    new PasswordResetRequest($passwordReset->token, $user->email)
+                );
+            }
+
+            return response()->json([
+                'status'            => true,
+                'status_code'       => 200,
+                'message'           => trans('auth.password_reset.email.sent'),
+            ], 200);
+        } catch (Exception $e) {
+            Log::error($e->getMessage());
+        }
     }
 
     /**
@@ -224,40 +243,44 @@ class AuthController extends Controller
      */
     public function find($token)
     {
-        $passwordReset = PasswordReset::where('token', $token)
-            ->first();
+        try {
+            $passwordReset = PasswordReset::where('token', $token)
+                ->first();
 
-        if (!$passwordReset) {
+            if (!$passwordReset) {
+                return response()->json([
+                    'status'        => false,
+                    'status_code'   => 404,
+                    'message'       => trans('auth.password_reset.token.404'),
+                ], 404);
+            }
+
+            if (User::where('email', $passwordReset->email)->first()->status == 0) {
+                return response()->json([
+                    'status'      => false,
+                    'status_code' => 451,
+                    'message'     => trans('auth.login.451')
+                ], 451);
+            }
+
+            if (Carbon::parse($passwordReset->updated_at)->addMinutes(30)->isPast()) {
+                $passwordReset->delete();
+
+                return response()->json([
+                    'status'        => false,
+                    'status_code'   => 404,
+                    'message'       => trans('auth.password_reset.token.404'),
+                ], 404);
+            }
+
             return response()->json([
-                'status'        => false,
-                'status_code'   => 404,
-                'message'       => trans('auth.password_reset.token.404'),
-            ], 404);
+                'status'            => true,
+                'status_code'       => 200,
+                'message'           => $passwordReset,
+            ], 200);
+        } catch (Exception $e) {
+            Log::error($e->getMessage());
         }
-
-        if (User::where('email', $passwordReset->email)->first()->status == 0) {
-            return response()->json([
-                'status'      => false,
-                'status_code' => 451,
-                'message'     => trans('auth.login.451')
-            ], 451);
-        }
-
-        if (Carbon::parse($passwordReset->updated_at)->addMinutes(30)->isPast()) {
-            $passwordReset->delete();
-
-            return response()->json([
-                'status'        => false,
-                'status_code'   => 404,
-                'message'       => trans('auth.password_reset.token.404'),
-            ], 404);
-        }
-
-        return response()->json([
-            'status'            => true,
-            'status_code'       => 200,
-            'message'           => $passwordReset,
-        ], 200);
     }
 
     /**
@@ -275,49 +298,53 @@ class AuthController extends Controller
      */
     public function reset(ChangePasswordRequests $request)
     {
-        $passwordReset = PasswordReset::where([
-            ['email', $request->email],
-            ['token', $request->token],
-        ])->first();
+        try {
+            $passwordReset = PasswordReset::where([
+                ['email', $request->email],
+                ['token', $request->token],
+            ])->first();
 
-        if (!$passwordReset) {
+            if (!$passwordReset) {
+                return response()->json([
+                    'status'        => false,
+                    'status_code'   => 404,
+                    'message'       => trans('auth.password_reset.token.404'),
+                ], 404);
+            }
+
+            $user = User::where('email', $passwordReset->email)
+                ->first();
+
+            if (!$user) {
+                return response()->json([
+                    'status'        => false,
+                    'status_code'   => 404,
+                    'message'       => trans('auth.password_reset.email.404'),
+                ], 404);
+            }
+
+            if ($user->status == 0) {
+                return response()->json([
+                    'status'      => false,
+                    'status_code' => 451,
+                    'message'     => trans('auth.login.451')
+                ], 451);
+            }
+
+            $user->password = bcrypt($request->password);
+            $user->save();
+
+            $passwordReset->delete();
+
+            $user->notify(new PasswordResetSuccess($user));
+
             return response()->json([
-                'status'        => false,
-                'status_code'   => 404,
-                'message'       => trans('auth.password_reset.token.404'),
-            ], 404);
+                'status'            => true,
+                'status_code'       => 200,
+                'message'           => trans('auth.password_reset.success'),
+            ], 200);
+        } catch (Exception $e) {
+            Log::error($e->getMessage());
         }
-
-        $user = User::where('email', $passwordReset->email)
-            ->first();
-
-        if (!$user) {
-            return response()->json([
-                'status'        => false,
-                'status_code'   => 404,
-                'message'       => trans('auth.password_reset.email.404'),
-            ], 404);
-        }
-
-        if ($user->status == 0) {
-            return response()->json([
-                'status'      => false,
-                'status_code' => 451,
-                'message'     => trans('auth.login.451')
-            ], 451);
-        }
-
-        $user->password = bcrypt($request->password);
-        $user->save();
-
-        $passwordReset->delete();
-
-        $user->notify(new PasswordResetSuccess($user));
-
-        return response()->json([
-            'status'            => true,
-            'status_code'       => 200,
-            'message'           => trans('auth.password_reset.success'),
-        ], 200);
     }
 }

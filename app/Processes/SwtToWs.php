@@ -28,6 +28,7 @@ class SwtToWs implements CustomProcessInterface
                     self::getUpdatedPrice($swoole);
                     self::getAdditionalLeagues($swoole);
                     self::getForRemovallLeagues($swoole);
+                    usleep(1000);
                 }
             }
         } catch(Exception $e) {
@@ -64,9 +65,9 @@ class SwtToWs implements CustomProcessInterface
         $table = $swoole->wsTable;
         foreach ($table as $k => $r) {
             if (strpos($k, 'additionalEvents:') === 0) {
-                foreach ($table as $key => $row) {
-                    $additionalEvents = json_decode($r['value']);
-                    if (!empty($additionalEvents)) {
+                $additionalEvents = json_decode($r['value']);
+                if (!empty($additionalEvents)) {
+                    foreach ($table as $key => $row) {
                         if (strpos($key, 'fd:') === 0) {
                             $userId         = $row['value'];
                             $sportId        = $additionalEvents->sport_id;
@@ -81,7 +82,7 @@ class SwtToWs implements CustomProcessInterface
                                 }
                             }
 
-                            $table->del($k);
+                            $swoole->wsTable->del($k);
                         }
                     }
                 }
@@ -133,7 +134,7 @@ class SwtToWs implements CustomProcessInterface
                                 $fd     = $table->get('uid:' . $userId);
                                 foreach ($updatedMarkets as $updatedMarket) {
                                     $swoole->push($fd['value'], json_encode([ 'getUpdatedPrice' => $updatedMarket ]));
-                                } 
+                                }
                                 $table->del($k);
                                 break;
                             }
