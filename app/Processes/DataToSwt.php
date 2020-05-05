@@ -45,7 +45,9 @@ class DataToSwt implements CustomProcessInterface
 
         $swoole->wsTable->set('data2Swt', ['value' => true]);
 
-        while (!self::$quit) {}
+        while (!self::$quit) {
+            usleep(100000);
+        }
     }
 
     // Requirements: LaravelS >= v3.4.0 & callback() must be async non-blocking program.

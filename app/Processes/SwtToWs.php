@@ -28,6 +28,7 @@ class SwtToWs implements CustomProcessInterface
                     self::getUpdatedPrice($swoole);
                     self::getAdditionalLeagues($swoole);
                     self::getForRemovallLeagues($swoole);
+                    usleep(1000);
                 }
             }
         } catch(Exception $e) {

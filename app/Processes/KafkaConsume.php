@@ -49,7 +49,7 @@ class KafkaConsume implements CustomProcessInterface
 
                 echo '.';
                 while (!self::$quit) {
-                    $message = $kafkaConsumer->consume(120 * 1000);
+                    $message = $kafkaConsumer->consume(0);
                     if ($message->err == RD_KAFKA_RESP_ERR_NO_ERROR) {
                         $payload = json_decode($message->payload);
 
@@ -156,6 +156,7 @@ class KafkaConsume implements CustomProcessInterface
                     } else {
                         Log::error(json_encode([$message]));
                     }
+                    usleep(1000);
                 }
             }
         } catch(Exception $e) {

@@ -187,6 +187,7 @@ class KafkaProduce implements CustomProcessInterface
 
                         $initialTime = $newTime;
                     }
+                    usleep(1000000);
                 }
             }
         } catch (Exception $e) {
