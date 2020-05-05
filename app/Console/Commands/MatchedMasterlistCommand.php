@@ -59,14 +59,14 @@ class MatchedMasterlistCommand extends Command
             $team1      = $row->home;
             $team2      = $row->away;
 
-            $masterLeague = MasterLeague::withTrashed()->updateOrCreate([
-                'master_league_name' => $leagueName,
-                'sport_id'           => $sportId
-            ], [
-                'deleted_at' => null
-            ]);
-
             if ($matchedLeagueId == 0) {
+                $masterLeague = MasterLeague::withTrashed()->updateOrCreate([
+                    'master_league_name' => $leagueName,
+                    'sport_id'           => $sportId
+                ], [
+                    'deleted_at' => null
+                ]);
+
                 $matchedLeagueId = $masterLeague->id;
             }
 
@@ -79,14 +79,14 @@ class MatchedMasterlistCommand extends Command
                 'deleted_at' => null
             ]);
 
-            $masterTeam1 = MasterTeam::withTrashed()->updateOrCreate([
-                'sport_id'         => $sportId,
-                'master_team_name' => $team1,
-            ], [
-                'deleted_at' => null
-            ]);
-
             if ($matchedHomeTeamId == 0) {
+                $masterTeam1 = MasterTeam::withTrashed()->updateOrCreate([
+                    'sport_id'         => $sportId,
+                    'master_team_name' => $team1,
+                ], [
+                    'deleted_at' => null
+                ]);
+
                 $matchedHomeTeamId = $masterTeam1->id;
             }
 
@@ -99,14 +99,14 @@ class MatchedMasterlistCommand extends Command
                 'deleted_at' => null
             ]);
 
-            $masterTeam2 = MasterTeam::withTrashed()->updateOrCreate([
-                'sport_id'         => $sportId,
-                'master_team_name' => $team2,
-            ], [
-                'deleted_at' => null
-            ]);
-
             if ($matchedAwayTeamId == 0) {
+                $masterTeam2 = MasterTeam::withTrashed()->updateOrCreate([
+                    'sport_id'         => $sportId,
+                    'master_team_name' => $team2,
+                ], [
+                    'deleted_at' => null
+                ]);
+
                 $matchedAwayTeamId = $masterTeam2->id;
             }
 
