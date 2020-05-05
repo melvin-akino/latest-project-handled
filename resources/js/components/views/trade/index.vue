@@ -62,7 +62,6 @@ export default {
         this.$store.dispatch('trade/getTradeWindowData')
         this.$store.dispatch('trade/getTradePageSettings')
         this.getWatchlist()
-        this.getUserTradeLayout()
         this.getEvents()
         this.getUpdatedEventsSchedule()
     },
@@ -74,15 +73,6 @@ export default {
         }
     },
     methods: {
-        getUserTradeLayout() {
-            this.$store.dispatch('settings/getUserSettingsConfig', 'trade-page')
-            .then(response => {
-                this.$store.commit('trade/SET_TRADE_LAYOUT', response.trade_layout)
-            })
-            .catch(err => {
-                this.$store.dispatch('auth/checkIfTokenIsValid', err.response.data.status_code)
-            })
-        },
         getWatchlist() {
             this.$options.sockets.onmessage = (response => {
                 if(getSocketKey(response.data) ===  'getWatchlist') {
@@ -332,6 +322,13 @@ export default {
     },
     directives: {
         adjustSidebarHeight: {
+            bind(el, binding, vnode) {
+                if(binding.value) {
+                    el.style.height = 'calc(100vh - 256px)'
+                } else {
+                    el.style.height = 'calc(100vh - 104px)'
+                }
+            },
             update(el, binding, vnode) {
                 if(binding.value) {
                     el.style.height = 'calc(100vh - 256px)'
@@ -341,6 +338,13 @@ export default {
             }
         },
         adjustGameWindowHeight: {
+            bind(el, binding, vnode) {
+                if(binding.value) {
+                    el.style.height = 'calc(100vh - 320px)'
+                } else {
+                    el.style.height = 'calc(100vh - 168px)'
+                }
+            },
             update(el, binding, vnode) {
                 if(binding.value) {
                     el.style.height = 'calc(100vh - 320px)'
@@ -350,6 +354,18 @@ export default {
             }
         },
         adjustGameWindowWidth: {
+            bind(el, binding, vnode) {
+                let { selectedSport, columnsToDisplay } = vnode.context
+                if(selectedSport == 3) {
+                    if(columnsToDisplay.length > 8) {
+                        el.style.width = '115rem'
+                    } else {
+                        el.style.width = '100%'
+                    }
+                } else {
+                    el.style.width = '100%'
+                }
+            },
             componentUpdated(el, binding, vnode) {
                 let { selectedSport, columnsToDisplay } = vnode.context
                 if(selectedSport == 3) {

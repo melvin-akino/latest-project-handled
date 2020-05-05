@@ -19,7 +19,7 @@ class TransformKafkaMessageOdds extends Task
     protected $dbOptions = [
         'event-only' => true,
         'is-event-new' => true,
-        'is-market-different' => true
+        'is-market-same' => true
     ];
 
     protected $disregard = [
@@ -393,11 +393,11 @@ class TransformKafkaMessageOdds extends Task
                                             $oddsUpdated['points'] = $marketPoints;
                                         }
                                         $updatedOdds[] = $oddsUpdated;
-                                    } else {
-                                        $this->dbOptions['is-market-different'] = false;
+                                        $this->dbOptions['is-market-same'] = false;
                                     }
                                 } else {
                                     $memUID = uniqid();
+                                    $this->dbOptions['is-market-same'] = false;
                                 }
 
                                 /** TO INSERT */
@@ -423,7 +423,7 @@ class TransformKafkaMessageOdds extends Task
                                     'deleted_at'             => null,
                                 ];
 
-                                if ($this->dbOptions['is-market-different']) {
+                                if (!$this->dbOptions['is-market-same']) {
                                     $toInsert['MasterEventMarketLog']['data'] = [
                                         'provider_id' => $providerId,
                                         'odd_type_id' => $oddTypeId,

@@ -302,6 +302,7 @@ return [
                 ['name' => 'market_id', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 50],
                 ['name' => 'sport', 'type' => \Swoole\Table::TYPE_INT],
                 ['name' => 'schedule', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 10],
+                ['name' => 'event_id', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 30],
             ],
         ],
         'exchangeRates'       => [
