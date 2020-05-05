@@ -1,5 +1,5 @@
-
 <?php
+
 namespace App\Matrics;
 
 use Illuminate\Support\Facades\Facade;
