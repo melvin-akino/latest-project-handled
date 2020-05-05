@@ -37,7 +37,7 @@ class KafkaProduce implements CustomProcessInterface
                 'req_balance'      => env('KAFKA_SCRAPE_BALANCE_POSTFIX', '_balance_req')
             ];
 
-            if ($swoole->wsTable->exist('data2Swt')) {
+            if ($swoole->data2SwtTable->exist('data2Swt')) {
                 $minMaxRequestsTable        = $swoole->minMaxRequestsTable;
                 $sportsTable                = $swoole->sportsTable;
                 $payloadsTable              = $swoole->payloadsTable;

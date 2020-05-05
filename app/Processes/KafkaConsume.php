@@ -34,7 +34,7 @@ class KafkaConsume implements CustomProcessInterface
     public static function callback(Server $swoole, Process $process)
     {
         try {
-            if ($swoole->wsTable->exist('data2Swt')) {
+            if ($swoole->data2SwtTable->exist('data2Swt')) {
                 $kafkaConsumer = resolve('KafkaConsumer');
                 $kafkaConsumer->subscribe([
                     env('KAFKA_SCRAPE_ODDS', 'SCRAPING-ODDS'),
@@ -99,16 +99,16 @@ class KafkaConsume implements CustomProcessInterface
 
                                 $transformedSwtId = 'eventIdentifier:' . $payload->data->events[0]->eventId;
                                 if ($transformedTable->exists($transformedSwtId)) {
-                                    $ts = $transformedTable->get($transformedSwtId)['ts'];
+                                    $ts   = $transformedTable->get($transformedSwtId)['ts'];
                                     $hash = $transformedTable->get($transformedSwtId)['hash'];
                                     if ($ts > $payload->request_ts) {
                                         Log::info("Transformation ignored - Old Timestamp");
                                         break;
                                     }
 
-                                    $toHashMessage = $payload->data;
+                                    $toHashMessage               = $payload->data;
                                     $toHashMessage->running_time = null;
-                                    $toHashMessage->id = null;
+                                    $toHashMessage->id           = null;
                                     if ($hash == md5(json_encode((array)$toHashMessage))) {
                                         Log::info("Transformation ignored - No change");
                                         break;
@@ -116,7 +116,7 @@ class KafkaConsume implements CustomProcessInterface
                                 } else {
                                     $transformedTable->set($transformedSwtId, [
                                         'ts'   => $payload->request_ts,
-                                        'hash' => md5(json_encode((array) $payload->data))
+                                        'hash' => md5(json_encode((array)$payload->data))
                                     ]);
                                 }
                                 Task::deliver(new TransformKafkaMessageOdds($payload));
@@ -124,7 +124,7 @@ class KafkaConsume implements CustomProcessInterface
                         }
                         $kafkaConsumer->commitAsync($message);
                         if (env('KAFKA_LOG', false)) {
-                            Storage::append('consumer-'. date('Y-m-d') . '.log', json_encode($message));
+                            Storage::append('consumer-' . date('Y-m-d') . '.log', json_encode($message));
                         }
                         Log::channel('kafkalog')->info(json_encode($message));
                     } else {
@@ -133,7 +133,7 @@ class KafkaConsume implements CustomProcessInterface
                     usleep(1000);
                 }
             }
-        } catch(Exception $e) {
+        } catch (Exception $e) {
             Log::error($e->getMessage());
         }
 

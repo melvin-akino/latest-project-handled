@@ -28,12 +28,9 @@ class WSForBetBarRemoval implements ShouldQueue
     public function handle()
     {
         $server = app('swoole');
-        $ws     = $server->wsTable;
 
         $server->push($this->fd, json_encode([
-            'forBetBarRemoval' => [ 'order_id' => $this->orderId ]
+            'forBetBarRemoval' => ['order_id' => $this->orderId]
         ]));
-
-        $ws->del("remove-bet-bar-" . $this->orderId);
     }
 }

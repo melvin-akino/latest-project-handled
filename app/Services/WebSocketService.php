@@ -38,7 +38,7 @@ class WebSocketService implements WebSocketHandlerInterface
 
     public function onOpen(Server $server, Request $request)
     {
-        $user = $this->getUser($request->get['token']);
+        $user   = $this->getUser($request->get['token']);
         $userId = $user ? $user['id'] : 0;
 
         $server->wsTable->set('uid:' . $userId, ['value' => $request->fd]);
@@ -47,7 +47,7 @@ class WebSocketService implements WebSocketHandlerInterface
 
     public function onMessage(Server $server, Frame $frame)
     {
-        $user = $server->wsTable->get('fd:' . $frame->fd);
+        $user          = $server->wsTable->get('fd:' . $frame->fd);
         $clientCommand = explode('_', $frame->data);
         foreach ($this->commands as $key => $value) {
             if (is_array($value)) {
@@ -65,7 +65,7 @@ class WebSocketService implements WebSocketHandlerInterface
 
     public function onClose(Server $server, $fd, $reactorId)
     {
-        $user = $server->wsTable->get('fd:' . $fd);
+        $user   = $server->wsTable->get('fd:' . $fd);
         $userId = $user['value'];
         foreach ($server->topicTable as $key => $topic) {
             if ($topic['user_id'] == $userId) {
@@ -73,12 +73,12 @@ class WebSocketService implements WebSocketHandlerInterface
             }
         }
 
-        foreach ($server->wsTable as $key => $ws) {
-            if (strpos($key, 'minmax-market:') === 0 ||
-                strpos($key, 'minmax-payload:') === 0
-            ) {
-                $server->wsTable->del($key);
-            }
+        foreach ($server->minmaxMarketTable as $key => $ws) {
+            $server->minmaxMarketTable->del($key);
+        }
+
+        foreach ($server->minmaxPayloadTable as $key => $ws) {
+            $server->minmaxPayloadTable->del($key);
         }
     }
 
@@ -91,7 +91,7 @@ class WebSocketService implements WebSocketHandlerInterface
             resolve(ClientRepository::class),
             resolve('encrypter')
         );
-        $request = HttpRequest::create('/');
+        $request    = HttpRequest::create('/');
         $request->headers->set('Authorization', 'Bearer ' . $bearerToken);
         return $tokenguard->user($request);
     }

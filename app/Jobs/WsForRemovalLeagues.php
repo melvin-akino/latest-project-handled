@@ -11,14 +11,11 @@ class WsForRemovalLeagues implements ShouldQueue
 
     public function __construct($userId, $params)
     {
-        $this->userId = $userId;
+        $this->userId  = $userId;
         $this->sportId = $params[1];
     }
 
     public function handle()
     {
-        $server = app('swoole');
-        $server->wsTable->set('userForRemovalLeagues:' . $this->userId . ':sportId:' . $this->sportId,
-            ['value' => true]);
     }
 }
