@@ -185,7 +185,16 @@ class OrdersController extends Controller
                     ]
                 );
 
-            $spreads = $getOtherMarkets->toArray();
+            $spreads = [];
+
+            foreach ($getOtherMarkets AS $row) {
+                $spreads[] = [
+                    'market_id' => $row->master_event_market_unique_id,
+                    'odds'      => $row->odds,
+                    'points'    => $row->odd_label,
+                    'is_main'   => $row->is_main
+                ];
+            }
 
             $data = [
                 'league_name'   => $masterEvent->master_league_name,
