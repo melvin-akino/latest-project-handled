@@ -15,19 +15,19 @@ class PrometheusMatric
 		$exporter = Prometheus::getFacadeRoot();
 		try {
 
-			$gauge = $exporter->getGauge('request_market_id');
+			$gauge = $exporter->getGauge('request_market_id_total');
 
 		} catch (\Exception $e) {
-			$gauge = $exporter->registerGauge('market_id_request_total', 'The total number of  market id  pushed.', ['group']);
+			$gauge = $exporter->registerGauge('request_market_id_total', 'The total number of  market id  pushed.', ['group']);
 		
 		}
 		$gauge->inc(["$market_id"]); // increment by 1
 
 
-		$ttl = Redis::ttl("PROMETHEUS_:gauge:{$this->pnamespace}_market_id_request_total");
+		$ttl = Redis::ttl("PROMETHEUS_:gauge:{$this->pnamespace}_request_market_id_total");
 
 		if($ttl < 0){
-		    Redis::expire("PROMETHEUS_:gauge:{$this->pnamespace}_market_id_request_total",  env('PROMETHEUS_EXPIRE'));
+		    Redis::expire("PROMETHEUS_:gauge:{$this->pnamespace}_request_market_id_total",  env('PROMETHEUS_EXPIRE'));
 		}
     }
 

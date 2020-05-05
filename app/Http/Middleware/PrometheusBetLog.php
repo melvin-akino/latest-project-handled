@@ -29,7 +29,7 @@ class PrometheusBetLog
        $gauge = $exporter->getGauge('user_bet');
        
       } catch (\Exception $e) {
-        $gauge = $exporter->registerGauge('user_bet_total', 'The total number of users bet.', ['group']);
+        $gauge = $exporter->registerGauge('user_bet', 'The total number of users bet.', ['group']);
         //echo $e->getMessage();
       }
        $gauge->inc(['bet']); // increment by 1
