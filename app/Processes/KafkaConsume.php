@@ -3,7 +3,6 @@
 namespace App\Processes;
 
 use App\Jobs\{
-    TransformKafkaMessageMinMax,
     TransformKafkaMessageOpenOrders,
     TransformKafkaMessageSettlement
 };
@@ -22,7 +21,6 @@ use Illuminate\Support\Facades\Log;
 use Swoole\Http\Server;
 use Swoole\Process;
 use Exception;
-use Storage;
 
 class KafkaConsume implements CustomProcessInterface
 {
@@ -123,14 +121,11 @@ class KafkaConsume implements CustomProcessInterface
                                 break;
                         }
                         $kafkaConsumer->commitAsync($message);
-                        if (env('KAFKA_LOG', false)) {
-                            Storage::append('consumer-' . date('Y-m-d') . '.log', json_encode($message));
-                        }
                         Log::channel('kafkalog')->info(json_encode($message));
                     } else {
                         Log::error(json_encode([$message]));
                     }
-                    usleep(1000);
+                    usleep(10000);
                 }
             }
         } catch (Exception $e) {

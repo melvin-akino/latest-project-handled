@@ -2,27 +2,12 @@
 
 namespace App\Processes;
 
-use App\Jobs\{
-    TransformKafkaMessageMinMax,
-    TransformKafkaMessageOpenOrders,
-    TransformKafkaMessageSettlement
-};
-
-use App\Tasks\{
-    TransformKafkaMessageEvents,
-    TransformKafkaMessageLeagues,
-    TransformKafkaMessageOdds,
-    TransformKafkaMessageBalance,
-    TransformKafkaMessageBet
-};
-
+use App\Jobs\TransformKafkaMessageMinMax;
 use Hhxsv5\LaravelS\Swoole\Process\CustomProcessInterface;
-use Hhxsv5\LaravelS\Swoole\Task\Task;
 use Illuminate\Support\Facades\Log;
 use Swoole\Http\Server;
 use Swoole\Process;
 use Exception;
-use Storage;
 
 class MinMaxConsume implements CustomProcessInterface
 {
@@ -34,13 +19,13 @@ class MinMaxConsume implements CustomProcessInterface
     public static function callback(Server $swoole, Process $process)
     {
         try {
-            if ($swoole->wsTable->exist('data2Swt')) {
+            if ($swoole->data2SwtTable->exist('data2Swt')) {
                 $kafkaConsumer = resolve('KafkaConsumer');
                 $kafkaConsumer->subscribe([
                     env('KAFKA_SCRAPE_MINMAX_ODDS', 'MINMAX-ODDS')
                 ]);
 
-                echo '.';
+                echo '*';
                 while (!self::$quit) {
                     $message = $kafkaConsumer->consume(0);
                     if ($message->err == RD_KAFKA_RESP_ERR_NO_ERROR) {
@@ -59,7 +44,7 @@ class MinMaxConsume implements CustomProcessInterface
                             continue;
                         }
 
-                        $swoole->minmaxPayload->set('minmax-payload:' . $payload->data->market_id, [
+                        $swoole->minmaxPayloadTable->set('minmax-payload:' . $payload->data->market_id, [
                             'value' => md5(json_encode([
                                 'odds'    => $payload->data->odds,
                                 'minimum' => $payload->data->minimum,
@@ -75,7 +60,7 @@ class MinMaxConsume implements CustomProcessInterface
                     } else {
                         Log::error(json_encode([$message]));
                     }
-                    usleep(1000);
+                    usleep(10000);
                 }
             }
         } catch(Exception $e) {
