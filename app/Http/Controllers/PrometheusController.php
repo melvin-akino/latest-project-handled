@@ -17,6 +17,14 @@ class PrometheusController extends Controller
     public function index() {
 
         try {
+            $results = Redis::smembers("PROMETHEUS_gauge_METRIC_KEYS");
+
+            foreach ($results as $key => $value) {
+                echo $value . "::" . Redis::exists($value)  . "<br/>";
+                if(!Redis::exists($value)){
+                    Redis::srem("PROMETHEUS_gauge_METRIC_KEYS", [$value]);
+                }
+            }
             $adapter = new \Prometheus\Storage\Redis();
             $registry = new CollectorRegistry($adapter);
             $renderer = new RenderTextFormat();

@@ -40,16 +40,16 @@ class PrometheusMatric
 			$gauge = $exporter->getGauge('response_market_id');
 
 		} catch (\Exception $e) {
-			$gauge = $exporter->registerGauge('market_id_response_total', 'The total number of  market id  response.', ['group']);
+			$gauge = $exporter->registerGauge('response_market_id', 'The total number of  market id  response.', ['group']);
 	
 		}
 		$gauge->inc(["$market_id"]); // increment by 1
 
 
-		$ttl = Redis::ttl("PROMETHEUS_:gauge:{$this->pnamespace}_market_id_response_total");
+		$ttl = Redis::ttl("PROMETHEUS_:gauge:{$this->pnamespace}_response_market_id_total");
 
 		if($ttl < 0){
-		    Redis::expire("PROMETHEUS_:gauge:{$this->pnamespace}_market_id_response_total",  env('PROMETHEUS_EXPIRE'));
+		    Redis::expire("PROMETHEUS_:gauge:{$this->pnamespace}_response_market_id_total",  env('PROMETHEUS_EXPIRE'));
 		}
 
     }
