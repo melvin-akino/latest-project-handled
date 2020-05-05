@@ -20,7 +20,6 @@ class PrometheusController extends Controller
             $results = Redis::smembers("PROMETHEUS_gauge_METRIC_KEYS");
 
             foreach ($results as $key => $value) {
-                echo $value . "::" . Redis::exists($value)  . "<br/>";
                 if(!Redis::exists($value)){
                     Redis::srem("PROMETHEUS_gauge_METRIC_KEYS", [$value]);
                 }
@@ -30,7 +29,7 @@ class PrometheusController extends Controller
             $renderer = new RenderTextFormat();
 
              $keys = Redis::smembers("PROMETHEUS_gauge_METRIC_KEYS");
-             $gauge = array();
+             $gauges = array();
 
              foreach ($keys as $key) {
                 //echo $key .'--<br>';
