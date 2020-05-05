@@ -40,21 +40,15 @@ const actions = {
             })
         })
     },
-    async getDefaultTimezone({dispatch, commit}) {
+    async getDefaultGeneralSettings({dispatch, commit}) {
         try {
-            let { timezone } = await dispatch('getUserSettingsConfig', 'general')
+            let { timezone, price_format } = await dispatch('getUserSettingsConfig', 'general')
             let response = await axios.get('/v1/timezones')
             let defaultTimezone =  response.data.data.filter(zone => parseInt(zone.id) === parseInt(timezone))[0]
-            return defaultTimezone
-        } catch(err) {
-            dispatch('auth/checkIfTokenIsValid', err.response.data.status_code, { root: true })
-        }
-    },
-    async getDefaultPriceFormat({dispatch, state}) {
-        try {
-            let { price_format } = await dispatch('getUserSettingsConfig', 'general')
+            commit('SET_DEFAULT_TIMEZONE', defaultTimezone)
             let defaultPriceFormat = state.settingsData['price-format'].filter(priceFormat => priceFormat.id == price_format)[0]
-            return defaultPriceFormat.alias
+            commit('SET_DEFAULT_PRICE_FORMAT', defaultPriceFormat.alias)
+            return { defaultTimezone,  defaultPriceFormat}
         } catch(err) {
             dispatch('auth/checkIfTokenIsValid', err.response.data.status_code, { root: true })
         }
