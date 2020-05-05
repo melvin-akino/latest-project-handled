@@ -122,8 +122,6 @@ class KafkaConsume implements CustomProcessInterface
                         }
                         $kafkaConsumer->commitAsync($message);
                         Log::channel('kafkalog')->info(json_encode($message));
-                    } else {
-                        Log::error(json_encode([$message]));
                     }
                     usleep(10000);
                 }
