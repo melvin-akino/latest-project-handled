@@ -19,32 +19,30 @@ class WsWatchlist implements ShouldQueue
     public function handle()
     {
         $server = app('swoole');
-        $fd = $server->wsTable->get('uid:' . $this->userId);
+        $fd     = $server->wsTable->get('uid:' . $this->userId);
 
         $watchlist = [];
 
         $providerPriority = 0;
-        $providerId = 0;
+        $providerId       = 0;
 
         $providersTable = $server->providersTable;
         foreach ($providersTable as $key => $provider) {
             if (empty($providerPriority) || $providerPriority > $provider['priority']) {
                 $providerPriority = $provider['priority'];
-                $providerId = $provider['id'];
+                $providerId       = $provider['id'];
             }
         }
 
         $transformed = $server->transformedTable;
         // Id format for watchlistTable = 'userWatchlist:' . $userId . ':league:' . $league
-        $wsTable = $server->wsTable;
-        foreach ($wsTable as $key => $row) {
-            if (strpos($key, 'userWatchlist:' . $this->userId . ':masterEventUniqueId:') === 0) {
-                $uid = substr($key, strlen('userWatchlist:' . $this->userId . ':masterEventUniqueId:'));
+        $userWatchlistTable = $server->userWatchlistTable;
+        foreach ($userWatchlistTable as $key => $row) {
+            $uid = substr($key, strlen('userWatchlist:' . $this->userId . ':masterEventUniqueId:'));
 
-                if ($transformed->exist('uid:' . $uid . ":pId:" . $providerId)) {
-                    $watchlist[] = json_decode($transformed->get('uid:' . $uid . ":pId:" . $providerId)['value'],
-                        true);;
-                }
+            if ($transformed->exist('uid:' . $uid . ":pId:" . $providerId)) {
+                $watchlist[] = json_decode($transformed->get('uid:' . $uid . ":pId:" . $providerId)['value'],
+                    true);;
             }
         }
 
@@ -67,7 +65,7 @@ class WsWatchlist implements ShouldQueue
             ->where('mem.is_main', true)
             ->whereNull('ml.deleted_at')
             ->distinct()->get();
-        $data = [];
+        $data        = [];
         array_map(function ($transformed) use (&$data) {
             $mainOrOther = $transformed->is_main ? 'main' : 'other';
             if (empty($data[$transformed->master_event_unique_id])) {

@@ -20,10 +20,12 @@ class WsRemoveMinMax implements ShouldQueue
     public function handle()
     {
         try {
-            $server      = app('swoole');
-            $topicTable  = $server->topicTable;
-            $wsTable     = $server->wsTable;
-            $minMaxRequestsTable = app('swoole')->minMaxRequestsTable;
+            $server              = app('swoole');
+            $topicTable          = $server->topicTable;
+            $wsTable             = $server->wsTable;
+            $minMaxRequestsTable = $server->minMaxRequestsTable;
+            $minmaxMarketTable   = $server->minmaxMarketTable;
+            $minmaxPayloadTable  = $server->minmaxPayloadTable;
 
             $eventMarket = DB::table('event_markets as em')
                 ->join('master_event_market_links as meml', 'meml.event_market_id', 'em.id')
@@ -44,7 +46,7 @@ class WsRemoveMinMax implements ShouldQueue
                     ]
                 ]));
 
-                foreach($topicTable as $key => $topic) {
+                foreach ($topicTable as $key => $topic) {
                     if ($topic['topic_name'] == 'min-max-' . $this->master_event_market_unique_id &&
                         $topic['user_id'] == $this->userId) {
                         $topicTable->del($key);
@@ -53,7 +55,7 @@ class WsRemoveMinMax implements ShouldQueue
                 }
 
                 $noSubscription = true;
-                foreach($topicTable as $key => $topic) {
+                foreach ($topicTable as $key => $topic) {
                     if ($topic['topic_name'] == 'min-max-' . $this->master_event_market_unique_id) {
                         $noSubscription = false;
                         break;
@@ -62,8 +64,8 @@ class WsRemoveMinMax implements ShouldQueue
                 if ($noSubscription) {
                     $minMaxRequestsTable->del('memUID:' . $this->master_event_market_unique_id);
                 }
-                $wsTable->del('minmax-market:' . $eventMarket->bet_identifier);
-                $wsTable->del('minmax-payload:' . $eventMarket->bet_identifier);
+                $minmaxMarketTable->del('minmax-market:' . $eventMarket->bet_identifier);
+                $minmaxPayloadTable->del('minmax-payload:' . $eventMarket->bet_identifier);
             }
         } catch (Exception $e) {
             Log::error($e->getMessage());

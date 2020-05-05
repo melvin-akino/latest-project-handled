@@ -178,7 +178,7 @@ class TradeController extends Controller
                             'master_event_unique_id' => $row['master_event_unique_id']
                         ]
                     );
-                    app('swoole')->wsTable->set('userWatchlist:' . auth()->user()->id . ':masterEventUniqueId:' . $row['master_event_unique_id'],
+                    app('swoole')->userWatchlistTable->set('userWatchlist:' . auth()->user()->id . ':masterEventUniqueId:' . $row['master_event_unique_id'],
                         ['value' => true]);
                 }
             }
@@ -190,7 +190,7 @@ class TradeController extends Controller
                     UserWatchlist::where('user_id', auth()->user()->id)
                         ->where('master_event_unique_id', $row['master_event_unique_id'])
                         ->delete();
-                    app('swoole')->wsTable->del('userWatchlist:' . auth()->user()->id . ':masterEventUniqueId:' . $row['master_event_unique_id']);
+                    app('swoole')->userWatchlistTable->del('userWatchlist:' . auth()->user()->id . ':masterEventUniqueId:' . $row['master_event_unique_id']);
                 }
             }
 
