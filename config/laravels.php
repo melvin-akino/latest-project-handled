@@ -43,6 +43,12 @@ return [
             'pipe' => 0,
             'enable' => env('LARAVELS_KAFKA_CONSUME', true)
         ],
+        'minmax_consume' => [
+            'class'    => \App\Processes\MinMaxConsume::class,
+            'redirect' => false,
+            'pipe' => 0,
+            'enable' => env('LARAVELS_KAFKA_CONSUME', true)
+        ],
         'kafka_produce' => [
             'class'    => \App\Processes\KafkaProduce::class,
             'redirect' => false,

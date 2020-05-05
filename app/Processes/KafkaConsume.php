@@ -40,7 +40,6 @@ class KafkaConsume implements CustomProcessInterface
                     env('KAFKA_SCRAPE_ODDS', 'SCRAPING-ODDS'),
                     env('KAFKA_SCRAPE_LEAGUES', 'SCRAPING-PROVIDER-LEAGUES'),
                     env('KAFKA_SCRAPE_EVENTS', 'SCRAPING-PROVIDER-EVENTS'),
-                    env('KAFKA_SCRAPE_MINMAX_ODDS', 'MINMAX-ODDS'),
                     env('KAFKA_BET_PLACED', 'PLACED-BET'),
                     env('KAFKA_SCRAPE_OPEN_ORDERS', 'OPEN-ORDERS'),
                     env('KAFKA_SCRAPE_BALANCE', 'BALANCE'),
@@ -59,31 +58,6 @@ class KafkaConsume implements CustomProcessInterface
                                 break;
                             case 'event':
                                 Task::deliver(new TransformKafkaMessageEvents($payload));
-                                break;
-                            case 'minmax':
-                                if (empty($payload->data)) {
-                                    Log::info("Min Max Transformation ignored - No Data Found");
-                                    break;
-                                }
-
-                                if (!empty($payload->data->timestamp) &&
-                                    $swoole->wsTable->exist('minmax-market:' . $payload->data->market_id) &&
-                                    $swoole->wsTable->get('minmax-market:' . $payload->data->market_id)['value'] >= $payload->data->timestamp
-                                ) {
-                                    Log::info("Min Max Transformation ignored - Same or Old Timestamp");
-                                    break;
-                                }
-
-                                $swoole->wsTable->set('minmax-payload:' . $payload->data->market_id, [
-                                    'value' => md5(json_encode([
-                                        'odds'    => $payload->data->odds,
-                                        'minimum' => $payload->data->minimum,
-                                        'maximum' => $payload->data->maximum
-                                    ]))
-                                ]);
-
-                                Log::debug('Minmax calling Task Worker');
-                                TransformKafkaMessageMinMax::dispatch($payload);
                                 break;
                             case 'bet':
                                 if (empty($payload->data->status) || empty($payload->data->odds)) {
