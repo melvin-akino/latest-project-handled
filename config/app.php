@@ -181,6 +181,7 @@ return [
         App\Providers\KafkaServiceProvider::class,
         App\Providers\TransformRequestOddsServiceProvider::class,
         Superbalist\LaravelPrometheusExporter\PrometheusServiceProvider::class,
+        App\Providers\PrometheusProvider::class,
 
     ],
 
@@ -235,6 +236,7 @@ return [
 
         'TransformOdds'=> App\Facades\TransformOdds::class,
         'Prometheus' => Superbalist\LaravelPrometheusExporter\PrometheusFacade::class,
+        'PrometheusMatric' =>App\Matrics\PrometheusMatricsFacade::class,
 
     ],
 
