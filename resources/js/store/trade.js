@@ -218,7 +218,6 @@ const actions = {
         .then(response => {
             commit('SET_SPORTS', response.data.data)
             commit('SET_SELECTED_SPORT', response.data.default_sport)
-            dispatch('getBetColumns', response.data.default_sport)
         })
         .catch(err => {
             dispatch('auth/checkIfTokenIsValid', err.response.data.status_code, { root: true })
@@ -276,6 +275,7 @@ const actions = {
     },
     async getTradeWindowData({dispatch}) {
         await dispatch('getSports')
+        dispatch('getBetColumns', state.selectedSport)
         dispatch('getInitialLeagues')
         dispatch('getInitialEvents')
     },
@@ -303,6 +303,7 @@ const actions = {
     async getTradePageSettings({dispatch, commit}) {
         let tradePageSettings = await dispatch('settings/getUserSettingsConfig', 'trade-page', { root: true })
         commit('SET_TRADE_PAGE_SETTINGS', tradePageSettings)
+        commit('SET_TRADE_LAYOUT', tradePageSettings.trade_layout)
     },
     async getBetSlipSettings({dispatch, commit}) {
         let betSlipSettings = await dispatch('settings/getUserSettingsConfig', 'bet-slip', { root: true })

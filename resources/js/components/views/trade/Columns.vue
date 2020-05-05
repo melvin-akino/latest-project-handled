@@ -55,15 +55,9 @@ export default {
             }
         }
     },
-    mounted() {
-        this.getBetColumns()
-    },
     methods: {
         openColumnModal() {
             this.showToggleColumnsModal = true
-        },
-        getBetColumns() {
-            this.$store.dispatch('trade/getBetColumns', this.selectedSport)
         },
         saveColumns() {
             this.showToggleColumnsModal = false
@@ -77,7 +71,7 @@ export default {
 
             axios.post(`/v1/user/settings/bet-columns/${this.selectedSport}`, data, { headers: { 'Authorization': `Bearer ${token}` } })
             .then(() => {
-                this.getBetColumns()
+                this.$store.dispatch('trade/getBetColumns', this.selectedSport)
                 Swal.fire({
                     icon: 'success',
                     text: 'Saved Changes!'

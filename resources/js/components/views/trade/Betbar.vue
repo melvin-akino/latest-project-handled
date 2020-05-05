@@ -31,7 +31,6 @@ export default {
         ...mapState('trade', ['isBetBarOpen', 'bets'])
     },
     mounted() {
-        this.getPriceFormat()
         this.$store.dispatch('trade/getBetbarData')
         this.getOrderStatus()
     },
@@ -44,14 +43,6 @@ export default {
     methods: {
         toggleBetBar() {
             this.$store.commit('trade/TOGGLE_BETBAR', !this.isBetBarOpen)
-        },
-        getPriceFormat() {
-            if(!this.$store.state.settings.defaultPriceFormat) {
-                this.$store.dispatch('settings/getDefaultPriceFormat')
-                .then(response => {
-                    this.$store.commit('settings/SET_DEFAULT_PRICE_FORMAT', response)
-                })
-            }
         },
         getOrders() {
             this.bets.map(bet => {
