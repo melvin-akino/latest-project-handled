@@ -74,8 +74,8 @@ export default {
     },
     mounted() {
         this.getMyOrders()
-        this.getPriceFormat()
         this.$store.dispatch('trade/getWalletData')
+        this.$store.dispatch('settings/getDefaultGeneralSettings')
     },
     computed: {
         ...mapState('trade', ['wallet'])
@@ -108,14 +108,6 @@ export default {
             .catch(err => {
                 this.$store.dispatch('auth/checkIfTokenIsValid', err.response.data.status_code)
             })
-        },
-        getPriceFormat() {
-            if(!this.$store.state.settings.defaultPriceFormat) {
-                this.$store.dispatch('settings/getDefaultPriceFormat')
-                .then(response => {
-                    this.$store.commit('settings/SET_DEFAULT_PRICE_FORMAT', response)
-                })
-            }
         },
         openOddsHistory(id) {
             this.openedOddsHistory.push(id)

@@ -58,17 +58,16 @@ export default {
         ...mapState('settings', ['defaultTimezone'])
     },
     mounted() {
-        this.getDefaultTimezone()
+        this.getDefaultGeneralSettings()
         this.display_name = Cookies.get('display_name')
     },
     methods: {
-        async getDefaultTimezone() {
+        async getDefaultGeneralSettings() {
             try {
                 if (this.$store.state.auth.isAuthenticated) {
                     if (!this.defaultTimezone) {
-                        this.$store.dispatch('settings/getDefaultTimezone')
+                        this.$store.dispatch('settings/getDefaultGeneralSettings')
                         .then(response => {
-                            this.$store.commit('settings/SET_DEFAULT_TIMEZONE', response)
                             setInterval(() => {
                                 this.time = moment().tz(this.defaultTimezone.name).format('HH:mm:ss')
                             }, 1000)
