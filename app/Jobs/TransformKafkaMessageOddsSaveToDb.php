@@ -24,9 +24,9 @@ class TransformKafkaMessageOddsSaveToDb implements ShouldQueue
 
     protected $message;
     protected $swoole;
-    protected $subTasks = [];
-    protected $updated = false;
-    protected $uid = null;
+    protected $subTasks  = [];
+    protected $updated   = false;
+    protected $uid       = null;
     protected $dbOptions = [
         'event-only'          => true,
         'is-event-new'        => true,
