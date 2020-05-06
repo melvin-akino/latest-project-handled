@@ -12,8 +12,6 @@ use App\Models\{
 
 use Illuminate\Console\Command;
 
-// [{"provider":"hg","sport":1,"league":"League","home":"Home","away":"Away"},{"provider":"isn","sport":1,"league":"League","home":"Home","away":"Away"}]
-
 class MatchedMasterlistCommand extends Command
 {
     /**
@@ -48,14 +46,15 @@ class MatchedMasterlistCommand extends Command
     public function handle()
     {
         $json              = json_decode($this->argument('json'));
-        $matchedLeagueId   = 0;
         $leagueName        = "";
         $team1             = "";
         $team2             = "";
-        $matchedHomeTeamId = 0;
-        $matchedAwayTeamId = 0;
+
+        $this->info('Processing Matched Masterlist...');
 
         foreach ($json AS $row) {
+            $this->line('Gathering League and Team names...');
+
             $providerId = Provider::getIdFromAlias($row->provider);
             $sportId    = $row->sport;
 
@@ -71,16 +70,14 @@ class MatchedMasterlistCommand extends Command
                 $team2 = $row->away;
             }
 
-            if ($matchedLeagueId == 0) {
-                $masterLeague = MasterLeague::withTrashed()->updateOrCreate([
-                    'master_league_name' => $leagueName,
-                    'sport_id'           => $sportId
-                ], [
-                    'deleted_at' => null
-                ]);
+            $masterLeague = MasterLeague::withTrashed()->updateOrCreate([
+                'master_league_name' => $row->league,
+                'sport_id'           => $sportId
+            ], [
+                'deleted_at' => null
+            ]);
 
-                $matchedLeagueId = $masterLeague->id;
-            }
+            $matchedLeagueId = $masterLeague->id;
 
             MasterLeagueLink::withTrashed()->updateOrCreate([
                 'master_league_id' => $matchedLeagueId,
@@ -91,16 +88,14 @@ class MatchedMasterlistCommand extends Command
                 'deleted_at' => null
             ]);
 
-            if ($matchedHomeTeamId == 0) {
-                $masterTeam1 = MasterTeam::withTrashed()->updateOrCreate([
-                    'sport_id'         => $sportId,
-                    'master_team_name' => $team1,
-                ], [
-                    'deleted_at' => null
-                ]);
+            $masterTeam1 = MasterTeam::withTrashed()->updateOrCreate([
+                'sport_id'         => $sportId,
+                'master_team_name' => $row->home,
+            ], [
+                'deleted_at' => null
+            ]);
 
-                $matchedHomeTeamId = $masterTeam1->id;
-            }
+            $matchedHomeTeamId = $masterTeam1->id;
 
             MasterTeamLink::withTrashed()->updateOrCreate([
                 'sport_id'       => $sportId,
@@ -111,16 +106,14 @@ class MatchedMasterlistCommand extends Command
                 'deleted_at' => null
             ]);
 
-            if ($matchedAwayTeamId == 0) {
-                $masterTeam2 = MasterTeam::withTrashed()->updateOrCreate([
-                    'sport_id'         => $sportId,
-                    'master_team_name' => $team2,
-                ], [
-                    'deleted_at' => null
-                ]);
+            $masterTeam2 = MasterTeam::withTrashed()->updateOrCreate([
+                'sport_id'         => $sportId,
+                'master_team_name' => $row->away,
+            ], [
+                'deleted_at' => null
+            ]);
 
-                $matchedAwayTeamId = $masterTeam2->id;
-            }
+            $matchedAwayTeamId = $masterTeam2->id;
 
             MasterTeamLink::withTrashed()->updateOrCreate([
                 'sport_id'       => $sportId,
@@ -131,5 +124,7 @@ class MatchedMasterlistCommand extends Command
                 'deleted_at' => null
             ]);
         }
+
+        $this->info('Matched Masterlist Encode Successful!');
     }
 }

@@ -60,7 +60,7 @@ class WsMinMax implements ShouldQueue
                     'event_id'  => $eventMarket->event_identifier
                 ]);
 
-                $requestId = (string)Str::uuid();
+                $requestId = (string) Str::uuid();
                 $requestTs = $this->milliseconds();
 
                 $payload         = [
@@ -76,6 +76,7 @@ class WsMinMax implements ShouldQueue
                     'schedule'  => $eventMarket->game_schedule,
                 ];
 
+                Log::info('Min Max Initial Request');
                 KafkaPush::dispatch(strtolower($eventMarket->alias) . '_minmax_req', $payload, $requestId);
             }
         } catch (Exception $e) {

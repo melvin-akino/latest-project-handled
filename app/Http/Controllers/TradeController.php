@@ -60,7 +60,8 @@ class TradeController extends Controller
                     'o.stake',
                     'o.status',
                     'o.created_at',
-                    'o.order_expiry'
+                    'o.order_expiry',
+                    'o.odd_label'
                 ])
                 ->orderBy('o.created_at', 'desc')
                 ->get();
@@ -82,14 +83,6 @@ class TradeController extends Controller
 
                 if ($proceed) {
                     $score  = explode(" - ", $betData->score);
-                    $points = DB::table('event_markets AS em')
-                        ->where('em.master_event_unique_id', $betData->master_event_unique_id)
-                        ->where('em.odd_type_id', $betData->odd_type_id)
-                        ->where('em.market_flag', $betData->market_flag)
-                        ->select([
-                            'em.odd_label'
-                        ])
-                        ->first();
 
                     $data[] = [
                         'order_id'       => $betData->order_id,
@@ -105,7 +98,7 @@ class TradeController extends Controller
                             $betData->name,
                             $betData->odds,
                             $betData->stake,
-                            $points->odd_label,
+                            $betData->odd_label,
                             $betData->market_flag == 'HOME' ? $betData->master_home_team_name : $betData->master_away_team_name
                         ],
                         'score'          => $betData->score,

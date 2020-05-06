@@ -48,7 +48,7 @@ class ProviderAccount extends Model
             )
         )->orderBy('updated_at', 'ASC');
 
-        return $query->first()->username;
+        return $query->first();
     }
 
     public static function getUsernameId($username)
