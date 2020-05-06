@@ -13,7 +13,7 @@ class PrometheusMatric
 	#example usage 
 	# MakeMatrix("request_market_id_total","The total number of  market id  pushed.", $market_id)
 
-	public function MakeMatrix($gauge, $gauge_info, $gaugetoincrese)
+	public function MakeMatrix($gaugename, $gauge_info, $gaugetoincrese)
 	{
 		$this->pnamespace = env('PROMETHEUS_NAMESPACE', 'default');
 
@@ -21,19 +21,19 @@ class PrometheusMatric
 
 		try {
 
-			$gauge = $exporter->getGauge($gauge);
+			$gauge = $exporter->getGauge($gaugename);
 
 		} catch (\Exception $e) {
-			$gauge = $exporter->registerGauge($gauge, $gauge_info, ['group']);
+			$gauge = $exporter->registerGauge($gaugename, $gauge_info, ['group']);
 		
 		}
 		$gauge->inc(["$gaugetoincrese"]); // increment by 1
 
 
-		$ttl = Redis::ttl("PROMETHEUS_:gauge:{$this->pnamespace}_".$gauge);
+		$ttl = Redis::ttl("PROMETHEUS_:gauge:{$this->pnamespace}_".$gaugename);
 
 		if($ttl < 0){
-		    Redis::expire("PROMETHEUS_:gauge:{$this->pnamespace}_".$gauge,  env('PROMETHEUS_EXPIRE'));
+		    Redis::expire("PROMETHEUS_:gauge:{$this->pnamespace}_".$gaugename,  env('PROMETHEUS_EXPIRE'));
 		}
 	}
     public function InitiateRequest($market_id)
