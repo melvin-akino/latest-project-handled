@@ -515,7 +515,15 @@ class OrdersController extends Controller
                     $query->column_type . " " . $query->odd_label . "(" . $query->score . ")",
                 ]);
 
-                $providerAccountUserName = ProviderAccount::getProviderAccount($row['provider_id'], $actualStake, $isUserVIP);
+                $providerAccount = ProviderAccount::getProviderAccount($row['provider_id'], $actualStake, $isUserVIP);
+                if (!$providerAccount) {
+                    return response()->json([
+                        'status'      => false,
+                        'status_code' => 404,
+                        'message'     => trans('generic.not-found') . ": No Provider Account Available"
+                    ], 404);
+                }
+                $providerAccountUserName = $providerAccount->username;
                 $providerAccountId       = ProviderAccount::getUsernameId($providerAccountUserName);
 
                 $orderIncrement = Order::create([
