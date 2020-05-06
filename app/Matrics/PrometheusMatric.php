@@ -9,6 +9,33 @@ use Prometheus;
 class PrometheusMatric
 {
 	public $pnamespace;
+
+	#example usage 
+	# MakeMatrix("request_market_id_total","The total number of  market id  pushed.", $market_id)
+
+	public function MakeMatrix($gauge, $gauge_info, $gaugetoincrese)
+	{
+		$this->pnamespace = env('PROMETHEUS_NAMESPACE', 'default');
+
+		$exporter = Prometheus::getFacadeRoot();
+
+		try {
+
+			$gauge = $exporter->getGauge($gauge);
+
+		} catch (\Exception $e) {
+			$gauge = $exporter->registerGauge($gauge, $gauge_info, ['group']);
+		
+		}
+		$gauge->inc(["$gaugetoincrese"]); // increment by 1
+
+
+		$ttl = Redis::ttl("PROMETHEUS_:gauge:{$this->pnamespace}_".$gauge);
+
+		if($ttl < 0){
+		    Redis::expire("PROMETHEUS_:gauge:{$this->pnamespace}_".$gauge,  env('PROMETHEUS_EXPIRE'));
+		}
+	}
     public function InitiateRequest($market_id)
     {
 		$this->pnamespace = env('PROMETHEUS_NAMESPACE', 'default');
