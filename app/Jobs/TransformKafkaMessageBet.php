@@ -3,6 +3,7 @@
 namespace App\Jobs;
 
 use App\Models\Order;
+use App\Models\ProviderAccount;
 use Carbon\Carbon;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -48,6 +49,8 @@ class TransformKafkaMessageBet implements ShouldQueue
                         'status' => $status,
                         'odds'   => $this->message->data->odds
                     ]);
+
+                    ProviderAccount::find($order->provider_account_id)->update(['is_idle' => true, 'updated_at' => Carbon::now()]);
 
                     $betSelectionArray         = explode("\n", $order->bet_selection);
                     $betSelectionTeamOddsArray = explode('@ ', $betSelectionArray[1]);
