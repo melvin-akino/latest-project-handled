@@ -410,8 +410,10 @@ class OrdersController extends Controller
                         $join->on('mem.market_flag', '=', 'em.market_flag');
                     })
                     ->join('odd_types AS ot', 'ot.id', '=', 'mem.odd_type_id')
+                    ->join('master_event_market_links AS meml', 'em.id', '=', 'meml.event_market_id')
                     ->whereNull('me.deleted_at')
                     ->where('mem.master_event_market_unique_id', $request->market_id)
+                    ->where('meml.master_event_market_unique_id', $request->market_id)
                     ->orderBy('mem.odd_type_id', 'asc')
                     ->select([
                         'me.sport_id',
