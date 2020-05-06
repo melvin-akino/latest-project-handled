@@ -18,8 +18,7 @@ class TransformKafkaMessageOdds extends Task
     protected $uid = null;
     protected $dbOptions = [
         'event-only' => true,
-        'is-event-new' => true,
-        'is-market-same' => true
+        'is-event-new' => true
     ];
 
     protected $disregard = [
@@ -381,6 +380,7 @@ class TransformKafkaMessageOdds extends Task
                                     "bId:" . $markets->market_id
                                 ]);
 
+                                $isMarketSame = true;
                                 if ($eventMarketsTable->exist($masterEventMarketSwtId) && !empty($markets->market_id)) {
                                     $memUID = $eventMarketsTable->get($masterEventMarketSwtId)['master_event_market_unique_id'];
                                     $odds = $eventMarketsTable->get($masterEventMarketSwtId)['odds'];
@@ -393,11 +393,11 @@ class TransformKafkaMessageOdds extends Task
                                             $oddsUpdated['points'] = $marketPoints;
                                         }
                                         $updatedOdds[] = $oddsUpdated;
-                                        $this->dbOptions['is-market-same'] = false;
+                                        $isMarketSame = false;
                                     }
                                 } else {
                                     $memUID = uniqid();
-                                    $this->dbOptions['is-market-same'] = false;
+                                    $isMarketSame = false;
                                 }
 
                                 /** TO INSERT */
@@ -423,7 +423,7 @@ class TransformKafkaMessageOdds extends Task
                                     'deleted_at'             => null,
                                 ];
 
-                                if (!$this->dbOptions['is-market-same']) {
+                                if (!$isMarketSame) {
                                     $toInsert['MasterEventMarketLog']['data'] = [
                                         'provider_id' => $providerId,
                                         'odd_type_id' => $oddTypeId,
