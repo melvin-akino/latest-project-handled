@@ -69,12 +69,6 @@ class OrdersController extends Controller
 
                 foreach ($myOrders as $myOrder) {
                     $score  = explode(' - ', $myOrder->score);
-                    $points = DB::table('event_markets as em')
-                        ->where('em.master_event_unique_id', $myOrder->master_event_unique_id)
-                        ->where('em.odd_type_id', $myOrder->odd_type_id)
-                        ->where('em.market_flag', $myOrder->market_flag)
-                        ->select(['em.odd_label'])
-                        ->first();
 
                     $data['orders'][] = [
                         'order_id'      => $myOrder->id,
@@ -95,7 +89,7 @@ class OrdersController extends Controller
                         'bet_score'     => $myOrder->market_flag == "HOME" ? $score[0] : $score[1],
                         'against_score' => $myOrder->market_flag == "HOME" ? $score[1] : $score[0],
                         'odd_type_id'   => $myOrder->odd_type_id,
-                        'points'        => $points->odd_label
+                        'points'        => $myOrder->odd_label
                     ];
                 }
 
