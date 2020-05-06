@@ -2,9 +2,8 @@
 
 namespace App\Processes;
 
-use App\Tasks\TransformKafkaMessageBet;
+use App\Jobs\TransformKafkaMessageBet;
 use Hhxsv5\LaravelS\Swoole\Process\CustomProcessInterface;
-use Hhxsv5\LaravelS\Swoole\Task\Task;
 use Illuminate\Support\Facades\Log;
 use Swoole\Http\Server;
 use Swoole\Process;
@@ -37,7 +36,7 @@ class PlacedBetConsume implements CustomProcessInterface
                             continue;
                         }
 
-                        Task::deliver(new TransformKafkaMessageBet($payload));
+                        TransformKafkaMessageBet::dispatch($payload);
 
                         $kafkaConsumer->commitAsync($message);
                         Log::channel('kafkalog')->info(json_encode($message));
