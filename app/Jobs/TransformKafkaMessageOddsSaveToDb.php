@@ -122,7 +122,7 @@ class TransformKafkaMessageOddsSaveToDb implements ShouldQueue
                                 'master_event_market_unique_id' => $masterEventMarketModel->master_event_market_unique_id
                             ], []);
 
-                            if (empty($this->dbOptions['is-market-same'])) {
+                            if (!empty($eventMarket['MasterEventMarketLog'])) {
                                 $eventMarket['MasterEventMarketLog']['data']['master_event_market_id'] = $masterEventMarketId;
 
                                 MasterEventMarketLog::create($eventMarket['MasterEventMarketLog']['data']);
@@ -229,7 +229,13 @@ class TransformKafkaMessageOddsSaveToDb implements ShouldQueue
                     ['value' => json_encode(array_values($updatedPrice))]);
             }
         } catch (Exception $e) {
-            Log::info($e->getMessage());
+            Log::error(json_encode(
+                [
+                    'message' => $e->getMessage(),
+                    'line'    => $e->getLine(),
+                    'file'    => $e->getFile(),
+                ]
+            ));
             DB::rollBack();
         }
     }

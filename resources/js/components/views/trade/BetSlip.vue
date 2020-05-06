@@ -1,7 +1,7 @@
 <template>
     <div class="betslip flex justify-center items-center">
         <dialog-drag :title="'Bet Slip - '+market_id" :options="options" @close="closeBetSlip(odd_details.market_id)" @click.native="setActiveBetSlip(market_id)" v-betslip="activeBetSlip==market_id">
-            <div class="flex flex-col justify-center items-center w-full h-full absolute top-0 left-0 bg-gray-200 z-10" :class="{'hidden': !isLoadingMarketDetails}">
+            <div class="flex flex-col justify-center items-center w-full h-full absolute top-0 left-0 bg-gray-200 z-10" :class="{'hidden': !isLoadingMarketDetailsAndProviders}">
                 <span class="betSlipSpinner"><i class="fas fa-circle-notch fa-spin"></i></span>
                 <span class="text-center mt-2">Loading Market Details...</span>
             </div>
@@ -107,18 +107,13 @@
                                 <span class="w-1/5 text-sm font-bold text-center">Price</span>
                                 <span class="w-1/5"></span>
                             </div>
-                            <div v-if="minMaxData.length != 0">
-                                <div class="flex items-center py-2" v-for="minmax in minMaxData" :key="minmax.provider_id">
-                                    <span class="w-1/5 text-sm font-bold text-center pl-3">{{minmax.provider}}</span>
-                                    <span class="w-1/5 text-sm text-center" v-if="minmax.hasMarketData">{{minmax.min | moneyFormat}}</span>
-                                    <span class="w-1/5 text-sm text-center" v-if="minmax.hasMarketData">{{minmax.max | moneyFormat}}</span>
-                                    <a href="#" @click.prevent="updatePrice(minmax.price)" class="w-1/5 text-sm font-bold underline text-center" v-if="minmax.hasMarketData">{{minmax.price | twoDecimalPlacesFormat}}</a>
-                                    <span class="w-1/5 text-sm text-center" v-if="minmax.hasMarketData">{{minmax.age}}</span>
-                                    <div class="text-sm text-center" v-if="!minmax.hasMarketData">{{marketDataMessage}} <span v-if="!retrievedMarketData" class="pl-1"><i class="fas fa-circle-notch fa-spin"></i></span></div>
-                                </div>
-                            </div>
-                            <div v-else class="flex justify-center py-2">
-                                <span class="text-sm mt-2">Loading providers <i class="fas fa-circle-notch fa-spin"></i></span>
+                            <div class="flex items-center py-2" v-for="minmax in minMaxData" :key="minmax.provider_id">
+                                <span class="w-1/5 text-sm font-bold text-center pl-3">{{minmax.provider}}</span>
+                                <span class="w-1/5 text-sm text-center" v-if="minmax.hasMarketData">{{minmax.min | moneyFormat}}</span>
+                                <span class="w-1/5 text-sm text-center" v-if="minmax.hasMarketData">{{minmax.max | moneyFormat}}</span>
+                                <a href="#" @click.prevent="updatePrice(minmax.price)" class="w-1/5 text-sm font-bold underline text-center" v-if="minmax.hasMarketData">{{minmax.price | twoDecimalPlacesFormat}}</a>
+                                <span class="w-1/5 text-sm text-center" v-if="minmax.hasMarketData">{{minmax.age}}</span>
+                                <div class="text-sm text-center" v-if="!minmax.hasMarketData">{{marketDataMessage}} <span v-if="!retrievedMarketData" class="pl-1"><i class="fas fa-circle-notch fa-spin"></i></span></div>
                             </div>
                         </div>
                     </div>
@@ -176,7 +171,7 @@ export default {
             analysisData: {},
             isPlacingOrder: null,
             isDoneBetting: false,
-            isLoadingMarketDetails: true,
+            isLoadingMarketDetailsAndProviders: true,
             isBetSuccessful: null,
             showOddsHistory: false,
             showBetMatrix: false,
@@ -280,6 +275,7 @@ export default {
     },
     mounted() {
         this.getMarketDetails()
+        this.setMinMaxProviders()
         this.minmax(this.market_id)
         this.$store.dispatch('trade/getBetSlipSettings')
     },
@@ -291,9 +287,7 @@ export default {
             .then(response => {
                 this.market_details = response.data.data
                 this.formattedRefSchedule = response.data.data.ref_schedule.split(' ')
-                this.isLoadingMarketDetails = false
                 this.points = this.odd_details.points
-                this.setMinMaxProviders()
             })
             .catch(err => {
                 this.$store.dispatch('auth/checkIfTokenIsValid', err.response.data.status_code)
@@ -308,6 +302,7 @@ export default {
             this.disabledBookies = settingsConfig.disabled_bookies
             let enabledBookies = this.bookies.filter(bookie => !this.disabledBookies.includes(bookie.id))
             enabledBookies.map(bookie => this.minMaxData.push({ provider_id: bookie.id, provider: bookie.alias, min: null, max: null, price: null, priority: null, age: null, hasMarketData: false }))
+            this.isLoadingMarketDetailsAndProviders = false
             this.marketDataMessage = 'Retrieving Market'
         },
         changePoint(points, market_id, odds) {
