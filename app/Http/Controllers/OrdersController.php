@@ -548,7 +548,7 @@ class OrdersController extends Controller
                     'provider_account_id'           => $providerAccountId,
                 ]);
 
-                ProviderAccount::find($providerAccountId)->update([ 'is_idle' => false, 'updated_at' => Carbon::now() ]);
+                ProviderAccount::find($providerAccountId)->update(['updated_at' => Carbon::now()]);
 
                 $incrementIds['id'][]               = $orderIncrement->id;
                 $incrementIds['created_at'][]       = $orderIncrement->created_at;
