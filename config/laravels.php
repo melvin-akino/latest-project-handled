@@ -37,8 +37,20 @@ return [
             'pipe'     => 0,
             'enable'   => true
         ],
-        'kafka_consume' => [
-            'class'    => \App\Processes\KafkaConsume::class,
+        'game_consume' => [
+            'class'    => \App\Processes\GameConsume::class,
+            'redirect' => false,
+            'pipe'     => 0,
+            'enable'   => env('LARAVELS_KAFKA_CONSUME', true)
+        ],
+        'account_consume' => [
+            'class'    => \App\Processes\AccountConsume::class,
+            'redirect' => false,
+            'pipe'     => 0,
+            'enable'   => env('LARAVELS_KAFKA_CONSUME', true)
+        ],
+        'placed_bet_consume' => [
+            'class'    => \App\Processes\PlacedBetConsume::class,
             'redirect' => false,
             'pipe'     => 0,
             'enable'   => env('LARAVELS_KAFKA_CONSUME', true)

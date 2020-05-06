@@ -25,7 +25,7 @@ class MinMaxConsume implements CustomProcessInterface
                     env('KAFKA_SCRAPE_MINMAX_ODDS', 'MINMAX-ODDS')
                 ]);
 
-                echo '*';
+                Log::info("Min Max Consume Starts");
                 while (!self::$quit) {
                     $message = $kafkaConsumer->consume(0);
                     if ($message->err == RD_KAFKA_RESP_ERR_NO_ERROR) {
@@ -41,6 +41,8 @@ class MinMaxConsume implements CustomProcessInterface
                             $swoole->minmaxMarketTable->get('minmax-market:' . $payload->data->market_id)['value'] >= $payload->data->timestamp
                         ) {
                             Log::info("Min Max Transformation ignored - Same or Old Timestamp");
+                            $kafkaConsumer->commitAsync($message);
+                            Log::channel('kafkalog')->info(json_encode($message));
                             continue;
                         }
 
@@ -61,7 +63,7 @@ class MinMaxConsume implements CustomProcessInterface
                     usleep(10000);
                 }
             }
-        } catch(Exception $e) {
+        } catch (Exception $e) {
             Log::error($e->getMessage());
         }
 
