@@ -88,7 +88,8 @@
                                 <input class="outline-none rounded text-sm py-1 px-3 text-gray-700 leading-tight focus:outline-none" type="radio" value="BEST_PRICE" v-model="orderForm.betType">
                             </label>
                         </div>
-                        <span class="text-sm">{{orderPrompt}}</span>
+                        <span v-if="isPlacingOrder" class="text-sm text-gray-700">Placing bet, please check the recent orders</span>
+                        <span v-else class="text-sm" :class="{'text-red-600': !isBetSuccessful, 'text-green-500': isBetSuccessful}">{{orderMessage}}</span>
                     </div>
                     <div class="flex flex-col mt-4 w-3/5 h-full">
                         <div class="flex flex-col items-center bg-white shadow shadow-xl mb-2" v-if="oddTypesWithSpreads.includes(market_details.odd_type)">
@@ -163,7 +164,6 @@ export default {
             minMaxData: [],
             oddTypesWithSpreads: ['HDP', 'HT HDP', 'OU', 'HT OU'],
             orderMessage: '',
-            orderError: '',
             options: {
                 width: 825,
                 buttonPin: false,
@@ -191,13 +191,6 @@ export default {
         activePointIndex() {
             if(!_.isEmpty(this.spreads)) {
                 return this.spreads.findIndex(spread => spread.points == this.points)
-            }
-        },
-        orderPrompt() {
-            if(this.orderMessage == '') {
-                return this.orderError
-            } else {
-                return this.orderMessage
             }
         },
         bet_score() {
@@ -429,14 +422,13 @@ export default {
         },
         clearOrderMessage() {
             this.orderMessage = ''
-            this.orderError = ''
         },
         updatePrice(price) {
             this.initialPrice = price
         },
         placeOrder() {
             if(this.orderForm.stake == '' || this.initialPrice == '') {
-                this.orderMessage = 'Please input stake or price.'
+                this.orderMessage = 'Please input stake and price.'
                 this.isBetSuccessful = false
             } else if(this.wallet.credit == 0 || this.orderForm.stake > this.wallet.credit) {
                 this.orderMessage = 'Insufficient wallet balance.'
@@ -466,15 +458,13 @@ export default {
                         if(this.orderForm.stake > sortedByPriority.max) {
                             this.orderForm.stake = this.orderForm.stake - sortedByPriority.max
                             this.orderForm.markets.push(sortedByPriority)
-                            this.orderError = ''
-                            this.isBetSuccessful = true
+                            this.orderMessage = ''
                         } else if(this.orderForm.stake <= sortedByPriority.max && this.orderForm.stake >= sortedByPriority.min) {
                             this.orderForm.stake = 0
                             this.orderForm.markets.push(sortedByPriority)
-                            this.orderError = ''
-                            this.isBetSuccessful = true
+                            this.orderMessage = ''
                         } else if(this.orderForm.stake < sortedByPriority.min && this.orderForm.stake != 0) {
-                            this.orderError = 'Stake lower than minimum stake or cannot proceed to next provider.'
+                            this.orderMessage = 'Stake lower than minimum stake or cannot proceed to next provider.'
                             this.isBetSuccessful = false
                         }
                     })
@@ -492,15 +482,13 @@ export default {
                         if(this.orderForm.stake > mostPriority.max) {
                             this.orderForm.stake = this.orderForm.stake - mostPriority.max
                             this.orderForm.markets = mostPriorityArray
-                            this.orderError = ''
-                            this.isBetSuccessful = true
+                            this.orderMessage = ''
                         } else if(this.orderForm.stake <= mostPriority.max && this.orderForm.stake >= mostPriority.min) {
                             this.orderForm.stake = 0
                             this.orderForm.markets = mostPriorityArray
-                            this.orderError = ''
-                            this.isBetSuccessful = true
+                            this.orderMessage = ''
                         } else if(this.orderForm.stake < mostPriority.min && this.orderForm.stake != 0) {
-                            this.orderError = 'Stake lower than minimum stake.'
+                            this.orderMessage = 'Stake lower than minimum stake.'
                             this.isBetSuccessful = false
                         }
                     })
@@ -511,6 +499,7 @@ export default {
 
                 axios.post('v1/orders/bet', data, { headers: { 'Authorization': `Bearer ${token}` }})
                 .then(response => {
+                    this.isBetSuccessful = true
                     this.orderMessage = response.data.data
                     this.$store.dispatch('trade/getBetbarData')
                     this.$store.commit('trade/TOGGLE_BETBAR', true)
@@ -542,9 +531,14 @@ export default {
                     this.isPlacingOrder = false
                 })
                 .catch(err => {
-                    this.orderMessage = ''
+                    this.isBetSuccessful = false
                     this.isPlacingOrder = false
-                    this.$store.dispatch('auth/checkIfTokenIsValid', err.response.data.status_code)
+                    if(this.orderMessage == '') {
+                        this.orderMessage = err.response.data.message
+                    }
+                    if(err.response.data.status_code != 404) {
+                        this.$store.dispatch('auth/checkIfTokenIsValid', err.response.data.status_code)
+                    }
                 })
             }
         }
