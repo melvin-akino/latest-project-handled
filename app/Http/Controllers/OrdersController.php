@@ -519,8 +519,7 @@ class OrdersController extends Controller
                     $query->column_type . " " . $query->odd_label . "(" . $query->score . ")",
                 ]);
 
-                $providerAccountUserName = ProviderAccount::getProviderAccount($row['provider_id'], $actualStake,
-                    $isUserVIP);
+                $providerAccountUserName = ProviderAccount::getProviderAccount($row['provider_id'], $actualStake, $isUserVIP);
                 $providerAccountId       = ProviderAccount::getUsernameId($providerAccountUserName);
 
                 $orderIncrement = Order::create([
@@ -544,8 +543,11 @@ class OrdersController extends Controller
                     'provider_account_id'           => $providerAccountId,
                 ]);
 
-                $incrementIds['id'][]         = $orderIncrement->id;
-                $incrementIds['created_at'][] = $orderIncrement->created_at;
+                ProviderAccount::find($providerAccountId)->update([ 'is_idle' => false, 'updated_at' => Carbon::now() ]);
+
+                $incrementIds['id'][]               = $orderIncrement->id;
+                $incrementIds['created_at'][]       = $orderIncrement->created_at;
+                $incrementIds['provider_account'][] = $providerAccountUserName;
 
                 $orderLogsId = OrderLogs::create([
                     'user_id'       => auth()->user()->id,
@@ -615,11 +617,9 @@ class OrdersController extends Controller
                     'market_id'   => $incrementIds['payload'][$i]['market_id'],
                     'event_id'    => $incrementIds['payload'][$i]['event_id'],
                     'score'       => $incrementIds['payload'][$i]['score'],
-                    'username'    => ProviderAccount::getProviderAccount($row['provider_id'],
-                        $incrementIds['payload'][$i]['actual_stake'], $isUserVIP),
+                    'username'    => $incrementIds['provider_account'][$i],
                     'created_at'  => $incrementIds['created_at'][$i],
                     'orderExpiry' => $incrementIds['payload'][$i]['orderExpiry'],
-
                 ];
 
                 $payloadsSwtId = implode(':', [
@@ -631,6 +631,7 @@ class OrdersController extends Controller
                 if (!$payloadsSwt->exists($payloadsSwtId)) {
                     $payloadsSwt->set($payloadsSwtId, ['payload' => json_encode($payload)]);
                 }
+
                 $ordersTable['orderId:' . $incrementIds['id'][$i]]['username']    = $payload['data']['username'];
                 $ordersTable['orderId:' . $incrementIds['id'][$i]]['orderExpiry'] = $payload['data']['orderExpiry'];
                 $ordersTable['orderId:' . $incrementIds['id'][$i]]['created_at']  = $incrementIds['created_at'][$i];

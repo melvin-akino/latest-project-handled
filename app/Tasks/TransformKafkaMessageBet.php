@@ -4,6 +4,7 @@ namespace App\Tasks;
 
 use App\Jobs\WSOrderStatus;
 use App\Models\Order;
+use App\Models\CRM\ProviderAccount;
 use Carbon\Carbon;
 use Hhxsv5\LaravelS\Swoole\Task\Task;
 use Illuminate\Support\Facades\DB;
@@ -46,6 +47,10 @@ class TransformKafkaMessageBet extends Task
                         'status' => $status,
                         'odds'   => $this->message->data->odds
                     ]);
+
+                    $orderInfo = Order::find($messageOrderId);
+
+                    ProviderAccount::find($orderInfo->provider_account_id)->update([ 'is_idle' => true, 'updated_at' => Carbon::now() ]);
 
                     $betSelectionArray         = explode("\n", $order->bet_selection);
                     $betSelectionTeamOddsArray = explode('@ ', $betSelectionArray[1]);
