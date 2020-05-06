@@ -221,7 +221,7 @@ class TransformKafkaMessageOddsSaveToDb implements ShouldQueue
                 array_map(function ($updatedPriceValue) use ($updatedPrice) {
                     $eventIdentifier = $updatedPriceValue['event_identifier'];
                     unset($updatedPriceValue['event_identifier']);
-                    $updatedPrice[$eventIdentifier][] = $$updatedPriceValue;
+                    $updatedPrice[$eventIdentifier][] = $updatedPriceValue;
                 }, $this->updatedOddsData);
 
                 $WSOddsSwtId = "updatedEventPrices:" . $uid;
