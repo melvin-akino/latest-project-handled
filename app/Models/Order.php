@@ -18,6 +18,7 @@ class Order extends Model
         'provider_id',
         'sport_id',
         'odds',
+        'odd_label',
         'stake',
         'actual_stake',
         'to_win',

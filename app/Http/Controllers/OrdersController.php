@@ -532,6 +532,7 @@ class OrdersController extends Controller
                     'provider_id'                   => $row['provider_id'],
                     'sport_id'                      => $query->sport_id,
                     'odds'                          => $row['price'],
+                    'odd_label'                     => $query->odd_label,
                     'stake'                         => ($payloadStake * $exchangeRate),
                     'to_win'                        => (($payloadStake * $row['price']) * $exchangeRate),
                     'actual_stake'                  => $actualStake,
