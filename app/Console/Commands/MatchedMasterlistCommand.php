@@ -49,15 +49,27 @@ class MatchedMasterlistCommand extends Command
     {
         $json              = json_decode($this->argument('json'));
         $matchedLeagueId   = 0;
+        $leagueName        = "";
+        $team1             = "";
+        $team2             = "";
         $matchedHomeTeamId = 0;
         $matchedAwayTeamId = 0;
 
         foreach ($json AS $row) {
             $providerId = Provider::getIdFromAlias($row->provider);
             $sportId    = $row->sport;
-            $leagueName = $row->league;
-            $team1      = $row->home;
-            $team2      = $row->away;
+
+            if ($leagueName == "") {
+                $leagueName = $row->league;
+            }
+
+            if ($team1 == "") {
+                $team1 = $row->home;
+            }
+
+            if ($team2 == "") {
+                $team2 = $row->away;
+            }
 
             if ($matchedLeagueId == 0) {
                 $masterLeague = MasterLeague::withTrashed()->updateOrCreate([
