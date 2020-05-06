@@ -2,19 +2,11 @@
 
 namespace App\Processes;
 
-use App\Jobs\{
-    TransformKafkaMessageOpenOrders,
-    TransformKafkaMessageSettlement
-};
-
 use App\Tasks\{
     TransformKafkaMessageEvents,
     TransformKafkaMessageLeagues,
-    TransformKafkaMessageOdds,
-    TransformKafkaMessageBalance,
-    TransformKafkaMessageBet
+    TransformKafkaMessageOdds
 };
-
 use Hhxsv5\LaravelS\Swoole\Process\CustomProcessInterface;
 use Hhxsv5\LaravelS\Swoole\Task\Task;
 use Illuminate\Support\Facades\Log;
@@ -22,7 +14,7 @@ use Swoole\Http\Server;
 use Swoole\Process;
 use Exception;
 
-class KafkaConsume implements CustomProcessInterface
+class GameConsume implements CustomProcessInterface
 {
     /**
      * @var bool Quit tag for Reload updates
@@ -37,14 +29,10 @@ class KafkaConsume implements CustomProcessInterface
                 $kafkaConsumer->subscribe([
                     env('KAFKA_SCRAPE_ODDS', 'SCRAPING-ODDS'),
                     env('KAFKA_SCRAPE_LEAGUES', 'SCRAPING-PROVIDER-LEAGUES'),
-                    env('KAFKA_SCRAPE_EVENTS', 'SCRAPING-PROVIDER-EVENTS'),
-                    env('KAFKA_BET_PLACED', 'PLACED-BET'),
-                    env('KAFKA_SCRAPE_OPEN_ORDERS', 'OPEN-ORDERS'),
-                    env('KAFKA_SCRAPE_BALANCE', 'BALANCE'),
-                    env('KAFKA_SCRAPE_SETTLEMENTS', 'SCRAPING-SETTLEMENTS'),
+                    env('KAFKA_SCRAPE_EVENTS', 'SCRAPING-PROVIDER-EVENTS')
                 ]);
 
-                echo '.';
+                Log::info("Game Consume Starts");
                 while (!self::$quit) {
                     $message = $kafkaConsumer->consume(0);
                     if ($message->err == RD_KAFKA_RESP_ERR_NO_ERROR) {
@@ -57,38 +45,7 @@ class KafkaConsume implements CustomProcessInterface
                             case 'event':
                                 Task::deliver(new TransformKafkaMessageEvents($payload));
                                 break;
-                            case 'bet':
-                                if (empty($payload->data->status) || empty($payload->data->odds)) {
-                                    Log::info("Bet Transformation ignored - Status Or Odds Not Found");
-                                    break;
-                                }
-
-                                Task::deliver(new TransformKafkaMessageBet($payload));
-                                break;
-                            case 'balance':
-                                if (empty($payload->data->provider) || empty($payload->data->username) || empty($payload->data->available_balance) || empty($payload->data->currency)) {
-                                    Log::info("Balance Transformation ignored - No Data Found");
-                                    break;
-                                }
-                                Task::deliver(new TransformKafkaMessageBalance($payload));
-                                break;
-                            case 'orders':
-                                if (empty($payload->data)) {
-                                    Log::info("Open Order Transformation ignored - No Data Found");
-                                    break;
-                                }
-
-                                TransformKafkaMessageOpenOrders::dispatch($payload);
-                                break;
-                            case 'settlement':
-                                if (empty($payload->data)) {
-                                    Log::info("Settlement Transformation ignored - No Data Found");
-                                    break;
-                                }
-
-                                TransformKafkaMessageSettlement::dispatch($payload);
-                                break;
-                            default:
+                            case 'odd':
                                 if (!isset($payload->data->events)) {
                                     Log::info("Transformation ignored - No Event Found");
                                     break;
@@ -118,6 +75,8 @@ class KafkaConsume implements CustomProcessInterface
                                     ]);
                                 }
                                 Task::deliver(new TransformKafkaMessageOdds($payload));
+                                break;
+                            default:
                                 break;
                         }
                         $kafkaConsumer->commitAsync($message);
