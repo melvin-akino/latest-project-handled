@@ -69,12 +69,6 @@ class OrdersController extends Controller
 
                 foreach ($myOrders as $myOrder) {
                     $score  = explode(' - ', $myOrder->score);
-                    $points = DB::table('event_markets as em')
-                        ->where('em.master_event_unique_id', $myOrder->master_event_unique_id)
-                        ->where('em.odd_type_id', $myOrder->odd_type_id)
-                        ->where('em.market_flag', $myOrder->market_flag)
-                        ->select(['em.odd_label'])
-                        ->first();
 
                     $data['orders'][] = [
                         'order_id'      => $myOrder->id,
@@ -95,7 +89,7 @@ class OrdersController extends Controller
                         'bet_score'     => $myOrder->market_flag == "HOME" ? $score[0] : $score[1],
                         'against_score' => $myOrder->market_flag == "HOME" ? $score[1] : $score[0],
                         'odd_type_id'   => $myOrder->odd_type_id,
-                        'points'        => $points->odd_label
+                        'points'        => $myOrder->odd_label
                     ];
                 }
 
@@ -416,8 +410,10 @@ class OrdersController extends Controller
                         $join->on('mem.market_flag', '=', 'em.market_flag');
                     })
                     ->join('odd_types AS ot', 'ot.id', '=', 'mem.odd_type_id')
+                    ->join('master_event_market_links AS meml', 'em.id', '=', 'meml.event_market_id')
                     ->whereNull('me.deleted_at')
                     ->where('mem.master_event_market_unique_id', $request->market_id)
+                    ->where('meml.master_event_market_unique_id', $request->market_id)
                     ->orderBy('mem.odd_type_id', 'asc')
                     ->select([
                         'me.sport_id',
@@ -519,8 +515,15 @@ class OrdersController extends Controller
                     $query->column_type . " " . $query->odd_label . "(" . $query->score . ")",
                 ]);
 
-                $providerAccountUserName = ProviderAccount::getProviderAccount($row['provider_id'], $actualStake,
-                    $isUserVIP);
+                $providerAccount = ProviderAccount::getProviderAccount($row['provider_id'], $actualStake, $isUserVIP);
+                if (!$providerAccount) {
+                    return response()->json([
+                        'status'      => false,
+                        'status_code' => 404,
+                        'message'     => trans('generic.not-found') . ": No Provider Account Available"
+                    ], 404);
+                }
+                $providerAccountUserName = $providerAccount->username;
                 $providerAccountId       = ProviderAccount::getUsernameId($providerAccountUserName);
 
                 $orderIncrement = Order::create([
@@ -533,6 +536,7 @@ class OrdersController extends Controller
                     'provider_id'                   => $row['provider_id'],
                     'sport_id'                      => $query->sport_id,
                     'odds'                          => $row['price'],
+                    'odd_label'                     => $query->odd_label,
                     'stake'                         => ($payloadStake * $exchangeRate),
                     'to_win'                        => (($payloadStake * $row['price']) * $exchangeRate),
                     'actual_stake'                  => $actualStake,
@@ -544,8 +548,11 @@ class OrdersController extends Controller
                     'provider_account_id'           => $providerAccountId,
                 ]);
 
-                $incrementIds['id'][]         = $orderIncrement->id;
-                $incrementIds['created_at'][] = $orderIncrement->created_at;
+                ProviderAccount::find($providerAccountId)->update([ 'is_idle' => false, 'updated_at' => Carbon::now() ]);
+
+                $incrementIds['id'][]               = $orderIncrement->id;
+                $incrementIds['created_at'][]       = $orderIncrement->created_at;
+                $incrementIds['provider_account'][] = $providerAccountUserName;
 
                 $orderLogsId = OrderLogs::create([
                     'user_id'       => auth()->user()->id,
@@ -615,11 +622,9 @@ class OrdersController extends Controller
                     'market_id'   => $incrementIds['payload'][$i]['market_id'],
                     'event_id'    => $incrementIds['payload'][$i]['event_id'],
                     'score'       => $incrementIds['payload'][$i]['score'],
-                    'username'    => ProviderAccount::getProviderAccount($row['provider_id'],
-                        $incrementIds['payload'][$i]['actual_stake'], $isUserVIP),
+                    'username'    => $incrementIds['provider_account'][$i],
                     'created_at'  => $incrementIds['created_at'][$i],
                     'orderExpiry' => $incrementIds['payload'][$i]['orderExpiry'],
-
                 ];
 
                 $payloadsSwtId = implode(':', [
@@ -631,6 +636,7 @@ class OrdersController extends Controller
                 if (!$payloadsSwt->exists($payloadsSwtId)) {
                     $payloadsSwt->set($payloadsSwtId, ['payload' => json_encode($payload)]);
                 }
+
                 $ordersTable['orderId:' . $incrementIds['id'][$i]]['username']    = $payload['data']['username'];
                 $ordersTable['orderId:' . $incrementIds['id'][$i]]['orderExpiry'] = $payload['data']['orderExpiry'];
                 $ordersTable['orderId:' . $incrementIds['id'][$i]]['created_at']  = $incrementIds['created_at'][$i];

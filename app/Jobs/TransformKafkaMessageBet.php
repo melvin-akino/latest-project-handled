@@ -1,16 +1,18 @@
 <?php
 
-namespace App\Tasks;
+namespace App\Jobs;
 
-use App\Jobs\WSOrderStatus;
 use App\Models\Order;
-use App\Models\CRM\ProviderAccount;
+use App\Models\ProviderAccount;
 use Carbon\Carbon;
-use Hhxsv5\LaravelS\Swoole\Task\Task;
+use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Support\Facades\DB;
 
-class TransformKafkaMessageBet extends Task
+class TransformKafkaMessageBet implements ShouldQueue
 {
+    use Dispatchable;
+
     protected $message;
 
     public function __construct($message)
@@ -48,7 +50,7 @@ class TransformKafkaMessageBet extends Task
                         'odds'   => $this->message->data->odds
                     ]);
 
-                    ProviderAccount::find($order->provider_account_id)->update([ 'is_idle' => true, 'updated_at' => Carbon::now() ]);
+                    ProviderAccount::find($order->provider_account_id)->update(['is_idle' => true, 'updated_at' => Carbon::now()]);
 
                     $betSelectionArray         = explode("\n", $order->bet_selection);
                     $betSelectionTeamOddsArray = explode('@ ', $betSelectionArray[1]);
