@@ -64,6 +64,13 @@ class TransformKafkaMessageOddsSaveToDb implements ShouldQueue
         try {
             DB::beginTransaction();
 
+            $event = Events::withTrashed()->where('event_identifier',
+                $this->eventRawData['Event']['data']['event_identifier'])->first();
+            if ($event && $event->game_schedule != $this->eventRawData['Event']['data']['game_schedule']) {
+                EventMarket::where('master_event_unique_id', $event->master_event_unique_id)
+                    ->delete();
+            }
+
             $eventModel = Events::updateOrCreate([
                 'event_identifier' => $this->eventRawData['Event']['data']['event_identifier']
             ], $this->eventRawData['Event']['data']);
@@ -81,27 +88,14 @@ class TransformKafkaMessageOddsSaveToDb implements ShouldQueue
                     ], []);
                 }
 
-                if (!empty($this->removePreviousMarket)) {
-                    foreach ($this->removePreviousMarket AS $prevMarket) {
-                        $previousMarkets[] = $prevMarket['uid'];
-
-                        EventMarket::where('master_event_unique_id', $prevMarket['uid'])
-                            ->delete();
-                    }
-                }
-
                 if (!empty($this->eventMarketsData)) {
                     foreach ($this->eventMarketsData as $eventMarket) {
-                        if (in_array($eventMarket['EventMarket']['data']['master_event_unique_id'], $previousMarkets)) {
-                            $eventMarketModel = EventMarket::create($eventMarket['EventMarket']['data']);
-                        } else {
-                            $eventMarketModel = EventMarket::withTrashed()->updateOrCreate(
-                                [
-                                    'bet_identifier'         => $eventMarket['EventMarket']['data']['bet_identifier'],
-                                    'master_event_unique_id' => $eventMarket['EventMarket']['data']['master_event_unique_id']
-                                ], $eventMarket['EventMarket']['data']
-                            );
-                        }
+                        $eventMarketModel = EventMarket::withTrashed()->updateOrCreate(
+                            [
+                                'bet_identifier'         => $eventMarket['EventMarket']['data']['bet_identifier'],
+                                'master_event_unique_id' => $eventMarket['EventMarket']['data']['master_event_unique_id']
+                            ], $eventMarket['EventMarket']['data']
+                        );
 
                         $eventMarketId = $eventMarketModel->id;
 
