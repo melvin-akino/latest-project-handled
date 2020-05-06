@@ -48,9 +48,7 @@ class TransformKafkaMessageBet extends Task
                         'odds'   => $this->message->data->odds
                     ]);
 
-                    $orderInfo = Order::find($messageOrderId);
-
-                    ProviderAccount::find($orderInfo->provider_account_id)->update([ 'is_idle' => true, 'updated_at' => Carbon::now() ]);
+                    ProviderAccount::find($order->provider_account_id)->update([ 'is_idle' => true, 'updated_at' => Carbon::now() ]);
 
                     $betSelectionArray         = explode("\n", $order->bet_selection);
                     $betSelectionTeamOddsArray = explode('@ ', $betSelectionArray[1]);
