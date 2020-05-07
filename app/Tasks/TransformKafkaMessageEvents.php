@@ -100,6 +100,7 @@ class TransformKafkaMessageEvents extends Task
                         $forRemovalEvents[] = $eventId;
                     }
                 }
+                Log::debug($this->message->data->schedule);
                 Log::debug(json_encode(['active-events' => $events]));
                 Log::debug(json_encode(['payload-events' => $this->message->data->event_ids]));
                 Log::debug(json_encode(['for-removal-events' => $forRemovalEvents]));
