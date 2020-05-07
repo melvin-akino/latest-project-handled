@@ -227,6 +227,7 @@ class TradeController extends Controller
                     ->where('master_leagues.sport_id', $data['default_sport'])
                     ->whereNull('master_leagues.deleted_at')
                     ->whereNull('master_events.deleted_at')
+                    ->whereNull('events.deleted_at')
                     ->where('master_events.game_schedule', $key)
                     ->groupBy('master_leagues.master_league_name')
                     ->select('master_leagues.master_league_name',
