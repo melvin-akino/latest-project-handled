@@ -14,28 +14,24 @@ class WsForRemovalEvents implements ShouldQueue
 
     public function __construct($data, $providerId)
     {
-        $this->data = $data;
+        $this->data       = $data;
         $this->providerId = $providerId;
     }
 
     public function handle()
     {
         try {
-            Log::debug("For Removal Event - Starting Process");
-            $server    = app('swoole');
+            $server = app('swoole');
 
             $providerPriority        = 0;
             $providerId              = 0;
-            $providerIsEnabled       = 0;
             $providersTable          = $server->providersTable;
-            $userProviderConfigTable = $server->userProviderConfigTable;
 
             foreach ($providersTable as $key => $provider) {
                 if (empty($providerId) || $providerPriority > $provider['priority']) {
                     if ($provider['is_enabled']) {
-                        $providerId = $provider['id'];
-                        $providerPriority = $provider['priority'];
-                        $providerIsEnabled = $provider['is_enabled'];
+                        $providerId        = $provider['id'];
+                        $providerPriority  = $provider['priority'];
                     }
                 }
             }
@@ -46,11 +42,10 @@ class WsForRemovalEvents implements ShouldQueue
             }
 
             $data = [];
-            Log::debug("For Removal Event - Deleting Events");
             foreach ($this->data as $eventIdentifier) {
                 $event = Events::where('event_identifier', $eventIdentifier)
                     ->where('provider_id', $this->providerId)->first();
-                if($event && $this->providerId == $providerId) {
+                if ($event && $this->providerId == $providerId) {
                     $eventLink = MasterEventLink::where('event_id', $event->id)->first();
                     if ($eventLink) {
                         UserWatchlist::where('master_event_unique_id', $eventLink->master_event_unique_id)->delete();
@@ -61,7 +56,6 @@ class WsForRemovalEvents implements ShouldQueue
                 $event->delete();
             }
 
-            Log::debug("For Removal Event - Pushing to socket");
             foreach ($server->wsTable as $key => $row) {
                 if (strpos($key, 'uid:') === 0 && $server->isEstablished($row['value'])) {
                     if (!empty($data)) {
