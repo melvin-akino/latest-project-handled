@@ -89,7 +89,7 @@ class TransformKafkaMessageEvents extends Task
             ]);
             if ($activeEventsTable->exists($activeEventsSwtId)) {
                 $eventsJson = $activeEventsTable->get($activeEventsSwtId);
-                $events     = json_decode($eventsJson['events']);
+                $events     = json_decode($eventsJson['events'], true);
 
                 $inActiveEvents = array_diff($events, $this->message->data->event_ids);
 
