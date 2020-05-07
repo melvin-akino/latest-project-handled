@@ -21,5 +21,6 @@ class EventMarket extends Model
         'provider_id',
         'event_identifier',
         'deleted_at',
+        'game_schedule',
     ];
 }
