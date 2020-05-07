@@ -93,18 +93,16 @@ class TransformKafkaMessageEvents extends Task
 
                 $inActiveEvents = array_diff($events, $this->message->data->event_ids);
 
-                $forRemovalEvents = [];
                 foreach ($inActiveEvents as $eventId) {
                     if ($eventsTable->exists("sId:$sportId:pId:$providerId:eventIdentifier:$eventId")) {
                         $eventsTable->del("sId:$sportId:pId:$providerId:eventIdentifier:$eventId");
-                        $forRemovalEvents[] = $eventId;
                     }
                 }
                 Log::debug($this->message->data->schedule);
                 Log::debug(json_encode(['active-events' => $events]));
                 Log::debug(json_encode(['payload-events' => $this->message->data->event_ids]));
-                Log::debug(json_encode(['for-removal-events' => $forRemovalEvents]));
-                WsForRemovalEvents::dispatch($forRemovalEvents);
+                Log::debug(json_encode(['for-removal-events' => $inActiveEvents]));
+                WsForRemovalEvents::dispatch($inActiveEvents);
             }
 
             $activeEventsTable->set($activeEventsSwtId, ['events' => json_encode($this->message->data->event_ids)]);
