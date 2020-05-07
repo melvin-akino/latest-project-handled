@@ -102,7 +102,7 @@ class TransformKafkaMessageEvents extends Task
                 Log::debug(json_encode(['active-events' => $events]));
                 Log::debug(json_encode(['payload-events' => $this->message->data->event_ids]));
                 Log::debug(json_encode(['for-removal-events' => $inActiveEvents]));
-                WsForRemovalEvents::dispatch($inActiveEvents);
+                WsForRemovalEvents::dispatch($inActiveEvents, $providerId);
             }
 
             $activeEventsTable->set($activeEventsSwtId, ['events' => json_encode($this->message->data->event_ids)]);
