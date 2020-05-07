@@ -43,8 +43,7 @@ class WsForRemovalEvents implements ShouldQueue
 
             $data = [];
             foreach ($this->data as $eventIdentifier) {
-                $event = Events::where('event_identifier', $eventIdentifier)
-                    ->where('provider_id', $this->providerId)->first();
+                $event = Events::where('event_identifier', $eventIdentifier)->first();
                 if ($event && $this->providerId == $providerId) {
                     $eventLink = MasterEventLink::where('event_id', $event->id)->first();
                     if ($eventLink) {
