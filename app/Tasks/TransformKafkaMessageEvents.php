@@ -33,7 +33,7 @@ class TransformKafkaMessageEvents extends Task
                 $swooleTS = $eventScrapingTable[$timestampSwtId]['value'];
 
                 if ($swooleTS > $this->message->request_ts) {
-                    Log::info("League Transformation ignored - Old Timestamp");
+                    Log::info("Event Transformation ignored - Old Timestamp");
                     return;
                 }
             }
@@ -60,7 +60,7 @@ class TransformKafkaMessageEvents extends Task
             if ($providersTable->exist($providerSwtId)) {
                 $providerId = $providersTable->get($providerSwtId)['id'];
             } else {
-                Log::info("League Transformation ignored - Provider doesn't exist");
+                Log::info("Event Transformation ignored - Provider doesn't exist");
                 return;
             }
 
@@ -78,7 +78,7 @@ class TransformKafkaMessageEvents extends Task
             if ($sportsTable->exists($sportSwtId)) {
                 $sportId = $sportsTable->get($sportSwtId)['id'];
             } else {
-                Log::info("League Transformation ignored - Sport doesn't exist");
+                Log::info("Event Transformation ignored - Sport doesn't exist");
                 return;
             }
 
@@ -89,18 +89,20 @@ class TransformKafkaMessageEvents extends Task
             ]);
             if ($activeEventsTable->exists($activeEventsSwtId)) {
                 $eventsJson = $activeEventsTable->get($activeEventsSwtId);
-                $events     = json_decode($eventsJson['events']);
+                $events     = json_decode($eventsJson['events'], true);
 
                 $inActiveEvents = array_diff($events, $this->message->data->event_ids);
 
-                $forRemovalEvents = [];
                 foreach ($inActiveEvents as $eventId) {
                     if ($eventsTable->exists("sId:$sportId:pId:$providerId:eventIdentifier:$eventId")) {
                         $eventsTable->del("sId:$sportId:pId:$providerId:eventIdentifier:$eventId");
-                        $forRemovalEvents[] = $eventId;
                     }
                 }
-                WsForRemovalEvents::dispatch($forRemovalEvents);
+                Log::debug($this->message->data->schedule);
+                Log::debug(json_encode(['active-events' => $events]));
+                Log::debug(json_encode(['payload-events' => $this->message->data->event_ids]));
+                Log::debug(json_encode(['for-removal-events' => $inActiveEvents]));
+                WsForRemovalEvents::dispatch($inActiveEvents, $providerId);
             }
 
             $activeEventsTable->set($activeEventsSwtId, ['events' => json_encode($this->message->data->event_ids)]);
