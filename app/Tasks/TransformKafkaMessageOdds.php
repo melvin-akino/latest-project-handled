@@ -421,6 +421,7 @@ class TransformKafkaMessageOdds extends Task
                                     'market_flag'            => strtoupper($markets->indicator),
                                     'event_identifier'       => $event->eventId,
                                     'deleted_at'             => null,
+                                    'game_schedule'          => $this->message->data->schedule,
                                 ];
 
                                 if (!$isMarketSame) {

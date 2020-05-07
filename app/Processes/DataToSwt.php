@@ -268,16 +268,11 @@ class DataToSwt implements CustomProcessInterface
             ->whereNull('deleted_at')
             ->get();
         $activeEvents = $swoole->activeEventsTable;
-        array_map(function ($event) use ($activeEvents) {
-            if ($activeEvents->exists('sId:' . $event->sport_id . ':pId:' . $event->provider_id . ':schedule:' . $event->game_schedule)) {
-                $activeEventsArray = json_decode($activeEvents->get('sId:' . $event->sport_id . ':pId:' . $event->provider_id . ':schedule:' . $event->game_schedule)['events']);
-            } else {
-                $activeEventsArray = [];
-            }
-            $activeEventsArray[] = $event->event_identifier;
-
+        $activeEventsArray = [];
+        array_map(function ($event) use ($activeEvents, $activeEventsArray) {
+            $activeEventsArray[$event->sport_id][$event->provider_id][$event->game_schedule][] = $event->event_identifier;
             $activeEvents->set('sId:' . $event->sport_id . ':pId:' . $event->provider_id . ':schedule:' . $event->game_schedule,
-                ['events' => json_encode($activeEventsArray)]);
+                ['events' => json_encode($activeEventsArray[$event->sport_id][$event->provider_id][$event->game_schedule])]);
         }, $events->toArray());
     }
 
