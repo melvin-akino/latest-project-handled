@@ -222,13 +222,17 @@ class TradeController extends Controller
             foreach ($dataSchedule as $key => $sched) {
                 $leaguesQuery = DB::table('master_leagues')
                     ->join('master_events', 'master_events.master_league_name', 'master_leagues.master_league_name')
+                    ->join('master_event_links', 'master_event_links.master_event_unique_id', 'master_events.master_event_unique_id')
+                    ->join('events', 'events.id', 'master_event_links.event_id')
                     ->where('master_leagues.sport_id', $data['default_sport'])
                     ->whereNull('master_leagues.deleted_at')
                     ->whereNull('master_events.deleted_at')
+                    ->whereNull('events.deleted_at')
                     ->where('master_events.game_schedule', $key)
                     ->groupBy('master_leagues.master_league_name')
                     ->select('master_leagues.master_league_name',
                         DB::raw('COUNT(master_leagues.master_league_name) as match_count'))
+                    ->distinct()
                     ->get();
 
                 foreach ($leaguesQuery as $league) {
