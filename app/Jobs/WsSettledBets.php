@@ -150,6 +150,8 @@ class WsSettledBets implements ShouldQueue
             ->where('source_name', 'LIKE', 'RETURN_BET')
             ->first();
 
+        DB::beginTransaction();
+
         try {
             DB::table('orders')->where('bet_id', $this->data->bet_id)
                 ->update(
@@ -232,9 +234,12 @@ class WsSettledBets implements ShouldQueue
         } catch (\Exception $e) {
             Log::error(json_encode(
                 [
-                    'message' => $e->getMessage(),
-                    'line'    => $e->getLine(),
-                    'file'    => $e->getFile(),
+                    'WS_SETTLED_BETS' => [
+                        'message' => $e->getMessage(),
+                        'line'    => $e->getLine(),
+                        'file'    => $e->getFile(),
+                        'data'    => $this->data,
+                    ]
                 ]
             ));
 
