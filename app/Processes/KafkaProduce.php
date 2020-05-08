@@ -98,7 +98,7 @@ class KafkaProduce implements CustomProcessInterface
                                 ];
                                 $payload['data'] = $minMaxRequest;
                                
-                                PrometheusMatric::MakeMatrix('request_market_id_total', 'Min-max  total number of  market id  pushed .',$minMaxRequest['market_id']);
+                                \PrometheusMatric::MakeMatrix('request_market_id_total', 'Min-max  total number of  market id  pushed .',$minMaxRequest['market_id']);
                                 self::pushToKafka($payload, $requestId,
                                     strtolower($minMaxRequest['provider']) . $kafkaTopics['req_minmax']);
                             }
