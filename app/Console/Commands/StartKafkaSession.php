@@ -68,8 +68,11 @@ class StartKafkaSession extends Command
 
         echo "\nMINMAX:\n\r";
         foreach($this->stats["minmax"] as $k=>$v) {
-            \PrometheusMatric::MakeMatrix('betslip_kafkamon_request_id', 'Market Id Request.',$k);
-            \PrometheusMatric::MakeMatrix('betslip_kafkamon_reply_id', 'Market Id reply.',$k);
+            if ($v!=0) {
+
+                \PrometheusMatric::MakeMatrix('betslip_kafkamon_request_id', 'Market Id Request.',$k);
+                \PrometheusMatric::MakeMatrix('betslip_kafkamon_reply_id', 'Market Id reply.',$k);
+            }
                 echo "\t".$k."\t\tREQ: ".$v["req"]."\tREPLY: ".$v["rep"]."\n\r";
         }
     }
