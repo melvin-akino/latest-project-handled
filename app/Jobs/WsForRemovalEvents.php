@@ -23,15 +23,15 @@ class WsForRemovalEvents implements ShouldQueue
         try {
             $server = app('swoole');
 
-            $providerPriority        = 0;
-            $providerId              = 0;
-            $providersTable          = $server->providersTable;
+            $providerPriority = 0;
+            $providerId       = 0;
+            $providersTable   = $server->providersTable;
 
             foreach ($providersTable as $key => $provider) {
                 if (empty($providerId) || $providerPriority > $provider['priority']) {
                     if ($provider['is_enabled']) {
-                        $providerId        = $provider['id'];
-                        $providerPriority  = $provider['priority'];
+                        $providerId       = $provider['id'];
+                        $providerPriority = $provider['priority'];
                     }
                 }
             }
@@ -43,8 +43,7 @@ class WsForRemovalEvents implements ShouldQueue
 
             $data = [];
             foreach ($this->data as $eventIdentifier) {
-                $event = Events::where('event_identifier', $eventIdentifier)
-                    ->where('provider_id', $this->providerId)->first();
+                $event = Events::where('event_identifier', $eventIdentifier)->first();
                 if ($event && $this->providerId == $providerId) {
                     $eventLink = MasterEventLink::where('event_id', $event->id)->first();
                     if ($eventLink) {
@@ -53,7 +52,9 @@ class WsForRemovalEvents implements ShouldQueue
                         $data[] = $eventLink->master_event_unique_id;
                     }
                 }
-                $event->delete();
+                if ($event) {
+                    $event->delete();
+                }
             }
 
             foreach ($server->wsTable as $key => $row) {
@@ -63,6 +64,7 @@ class WsForRemovalEvents implements ShouldQueue
                     }
                 }
             }
+            Log::info("For Removal Event - Processed");
         } catch (Exception $e) {
             Log::error($e->getMessage());
         }
