@@ -29,16 +29,8 @@ class StartKafkaSession extends Command
                 "hg_settlement_req",
                 "hg_balance_req",
                 "QM",
-                ".env('KAFKA_SCRAPE_ODDS', 'SCRAPING-ODDS').",
-               ". env('KAFKA_SCRAPE_LEAGUES', 'SCRAPING-PROVIDER-LEAGUES').",
-               ". env('KAFKA_SCRAPE_EVENTS', 'SCRAPING-PROVIDER-EVENTS').",
-                ".env('AFKA_SCRAPE_MINMAX_ODDS', 'MINMAX-ODDS').",
-                ".env('KAFKA_BET_PLACED', 'PLACED-BET').",
-                ".env('KAFKA_OPEN_ORDERS', 'OPEN-ORDERS').",
-               ". env('KAFKA_SCRAPE_SETTLEMENT', 'SCRAPING-SETTLEMENTS').",
-               ". env('KAFKA_SCRAPE_BALANCE', 'BALANCE')."
+                
     );
-
     protected $topicObj = [];
     protected $promData = [];
 
@@ -148,6 +140,12 @@ class StartKafkaSession extends Command
      */
     public function handle()
     {
+
+        $declaredTopicEnv = array(env('KAFKA_SCRAPE_ODDS', 'SCRAPING-ODDS'), env('KAFKA_SCRAPE_LEAGUES', 'SCRAPING-PROVIDER-LEAGUES'), 
+                    env('KAFKA_SCRAPE_EVENTS', 'SCRAPING-PROVIDER-EVENTS'), env('AFKA_SCRAPE_MINMAX_ODDS', 'MINMAX-ODDS'), 
+                    env('KAFKA_BET_PLACED', 'PLACED-BET'),env('KAFKA_OPEN_ORDERS', 'OPEN-ORDERS'), 
+                    env('KAFKA_SCRAPE_SETTLEMENT', 'SCRAPING-SETTLEMENTS'), env('KAFKA_SCRAPE_BALANCE', 'BALANCE'));
+
         $conf = new \RdKafka\Conf();
 
 
@@ -159,11 +157,15 @@ class StartKafkaSession extends Command
         $topicConf = new \RdKafka\TopicConf();
         $topicConf->set('auto.commit.interval.ms', 100);
         $topicConf->set('offset.store.method', 'broker');
-        
+
         // Set where to start consuming messages when there is no initial offset in
         // offset store or the desired offset is out of range.
         // 'smallest': start from the beginning
         $topicConf->set('auto.offset.reset', 'latest');
+
+        for ($x =0 ;$x < count($declaredTopicEnv);$x++) {
+            array_push($this->topicList, $declaredTopicEnv[$x]);
+        }
 
         $queue=$rk->newQueue();
         $topic=NULL;
