@@ -52,7 +52,9 @@ class WsForRemovalEvents implements ShouldQueue
                         $data[] = $eventLink->master_event_unique_id;
                     }
                 }
-                $event->delete();
+                if ($event) {
+                    $event->delete();
+                }
             }
 
             foreach ($server->wsTable as $key => $row) {
