@@ -34,6 +34,7 @@
         "moment-timezone": "^0.5.27",
         "sweetalert2": "^9.6.1",
         "vue-dialog-drag": "^0.1.29",
+        "vue-json-excel": "^0.2.98",
         "vue-tables-2": "^2.0.9"
     }
 }
