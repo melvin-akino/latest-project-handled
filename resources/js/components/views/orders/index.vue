@@ -71,16 +71,16 @@ export default {
             oddTypesWithSpreads: [3, 4, 11, 12],
             toExport: [],
             exportFields: {
-                'Bet ID': 'bet_id',
+                'Bet ID'                 : 'bet_id',
                 'Transaction Date & Time': 'created',
-                'Bet Selection': 'bet_selection',
-                'Provider': 'provider',
-                'Odds': 'odds',
-                'Stake': 'stake',
-                'To Win': 'towin',
-                'Status': 'status',
-                'Result': 'score',
-                'Profit/Loss': 'pl'
+                'Bet Selection'          : 'bet_selection',
+                'Provider'               : 'provider',
+                'Odds'                   : 'odds',
+                'Stake'                  : 'stake',
+                'To Win'                 : 'towin',
+                'Status'                 : 'status',
+                'Result'                 : 'score',
+                'Profit/Loss'            : 'pl'
             }
         }
     },
