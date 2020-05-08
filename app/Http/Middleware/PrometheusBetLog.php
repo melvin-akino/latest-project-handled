@@ -4,10 +4,8 @@ namespace App\Http\Middleware;
 
 use Illuminate\Support\Facades\Redis;
 use Prometheus\Exception\MetricNotFoundException;
-
 use Prometheus;
-//use Ucc\Redislo
-
+use Exception;
 use Closure;
 
 class PrometheusBetLog
@@ -22,16 +20,17 @@ class PrometheusBetLog
      */
     public function handle($request, Closure $next)
     {
-        $this->pnamespace = env('PROMETHEUS_NAMESPACE', 'default');
-       $exporter = Prometheus::getFacadeRoot();
+      $this->pnamespace = env('PROMETHEUS_NAMESPACE', 'default');
+      $exporter = Prometheus::getFacadeRoot();
+      
       try {
        
        $gauge = $exporter->getGauge('user_bet');
        
-      } catch (\Exception $e) {
+      } catch (Exception $e) {
         $gauge = $exporter->registerGauge('user_bet', 'The total number of users bet.', ['group']);
-        //echo $e->getMessage();
       }
+
        $gauge->inc(['bet']); // increment by 1
   
 

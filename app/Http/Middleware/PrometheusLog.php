@@ -5,12 +5,8 @@ namespace App\Http\Middleware;
 use Closure;
 use Illuminate\Support\Facades\Redis;
 use Prometheus\Exception\MetricNotFoundException;
-//use Monolog\Processor\GitProcessor;
-//use Monolog\Processor\WebProcessor;
-//use Monolog\Processor\MemoryUsageProcessor;
-
+use Exception;
 use Prometheus;
-//use Ucc\Redislog\Services\Redislog;
 
 class PrometheusLog
 {
@@ -29,28 +25,26 @@ class PrometheusLog
     public function handle($request, Closure $next)
     {
 
-       $this->pnamespace = env('PROMETHEUS_NAMESPACE', 'default');
-       $exporter = Prometheus::getFacadeRoot();
+      $this->pnamespace = env('PROMETHEUS_NAMESPACE', 'default');
+      $exporter = Prometheus::getFacadeRoot();
+
       try {
        
        $gauge = $exporter->getGauge('users_online_total');
        
-      } catch (\Exception $e) {
+      } catch (Exception $e) {
+
         $gauge = $exporter->registerGauge('users_online_total', 'The total number of users online.', ['group']);
-        //echo $e->getMessage();
       }
+
        $gauge->inc(['users']); // increment by 1
   
-
        $ttl = Redis::ttl("PROMETHEUS_:gauge:{$this->pnamespace}_users_online_total");
 
        if($ttl < 0){
             Redis::expire("PROMETHEUS_:gauge:{$this->pnamespace}_users_online_total",  env('PROMETHEUS_EXPIRE'));
        }
-       
-
+      
        return $next($request);
     }
-
-    
 }

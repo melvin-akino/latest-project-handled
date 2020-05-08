@@ -7,21 +7,24 @@ use Illuminate\Http\Request;
 use Prometheus\{CollectorRegistry, RenderTextFormat, MetricFamilySamples};
 use Illuminate\Support\Facades\Redis;
 use Prometheus;
+use Prometheus\Storage\Redis as PrometheusRedis;
+use Exception;
 
 class PrometheusController extends Controller
 {
 
-    public function index() {
+    public function index() 
+    {
 
         try {
             $results = Redis::smembers("PROMETHEUS_gauge_METRIC_KEYS");
 
             foreach ($results as $key => $value) {
-                if(!Redis::exists($value)){
+                if(!Redis::exists($value)) {
                     Redis::srem("PROMETHEUS_gauge_METRIC_KEYS", [$value]);
                 }
             }
-            $adapter  = new \Prometheus\Storage\Redis();
+            $adapter  = new PrometheusRedis();
             $registry = new CollectorRegistry($adapter);
             $renderer = new RenderTextFormat();
 
@@ -33,17 +36,17 @@ class PrometheusController extends Controller
                  $raw = Redis::hgetall($key);
                 
                  $gauge['samples'] = array();
-                 
+
                  if(array_key_exists('__meta', $raw)) {
 
                     $gauge = json_decode($raw['__meta'], true);
                     unset($raw['__meta']);
                     foreach ($raw as $k => $value) {
                         $gauge['samples'][] = array(
-                            'name' => $gauge['name'],
-                            'labelNames' => array(),
-                            'labelValues' => json_decode($k, true),
-                            'value' => $value
+                                'name'        => $gauge['name'],
+                                'labelNames'  => array(),
+                                'labelValues' => json_decode($k, true),
+                                'value'       => $value
                         );
                     }
               
@@ -67,7 +70,7 @@ class PrometheusController extends Controller
             $result = $renderer->render($test);
             return response($result)
                 ->header('Content-Type', RenderTextFormat::MIME_TYPE);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             echo $e->getMessage();
             echo  $e->getLine();
         }
