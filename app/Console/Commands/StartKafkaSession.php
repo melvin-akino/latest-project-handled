@@ -11,7 +11,7 @@ class StartKafkaSession extends Command
      *
      * @var string
      */
-    protected $signature = 'start:session';
+    protected $signature = 'startkafka:session';
 
     /**
      * The console command description.
