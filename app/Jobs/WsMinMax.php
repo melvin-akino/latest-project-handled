@@ -59,7 +59,7 @@ class WsMinMax implements ShouldQueue
                     'schedule'  => $eventMarket->game_schedule,
                     'event_id'  => $eventMarket->event_identifier
                 ]);
-                \PrometheusMatric::MakeMatrix('swoole_table_total', 'Swoole minMaxRequestsTable total ','minMaxRequestsTable');
+                PrometheusMatric::MakeMatrix('swoole_table_total', 'Swoole minMaxRequestsTable total ','minMaxRequestsTable');
 
                 $requestId = (string) Str::uuid();
                 $requestTs = $this->milliseconds();
