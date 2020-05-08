@@ -23,6 +23,7 @@ class GameConsume implements CustomProcessInterface
 
     public static function callback(Server $swoole, Process $process)
     {
+        $message = null;
         try {
             if ($swoole->data2SwtTable->exist('data2Swt')) {
                 $kafkaConsumer = resolve('KafkaConsumer');
@@ -87,6 +88,7 @@ class GameConsume implements CustomProcessInterface
             }
         } catch (Exception $e) {
             Log::error($e->getMessage());
+            Log::debug('Payload' . $message->payload);
         }
 
     }
