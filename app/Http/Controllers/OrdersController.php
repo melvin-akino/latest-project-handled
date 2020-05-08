@@ -168,6 +168,7 @@ class OrdersController extends Controller
                 ->where('mem.odd_type_id', $masterEventMarket->odd_type_id)
                 ->where('em.market_flag', $masterEventMarket->market_flag)
                 ->where('em.provider_id', $userProvider->id)
+                ->where('em.game_schedule', $masterEvent->game_schedule)
                 ->whereNull('em.deleted_at')
                 ->distinct()
                 ->get(
