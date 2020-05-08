@@ -39,6 +39,7 @@ class StartKafkaSession extends Command
     );
 
     protected $topicObj=array();
+    protected $promData = array();
 
     protected $stats=array(
             "totalMessages"=>0,
@@ -69,9 +70,19 @@ class StartKafkaSession extends Command
         echo "\nMINMAX:\n\r";
         foreach($this->stats["minmax"] as $k=>$v) {
             if ($v["req"]!=0) {
+                if (array_key_exists($k, $this->promData))
+                {
+                     if ($this->promData[$k]['req'] != $v["req"])) 
+                        \PrometheusMatric::MakeMatrix('betslip_kafkamon_request_id', 'Market Id Request.',$k);
+                     if ($this->promData[$k]['rep'] !=$v["rep"])   
+                        \PrometheusMatric::MakeMatrix('betslip_kafkamon_reply_id', 'Market Id reply.',$k);
 
-                \PrometheusMatric::MakeMatrix('betslip_kafkamon_request_id', 'Market Id Request.',$k);
-                \PrometheusMatric::MakeMatrix('betslip_kafkamon_reply_id', 'Market Id reply.',$k);
+                    $this->promData[$k] = array('req' =>$v["req"], 'rep' =>$v["rep"]);
+                } else {
+                    \PrometheusMatric::MakeMatrix('betslip_kafkamon_request_id', 'Market Id Request.',$k);
+                    \PrometheusMatric::MakeMatrix('betslip_kafkamon_reply_id', 'Market Id reply.',$k);
+                    $this->promData[$k] = array('req' =>$v["req"], 'rep' =>$v["rep"]);
+                }
             }
                 echo "\t".$k."\t\tREQ: ".$v["req"]."\tREPLY: ".$v["rep"]."\n\r";
         }
