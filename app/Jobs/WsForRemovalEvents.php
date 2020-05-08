@@ -42,7 +42,9 @@ class WsForRemovalEvents implements ShouldQueue
             }
 
             $data = [];
+            Log::debug('For Removal Event - Deleting Events Starting');
             foreach ($this->data as $eventIdentifier) {
+                Log::debug('For Removal Event - Deleting Inside Loop');
                 $event = Events::where('event_identifier', $eventIdentifier)->first();
                 if ($event && $this->providerId == $providerId) {
                     $eventLink = MasterEventLink::where('event_id', $event->id)->first();

@@ -274,6 +274,11 @@ class DataToSwt implements CustomProcessInterface
             $activeEvents->set('sId:' . $event->sport_id . ':pId:' . $event->provider_id . ':schedule:' . $event->game_schedule,
                 ['events' => json_encode($activeEventsArray[$event->sport_id][$event->provider_id][$event->game_schedule])]);
         }, $events->toArray());
+
+        foreach($activeEvents as $key => $row) {
+            Log::debug('ACTIVE EVENT KEY:' . $key);
+            Log::debug('ACTIVE EVENT VALUES:' . json_encode($row));
+        }
     }
 
     private static function db2SwtUserSelectedLeagues(Server $swoole)
