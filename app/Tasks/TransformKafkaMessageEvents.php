@@ -98,10 +98,6 @@ class TransformKafkaMessageEvents extends Task
                         $eventsTable->del("sId:$sportId:pId:$providerId:eventIdentifier:$eventId");
                     }
                 }
-                Log::debug($this->message->data->schedule);
-                Log::debug(json_encode(['active-events' => $events]));
-                Log::debug(json_encode(['payload-events' => $this->message->data->event_ids]));
-                Log::debug(json_encode(['for-removal-events' => $inActiveEvents]));
                 WsForRemovalEvents::dispatch($inActiveEvents, $providerId);
             }
 

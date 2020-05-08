@@ -4,7 +4,7 @@ namespace App\Processes;
 
 use App\Models\Sport;
 use Hhxsv5\LaravelS\Swoole\Process\CustomProcessInterface;
-use Illuminate\Support\Facades\{DB, Log};
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Swoole\Http\Server;
 use Swoole\Process;
@@ -274,11 +274,6 @@ class DataToSwt implements CustomProcessInterface
             $activeEvents->set('sId:' . $event->sport_id . ':pId:' . $event->provider_id . ':schedule:' . $event->game_schedule,
                 ['events' => json_encode($activeEventsArray[$event->sport_id][$event->provider_id][$event->game_schedule])]);
         }, $events->toArray());
-
-        foreach($activeEvents as $key => $row) {
-            Log::debug('ACTIVE EVENT KEY:' . $key);
-            Log::debug('ACTIVE EVENT VALUES:' . json_encode($row));
-        }
     }
 
     private static function db2SwtUserSelectedLeagues(Server $swoole)
