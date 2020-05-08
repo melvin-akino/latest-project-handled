@@ -414,7 +414,6 @@ class TradeController extends Controller
 
                 $transformed = $transformed->whereNull('me.deleted_at')
                     ->where('mem.is_main', true)
-                    ->where('sl.game_schedule', 'em.game_schedule')
                     ->select('ml.sport_id', 'ml.master_league_name', 's.sport', //'mll.provider_id',
                         'me.master_event_unique_id', 'me.master_home_team_name', 'me.master_away_team_name',
                         'me.ref_schedule', 'me.game_schedule', 'me.score', 'me.running_time',
