@@ -3,12 +3,12 @@ er <template>
         <h3 class="text-xl">My Orders</h3>
         <div class="h-full">
             <v-client-table name="My Orders" :data="myorders" :columns="columns" :options="options" ref="ordersTable" @filter="getFilteredData">
-                <div slot="beforeTable" class="relative flex justify-end" v-if="myorders.length != 0" v-adjust-pl-data-position="myorders.length">
+                <div slot="beforeTable" class="relative flex justify-end" v-if="myorders.length != 0">
                     <span class="absolute totalPLlabel">Total P/L</span>
                     <span class="absolute totalPL" v-adjust-total-pl-color="totalPL">{{wallet.currency_symbol}} {{totalPL | moneyFormat}}</span>
                     <json-excel :data="toExport" :fields="exportFields" :name="filename">
-                        <span class="text-center py-1 cursor-pointer"><i class="fas fa-file-export" title="Export orders data."></i></span>                            
-                    </json-excel> 
+                        <span class="text-center py-1 cursor-pointer"><i class="fas fa-file-export" title="Export orders data."></i></span>
+                    </json-excel>
                 </div>
                 <div slot="betSelection" slot-scope="props" v-html="props.row.bet_selection"></div>
                 <div slot="pl" slot-scope="props">
@@ -154,15 +154,6 @@ export default {
         }
     },
     directives: {
-        adjustPlDataPosition: {
-            bind(el, binding, vnode) {
-                if(binding.value > 10) {
-                    el.style.top = '55px'
-                } else {
-                    el.style.top = '17px'
-                }
-            }
-        },
         adjustTotalPlColor: {
             bind(el, binding, vnode) {
                 if(binding.value > 0) {
