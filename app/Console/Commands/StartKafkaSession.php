@@ -3,6 +3,7 @@
 namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
+use PrometheusMatrix;
 
 class StartKafkaSession extends Command
 {
@@ -18,7 +19,7 @@ class StartKafkaSession extends Command
      *
      * @var string
      */
-    protected $description = 'Command description';
+    protected $description = 'This will start a Kafka debug session';
 
     protected $topicList=array(
                 "hg_req",
@@ -28,24 +29,24 @@ class StartKafkaSession extends Command
                 "hg_settlement_req",
                 "hg_balance_req",
                 "QM",
-                "SCRAPINGR-ODDS",
-                "SCRAPING-PROVIDER-LEAGUES",
-                "SCRAPING-PROVIDER-EVENTS",
-                "MINMAX-ODDS",
-                "PLACED-BETS",
-                "OPEN-ORDERS",
-                "SCRAPING-SETTLEMENTS",
-                "BALANCE"
+                ".env('KAFKA_SCRAPE_ODDS', 'SCRAPING-ODDS').",
+               ". env('KAFKA_SCRAPE_LEAGUES', 'SCRAPING-PROVIDER-LEAGUES').",
+               ". env('KAFKA_SCRAPE_EVENTS', 'SCRAPING-PROVIDER-EVENTS').",
+                ".env('AFKA_SCRAPE_MINMAX_ODDS', 'MINMAX-ODDS').",
+                ".env('KAFKA_BET_PLACED', 'PLACED-BET').",
+                ".env('KAFKA_OPEN_ORDERS', 'OPEN-ORDERS').",
+               ". env('KAFKA_SCRAPE_SETTLEMENT', 'SCRAPING-SETTLEMENTS').",
+               ". env('KAFKA_SCRAPE_BALANCE', 'BALANCE')."
     );
 
-    protected $topicObj=array();
-    protected $promData = array();
+    protected $topicObj = [];
+    protected $promData = [];
 
     protected $stats=array(
-            "totalMessages"=>0,
-            "wrongTopic"=>0,
-            "unknownSubCommand"=>0,
-            "minmax"=>array(),
+            "totalMessages"     => 0,
+            "wrongTopic"        => 0,
+            "unknownSubCommand" => 0,
+            "minmax"            => [],
     );
 
 
@@ -61,26 +62,26 @@ class StartKafkaSession extends Command
 
     public function refresh() {
                
-        echo "Total Messages in Session: ".$this->stats["totalMessages"]."\n\r\n\r";
+        echo "Total Messages in Session: " . $this->stats["totalMessages"]."\n\r\n\r";
 
         echo "Errors:\r\n";
         echo "\twrongTopic: ".$this->stats["wrongTopic"]."\n\r";
-        echo "\tunknownSubCommand: ".$this->stats["unknownSubCommand"]."\n\r";
+        echo "\tunknownSubCommand: " . $this->stats["unknownSubCommand"]."\n\r";
 
         echo "\nMINMAX:\n\r";
         foreach($this->stats["minmax"] as $k=>$v) {
-            if ($v["req"]!=0) {
+            if ($v["req"] != 0) {
                 if (array_key_exists($k, $this->promData))
                 {
                      if ($this->promData[$k]['req'] != $v["req"]) 
-                        \PrometheusMatric::MakeMatrix('betslip_kafkamon_request_id', 'Market Id Request.',$k);
-                     if ($this->promData[$k]['rep'] !=$v["rep"])   
-                        \PrometheusMatric::MakeMatrix('betslip_kafkamon_reply_id', 'Market Id reply.',$k);
+                        PrometheusMatric::MakeMatrix('betslip_kafkamon_request_id', 'Market Id Request.', $k);
+                     if ($this->promData[$k]['rep'] != $v["rep"])   
+                        PrometheusMatric::MakeMatrix('betslip_kafkamon_reply_id', 'Market Id reply.', $k);
 
                     $this->promData[$k] = array('req' =>$v["req"], 'rep' =>$v["rep"]);
                 } else {
-                    \PrometheusMatric::MakeMatrix('betslip_kafkamon_request_id', 'Market Id Request.',$k);
-                    \PrometheusMatric::MakeMatrix('betslip_kafkamon_reply_id', 'Market Id reply.',$k);
+                    PrometheusMatric::MakeMatrix('betslip_kafkamon_request_id', 'Market Id Request.',$k);
+                    PrometheusMatric::MakeMatrix('betslip_kafkamon_reply_id', 'Market Id reply.',$k);
                     $this->promData[$k] = array('req' =>$v["req"], 'rep' =>$v["rep"]);
                 }
             }
@@ -103,15 +104,15 @@ class StartKafkaSession extends Command
                                         }
                                         else {
                                                 $this->stats["minmax"][$payload->data->market_id]=array(
-                                                        "req"=>1,
-                                                        "rep"=>0,
+                                                        "req" => 1,
+                                                        "rep" => 0,
                                                 );
                                         }
                                 }
                                 else {
                                         $this->stats["wrongTopic"]++;
                                 }
-                                #echo "request ".$payload->data->market_id.".. ".$payload->request_uid."\n";
+                                
                         }
                         elseif($payload->sub_command=="transform") {
                                 if($message->topic_name=="MINMAX-ODDS") {
@@ -120,12 +121,13 @@ class StartKafkaSession extends Command
                                         }
                                         else {
                                                 $this->stats["minmax"][$payload->data->market_id]=array(
-                                                        "req"=>0,
-                                                        "rep"=>1,
+                                                        "req" => 0,
+                                                        "rep" => 1,
                                                 );
                                         }
-                                        var_dump($payload);
-                                        #echo "REPLY ".$payload->data->market_id.".. ".$payload->request_uid."\n";
+                                        ## for debugging purposes only what we do need to see what see inside payload
+                                        //var_dump($payload);
+                                       
 
                                 }
                                 else {
@@ -146,21 +148,22 @@ class StartKafkaSession extends Command
      */
     public function handle()
     {
-        $conf=new \RdKafka\Conf();
+        $conf = new \RdKafka\Conf();
 
 
-        $conf->set('group.id', 'KafkaMon');
+        $conf->set('group.id', 'multiline_KafkaMon');
 
-        $rk=new \RdKafka\Consumer($conf);
+        $rk = new \RdKafka\Consumer($conf);
         $rk->addBrokers(env('KAFKA_BROKERS'));
 
-        $topicConf=new \RdKafka\TopicConf();
+        $topicConf = new \RdKafka\TopicConf();
         $topicConf->set('auto.commit.interval.ms', 100);
         $topicConf->set('offset.store.method', 'broker');
+        
         // Set where to start consuming messages when there is no initial offset in
         // offset store or the desired offset is out of range.
         // 'smallest': start from the beginning
-        $topicConf->set('auto.offset.reset', 'largest');
+        $topicConf->set('auto.offset.reset', 'latest');
 
         $queue=$rk->newQueue();
         $topic=NULL;

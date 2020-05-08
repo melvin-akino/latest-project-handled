@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Log;
 use Swoole\Http\Server;
 use Swoole\Process;
 use Exception;
-
+use PrometheusMatric;
 class MinMaxConsume implements CustomProcessInterface
 {
     /**
@@ -54,7 +54,7 @@ class MinMaxConsume implements CustomProcessInterface
                             ]))
                         ]);
 
-                        \PrometheusMatric::MakeMatrix('pull_market_id_total', 'Min-max  total number of  market id  received.',$payload->data->market_id);
+                        PrometheusMatric::MakeMatrix('pull_market_id_total', 'Min-max  total number of  market id  received.',$payload->data->market_id);
 
                         Log::info('Minmax calling Task Worker');
                         TransformKafkaMessageMinMax::dispatch($payload);
