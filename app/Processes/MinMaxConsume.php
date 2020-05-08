@@ -9,6 +9,7 @@ use Swoole\Http\Server;
 use Swoole\Process;
 use Exception;
 use PrometheusMatric;
+
 class MinMaxConsume implements CustomProcessInterface
 {
     /**

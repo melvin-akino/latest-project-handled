@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\{DB, Log};
 use Exception;
 use Illuminate\Support\Str;
 use PrometheusMatric;
+
 class WsMinMax implements ShouldQueue
 {
     use Dispatchable;
