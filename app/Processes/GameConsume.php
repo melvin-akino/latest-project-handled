@@ -88,7 +88,7 @@ class GameConsume implements CustomProcessInterface
             }
         } catch (Exception $e) {
             Log::error($e->getMessage());
-            Log::debug($message);
+            Log::debug('Payload' . $message->payload);
         }
 
     }
