@@ -72,7 +72,7 @@ class StartKafkaSession extends Command
             if ($v["req"]!=0) {
                 if (array_key_exists($k, $this->promData))
                 {
-                     if ($this->promData[$k]['req'] != $v["req"])) 
+                     if ($this->promData[$k]['req'] != $v["req"]) 
                         \PrometheusMatric::MakeMatrix('betslip_kafkamon_request_id', 'Market Id Request.',$k);
                      if ($this->promData[$k]['rep'] !=$v["rep"])   
                         \PrometheusMatric::MakeMatrix('betslip_kafkamon_reply_id', 'Market Id reply.',$k);
