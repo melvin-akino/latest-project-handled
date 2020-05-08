@@ -4,7 +4,7 @@ namespace App\Processes;
 
 use App\Models\Sport;
 use Hhxsv5\LaravelS\Swoole\Process\CustomProcessInterface;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\{DB, Log};
 use Illuminate\Support\Str;
 use Swoole\Http\Server;
 use Swoole\Process;
