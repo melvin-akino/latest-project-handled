@@ -100,7 +100,7 @@ class TransformKafkaMessageEvents implements ShouldQueue
                         $eventsTable->del("sId:$sportId:pId:$providerId:eventIdentifier:$eventId");
                     }
                 }
-                WsForRemovalEvents::dispatch($inActiveEvents, $providerId);
+                WsForRemovalEvents::dispatchNow($inActiveEvents, $providerId);
             }
 
             $activeEventsTable->set($activeEventsSwtId, ['events' => json_encode($this->message->data->event_ids)]);

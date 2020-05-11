@@ -36,7 +36,7 @@ class PlacedBetConsume implements CustomProcessInterface
                             continue;
                         }
 
-                        TransformKafkaMessageBet::dispatch($payload);
+                        TransformKafkaMessageBet::dispatchNow($payload);
 
                         $kafkaConsumer->commitAsync($message);
                         Log::channel('kafkalog')->info(json_encode($message));

@@ -76,7 +76,7 @@ class SwtToWs implements CustomProcessInterface
                             $userSelectedLeaguesTable = $swoole->userSelectedLeaguesTable;
                             foreach ($userSelectedLeaguesTable as $uslKey => $uslData) {
                                 if (strpos($uslKey, 'userId:' . $userId . ':sId:' . $sportId) === 0) {
-                                    WsEvents::dispatch($userId, [1 => $uslData['league_name'], 2 => $gameSchedule]);
+                                    WsEvents::dispatchNow($userId, [1 => $uslData['league_name'], 2 => $gameSchedule]);
                                 }
                             }
                         }

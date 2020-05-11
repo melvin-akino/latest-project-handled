@@ -126,7 +126,7 @@ class TransformKafkaMessageOpenOrders implements ShouldQueue
                                 'updated_at' => Carbon::now(),
                             ]);
 
-                        WSOrderStatus::dispatch($userId, $orderId, 'FAILED', $orderData->odds, $expiry, $orderTable['created_at']);
+                        WSOrderStatus::dispatchNow($userId, $orderId, 'FAILED', $orderData->odds, $expiry, $orderTable['created_at']);
 
                         $ordersTable->del($_key);
                     } else {
@@ -193,7 +193,7 @@ class TransformKafkaMessageOpenOrders implements ShouldQueue
                                         ]);
                                 }
 
-                                WSOrderStatus::dispatch($userId, $orderId, strtoupper($order->status), $order->odds,
+                                WSOrderStatus::dispatchNow($userId, $orderId, strtoupper($order->status), $order->odds,
                                     $expiry, $orderTable['created_at']);
 
                                 if (in_array(strtoupper($order->status), [

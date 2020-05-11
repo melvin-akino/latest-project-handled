@@ -40,10 +40,10 @@ class GameConsume implements CustomProcessInterface
 
                         switch ($payload->command) {
                             case 'league':
-                                TransformKafkaMessageLeagues::dispatch($payload);
+                                TransformKafkaMessageLeagues::dispatchNow($payload);
                                 break;
                             case 'event':
-                                TransformKafkaMessageEvents::dispatch($payload);
+                                TransformKafkaMessageEvents::dispatchNow($payload);
                                 break;
                             case 'odd':
                                 if (!isset($payload->data->events)) {
@@ -74,7 +74,7 @@ class GameConsume implements CustomProcessInterface
                                         'hash' => md5(json_encode((array)$payload->data))
                                     ]);
                                 }
-                                TransformKafkaMessageOdds::dispatch($payload);
+                                TransformKafkaMessageOdds::dispatchNow($payload);
                                 break;
                             default:
                                 break;

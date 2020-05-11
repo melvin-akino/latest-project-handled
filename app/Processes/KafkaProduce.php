@@ -98,7 +98,7 @@ class KafkaProduce implements CustomProcessInterface
                                     'command'     => 'minmax'
                                 ];
                                 $payload['data'] = $minMaxRequest;
-                               
+
                                 PrometheusMatric::MakeMatrix('request_market_id_total', 'Min-max  total number of  market id  pushed .',$minMaxRequest['market_id']);
                                 self::pushToKafka($payload, $requestId,
                                     strtolower($minMaxRequest['provider']) . $kafkaTopics['req_minmax']);
@@ -217,7 +217,7 @@ class KafkaProduce implements CustomProcessInterface
                 self::$producerHandler->setTopic($kafkaTopic)
                     ->send($message, $key);
             } else {
-                KafkaPush::dispatch($kafkaTopic, $message, $key)->delay(now()->addSeconds($delayInSeconds));
+                KafkaPush::dispatchNow($kafkaTopic, $message, $key)->delay(now()->addSeconds($delayInSeconds));
             }
         } catch (Exception $e) {
             Log::critical('Sending Kafka Message Failed', [

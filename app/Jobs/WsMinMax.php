@@ -79,7 +79,7 @@ class WsMinMax implements ShouldQueue
                 ];
 
                 Log::info('Min Max Initial Request');
-                KafkaPush::dispatch(strtolower($eventMarket->alias) . '_minmax_req', $payload, $requestId);
+                KafkaPush::dispatchNow(strtolower($eventMarket->alias) . '_minmax_req', $payload, $requestId);
             }
         } catch (Exception $e) {
             Log::error($e->getMessage());

@@ -58,7 +58,7 @@ class MinMaxConsume implements CustomProcessInterface
                         PrometheusMatric::MakeMatrix('pull_market_id_total', 'Min-max  total number of  market id  received.',$payload->data->market_id);
 
                         Log::info('Minmax calling Task Worker');
-                        TransformKafkaMessageMinMax::dispatch($payload);
+                        TransformKafkaMessageMinMax::dispatchNow($payload);
 
                         $kafkaConsumer->commitAsync($message);
                         Log::channel('kafkalog')->info(json_encode($message));

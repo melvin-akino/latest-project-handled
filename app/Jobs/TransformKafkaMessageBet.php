@@ -82,7 +82,7 @@ class TransformKafkaMessageBet implements ShouldQueue
                             'updated_at'    => Carbon::now(),
                         ]);
 
-                    WSOrderStatus::dispatch(
+                    WSOrderStatus::dispatchNow(
                         $row['user_id'],
                         $orderId,
                         $status,

@@ -170,7 +170,7 @@ class TransformKafkaMessageLeagues implements ShouldQueue
                     }
 
                     if ($key == 'rmv') {
-                        TransformationLeagueRemoval::dispatch($data[$key], $sportId);
+                        TransformationLeagueRemoval::dispatchNow($data[$key], $sportId);
                     }
 
                     $action   = $key == "rmv" ? "LEAGUE_REMOVAL" : "LEAGUE_ADDITIONAL";

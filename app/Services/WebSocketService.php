@@ -100,10 +100,10 @@ class WebSocketService implements WebSocketHandlerInterface
     private function dispatchJob($user, $job, $clientCommand)
     {
         if (count($clientCommand) > 1) {
-            $job::dispatch($user['value'], $clientCommand);
+            $job::dispatchNow($user['value'], $clientCommand);
             Log::debug("WS Job Dispatched");
         } else {
-            $job::dispatch($user['value']);
+            $job::dispatchNow($user['value']);
         }
     }
 }
