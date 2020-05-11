@@ -1,14 +1,16 @@
 <?php
 
-namespace App\Tasks;
+namespace App\Jobs;
 
-use App\Jobs\WsForRemovalEvents;
-use Hhxsv5\LaravelS\Swoole\Task\Task;
+use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Foundation\Bus\Dispatchable;
 use Exception;
 use Illuminate\Support\Facades\Log;
 
-class TransformKafkaMessageEvents extends Task
+class TransformKafkaMessageEvents implements ShouldQueue
 {
+    use Dispatchable;
+
     protected $message;
     protected $swoole;
 

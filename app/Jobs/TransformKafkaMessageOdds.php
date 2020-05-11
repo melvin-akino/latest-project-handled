@@ -1,23 +1,26 @@
 <?php
 
-namespace App\Tasks;
+namespace App\Jobs;
 
 use App\Jobs\TransformKafkaMessageOddsSaveToDb;
 
 use Illuminate\Support\Facades\Log;
-use Hhxsv5\LaravelS\Swoole\Task\Task;
+use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Support\Str;
 use Exception;
 
-class TransformKafkaMessageOdds extends Task
+class TransformKafkaMessageOdds implements ShouldQueue
 {
+    use Dispatchable;
+
     protected $message;
     protected $swoole;
-    protected $subTasks = [];
-    protected $updated = false;
-    protected $uid = null;
+    protected $subTasks  = [];
+    protected $updated   = false;
+    protected $uid       = null;
     protected $dbOptions = [
-        'event-only' => true,
+        'event-only'   => true,
         'is-event-new' => true
     ];
 
@@ -53,7 +56,7 @@ class TransformKafkaMessageOdds extends Task
     public function handle()
     {
         try {
-            $swoole  = $this->swoole = app('swoole');
+            $swoole = $this->swoole = app('swoole');
 
             foreach ($this->disregard AS $disregard) {
                 if (strpos($this->message->data->leagueName, $disregard) === 0) {
@@ -62,7 +65,7 @@ class TransformKafkaMessageOdds extends Task
                 }
             }
 
-            $toInsert = [];
+            $toInsert                                 = [];
             $this->subTasks['remove-previous-market'] = [];
 
             /** DATABASE TABLES */
@@ -141,14 +144,14 @@ class TransformKafkaMessageOdds extends Task
             ]);
 
             if ($leaguesTable->exists($leagueSwtId)) {
-                $multiLeagueId = $leaguesTable->get($leagueSwtId)['id'];
+                $multiLeagueId    = $leaguesTable->get($leagueSwtId)['id'];
                 $masterLeagueName = $leaguesTable->get($leagueSwtId)['master_league_name'];
             } else {
                 Log::info("Transformation ignored - League is not in the masterlist");
                 return;
             }
 
-            $multiTeam = [];
+            $multiTeam   = [];
             $competitors = [
                 'home' => $this->message->data->homeTeam,
                 'away' => $this->message->data->awayTeam,
@@ -176,7 +179,7 @@ class TransformKafkaMessageOdds extends Task
                 ]);
 
                 if ($teamsTable->exists($teamSwtId)) {
-                    $multiTeam[$key]['id'] = $teamsTable->get($teamSwtId)['id'];
+                    $multiTeam[$key]['id']   = $teamsTable->get($teamSwtId)['id'];
                     $multiTeam[$key]['name'] = $teamsTable->get($teamSwtId)['team_name'];
                 } else {
                     Log::info("Transformation ignored - No Available Teams in the masterlist");
@@ -221,16 +224,18 @@ class TransformKafkaMessageOdds extends Task
                         $this->subTasks['remove-previous-market'][] = [
                             'uid'    => $uid,
                             'swtKey' => implode(':', [
-                                    "pId:"   . $providerId,
-                                    "meUID:" . $uid,
-                                ]),
+                                "pId:" . $providerId,
+                                "meUID:" . $uid,
+                            ]),
                         ];
 
-                        $eventScheduleChangeTable->set('eventScheduleChange:' . $uid, ['value' => json_encode([
-                            'uid'           => $uid,
-                            'game_schedule' => $this->message->data->schedule,
-                            'sport_id'      => $sportId
-                        ])]);
+                        $eventScheduleChangeTable->set('eventScheduleChange:' . $uid, [
+                            'value' => json_encode([
+                                'uid'           => $uid,
+                                'game_schedule' => $this->message->data->schedule,
+                                'sport_id'      => $sportId
+                            ])
+                        ]);
 
                         $eventsTable[$eventSwtId]['game_schedule'] = $this->message->data->schedule;
                     }
@@ -269,12 +274,12 @@ class TransformKafkaMessageOdds extends Task
                     $this->dbOptions['is-event-new'] = false;
                 }
 
-                $this->uid = $uid;
+                $this->uid   = $uid;
                 $arrayEvents = $this->message->data->events;
-                $counter = 0;
+                $counter     = 0;
 
                 $toInsert['MasterEvent']['swtKey'] = $eventSwtId;
-                $toInsert['MasterEvent']['data'] = [
+                $toInsert['MasterEvent']['data']   = [
                     'sport_id'               => $sportId,
                     'master_event_unique_id' => $uid,
                     'master_league_name'     => $masterLeagueName,
@@ -288,7 +293,7 @@ class TransformKafkaMessageOdds extends Task
                     'away_penalty'           => $this->message->data->away_redcard,
                     'deleted_at'             => null
                 ];
-                $this->subTasks['event'] = $toInsert;
+                $this->subTasks['event']           = $toInsert;
 
                 foreach ($arrayEvents AS $keyEvent => $event) {
                     if (!empty($event)) {
@@ -349,26 +354,26 @@ class TransformKafkaMessageOdds extends Task
 
                                     if (count($marketOdds) > 1) {
                                         $marketPoints = $marketOdds[0];
-                                        $marketOdds = $marketOdds[1];
+                                        $marketOdds   = $marketOdds[1];
                                     } else {
                                         $marketOdds = $marketOdds[0];
                                     }
                                 }
 
-                                $marketOdds = trim($marketOdds) == '' ? 0 : (float) $marketOdds;
+                                $marketOdds = trim($marketOdds) == '' ? 0 : (float)$marketOdds;
 
                                 if (array_key_exists('points', $markets)) {
                                     $marketPoints = $markets->points;
                                 }
 
                                 if ($markets->market_id == "") {
-                                    $marketOdds  = 0;
+                                    $marketOdds = 0;
 
                                     $this->subTasks['remove-event-market'][] = [
-                                        'odd_type_id'                   => $oddTypeId,
-                                        'provider_id'                   => $providerId,
-                                        'event_identifier'              => $event->eventId,
-                                        'market_flag'                   => strtoupper($markets->indicator),
+                                        'odd_type_id'      => $oddTypeId,
+                                        'provider_id'      => $providerId,
+                                        'event_identifier' => $event->eventId,
+                                        'market_flag'      => strtoupper($markets->indicator),
                                     ];
 
                                     continue;
@@ -383,26 +388,30 @@ class TransformKafkaMessageOdds extends Task
                                 $isMarketSame = true;
                                 if ($eventMarketsTable->exist($masterEventMarketSwtId) && !empty($markets->market_id)) {
                                     $memUID = $eventMarketsTable->get($masterEventMarketSwtId)['master_event_market_unique_id'];
-                                    $odds = $eventMarketsTable->get($masterEventMarketSwtId)['odds'];
+                                    $odds   = $eventMarketsTable->get($masterEventMarketSwtId)['odds'];
 
                                     if ($odds != $marketOdds) {
                                         $eventMarketsTable[$masterEventMarketSwtId]['odds'] = $marketOdds;
-                                        $this->updated = true;
-                                        $oddsUpdated = ['market_id' => $memUID, 'odds' => $marketOdds, 'provider_id' => $providerId, 'event_identifier' => $event->eventId ];
+                                        $this->updated                                      = true;
+                                        $oddsUpdated                                        = ['market_id'        => $memUID,
+                                                                                               'odds'             => $marketOdds,
+                                                                                               'provider_id'      => $providerId,
+                                                                                               'event_identifier' => $event->eventId
+                                        ];
                                         if (!empty($marketPoints)) {
                                             $oddsUpdated['points'] = $marketPoints;
                                         }
                                         $updatedOdds[] = $oddsUpdated;
-                                        $isMarketSame = false;
+                                        $isMarketSame  = false;
                                     }
                                 } else {
-                                    $memUID = uniqid();
+                                    $memUID       = uniqid();
                                     $isMarketSame = false;
                                 }
 
                                 /** TO INSERT */
                                 $toInsert['MasterEventMarket']['swtKey'] = $masterEventMarketSwtId;
-                                $toInsert['MasterEventMarket']['data'] = [
+                                $toInsert['MasterEventMarket']['data']   = [
                                     'master_event_unique_id'        => $uid,
                                     'odd_type_id'                   => $oddTypeId,
                                     'master_event_market_unique_id' => $memUID,

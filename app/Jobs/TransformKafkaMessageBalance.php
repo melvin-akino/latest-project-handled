@@ -1,15 +1,17 @@
 <?php
 
-namespace App\Tasks;
+namespace App\Jobs;
 
 use App\Models\CRM\ProviderAccount;
-use App\Jobs\WsMinMax;
-use Hhxsv5\LaravelS\Swoole\Task\Task;
+use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Support\Facades\Log;
 use Exception;
 
-class TransformKafkaMessageBalance extends Task
+class TransformKafkaMessageBalance implements ShouldQueue
 {
+    use Dispatchable;
+
     protected $message;
 
     public function __construct($message)
@@ -24,9 +26,9 @@ class TransformKafkaMessageBalance extends Task
         try {
 
             $providerId = $swoole->providersTable->get('providerAlias:' . strtolower($this->message->data->provider))['id'];
-            $providerAccount = ProviderAccount::where('username', $this->message->data->username)
-                                                ->where('provider_id', $providerId)
-                                                ->update(['credits' => $this->message->data->available_balance]);
+            ProviderAccount::where('username', $this->message->data->username)
+                ->where('provider_id', $providerId)
+                ->update(['credits' => $this->message->data->available_balance]);
 
             Log::info('Balance Transformation - Updated');
         } catch (Exception $e) {
