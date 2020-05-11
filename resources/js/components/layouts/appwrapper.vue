@@ -2,7 +2,7 @@
     <div class="w-full sm:pb-0 pb-8" :class="{'flex flex-col items-center':!$store.state.auth.isAuthenticated}">
         <nav class="flex bg-white shadow-md w-full h-16 fixed z-20" v-if="$store.state.auth.isAuthenticated">
             <div class="flex justify-center w-1/6">
-                <img :src="logo" class="w-12 mt-2">
+                <img :src="logo" class="w-12 mt-2" alt="Multiline Logo">
             </div>
             <div class="flex w-5/6">
                 <div class="flex justify-start items-center w-1/2">
@@ -26,7 +26,7 @@
             </div>
         </nav>
         <div v-if="!$store.state.auth.isAuthenticated">
-            <img :src="logo" class="w-48 mt-2">
+            <img :src="logo" class="w-48 mt-2" alt="Multiline Logo">
         </div>
         <main class="pt-16">
             <slot></slot>
