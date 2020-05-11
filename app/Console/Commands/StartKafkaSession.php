@@ -3,8 +3,10 @@
 namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
-use PrometheusMatrix;
+use PrometheusMatric;
 use Exception;
+ 
+ 
 class StartKafkaSession extends Command
 {
     /**
