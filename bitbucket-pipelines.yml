@@ -54,7 +54,7 @@ commonUnittest: &commonUnittest
 image: php:7.3-fpm
 pipelines:
   branches:
-    pipeline-unittest-to-local: 
+    develop: 
     - step:
         name: Develop
         caches:
