@@ -25,7 +25,7 @@ commonBuild: &commonBuild
   services:
     - postgres
 
-commonUnittest: &commonUnittest
+commonUnittest_pipeline: &commonUnittest_pipeline
   script:
     - apt-get update && apt-get install -y libmcrypt-dev   libpq-dev postgresql-client librdkafka-dev
     - pecl install swoole
@@ -40,10 +40,20 @@ commonUnittest: &commonUnittest
   services:
     - postgres
 
+commonUnittest: commonUnittest
+  script:
+    - apt-get update && apt-get install -y openssh-client
+    - mkdir -p ~/.ssh
+    - cat .develop_hosts >> ~/.ssh/known_hosts
+    - (umask  077 ; echo $devkey2 | base64 --decode > ~/.ssh/id_rsa)
+    - ssh $devuser36@ninepinetechnology-tmcrjvwbpr.dynamic-m.com -p 9913 'bash -i  "unit-test.sh"'
+
+
+
 image: php:7.3-fpm
 pipelines:
   branches:
-    develop: 
+    pipeline-unittest-to-local: 
     - step:
         name: Develop
         caches:
@@ -52,15 +62,15 @@ pipelines:
     - step:
         name: Unit test
         <<: *commonUnittest
-    - step:
-        name: Deploy to AWS
-        script:
-          - apt-get update && apt-get install -y openssh-client
-          - mkdir -p ~/.ssh
-          - cat .uat_host >> ~/.ssh/known_hosts
-          - (umask  077 ; echo $awskey | base64 --decode > ~/.ssh/id_rsa)
+    #- step:
+      #  name: Deploy to AWS
+     #   script:
+      #    - apt-get update && apt-get install -y openssh-client
+      #    - mkdir -p ~/.ssh
+      #    - cat .uat_host >> ~/.ssh/known_hosts
+     #     - (umask  077 ; echo $awskey | base64 --decode > ~/.ssh/id_rsa)
           
-          - ssh $awsuser@9pineuat.com 'bash -i  "compile.sh"'      
+      #    - ssh $awsuser@9pineuat.com 'bash -i  "compile.sh"'      
 
     develop-local: 
     - step:
