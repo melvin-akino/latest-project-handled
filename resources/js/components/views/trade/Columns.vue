@@ -5,7 +5,7 @@
             <div class="w-1/12 text-center" v-if="tradeLayout==1">Sport</div>
             <div class="w-1/12 text-center" v-if="tradeLayout==1">Score & <br>Schedule</div>
             <div class="w-1/12 py-1 flex justify-center">
-                <button class="w-8 text-white text-center bg-orange-500 px-1 py-2 hover:bg-orange-600" @click="openColumnModal"><i class="fas fa-plus"></i></button>
+                <button class="w-8 text-white text-center bg-orange-500 px-1 py-2 hover:bg-orange-600" aria-label="Toggle Odd Types" @click="openColumnModal"><i class="fas fa-plus"></i></button>
             </div>
             <div class="flex w-1/12" :class="[tradeLayout==2 ? 'flex-col mr-10 px-2' : 'justify-center pl-2']" v-for="column in columnsToDisplay" :key="column.sport_odd_type_id">
                 <span class="text-center">{{column.name}}</span>

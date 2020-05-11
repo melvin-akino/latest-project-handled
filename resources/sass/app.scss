@@ -11,6 +11,11 @@
 
 @import "tailwindcss/utilities";
 
+/*! purgecss start ignore */
+@import "vuetables2.css";
+
+@import "vue-dialog-drag.css";
+
 body {
     font-family: 'Assistant', sans-serif;
 }
@@ -33,4 +38,5 @@ body {
     border-radius: 10px;
     background-color: #555;
 }
+/*! purgecss end ignore */
 
