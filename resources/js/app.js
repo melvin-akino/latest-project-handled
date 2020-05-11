@@ -1,6 +1,9 @@
 import Vue from 'vue'
 require('./bootstrap')
 
+// NOTE: Remove this line when majority of issues are fixed
+Vue.config.devtools = true
+
 import router from './router'
 import navigationGuards from './navigationGuards'
 import store from './store'
