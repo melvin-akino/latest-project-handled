@@ -25,26 +25,26 @@ class PrometheusLog
     public function handle($request, Closure $next)
     {
 
-      $this->pnamespace = env('PROMETHEUS_NAMESPACE', 'default');
-      $exporter = Prometheus::getFacadeRoot();
+        $this->pnamespace = env('PROMETHEUS_NAMESPACE', 'default');
+        $exporter = Prometheus::getFacadeRoot();
 
-      try {
-       
-       $gauge = $exporter->getGauge('users_online_total');
-       
-      } catch (Exception $e) {
+        try {
 
-        $gauge = $exporter->registerGauge('users_online_total', 'The total number of users online.', ['group']);
-      }
+            $gauge = $exporter->getGauge('users_online_total');
 
-       $gauge->inc(['users']); // increment by 1
-  
-       $ttl = Redis::ttl("PROMETHEUS_:gauge:{$this->pnamespace}_users_online_total");
+        } catch (Exception $e) {
 
-       if($ttl < 0){
+            $gauge = $exporter->registerGauge('users_online_total', 'The total number of users online.', ['group']);
+        }
+
+        $gauge->inc(['users']); // increment by 1
+
+        $ttl = Redis::ttl("PROMETHEUS_:gauge:{$this->pnamespace}_users_online_total");
+
+        if($ttl < 0){
             Redis::expire("PROMETHEUS_:gauge:{$this->pnamespace}_users_online_total",  env('PROMETHEUS_EXPIRE'));
-       }
-      
-       return $next($request);
+        }
+
+        return $next($request);
     }
 }

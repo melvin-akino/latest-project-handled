@@ -28,10 +28,10 @@ class PrometheusController extends Controller
             $registry = new CollectorRegistry($adapter);
             $renderer = new RenderTextFormat();
 
-             $keys = Redis::smembers("PROMETHEUS_gauge_METRIC_KEYS");
-             $gauges = array();
+            $keys = Redis::smembers("PROMETHEUS_gauge_METRIC_KEYS");
+            $gauges = array();
 
-             foreach ($keys as $key) {
+            foreach ($keys as $key) {
                 
                  $raw = Redis::hgetall($key);
                 

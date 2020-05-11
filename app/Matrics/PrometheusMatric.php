@@ -1,5 +1,6 @@
 <?php
 namespace App\Matrics;
+
 use Illuminate\Support\Facades\Redis;
 use Prometheus\Exception\MetricNotFoundException;
 use Prometheus;

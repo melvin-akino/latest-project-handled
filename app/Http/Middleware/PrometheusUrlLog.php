@@ -21,32 +21,31 @@ class PrometheusUrlLog
     {
         return $next($request);
     }
-    
+
     public function terminate($request, $response)
     {
       
-      $this->pnamespace = env('PROMETHEUS_NAMESPACE', 'default');
-      $uri = str_replace("/","_",$request->getPathInfo());
-    
-      $executionTime = microtime(true) - $_SERVER["REQUEST_TIME_FLOAT"];
+        $this->pnamespace = env('PROMETHEUS_NAMESPACE', 'default');
+        $uri = str_replace("/","_",$request->getPathInfo());
 
-      $exporter = Prometheus::getFacadeRoot();
+        $executionTime = microtime(true) - $_SERVER["REQUEST_TIME_FLOAT"];
 
-      try {
-        $gauge = $exporter->getGauge('urls');
+        $exporter = Prometheus::getFacadeRoot();
 
-      } catch(Exception $e) {
-      // create a gauge (with labels)
-        $gauge = $exporter->registerGauge('urls', 'Url access', ['url']);
-      }
+        try {
+            $gauge = $exporter->getGauge('urls');
 
-      $gauge->inc(["{$uri}"]); // increment by 1
+        } catch(Exception $e) {
+        // create a gauge (with labels)
+            $gauge = $exporter->registerGauge('urls', 'Url access', ['url']);
+        }
 
+        $gauge->inc(["{$uri}"]); // increment by 1
 
-      $ttl = Redis::ttl("PROMETHEUS_:gauge:{$this->pnamespace}_urls");
+        $ttl = Redis::ttl("PROMETHEUS_:gauge:{$this->pnamespace}_urls");
 
-      if($ttl < 0){
-          Redis::expire("PROMETHEUS_:gauge:{$this->pnamespace}_urls", env('PROMETHEUS_EXPIRE')); 
-      }
+        if($ttl < 0){
+            Redis::expire("PROMETHEUS_:gauge:{$this->pnamespace}_urls", env('PROMETHEUS_EXPIRE')); 
+        }
     }
 }

@@ -20,25 +20,25 @@ class PrometheusBetLog
      */
     public function handle($request, Closure $next)
     {
-      $this->pnamespace = env('PROMETHEUS_NAMESPACE', 'default');
-      $exporter = Prometheus::getFacadeRoot();
-      
-      try {
-       
-       $gauge = $exporter->getGauge('user_bet');
-       
-      } catch (Exception $e) {
-        $gauge = $exporter->registerGauge('user_bet', 'The total number of users bet.', ['group']);
-      }
+        $this->pnamespace = env('PROMETHEUS_NAMESPACE', 'default');
+        $exporter = Prometheus::getFacadeRoot();
 
-       $gauge->inc(['bet']); // increment by 1
-  
+        try {
 
-       $ttl = Redis::ttl("PROMETHEUS_:gauge:{$this->pnamespace}_user_bet_total");
+            $gauge = $exporter->getGauge('user_bet');
 
-       if($ttl < 0){
+        } catch (Exception $e) {
+            $gauge = $exporter->registerGauge('user_bet', 'The total number of users bet.', ['group']);
+        }
+
+        $gauge->inc(['bet']); // increment by 1
+
+
+        $ttl = Redis::ttl("PROMETHEUS_:gauge:{$this->pnamespace}_user_bet_total");
+
+        if($ttl < 0){
             Redis::expire("PROMETHEUS_:gauge:{$this->pnamespace}_user_bet_total",  env('PROMETHEUS_EXPIRE'));
-       }
+        }
         return $next($request);
     }
 }
