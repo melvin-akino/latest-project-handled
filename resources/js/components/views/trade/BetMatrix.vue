@@ -35,7 +35,6 @@
 
 <script>
 import { mapState } from 'vuex'
-import 'vue-dialog-drag/dist/vue-dialog-drag.css'
 import DialogDrag from 'vue-dialog-drag'
 import { twoDecimalPlacesFormat, convertPointAsNumeric, moneyFormat } from '../../../helpers/numberFormat'
 

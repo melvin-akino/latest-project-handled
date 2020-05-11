@@ -136,7 +136,6 @@ import Cookies from 'js-cookie'
 import _ from 'lodash'
 import OddsHistory from './OddsHistory'
 import BetMatrix from './BetMatrix'
-import 'vue-dialog-drag/dist/vue-dialog-drag.css'
 import DialogDrag from 'vue-dialog-drag'
 import { getSocketKey, getSocketValue } from '../../../helpers/socket'
 import { twoDecimalPlacesFormat, moneyFormat } from '../../../helpers/numberFormat'
@@ -577,36 +576,7 @@ export default {
     .leagueAndTeamDetails {
         font-size: 15px;
     }
-
-    .dialog-drag {
-        border: solid 1px #ed8936;
-        box-shadow: none;
-        background-color: #edf2f7;
-        animation-duration: .2s;
-        animation-name: fadeIn;
-        animation-timing-function: ease-in-out;
-        position: fixed;
-    }
-
-    .dialog-drag .dialog-body {
-        padding: 0;
-        position: relative;
-    }
-
-    @keyframes fadeIn {
-        from {
-            opacity: 0;
-        }
-
-        to {
-            opacity: 1;
-        }
-    }
-
-    .dialog-drag .dialog-header {
-        background-color:#ed8936;
-    }
-
+    
     .loader {
         height: 510px;
     }

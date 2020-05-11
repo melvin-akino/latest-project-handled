@@ -183,75 +183,6 @@ export default {
 </script>
 
 <style>
-    @import '../../../../assets/vuetables2.css';
-
-    .VueTables__table {
-        margin-top: 1rem;
-    }
-
-    .VueTables__table > thead {
-        background-color: #ed8936;
-        color: #ffffff;
-    }
-
-    .alignRight {
-        text-align: right;
-    }
-
-    .VueTables__table > tbody {
-        background-color: #ffffff;
-        font-size: .875rem;
-    }
-
-    .VueTables__heading {
-        font-size: 14px;
-    }
-
-    .VueTables__row  {
-        border: none;
-    }
-
-    .VuePagination__pagination {
-        margin: 0;
-    }
-
-    .VuePagination__count {
-        font-size: .875rem;
-    }
-
-    .VueTables__search {
-        margin-bottom:5px;
-    }
-
-    .VueTables__search-field > label {
-        margin-right:25px;
-    }
-
-    .VueTables__limit-field > label {
-        margin-right: 6px;
-    }
-
-    .VueTables__search__input, .VueTables__limit-field > select {
-        font-size: .9rem;
-        color: #4a5568;
-        box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
-        line-height: 1.25;
-        border-width: 1px;
-        border-radius: 0.25rem;
-    }
-
-    .VueTables__search__input {
-        padding: 0.25rem 0.75rem;
-        -webkit-appearance: none;
-        -moz-appearance: none;
-        appearance: none;
-    }
-
-    .VueTables__limit-field {
-        padding-top: 0.25rem;
-        padding-bottom: 0.75rem;
-    }
-
     .totalPLdata {
         font-size: 15px;
     }
@@ -263,24 +194,6 @@ export default {
     .totalPL {
         font-weight: 600;
         right: 62px;
-    }
-
-    .dialog-drag {
-        border: solid 1px #ed8936;
-        box-shadow: none;
-        background-color: #edf2f7;
-        animation-duration: .2s;
-        animation-name: fadeIn;
-        animation-timing-function: ease-in-out;
-        position: fixed;
-    }
-
-    .dialog-drag .dialog-body {
-        padding: 0;
-    }
-
-    .dialog-drag .dialog-header {
-        background-color:#ed8936;
     }
 
     .greenPL {
