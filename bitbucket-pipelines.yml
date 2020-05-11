@@ -4,7 +4,7 @@ commonBuild: &commonBuild
     - pecl install swoole
     - pecl install rdkafka
     - curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
-    - docker-php-ext-install pcntl
+    - docker-php-ext-install pdo pdo_pgsq pcntl
     - echo "extension=swoole.so" > /usr/local/etc/php/conf.d/docker-php-swoole.ini
     - echo "extension=rdkafka.so" > /usr/local/etc/php/conf.d/docker-php-rdkafka.ini
     - composer config -g github-oauth.github.com 5b8e5c78c1de03fc833d8a86a15bc9b6c3a3fea1
@@ -13,6 +13,7 @@ commonBuild: &commonBuild
     - php artisan key:generate
     - php artisan view:clear
     - php artisan cache:clear
+    - php artisan migrate
     - npm install
     - npm install --save babel-helper-vue-jsx-merge-props
     - npm run dev
