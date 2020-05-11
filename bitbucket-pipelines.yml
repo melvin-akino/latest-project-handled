@@ -40,7 +40,7 @@ commonUnittest_pipeline: &commonUnittest_pipeline
   services:
     - postgres
 
-commonUnittest: commonUnittest
+commonUnittest: &commonUnittest
   script:
     - apt-get update && apt-get install -y openssh-client
     - mkdir -p ~/.ssh
