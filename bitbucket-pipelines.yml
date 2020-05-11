@@ -54,11 +54,11 @@ image: php:7.3-fpm
 pipelines:
   branches:
     pipeline-unittest-to-local: 
-    - step:
-        name: Develop
-        caches:
-          - composer
-        <<: *commonBuild
+    #- step:
+    #    name: Develop
+    #    caches:
+    #      - composer
+    #    <<: *commonBuild
     - step:
         name: Unit test
         <<: *commonUnittest
