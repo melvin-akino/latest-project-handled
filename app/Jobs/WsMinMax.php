@@ -7,6 +7,7 @@ use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Support\Facades\{DB, Log};
 use Exception;
 use Illuminate\Support\Str;
+use PrometheusMatric;
 
 class WsMinMax implements ShouldQueue
 {
@@ -59,6 +60,7 @@ class WsMinMax implements ShouldQueue
                     'schedule'  => $eventMarket->game_schedule,
                     'event_id'  => $eventMarket->event_identifier
                 ]);
+                PrometheusMatric::MakeMatrix('swoole_table_total', 'Swoole minMaxRequestsTable total ','minMaxRequestsTable');
 
                 $requestId = (string) Str::uuid();
                 $requestTs = $this->milliseconds();

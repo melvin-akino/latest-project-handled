@@ -13,6 +13,7 @@ use Swoole\Process;
 use Exception;
 use Carbon\Carbon;
 use Storage;
+use PrometheusMatric;
 
 class KafkaProduce implements CustomProcessInterface
 {
@@ -97,6 +98,8 @@ class KafkaProduce implements CustomProcessInterface
                                     'command'     => 'minmax'
                                 ];
                                 $payload['data'] = $minMaxRequest;
+                               
+                                PrometheusMatric::MakeMatrix('request_market_id_total', 'Min-max  total number of  market id  pushed .',$minMaxRequest['market_id']);
                                 self::pushToKafka($payload, $requestId,
                                     strtolower($minMaxRequest['provider']) . $kafkaTopics['req_minmax']);
                             }
