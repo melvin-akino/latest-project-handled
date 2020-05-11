@@ -59,8 +59,9 @@ class MinMaxConsume implements CustomProcessInterface
 
                         $kafkaConsumer->commitAsync($message);
                         Log::channel('kafkalog')->info(json_encode($message));
+                        continue;
                     }
-                    usleep(10000);
+                    usleep(100000);
                 }
             }
         } catch (Exception $e) {

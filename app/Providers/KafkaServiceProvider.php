@@ -16,12 +16,11 @@ class KafkaServiceProvider extends ServiceProvider
     {
         $conf = new Conf();
 
-        $conf->set('group.id', 'multiline');
 
         $conf->set('metadata.broker.list', env('KAFKA_BROKERS', 'kafka:9092'));
 
+        $conf->set('group.id', 'multiline');
         $conf->set('auto.offset.reset', 'latest');
-
         $conf->set('enable.auto.commit', 'false');
 
         if (env('KAFKA_DEBUG', false)) {
