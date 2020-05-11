@@ -15,8 +15,6 @@
 
     <!-- Fonts -->
     <link rel="dns-prefetch" href="//fonts.gstatic.com">
-    <link href="https://fonts.googleapis.com/css2?family=Assistant:wght@300;400;600;700&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 
     <!-- Styles -->
     <link href="{{ asset('css/app.css') }}" rel="stylesheet">
@@ -25,5 +23,9 @@
     <div id="app">
         <App :onload-data="{{json_encode($default_data)}}"></App>
     </div>
+    <style>
+        @import '//fonts.googleapis.com/css2?family=Assistant:wght@300;400;600;700&display=swap';
+        @import '//fonts.googleapis.com/icon?family=Material+Icons&display=swap';
+    </style>
 </body>
 </html>
