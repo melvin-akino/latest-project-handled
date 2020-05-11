@@ -4,11 +4,10 @@ namespace App\Processes;
 
 use App\Jobs\{
     TransformKafkaMessageOpenOrders,
-    TransformKafkaMessageSettlement
+    TransformKafkaMessageSettlement,
+    TransformKafkaMessageBalance
 };
-use App\Tasks\TransformKafkaMessageBalance;
 use Hhxsv5\LaravelS\Swoole\Process\CustomProcessInterface;
-use Hhxsv5\LaravelS\Swoole\Task\Task;
 use Illuminate\Support\Facades\Log;
 use Swoole\Http\Server;
 use Swoole\Process;
@@ -44,7 +43,7 @@ class AccountConsume implements CustomProcessInterface
                                     Log::info("Balance Transformation ignored - No Data Found");
                                     break;
                                 }
-                                Task::deliver(new TransformKafkaMessageBalance($payload));
+                                TransformKafkaMessageBalance::dispatch($payload);
                                 break;
                             case 'orders':
                                 if (empty($payload->data)) {
