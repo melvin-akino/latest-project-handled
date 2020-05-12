@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Log;
 use Swoole\Http\Server;
 use Swoole\Process;
 use Exception;
+use PrometheusMatric;
 
 class PlacedBetConsume implements CustomProcessInterface
 {
@@ -35,7 +36,7 @@ class PlacedBetConsume implements CustomProcessInterface
                             Log::channel('kafkalog')->info(json_encode($message));
                             continue;
                         }
-
+                        PrometheusMatric::MakeMatrix('pull_bet_order_total', 'Bet order pulled .',  $payload->data->market_id);
                         TransformKafkaMessageBet::dispatch($payload);
 
                         $kafkaConsumer->commitAsync($message);

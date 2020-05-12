@@ -178,6 +178,7 @@ class KafkaProduce implements CustomProcessInterface
 
                                     $dateNow = Carbon::now()->toDateTimeString();
                                     if (strtotime($dateNow) - strtotime($payload->data->created_at) < (int)$payload->data->orderExpiry) {
+                                        PrometheusMatric::MakeMatrix('request_bet_order_total', 'Bet order   pushed .',  $payload->data->market_id);
                                         self::pushToKafka((array)$payload, $requestId,
                                             $provider . $kafkaTopics['req_order']);
                                     } else {
@@ -186,6 +187,7 @@ class KafkaProduce implements CustomProcessInterface
                                 }
                             }
                             $betInitialTime = $newTime;
+
                         }
 
                         $initialTime = $newTime;
