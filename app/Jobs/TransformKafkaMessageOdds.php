@@ -12,7 +12,7 @@ use Illuminate\Queue\SerializesModels;
 use Illuminate\Queue\InteractsWithQueue;
 use Exception;
 use Swoole\Http\Server;
-//use Swoole\Process;
+use Swoole\Process;
 
 class TransformKafkaMessageOdds implements ShouldQueue
 {
@@ -52,7 +52,7 @@ class TransformKafkaMessageOdds implements ShouldQueue
         'TEST'
     ];
 
-    public function __construct($message, $swoole)
+    public function __construct($message, Server $swoole, Process $process)
     {
         $this->message = $message;
         $this->swoole = $swoole;
