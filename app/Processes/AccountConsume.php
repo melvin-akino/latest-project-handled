@@ -64,7 +64,7 @@ class AccountConsume implements CustomProcessInterface
                             default:
                                 break;
                         }
-                        $kafkaConsumer->commitAsync($message);
+                        $kafkaConsumer->commit($message);
                         Log::channel('kafkalog')->info(json_encode($message));
                         continue;
                     }

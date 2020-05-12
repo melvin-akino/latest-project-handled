@@ -42,7 +42,7 @@ class MinMaxConsume implements CustomProcessInterface
                             $swoole->minmaxMarketTable->get('minmax-market:' . $payload->data->market_id)['value'] >= $payload->data->timestamp
                         ) {
                             Log::info("Min Max Transformation ignored - Same or Old Timestamp");
-                            $kafkaConsumer->commitAsync($message);
+                            $kafkaConsumer->commit($message);
                             Log::channel('kafkalog')->info(json_encode($message));
                             continue;
                         }
@@ -60,7 +60,7 @@ class MinMaxConsume implements CustomProcessInterface
                         Log::info('Minmax calling Task Worker');
                         TransformKafkaMessageMinMax::dispatch($payload);
 
-                        $kafkaConsumer->commitAsync($message);
+                        $kafkaConsumer->commit($message);
                         Log::channel('kafkalog')->info(json_encode($message));
                         continue;
                     }

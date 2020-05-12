@@ -31,14 +31,14 @@ class PlacedBetConsume implements CustomProcessInterface
 
                         if (empty($payload->data->status) || empty($payload->data->odds)) {
                             Log::info("Bet Transformation ignored - Status Or Odds Not Found");
-                            $kafkaConsumer->commitAsync($message);
+                            $kafkaConsumer->commit($message);
                             Log::channel('kafkalog')->info(json_encode($message));
                             continue;
                         }
 
                         TransformKafkaMessageBet::dispatch($payload);
 
-                        $kafkaConsumer->commitAsync($message);
+                        $kafkaConsumer->commit($message);
                         Log::channel('kafkalog')->info(json_encode($message));
                         continue;
                     }
