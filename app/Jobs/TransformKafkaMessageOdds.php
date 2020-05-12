@@ -8,15 +8,15 @@ use Illuminate\Support\Str;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Bus\Queueable;
-
+use Illuminate\Queue\SerializesModels;
 use Illuminate\Queue\InteractsWithQueue;
 use Exception;
-use Swoole\Http\Server;
-use Swoole\Process;
+//use Swoole\Http\Server;
+//use Swoole\Process;
 
 class TransformKafkaMessageOdds implements ShouldQueue
 {
-    use Dispatchable, InteractsWithQueue, Queueable;
+    use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     protected $message;
     protected $swoole;
@@ -52,7 +52,7 @@ class TransformKafkaMessageOdds implements ShouldQueue
         'TEST'
     ];
 
-    public function __construct($message, Server $swoole)
+    public function __construct($message, $swoole)
     {
         $this->message = $message;
         $this->swoole = $swoole;
