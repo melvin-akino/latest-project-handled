@@ -14,7 +14,7 @@ use Illuminate\Queue\InteractsWithQueue;
 use Exception;
 use Swoole\Http\Server;
 use Swoole\Process;
-use App\Tasks\TransformKafkaMessageOdds as OddsMessage;
+
 
 class TransformKafkaMessageOdds implements ShouldQueue
 {
@@ -63,10 +63,11 @@ class TransformKafkaMessageOdds implements ShouldQueue
         $this->swoole = $swoole;
         Log::info( "construct TransformKafkaMessageOdds");
     }
-    public function handle() {
-        Task::deliver(new OddsMessage($this->message, $this->swoole));
 
+    public function handleI() {
+        print_r($this->swoole);
     }
+
 
     public function handle___()
     {

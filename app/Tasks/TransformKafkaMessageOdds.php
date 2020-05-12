@@ -43,17 +43,15 @@ class TransformKafkaMessageOdds extends Task
         'TEST'
     ];
 
-    public function __construct($message, $swoole)
+    public function __construct($message)
     {
         $this->message = $message;
-        $this->swoole = $swoole;
     }
 
     public function handle()
     {
         try {
-            //$swoole = $this->swoole = app('swoole');
-            $swoole = $this->swoole;
+            $swoole = $this->swoole = app('swoole');
 
             foreach ($this->disregard AS $disregard) {
                 if (strpos($this->message->data->leagueName, $disregard) === 0) {
