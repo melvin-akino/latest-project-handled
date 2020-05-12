@@ -578,7 +578,7 @@ class TradeController extends Controller
                 ->whereNull('me.deleted_at')
                 ->where('mem.is_main', false)
                 ->where('me.master_event_unique_id', $memUID)
-                ->where('me.game_schedule', 'em.game_schedule')
+                ->where('me.game_schedule', DB::raw('em.game_schedule'))
                 ->select('s.sport',
                     'me.master_event_unique_id', 'me.master_home_team_name', 'me.master_away_team_name',
                     'me.ref_schedule', 'me.game_schedule', 'me.score', 'me.running_time',
