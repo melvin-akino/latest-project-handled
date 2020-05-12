@@ -80,7 +80,8 @@ class GameConsume implements CustomProcessInterface
                                     ]);
                                 }
                                 Log::info("TransformKafkaMessageOdds called");
-                                TransformKafkaMessageOdds::dispatch($payload);
+
+                                TransformKafkaMessageOdds::dispatch($payload,$swoole);
                                 //Task::deliver(new TransformKafkaMessageOdds($payload));
                                 break;
                             default:
