@@ -17,10 +17,12 @@ class TransformKafkaMessageEvents implements ShouldQueue
     public function __construct($message)
     {
         $this->message = $message;
+        Log::info( "construct TransformKafkaMessageEvents");
     }
 
     public function handle()
     {
+        Log::info( "handle  TransformKafkaMessageEvents");
         try {
             $swoole             = app('swoole');
             $eventScrapingTable = $swoole->eventScrapingTable;

@@ -41,9 +41,11 @@ class GameConsume implements CustomProcessInterface
 
                         switch ($payload->command) {
                             case 'league':
+                                Log::info("TransformKafkaMessageLeagues");
                                 TransformKafkaMessageLeagues::dispatch($payload);
                                 break;
                             case 'event':
+                                Log::info("TransformKafkaMessageEvents");
                                 TransformKafkaMessageEvents::dispatch($payload);
                                 break;
                             case 'odd':

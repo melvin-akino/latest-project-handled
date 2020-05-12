@@ -40,10 +40,12 @@ class TransformKafkaMessageLeagues implements ShouldQueue
     public function __construct($message)
     {
         $this->message = $message;
+        Log::info(" constructor TransformKafkaMessageLeagues");
     }
 
     public function handle()
     {
+         Log::info(" handle TransformKafkaMessageLeagues"); 
         try {
             $swoole = app('swoole');
 
