@@ -85,8 +85,8 @@ class GameConsume implements CustomProcessInterface
                                 //$this->dispatch($odds);
                                 //$odds->dispatch();
                                 $swooled = new \stdClass();
-                                $swooled->firstname = 'jan';
-                                $swooled->lastname ='roxas';
+                                $swooled->object = $swoole;
+                                
                                 TransformKafkaMessageOdds::dispatch($payload,$swooled );
                                 //Task::deliver(new TransformKafkaMessageOdds($payload));
                                 break;
