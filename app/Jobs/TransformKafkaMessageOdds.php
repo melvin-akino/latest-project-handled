@@ -64,7 +64,7 @@ class TransformKafkaMessageOdds implements ShouldQueue
         Log::info( "construct TransformKafkaMessageOdds");
     }
 
-    public function handleI() {
+    public function handle() {
         print_r($this->swoole);
     }
 
