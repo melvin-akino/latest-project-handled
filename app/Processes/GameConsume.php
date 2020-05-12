@@ -87,7 +87,9 @@ class GameConsume implements CustomProcessInterface
                                 
                                 
                                 $swooled = new \stdClass();
-                                $swooled->providersTable = $swoole->providersTable;
+                                //$swooled->providersTable = $swoole->providersTable;
+                                $swooled->name = 'jan';
+                                Log::info('providerstable.  '. $swoole->providersTable);
                                // $swooled->sportsTable = $swoole->sportsTable;
                                 //$swooled->leaguesTable = $swoole->leaguesTable;
                                 //$swooled->teamsTable = $swoole->teamsTable;
