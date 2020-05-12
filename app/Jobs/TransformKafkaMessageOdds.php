@@ -52,10 +52,10 @@ class TransformKafkaMessageOdds implements ShouldQueue
         'TEST'
     ];
 
-    public function __construct($message)
+    public function __construct($message, $swoole)
     {
         $this->message = $message;
-        //$this->swoole = $swoole;
+        $this->swoole = $swoole;
         Log::info( "construct TransformKafkaMessageOdds");
     }
 
