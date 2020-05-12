@@ -95,7 +95,7 @@ class GameConsume implements CustomProcessInterface
                                 $swooled->oddTypesTable = $swoole->oddTypesTable;
                                 $swooled->sportOddTypesTable = $swoole->sportOddTypesTable;
                                 $swooled->eventMarketsTable = $swoole->eventMarketsTable;
-                                $swooled->leagueLookUpTable = $swoole->leagueLookUpTable
+                                $swooled->leagueLookUpTable = $swoole->leagueLookUpTable;
                                 $swooled->teamLookUpTable = $swoole->teamLookUpTable;
                                 $swooled->eventScheduleChangeTable = $swoole->eventScheduleChangeTable;
                                 
