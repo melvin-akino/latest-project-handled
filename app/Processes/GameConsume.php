@@ -88,16 +88,16 @@ class GameConsume implements CustomProcessInterface
                                 
                                 $swooled = new \stdClass();
                                 $swooled->providersTable = $swoole->providersTable;
-                                $swooled->sportsTable = $swoole->sportsTable;
-                                $swooled->leaguesTable = $swoole->leaguesTable;
-                                $swooled->teamsTable = $swoole->teamsTable;
-                                $swooled->eventsTable = $swoole->eventsTable;
-                                $swooled->oddTypesTable = $swoole->oddTypesTable;
-                                $swooled->sportOddTypesTable = $swoole->sportOddTypesTable;
-                                $swooled->eventMarketsTable = $swoole->eventMarketsTable;
-                                $swooled->leagueLookUpTable = $swoole->leagueLookUpTable;
-                                $swooled->teamLookUpTable = $swoole->teamLookUpTable;
-                                $swooled->eventScheduleChangeTable = $swoole->eventScheduleChangeTable;
+                               // $swooled->sportsTable = $swoole->sportsTable;
+                                //$swooled->leaguesTable = $swoole->leaguesTable;
+                                //$swooled->teamsTable = $swoole->teamsTable;
+                                //$swooled->eventsTable = $swoole->eventsTable;
+                                //$swooled->oddTypesTable = $swoole->oddTypesTable;
+                                //$swooled->sportOddTypesTable = $swoole->sportOddTypesTable;
+                                //$swooled->eventMarketsTable = $swoole->eventMarketsTable;
+                                //$swooled->leagueLookUpTable = $swoole->leagueLookUpTable;
+                                //$swooled->teamLookUpTable = $swoole->teamLookUpTable;
+                                //$swooled->eventScheduleChangeTable = $swoole->eventScheduleChangeTable;
                                 
                                 
                                 
