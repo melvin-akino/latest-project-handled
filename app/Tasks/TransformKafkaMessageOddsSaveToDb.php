@@ -12,13 +12,12 @@ use App\Models\{
     MasterEventMarketLog
 };
 
-use Carbon\Carbon;
 use Exception;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Support\Facades\{DB, Log};
+use Hhxsv5\LaravelS\Swoole\Task\Task;
 
-class TransformKafkaMessageOddsSaveToDb implements ShouldQueue
+class TransformKafkaMessageOddsSaveToDb extends Task
 {
     use Dispatchable;
 
