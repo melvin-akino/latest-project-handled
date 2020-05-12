@@ -55,7 +55,7 @@ class TransformKafkaMessageOdds implements ShouldQueue
     public function __construct($message, $swoole)
     {
         $this->message = $message;
-        $this->swoole = $swoole;
+        $this->swoole = clone $swoole;
         Log::info( "construct TransformKafkaMessageOdds");
     }
 
