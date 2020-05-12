@@ -64,6 +64,14 @@ class TransformKafkaMessageOddsSaveToDb implements ShouldQueue
         try {
             DB::beginTransaction();
 
+            foreach ($this->removeEventMarket AS $key => $_row) {
+                EventMarket::where('event_identifier', $_row['event_identifier'])
+                    ->where('odd_type_id', $_row['odd_type_id'])
+                    ->where('provider_id', $_row['provider_id'])
+                    ->where('market_flag', $_row['market_flag'])
+                    ->delete();
+            }
+
             $event = Events::withTrashed()->where('event_identifier',
                 $this->eventRawData['Event']['data']['event_identifier'])->first();
             if ($event && $event->game_schedule != $this->eventRawData['Event']['data']['game_schedule']) {
@@ -100,8 +108,10 @@ class TransformKafkaMessageOddsSaveToDb implements ShouldQueue
                         $eventMarketId = $eventMarketModel->id;
 
                         $masterEventMarketLink = MasterEventMarketLink::where('event_market_id', $eventMarketId);
+                        $hasMasterEventMarketLink = false;
                         if ($masterEventMarketLink->exists()) {
                             $eventMarket['MasterEventMarket']['data']['master_event_market_unique_id'] = ($masterEventMarketLink->first())->master_event_market_unique_id;
+                            $hasMasterEventMarketLink = true;
                         }
 
                         $masterEventMarketModel = MasterEventMarket::updateOrCreate([
@@ -111,10 +121,12 @@ class TransformKafkaMessageOddsSaveToDb implements ShouldQueue
                         if ($masterEventMarketModel) {
                             $masterEventMarketId = $masterEventMarketModel->id;
 
-                            MasterEventMarketLink::updateOrCreate([
-                                'event_market_id'               => $eventMarketId,
-                                'master_event_market_unique_id' => $masterEventMarketModel->master_event_market_unique_id
-                            ], []);
+                            if (!$hasMasterEventMarketLink) {
+                                MasterEventMarketLink::updateOrCreate([
+                                    'event_market_id'               => $eventMarketId,
+                                    'master_event_market_unique_id' => $masterEventMarketModel->master_event_market_unique_id
+                                ], []);
+                            }
 
                             if (!empty($eventMarket['MasterEventMarketLog'])) {
                                 $eventMarket['MasterEventMarketLog']['data']['master_event_market_id'] = $masterEventMarketId;
@@ -139,15 +151,6 @@ class TransformKafkaMessageOddsSaveToDb implements ShouldQueue
                             ]);
                     }, $this->updatedOddsData);
                 }
-            }
-
-            $removeEventMarket = [];
-            foreach ($this->removeEventMarket AS $key => $_row) {
-                $eventMarket = EventMarket::where('event_identifier', $_row['event_identifier'])
-                    ->where('odd_type_id', $_row['odd_type_id'])
-                    ->where('provider_id', $_row['provider_id'])
-                    ->where('market_flag', $_row['market_flag'])
-                    ->delete();
             }
 
             DB::commit();
