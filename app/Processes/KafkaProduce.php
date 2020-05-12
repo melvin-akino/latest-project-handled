@@ -217,7 +217,7 @@ class KafkaProduce implements CustomProcessInterface
                 self::$producerHandler->setTopic($kafkaTopic)
                     ->send($message, $key);
             } else {
-                KafkaPush::dispatchNow($kafkaTopic, $message, $key)->delay(now()->addSeconds($delayInSeconds));
+                KafkaPush::dispatch($kafkaTopic, $message, $key)->delay(now()->addSeconds($delayInSeconds));
             }
         } catch (Exception $e) {
             Log::critical('Sending Kafka Message Failed', [

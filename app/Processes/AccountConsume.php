@@ -43,7 +43,7 @@ class AccountConsume implements CustomProcessInterface
                                     Log::info("Balance Transformation ignored - No Data Found");
                                     break;
                                 }
-                                TransformKafkaMessageBalance::dispatchNow($payload);
+                                TransformKafkaMessageBalance::dispatch($payload);
                                 break;
                             case 'orders':
                                 if (empty($payload->data)) {
@@ -51,7 +51,7 @@ class AccountConsume implements CustomProcessInterface
                                     break;
                                 }
 
-                                TransformKafkaMessageOpenOrders::dispatchNow($payload);
+                                TransformKafkaMessageOpenOrders::dispatch($payload);
                                 break;
                             case 'settlement':
                                 if (empty($payload->data)) {
@@ -59,7 +59,7 @@ class AccountConsume implements CustomProcessInterface
                                     break;
                                 }
 
-                                TransformKafkaMessageSettlement::dispatchNow($payload);
+                                TransformKafkaMessageSettlement::dispatch($payload);
                                 break;
                             default:
                                 break;

@@ -458,7 +458,7 @@ class TransformKafkaMessageOdds implements ShouldQueue
             }
 
             if (!empty($this->subTasks['event'])) {
-                TransformKafkaMessageOddsSaveToDb::dispatchNow($this->subTasks, $this->uid, $this->dbOptions);
+                TransformKafkaMessageOddsSaveToDb::dispatch($this->subTasks, $this->uid, $this->dbOptions);
             }
         } catch (Exception $e) {
             Log::error($e->getMessage());

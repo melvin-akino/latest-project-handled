@@ -40,7 +40,7 @@ class WSOrderStatus implements ShouldQueue
             ];
             if (in_array(strtoupper($this->status), $forBetBarRemoval)) {
                 if (time() - strtotime($this->created_at) > $this->expiry) {
-                    WSForBetBarRemoval::dispatchNow($fd['value'], $this->orderId);
+                    WSForBetBarRemoval::dispatch($fd['value'], $this->orderId);
                 }
             }
         }
