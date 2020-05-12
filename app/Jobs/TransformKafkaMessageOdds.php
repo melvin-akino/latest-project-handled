@@ -2,17 +2,17 @@
 
 namespace App\Jobs;
 
-use App\Jobs\TransformKafkaMessageOddsSaveToDb;
-
 use Illuminate\Support\Facades\Log;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
+use Illuminate\Bus\Queueable;
+use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Support\Str;
 use Exception;
 
 class TransformKafkaMessageOdds implements ShouldQueue
 {
-    use Dispatchable;
+    use Dispatchable, InteractsWithQueue, Queueable;
 
     protected $message;
     protected $swoole;
@@ -458,7 +458,7 @@ class TransformKafkaMessageOdds implements ShouldQueue
             }
 
             if (!empty($this->subTasks['event'])) {
-                TransformKafkaMessageOddsSaveToDb::dispatch($this->subTasks, $this->uid, $this->dbOptions);
+                TransformKafkaMessageOddsSaveToDb::dispatchNow($this->subTasks, $this->uid, $this->dbOptions);
             }
         } catch (Exception $e) {
             Log::error($e->getMessage());
