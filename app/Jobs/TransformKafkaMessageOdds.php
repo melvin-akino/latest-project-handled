@@ -4,7 +4,7 @@ namespace App\Jobs;
 
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
-//use Hhxsv5\LaravelS\Swoole\Task\Task;
+use Hhxsv5\LaravelS\Swoole\Task\Task;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Bus\Queueable;
@@ -16,7 +16,7 @@ use Swoole\Process;
 
 class TransformKafkaMessageOdds implements ShouldQueue
 {
-    use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
+    use Dispatchable, InteractsWithQueue, Queueable, SerializesModels, Task;
 
     protected $message;
     protected $swoole;
@@ -56,7 +56,8 @@ class TransformKafkaMessageOdds implements ShouldQueue
     {
        // Log::info("swoole .". $swoole->connection_info());
         $this->message = $message;
-        $this->swoole = $swoole->addListener('127.0.0.1', 1219,   SWOOLE_SOCK_TCP);
+        //$this->swoole = $swoole->addListener('127.0.0.1', 1219,   SWOOLE_SOCK_TCP);
+        $this->swoole = $swoole;
         Log::info( "construct TransformKafkaMessageOdds");
     }
 
