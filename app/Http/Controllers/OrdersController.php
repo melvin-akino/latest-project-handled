@@ -26,6 +26,7 @@ use Illuminate\Support\{
 };
 use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
+use PrometheusMatric;
 
 class OrdersController extends Controller
 {
@@ -636,6 +637,7 @@ class OrdersController extends Controller
 
                 if (!$payloadsSwt->exists($payloadsSwtId)) {
                     $payloadsSwt->set($payloadsSwtId, ['payload' => json_encode($payload)]);
+                    PrometheusMatric::MakeMatrix('swoole_table_total', "Swoole bet payload created: $payloadsSwtId",'payloadsSwtId');
                 }
 
                 $ordersTable['orderId:' . $incrementIds['id'][$i]]['username']    = $payload['data']['username'];
