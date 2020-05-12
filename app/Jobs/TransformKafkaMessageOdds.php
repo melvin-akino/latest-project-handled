@@ -90,17 +90,17 @@ class TransformKafkaMessageOdds implements ShouldQueue
 
             /** DATABASE TABLES */
             /** LOOK-UP TABLES */
-            $providersTable           = $swoole->object->providersTable;
-            $sportsTable              = $swoole->object->sportsTable;
-            $leaguesTable             = $swoole->object->leaguesTable;
-            $teamsTable               = $swoole->object->teamsTable;
-            $eventsTable              = $swoole->object->eventsTable;
-            $oddTypesTable            = $swoole->object->oddTypesTable;
-            $sportOddTypesTable       = $swoole->object->sportOddTypesTable;
-            $eventMarketsTable        = $swoole->object->eventMarketsTable;
-            $leagueLookUpTable        = $swoole->object->leagueLookUpTable;
-            $teamLookUpTable          = $swoole->object->teamLookUpTable;
-            $eventScheduleChangeTable = $swoole->object->eventScheduleChangeTable;
+            $providersTable           = $swoole->providersTable;
+            $sportsTable              = $swoole->sportsTable;
+            $leaguesTable             = $swoole->leaguesTable;
+            $teamsTable               = $swoole->teamsTable;
+            $eventsTable              = $swoole->eventsTable;
+            $oddTypesTable            = $swoole->oddTypesTable;
+            $sportOddTypesTable       = $swoole->sportOddTypesTable;
+            $eventMarketsTable        = $swoole->eventMarketsTable;
+            $leagueLookUpTable        = $swoole->leagueLookUpTable;
+            $teamLookUpTable          = $swoole->teamLookUpTable;
+            $eventScheduleChangeTable = $swoole->eventScheduleChangeTable;
 
             /**
              * PROVIDERS Swoole Table

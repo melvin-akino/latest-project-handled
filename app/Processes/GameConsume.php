@@ -84,8 +84,22 @@ class GameConsume implements CustomProcessInterface
                                 //$odds = new TransformKafkaMessageOdds($payload);
                                 //$this->dispatch($odds);
                                 //$odds->dispatch();
+                                
+                                
                                 $swooled = new \stdClass();
-                                $swooled->object = $swoole;
+                                $swooled->providersTable = $swoole->providersTable;
+                                $swooled->sportsTable = $swoole->sportsTable;
+                                $swooled->leaguesTable = $swoole->leaguesTable;
+                                $swooled->teamsTable = $swoole->teamsTable;
+                                $swooled->eventsTable = $swoole->eventsTable;
+                                $swooled->oddTypesTable = $swoole->oddTypesTable;
+                                $swooled->sportOddTypesTable = $swoole->sportOddTypesTable;
+                                $swooled->eventMarketsTable = $swoole->eventMarketsTable;
+                                $swooled->leagueLookUpTable = $swoole->leagueLookUpTable
+                                $swooled->teamLookUpTable = $swoole->teamLookUpTable;
+                                $swooled->eventScheduleChangeTable = $swoole->eventScheduleChangeTable;
+                                
+                                
                                 
                                 TransformKafkaMessageOdds::dispatch($payload,$swooled );
                                 //Task::deliver(new TransformKafkaMessageOdds($payload));
