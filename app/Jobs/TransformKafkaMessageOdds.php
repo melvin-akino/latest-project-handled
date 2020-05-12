@@ -7,6 +7,9 @@ use Illuminate\Support\Str;
 //use Hhxsv5\LaravelS\Swoole\Task\Task;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
+use Illuminate\Bus\Queueable;
+
+use Illuminate\Queue\InteractsWithQueue;
 use Exception;
 
 class TransformKafkaMessageOdds implements ShouldQueue
