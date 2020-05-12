@@ -52,10 +52,10 @@ class TransformKafkaMessageOdds implements ShouldQueue
         'TEST'
     ];
 
-    public function __construct($message)
+    public function __construct($message, $swoole)
     {
         $this->message = $message;
-       // $this->swoole = $swoole;
+        $this->swoole = $swoole;
         Log::info( "construct TransformKafkaMessageOdds");
     }
 
@@ -64,8 +64,8 @@ class TransformKafkaMessageOdds implements ShouldQueue
         Log::info( "handle TransformKafkaMessageOdds");
         try {
 
-            //$swoole = $this->swoole;
-            $swoole = app('swoole');
+            $swoole = $this->swoole;
+            //$swoole = app('swoole');
 
             foreach ($this->disregard AS $disregard) {
                 if (strpos($this->message->data->leagueName, $disregard) === 0) {
