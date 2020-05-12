@@ -54,16 +54,17 @@ class TransformKafkaMessageOdds implements ShouldQueue
         'TEST'
     ];
 
-    public function __construct($message)
+    public function __construct($message,$swoole)
     {
        // Log::info("swoole .". $swoole->connection_info());
         $this->message = $message;
+        
         //$this->swoole = $swoole->addListener('127.0.0.1', 1219,   SWOOLE_SOCK_TCP);
-        //$this->swoole = $swoole;
+        $this->swoole = $swoole;
         Log::info( "construct TransformKafkaMessageOdds");
     }
     public function handle() {
-        Task::deliver(new OddsMessage($this->message));
+        Task::deliver(new OddsMessage($this->message, $this->swoole));
 
     }
 
