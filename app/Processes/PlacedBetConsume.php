@@ -32,17 +32,18 @@ class PlacedBetConsume implements CustomProcessInterface
 
                         if (empty($payload->data->status) || empty($payload->data->odds)) {
                             Log::info("Bet Transformation ignored - Status Or Odds Not Found");
-                            $kafkaConsumer->commitAsync($message);
+                            $kafkaConsumer->commit($message);
                             Log::channel('kafkalog')->info(json_encode($message));
                             continue;
                         }
                         PrometheusMatric::MakeMatrix('pull_bet_order_total', 'Bet order pulled .',  $payload->data->market_id);
                         TransformKafkaMessageBet::dispatch($payload);
 
-                        $kafkaConsumer->commitAsync($message);
+                        $kafkaConsumer->commit($message);
                         Log::channel('kafkalog')->info(json_encode($message));
+                        continue;
                     }
-                    usleep(10000);
+                    usleep(100000);
                 }
             }
         } catch (Exception $e) {

@@ -2,7 +2,7 @@
     <div class="search w-1/2 xl:w-1/3" v-if="showSearch">
         <form class="relative px-4">
             <div class="flex items-center">
-                <input type="text" class="appearance-none bg-transparent border-b border-gray-800 w-full text-sm text-gray-700 mr-1 py-1 leading-tight focus:outline-none" placeholder="Search Leagues or Teams" v-model="searchKeyword" @keyup="searchLeaguesOrTeams">
+                <input type="text" class="appearance-none bg-transparent border-b border-gray-800 w-full text-sm text-gray-700 mr-1 py-1 leading-tight focus:outline-none" placeholder="Search Leagues or Teams" aria-label="Search Leagues or Teams" v-model="searchKeyword" @keyup="searchLeaguesOrTeams">
                 <span class="text-gray-700" type="submit"><i class="fas fa-search"></i></span>
             </div>
             <div class="flex flex-col absolute w-full shadow shadow-inner searchSuggestions py-3 bg-white" v-if="isSearching">

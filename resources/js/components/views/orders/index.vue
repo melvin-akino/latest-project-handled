@@ -2,11 +2,14 @@ er <template>
     <div class="container mx-auto my-10">
         <h3 class="text-xl">My Orders</h3>
         <div class="h-full">
-            <div class="relative" v-if="myorders.length != 0" v-adjust-pl-data-position="myorders.length">
-                <span class="absolute totalPLlabel">Total P/L</span>
-                <span class="absolute totalPL" v-adjust-total-pl-color="totalPL">{{wallet.currency_symbol}} {{totalPL | moneyFormat}}</span>
-            </div>
-            <v-client-table name="My Orders" :data="myorders" :columns="columns" :options="options" ref="ordersTable">
+            <v-client-table name="My Orders" :data="myorders" :columns="columns" :options="options" ref="ordersTable" @filter="getFilteredData">
+                <div slot="beforeTable" class="relative flex justify-end" v-if="myorders.length != 0">
+                    <span class="absolute totalPLlabel">Total P/L</span>
+                    <span class="absolute totalPL" v-adjust-total-pl-color="totalPL">{{wallet.currency_symbol}} {{totalPL | moneyFormat}}</span>
+                    <json-excel :data="toExport" :fields="exportFields" :name="filename">
+                        <span class="text-center py-1 cursor-pointer"><i class="fas fa-file-export" title="Export orders data."></i></span>
+                    </json-excel>
+                </div>
                 <div slot="betSelection" slot-scope="props" v-html="props.row.bet_selection"></div>
                 <div slot="pl" slot-scope="props">
                     <span :class="{'greenPL': props.row.status == 'WIN' || props.row.status == 'HALF WIN', 'redPL': props.row.status == 'LOSE' || props.row.status == 'HALF LOSE'}" >{{props.row.pl | formatPL}}</span>
@@ -28,12 +31,14 @@ er <template>
 import Cookies from 'js-cookie'
 import OrderData from './OrderData'
 import _ from 'lodash'
+import JsonExcel from 'vue-json-excel'
 import { mapState } from 'vuex'
 import { twoDecimalPlacesFormat, moneyFormat } from '../../../helpers/numberFormat'
 
 export default {
     components: {
-        OrderData
+        OrderData,
+        JsonExcel
     },
     data() {
         return {
@@ -58,11 +63,25 @@ export default {
                     towin: 'alignRight',
                     pl: 'alignRight',
                     score: 'alignRight'
-                }
+                },
+                sortable: ['bet_id', 'created', 'provider', 'odds', 'stake', 'towin', 'status','pl']
             },
             openedOddsHistory: [],
             openedBetMatrix: [],
-            oddTypesWithSpreads: [3, 4, 11, 12]
+            oddTypesWithSpreads: [3, 4, 11, 12],
+            toExport: [],
+            exportFields: {
+                'Bet ID'                 : 'bet_id',
+                'Transaction Date & Time': 'created',
+                'Bet Selection'          : 'bet_selection',
+                'Provider'               : 'provider',
+                'Odds'                   : 'odds',
+                'Stake'                  : 'stake',
+                'To Win'                 : 'towin',
+                'Status'                 : 'status',
+                'Result'                 : 'score',
+                'Profit/Loss'            : 'pl'
+            }
         }
     },
     head: {
@@ -78,7 +97,16 @@ export default {
         this.$store.dispatch('settings/getDefaultGeneralSettings')
     },
     computed: {
-        ...mapState('trade', ['wallet'])
+        ...mapState('trade', ['wallet']),
+        filename() {
+            let display_name = Cookies.get('display_name')
+            return `Multiline Orders (${display_name})`
+        }
+    },
+    watch: {
+        myorders() {
+            this.toExport = this.myorders
+        }
     },
     methods: {
         getMyOrders() {
@@ -109,6 +137,9 @@ export default {
                 this.$store.dispatch('auth/checkIfTokenIsValid', err.response.data.status_code)
             })
         },
+        getFilteredData() {
+            this.toExport = this.$refs.ordersTable.allFilteredData
+        },
         openOddsHistory(id) {
             this.openedOddsHistory.push(id)
         },
@@ -123,15 +154,6 @@ export default {
         }
     },
     directives: {
-        adjustPlDataPosition: {
-            bind(el, binding, vnode) {
-                if(binding.value > 10) {
-                    el.style.top = '55px'
-                } else {
-                    el.style.top = '17px'
-                }
-            }
-        },
         adjustTotalPlColor: {
             bind(el, binding, vnode) {
                 if(binding.value > 0) {
@@ -161,104 +183,17 @@ export default {
 </script>
 
 <style>
-    @import '../../../../assets/vuetables2.css';
-
-    .VueTables__table {
-        margin-top: 1rem;
-    }
-
-    .VueTables__table > thead {
-        background-color: #ed8936;
-        color: #ffffff;
-    }
-
-    .alignRight {
-        text-align: right;
-    }
-
-    .VueTables__table > tbody {
-        background-color: #ffffff;
-        font-size: .875rem;
-    }
-
-    .VueTables__heading {
-        font-size: 14px;
-    }
-
-    .VueTables__row  {
-        border: none;
-    }
-
-    .VuePagination__pagination {
-        margin: 0;
-    }
-
-    .VuePagination__count {
-        font-size: .875rem;
-    }
-
-    .VueTables__search {
-        margin-bottom:5px;
-    }
-
-    .VueTables__search-field > label {
-        margin-right:25px;
-    }
-
-    .VueTables__limit-field > label {
-        margin-right: 6px;
-    }
-
-    .VueTables__search__input, .VueTables__limit-field > select {
-        font-size: .9rem;
-        color: #4a5568;
-        box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
-        line-height: 1.25;
-        border-width: 1px;
-        border-radius: 0.25rem;
-    }
-
-    .VueTables__search__input {
-        padding: 0.25rem 0.75rem;
-        -webkit-appearance: none;
-        -moz-appearance: none;
-        appearance: none;
-    }
-
-    .VueTables__limit-field {
-        padding-top: 0.25rem;
-        padding-bottom: 0.75rem;
-    }
-
     .totalPLdata {
         font-size: 15px;
     }
 
     .totalPLlabel {
-        right: 149px;
+        right: 138px;
     }
 
     .totalPL {
         font-weight: 600;
         right: 62px;
-    }
-
-    .dialog-drag {
-        border: solid 1px #ed8936;
-        box-shadow: none;
-        background-color: #edf2f7;
-        animation-duration: .2s;
-        animation-name: fadeIn;
-        animation-timing-function: ease-in-out;
-        position: fixed;
-    }
-
-    .dialog-drag .dialog-body {
-        padding: 0;
-    }
-
-    .dialog-drag .dialog-header {
-        background-color:#ed8936;
     }
 
     .greenPL {

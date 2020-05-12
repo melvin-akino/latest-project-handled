@@ -2,8 +2,7 @@
 
 namespace App\Jobs;
 
-use App\Models\Order;
-use App\Models\ProviderAccount;
+use App\Models\{Order, ProviderAccount};
 use Carbon\Carbon;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -41,7 +40,7 @@ class TransformKafkaMessageBet implements ShouldQueue
                         continue;
                     }
 
-                    $order  = Order::updateOrCreate([
+                    $order = Order::updateOrCreate([
                         'id' => $messageOrderId
                     ], [
                         'bet_id' => $this->message->data->bet_id,
@@ -50,7 +49,9 @@ class TransformKafkaMessageBet implements ShouldQueue
                         'odds'   => $this->message->data->odds
                     ]);
 
-                    ProviderAccount::find($order->provider_account_id)->update(['is_idle' => true, 'updated_at' => Carbon::now()]);
+                    ProviderAccount::find($order->provider_account_id)->update(['is_idle'    => true,
+                                                                                'updated_at' => Carbon::now()
+                    ]);
 
                     $betSelectionArray         = explode("\n", $order->bet_selection);
                     $betSelectionTeamOddsArray = explode('@ ', $betSelectionArray[1]);
@@ -61,8 +62,8 @@ class TransformKafkaMessageBet implements ShouldQueue
                         $betSelectionArray[2]
                     ]);
 
-                    $order->to_win             = $order->stake * $this->message->data->odds;
-                    $order->actual_to_win      = $order->actual_stake * $this->message->data->odds;
+                    $order->to_win        = $order->stake * $this->message->data->odds;
+                    $order->actual_to_win = $order->actual_stake * $this->message->data->odds;
                     $order->save();
 
                     DB::table('order_logs')

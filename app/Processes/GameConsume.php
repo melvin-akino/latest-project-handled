@@ -2,13 +2,13 @@
 
 namespace App\Processes;
 
-use App\Tasks\{
+use App\Jobs\{
     TransformKafkaMessageEvents,
-    TransformKafkaMessageLeagues,
-    TransformKafkaMessageOdds
+    TransformKafkaMessageLeagues
 };
-use Hhxsv5\LaravelS\Swoole\Process\CustomProcessInterface;
+use App\Tasks\TransformKafkaMessageOdds;
 use Hhxsv5\LaravelS\Swoole\Task\Task;
+use Hhxsv5\LaravelS\Swoole\Process\CustomProcessInterface;
 use Illuminate\Support\Facades\Log;
 use Swoole\Http\Server;
 use Swoole\Process;
@@ -41,10 +41,10 @@ class GameConsume implements CustomProcessInterface
 
                         switch ($payload->command) {
                             case 'league':
-                                Task::deliver(new TransformKafkaMessageLeagues($payload));
+                                TransformKafkaMessageLeagues::dispatch($payload);
                                 break;
                             case 'event':
-                                Task::deliver(new TransformKafkaMessageEvents($payload));
+                                TransformKafkaMessageEvents::dispatch($payload);
                                 break;
                             case 'odd':
                                 if (!isset($payload->data->events)) {
@@ -82,8 +82,10 @@ class GameConsume implements CustomProcessInterface
                         }
                         $kafkaConsumer->commitAsync($message);
                         Log::channel('kafkalog')->info(json_encode($message));
+                        usleep(100);
+                        continue;
                     }
-                    usleep(10000);
+                    usleep(100000);
                 }
             }
         } catch (Exception $e) {

@@ -1,14 +1,17 @@
 <?php
 
-namespace App\Tasks;
+namespace App\Jobs;
 
 use App\Models\UserSelectedLeague;
-use Hhxsv5\LaravelS\Swoole\Task\Task;
+use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Support\Facades\Log;
 use Exception;
 
-class TransformationLeagueRemoval extends Task
+class TransformationLeagueRemoval implements ShouldQueue
 {
+    use Dispatchable;
+
     protected $data;
     protected $sportId;
 

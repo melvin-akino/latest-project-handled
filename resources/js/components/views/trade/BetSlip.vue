@@ -10,7 +10,7 @@
                     <div class="flex items-center">
                         <span class="text-white uppercase font-bold mr-2 my-2 px-2 bg-orange-500">{{market_details.odd_type}}</span>
                         <span class="text-gray-800 font-bold my-2 pr-6">{{market_details.league_name}}</span>
-                        <a href="#" @click.prevent="showBetMatrix = true" class="text-center py-1 pr-1" title="Bet Matrix" v-if="oddTypesWithSpreads.includes(market_details.odd_type) && isDoneBetting && isBetSuccessful"><i class="fas fa-chart-area"></i></a>
+                        <a href="#" @click.prevent="showBetMatrix = true" class="text-center py-1 pr-1" title="Bet Matrix" v-if="oddTypesWithSpreads.includes(market_details.odd_type) && isBetSuccessful"><i class="fas fa-chart-area"></i></a>
                         <a href="#" @click.prevent="showOddsHistory = true" class="text-center py-1" title="Odds History"><i class="fas fa-bars"></i></a>
                     </div>
                     <div class="flex items-center">
@@ -55,16 +55,16 @@
                         </div>
                         <div class="flex justify-between items-center py-2">
                             <label class="text-sm">Stake</label>
-                            <input class="shadow appearance-none border rounded text-sm py-1 px-3 text-gray-700 leading-tight focus:outline-none" type="number" v-model="orderForm.stake" @keyup="clearOrderMessage">
+                            <input class="w-40 shadow appearance-none border rounded text-sm py-1 px-3 text-gray-700 leading-tight focus:outline-none" type="number" v-model="orderForm.stake" @keyup="clearOrderMessage">
                         </div>
                         <div class="flex justify-between items-center py-2">
                             <label class="text-sm">Price</label>
-                            <input class="shadow appearance-none border rounded text-sm py-1 px-3 text-gray-700 leading-tight focus:outline-none" type="number" v-model="initialPrice" @keyup="clearOrderMessage">
+                            <input class="w-40 shadow appearance-none border rounded text-sm py-1 px-3 text-gray-700 leading-tight focus:outline-none" type="number" v-model="initialPrice" @keyup="clearOrderMessage">
                         </div>
                         <div class="flex justify-between items-center py-2" :class="{'hidden': betSlipSettings.adv_placement_opt == 0, 'block': betSlipSettings.adv_placement_opt == 1}">
                             <label class="text-sm">Order Expiry</label>
-                            <div class="relative orderExpiryInput">
-                                <select class="shadow appearance-none border rounded text-sm w-full py-1 px-3 text-gray-700 leading-tight focus:outline-none" v-model="orderForm.orderExpiry">
+                            <div class="relative w-40">
+                                <select class="shadow appearance-none border rounded text-sm w-full py-1 px-3 text-gray-700 leading-tight focus:outline-none" v-model="orderForm.orderExpiry" @change="clearOrderMessage">
                                     <option value="30">Now</option>
                                     <option value="120">2 mins</option>
                                     <option value="300">5 mins</option>
@@ -81,15 +81,20 @@
                         <div class="flex justify-between items-center py-2" :class="{'hidden': betSlipSettings.adv_placement_opt == 0, 'block': betSlipSettings.adv_placement_opt == 1}">
                             <label class="text-sm flex items-center">
                                 <span class="mr-4">Fast Bet</span>
-                                <input class="outline-none rounded text-sm py-1 px-3 text-gray-700 leading-tight focus:outline-none" type="radio" value="FAST_BET" v-model="orderForm.betType">
+                                <input class="outline-none rounded text-sm py-1 px-3 text-gray-700 leading-tight focus:outline-none" type="radio" value="FAST_BET" v-model="orderForm.betType" @change="clearOrderMessage">
                             </label>
                             <label class="text-sm flex items-center">
                                 <span class="mr-4">Best Price</span>
-                                <input class="outline-none rounded text-sm py-1 px-3 text-gray-700 leading-tight focus:outline-none" type="radio" value="BEST_PRICE" v-model="orderForm.betType">
+                                <input class="outline-none rounded text-sm py-1 px-3 text-gray-700 leading-tight focus:outline-none" type="radio" value="BEST_PRICE" v-model="orderForm.betType" @change="clearOrderMessage">
                             </label>
                         </div>
                         <span v-if="isPlacingOrder" class="text-sm text-gray-700">Placing bet, please check the recent orders</span>
-                        <span v-else class="text-sm" :class="{'text-red-600': !isBetSuccessful, 'text-green-500': isBetSuccessful}">{{orderMessage}}</span>
+                        <div v-if="!isPlacingOrder && isDoneBetting" class="orderMessage relative flex justify-center items-center text-white py-1 px-2 mt-2 w-full rounded" :class="{'failed': !isBetSuccessful, 'success': isBetSuccessful}">
+                            <span class="text-xs mr-1" v-show="!isBetSuccessful"><i class="fas fa-exclamation-triangle"></i></span>
+                            <span class="text-xs mr-1" v-show="isBetSuccessful"><i class="fas fa-check"></i></span>
+                            {{orderMessage}}
+                            <span class="absolute clearOrderMessage float-right cursor-pointer text-xs" @click="isDoneBetting = false"><i class="fas fa-times-circle"></i></span>
+                        </div>
                     </div>
                     <div class="flex flex-col mt-4 w-3/5 h-full">
                         <div class="flex flex-col items-center bg-white shadow shadow-xl mb-2" v-if="oddTypesWithSpreads.includes(market_details.odd_type)">
@@ -136,7 +141,6 @@ import Cookies from 'js-cookie'
 import _ from 'lodash'
 import OddsHistory from './OddsHistory'
 import BetMatrix from './BetMatrix'
-import 'vue-dialog-drag/dist/vue-dialog-drag.css'
 import DialogDrag from 'vue-dialog-drag'
 import { getSocketKey, getSocketValue } from '../../../helpers/socket'
 import { twoDecimalPlacesFormat, moneyFormat } from '../../../helpers/numberFormat'
@@ -306,6 +310,7 @@ export default {
             this.setActiveBetSlip(market_id)
             this.minmax(market_id)
             this.showBetMatrix = false
+            this.clearOrderMessage()
         },
         previousPoint() {
             if(this.activePointIndex != 0) {
@@ -422,11 +427,14 @@ export default {
         },
         clearOrderMessage() {
             this.orderMessage = ''
+            this.isDoneBetting = false
         },
         updatePrice(price) {
             this.initialPrice = price
+            this.clearOrderMessage()
         },
         placeOrder() {
+            this.isDoneBetting = true
             if(this.orderForm.stake == '' || this.initialPrice == '') {
                 this.orderMessage = 'Please input stake and price.'
                 this.isBetSuccessful = false
@@ -526,8 +534,6 @@ export default {
                     if(this.betSlipSettings.bets_to_fav == 1 && this.isBetSuccessful) {
                         this.$store.dispatch('trade/addToWatchlist', { type: 'event', data: this.odd_details.game.uid, payload: this.odd_details.game })
                     }
-
-                    this.isDoneBetting = true
                     this.isPlacingOrder = false
                 })
                 .catch(err => {
@@ -570,41 +576,8 @@ export default {
 </script>
 
 <style>
-    .orderExpiryInput {
-        width: 10.2rem;
-    }
-
     .leagueAndTeamDetails {
         font-size: 15px;
-    }
-
-    .dialog-drag {
-        border: solid 1px #ed8936;
-        box-shadow: none;
-        background-color: #edf2f7;
-        animation-duration: .2s;
-        animation-name: fadeIn;
-        animation-timing-function: ease-in-out;
-        position: fixed;
-    }
-
-    .dialog-drag .dialog-body {
-        padding: 0;
-        position: relative;
-    }
-
-    @keyframes fadeIn {
-        from {
-            opacity: 0;
-        }
-
-        to {
-            opacity: 1;
-        }
-    }
-
-    .dialog-drag .dialog-header {
-        background-color:#ed8936;
     }
 
     .loader {
@@ -613,5 +586,21 @@ export default {
 
     .betSlipSpinner {
         font-size: 120px;
+    }
+
+    .success {
+        background-color: #5cb85c;
+    }
+
+    .failed {
+        background-color: #d9534f;
+    }
+
+    .orderMessage {
+        font-size: 14px;
+    }
+
+    .clearOrderMessage {
+        right: 5px;
     }
 </style>

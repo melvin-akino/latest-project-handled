@@ -1,13 +1,16 @@
 <?php
 
-namespace App\Tasks;
+namespace App\Jobs;
 
 use Exception;
-use Hhxsv5\LaravelS\Swoole\Task\Task;
+use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Support\Facades\Log;
 
-class TransformKafkaMessageLeagues extends Task
+class TransformKafkaMessageLeagues implements ShouldQueue
 {
+    use Dispatchable;
+
     protected $message;
     protected $swoole;
     protected $disregard = [
@@ -64,7 +67,7 @@ class TransformKafkaMessageLeagues extends Task
             $sportSwtId = "sId:" . $this->message->data->sport;
 
             if ($sportsTable->exists($sportSwtId)) {
-                $sportId   = $sportsTable->get($sportSwtId)['id'];
+                $sportId = $sportsTable->get($sportSwtId)['id'];
             } else {
                 Log::info("League Transformation ignored - Sport doesn't exist");
                 return;
@@ -167,7 +170,7 @@ class TransformKafkaMessageLeagues extends Task
                     }
 
                     if ($key == 'rmv') {
-                        Task::deliver(new TransformationLeagueRemoval($data[$key], $sportId));
+                        TransformationLeagueRemoval::dispatch($data[$key], $sportId);
                     }
 
                     $action   = $key == "rmv" ? "LEAGUE_REMOVAL" : "LEAGUE_ADDITIONAL";

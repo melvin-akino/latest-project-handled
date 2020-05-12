@@ -37,7 +37,6 @@
 import { mapState } from 'vuex'
 import Cookies from 'js-cookie'
 import _ from 'lodash'
-import 'vue-dialog-drag/dist/vue-dialog-drag.css'
 import DialogDrag from 'vue-dialog-drag'
 
 export default {
