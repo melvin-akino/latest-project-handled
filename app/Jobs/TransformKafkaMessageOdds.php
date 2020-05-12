@@ -60,7 +60,7 @@ class TransformKafkaMessageOdds implements ShouldQueue
         $this->message = $message;
         
         //$this->swoole = $swoole->addListener('127.0.0.1', 1219,   SWOOLE_SOCK_TCP);
-        $this->swoole = $swooled;
+        $this->swoole = new $swooled;
         Log::info( "construct TransformKafkaMessageOdds");
     }
 
