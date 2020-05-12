@@ -66,6 +66,7 @@ class TransformKafkaMessageOdds implements ShouldQueue
 
     public function handle() {
         print_r($this->swoole);
+        print_r($this->swoole->firstname);
     }
 
 
