@@ -22,6 +22,7 @@ class KafkaServiceProvider extends ServiceProvider
         $conf->set('group.id', 'multiline');
         $conf->set('auto.offset.reset', 'latest');
         $conf->set('enable.auto.commit', 'false');
+        $conf->set('offset.store.method', 'broker');
 
         if (env('KAFKA_DEBUG', false)) {
             $conf->set('log_level', LOG_DEBUG);
