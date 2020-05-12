@@ -52,10 +52,10 @@ class TransformKafkaMessageOdds implements ShouldQueue
         'TEST'
     ];
 
-    public function __construct($message, Server $swoole)
+    public function __construct($message)
     {
         $this->message = $message;
-        $this->swoole = $swoole;
+       // $this->swoole = $swoole;
         Log::info( "construct TransformKafkaMessageOdds");
     }
 
@@ -470,8 +470,8 @@ class TransformKafkaMessageOdds implements ShouldQueue
                 Task::deliver(new TransformKafkaMessageOddsSaveToDb($this->subTasks, $this->uid, $this->dbOptions));
             }
         } catch (Exception $e) {
-            Log::error($e->getMessage());
-            Log::error($e->getLine());
+            Log::error("error ".$e->getMessage());
+            Log::error("line ".$e->getLine());
         }
     }
 }
