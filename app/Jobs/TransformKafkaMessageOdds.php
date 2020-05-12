@@ -64,7 +64,8 @@ class TransformKafkaMessageOdds implements ShouldQueue
         Log::info( "handle TransformKafkaMessageOdds");
         try {
 
-            $swoole = $this->swoole;
+            //$swoole = $this->swoole;
+            $swoole = app('swoole');
 
             foreach ($this->disregard AS $disregard) {
                 if (strpos($this->message->data->leagueName, $disregard) === 0) {
