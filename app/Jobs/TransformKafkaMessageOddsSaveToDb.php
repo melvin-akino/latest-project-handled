@@ -71,7 +71,7 @@ class TransformKafkaMessageOddsSaveToDb implements ShouldQueue
                     ->delete();
             }
 
-            $eventModel = Events::updateOrCreate([
+            $eventModel = Events::withTrashed()->updateOrCreate([
                 'event_identifier' => $this->eventRawData['Event']['data']['event_identifier']
             ], $this->eventRawData['Event']['data']);
 
