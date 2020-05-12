@@ -472,7 +472,7 @@ class TransformKafkaMessageOdds implements ShouldQueue
         } catch (Exception $e) {
             Log::error("error ".$e->getMessage());
             Log::error("line ".$e->getLine());
-            Log:error("file ". $e->getFile());
+            Log::error("file ". $e->getFile());
         }
     }
 }
