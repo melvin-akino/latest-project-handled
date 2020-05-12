@@ -1,19 +1,14 @@
 <?php
 
-namespace App\Jobs;
+namespace App\Tasks;
 
 use Illuminate\Support\Facades\Log;
-use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Foundation\Bus\Dispatchable;
-use Illuminate\Bus\Queueable;
-use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Support\Str;
+use Hhxsv5\LaravelS\Swoole\Task\Task;
 use Exception;
 
-class TransformKafkaMessageOdds implements ShouldQueue
+class TransformKafkaMessageOdds extends Task
 {
-    use Dispatchable, InteractsWithQueue, Queueable;
-
     protected $message;
     protected $swoole;
     protected $subTasks  = [];
@@ -458,7 +453,7 @@ class TransformKafkaMessageOdds implements ShouldQueue
             }
 
             if (!empty($this->subTasks['event'])) {
-                TransformKafkaMessageOddsSaveToDb::dispatchNow($this->subTasks, $this->uid, $this->dbOptions);
+                Task::deliver(new TransformKafkaMessageOddsSaveToDb($this->subTasks, $this->uid, $this->dbOptions));
             }
         } catch (Exception $e) {
             Log::error($e->getMessage());

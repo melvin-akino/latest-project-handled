@@ -4,9 +4,10 @@ namespace App\Processes;
 
 use App\Jobs\{
     TransformKafkaMessageEvents,
-    TransformKafkaMessageLeagues,
-    TransformKafkaMessageOdds
+    TransformKafkaMessageLeagues
 };
+use App\Tasks\TransformKafkaMessageOdds;
+use Hhxsv5\LaravelS\Swoole\Task\Task;
 use Hhxsv5\LaravelS\Swoole\Process\CustomProcessInterface;
 use Illuminate\Support\Facades\Log;
 use Swoole\Http\Server;
@@ -74,7 +75,7 @@ class GameConsume implements CustomProcessInterface
                                         'hash' => md5(json_encode((array)$payload->data))
                                     ]);
                                 }
-                                TransformKafkaMessageOdds::dispatch($payload);
+                                Task::deliver(new TransformKafkaMessageOdds($payload));
                                 break;
                             default:
                                 break;
