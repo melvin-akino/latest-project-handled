@@ -1,15 +1,19 @@
 <template>
     <div class="flex flex-col bg-white shadow-lg">
         <div class="flex justify-between bg-orange-500 text-white">
-            <a href="#" class="text-sm uppercase py-2 px-3 leagueSchedule" :class="{'bg-orange-400 shadow-xl': selectedLeagueSchedMode === leagueSchedMode}" @click="selectLeagueSchedMode(leagueSchedMode)" v-for="(leagueSchedMode, index) in leagueSchedModes" :key="index">{{leagueSchedMode}} &nbsp; <span v-if="leagues[leagueSchedMode]">({{leagues[leagueSchedMode].length}})</span></a>
+            <a href="#" class="text-sm uppercase p-2 leagueSchedule" :class="{'bg-orange-400 shadow-xl': selectedLeagueSchedMode === leagueSchedMode}" @click="selectLeagueSchedMode(leagueSchedMode)" v-for="(leagueSchedMode, index) in leagueSchedModes" :key="index">{{leagueSchedMode}} &nbsp; <span v-if="leagues[leagueSchedMode]">({{leagues[leagueSchedMode].length}})</span></a>
         </div>
-
-        <div class="flex justify-center" v-if="checkIfLeaguesIsEmpty">
-            <p class="text-sm p-3">No leagues/events available for this sport/schedule.</p>
+        <div v-if="isLoadingLeagues" class="flex justify-center">
+            <p class="text-sm p-3">Loading leagues <i class="fas fa-circle-notch fa-spin"></i></p>
         </div>
+        <div class="leagues" v-else>
+            <div class="flex justify-center" v-if="checkIfLeaguesIsEmpty">
+                <p class="text-sm p-3">No leagues/events available for this sport/schedule.</p>
+            </div>
 
-        <div class="flex flex-col leaguesList" v-else>
-            <a href="#" class="text-sm capitalize py-1 px-3 w-full league" :class="[selectedLeagues[selectedLeagueSchedMode].includes(league.name)  ? 'bg-gray-900 shadow-xl text-white selectedLeague' : 'text-gray-700']" @click="selectLeague(league.name)" v-for="(league, index) in displayedLeagues" :key="index">{{league.name}} &nbsp; ({{league.match_count}})</a>
+            <div class="flex flex-col leaguesList" v-else>
+                <a href="#" class="text-sm capitalize py-1 px-3 w-full league" :class="[selectedLeagues[selectedLeagueSchedMode].includes(league.name)  ? 'bg-gray-900 shadow-xl text-white selectedLeague' : 'text-gray-700']" @click="selectLeague(league.name)" v-for="(league, index) in displayedLeagues" :key="index">{{league.name}} &nbsp; ({{league.match_count}})</a>
+            </div>
         </div>
     </div>
 </template>
@@ -29,7 +33,7 @@ export default {
         }
     },
     computed: {
-        ...mapState('trade', ['selectedLeagues', 'selectedSport', 'events', 'leagues']),
+        ...mapState('trade', ['selectedLeagues', 'selectedSport', 'events', 'leagues', 'isLoadingLeagues']),
         checkIfLeaguesIsEmpty() {
             if(!_.isEmpty(this.leagues)) {
                 return _.isEmpty(this.leagues[this.selectedLeagueSchedMode])
