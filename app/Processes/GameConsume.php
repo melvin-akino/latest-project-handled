@@ -95,9 +95,11 @@ class GameConsume implements CustomProcessInterface
                                 $swooleds->d = $f;
                                 //var_dump($swoole->providersTable);
                                 $d = unserialize($swoole);
-                                Log::info(' swoole ', json_encode($swoole));
-                                Log::info(" swoole providerstable", json_encode($swoole->providersTable));
                                 
+                                Log::info(json_encode([ 'swoole' => $swoole ]))
+                               
+                                Log::info(json_encode([ 'providerstable' => $swoole->providersTable) ]))
+
                                 //print_r($d);
                                 //var_dump($swooled)  ;
                                // $s = unserialize($swoole);
