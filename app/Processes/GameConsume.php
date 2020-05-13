@@ -26,7 +26,7 @@ class GameConsume implements CustomProcessInterface
         $message = null;
         try {
             if ($swoole->data2SwtTable->exist('data2Swt')) {
-                $kafkaConsumer = resolve('KafkaConsumer');
+                $kafkaConsumer = resolve('KafkaLatestConsumer');
                 $kafkaConsumer->subscribe([
                     env('KAFKA_SCRAPE_ODDS', 'SCRAPING-ODDS'),
                     env('KAFKA_SCRAPE_LEAGUES', 'SCRAPING-PROVIDER-LEAGUES'),
