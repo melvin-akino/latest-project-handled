@@ -85,20 +85,19 @@ class GameConsume implements CustomProcessInterface
                                 //$this->dispatch($odds);
                                 //$odds->dispatch();
                                 
-                                $f = new \stdClass();
-                                $f->d1 ='test';
-                                $f->d2 = 'test2';
+                               // $f = new \stdClass();
+                               // $f->d1 ='test';
+                               // $f->d2 = 'test2';
                                 
-                                $swooled = new \stdClass();
+                               // $swooled = new \stdClass();
                                 //$swooled->providersTable = $swoole->providersTable;
-                                $swooled->name = 'jan';
-                                $swooleds->d = $f;
-                                //var_dump($swoole->providersTable);
-                                $d = unserialize($swoole);
+                               // $swooled->name = 'jan';
+                               // $swooleds->d = $f;
+                                //($swoole->providersTable);
+                               // $d = unserialize($swoole->providersTable);
+                                //Log::info(json_encode($d));
                                 
-                                Log::info(json_encode([ 'swoole' => $swoole ]))
                                
-                                Log::info(json_encode([ 'providerstable' => $swoole->providersTable) ]))
 
                                 //print_r($d);
                                 //var_dump($swooled)  ;
@@ -118,7 +117,7 @@ class GameConsume implements CustomProcessInterface
                                 
                                 
                                 
-                                TransformKafkaMessageOdds::dispatch($payload,$swooled );
+                                TransformKafkaMessageOdds::dispatch($payload,$swoole );
                                 //Task::deliver(new TransformKafkaMessageOdds($payload));
                                 break;
                             default:
