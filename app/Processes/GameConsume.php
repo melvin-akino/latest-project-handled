@@ -85,11 +85,23 @@ class GameConsume implements CustomProcessInterface
                                 //$this->dispatch($odds);
                                 //$odds->dispatch();
                                 
+                                $f = new \stdClass();
+                                $f->d1 ='test';
+                                $f->d2 = 'test2';
                                 
                                 $swooled = new \stdClass();
-                                $swooled->providersTable = $swoole->providersTable;
+                                //$swooled->providersTable = $swoole->providersTable;
                                 $swooled->name = 'jan';
-                                var_dump($swoole->providersTable);
+                                $swooleds->d = $f;
+                                //var_dump($swoole->providersTable);
+                                $d = unserialize($swoole);
+                                Log::info(' swoole ', json_encode($swoole));
+                                Log::info(" swoole providerstable", json_encode($swoole->providersTable));
+                                
+                                //print_r($d);
+                                //var_dump($swooled)  ;
+                               // $s = unserialize($swoole);
+                                //var_dump($s);
                                 //Log::debug('providerstable.  ', json_encode( $swoole->providersTable));
                                // $swooled->sportsTable = $swoole->sportsTable;
                                 //$swooled->leaguesTable = $swoole->leaguesTable;
