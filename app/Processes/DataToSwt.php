@@ -406,7 +406,7 @@ class DataToSwt implements CustomProcessInterface
     {
         $providerAccounts = DB::table('provider_accounts as pa')
             ->join('providers as p', 'p.id', 'pa.provider_id')
-            ->where('is_enabled', true)
+            ->where('pa.is_enabled', true)
             ->select('pa.id', 'pa.provider_id', 'pa.type', 'pa.username', 'pa.password', 'pa.punter_percentage',
                 'pa.credits', 'p.alias')
             ->get();
