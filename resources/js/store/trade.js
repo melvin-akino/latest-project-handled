@@ -36,7 +36,9 @@ const state = {
     betSlipSettings: {},
     showSearch: true,
     activeBetSlip: null,
-    wallet: {}
+    wallet: {},
+    isLoadingLeagues: true,
+    isLoadingEvents: true
 }
 
 const mutations = {
@@ -185,6 +187,12 @@ const mutations = {
     },
     SET_WALLET: (state, data) => {
         state.wallet = data
+    },
+    SET_IS_LOADING_LEAGUES: (state) => {
+        state.isLoadingLeagues = false
+    },
+    SET_IS_LOADING_EVENTS: (state) => {
+        state.isLoadingEvents = false
     }
 }
 
@@ -229,6 +237,7 @@ const actions = {
             if(response.data.sport_id == state.selectedSport) {
                 commit('SET_LEAGUES', response.data.data)
             }
+            commit('SET_IS_LOADING_LEAGUES', false)
         })
         .catch(err => {
             dispatch('auth/checkIfTokenIsValid', err.response.data.status_code,  { root: true })
@@ -268,6 +277,7 @@ const actions = {
                     commit('SET_ALL_EVENTS_LIST', event)
                 })
             })
+            commit('SET_IS_LOADING_EVENTS', false)
         })
         .catch(err => {
             dispatch('auth/checkIfTokenIsValid', err.response.data.status_code, { root: true })

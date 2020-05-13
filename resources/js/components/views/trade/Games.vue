@@ -6,103 +6,106 @@
             <span v-show="!isGameSchedTypeOpen"><i class="fas fa-chevron-right"></i></span>
         </div>
         <div class="games" :class="{'hidden': !isGameSchedTypeOpen}">
-            <p class="text-sm text-gray-500 text-center pt-2 noeventspanel" v-if="checkIfGamesIsEmpty">No competitions watched in this market.</p>
-            <div class="eventGroup" v-else>
-                <div class="bg-white text-white text-sm text-gray-700" v-for="(league, index) in games" :key="index">
-                    <div class="flex justify-between py-2 px-4 font-bold border-t border-orange-500 leaguePanel">
-                        <div>
-                            <button type="button" class="mt-1 pr-1 text-red-600 focus:outline-none" @click="gameSchedType==='watchlist' ? removeFromWatchlist('league', index, league) : unselectLeague(index)"><i class="fas fa-times-circle"></i></button>
-                            <button type="button" class="mt-1 pr-1 text-orange-500 focus:outline-none" @click="toggleLeague(index)">
-                                <span v-show="closedLeagues.includes(index)"><i class="fas fa-chevron-down"></i></span>
-                                <span v-show="!closedLeagues.includes(index)"><i class="fas fa-chevron-up"></i></span>
-                            </button>
-                            {{index}}
+            <p v-if="isLoadingEvents" class="text-sm text-gray-500 text-center pt-2 noeventspanel">Loading events <i class="fas fa-circle-notch fa-spin"></i></p>
+            <div v-else class="events">
+                <p class="text-sm text-gray-500 text-center pt-2 noeventspanel" v-if="checkIfGamesIsEmpty">No competitions watched in this market.</p>
+                <div class="eventGroup" v-else>
+                    <div class="bg-white text-white text-sm text-gray-700" v-for="(league, index) in games" :key="index">
+                        <div class="flex justify-between py-2 px-4 font-bold border-t border-orange-500 leaguePanel">
+                            <div>
+                                <button type="button" class="mt-1 pr-1 text-red-600 focus:outline-none" @click="gameSchedType==='watchlist' ? removeFromWatchlist('league', index, league) : unselectLeague(index)"><i class="fas fa-times-circle"></i></button>
+                                <button type="button" class="mt-1 pr-1 text-orange-500 focus:outline-none" @click="toggleLeague(index)">
+                                    <span v-show="closedLeagues.includes(index)"><i class="fas fa-chevron-down"></i></span>
+                                    <span v-show="!closedLeagues.includes(index)"><i class="fas fa-chevron-up"></i></span>
+                                </button>
+                                {{index}}
+                            </div>
+                            <div :class="[gameSchedType==='watchlist' ? 'in-watchlist-star' : 'text-white']" @click="gameSchedType==='watchlist' ? removeFromWatchlist('league', index, league) : addToWatchlist('league', index, league)"><i class="fas fa-star"></i></div>
                         </div>
-                        <div :class="[gameSchedType==='watchlist' ? 'in-watchlist-star' : 'text-white']" @click="gameSchedType==='watchlist' ? removeFromWatchlist('league', index, league) : addToWatchlist('league', index, league)"><i class="fas fa-star"></i></div>
-                    </div>
-                    <div class="gamesWrapper" :class="!closedLeagues.includes(index) ? 'h-full' : 'h-0 overflow-hidden'">
-                        <div class="asianLayout"  v-if="tradeLayout==1">
-                            <div class="event" :class="[index % 2 != 0 ? 'alternateEvent' : '']" v-for="(game, index) in league" :key="game.uid">
-                                <div class="relative flex py-4 px-4 game" >
-                                    <div class="w-2/12 flex flex-col">
-                                        <div><span class="font-bold text-green-400 mr-2">H</span>{{game.home.name}}</div>
-                                        <div><span class="font-bold text-red-600 mr-2">A</span>{{game.away.name}}</div>
-                                        <div><span class="mr-3">&nbsp;</span>Draw</div>
-                                    </div>
-                                    <div class="w-1/12 flex justify-center">
-                                        <span>{{game.sport}}</span>
-                                    </div>
-                                    <div class="w-1/12 flex flex-col items-center">
-                                        <span v-if="gameSchedType === 'inplay' || (gameSchedType === 'watchlist' && game.game_schedule === 'inplay')">{{game.home.score}} - {{game.away.score}}</span>
-                                        <span>{{ game.ref_schedule.split(' ')[0]}}</span>
-                                        <span>{{ game.ref_schedule.split(' ')[1]}}</span>
-                                    </div>
-                                    <div class="w-1/12"></div>
-                                    <div class="w-1/12 flex flex-col items-center" :class="column" v-for="(column, index) in oddsTypeBySport" :key="index">
-                                        <p class="relative" :class="[{'order-1' : index=='HOME'}, {'order-2' : index=='AWAY'}, {'order-3': index=='DRAW'}]" v-for="(odd, index) in game.market_odds.main[column]" :key="odd.market_id" v-toggle-odds="odd.odds">
-                                            <span class="absolute text-gray-500 odds-label" :class="[odd.odds != '' ? 'left-label' : 'empty-left-label']">{{odd.points}}</span>
-                                            <a href="#" @click.prevent="openBetSlip(odd, game)" class="px-2 rounded-lg" :class="{'bet-click' : odd.odds != ''}" v-adjust-odd-color="odd.odds">{{odd.odds | twoDecimalPlacesFormat}}</a>
-                                        </p>
-                                    </div>
-                                    <div class="absolute eventStar" :class="[gameSchedType==='watchlist' ? 'in-watchlist-star' : 'text-white']" @click="gameSchedType==='watchlist' ? removeFromWatchlist('event', game.uid, game) : addToWatchlist('event', game.uid, game)">
-                                        <span><i class="fas fa-star"></i></span>
-                                    </div>
-                                    <button class="otherMarketsBtn absolute text-orange-500 hover:text-orange-600 focus:outline-none" @click="toggleOtherMarkets(game)" title="View other markets.">
-                                        <span v-show="game.market_odds.hasOwnProperty('other')"><i class="fas fa-minus-square"></i></span>
-                                        <span v-show="!game.market_odds.hasOwnProperty('other')"><i class="fas fa-plus-square"></i></span>
-                                    </button>
-                                </div>
-                                <div class="otherMarkets" v-if="'other' in game.market_odds">
-                                    <div class="relative flex py-4 px-4 game" v-for="(otherMarket, index) in game.market_odds.other" :key="index">
-                                        <div class="w-2/12"></div>
-                                        <div class="w-1/12 flex justify-center"></div>
-                                        <div class="w-1/12"></div>
+                        <div class="gamesWrapper" :class="!closedLeagues.includes(index) ? 'h-full' : 'h-0 overflow-hidden'">
+                            <div class="asianLayout"  v-if="tradeLayout==1">
+                                <div class="event" :class="[index % 2 != 0 ? 'alternateEvent' : '']" v-for="(game, index) in league" :key="game.uid">
+                                    <div class="relative flex py-4 px-4 game" >
+                                        <div class="w-2/12 flex flex-col">
+                                            <div><span class="font-bold text-green-400 mr-2">H</span>{{game.home.name}}</div>
+                                            <div><span class="font-bold text-red-600 mr-2">A</span>{{game.away.name}}</div>
+                                            <div><span class="mr-3">&nbsp;</span>Draw</div>
+                                        </div>
+                                        <div class="w-1/12 flex justify-center">
+                                            <span>{{game.sport}}</span>
+                                        </div>
+                                        <div class="w-1/12 flex flex-col items-center">
+                                            <span v-if="gameSchedType === 'inplay' || (gameSchedType === 'watchlist' && game.game_schedule === 'inplay')">{{game.home.score}} - {{game.away.score}}</span>
+                                            <span>{{ gameSchedType === 'inplay' || (gameSchedType === 'watchlist' && game.game_schedule === 'inplay') ? game.running_time : game.ref_schedule.split(' ')[0]}}</span>
+                                            <span v-if="gameSchedType != 'inplay'">{{ game.ref_schedule.split(' ')[1]}}</span>
+                                        </div>
                                         <div class="w-1/12"></div>
                                         <div class="w-1/12 flex flex-col items-center" :class="column" v-for="(column, index) in oddsTypeBySport" :key="index">
-                                            <p class="relative" :class="[{'order-1' : index=='HOME'}, {'order-2' : index=='AWAY'}, {'order-3': index=='DRAW'}]" v-for="(odd, index) in otherMarket[column]" :key="odd.market_id" v-toggle-odds="odd.odds">
+                                            <p class="relative" :class="[{'order-1' : index=='HOME'}, {'order-2' : index=='AWAY'}, {'order-3': index=='DRAW'}]" v-for="(odd, index) in game.market_odds.main[column]" :key="odd.market_id" v-toggle-odds="odd.odds">
                                                 <span class="absolute text-gray-500 odds-label" :class="[odd.odds != '' ? 'left-label' : 'empty-left-label']">{{odd.points}}</span>
                                                 <a href="#" @click.prevent="openBetSlip(odd, game)" class="px-2 rounded-lg" :class="{'bet-click' : odd.odds != ''}" v-adjust-odd-color="odd.odds">{{odd.odds | twoDecimalPlacesFormat}}</a>
                                             </p>
                                         </div>
+                                        <div class="absolute eventStar" :class="[gameSchedType==='watchlist' ? 'in-watchlist-star' : 'text-white']" @click="gameSchedType==='watchlist' ? removeFromWatchlist('event', game.uid, game) : addToWatchlist('event', game.uid, game)">
+                                            <span><i class="fas fa-star"></i></span>
+                                        </div>
+                                        <button class="otherMarketsBtn absolute text-orange-500 hover:text-orange-600 focus:outline-none" @click="toggleOtherMarkets(game)" title="View other markets.">
+                                            <span v-show="game.market_odds.hasOwnProperty('other')"><i class="fas fa-minus-square"></i></span>
+                                            <span v-show="!game.market_odds.hasOwnProperty('other')"><i class="fas fa-plus-square"></i></span>
+                                        </button>
+                                    </div>
+                                    <div class="otherMarkets" v-if="'other' in game.market_odds">
+                                        <div class="relative flex py-4 px-4 game" v-for="(otherMarket, index) in game.market_odds.other" :key="index">
+                                            <div class="w-2/12"></div>
+                                            <div class="w-1/12 flex justify-center"></div>
+                                            <div class="w-1/12"></div>
+                                            <div class="w-1/12"></div>
+                                            <div class="w-1/12 flex flex-col items-center" :class="column" v-for="(column, index) in oddsTypeBySport" :key="index">
+                                                <p class="relative" :class="[{'order-1' : index=='HOME'}, {'order-2' : index=='AWAY'}, {'order-3': index=='DRAW'}]" v-for="(odd, index) in otherMarket[column]" :key="odd.market_id" v-toggle-odds="odd.odds">
+                                                    <span class="absolute text-gray-500 odds-label" :class="[odd.odds != '' ? 'left-label' : 'empty-left-label']">{{odd.points}}</span>
+                                                    <a href="#" @click.prevent="openBetSlip(odd, game)" class="px-2 rounded-lg" :class="{'bet-click' : odd.odds != ''}" v-adjust-odd-color="odd.odds">{{odd.odds | twoDecimalPlacesFormat}}</a>
+                                                </p>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
-                        <div class="europeanLayout" v-if="tradeLayout==2">
-                            <div class="flex flex-col justify-around pl-4 pr-8 py-4 game" :class="[index % 2 != 0 ? 'alternateEvent' : '']" v-for="(game, index) in league" :key="game.uid">
-                                <div class="relative flex justify-center pb-4">
-                                    <span class="gameColumn teamColumn">{{game.home.name}}</span>
-                                    <span class="gameColumn font-bold text-green-400 text-center">H</span>
-                                    <span class="gameColumn text-lg text-center">{{game.home.score}}</span>
-                                    <span class="gameColumn text-center">{{ game.ref_schedule }}</span>
-                                    <span class="gameColumn text-lg text-center">{{game.away.score}}</span>
-                                    <span class="gameColumn font-bold text-red-600 text-center">A</span>
-                                    <span class="gameColumn teamColumn">{{game.away.name}}</span>
-                                    <div class="absolute european-event-star" :class="[gameSchedType==='watchlist' ? 'in-watchlist-star' : 'text-white']" @click="gameSchedType==='watchlist' ? removeFromWatchlist('event', game.uid, game) : addToWatchlist('event', game.uid, game)">
-                                        <span><i class="fas fa-star"></i></span>
+                            <div class="europeanLayout" v-if="tradeLayout==2">
+                                <div class="flex flex-col justify-around pl-4 pr-8 py-4 game" :class="[index % 2 != 0 ? 'alternateEvent' : '']" v-for="(game, index) in league" :key="game.uid">
+                                    <div class="relative flex justify-center pb-4">
+                                        <span class="gameColumn teamColumn">{{game.home.name}}</span>
+                                        <span class="gameColumn font-bold text-green-400 text-center">H</span>
+                                        <span class="gameColumn text-lg text-center">{{game.home.score}}</span>
+                                        <span class="gameColumn text-center">{{ gameSchedType === 'inplay' || (gameSchedType === 'watchlist' && game.game_schedule === 'inplay') ? game.running_time : game.ref_schedule }}</span>
+                                        <span class="gameColumn text-lg text-center">{{game.away.score}}</span>
+                                        <span class="gameColumn font-bold text-red-600 text-center">A</span>
+                                        <span class="gameColumn teamColumn">{{game.away.name}}</span>
+                                        <div class="absolute european-event-star" :class="[gameSchedType==='watchlist' ? 'in-watchlist-star' : 'text-white']" @click="gameSchedType==='watchlist' ? removeFromWatchlist('event', game.uid, game) : addToWatchlist('event', game.uid, game)">
+                                            <span><i class="fas fa-star"></i></span>
+                                        </div>
+                                        <button class="europeanOtherMarketsBtn absolute text-orange-500 hover:text-orange-600 focus:outline-none" @click="toggleOtherMarkets(game)" title="View other markets.">
+                                            <span v-show="game.market_odds.hasOwnProperty('other')"><i class="fas fa-minus-square"></i></span>
+                                            <span v-show="!game.market_odds.hasOwnProperty('other')"><i class="fas fa-plus-square"></i></span>
+                                        </button>
                                     </div>
-                                    <button class="europeanOtherMarketsBtn absolute text-orange-500 hover:text-orange-600 focus:outline-none" @click="toggleOtherMarkets(game)" title="View other markets.">
-                                        <span v-show="game.market_odds.hasOwnProperty('other')"><i class="fas fa-minus-square"></i></span>
-                                        <span v-show="!game.market_odds.hasOwnProperty('other')"><i class="fas fa-plus-square"></i></span>
-                                    </button>
-                                </div>
-                                <div class="flex">
-                                    <div class="w-1/12"></div>
-                                    <div class="w-1/12 flex justify-between mr-10" :class="column" v-for="(column, index) in oddsTypeBySport" :key="index">
-                                        <p class="relative" :class="[{'order-1' : index=='HOME'}, {'order-2' : index=='DRAW'}, {'order-3': index=='AWAY'}]" v-for="(odd, index) in game.market_odds.main[column]" :key="odd.market_id" v-toggle-odds="odd.odds">
-                                            <span class="absolute text-gray-500 odds-label" :class="[odd.odds != '' ? 'left-label' : 'empty-left-label']">{{odd.points}}</span>
-                                            <a href="#"  @click.prevent="openBetSlip(odd, game)" class="px-2 rounded-lg" :class="{'bet-click' : odd.odds != ''}" v-adjust-odd-color="odd.odds">{{odd.odds | twoDecimalPlacesFormat}}</a>
-                                        </p>
-                                    </div>
-                                </div>
-                                <div class="otherMarkets" v-if="'other' in game.market_odds">
-                                    <div class="flex" v-for="(otherMarket, index) in game.market_odds.other" :key="index">
+                                    <div class="flex">
                                         <div class="w-1/12"></div>
                                         <div class="w-1/12 flex justify-between mr-10" :class="column" v-for="(column, index) in oddsTypeBySport" :key="index">
-                                            <p class="relative" :class="[{'order-1' : index=='HOME'}, {'order-2' : index=='DRAW'}, {'order-3': index=='AWAY'}]" v-for="(odd, index) in otherMarket[column]" :key="odd.market_id" v-toggle-odds="odd.odds">
+                                            <p class="relative" :class="[{'order-1' : index=='HOME'}, {'order-2' : index=='DRAW'}, {'order-3': index=='AWAY'}]" v-for="(odd, index) in game.market_odds.main[column]" :key="odd.market_id" v-toggle-odds="odd.odds">
                                                 <span class="absolute text-gray-500 odds-label" :class="[odd.odds != '' ? 'left-label' : 'empty-left-label']">{{odd.points}}</span>
                                                 <a href="#"  @click.prevent="openBetSlip(odd, game)" class="px-2 rounded-lg" :class="{'bet-click' : odd.odds != ''}" v-adjust-odd-color="odd.odds">{{odd.odds | twoDecimalPlacesFormat}}</a>
                                             </p>
+                                        </div>
+                                    </div>
+                                    <div class="otherMarkets" v-if="'other' in game.market_odds">
+                                        <div class="flex" v-for="(otherMarket, index) in game.market_odds.other" :key="index">
+                                            <div class="w-1/12"></div>
+                                            <div class="w-1/12 flex justify-between mr-10" :class="column" v-for="(column, index) in oddsTypeBySport" :key="index">
+                                                <p class="relative" :class="[{'order-1' : index=='HOME'}, {'order-2' : index=='DRAW'}, {'order-3': index=='AWAY'}]" v-for="(odd, index) in otherMarket[column]" :key="odd.market_id" v-toggle-odds="odd.odds">
+                                                    <span class="absolute text-gray-500 odds-label" :class="[odd.odds != '' ? 'left-label' : 'empty-left-label']">{{odd.points}}</span>
+                                                    <a href="#"  @click.prevent="openBetSlip(odd, game)" class="px-2 rounded-lg" :class="{'bet-click' : odd.odds != ''}" v-adjust-odd-color="odd.odds">{{odd.odds | twoDecimalPlacesFormat}}</a>
+                                                </p>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -132,7 +135,7 @@ export default {
         }
     },
     computed: {
-        ...mapState('trade', ['selectedSport', 'selectedLeagues', 'tradeLayout', 'oddsTypeBySport', 'events', 'eventsList', 'watchlist', 'openedBetSlips', 'tradePageSettings']),
+        ...mapState('trade', ['selectedSport', 'selectedLeagues', 'tradeLayout', 'oddsTypeBySport', 'events', 'eventsList', 'watchlist', 'openedBetSlips', 'tradePageSettings', 'isLoadingEvents']),
         ...mapState('settings', ['disabledBetColumns']),
         checkIfGamesIsEmpty() {
             return _.isEmpty(this.games)
