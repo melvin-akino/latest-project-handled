@@ -224,6 +224,7 @@ class TransformKafkaMessageOddsSaveToDb extends Task
                 $this->swoole->updatedEventPricesTable->set($WSOddsSwtId,
                     ['value' => json_encode(array_values($updatedPrice))]);
             }
+            Log::info('Transformation - Processed completed');
         } catch (Exception $e) {
             Log::error(json_encode(
                 [

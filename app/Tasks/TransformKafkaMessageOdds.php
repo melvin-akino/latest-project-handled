@@ -453,6 +453,7 @@ class TransformKafkaMessageOdds extends Task
             }
 
             if (!empty($this->subTasks['event'])) {
+                Log::info('Transformation - finished, continue to saving');
                 Task::deliver(new TransformKafkaMessageOddsSaveToDb($this->subTasks, $this->uid, $this->dbOptions));
             }
         } catch (Exception $e) {
