@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Tasks;
+namespace App\Jobs;
 
 use App\Models\{
     EventMarket,
@@ -18,7 +18,6 @@ use Illuminate\Support\Facades\{DB, Log};
 //use Hhxsv5\LaravelS\Swoole\Task\Task;
 
 use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Bus\Queueable;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Queue\InteractsWithQueue;
@@ -49,15 +48,21 @@ class TransformKafkaMessageOddsSaveToDb implements ShouldQueue
         $this->uid       = $uid;
         $this->dbOptions = $dbOptions;
         $this->swoole = $swoole;
+        Log::info( "construct TransformKafkaMessageOddsSaveToDb");
     }
+
+     public function handle() {
+        Log::info( "handles TransformKafkaMessageOddsSaveToDb");
+     }
 
     /**
      * Execute the job.
      *
      * @return void
      */
-    public function handle()
+    public function handle___()
     {
+        Log::info( "handles TransformKafkaMessageOddsSaveToDb");
         //$this->swoole               = app('swoole');
         $this->eventData            = $this->subTasks['event'];
         $this->eventRawData         = $this->subTasks['event-raw'];

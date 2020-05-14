@@ -12,9 +12,8 @@ use Illuminate\Bus\Queueable;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Queue\InteractsWithQueue;
 use Exception;
-use Swoole\Http\Server;
-use Swoole\Process;
-
+//use  App\Jobs\TransformKafkaMessageOddsSaveToDb;
+use TransformKafkaMessageOddsSaveToDb;
 
 class TransformKafkaMessageOdds implements ShouldQueue
 {
@@ -54,7 +53,7 @@ class TransformKafkaMessageOdds implements ShouldQueue
         'TEST'
     ];
 
-    public function __construct($message,&$swoole)
+    public function __construct($message,$swoole)
     {
        // Log::info("swoole .". $swoole->connection_info());
         $this->message = $message;
@@ -101,7 +100,7 @@ class TransformKafkaMessageOdds implements ShouldQueue
             $eventMarketsTable        = $swoole->eventMarketsTable;
             $leagueLookUpTable        = $swoole->leagueLookUpTable;
             $teamLookUpTable          = $swoole->teamLookUpTable;
-            $eventScheduleChangeTable = $swoole->eventScheduleChangeTable;
+            //$eventScheduleChangeTable = $swoole->eventScheduleChangeTable;
 
             /**
              * PROVIDERS Swoole Table
@@ -112,10 +111,12 @@ class TransformKafkaMessageOdds implements ShouldQueue
              *      $providerSwtId   swoole_table_key    "providerAlias:<strtolower($provider)>"
              *      $providerId      swoole_table_value  int
              */
-            $providerSwtId = "providerAlias:" . strtolower($this->message->data->provider);
 
-            if ($providersTable->exist($providerSwtId)) {
-                $providerId = $providersTable->get($providerSwtId)['id'];
+            $providerSwtId = "providerAlias:" . strtolower($this->message->data->provider);
+            if (array_key_exists($providerSwtId, $providersTable)) {
+            //if ($providersTable->exist($providerSwtId)) {
+                //$providerId = $providersTable->get($providerSwtId)['id'];
+                $providerId = $providersTable[$providerSwtId]['id'];
             } else {
                 Log::info("Transformation ignored - Provider doesn't exist");
                 return;
@@ -131,9 +132,10 @@ class TransformKafkaMessageOdds implements ShouldQueue
              *      $sportId      swoole_table_value  int
              */
             $sportSwtId = "sId:" . $this->message->data->sport;
-
-            if ($sportsTable->exists($sportSwtId)) {
-                $sportId = $sportsTable->get($sportSwtId)['id'];
+            if (array_key_exists($sportSwtId, $sportsTable)) {
+            //if ($sportsTable->exists($sportSwtId)) {
+                //$sportId = $sportsTable->get($sportSwtId)['id'];
+                $sportId = $sportsTable[$sportSwtId]['id'];
             } else {
                 Log::info("Transformation ignored - Sport doesn't exist");
                 return;
@@ -163,10 +165,12 @@ class TransformKafkaMessageOdds implements ShouldQueue
                 "pId:" . $providerId,
                 "leagueLookUpId:" . $leagueLookupId
             ]);
-
-            if ($leaguesTable->exists($leagueSwtId)) {
-                $multiLeagueId    = $leaguesTable->get($leagueSwtId)['id'];
-                $masterLeagueName = $leaguesTable->get($leagueSwtId)['master_league_name'];
+            if (array_key_exists($leagueSwtId, $leaguesTable)) { 
+            //if ($leaguesTable->exists($leagueSwtId)) {
+               // $multiLeagueId    = $leaguesTable->get($leagueSwtId)['id'];
+               // $masterLeagueName = $leaguesTable->get($leagueSwtId)['master_league_name'];
+                $multiLeagueId    = $leaguesTable[$leagueSwtId]['id'];
+                $masterLeagueName = $leaguesTable[$leagueSwtId]['master_league_name'];
             } else {
                 Log::info("Transformation ignored - League is not in the masterlist");
                 return;
@@ -198,10 +202,12 @@ class TransformKafkaMessageOdds implements ShouldQueue
                     "pId:" . $providerId,
                     "teamLookUpId:" . $teamLookUpId
                 ]);
-
-                if ($teamsTable->exists($teamSwtId)) {
-                    $multiTeam[$key]['id']   = $teamsTable->get($teamSwtId)['id'];
-                    $multiTeam[$key]['name'] = $teamsTable->get($teamSwtId)['team_name'];
+                if (array_key_exists($teamSwtId, $teamsTable)) {
+                //if ($teamsTable->exists($teamSwtId)) {
+                   // $multiTeam[$key]['id']   = $teamsTable->get($teamSwtId)['id'];
+                    //$multiTeam[$key]['name'] = $teamsTable->get($teamSwtId)['team_name'];
+                    $multiTeam[$key]['id']   = $teamsTable[$teamSwtId]['id'];
+                    $multiTeam[$key]['name'] = $teamsTable[$teamSwtId]['team_name'];
                 } else {
                     Log::info("Transformation ignored - No Available Teams in the masterlist");
                     return;
@@ -225,23 +231,31 @@ class TransformKafkaMessageOdds implements ShouldQueue
                     "eventIdentifier:" . $this->message->data->events[0]->eventId
                 ]);
 
-                if ($eventsTable->exists($eventSwtId)) {
-                    $eventId        = $eventsTable->get($eventSwtId)['id'];
-                    $uid            = $eventsTable->get($eventSwtId)['master_event_unique_id'];
-                    $masterTeamHome = $eventsTable->get($eventSwtId)['master_home_team_name'];
-                    $masterTeamAway = $eventsTable->get($eventSwtId)['master_away_team_name'];
-
-                    if ($this->message->data->schedule == 'early' && $eventsTable->get($eventSwtId)['game_schedule'] == 'today') {
+                if (array_key_exists($eventSwtId, $eventsTable)) { 
+                //if ($eventsTable->exists($eventSwtId)) {
+                   // $eventId        = $eventsTable->get($eventSwtId)['id'];
+                    //$uid            = $eventsTable->get($eventSwtId)['master_event_unique_id'];
+                    //$masterTeamHome = $eventsTable->get($eventSwtId)['master_home_team_name'];
+                    //$masterTeamAway = $eventsTable->get($eventSwtId)['master_away_team_name'];
+                    $eventId        = $eventsTable[$eventSwtId]['id'];
+                    $uid            = $eventsTable[$eventSwtId]['master_event_unique_id'];
+                    $masterTeamHome = $eventsTable[$eventSwtId]['master_home_team_name'];
+                    $masterTeamAway = $eventsTable[$eventSwtId]['master_away_team_name'];
+                    if ($this->message->data->schedule == 'early' && $eventsTable[$eventSwtId]['game_schedule'] == 'today') {
+                   // if ($this->message->data->schedule == 'early' && $eventsTable->get($eventSwtId)['game_schedule'] == 'today') {
                         Log::info("Transformation ignored - event is already in today");
                         return;
                     }
+                    if ($this->message->data->schedule == 'today' && $eventsTable[$eventSwtId]['game_schedule'] == 'inplay') {
 
-                    if ($this->message->data->schedule == 'today' && $eventsTable->get($eventSwtId)['game_schedule'] == 'inplay') {
+                    //if ($this->message->data->schedule == 'today' && $eventsTable->get($eventSwtId)['game_schedule'] == 'inplay') {
                         Log::info("Transformation ignored - event is already in play");
                         return;
                     }
 
-                    if (($eventsTable->get($eventSwtId)['game_schedule'] != "") && ($eventsTable->get($eventSwtId)['game_schedule'] != $this->message->data->schedule)) {
+                    if (($eventsTable[$eventSwtId]['game_schedule'] != "") && ($eventsTable[$eventSwtId]['game_schedule'] != $this->message->data->schedule)) {
+
+                   // if (($eventsTable->get($eventSwtId)['game_schedule'] != "") && ($eventsTable->get($eventSwtId)['game_schedule'] != $this->message->data->schedule)) {
                         $this->subTasks['remove-previous-market'][] = [
                             'uid'    => $uid,
                             'swtKey' => implode(':', [
@@ -249,7 +263,8 @@ class TransformKafkaMessageOdds implements ShouldQueue
                                 "meUID:" . $uid,
                             ]),
                         ];
-
+                        /* send to kafka */   
+                        /* 
                         $eventScheduleChangeTable->set('eventScheduleChange:' . $uid, [
                             'value' => json_encode([
                                 'uid'           => $uid,
@@ -257,6 +272,7 @@ class TransformKafkaMessageOdds implements ShouldQueue
                                 'sport_id'      => $sportId
                             ])
                         ]);
+                        */
 
                         $eventsTable[$eventSwtId]['game_schedule'] = $this->message->data->schedule;
                     }
@@ -330,8 +346,10 @@ class TransformKafkaMessageOdds implements ShouldQueue
                              */
                             $oddTypeSwtId = "oddType:" . $columns->oddsType;
 
-                            if ($oddTypesTable->exists($oddTypeSwtId)) {
-                                $oddTypeId = $oddTypesTable->get($oddTypeSwtId)['id'];
+                            if (array_key_exists($oddTypeSwtId,$oddTypesTable)) {
+                            //if ($oddTypesTable->exists($oddTypeSwtId)) {
+                                //$oddTypeId = $oddTypesTable->get($oddTypeSwtId)['id'];
+                                $oddTypeId = $oddTypesTable[$oddTypeSwtId]['id'];
                             } else {
                                 throw new Exception("Odds Type doesn't exist");
                             }
@@ -349,8 +367,8 @@ class TransformKafkaMessageOdds implements ShouldQueue
                                 "sId:" . $sportId,
                                 "oddType:" . Str::slug($columns->oddsType)
                             ]);
-
-                            if (!$sportOddTypesTable->exist($sportOddTypeSwtId)) {
+                            if (! array_key_exists($sportOddTypeSwtId, $sportOddTypesTable)) {
+                            //if (!$sportOddTypesTable->exist($sportOddTypeSwtId)) {
                                 throw new Exception("Sport Odds Type doesn't exist");
                             }
 
@@ -407,9 +425,12 @@ class TransformKafkaMessageOdds implements ShouldQueue
                                 ]);
 
                                 $isMarketSame = true;
-                                if ($eventMarketsTable->exist($masterEventMarketSwtId) && !empty($markets->market_id)) {
-                                    $memUID = $eventMarketsTable->get($masterEventMarketSwtId)['master_event_market_unique_id'];
-                                    $odds   = $eventMarketsTable->get($masterEventMarketSwtId)['odds'];
+                                if ( (array_key_exists($masterEventMarketSwtId,$eventMarketsTable)) && !empty($markets->market_id)) {
+                                //if ($eventMarketsTable->exist($masterEventMarketSwtId) && !empty($markets->market_id)) {
+                                    //$memUID = $eventMarketsTable->get($masterEventMarketSwtId)['master_event_market_unique_id'];
+                                    //$odds   = $eventMarketsTable->get($masterEventMarketSwtId)['odds'];
+                                    $memUID = $eventMarketsTable[$masterEventMarketSwtId]['master_event_market_unique_id'];
+                                    $odds   = $eventMarketsTable[$masterEventMarketSwtId]['odds'];
 
                                     if ($odds != $marketOdds) {
                                         $eventMarketsTable[$masterEventMarketSwtId]['odds'] = $marketOdds;
@@ -479,12 +500,15 @@ class TransformKafkaMessageOdds implements ShouldQueue
             }
 
             if (!empty($this->subTasks['event'])) {
-                Task::deliver(new TransformKafkaMessageOddsSaveToDb($this->subTasks, $this->uid, $this->dbOptions));
+                /*Task::deliver(new TransformKafkaMessageOddsSaveToDb($this->subTasks, $this->uid, $this->dbOptions, $this->swoole));
+                */
+                TransformKafkaMessageOddsSaveToDb::DepoytoDb($this->subTasks, $this->uid, $this->dbOptions, $this->swoole);
             }
         } catch (Exception $e) {
             Log::error("error ".$e->getMessage());
             Log::error("line ".$e->getLine());
             Log::error("file ". $e->getFile());
+            Log::error('error '. $e);
         }
     }
 }

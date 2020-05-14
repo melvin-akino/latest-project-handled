@@ -81,29 +81,52 @@ class GameConsume implements CustomProcessInterface
                                 }
                                 Log::info("TransformKafkaMessageOdds called");
                                 
-                                //$odds = new TransformKafkaMessageOdds($payload);
-                                //$this->dispatch($odds);
-                                //$odds->dispatch();
+                                
                                 
                                // $f = new \stdClass();
-                               // $f->d1 ='test';
-                               // $f->d2 = 'test2';
-                                
-                               // $swooled = new \stdClass();
-                                //$swooled->providersTable = $swoole->providersTable;
-                               // $swooled->name = 'jan';
-                               // $swooleds->d = $f;
-                                //($swoole->providersTable);
-                               // $d = unserialize($swoole->providersTable);
-                                //Log::info(json_encode($d));
-                                
                                
+                                /* foreach ($swoole->providersTable as $key=> $%value) {
+                                    $f->d[$key] = $value
+                                    }
 
-                                //print_r($d);
-                                //var_dump($swooled)  ;
-                               // $s = unserialize($swoole);
-                                //var_dump($s);
-                                //Log::debug('providerstable.  ', json_encode( $swoole->providersTable));
+                                 */
+                                $swooled = new \stdClass();
+                                
+                                foreach ($swoole->providersTable as $k =>$v) {
+                                    $swooled->providersTable[$k] =$v;
+                                } 
+                                foreach ($swoole->sportsTable as $k =>$v) {
+                                    $swooled->sportsTable[$k] =$v;
+                                }
+                                foreach ($swoole->leaguesTable as $k =>$v) {
+                                    $swooled->leaguesTable[$k] =$v;
+                                } 
+                                foreach ($swoole->teamsTable as $k =>$v) {
+                                    $swooled->teamsTable[$k] =$v;
+                                } 
+                                 foreach ($swoole->eventsTable as $k =>$v) {
+                                    $swooled->eventsTable[$k] =$v;
+                                } 
+                                 foreach ($swoole->oddTypesTable as $k =>$v) {
+                                    $swooled->oddTypesTable[$k] =$v;
+                                } 
+                                 foreach ($swoole->sportOddTypesTable as $k =>$v) {
+                                    $swooled->sportOddTypesTable[$k] =$v;
+                                } 
+                                 foreach ($swoole->eventMarketsTable as $k =>$v) {
+                                    $swooled->eventMarketsTable[$k] =$v;
+                                } 
+                                 foreach ($swoole->leagueLookUpTable as $k =>$v) {
+                                    $swooled->leagueLookUpTable[$k] =$v;
+                                } 
+                                 foreach ($swoole->teamLookUpTable as $k =>$v) {
+                                    $swooled->teamLookUpTable[$k] =$v;
+                                } 
+
+                                foreach ($swoole->eventScheduleChangeTable as $k =>$v) {
+                                    $swooled->eventScheduleChangeTable[$k] =$v;
+                                } 
+                               
                                // $swooled->sportsTable = $swoole->sportsTable;
                                 //$swooled->leaguesTable = $swoole->leaguesTable;
                                 //$swooled->teamsTable = $swoole->teamsTable;
@@ -117,7 +140,7 @@ class GameConsume implements CustomProcessInterface
                                 
                                 
                                 
-                                TransformKafkaMessageOdds::dispatch($payload,$swoole );
+                                TransformKafkaMessageOdds::dispatch($payload,$swooled );
                                 //Task::deliver(new TransformKafkaMessageOdds($payload));
                                 break;
                             default:

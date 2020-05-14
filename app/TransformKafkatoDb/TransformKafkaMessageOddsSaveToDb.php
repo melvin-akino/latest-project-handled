@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Tasks;
+namespace App\TransformKafkatoDb;
 
 use App\Models\{
     EventMarket,
@@ -15,17 +15,12 @@ use App\Models\{
 use Exception;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Support\Facades\{DB, Log};
-//use Hhxsv5\LaravelS\Swoole\Task\Task;
+use Hhxsv5\LaravelS\Swoole\Task\Task;
 
-use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Foundation\Bus\Dispatchable;
-use Illuminate\Bus\Queueable;
-use Illuminate\Queue\SerializesModels;
-use Illuminate\Queue\InteractsWithQueue;
 
-class TransformKafkaMessageOddsSaveToDb implements ShouldQueue
+class TransformKafkaMessageOddsSaveToDb 
 {
-    use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
+    
 
     protected $message;
     protected $swoole;
@@ -43,21 +38,33 @@ class TransformKafkaMessageOddsSaveToDb implements ShouldQueue
      *
      * @return void
      */
+    /*
     public function __construct(array $subTasks = [], string $uid = null, array $dbOptions, $swoole)
     {
         $this->subTasks  = $subTasks;
         $this->uid       = $uid;
         $this->dbOptions = $dbOptions;
         $this->swoole = $swoole;
+        Log::info( "construct TransformKafkaMessageOddsSaveToDb");
     }
+
+     public function handle() {
+        Log::info( "handles TransformKafkaMessageOddsSaveToDb");
+     }
+     */
 
     /**
      * Execute the job.
      *
      * @return void
      */
-    public function handle()
+    public function DepoytoDb(array $subTasks = [], string $uid = null, array $dbOptions, $swoole)
     {
+        Log::info( "handles TransformKafkaMessageOddsSaveToDb");
+        $this->subTasks  = $subTasks;
+        $this->uid       = $uid;
+        $this->dbOptions = $dbOptions;
+        $this->swoole = $swoole;
         //$this->swoole               = app('swoole');
         $this->eventData            = $this->subTasks['event'];
         $this->eventRawData         = $this->subTasks['event-raw'];
