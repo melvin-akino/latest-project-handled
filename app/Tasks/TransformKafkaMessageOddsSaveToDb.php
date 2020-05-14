@@ -170,9 +170,9 @@ class TransformKafkaMessageOddsSaveToDb extends Task
                     $additionalEventsSwtId = "additionalEvents:" . $this->eventData['MasterEvent']['data']['master_event_unique_id'];
                     $this->swoole->additionalEventsTable->set($additionalEventsSwtId, [
                         'value' => json_encode([
-                            'sport_id' => $this->eventRawData['Event']['data']['sport_id'],
-                            'schedule' => $this->eventRawData['Event']['data']['game_schedule'],
-                            'uid'      => $this->eventData['MasterEvent']['data']['master_event_unique_id']
+                            'sport_id'    => $this->eventRawData['Event']['data']['sport_id'],
+                            'schedule'    => $this->eventRawData['Event']['data']['game_schedule'],
+                            'league_name' => $this->eventData['MasterEvent']['data']['master_league_name']
                         ])
                     ]);
                 }
