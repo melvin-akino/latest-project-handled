@@ -197,26 +197,6 @@ export default {
                 return this.spreads.findIndex(spread => spread.points == this.points)
             }
         },
-        bet_score() {
-            if(!_.isEmpty(this.market_details)) {
-                let scores = this.market_details.score.split(' ')
-                if(this.market_details.market_flag=='HOME') {
-                    return Number(scores[0])
-                } else if(this.market_details.market_flag=='AWAY') {
-                    return Number(scores[2])
-                }
-            }
-        },
-        against_score() {
-            if(!_.isEmpty(this.market_details)) {
-                let scores = this.market_details.score.split(' ')
-                if(this.market_details.market_flag=='HOME') {
-                    return Number(scores[2])
-                } else if(this.market_details.market_flag=='AWAY') {
-                    return Number(scores[0])
-                }
-            }
-        },
         lowestMin() {
             if(!_.isEmpty(this.minMaxData)) {
                 let minValues = this.minMaxData.filter(minmax => minmax.min != null).map(minmax => minmax.min)
@@ -521,8 +501,8 @@ export default {
                             stake: data.stake,
                             points: this.points,
                             price: Math.floor(averagePrice * 100) / 100,
-                            bet_score: this.bet_score,
-                            against_score: this.against_score,
+                            home_score: this.market_details.score.split(' - ')[0],
+                            away_score: this.market_details.score.split(' - ')[1],
                             odd_type: this.market_details.odd_type,
                             created_at: response.data.created_at,
                             bet_team: this.market_details.market_flag == "HOME" ?  this.market_details.home :  this.market_details.away,

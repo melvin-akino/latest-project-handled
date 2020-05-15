@@ -102,8 +102,8 @@ class TradeController extends Controller
                             $betData->market_flag == 'HOME' ? $betData->master_home_team_name : $betData->master_away_team_name
                         ],
                         'score'          => $betData->score,
-                        'bet_score'      => $betData->market_flag == 'HOME' ? $score[0] : $score[1],
-                        'against_score'  => $betData->market_flag == 'HOME' ? $score[1] : $score[0],
+                        'home_score'     => $score[0],
+                        'away_score'     => $score[1],
                         'status'         => $betData->status,
                         'created_at'     => $betData->created_at
                     ];
