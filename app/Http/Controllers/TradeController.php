@@ -279,7 +279,8 @@ class TradeController extends Controller
         try {
             $checkTable = UserSelectedLeague::where('user_id', auth()->user()->id)
                 ->where('master_league_name', $request->league_name)
-                ->where('game_schedule', $request->schedule);
+                ->where('game_schedule', $request->schedule)
+                ->where('sport_id', $request->sport_id);
 
             $userSelectedLeagueTable = app('swoole')->userSelectedLeaguesTable;
             if (Sport::find($request->sport_id)) {
@@ -296,19 +297,24 @@ class TradeController extends Controller
                             ]
                         );
                         if (empty($_SERVER['_PHPUNIT'])) {
+                            $isSelectedLeagueFoundInSWT = false;
                             foreach ($userSelectedLeagueTable as $key => $row) {
                                 if (strpos($key,
-                                        'userId:' . $userId . ':sId:' . $request->sport_id . ':schedule:' . $request->schedule) === 0) {
-                                    if ($row['league_name'] != $request->league_name) {
-                                        $userSelectedLeagueTable->set($swtKey, [
-                                            'user_id'     => $userId,
-                                            'schedule'    => $request->schedule,
-                                            'league_name' => $request->league_name,
-                                            'sport_id'    => $request->sport_id
-                                        ]);
+                                    'userId:' . $userId . ':sId:' . $request->sport_id . ':schedule:' . $request->schedule) === 0) {
+                                    if ($row['league_name'] == $request->league_name && $row['schedule'] == $request->schedule && $row['sport_id'] == $request->sport_id) {
+                                        $isSelectedLeagueFoundInSWT = true;
                                         break;
                                     }
                                 }
+                            }
+
+                            if (!$isSelectedLeagueFoundInSWT) {
+                                $userSelectedLeagueTable->set($swtKey, [
+                                        'user_id'     => $userId,
+                                        'schedule'    => $request->schedule,
+                                        'league_name' => $request->league_name,
+                                        'sport_id'    => $request->sport_id
+                                    ]);
                             }
 
 
@@ -317,7 +323,7 @@ class TradeController extends Controller
                         foreach ($userSelectedLeagueTable as $key => $row) {
                             if (strpos($key,
                                     'userId:' . $userId . ':sId:' . $request->sport_id . ':schedule:' . $request->schedule) === 0) {
-                                if ($row['league_name'] == $request->league_name) {
+                                if ($row['league_name'] == $request->league_name && $row['schedule'] == $request->schedule && $row['sport_id'] == $request->sport_id) {
                                     $userSelectedLeagueTable->del($key);
                                     break;
                                 }
@@ -346,14 +352,22 @@ class TradeController extends Controller
                                         foreach ($topicTable as $k => $topic) {
                                             if ($topic['user_id'] == auth()->user()->id && $topic['topic_name'] == 'market-id-' . $eventMarket['master_event_market_unique_id']) {
                                                 $topicTable->del($k);
+                                                break;
                                             }
                                         }
                                     }
                                 }
-
-                                continue;
                             }
+                        }
 
+                        foreach ($userSelectedLeagueTable as $key => $row) {
+                            if (strpos($key,
+                                    'userId:' . $userId . ':sId:' . $request->sport_id . ':schedule:' . $request->schedule) === 0) {
+                                if ($row['league_name'] == $request->league_name && $row['schedule'] == $request->schedule && $row['sport_id'] == $request->sport_id) {
+                                    $userSelectedLeagueTable->del($key);
+                                    break;
+                                }
+                            }
                         }
                     }
                 }

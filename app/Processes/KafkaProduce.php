@@ -106,6 +106,7 @@ class KafkaProduce implements CustomProcessInterface
                         }
                         //END of Minmax Process
 
+                        //Open Orders Process
                         foreach ($sportsTable AS $sKey => $sRow) {
                             $sportId = $sportsTable->get($sKey)['id'];
 
@@ -135,6 +136,7 @@ class KafkaProduce implements CustomProcessInterface
 
                                 $openOrderInitialTime = $newTime;
                             }
+                            //END of Open Orders Process
 
                             //checking if 30 minutest interval
                             // if ($newTime->diffInSeconds(Carbon::parse($providerAccountInitialTime)) >= (60 * 30)) {
