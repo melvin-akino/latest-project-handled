@@ -140,8 +140,6 @@ class WsSettledBets implements ShouldQueue
                 break;
         }
 
-        $balance += $stake;
-
         $sourceId = DB::table('sources')
             ->where('source_name', 'LIKE', $sourceName)
             ->first();
@@ -188,6 +186,9 @@ class WsSettledBets implements ShouldQueue
             $currency       = $userWallet->currency_id;
             $source         = $sourceId->id;
             $ledger         = UserWallet::makeTransaction($receiver, $transferAmount, $currency, $source, $chargeType);
+
+
+            $balance += $stake;
 
             DB::table('order_transactions')
                 ->insert(
