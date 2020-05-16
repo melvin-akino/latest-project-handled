@@ -102,8 +102,6 @@ class DataToSwt implements CustomProcessInterface
         $leaguesTable = $swoole->leaguesTable;
         array_map(function ($league) use ($leaguesTable) {
             $leagueLookUpId = uniqid();
-            app('swoole')->leagueLookUpTable->set('leagueLookUpId:' . $leagueLookUpId,
-                ['value' => $league->league_name]);
             $leaguesTable->set('sId:' . $league->sport_id . ':pId:' . $league->provider_id . ':leagueLookUpId:' . $leagueLookUpId,
                 [
                     'id'                 => $league->id,
@@ -126,7 +124,7 @@ class DataToSwt implements CustomProcessInterface
         $teamsTable = $swoole->teamsTable;
         array_map(function ($team) use ($teamsTable) {
             $teamLookUpId = uniqid();
-            app('swoole')->teamLookUpTable->set('teamLookUpId:' . $teamLookUpId, ['value' => $team->team_name]);
+            // app('swoole')->teamLookUpTable->set('teamLookUpId:' . $teamLookUpId, ['value' => $team->team_name]);
             $teamsTable->set('pId:' . $team->provider_id . ':teamLookUpId:' . $teamLookUpId,
                 [
                     'id'               => $team->id,

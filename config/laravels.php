@@ -93,8 +93,13 @@ return [
                 ['name' => 'value', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 10000],
             ],
         ],
-
         'data2Swt'            => [
+            'size'   => env('SWT_MAX_SIZE', 5),// The max size
+            'column' => [// Define the columns
+                ['name' => 'value', 'type' => \Swoole\Table::TYPE_INT],
+            ],
+        ],
+        'priorityTrigger'            => [
             'size'   => env('SWT_MAX_SIZE', 5),// The max size
             'column' => [// Define the columns
                 ['name' => 'value', 'type' => \Swoole\Table::TYPE_INT],

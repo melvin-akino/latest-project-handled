@@ -6,7 +6,7 @@ use App\Jobs\{
     TransformKafkaMessageEvents,
     TransformKafkaMessageLeagues
 };
-use App\Tasks\TransformKafkaMessageOdds;
+use App\Handlers\OddsValidationHandler;
 use Hhxsv5\LaravelS\Swoole\Task\Task;
 use Hhxsv5\LaravelS\Swoole\Process\CustomProcessInterface;
 use Illuminate\Support\Facades\Log;
@@ -35,6 +35,11 @@ class GameConsume implements CustomProcessInterface
 
                 Log::info("Game Consume Starts");
                 while (!self::$quit) {
+                    if ($swoole->priorityTriggerTable->exist('priority')) {
+                        usleep(100000);
+                        continue;
+                    }
+
                     $message = $kafkaConsumer->consume(0);
                     if ($message->err == RD_KAFKA_RESP_ERR_NO_ERROR) {
                         $payload = json_decode($message->payload);
@@ -47,42 +52,15 @@ class GameConsume implements CustomProcessInterface
                                 TransformKafkaMessageEvents::dispatch($payload);
                                 break;
                             case 'odd':
-                                if (!isset($payload->data->events)) {
-                                    Log::info("Transformation ignored - No Event Found");
-                                    break;
-                                }
-                                $transformedTable = $swoole->transformedTable;
-
-                                $transformedSwtId = 'eventIdentifier:' . $payload->data->events[0]->eventId;
-                                if ($transformedTable->exists($transformedSwtId)) {
-                                    $ts   = $transformedTable->get($transformedSwtId)['ts'];
-                                    $hash = $transformedTable->get($transformedSwtId)['hash'];
-                                    if ($ts > $payload->request_ts) {
-                                        Log::info("Transformation ignored - Old Timestamp");
-                                        break;
-                                    }
-
-                                    $toHashMessage               = $payload->data;
-                                    $toHashMessage->running_time = null;
-                                    $toHashMessage->id           = null;
-                                    if ($hash == md5(json_encode((array)$toHashMessage))) {
-                                        Log::info("Transformation ignored - No change");
-                                        break;
-                                    }
-                                } else {
-                                    $transformedTable->set($transformedSwtId, [
-                                        'ts'   => $payload->request_ts,
-                                        'hash' => md5(json_encode((array)$payload->data))
-                                    ]);
-                                }
-                                Task::deliver(new TransformKafkaMessageOdds($payload));
+                                $oddsValidationHandler = new OddsValidationHandler($payload);
+                                $oddsValidationHandler->handle();
                                 break;
                             default:
                                 break;
                         }
                         $kafkaConsumer->commitAsync($message);
                         Log::channel('kafkalog')->info(json_encode($message));
-                        usleep(100);
+                        usleep(10000);
                         continue;
                     }
                     usleep(100000);
