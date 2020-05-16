@@ -1,3 +1,4 @@
+/*! purgecss start ignore */
 .pagination {
     display: inline-block;
     padding-left: 0;
@@ -224,7 +225,7 @@ th {
         white-space: nowrap;
     }
 }
-/*! purgecss start ignore */
+
 .VueTables__table {
     margin-top: 1rem;
 }
