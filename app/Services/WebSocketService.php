@@ -85,16 +85,22 @@ class WebSocketService implements WebSocketHandlerInterface
 
     private function getUser($bearerToken)
     {
-        $tokenguard = new TokenGuard(
-            resolve(ResourceServer::class),
-            Auth::createUserProvider('users'),
-            resolve(TokenRepository::class),
-            resolve(ClientRepository::class),
-            resolve('encrypter')
-        );
-        $request    = HttpRequest::create('/');
-        $request->headers->set('Authorization', 'Bearer ' . $bearerToken);
-        return $tokenguard->user($request);
+        try {
+            $tokenguard = new TokenGuard(
+                resolve(ResourceServer::class),
+                Auth::createUserProvider('users'),
+                resolve(TokenRepository::class),
+                resolve(ClientRepository::class),
+                resolve('encrypter')
+            );
+            $request    = HttpRequest::create('/');
+            $request->headers->set('Authorization', 'Bearer ' . $bearerToken);
+            return $tokenguard->user($request);
+        } catch (Exception $e) {
+            Log::error('Bearer Token is expired/invalid');
+            return 0;
+        }
+        
     }
 
     private function dispatchJob($user, $job, $clientCommand)
