@@ -43,10 +43,11 @@ class StartKafaScrapingOdds extends Command
         $homeTeam = $payload->data->homeTeam;
         $awayTeam = $payload->data->awayTeam;
         $provider = $payload->data->provider;
+        $schedule = $payload->data->schedule;
         $redisTopic = env('REDIS_TOOL_SCRAPE_ODDS', 'REDIS-MON-TOOL-SCRAPING-ODDS');
         $redisExpiration = env('REDIS_TOOL_SCRAPE_EXPIRE', 300);
         $sport = $payload->data->sport;
-        $redis_smember = $leagueName .'-' .$homeTeam .'-'. $awayTeam .'-' . $provider .'-'. $sport;
+        $redis_smember = $leagueName .'-' .$homeTeam .'-'. $awayTeam .'-'. $provider .'-'. $sport .'-'. $schedule;
         $redis_smember = str_replace(" ","",$redis_smember);
         $gameExist = DB::table('master_events')->select('*')
                     ->where('master_league_name',$leagueName)
