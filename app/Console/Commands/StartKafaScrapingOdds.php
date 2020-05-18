@@ -46,7 +46,7 @@ class StartKafaScrapingOdds extends Command
         $redisTopic = env('REDIS_TOOL_SCRAPE_ODDS', 'REDIS-MON-TOOL-SCRAPING-ODDS');
         $redisExpiration = env('REDIS_TOOL_SCRAPE_EXPIRE', 300);
         $sport = $payload->data->sport;
-        $redis_smember = $leagueName .' -' .$homeTeam .'-'. $awayTeam .'-' . $provider .'-'. $sport;
+        $redis_smember = $leagueName .'-' .$homeTeam .'-'. $awayTeam .'-' . $provider .'-'. $sport;
         $redis_smember = str_replace(" ","",$redis_smember);
         $gameExist = DB::table('master_events')->select('*')
                     ->where('master_league_name',$leagueName)
@@ -55,7 +55,7 @@ class StartKafaScrapingOdds extends Command
        
         if ($gameExist)
         {
-            
+
             $gameDeleted = $gameExist->deleted_at;
 
             if ($gameDeleted){
@@ -63,7 +63,6 @@ class StartKafaScrapingOdds extends Command
 
             } else {
 
-                echo $redis_smember;
                 $ttl = Redis::ttl($redisTopic);
                 if ($ttl < 0) Redis::expire($redisTopic, $redisExpiration);
                 
@@ -85,12 +84,6 @@ class StartKafaScrapingOdds extends Command
             }
          }   
         
-
-          #smembers
-          #hgetall
-          #hset
-          # hmset gameesched today 123
-          #  hget Chile-PrimeraDivision-UnionLaCalera-Coquimbo latest
     }
 
     /**
@@ -100,26 +93,26 @@ class StartKafaScrapingOdds extends Command
      */
     public function handle()
     {
+        $groupname = env('KAFKA_MON_TOOL_GROUP_NAME', 'fe_kafka_monitoring_tool');
 
         $conf = new \RdKafka\Conf();
-        $conf->set('group.id', 'multiline_KafkaMon');
+        $conf->set('group.id', $groupname);
 
         $rk = new \RdKafka\Consumer($conf);
-        $rk->addBrokers('192.168.10.37:9092');
+        $rk->addBrokers(env('KAFKA_BROKERS'));
 
         $topicConf = new \RdKafka\TopicConf();
         $topicConf->set('auto.commit.interval.ms', 100);
         $topicConf->set('offset.store.method', 'broker');
         $topicConf->set('auto.offset.reset', 'latest');
         $queue = $rk->newQueue();
-        $topic = $rk->newTopic("JAN-SCRAPING-ODDS", $topicConf);
+        $topic = $rk->newTopic(env('KAFKA_SCRAPE_ODDS'), $topicConf);
         $topic->consumeQueueStart(0, RD_KAFKA_OFFSET_END, $queue);
         while (true) {
              $message=$queue->consume(120 * 10000);
 
              switch($message->err) {
                 case RD_KAFKA_RESP_ERR_NO_ERROR:
-                        //echo $message->payload;
                         $this->message($message);
                     break;
                 case RD_KAFKA_RESP_ERR__PARTITION_EOF:

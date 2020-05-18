@@ -46,26 +46,24 @@ class StartKafaScrapingMinMax extends Command
         $redis_smember = $market_id . ' -' . $provider .'-'. $sport;
         
         $redis_smember = str_replace(" ","",$redis_smember);
-        //$ttl = Redis::ttl($redisTopic);
-       // if ($ttl < 0) Redis::expire($redisTopic, $redisExpiration);
+        # create redis ttl expiration 
+        $ttl = Redis::ttl($redisTopic);
+        if ($ttl < 0) Redis::expire($redisTopic, $redisExpiration);
+
+        # add to redis member
         $members = Redis::sadd($redisTopic, $redis_smember);
-        $old = Redis::hget($redis_smember, 'previous');
-        $new =Redis::hget($redis_smember, 'latest');
+         # hget parameters get data from members via key
+        $old = Redis::hget($redis_smember, 'previous'); 
+        $new =Redis::hget($redis_smember, 'latest'); 
         if ($old ==false){
-            Redis::hmset($redis_smember, 'latest', $message->payload);
-            Redis::hmset($redis_smember, 'previous', $message->payload);   
+            # hmeset store data to redis member
+            Redis::hmset($redis_smember, 'latest', $message->payload);  
+            Redis::hmset($redis_smember, 'previous', $message->payload);  
         } else {
             Redis::hmset($redis_smember, 'previous', $new);
             Redis::hmset($redis_smember, 'latest', $message->payload);
 
         }
-        
-
-          #smembers
-          #hgetall
-          #hset
-          # hmset gameesched today 123
-          #  hget Chile-PrimeraDivision-UnionLaCalera-Coquimbo latest
     }
 
     /**
@@ -75,9 +73,10 @@ class StartKafaScrapingMinMax extends Command
      */
     public function handle()
     {
+        $groupname = env('KAFKA_MON_TOOL_GROUP_NAME', 'fe_kafka_monitoring_tool');
 
         $conf = new \RdKafka\Conf();
-        $conf->set('group.id', 'multiline_KafkaMon');
+        $conf->set('group.id', $groupname);
 
         $rk = new \RdKafka\Consumer($conf);
         $rk->addBrokers(env('KAFKA_BROKERS'));
@@ -87,7 +86,7 @@ class StartKafaScrapingMinMax extends Command
         $topicConf->set('offset.store.method', 'broker');
         $topicConf->set('auto.offset.reset', 'latest');
         $queue = $rk->newQueue();
-        $topic = $rk->newTopic("REDIS-MINMAX-ODDS", $topicConf);
+        $topic = $rk->newTopic(env('KAFKA_SCRAPE_MINMAX_ODDS'), $topicConf);
         $topic->consumeQueueStart(0, RD_KAFKA_OFFSET_END, $queue);
         while (true) {
              $message=$queue->consume(120 * 10000);
