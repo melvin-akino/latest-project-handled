@@ -89,7 +89,7 @@ export default {
                 while(against_team_counter <= 10) {
                     let difference = (this.matrix_data.points + bet_team_counter) - against_team_counter
                     if(difference > 0) {
-                        if(difference == 0.25 || difference == 0.75) {
+                        if(difference == 0.25) {
                             var result = this.halfwin
                             var color = 'lightgreen'
                         } else {
@@ -97,7 +97,7 @@ export default {
                             var color = 'green'
                         }
                     } else if(difference < 0) {
-                        if(difference == -0.25 || difference == -0.75) {
+                        if(difference == -0.25) {
                             var result = this.halflose * -1
                             var color = 'lightred'
                         } else {
