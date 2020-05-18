@@ -93,7 +93,7 @@ class StartKafaScrapingMinMax extends Command
 
              switch($message->err) {
                 case RD_KAFKA_RESP_ERR_NO_ERROR:
-                        //echo $message->payload;
+                        
                         $this->message($message);
                     break;
                 case RD_KAFKA_RESP_ERR__PARTITION_EOF:
