@@ -4,7 +4,8 @@ namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Redis;
- 
+//use App\Models\MasterEvent;
+use Illuminate\Support\Facades\DB;
  
 class StartKafaScrapingOdds extends Command
 {
@@ -44,18 +45,33 @@ class StartKafaScrapingOdds extends Command
         $provider = $payload->data->provider;
         $sport = $payload->data->sport;
         $redis_smember = $leagueName .' -' .$homeTeam .'-'. $awayTeam .'-' . $provider .'-'. $sport;
-        echo $redis_smember;
-        $redis_smember = str_replace(" ","",$redis_smember);
-        $members = Redis::sadd('REDIS-SCRAPING-ODDS',$redis_smember);
-        $old = Redis::hget($redis_smember,'previous');
-        $new =Redis::hget($redis_smember,'latest');
-        if ($old ==false){
-            Redis::hmset($redis_smember,'latest', $message->payload);
-            Redis::hmset($redis_smember,'previous', $message->payload);   
-        } else {
-            Redis::hmset($redis_smember,'previous', $new);
-            Redis::hmset($redis_smember,'latest', $message->payload);
+        $gameExist = DB::table('master_events')->select(*)
+                    ->where('master_league_name',$leagueName)
+                    ->where('master_home_team_name',$homeTeam)
+                    ->where('master_away_team_name',$awayTeam)->first();
+       
+        if ($gameExist)
+        {
+            $gameDeleted = $gameExist->deleted_at;
 
+            if ($gameDeleted){
+                Redis::srem('REDIS-SCRAPING-ODDS',$redis_smember);
+
+            } else {
+
+                echo $redis_smember;
+                $redis_smember = str_replace(" ","",$redis_smember);
+                $members = Redis::sadd('REDIS-SCRAPING-ODDS',$redis_smember);
+                $old = Redis::hget($redis_smember,'previous');
+                $new =Redis::hget($redis_smember,'latest');
+                if ($old ==false){
+                    Redis::hmset($redis_smember,'latest', $message->payload);
+                    Redis::hmset($redis_smember,'previous', $message->payload);   
+                } else {
+                    Redis::hmset($redis_smember,'previous', $new);
+                    Redis::hmset($redis_smember,'latest', $message->payload);
+
+                }
         }
         
 

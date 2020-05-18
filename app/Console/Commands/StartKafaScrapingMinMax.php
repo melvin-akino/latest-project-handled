@@ -41,19 +41,22 @@ class StartKafaScrapingMinMax extends Command
         $market_id = $payload->data->market_id;
         $provider = $payload->data->provider;
         $sport = $payload->data->sport;
-        
+        $redisTopic = env('REDIS_TOOL_MINMAX', 'REDIS-MON-TOOL-MINMAX-ODDS');
+        $redisExpiration = env('REDIS_TOOL_MINMAX_EXPIRE', 120);
         $redis_smember = $market_id . ' -' . $provider .'-'. $sport;
-        echo $redis_smember;
+        
         $redis_smember = str_replace(" ","",$redis_smember);
-        $members = Redis::sadd('REDIS-MINMAX-ODDS',$redis_smember);
-        $old = Redis::hget($redis_smember,'previous');
-        $new =Redis::hget($redis_smember,'latest');
+        //$ttl = Redis::ttl($redisTopic);
+       // if ($ttl < 0) Redis::expire($redisTopic, $redisExpiration);
+        $members = Redis::sadd($redisTopic, $redis_smember);
+        $old = Redis::hget($redis_smember, 'previous');
+        $new =Redis::hget($redis_smember, 'latest');
         if ($old ==false){
-            Redis::hmset($redis_smember,'latest', $message->payload);
-            Redis::hmset($redis_smember,'previous', $message->payload);   
+            Redis::hmset($redis_smember, 'latest', $message->payload);
+            Redis::hmset($redis_smember, 'previous', $message->payload);   
         } else {
-            Redis::hmset($redis_smember,'previous', $new);
-            Redis::hmset($redis_smember,'latest', $message->payload);
+            Redis::hmset($redis_smember, 'previous', $new);
+            Redis::hmset($redis_smember, 'latest', $message->payload);
 
         }
         
@@ -77,7 +80,7 @@ class StartKafaScrapingMinMax extends Command
         $conf->set('group.id', 'multiline_KafkaMon');
 
         $rk = new \RdKafka\Consumer($conf);
-        $rk->addBrokers('192.168.10.37:9092');
+        $rk->addBrokers(env('KAFKA_BROKERS'));
 
         $topicConf = new \RdKafka\TopicConf();
         $topicConf->set('auto.commit.interval.ms', 100);
