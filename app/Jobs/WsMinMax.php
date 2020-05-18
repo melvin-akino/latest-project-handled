@@ -22,8 +22,11 @@ class WsMinMax implements ShouldQueue
     public function handle()
     {
         try {
-            $topicTable          = app('swoole')->topicTable;
-            $minMaxRequestsTable = app('swoole')->minMaxRequestsTable;
+            $swoole              = app('swoole');
+            $topicTable          = $swoole->topicTable;
+            $minMaxRequestsTable = $swoole->minMaxRequestsTable;
+            $minMaxCachesTable   = $swoole->minMaxCachesTable;
+            $wsTable             = $swoole->wsTable;
             $doesExist           = false;
             foreach ($topicTable as $topic) {
                 if ($topic['topic_name'] == 'min-max-' . $this->master_event_market_unique_id &&
@@ -80,6 +83,14 @@ class WsMinMax implements ShouldQueue
 
                 Log::info('Min Max Initial Request');
                 KafkaPush::dispatch(strtolower($eventMarket->alias) . '_minmax_req', $payload, $requestId);
+
+                if ($minMaxCachesTable->exist('memUID:' . $this->master_event_market_unique_id)) {
+                    $minmaxCache = $minMaxCachesTable->get('memUID:' . $this->master_event_market_unique_id);
+                    $fd = $wsTable->get('uid:' . $this->userId)['value'];
+                    $swoole->push($fd, json_encode([
+                        'getMinMax' => json_decode($minmaxCache['value'], true)
+                    ]));
+                }
             }
         } catch (Exception $e) {
             Log::error($e->getMessage());

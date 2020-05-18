@@ -366,10 +366,10 @@ return [
                 ['name' => 'credits', 'type' => \Swoole\Table::TYPE_FLOAT]
             ],
         ],
-        'minMaxQueues'        => [ // KEY FORMAT: [bId:$betIdentifier]
-            'size'   => 10000,
+        'minMaxCaches'        => [ // KEY FORMAT: [memUID:$memUID]
+            'size'   => env('SWT_MAX_SIZE', 102400),
             'column' => [
-                ['name' => 'onqueue', 'type' => \Swoole\Table::TYPE_INT],
+                ['name' => 'value', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 1000],
             ],
         ],
     ],
