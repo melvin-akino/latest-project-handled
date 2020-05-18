@@ -65,6 +65,10 @@ const routes = [
             }
         ]
     },
+    {
+        path: '/bet-matrix',
+        component: () => import('./components/views/BetMatrixSimulator')
+    }
 ];
 
 const router = new VueRouter({routes})
