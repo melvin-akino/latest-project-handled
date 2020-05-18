@@ -61,6 +61,8 @@ class MinMaxConsume implements CustomProcessInterface
                         Log::info('Minmax calling Task Worker');
                         TransformKafkaMessageMinMax::dispatch($payload);
 
+                        $swoole->priorityTriggerTable->del('priority');
+
                         $kafkaConsumer->commit($message);
                         Log::channel('kafkalog')->info(json_encode($message));
                         continue;
