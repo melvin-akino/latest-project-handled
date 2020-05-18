@@ -85,7 +85,7 @@ Route::get('/prometheus_GGT8', 'PrometheusController@index');
 
         Route::namespace('Monitoring')->group(function() {
         	Route::prefix('monitoring')->group(function() {
-        		Route::get('minmax', 'MinmaxController@index')->name('monitoring.minmax');
+        		Route::get('minmax', 'MonitoringToolController@minmax')->name('monitoring.minmax');
         	});
         });
     });
