@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Redis;
 class MonitoringToolController extends Controller
 {
     //
+    
 
     public function minmax() 
     {

@@ -22,7 +22,7 @@
                 </div>
                 <!-- /.box-header -->
                 <div class="box-body">
-                    <table  class="table table-bordered table-striped" style="table-layout:fixed; width: 100%;">
+                    <table  id='minmax-data' class="table table-bordered table-striped" style="table-layout:fixed; width: 100%;">
                         <thead>
                         <tr>
 
@@ -72,5 +72,14 @@
     <script src="{{ asset("CRM/AdminLTE-2.4.2/bower_components/datatables.net-bs/js/dataTables.bootstrap.min.js") }}"></script>
     <script src="https://cdn.datatables.net/plug-ins/1.10.19/dataRender/ellipsis.js"></script>
 @endsection
+@section('script')
 
+
+   <script type="text/javascript" >
+        $(document).ready(function() {
+            $('#minmax-data').DataTable();            
+        });
+    </script>
+ 
+@endsection
 
