@@ -11,6 +11,10 @@ er <template>
                     </json-excel>
                 </div>
                 <div slot="betSelection" slot-scope="props" v-html="props.row.bet_selection"></div>
+                <div slot="reason" slot-scope="props">
+                    <span class="text-xs" v-if="props.row.status == 'FAILED'">{{props.row.reason}}</span>
+                    <span class="text-sm" v-else>-</span>
+                </div>
                 <div slot="pl" slot-scope="props">
                     <span :class="{'greenPL': props.row.status == 'WIN' || props.row.status == 'HALF WIN', 'redPL': props.row.status == 'LOSE' || props.row.status == 'HALF LOSE'}" >{{props.row.pl | formatPL}}</span>
                 </div>
@@ -44,7 +48,7 @@ export default {
         return {
             myorders: [],
             totalPL: '',
-            columns: ['bet_id', 'created', 'betSelection', 'provider', 'odds', 'stake', 'towin', 'status', 'score', 'pl', 'betData'],
+            columns: ['bet_id', 'created', 'betSelection', 'provider', 'odds', 'stake', 'towin', 'status', 'reason', 'score', 'pl', 'betData'],
             options: {
                 headings: {
                     bet_id: 'Bet ID',
@@ -60,7 +64,7 @@ export default {
                     betSelection: 'betSelection',
                     odds: 'alignRight',
                     stake: 'alignRight',
-                    towin: 'alignRight',
+                    towin: 'towin',
                     pl: 'alignRight',
                     score: 'alignRight'
                 },
@@ -183,6 +187,15 @@ export default {
 </script>
 
 <style>
+    .alignRight {
+        text-align: right;
+    }
+
+    .towin {
+        text-align: right;
+        width: 58px;
+    }
+
     .totalPLdata {
         font-size: 15px;
     }

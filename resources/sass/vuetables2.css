@@ -235,10 +235,6 @@ th {
     color: #ffffff;
 }
 
-.alignRight {
-    text-align: right;
-}
-
 .VueTables__table > tbody {
     background-color: #ffffff;
     font-size: 0.875rem;
