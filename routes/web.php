@@ -21,8 +21,8 @@ Route::get('/prometheus_GGT8', 'PrometheusController@index');
 	        Route::get('logout', 'LoginController@logout')->name('crm.logout');
 	    });
 
-
-    Route::middleware('auth:crm')->group(function () {
+	    Route::get('monitoring/odds', 'MonitoringController@odds')->name('monitoring.odds');
+    	Route::middleware('auth:crm')->group(function () {
     	Route::get('dashboard', 'DashboardController@index')->name('dashboard');
         /*Providers related routes*/
         Route::get('providers', 'ProvidersController@index')->name('providers');
