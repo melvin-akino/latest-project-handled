@@ -52,7 +52,9 @@ class StartKafaScrapingOdds extends Command
         $gameExist = DB::table('master_events')->select('*')
                     ->where('master_league_name',$leagueName)
                     ->where('master_home_team_name',$homeTeam)
-                    ->where('master_away_team_name',$awayTeam)->first();
+                    ->where('master_away_team_name',$awayTeam)
+                    ->where('game_schedule',$schedule)
+                    ->first();
        
         if ($gameExist)
         {
@@ -68,18 +70,18 @@ class StartKafaScrapingOdds extends Command
                 if ($ttl < 0) Redis::expire($redisTopic, $redisExpiration);
                 
                 $members = Redis::sadd($redisTopic,$redis_smember);
-                $old = Redis::hget($redis_smember,'previous');
-                $new =Redis::hget($redis_smember,'latest');
+                $old = Redis::hget($redis_smember, 'previous');
+                $new =Redis::hget($redis_smember, 'latest');
 
                 if ($old ==false){
 
-                    Redis::hmset($redis_smember,'latest', $message->payload);
-                    Redis::hmset($redis_smember,'previous', $message->payload);
+                    Redis::hmset($redis_smember, 'latest', $message->payload);
+                    Redis::hmset($redis_smember, 'previous', $message->payload);
 
                 } else {
 
-                    Redis::hmset($redis_smember,'previous', $new);
-                    Redis::hmset($redis_smember,'latest', $message->payload);
+                    Redis::hmset($redis_smember, 'previous', $new);
+                    Redis::hmset($redis_smember, 'latest', $message->payload);
 
                 }
             }
