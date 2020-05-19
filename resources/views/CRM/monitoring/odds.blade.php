@@ -1,4 +1,19 @@
 @extends('CRM.layouts.dashboard')
+@section('style')
+    <style>
+        .full-view{
+            display:none;
+        }
+
+        .more-text{
+            background:lightblue;
+            color:navy;
+            font-size:13px;
+            padding:3px;
+            cursor:pointer;
+        }
+    </style>
+@endsection
 @section('breadcrumb')
     <ol class="breadcrumb">
         <li><i class="fa fa-dashboard"></i> Home</li>
@@ -19,14 +34,24 @@
             </tr>
         </thead>
         <tbody>
-            @foreach($odds as $o) 
+            @foreach($odds as $o)
+            @php
+                $latest = json_encode($o['latest'],JSON_PRETTY_PRINT);
+                $previous = json_encode($o['previous'],JSON_PRETTY_PRINT);
+            @endphp 
             <tr>
                 <td>{{ $o['league'] }}</td>
                 <td>{{ $o['home'] }}</td>
                 <td>{{ $o['away'] }}</td>
                 <td>{{ $o['schedule'] }}</td>
-                <td><pre>{{ json_encode($o['latest'],JSON_PRETTY_PRINT) }}</pre></td>
-                <td><pre>{{ json_encode($o['previous'],JSON_PRETTY_PRINT) }}</pre></td>
+                <td>
+                    <span class="full-view"><pre>{{ $latest }}</pre></span>
+                    <span class="more-text">toggle...</span>                    
+                </td>
+                <td>
+                    <span class="full-view"><pre>{{ $previous }}</pre></span>
+                    <span class="more-text">toggle...</span>                    
+                </td>
             </tr>
             @endforeach
         </tbody>
@@ -47,7 +72,18 @@
     <script src="{{ asset("CRM/AdminLTE-2.4.2/bower_components/datatables.net-bs/js/dataTables.bootstrap.min.js") }}"></script>
     <script type="text/javascript" >
         $(document).ready(function() {
-            $('#OddsTable').DataTable();            
+            $('#OddsTable').DataTable();
+
+            // $(".more-text").toggle(function(){
+            //     $(this).text("less..").siblings(".full-view").show();    
+            // }, function(){
+            //     $(this).text("more..").siblings(".full-view").hide();    
+            // });
+
+            var flip = 0;
+            $( ".more-text" ).click(function() {
+                $(this).siblings( ".full-view" ).toggle( flip++ % 2 === 0 );
+            });            
         });
     </script>
 @endsection
