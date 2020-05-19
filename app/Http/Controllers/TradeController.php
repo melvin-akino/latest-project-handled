@@ -64,6 +64,7 @@ class TradeController extends Controller
                     'o.odd_label'
                 ])
                 ->orderBy('o.created_at', 'desc')
+                ->limit(5)
                 ->get();
 
             $data = [];
