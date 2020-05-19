@@ -35,7 +35,8 @@ class DataToSwt implements CustomProcessInterface
             'ExchangeRates',
             'Currencies',
             'UserInfo',
-            'ProviderAccounts'
+            'ProviderAccounts',
+            'MLBetId',
         ];
 
         foreach ($swooleProcesses as $process) {
@@ -428,5 +429,24 @@ class DataToSwt implements CustomProcessInterface
                 'credits'           => $providerAccount->credits,
             ]);
         }, $providerAccounts->toArray());
+    }
+
+    private static function db2SwtMLBetId()
+    {
+        $lastMLBetId = Order::orderBy('created_at', 'desc')
+            ->first()
+            ->ml_bet_identifier;
+
+        if ($lastMLBetId == "") {
+            $betId = "ML" . date('Ymd') . "000001";
+        } else {
+            $betId = $lastMLBetId;
+        }
+
+        $swTable = $swoole->mlBetIdTable;
+
+        $swTable->set('mlBetId', [
+            'ml_bet_id' => $betId,
+        ]);
     }
 }

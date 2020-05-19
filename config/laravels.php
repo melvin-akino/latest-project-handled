@@ -372,6 +372,12 @@ return [
                 ['name' => 'value', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 1000],
             ],
         ],
+        'mlBetId' => [ // KEY FORMAT: [mlBetId]
+            'size'   => 128,
+            'column' => [
+                [ 'name' => 'ml_bet_id', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 128 ],
+            ],
+        ],
     ],
     'register_providers'       => [
         \Laravel\Passport\PassportServiceProvider::class
