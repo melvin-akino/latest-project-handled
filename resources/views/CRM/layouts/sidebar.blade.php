@@ -43,7 +43,7 @@
          
             <li class="treeview @isset($monitoring_menu) active menu-open @endisset" id="monitoring-treeview">
                 <a href="javascript:void(0);">
-                        <i class="fa fa-id-card-o" aria-hidden="true"></i>
+                        <i class="fa fa-dashboard" aria-hidden="true"></i>
                         <span>Monitoring Tools</span>
                         <i class="fa fa-angle-left pull-right"></i>
                     </a>
