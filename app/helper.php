@@ -297,7 +297,7 @@ if (!function_exists('userWalletTransaction')) {
  *
  * @author  Kevin Uy
  */
-if (function_exists('generateMLBetIdentifier')) {
+if (!function_exists('generateMLBetIdentifier')) {
     function generateMLBetIdentifier()
     {
         $server      = app('swoole');
