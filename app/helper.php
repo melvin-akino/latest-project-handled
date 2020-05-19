@@ -305,7 +305,7 @@ if (!function_exists('generateMLBetIdentifier')) {
         $betId       = $swTable->get('mlBetId')['ml_bet_id'];
         $currentDate = date('Ymd');
         $date        = substr($betId, 2, 8);
-        $sequence    = str_pad(substr($betId, -6) + 1, 6, '0', STR_PAD_LEFT);
+        $sequence    = str_pad(((int) substr($betId, -6)) + 1, 6, '0', STR_PAD_LEFT);
 
         if ($date != $currentDate) {
             $sequence = str_pad(1, 6, '0', STR_PAD_LEFT);
