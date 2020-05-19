@@ -43,6 +43,7 @@ class TradeController extends Controller
                 ->where('o.user_id', auth()->user()->id)
                 ->where('o.settled_date', '=', '')
                 ->orWhereNull('o.settled_date')
+                ->whereIn('o.status', ['SUCCESS', 'PENDING'])
                 ->select([
                     'o.id AS order_id',
                     'p.alias',
