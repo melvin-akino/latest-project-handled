@@ -51,13 +51,13 @@ class MonitoringToolController extends Controller
 	    	}
     	}
 
-    	$data['page_title']        = "Bet Monitoring";
+        $data['page_title']        = "Bet Monitoring";
         $data['page_description']  = 'Lists all placed bets';
-    	$data['minmaxs']           = $markets;
-    	$data['monitoring_menu']   = true;
-    	$data['logs_menu']         = false;
-    	$data['minmax_menu']       = false;
-    	$data['placebet_menu']     = true;
+        $data['minmaxs']           = $markets;
+        $data['monitoring_menu']   = true;
+        $data['logs_menu']         = false;
+        $data['minmax_menu']       = false;
+        $data['placebet_menu']     = true;
     	return view('CRM.monitoring.placedbet')->with($data);
 
 
