@@ -111,9 +111,11 @@ class StartKafaScrapingMinMax extends Command
                     default:
                             throw new Exception($message->errstr(), $message->err);
                         break;
-                        
+
+                }                        
             
             }
+
         }
     
 
