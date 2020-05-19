@@ -33,8 +33,8 @@ class MonitoringToolController extends Controller
         $data['logs_menu']          = false;
         $data['minmax_menu']        = true;
         $data['placebet_menu']      = false;
- 
-    	return view('CRM.monitoring.minmax')->with($data);
+
+        return view('CRM.monitoring.minmax')->with($data);
     }
 
     public function placedBet()
@@ -58,7 +58,7 @@ class MonitoringToolController extends Controller
         $data['logs_menu']         = false;
         $data['minmax_menu']       = false;
         $data['placebet_menu']     = true;
-    	return view('CRM.monitoring.placedbet')->with($data);
+        return view('CRM.monitoring.placedbet')->with($data);
 
 
     }
