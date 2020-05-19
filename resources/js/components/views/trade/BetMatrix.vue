@@ -25,7 +25,7 @@
                 </div>
                 <div class="flex items-center text-gray-700 text-white p-1 pl-4">
                     <span class="w-2/3">{{analysisData.bet_team}} {{analysisData.points}} {{`(${analysisData.price_format})`}}</span>
-                    <span class="w-1/3">{{analysisData.price}}</span>
+                    <span class="w-1/3">{{Number(analysisData.price) | twoDecimalPlacesFormat}}</span>
                     <span class="w-1/3">{{analysisData.currency_symbol}} {{matrix_data.stake | moneyFormat}}</span>
                 </div>
             </div>
@@ -139,6 +139,7 @@ export default {
         }
     },
     filters: {
+        twoDecimalPlacesFormat,
         moneyFormat
     }
 }
