@@ -72,7 +72,7 @@ class OrdersController extends Controller
 
                     $data['orders'][] = [
                         'order_id'      => $myOrder->id,
-                        'bet_id'        => $myOrder->bet_id,
+                        'bet_id'        => $myOrder->ml_bet_identifier,
                         'bet_selection' => nl2br($myOrder->bet_selection),
                         'provider'      => strtoupper($myOrder->alias),
                         'market_id'     => $myOrder->master_event_market_unique_id,
