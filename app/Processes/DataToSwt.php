@@ -407,6 +407,7 @@ class DataToSwt implements CustomProcessInterface
             ->where('pa.is_enabled', true)
             ->select('pa.id', 'pa.provider_id', 'pa.type', 'pa.username', 'pa.password', 'pa.punter_percentage',
                 'pa.credits', 'p.alias')
+            ->orderBy('pa.updated_at', 'desc')
             ->get();
 
         $providerAccountsTable = $swoole->providerAccountsTable;
