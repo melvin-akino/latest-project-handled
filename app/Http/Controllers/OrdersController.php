@@ -704,6 +704,30 @@ class OrdersController extends Controller
         }
     }
 
+    public function betMatrixOrders(string $memUID)
+    {
+        try  {
+            $orders = Order::where('user_id', auth()->user()->id)
+                ->where('master_event_market_unique_id', $memUID)
+                ->select('stake', 'odds', 'odd_label AS points', DB::raw('MAX(created_at) AS created_at'))
+                ->groupBy('stake', 'odds', 'odd_label')
+                ->get();
+
+            return response()->json([
+                'status'      => true,
+                'status_code' => 200,
+                'data'        => $orders,
+            ], 200);
+        } catch (Exception $e) {
+            Log::error($e->getMessage());
+            return response()->json([
+                'status'      => false,
+                'status_code' => 500,
+                'message'     => trans('generic.internal-server-error')
+            ], 500);
+        }
+    }
+
     private static function milliseconds()
     {
         $mt = explode(' ', microtime());
