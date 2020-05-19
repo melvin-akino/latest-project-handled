@@ -75,7 +75,8 @@ class MonitoringToolController extends Controller
                 'minmax_menu'		=> false,
                 'placebet_menu'		=> false,
             ];
-            $results = Redis::smembers("REDIS-SCRAPING-ODDS");
+            $redisTopic = env('REDIS_TOOL_SCRAPE_ODDS','REDIS-SCRAPING-ODDS');
+            $results = Redis::smembers($redisTopic);
             foreach ($results as $value) {
                 if(Redis::exists($value)) {
                     $previous = Redis::hget($value, 'previous');

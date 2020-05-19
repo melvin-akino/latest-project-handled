@@ -45,12 +45,12 @@
                 <td>{{ $o['away'] }}</td>
                 <td>{{ $o['schedule'] }}</td>
                 <td>
-                    <span class="full-view"><pre>{{ $latest }}</pre></span>
-                    <span class="more-text">toggle...</span>                    
+                    <span class="more-text">toggle...</span>
+                    <span class="full-view"><pre>{{ $latest }}</pre></span>                                        
                 </td>
                 <td>
-                    <span class="full-view"><pre>{{ $previous }}</pre></span>
-                    <span class="more-text">toggle...</span>                    
+                    <span class="more-text">toggle...</span>
+                    <span class="full-view"><pre>{{ $previous }}</pre></span>                                        
                 </td>
             </tr>
             @endforeach
@@ -73,16 +73,9 @@
     <script type="text/javascript" >
         $(document).ready(function() {
             $('#OddsTable').DataTable();
-
-            // $(".more-text").toggle(function(){
-            //     $(this).text("less..").siblings(".full-view").show();    
-            // }, function(){
-            //     $(this).text("more..").siblings(".full-view").hide();    
-            // });
-
-            var flip = 0;
-            $( ".more-text" ).click(function() {
-                $(this).siblings( ".full-view" ).toggle( flip++ % 2 === 0 );
+            
+            $('#OddsTable tbody').on('click', 'span.more-text', function () {
+                $(this).siblings('.full-view').toggle();
             });            
         });
     </script>
