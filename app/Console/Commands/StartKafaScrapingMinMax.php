@@ -38,6 +38,7 @@ class StartKafaScrapingMinMax extends Command
     public function message($message)
     {
         $payload = json_decode($message->payload);
+        echo $payload;
         $market_id = $payload->data->market_id;
         $provider = $payload->data->provider;
         $sport = $payload->data->sport;
