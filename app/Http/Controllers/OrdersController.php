@@ -287,7 +287,6 @@ class OrdersController extends Controller
             $topics       = $swt->topicTable;
             $payloadsSwt  = $swt->payloadsTable;
             $ordersTable  = $swt->ordersTable;
-            $mlBetIdTable = $swt->mlBetIdTable;
             $betType      = "";
             $return       = "";
             $returnCode   = 200;
