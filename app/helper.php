@@ -27,7 +27,8 @@ use App\Models\{
     Sport,
     UserConfiguration,
     UserWallet,
-    Source
+    Source,
+    Order
 };
 use App\Models\CRM\{
     OrderTransaction,
@@ -58,7 +59,7 @@ function dataTable(Request $request, $query, $cols = null)
     } else {
         $pagin = $query->orderBy($col, $dir)->paginate($len);
     }
-  
+
     return response()->json([
         "draw"            => intval($request->input('draw')),
         "recordsTotal"    => $pagin->total(),
@@ -227,23 +228,9 @@ if (!function_exists('wsEmit')) {
     function wsEmit($content)
     {
         $server = app('swoole');
-        $table = $server->wsTable;
+        $table  = $server->wsTable;
         foreach ($table as $key => $row) {
             if (strpos($key, 'uid:') === 0 && $server->isEstablished($row['value'])) {
-                $server->push($row['value'], json_encode($content));
-            }
-        }
-    }
-}
-
-if (!function_exists('wsEmit')) {
-    function wsEmit($content)
-    {
-        $server = app('swoole');
-        $table = $server->wsTable;
-        foreach ($table as $key => $row) {
-            if (strpos($key, 'uid:') === 0 && $server->isEstablished($row['value'])) {
-//                $content = sprintf('Broadcast: new message "%s" from #%d', $frame->data, $frame->fd);
                 $server->push($row['value'], json_encode($content));
             }
         }
@@ -300,5 +287,36 @@ if (!function_exists('userWalletTransaction')) {
 
             /** TO DO: Add more cases for every User Transaction catered by the application */
         }
+    }
+}
+
+/**
+ * Generate Sequential Multiline Bet Identifier.
+ *
+ * @return string
+ *
+ * @author  Kevin Uy
+ */
+if (function_exists('generateMLBetIdentifier')) {
+    function generateMLBetIdentifier()
+    {
+        $server      = app('swoole');
+        $swTable     = $server->mlBetIdTable;
+        $betId       = $swTable->get('mlBetId')['ml_bet_id'];
+        $currentDate = date('Ymd');
+        $date        = substr($betId, 2, 8);
+        $sequence    = str_pad(substr($betId, -6) + 1, 6, '0', STR_PAD_LEFT);
+
+        if ($date != $currentDate) {
+            $sequence = str_pad(1, 6, '0', STR_PAD_LEFT);
+        }
+
+        $data = "ML" . $currentDate . $sequence;
+
+        $swtable->set('mlBetId', [
+            'ml_bet_id' => $data,
+        ]);
+
+        return $data;
     }
 }

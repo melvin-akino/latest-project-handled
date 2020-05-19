@@ -307,6 +307,7 @@ class OrdersController extends Controller
                 $alias           = "";
                 $exchangeRate    = 1; // FROM CNY
                 $revExchangeRate = 1; // TO CNY
+                $mlBetId         = generateMLBetIdentifier();
 
                 if ($baseCurrency->id != $userCurrency) {
                     $exchangeRate = ExchangeRate::where('from_currency_id', $baseCurrency->id)
@@ -548,6 +549,7 @@ class OrdersController extends Controller
                     'profit_loss'                   => 0.00,
                     'order_expiry'                  => $request->orderExpiry,
                     'provider_account_id'           => $providerAccountId,
+                    'ml_bet_identifier'             => $mlBetId,
                 ]);
 
                 ProviderAccount::find($providerAccountId)->update(['updated_at' => Carbon::now()]);
