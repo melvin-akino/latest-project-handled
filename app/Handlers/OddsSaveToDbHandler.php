@@ -127,7 +127,12 @@ class OddsSaveToDbHandler
                             if (!empty($eventMarket['MasterEventMarketLog'])) {
                                 $eventMarket['MasterEventMarketLog']['data']['master_event_market_id'] = $masterEventMarketId;
 
-                                MasterEventMarketLog::create($eventMarket['MasterEventMarketLog']['data']);
+                                $masterEventMarketLog = MasterEventMarketLog::where('master_event_market_id', $master_event_market_id)
+                                                    ->orderBy('created_at', 'DESC')->first();
+
+                                if ($masterEventMarketLog && $masterEventMarketLog->odds != $eventMarket['MasterEventMarketLog']['data']['odds']) {
+                                    MasterEventMarketLog::create($eventMarket['MasterEventMarketLog']['data']);
+                                }
                             }
                         }
                     }

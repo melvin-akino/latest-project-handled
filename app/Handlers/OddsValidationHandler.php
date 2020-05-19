@@ -188,11 +188,9 @@ class OddsValidationHandler
             }
 
             if ($isLeagueSelected) {
-                echo 1;
                 $oddsTransformationHandler = new OddsTransformationHandler($this->message, compact('providerId', 'sportId', 'multiLeagueId', 'masterLeagueName', 'multiTeam', 'isLeagueSelected'));
                 $oddsTransformationHandler->handle();
             } else {
-                echo 2;
                 Task::deliver(new TransformKafkaMessageOdds($this->message, compact('providerId', 'sportId', 'multiLeagueId', 'masterLeagueName', 'multiTeam', 'isLeagueSelected')));
             }
         } catch (Exception $e) {
