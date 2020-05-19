@@ -26,6 +26,7 @@ class WalletController extends Controller
     public function ledgerSourceInfo(Request $request, WalletLedger $ledger)
     {
         $html = null; 
+
         switch (Source::getName($ledger->source_id)){
             case 'WITHDRAW':
             case 'DEPOSIT':
@@ -46,7 +47,7 @@ class WalletController extends Controller
             case 'PLACE_BET':
                     $betData = $ledger->place_bet;
                     $betInfo = $betData->transaction_log;
-                    $currencySymbol = $betInfo->currency->code;
+                    $currencySymbol = $betData->currency->code;
                     
                     $html = (string)view('CRM.accounts.details.tabs.wallet.sources.bet', [
                         'amount'     => $currencySymbol . ' ' . number_format($betData->amount, 2),
@@ -64,7 +65,7 @@ class WalletController extends Controller
             case 'BET_WIN':
                     $betData = $ledger->place_bet;
                     $betInfo = $betData->transaction_log;
-                    $currency_symbol = $betInfo->currency->code;
+                    $currency_symbol = $betData->currency->code;
                     
                     $html = (string)view('CRM.accounts.details.tabs.wallet.sources.betresult', [
                         'amount'       => $currency_symbol . ' ' . number_format($betData->amount, 2),
