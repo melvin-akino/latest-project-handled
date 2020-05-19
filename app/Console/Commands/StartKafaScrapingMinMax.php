@@ -37,26 +37,25 @@ class StartKafaScrapingMinMax extends Command
     
     public function message($message)
     {
-        $payload = json_decode($message->payload);
-
-        $market_id = $payload->data->market_id;
-        $provider = $payload->data->provider;
-        $sport = $payload->data->sport;
-        $redisTopic = env('REDIS_TOOL_MINMAX', 'REDIS-MON-TOOL-MINMAX-ODDS');
-        $redisExpiration = env('REDIS_TOOL_MINMAX_EXPIRE', 120);
-        $redis_smember = $market_id . ' -' . $provider .'-'. $sport;
-        
-        $redis_smember = str_replace(" ","",$redis_smember);
+        $payload            = json_decode($message->payload);
+        $market_id          = $payload->data->market_id;
+        $provider           = $payload->data->provider;
+        $sport              = $payload->data->sport;
+        $redisTopic         = env('REDIS_TOOL_MINMAX', 'REDIS-MON-TOOL-MINMAX-ODDS');
+        $redisExpiration    = env('REDIS_TOOL_MINMAX_EXPIRE', 120);
+        $redis_smember      = $market_id . ' -' . $provider .'-'. $sport;        
+        $redis_smember      = str_replace(" ","",$redis_smember);
         # create redis ttl expiration 
         $ttl = Redis::ttl($redisTopic);
+
         if ($ttl < 0) Redis::expire($redisTopic, $redisExpiration);
 
         # add to redis member
         $members = Redis::sadd($redisTopic, $redis_smember);
          # hget parameters get data from members via key
         $old = Redis::hget($redis_smember, 'previous'); 
-        $new =Redis::hget($redis_smember, 'latest'); 
-        if ($old ==false){
+        $new = Redis::hget($redis_smember, 'latest'); 
+        if ($old == false){
             # hmeset store data to redis member
             Redis::hmset($redis_smember, 'latest', $message->payload);  
             Redis::hmset($redis_smember, 'previous', $message->payload);  
@@ -115,7 +114,5 @@ class StartKafaScrapingMinMax extends Command
             }
 
         }
-    
-
     }
 }

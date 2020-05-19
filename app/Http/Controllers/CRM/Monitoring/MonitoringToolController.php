@@ -14,9 +14,9 @@ class MonitoringToolController extends Controller
 
     public function minmax() 
     {
-    	$markets = [];
+    	$markets    = [];
     	$redisTopic = env('REDIS_TOOL_MINMAX', 'REDIS-MON-TOOL-MINMAX-ODDS');
-    	$smembers = Redis::smembers($redisTopic);
+    	$smembers   = Redis::smembers($redisTopic);
 
     	if (count($smembers) != 0) {
 	    	foreach ($smembers as $k => $v) {
@@ -66,24 +66,24 @@ class MonitoringToolController extends Controller
     public function odds() 
     {
         $data = [
-            'page_title'       => "Odds Monitoring",
-            'page_description' => "Lists all scraped odds from providers",
+            'page_title'        => "Odds Monitoring",
+            'page_description'  => "Lists all scraped odds from providers",
             'monitoring_menu'   => true,
             'logs_menu'			=> true,
             'minmax_menu'		=> false,
             'placebet_menu'		=> false,
         ];
         $redisTopic = env('REDIS_TOOL_SCRAPE_ODDS','REDIS-SCRAPING-ODDS');
-        $results = Redis::smembers($redisTopic);
+        $results    = Redis::smembers($redisTopic);
         foreach ($results as $value) {
             if(Redis::exists($value)) {
                 $previous = Redis::hget($value, 'previous');
-                $latest = Redis::hget($value, 'latest');
-                //$jsonResult[] = [json_decode($previous), json_decode($latest)];
-                $previousJSON = json_decode($previous,true);
-                $latestJSON = json_decode($latest,true);
-                //Lets construct the human-readable array here
+                $latest   = Redis::hget($value, 'latest');
 
+                $previousJSON = json_decode($previous,true);
+                $latestJSON   = json_decode($latest,true);
+                
+                //Lets construct the human-readable array here
                 foreach($previousJSON as $k => $v) {
                     if ($k == 'data') {
                         $data['odds'][] = [
@@ -101,7 +101,6 @@ class MonitoringToolController extends Controller
             }
             
         }
-
         return view('CRM.monitoring.odds')->with($data);
     }
 }

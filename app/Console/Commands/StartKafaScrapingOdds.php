@@ -4,7 +4,6 @@ namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Redis;
-//use App\Models\MasterEvent;
 use Illuminate\Support\Facades\DB;
  
 class StartKafaScrapingOdds extends Command
@@ -23,8 +22,6 @@ class StartKafaScrapingOdds extends Command
      */
     protected $description = 'This will start a Kafka scraping odds debugging tool';
 
-    
-
     /**
      * Create a new command instance.
      *
@@ -34,22 +31,21 @@ class StartKafaScrapingOdds extends Command
     {
         parent::__construct();
     }
-
     
     public function message($message)
     {
-        $payload = json_decode($message->payload);
-        
-        $leagueName = $payload->data->leagueName;
-        $homeTeam = $payload->data->homeTeam;
-        $awayTeam = $payload->data->awayTeam;
-        $provider = $payload->data->provider;
-        $schedule = $payload->data->schedule;
-        $redisTopic = env('REDIS_TOOL_SCRAPE_ODDS', 'REDIS-MON-TOOL-SCRAPING-ODDS');
-        $redisExpiration = env('REDIS_TOOL_SCRAPE_EXPIRE', 300);
-        $sport = $payload->data->sport;
-        $redis_smember = $leagueName .'-' .$homeTeam .'-'. $awayTeam .'-'. $provider .'-'. $sport .'-'. $schedule;
-        $redis_smember = str_replace(" ","",$redis_smember);
+        $payload            = json_decode($message->payload);       
+        $leagueName         = $payload->data->leagueName;
+        $homeTeam           = $payload->data->homeTeam;
+        $awayTeam           = $payload->data->awayTeam;
+        $provider           = $payload->data->provider;
+        $schedule           = $payload->data->schedule;
+        $redisTopic         = env('REDIS_TOOL_SCRAPE_ODDS', 'REDIS-MON-TOOL-SCRAPING-ODDS');
+        $redisExpiration    = env('REDIS_TOOL_SCRAPE_EXPIRE', 300);
+        $sport              = $payload->data->sport;
+        $redis_smember      = $leagueName .'-' .$homeTeam .'-'. $awayTeam .'-'. $provider .'-'. $sport .'-'. $schedule;
+        $redis_smember      = str_replace(" ","",$redis_smember);
+
         $gameExist = DB::table('master_events')->select('*')
                     ->where('master_league_name',$leagueName)
                     ->where('master_home_team_name',$homeTeam)
@@ -86,8 +82,7 @@ class StartKafaScrapingOdds extends Command
 
                 }
             }
-         }   
-        
+        }           
     }
 
     /**
@@ -113,10 +108,12 @@ class StartKafaScrapingOdds extends Command
         $queue = $rk->newQueue();
         $topic = $rk->newTopic(env('KAFKA_SCRAPE_ODDS'), $topicConf);
         $topic->consumeQueueStart(0, RD_KAFKA_OFFSET_END, $queue);
-        while (true) {
-             $message=$queue->consume(1000);
-             if ($message) {
 
+        while (true) {
+             
+             $message=$queue->consume(1000);
+
+             if ($message) {
                 switch($message->err) {
                     case RD_KAFKA_RESP_ERR_NO_ERROR:
                             $this->message($message);
@@ -133,8 +130,6 @@ class StartKafaScrapingOdds extends Command
                 
                 }
             }    
-        }
-    
-
+        }  
     }
 }
