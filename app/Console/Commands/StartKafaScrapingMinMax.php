@@ -91,7 +91,7 @@ class StartKafaScrapingMinMax extends Command
        # $topic->consumeQueueStart(0, RD_KAFKA_OFFSET_END, $queue);
         $topic->consumeStart(0, RD_KAFKA_OFFSET_END);
         while (true) {
-             $message=$topic->consume(0);
+             $message=$topic->consume(0,100);
                 var_dump($message);
              switch($message->err) {
                 case RD_KAFKA_RESP_ERR_NO_ERROR:
