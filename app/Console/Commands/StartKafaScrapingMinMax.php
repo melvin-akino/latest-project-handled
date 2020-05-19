@@ -88,10 +88,11 @@ class StartKafaScrapingMinMax extends Command
         $topicConf->set('auto.offset.reset', 'latest');
         $queue = $rk->newQueue();
         $topic = $rk->newTopic(env('KAFKA_SCRAPE_MINMAX_ODDS'), $topicConf);
-       # $topic->consumeQueueStart(0, RD_KAFKA_OFFSET_END, $queue);
-        $topic->consumeStart(0, RD_KAFKA_OFFSET_END);
+        $topic->consumeQueueStart(0, RD_KAFKA_OFFSET_END, $queue);
+        #$topic->consumeStart(0, RD_KAFKA_OFFSET_END);
         while (true) {
-             $message=$topic->consume(0,100);
+            $message=$queue->consume(1000);
+             #$message=$topic->consume(0,100);
                 //var_dump($message);
              switch($message->err) {
                 case RD_KAFKA_RESP_ERR_NO_ERROR:
