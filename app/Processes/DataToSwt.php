@@ -438,13 +438,12 @@ class DataToSwt implements CustomProcessInterface
     private static function db2SwtMLBetId(Server $swoole)
     {
         $lastMLBetId = Order::orderBy('created_at', 'desc')
-            ->first()
-            ->ml_bet_identifier;
+            ->first();
 
-        if ($lastMLBetId == "") {
+        if (is_null($lastMLBetId)) {
             $betId = "ML" . date('Ymd') . "000001";
         } else {
-            $betId = $lastMLBetId;
+            $betId = $lastMLBetId->ml_bet_identifier;
         }
 
         $swTable = $swoole->mlBetIdTable;
