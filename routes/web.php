@@ -21,8 +21,8 @@ Route::get('/prometheus_GGT8', 'PrometheusController@index');
 	        Route::get('logout', 'LoginController@logout')->name('crm.logout');
 	    });
 
-
-    Route::middleware('auth:crm')->group(function () {
+	    
+    	Route::middleware('auth:crm')->group(function () {
     	Route::get('dashboard', 'DashboardController@index')->name('dashboard');
         /*Providers related routes*/
         Route::get('providers', 'ProvidersController@index')->name('providers');
@@ -82,6 +82,18 @@ Route::get('/prometheus_GGT8', 'PrometheusController@index');
 	    /* end Account Route */
 
         Route::get('swt', 'SwtController@index')->name('swt');
+
+         /* monitorng route */
+         
+        Route::namespace('Monitoring')->group(function() {
+        	Route::prefix('monitoring')->group(function() {
+        		Route::get('minmax', 'MonitoringToolController@minmax')->name('monitoring.minmax');
+        		
+        		Route::get('placedbet', 'MonitoringToolController@placedBet')->name('monitoring.placedBet');
+        		Route::get('odds', 'MonitoringToolController@odds')->name('monitoring.odds');
+        	});
+        });
+        /* end monitoring route */
     });
 });
 
