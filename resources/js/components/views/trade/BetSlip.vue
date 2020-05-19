@@ -59,7 +59,7 @@
                         </div>
                         <div class="flex justify-between items-center py-2">
                             <label class="text-sm">Price</label>
-                            <input class="w-40 shadow appearance-none border rounded text-sm py-1 px-3 text-gray-700 leading-tight focus:outline-none" type="number" v-model="initialPrice" @keyup="clearOrderMessage">
+                            <input class="w-40 shadow appearance-none border rounded text-sm py-1 px-3 text-gray-700 leading-tight focus:outline-none" type="number" v-model="inputPrice" @keyup="clearOrderMessage">
                         </div>
                         <div class="flex justify-between items-center py-2" :class="{'hidden': betSlipSettings.adv_placement_opt == 0, 'block': betSlipSettings.adv_placement_opt == 1}">
                             <label class="text-sm">Order Expiry</label>
@@ -78,7 +78,7 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="flex justify-between items-center py-2" :class="{'hidden': betSlipSettings.adv_placement_opt == 0, 'block': betSlipSettings.adv_placement_opt == 1}">
+                        <div class="flex justify-between items-center py-2 hidden" :class="{'hidden': betSlipSettings.adv_placement_opt == 0, 'block': betSlipSettings.adv_placement_opt == 1}">
                             <label class="text-sm flex items-center">
                                 <span class="mr-4">Fast Bet</span>
                                 <input class="outline-none rounded text-sm py-1 px-3 text-gray-700 leading-tight focus:outline-none" type="radio" value="FAST_BET" v-model="orderForm.betType" @change="clearOrderMessage">
@@ -156,13 +156,13 @@ export default {
         return {
             market_details: {},
             formattedRefSchedule: [],
-            initialPrice: this.odd_details.odds,
+            inputPrice: twoDecimalPlacesFormat(this.odd_details.odds),
             points: null,
             market_id: this.odd_details.market_id,
             orderForm: {
                 stake: '',
                 orderExpiry: 30,
-                betType: 'BEST_PRICE',
+                betType: 'FAST_BET',
                 markets: []
             },
             minMaxData: [],
@@ -234,6 +234,9 @@ export default {
                 return 0
             }
         },
+        initialPrice() {
+            return Number(this.inputPrice)
+        },
         towin() {
             return Math.floor(this.orderForm.stake * this.initialPrice * 100) / 100
         },
@@ -253,7 +256,6 @@ export default {
     mounted() {
         this.getMarketDetails()
         this.setMinMaxProviders()
-        this.minmax(this.market_id)
         this.$store.dispatch('trade/getBetSlipSettings')
     },
     methods: {
@@ -281,12 +283,13 @@ export default {
             enabledBookies.map(bookie => this.minMaxData.push({ provider_id: bookie.id, provider: bookie.alias, min: null, max: null, price: null, priority: null, age: null, hasMarketData: false }))
             this.isLoadingMarketDetailsAndProviders = false
             this.marketDataMessage = 'Retrieving Market'
+            this.minmax(this.market_id)
         },
         changePoint(points, market_id, odds) {
             this.emptyMinMax(this.market_id)
             this.points = points
             this.market_id = market_id
-            this.initialPrice = Number(odds)
+            this.inputPrice = odds
             this.setActiveBetSlip(market_id)
             this.minmax(market_id)
             this.showBetMatrix = false
@@ -320,32 +323,25 @@ export default {
             this.$options.sockets.onmessage = (response => {
                 if(getSocketKey(response.data) === 'getMinMax') {
                     let minmax = getSocketValue(response.data, 'getMinMax')
-
-                    if (minmax.message != '') {
-                        this.marketDataMessage = 'No Available Market'
-                        this.retrievedMarketData = true
-                    } else {
-                        if(minmax.market_id == this.market_id) {
-                            if(!_.isEmpty(this.minMaxData)) {
-                                let providerIds = this.minMaxData.map(minMaxData => minMaxData.provider_id)
-                                if(providerIds.includes(minmax.provider_id)) {
-                                    this.minMaxData.map(minMaxData => {
-                                        if(minMaxData.provider_id == minmax.provider_id) {
-                                            minMaxData.min = Number(minmax.min)
-                                            minMaxData.max = Number(minmax.max)
-                                            minMaxData.price = Number(minmax.price)
-                                            minMaxData.priority = Number(minmax.priority)
-                                            minMaxData.age = minmax.age
-                                            minMaxData.hasMarketData = true
-                                            this.retrievedMarketData = true
-                                            this.marketDataMessage = 'No Available Market'
-                                        }
-                                    })
-                                }
+                    if(minmax.market_id == this.market_id) {
+                        if(!_.isEmpty(this.minMaxData)) {
+                            let providerIds = this.minMaxData.map(minMaxData => minMaxData.provider_id)
+                            if(providerIds.includes(minmax.provider_id)) {
+                                this.minMaxData.map(minMaxData => {
+                                    if(minMaxData.provider_id == minmax.provider_id) {
+                                        minMaxData.min = Number(minmax.min)
+                                        minMaxData.max = Number(minmax.max)
+                                        minMaxData.price = Number(minmax.price)
+                                        minMaxData.priority = Number(minmax.priority)
+                                        minMaxData.age = minmax.age
+                                        minMaxData.hasMarketData = true
+                                        this.retrievedMarketData = true
+                                        this.marketDataMessage = 'No Market Available'
+                                    }
+                                })
                             }
                         }
                     }
-
                 }
             })
         },
@@ -410,12 +406,12 @@ export default {
             this.isDoneBetting = false
         },
         updatePrice(price) {
-            this.initialPrice = price
+            this.inputPrice = twoDecimalPlacesFormat(price)
             this.clearOrderMessage()
         },
         placeOrder() {
             this.isDoneBetting = true
-            if(this.orderForm.stake == '' || this.initialPrice == '') {
+            if(this.orderForm.stake == '' || this.inputPrice == '') {
                 this.orderMessage = 'Please input stake and price.'
                 this.isBetSuccessful = false
             } else if(this.wallet.credit == 0 || this.orderForm.stake > this.wallet.credit) {
