@@ -39,6 +39,7 @@ class StartKafaScrapingOdds extends Command
     public function message($message)
     {
         $payload = json_decode($message->payload);
+        var_dump($payload);
         $leagueName = $payload->data->leagueName;
         $homeTeam = $payload->data->homeTeam;
         $awayTeam = $payload->data->awayTeam;
@@ -105,7 +106,7 @@ class StartKafaScrapingOdds extends Command
         $rk->addBrokers(env('KAFKA_BROKERS'));
 
         $topicConf = new \RdKafka\TopicConf();
-        //$topicConf->set('auto.commit.interval.ms', 100);
+        $topicConf->set('auto.commit.interval.ms', 100);
         $topicConf->set('enable.auto.commit', 'false');
         $topicConf->set('offset.store.method', 'broker');
         $topicConf->set('auto.offset.reset', 'latest');
@@ -113,23 +114,25 @@ class StartKafaScrapingOdds extends Command
         $topic = $rk->newTopic(env('KAFKA_SCRAPE_ODDS'), $topicConf);
         $topic->consumeQueueStart(0, RD_KAFKA_OFFSET_END, $queue);
         while (true) {
-             $message=$queue->consume(0);
+             $message=$queue->consume(1000);
+             if ($message) {
 
-             switch($message->err) {
-                case RD_KAFKA_RESP_ERR_NO_ERROR:
-                        $this->message($message);
-                    break;
-                case RD_KAFKA_RESP_ERR__PARTITION_EOF:
-                        echo "No more messages; will wait for more\n";
-                     break;
-                case RD_KAFKA_RESP_ERR__TIMED_OUT:
-                        echo "Timed out\n";
-                    break;
-                default:
-                        throw new Exception($message->errstr(), $message->err);
-                    break;
-            
-            }
+                switch($message->err) {
+                    case RD_KAFKA_RESP_ERR_NO_ERROR:
+                            $this->message($message);
+                        break;
+                    case RD_KAFKA_RESP_ERR__PARTITION_EOF:
+                            echo "No more messages; will wait for more\n";
+                         break;
+                    case RD_KAFKA_RESP_ERR__TIMED_OUT:
+                            echo "Timed out\n";
+                        break;
+                    default:
+                            throw new Exception($message->errstr(), $message->err);
+                        break;
+                
+                }
+            }    
         }
     
 

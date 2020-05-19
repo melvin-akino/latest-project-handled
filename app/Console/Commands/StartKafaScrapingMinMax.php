@@ -84,7 +84,7 @@ class StartKafaScrapingMinMax extends Command
 
         $topicConf = new \RdKafka\TopicConf();
         $topicConf->set('auto.commit.interval.ms', 1000);
-        #$topicConf->set('enable.auto.commit', 'false');
+        $topicConf->set('enable.auto.commit', 'false');
         $topicConf->set('offset.store.method', 'broker');
         $topicConf->set('auto.offset.reset', 'latest');
         $queue = $rk->newQueue();
@@ -93,11 +93,9 @@ class StartKafaScrapingMinMax extends Command
         #$topic->consumeStart(0, RD_KAFKA_OFFSET_STORED);
         while (true) {
             $message=$queue->consume(1000);
-             #$message=$topic->consume(0,1000);
-                //var_dump($message);
              if ($message) {
                 
-                 switch($message->err) {
+                switch($message->err) {
                     case RD_KAFKA_RESP_ERR_NO_ERROR:
                             
                             $this->message($message);
