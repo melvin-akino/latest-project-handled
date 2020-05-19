@@ -82,7 +82,7 @@ class StartKafaScrapingMinMax extends Command
         $rk->addBrokers(env('KAFKA_BROKERS'));
 
         $topicConf = new \RdKafka\TopicConf();
-        $topicConf->set('auto.commit.interval.ms', 1000);
+        #$topicConf->set('auto.commit.interval.ms', 1000);
         $topicConf->set('enable.auto.commit', 'false');
         $topicConf->set('offset.store.method', 'broker');
         $topicConf->set('auto.offset.reset', 'latest');
