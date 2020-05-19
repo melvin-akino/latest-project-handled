@@ -40,16 +40,38 @@
                 </li>
           
 
-            {{--
-            @usercan('view', 'bet.logs')
-                <li class="@isset($logs_menu) active @endisset">
-                    <a href="{{ route('bet.logs') }}">
-                        <i class="fa fa-list" aria-hidden="true"></i>
-                        <span>Betting Logs</span>
+         
+            <li class="treeview @isset($monitoring_menu) active menu-open @endisset" id="monitoring-treeview">
+                <a href="javascript:void(0);">
+                        <i class="fa fa-dashboard" aria-hidden="true"></i>
+                        <span>Monitoring Tools</span>
+                        <i class="fa fa-angle-left pull-right"></i>
                     </a>
-                </li>
-            @endusercan
-            --}}
+                <ul class="treeview-menu">
+                    <li class="@isset($logs_menu) active @endisset">
+                        <a href="{{ route('monitoring.odds') }}">
+                            <i class="fa fa-list" aria-hidden="true"></i>
+                            <span>Scrape odds Logs</span>
+                        </a>
+                    </li>
+                    <li class="@isset($minmax_menu) active @endisset">
+                        <a href="{{ route('monitoring.minmax') }}">
+                            <i class="fa fa-list" aria-hidden="true"></i>
+                            <span>Minmax Logs</span>
+                        </a>
+                    </li>
+
+                    <li class="@isset($placebet_menu) active @endisset">
+                        <a href="{{ route('monitoring.placedBet') }}">
+                            <i class="fa fa-list" aria-hidden="true"></i>
+                            <span>Placed Bet Logs</span>
+                        </a>
+                    </li>
+
+
+                </ul>
+            </li>
+         
 
          
                 <li class="treeview @isset($wallet_menu) active menu-open @endisset" id="wallet-treeview">

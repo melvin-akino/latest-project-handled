@@ -43,15 +43,18 @@ class StartKafaScrapingOdds extends Command
         $homeTeam = $payload->data->homeTeam;
         $awayTeam = $payload->data->awayTeam;
         $provider = $payload->data->provider;
+        $schedule = $payload->data->schedule;
         $redisTopic = env('REDIS_TOOL_SCRAPE_ODDS', 'REDIS-MON-TOOL-SCRAPING-ODDS');
         $redisExpiration = env('REDIS_TOOL_SCRAPE_EXPIRE', 300);
         $sport = $payload->data->sport;
-        $redis_smember = $leagueName .'-' .$homeTeam .'-'. $awayTeam .'-' . $provider .'-'. $sport;
+        $redis_smember = $leagueName .'-' .$homeTeam .'-'. $awayTeam .'-'. $provider .'-'. $sport .'-'. $schedule;
         $redis_smember = str_replace(" ","",$redis_smember);
         $gameExist = DB::table('master_events')->select('*')
                     ->where('master_league_name',$leagueName)
                     ->where('master_home_team_name',$homeTeam)
-                    ->where('master_away_team_name',$awayTeam)->first();
+                    ->where('master_away_team_name',$awayTeam)
+                    ->where('game_schedule',$schedule)
+                    ->first();
        
         if ($gameExist)
         {
@@ -67,18 +70,18 @@ class StartKafaScrapingOdds extends Command
                 if ($ttl < 0) Redis::expire($redisTopic, $redisExpiration);
                 
                 $members = Redis::sadd($redisTopic,$redis_smember);
-                $old = Redis::hget($redis_smember,'previous');
-                $new =Redis::hget($redis_smember,'latest');
+                $old = Redis::hget($redis_smember, 'previous');
+                $new =Redis::hget($redis_smember, 'latest');
 
                 if ($old ==false){
 
-                    Redis::hmset($redis_smember,'latest', $message->payload);
-                    Redis::hmset($redis_smember,'previous', $message->payload);
+                    Redis::hmset($redis_smember, 'latest', $message->payload);
+                    Redis::hmset($redis_smember, 'previous', $message->payload);
 
                 } else {
 
-                    Redis::hmset($redis_smember,'previous', $new);
-                    Redis::hmset($redis_smember,'latest', $message->payload);
+                    Redis::hmset($redis_smember, 'previous', $new);
+                    Redis::hmset($redis_smember, 'latest', $message->payload);
 
                 }
             }
