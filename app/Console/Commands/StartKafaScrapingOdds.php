@@ -105,14 +105,15 @@ class StartKafaScrapingOdds extends Command
         $rk->addBrokers(env('KAFKA_BROKERS'));
 
         $topicConf = new \RdKafka\TopicConf();
-        $topicConf->set('auto.commit.interval.ms', 100);
-        //$topicConf->set('offset.store.method', 'broker');
+        //$topicConf->set('auto.commit.interval.ms', 100);
+        $topicConf->set('enable.auto.commit', 'false');
+        $topicConf->set('offset.store.method', 'broker');
         $topicConf->set('auto.offset.reset', 'latest');
         $queue = $rk->newQueue();
         $topic = $rk->newTopic(env('KAFKA_SCRAPE_ODDS'), $topicConf);
         $topic->consumeQueueStart(0, RD_KAFKA_OFFSET_END, $queue);
         while (true) {
-             $message=$queue->consume(120 * 10000);
+             $message=$queue->consume(0);
 
              switch($message->err) {
                 case RD_KAFKA_RESP_ERR_NO_ERROR:
