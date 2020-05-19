@@ -61,11 +61,37 @@ return [
             'pipe' => 0,
             'enable' => env('LARAVELS_KAFKA_CONSUME', true)
         ],
-        'kafka_produce' => [
-            'class'    => \App\Processes\KafkaProduce::class,
+        'bet_produce' => [
+            'class'    => \App\Processes\BetProduce::class,
             'redirect' => false,
             'pipe'     => 0,
             'enable'   => env('LARAVELS_KAFKA_PRODUCE', true)
+        ],
+        'minmax_produce' => [
+            'class'    => \App\Processes\MinMaxProduce::class,
+            'redirect' => false,
+            'pipe'     => 0,
+            'enable'   => env('LARAVELS_KAFKA_PRODUCE', true)
+        ],
+        'settlement_produce' => [
+            'class'    => \App\Processes\SettlementProduce::class,
+            'redirect' => false,
+            'pipe'     => 0,
+            'enable'   => env('LARAVELS_KAFKA_PRODUCE', true)
+        ],
+        'open_order_produce' => [
+            'class'    => \App\Processes\OpenOrderProduce::class,
+            'redirect' => false,
+            'pipe'     => 0,
+            'enable'   => env('LARAVELS_KAFKA_PRODUCE', true)
+
+        ],
+        'balance_produce' => [
+            'class'    => \App\Processes\BalanceProduce::class,
+            'redirect' => false,
+            'pipe'     => 0,
+            'enable'   => env('LARAVELS_KAFKA_PRODUCE', true)
+            
         ],
     ],
     'timer'                    => [
