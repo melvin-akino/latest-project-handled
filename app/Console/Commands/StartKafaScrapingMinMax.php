@@ -89,16 +89,14 @@ class StartKafaScrapingMinMax extends Command
         $topicConf->set('auto.offset.reset', 'latest');
         $queue = $rk->newQueue();
         $topic = $rk->newTopic(env('KAFKA_SCRAPE_MINMAX_ODDS'), $topicConf);
-        #$topic->consumeQueueStart(0, RD_KAFKA_OFFSET_STORED, $queue);
-        $topic->consumeStart(0, RD_KAFKA_OFFSET_STORED);
+        $topic->consumeQueueStart(0, RD_KAFKA_OFFSET_STORED, $queue);
+        #$topic->consumeStart(0, RD_KAFKA_OFFSET_STORED);
         while (true) {
-            #$message=$queue->consume(1000);
-             $message=$topic->consume(0,1000);
+            $message=$queue->consume(1000);
+             #$message=$topic->consume(0,1000);
                 //var_dump($message);
-             if (null==$message) {
-                echo "no message";
-
-             } else {
+             if ($message) {
+                
                  switch($message->err) {
                     case RD_KAFKA_RESP_ERR_NO_ERROR:
                             
@@ -113,7 +111,7 @@ class StartKafaScrapingMinMax extends Command
                     default:
                             throw new Exception($message->errstr(), $message->err);
                         break;
-            }            
+                        
             
             }
         }
