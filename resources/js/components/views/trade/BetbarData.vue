@@ -67,6 +67,7 @@ export default {
         }
     },
     filters: {
+        twoDecimalPlacesFormat,
         moneyFormat
     }
 }
