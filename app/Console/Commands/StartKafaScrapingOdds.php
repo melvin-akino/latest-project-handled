@@ -106,7 +106,7 @@ class StartKafaScrapingOdds extends Command
 
         $topicConf = new \RdKafka\TopicConf();
         $topicConf->set('auto.commit.interval.ms', 100);
-        $topicConf->set('offset.store.method', 'broker');
+        //$topicConf->set('offset.store.method', 'broker');
         $topicConf->set('auto.offset.reset', 'latest');
         $queue = $rk->newQueue();
         $topic = $rk->newTopic(env('KAFKA_SCRAPE_ODDS'), $topicConf);
