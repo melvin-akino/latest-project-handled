@@ -94,20 +94,25 @@ class StartKafaScrapingMinMax extends Command
             $message=$queue->consume(1000);
              #$message=$topic->consume(0,100);
                 //var_dump($message);
-             switch($message->err) {
-                case RD_KAFKA_RESP_ERR_NO_ERROR:
-                        
-                        $this->message($message);
-                    break;
-                case RD_KAFKA_RESP_ERR__PARTITION_EOF:
-                        echo "No more messages; will wait for more\n";
-                     break;
-                case RD_KAFKA_RESP_ERR__TIMED_OUT:
-                        echo "Timed out\n";
-                    break;
-                default:
-                        throw new Exception($message->errstr(), $message->err);
-                    break;
+             if (null==$message) {
+                echo "no message";
+
+             } else {
+                 switch($message->err) {
+                    case RD_KAFKA_RESP_ERR_NO_ERROR:
+                            
+                            $this->message($message);
+                        break;
+                    case RD_KAFKA_RESP_ERR__PARTITION_EOF:
+                            echo "No more messages; will wait for more\n";
+                         break;
+                    case RD_KAFKA_RESP_ERR__TIMED_OUT:
+                            echo "Timed out\n";
+                        break;
+                    default:
+                            throw new Exception($message->errstr(), $message->err);
+                        break;
+            }            
             
             }
         }
