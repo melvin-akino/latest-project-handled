@@ -43,7 +43,6 @@ class TradeController extends Controller
                 ->where('o.user_id', auth()->user()->id)
                 ->where('o.settled_date', '=', '')
                 ->orWhereNull('o.settled_date')
-                ->whereIn('o.status', ['SUCCESS', 'PENDING'])
                 ->select([
                     'o.id AS order_id',
                     'p.alias',
@@ -65,7 +64,6 @@ class TradeController extends Controller
                     'o.odd_label'
                 ])
                 ->orderBy('o.created_at', 'desc')
-                ->limit(5)
                 ->get();
 
             $data = [];
@@ -115,7 +113,7 @@ class TradeController extends Controller
             return response()->json([
                 'status'      => true,
                 'status_code' => 200,
-                'data'        => $data
+                'data'        => array_slice($data, 0, 5)
             ], 200);
         } catch (Exception $e) {
             Log::error($e->getMessage());
