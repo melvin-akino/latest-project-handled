@@ -9,7 +9,7 @@
 @section('breadcrumb')
     <ol class="breadcrumb">
         <li><a href="/admin"><i class="fa fa-dashboard"></i> Home</a></li>
-        <li class="active">Placed  Bet Monitoring Tools</li>
+        <li class="active">Placed  Bet Monitoring</li>
     </ol>
 @endsection
 
@@ -18,7 +18,7 @@
         <div class="col-xs-12">
             <div class="box">
                 <div class="box-header with-border">
-                    <h3 class="box-title">Placed Bet </h3>
+                    <h3 class="box-title">Placed Bets </h3>
                 </div>
                 <!-- /.box-header -->
                 <div class="box-body">

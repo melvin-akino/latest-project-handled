@@ -9,7 +9,7 @@
 @section('breadcrumb')
     <ol class="breadcrumb">
         <li><a href="/admin"><i class="fa fa-dashboard"></i> Home</a></li>
-        <li class="active">Minmax Monitoring Tools</li>
+        <li class="active">Minmax Monitoring</li>
     </ol>
 @endsection
 
