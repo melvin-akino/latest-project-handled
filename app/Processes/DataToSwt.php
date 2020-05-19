@@ -2,7 +2,7 @@
 
 namespace App\Processes;
 
-use App\Models\Sport;
+use App\Models\{Sport, Order};
 use Hhxsv5\LaravelS\Swoole\Process\CustomProcessInterface;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
