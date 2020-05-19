@@ -2,7 +2,7 @@
 
 return [
     'general'                       => [
-        'price_format'              => 1,
+        'price_format'              => 2,
         'timezone'                  => 234,
     ],
     'trade-page'                    => [

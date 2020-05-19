@@ -2,7 +2,7 @@
     <div class="betMatrix text-sm">
         <dialog-drag title="Bet Matrix" :options="options" @close="$emit('close')" v-bet-matrix="activeBetSlip==market_id">
             <div class="p-6">
-                <p class="text-gray-700 mb-2">Current Score: {{analysisData.bet_score}} - {{analysisData.against_score}}</p>
+                <p class="text-gray-700 mb-2">Current Score: {{analysisData.home_score}} - {{analysisData.away_score}}</p>
                 <div class="bg-gray-400 p-2">
                     <div class="container mx-auto text-sm text-gray-700">Order placed at {{analysisData.created_at}}</div>
                 </div>
@@ -53,8 +53,8 @@ export default {
             matrix_data: {
                 stake: Number(this.analysisData.stake),
                 price: Number(this.analysisData.price),
-                bet_score: Number(this.analysisData.bet_score),
-                against_score: Number(this.analysisData.against_score),
+                home_score: Number(this.analysisData.home_score),
+                away_score: Number(this.analysisData.away_score),
                 points: convertPointAsNumeric(this.analysisData.points, this.analysisData.odd_type)
             }
         }
@@ -89,7 +89,7 @@ export default {
                 while(against_team_counter <= 10) {
                     let difference = (this.matrix_data.points + bet_team_counter) - against_team_counter
                     if(difference > 0) {
-                        if(difference == 0.25 || difference == 0.75) {
+                        if(difference == 0.25) {
                             var result = this.halfwin
                             var color = 'lightgreen'
                         } else {
@@ -97,7 +97,7 @@ export default {
                             var color = 'green'
                         }
                     } else if(difference < 0) {
-                        if(difference == -0.25 || difference == -0.75) {
+                        if(difference == -0.25) {
                             var result = this.halflose * -1
                             var color = 'lightred'
                         } else {
@@ -109,7 +109,7 @@ export default {
                         var color = 'white'
                     }
 
-                    if(against_team_counter < this.matrix_data.against_score || bet_team_counter < this.matrix_data.bet_score) {
+                    if(against_team_counter < this.matrix_data.away_score || bet_team_counter < this.matrix_data.home_score) {
                         var color = 'grey'
                     }
                     table.push({ 'color': color, 'result': twoDecimalPlacesFormat(result) })

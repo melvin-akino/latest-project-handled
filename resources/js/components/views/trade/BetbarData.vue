@@ -10,7 +10,7 @@
         </div>
         <div class="w-4/12 py-1 px-3">{{bet.bet_info[1]}} {{defaultPriceFormat}} {{oddTypesWithBetMatrix.includes(bet.odd_type_id) ? bet.bet_info[4] : ''}} {{bet.game_schedule == 'inplay' ? `(${bet.score})` : ''}}</div>
         <div class="w-4/12 py-1 text-center" :class="{'success': bet.status==='SUCCESS', 'failed': bet.status==='FAILED', 'processing': bet.status==='PENDING'}">
-            {{bet.provider_alias}} - {{Number(bet.bet_info[3]) | moneyFormat}}@{{bet.bet_info[2]}} - {{bet.status}}
+            {{bet.provider_alias}} - {{Number(bet.bet_info[3]) | moneyFormat}}@{{Number(bet.bet_info[2]) | twoDecimalPlacesFormat}} - {{bet.status}}
         </div>
         <div class="flex items-center w-24">
             <a href="#" @click.prevent="showBetMatrix = true" class="text-center py-1 w-1/2" title="Bet Matrix"><i v-if="oddTypesWithBetMatrix.includes(bet.odd_type_id)" class="fas fa-chart-area"></i></a>
@@ -25,7 +25,7 @@
 import OddsHistory from './OddsHistory'
 import BetMatrix from './BetMatrix'
 import { mapState } from 'vuex'
-import { moneyFormat } from '../../../helpers/numberFormat'
+import { twoDecimalPlacesFormat, moneyFormat } from '../../../helpers/numberFormat'
 
 export default {
     props: ['bet'],
@@ -48,8 +48,8 @@ export default {
                 stake: Number(this.bet.bet_info[3]).toFixed(2),
                 points: this.bet.bet_info[4],
                 price:  this.bet.bet_info[2],
-                bet_score:  this.bet.bet_score,
-                against_score:  this.bet.against_score,
+                home_score:  this.bet.home_score,
+                away_score:  this.bet.away_score,
                 odd_type: this.bet.odd_type_id,
                 created_at: this.bet.created_at,
                 bet_team: this.bet.bet_info[5],

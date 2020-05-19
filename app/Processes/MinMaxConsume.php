@@ -30,6 +30,7 @@ class MinMaxConsume implements CustomProcessInterface
                 while (!self::$quit) {
                     $message = $kafkaConsumer->consume(0);
                     if ($message->err == RD_KAFKA_RESP_ERR_NO_ERROR) {
+                        $swoole->priorityTriggerTable->set('priority', ['value' => 1]);
                         $payload = json_decode($message->payload);
 
                         if (empty($payload->data)) {
@@ -59,6 +60,8 @@ class MinMaxConsume implements CustomProcessInterface
 
                         Log::info('Minmax calling Task Worker');
                         TransformKafkaMessageMinMax::dispatch($payload);
+
+                        $swoole->priorityTriggerTable->del('priority');
 
                         $kafkaConsumer->commit($message);
                         Log::channel('kafkalog')->info(json_encode($message));

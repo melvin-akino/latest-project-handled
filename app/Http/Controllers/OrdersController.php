@@ -86,10 +86,11 @@ class OrdersController extends Controller
                         'score'         => $myOrder->score,
                         'market_flag'   => $myOrder->market_flag,
                         'bet_team'      => $myOrder->market_flag == "HOME" ? $myOrder->master_home_team_name : $myOrder->master_away_team_name,
-                        'bet_score'     => $myOrder->market_flag == "HOME" ? $score[0] : $score[1],
-                        'against_score' => $myOrder->market_flag == "HOME" ? $score[1] : $score[0],
+                        'home_score'    => $score[0],
+                        'away_score'    => $score[1],
                         'odd_type_id'   => $myOrder->odd_type_id,
-                        'points'        => $myOrder->odd_label
+                        'points'        => $myOrder->odd_label,
+                        'reason'        => $myOrder->reason
                     ];
                 }
 

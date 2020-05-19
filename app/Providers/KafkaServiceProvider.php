@@ -18,15 +18,15 @@ class KafkaServiceProvider extends ServiceProvider
 
 
         $conf->set('metadata.broker.list', env('KAFKA_BROKERS', 'kafka:9092'));
-        $conf->set('group.id', 'multiline');
+        $conf->set('group.id', 'ml');
         $conf->set('auto.offset.reset', 'latest');
         $conf->set('enable.auto.commit', 'false');
 
         $alwaysLatestConf->set('metadata.broker.list', env('KAFKA_BROKERS', 'kafka:9092'));
-        $alwaysLatestConf->set('group.id', 'multiline');
+        $alwaysLatestConf->set('group.id', 'ml');
         $alwaysLatestConf->set('auto.offset.reset', 'latest');
         $alwaysLatestConf->set('enable.auto.commit', 'false');
-        $alwaysLatestConf->set('offset.store.method', 'none');
+        $alwaysLatestConf->set('offset.store.method', 'broker');
 
         if (env('KAFKA_DEBUG', false)) {
             $conf->set('log_level', LOG_DEBUG);
