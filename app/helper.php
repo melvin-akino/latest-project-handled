@@ -313,7 +313,7 @@ if (!function_exists('generateMLBetIdentifier')) {
 
         $data = "ML" . $currentDate . $sequence;
 
-        $swtable->set('mlBetId', [
+        $swTable->set('mlBetId', [
             'ml_bet_id' => $data,
         ]);
 
