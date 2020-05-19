@@ -432,7 +432,7 @@ class DataToSwt implements CustomProcessInterface
         }, $providerAccounts->toArray());
     }
 
-    private static function db2SwtMLBetId()
+    private static function db2SwtMLBetId(Server $swoole)
     {
         $lastMLBetId = Order::orderBy('created_at', 'desc')
             ->first()
