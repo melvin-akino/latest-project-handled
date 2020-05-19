@@ -39,7 +39,7 @@ class StartKafaScrapingOdds extends Command
     public function message($message)
     {
         $payload = json_decode($message->payload);
-        var_dump($payload);
+        
         $leagueName = $payload->data->leagueName;
         $homeTeam = $payload->data->homeTeam;
         $awayTeam = $payload->data->awayTeam;
