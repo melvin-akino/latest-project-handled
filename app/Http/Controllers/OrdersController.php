@@ -85,6 +85,7 @@ class OrdersController extends Controller
                         'bet_id'        => $myOrder->ml_bet_identifier,
                         'bet_selection' => nl2br($myOrder->bet_selection),
                         'provider'      => strtoupper($myOrder->alias),
+                        'event_id'      => $myOrder->master_event_unique_id,
                         'market_id'     => $myOrder->master_event_market_unique_id,
                         'odds'          => $myOrder->odds,
                         'stake'         => $myOrder->stake,
@@ -713,19 +714,43 @@ class OrdersController extends Controller
         }
     }
 
-    public function betMatrixOrders(string $memUID)
+    public function betMatrixOrders(string $uid)
     {
         try  {
-            $orders = Order::where('user_id', auth()->user()->id)
-                ->where('master_event_market_unique_id', $memUID)
-                ->select('stake', 'odds', 'odd_label AS points', DB::raw('MAX(created_at) AS created_at'))
-                ->groupBy('stake', 'odds', 'odd_label')
+            $orders = DB::table('orders')
+                ->join('master_event_markets AS mem', 'mem.master_event_market_unique_id', 'orders.master_event_market_unique_id')
+                ->join('master_events AS me', 'me.master_event_unique_id', 'mem.master_event_unique_id')
+                ->where('user_id', auth()->user()->id)
+                ->where('mem.master_event_unique_id', $uid)
+                ->whereIn('mem.odd_type_id', [3, 4, 11, 12])
+                ->select('stake', 'odds', 'odd_label AS points', 'mem.odd_type_id')
+                ->distinct()
                 ->get();
+
+            $data = [];
+            foreach($orders as $order) {
+                $type = '';
+                if ($order->odd_type_id == 3 || $order->odd_type_id == 11) {
+                    $type = 'HDP';
+                    $points = $order->points;
+                } else if ($order->odd_type_id == 4 || $order->odd_type_id == 12) {
+                    $ou_odd_label = explode(' ', $order->points);
+                    $type = $ou_odd_label[0];
+                    $points = $ou_odd_label[1];
+                }
+
+                $data[] = [
+                    'stake'  => $order->stake,
+                    'points' => $points,
+                    'odds'   => $order->odds,
+                    'type'   => $type
+                ];
+            }
 
             return response()->json([
                 'status'      => true,
                 'status_code' => 200,
-                'data'        => $orders,
+                'data'        => $data,
             ], 200);
         } catch (Exception $e) {
             Log::error($e->getMessage());
