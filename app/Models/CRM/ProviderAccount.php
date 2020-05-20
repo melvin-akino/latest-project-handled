@@ -46,7 +46,8 @@ class ProviderAccount extends Model
                     END
                 )'
             )
-        )->orderBy('updated_at', 'ASC');
+        )->orderBy('updated_at', 'ASC')
+        ->orderBy('id', 'ASC');
 
         return $query->first();
     }

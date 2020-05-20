@@ -49,8 +49,8 @@ class TransformKafkaMessageBet implements ShouldQueue
                         'odds'   => $this->message->data->odds
                     ]);
 
-                    ProviderAccount::find($order->provider_account_id)->update(['is_idle'    => true,
-                                                                                'updated_at' => Carbon::now()
+                    ProviderAccount::find($order->provider_account_id)->update([
+                        'updated_at' => Carbon::now()
                     ]);
 
                     $betSelectionArray         = explode("\n", $order->bet_selection);
