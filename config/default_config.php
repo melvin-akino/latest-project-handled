@@ -3,7 +3,7 @@
 return [
     'general'                       => [
         'price_format'              => 2,
-        'timezone'                  => 234,
+        'timezone'                  => 384,
     ],
     'trade-page'                    => [
         'suggested'                 => '0',

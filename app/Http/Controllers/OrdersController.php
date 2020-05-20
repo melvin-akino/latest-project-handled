@@ -11,9 +11,11 @@ use App\Models\{
     OddType,
     Provider,
     Sport,
+    UserConfiguration,
     UserProviderConfiguration,
     Order,
     OrderLogs,
+    Timezones,
     UserWallet
 };
 use App\Models\CRM\{
@@ -38,7 +40,15 @@ class OrdersController extends Controller
     public function myOrders(Request $request)
     {
         try {
-            $conditions = [];
+            $conditions    = [];
+            $userTz        = "Etc/UTC";
+            $getUserConfig = UserConfiguration::getUserConfig(auth()->user()->id)
+                ->where('type', 'timezone')
+                ->first();
+
+            if ($getUserConfig->exists()) {
+                $userTz = Timezones::find($getUserConfig->value)->name;
+            }
 
             !empty($request->status) ? !($request->status == "All") ? $conditions[] = [
                 'status',
@@ -79,8 +89,8 @@ class OrdersController extends Controller
                         'odds'          => $myOrder->odds,
                         'stake'         => $myOrder->stake,
                         'towin'         => $myOrder->to_win,
-                        'created'       => $myOrder->created_at,
-                        'settled'       => $myOrder->settled_date,
+                        'created'       => Carbon::createFromFormat("Y-m-d H:i:s", $myOrder->created_at, 'Etc/UTC')->setTimezone($userTz),
+                        'settled'       => Carbon::createFromFormat("Y-m-d H:i:s", $myOrder->settled_date, 'Etc/UTC')->setTimezone($userTz),
                         'pl'            => $myOrder->profit_loss,
                         'status'        => $myOrder->status,
                         'score'         => $myOrder->score,
@@ -291,18 +301,15 @@ class OrdersController extends Controller
             $return       = "";
             $returnCode   = 200;
             $prevStake    = 0;
+            $baseCurrency = Currency::where('code', 'CNY')->first();
+            $userCurrency = auth()->user()->currency_id;
+            $isUserVIP    = auth()->user()->is_vip;
+            $userProvider = UserProviderConfiguration::where('user_id', auth()->user()->id);
             $orderIds     = [];
-            $incrementIds = [
-                'id'      => [],
-                'payload' => [],
-            ];
+            $incrementIds = [];
 
             foreach ($request->markets AS $row) {
                 $betType         = $request->betType;
-                $baseCurrency    = Currency::where('code', 'CNY')->first();
-                $userCurrency    = auth()->user()->currency_id;
-                $isUserVIP       = auth()->user()->is_vip;
-                $userProvider    = UserProviderConfiguration::where('user_id', auth()->user()->id);
                 $percentage      = 0;
                 $alias           = "";
                 $exchangeRate    = 1; // FROM CNY
@@ -319,6 +326,27 @@ class OrdersController extends Controller
                         ->where('from_currency_id', $userCurrency)
                         ->first()
                         ->exchange_rate;
+                }
+
+                /** TO DO: Wallet Balance Sufficiency Check */
+                $userWallet = UserWallet::where('user_id', auth()->user()->id);
+
+                if (!$userWallet->exists()) {
+                    return response()->json([
+                        'status'      => false,
+                        'status_code' => 404,
+                        'message'     => trans('generic.not-found') . ": User Wallet Not Found"
+                    ], 404);
+                }
+
+                $userBalance = $userWallet->first()->balance * $exchangeRate;
+
+                if ($userBalance < ($request->stake * $exchangeRate)) {
+                    return response()->json([
+                        'status'      => false,
+                        'status_code' => 400,
+                        'message'     => trans('generic.bad-request') . ": Insufficient Wallet Balance"
+                    ], 400);
                 }
 
                 if ($userProvider->exists()) {
@@ -380,27 +408,6 @@ class OrdersController extends Controller
                             continue;
                         }
                     }
-                }
-
-                /** TO DO: Wallet Balance Sufficiency Check */
-                $userWallet = UserWallet::where('user_id', auth()->user()->id);
-
-                if (!$userWallet->exists()) {
-                    return response()->json([
-                        'status'      => false,
-                        'status_code' => 404,
-                        'message'     => trans('generic.not-found') . ": User Wallet Not Found"
-                    ], 404);
-                }
-
-                $userBalance = $userWallet->first()->balance * $exchangeRate;
-
-                if ($userBalance < ($request->stake * $exchangeRate)) {
-                    return response()->json([
-                        'status'      => false,
-                        'status_code' => 400,
-                        'message'     => trans('generic.bad-request') . ": Insufficient Wallet Balance"
-                    ], 400);
                 }
 
                 $query = DB::table('master_events AS me')
@@ -519,6 +526,7 @@ class OrdersController extends Controller
                 ]);
 
                 $providerAccount = ProviderAccount::getProviderAccount($row['provider_id'], $actualStake, $isUserVIP);
+
                 if (!$providerAccount) {
                     return response()->json([
                         'status'      => false,
@@ -526,8 +534,9 @@ class OrdersController extends Controller
                         'message'     => trans('generic.not-found') . ": No Provider Account Available"
                     ], 404);
                 }
+
                 $providerAccountUserName = $providerAccount->username;
-                $providerAccountId       = ProviderAccount::getUsernameId($providerAccountUserName);
+                $providerAccountId       = $providerAccount->id;
 
                 $orderIncrement = Order::create([
                     'user_id'                       => auth()->user()->id,
@@ -656,8 +665,8 @@ class OrdersController extends Controller
             ], $returnCode);
         } catch (Exception $e) {
             DB::rollback();
-
             Log::error($e->getMessage());
+
             return response()->json([
                 'status'      => false,
                 'status_code' => 500,
