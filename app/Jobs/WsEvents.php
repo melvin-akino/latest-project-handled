@@ -76,7 +76,8 @@ class WsEvents implements ShouldQueue
                     'me.master_event_unique_id', 'me.master_home_team_name', 'me.master_away_team_name',
                     'me.ref_schedule', 'me.game_schedule', 'me.score', 'me.running_time',
                     'me.home_penalty', 'me.away_penalty', 'mem.odd_type_id', 'mem.master_event_market_unique_id', 'mem.is_main', 'mem.market_flag',
-                    'ot.type', 'em.odds', 'em.odd_label', 'em.provider_id')
+                    'ot.type', 'em.odds', 'em.odd_label', 'em.provider_id',
+                    DB::raw('(SELECT count(*) FROM orders as internalOrder WHERE internalOrder.market_id = em.bet_identifier AND internalOrder.user_id = ' . $this->userId . ') as bet_count'))
                 ->where('ml.master_league_name', $this->master_league_name)
                 ->where('me.game_schedule', $this->schedule)
                 ->where('mem.is_main', true)
@@ -98,6 +99,7 @@ class WsEvents implements ShouldQueue
                         'league_name'   => $transformed->master_league_name,
                         'running_time'  => $transformed->running_time,
                         'ref_schedule'  => $transformed->ref_schedule,
+                        'has_bet'        => $transformed->bet_count > 0 ? true : false
                     ];
                 }
 
