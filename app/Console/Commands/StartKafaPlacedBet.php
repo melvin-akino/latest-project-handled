@@ -4,7 +4,7 @@ namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Redis;
- 
+use Exception;
  
 class StartKafaPlacedBet extends Command
 {
@@ -35,35 +35,40 @@ class StartKafaPlacedBet extends Command
     
     public function message($message)
     {
-        $payload            = json_decode($message->payload);      
-        $market_id          = $payload->data->market_id;
-        $provider           = $payload->data->provider;
-        $sport              = $payload->data->sport;
-        $redisTopic         = env('REDIS_TOOL_PLACED_BET', 'REDIS-MON-TOOL-PLACED-BET');
-        $redisExpiration    = env('REDIS_TOOL_PLACED_BET_EXPIRE', 120);
-        $redis_smember      = $market_id . ' -' . $provider .'-'. $sport;        
-        $redis_smember      = str_replace(" ","",$redis_smember);
-        
-        # create redis ttl expiration 
-        $ttl = Redis::ttl($redisTopic);
+        try {
+            $payload            = json_decode($message->payload);      
+            $market_id          = $payload->data->market_id;
+            $provider           = $payload->data->provider;
+            $sport              = $payload->data->sport;
+            $redisTopic         = env('REDIS_TOOL_PLACED_BET', 'REDIS-MON-TOOL-PLACED-BET');
+            $redisExpiration    = env('REDIS_TOOL_PLACED_BET_EXPIRE', 120);
+            $redis_smember      = $market_id . ' -' . $provider .'-'. $sport;        
+            $redis_smember      = str_replace(" ","",$redis_smember);
+            
+            # create redis ttl expiration 
+            $ttl = Redis::ttl($redisTopic);
 
-        if ($ttl < 0) Redis::expire($redisTopic, $redisExpiration);
+            if ($ttl < 0) Redis::expire($redisTopic, $redisExpiration);
 
-        # add to redis member
-        $members = Redis::sadd($redisTopic, $redis_smember);
+            # add to redis member
+            $members = Redis::sadd($redisTopic, $redis_smember);
 
-         # hget parameters get data from members via key
-        $old = Redis::hget($redis_smember, 'previous'); 
-        $new = Redis::hget($redis_smember, 'latest');
+             # hget parameters get data from members via key
+            $old = Redis::hget($redis_smember, 'previous'); 
+            $new = Redis::hget($redis_smember, 'latest');
 
-        if ($old == false){
-            # hmeset store data to redis member
-            Redis::hmset($redis_smember, 'latest', $message->payload);  
-            Redis::hmset($redis_smember, 'previous', $message->payload);  
-        } else {
-            Redis::hmset($redis_smember, 'previous', $new);
-            Redis::hmset($redis_smember, 'latest', $message->payload);
+            if ($old == false){
+                # hmeset store data to redis member
+                Redis::hmset($redis_smember, 'latest', $message->payload);  
+                Redis::hmset($redis_smember, 'previous', $message->payload);  
+            } else {
+                Redis::hmset($redis_smember, 'previous', $new);
+                Redis::hmset($redis_smember, 'latest', $message->payload);
 
+            }
+            
+        } catch (Exception $e) {
+            echo $e->getMessage();
         }
     }
 
