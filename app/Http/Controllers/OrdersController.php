@@ -90,7 +90,7 @@ class OrdersController extends Controller
                         'stake'         => $myOrder->stake,
                         'towin'         => $myOrder->to_win,
                         'created'       => Carbon::createFromFormat("Y-m-d H:i:s", $myOrder->created_at, 'Etc/UTC')->setTimezone($userTz),
-                        'settled'       => Carbon::createFromFormat("Y-m-d H:i:s", $myOrder->settled_date, 'Etc/UTC')->setTimezone($userTz),
+                        'settled'       => $myOrder->settled_date == "" ? "" : Carbon::createFromFormat("Y-m-d H:i:s", $myOrder->settled_date, 'Etc/UTC')->setTimezone($userTz),
                         'pl'            => $myOrder->profit_loss,
                         'status'        => $myOrder->status,
                         'score'         => $myOrder->score,
