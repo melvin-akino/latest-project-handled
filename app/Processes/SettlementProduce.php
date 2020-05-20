@@ -48,13 +48,13 @@ class SettlementProduce implements CustomProcessInterface
 
                         if ($systemConfigurationsTimer) {
 
-                            foreach ($sportsTable AS $sKey => $sRow) {
-                                $sportId = $sportsTable->get($sKey)['id'];
+                            foreach ($sportsTable AS $sRow) {
+                                $sportId = $sRow['id'];
 
                                 if ($newTime->diffInSeconds(Carbon::parse($startTime)) >= $systemConfigurationsTimer->value) {
-                                    foreach ($providerAccountsTable AS $sKey => $sRow) {
-                                        $providerAlias = strtolower($sRow['provider_alias']);
-                                        $username      = $sRow['username'];
+                                    foreach ($providerAccountsTable AS $pRow) {
+                                        $providerAlias = strtolower($pRow['provider_alias']);
+                                        $username      = $pRow['username'];
 
                                         $randomRangeInMinutes = rand(0, 10);
 
