@@ -428,12 +428,13 @@ class TradeController extends Controller
 
                 $transformed = $transformed->whereNull('me.deleted_at')
                     ->where('mem.is_main', true)
-                    ->select('ml.sport_id', 'ml.master_league_name', 's.sport', //'mll.provider_id',
+                    ->select('ml.sport_id', 'ml.master_league_name', 's.sport',
                         'me.master_event_unique_id', 'me.master_home_team_name', 'me.master_away_team_name',
                         'me.ref_schedule', 'me.game_schedule', 'me.score', 'me.running_time',
                         'me.home_penalty', 'me.away_penalty', 'mem.odd_type_id', 'mem.master_event_market_unique_id',
                         'mem.is_main', 'mem.market_flag',
-                        'ot.type', 'em.odds', 'em.odd_label', 'em.provider_id')
+                        'ot.type', 'em.odds', 'em.odd_label', 'em.provider_id', 
+                        DB::raw('(SELECT count(*) FROM orders as internalOrder WHERE internalOrder.market_id = em.bet_identifier AND internalOrder.user_id = ' . auth()->user()->id . ') as bet_count'))
                     ->distinct()->get();
 
                 $userConfig = getUserDefault(auth()->user()->id, 'sort-event')['default_sort'];
@@ -457,6 +458,7 @@ class TradeController extends Controller
                                 'league_name'   => $transformed->master_league_name,
                                 'running_time'  => $transformed->running_time,
                                 'ref_schedule'  => $transformed->ref_schedule,
+                                'has_bet'        => $transformed->bet_count > 0 ? true : false
                             ];
                         }
                         if (empty($watchlist[$groupIndex][$transformed->master_event_unique_id]['home'])) {
@@ -507,6 +509,7 @@ class TradeController extends Controller
                                 'league_name'   => $transformed->master_league_name,
                                 'running_time'  => $transformed->running_time,
                                 'ref_schedule'  => $transformed->ref_schedule,
+                                'has_bet'        => $transformed->bet_count > 0 ? true : false
                             ];
                         }
                         if (empty($userSelected[$transformed->game_schedule][$groupIndex][$transformed->master_event_unique_id]['home'])) {
