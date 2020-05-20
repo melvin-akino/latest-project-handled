@@ -46,7 +46,7 @@ class OrdersController extends Controller
                 ->where('type', 'timezone')
                 ->first();
 
-            if ($getUserConfig->exists()) {
+            if (!is_null($getUserConfig)) {
                 $userTz = Timezones::find($getUserConfig->value)->name;
             }
 
