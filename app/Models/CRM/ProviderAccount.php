@@ -4,6 +4,7 @@ namespace App\Models\CRM;
 
 use Illuminate\Database\Eloquent\{Model, SoftDeletes};
 use Illuminate\Support\Facades\DB;
+use App\Models\ProviderBetRules;
 
 class ProviderAccount extends Model
 {
@@ -23,8 +24,69 @@ class ProviderAccount extends Model
         'is_enabled',
     ];
 
+
+    public static function getBettingAccount($providerId, $stake, $isVIP, $eventId,$oddType,$marketFlag) 
+    {
+        
+        $finalProvider = '';
+        $type  = $isVIP ? "BET_VIP" : "BET_NORMAL";
+        $query = self::where('credits', '>=', $stake)
+            ->where('provider_id', $providerId)
+            ->where('is_enabled', true)
+            ->where('type', $type)
+            ->inRandomOrder();
+
+        $marketFlag = strtoupper($marketFlag);
+
+        if ($marketFlag !='DRAW') {
+            $notAllowed = $marketFlag =='HOME' ? "AWAY" : "HOME";
+            
+            # Let us get all accounts who used to bet on particular event 
+            $betRules = ProviderBetRules::where('not_allowed_ground',$marketFlag)
+                        ->where('event_id',$eventId)
+                        ->where('odd_type_id',$oddType)->get();
+            $excludeAccounts =[];
+
+            if ($betRules->count() != 0) {
+
+               foreach ($betRules as $rule) {
+                    array_push($excludeAccounts, $rule->provider_account_id);
+               }
+            }
+            
+            if (count($excludeAccounts) != 0) {
+                $query = $query->whereNotIn('id', $excludeAccounts);
+            }
+
+            $finalProvider = $query->first();
+             
+            if ($finalProvider)
+            {
+
+                $provider_account_id = $finalProvider->id;
+                $rules = ProviderBetRules::create([
+                    'event_id' => $eventId,
+                    'provider_account_id' => $provider_account_id,
+                    'odd_type_id' => $oddType,
+                    'team_ground'   => $marketFlag,
+                    'not_allowed_ground' => $notAllowed
+                ]);
+            }
+
+
+            return $finalProvider;
+
+        } else {
+
+            return $query->first();
+        }
+
+    }
+
     public static function getProviderAccount($providerId, $stake, $isVIP)
     {
+
+        
         $type  = $isVIP ? "BET_VIP" : "BET_NORMAL";
         $query = self::where('credits', '>=', $stake)
             ->where('provider_id', $providerId)
