@@ -722,6 +722,7 @@ class OrdersController extends Controller
                 ->join('master_events AS me', 'me.master_event_unique_id', 'mem.master_event_unique_id')
                 ->where('user_id', auth()->user()->id)
                 ->where('mem.master_event_unique_id', $uid)
+                ->whereNotIn('status', ['PENDING', 'FAILED', 'CANCELLED', 'REJECTED'])
                 ->whereIn('mem.odd_type_id', function($query) {
                     $query->select('id')->from('odd_types')->whereIn('type', ['HDP', 'HT HDP', 'OU', 'HT OU']);
                 })
