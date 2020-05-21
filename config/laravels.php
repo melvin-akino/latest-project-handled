@@ -280,6 +280,7 @@ return [
                 ['name' => 'event_identifier', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 30],
                 ['name' => 'sport_id', 'type' => \Swoole\Table::TYPE_INT],
                 ['name' => 'master_event_unique_id', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 30],
+                ['name' => 'master_league_id', 'type' => \Swoole\Table::TYPE_INT],
                 ['name' => 'master_league_name', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 100],
                 ['name' => 'master_home_team_name', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 100],
                 ['name' => 'master_away_team_name', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 100],
