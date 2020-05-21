@@ -22,7 +22,7 @@ er <template>
                     <span class="text-sm">{{ props.row.settled != "" ? props.row.score : "-" }}</span>
                 </div>
                 <div class="flex justify-start" slot="betData" slot-scope="props">
-                    <a href="#" @click.prevent="openBetMatrix(props.row.order_id)" class="text-center py-1 w-1/2"><i class="fas fa-chart-area" title="Bet Matrix" v-if="oddTypesWithSpreads.includes(props.row.odd_type_id)"></i></a>
+                    <a href="#" @click.prevent="openBetMatrix(props.row.order_id)" class="text-center py-1 w-1/2"><i class="fas fa-chart-area" title="Bet Matrix" v-if="oddTypesWithSpreads.includes(props.row.odd_type_id) && !failedbetStatus.includes(props.row.status)"></i></a>
                     <a href="#" @click.prevent="openOddsHistory(props.row.order_id)" class="text-center py-1 w-1/2"><i class="fas fa-bars" title="Odds History"></i></a>
                 </div>
             </v-client-table>
@@ -85,7 +85,8 @@ export default {
                 'Status'                 : 'status',
                 'Result'                 : 'score',
                 'Profit/Loss'            : 'pl'
-            }
+            },
+            failedbetStatus: ['PENDING', 'FAILED', 'CANCELLED', 'REJECTED']
         }
     },
     head: {

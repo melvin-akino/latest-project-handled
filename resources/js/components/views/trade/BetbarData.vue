@@ -13,7 +13,7 @@
             {{bet.provider_alias}} - {{Number(bet.bet_info[3]) | moneyFormat}}@{{Number(bet.bet_info[2]) | twoDecimalPlacesFormat}} - {{bet.status}}
         </div>
         <div class="flex items-center w-24">
-            <a href="#" @click.prevent="showBetMatrix = true" class="text-center py-1 w-1/2" title="Bet Matrix"><i v-if="oddTypesWithBetMatrix.includes(bet.odd_type_id)" class="fas fa-chart-area"></i></a>
+            <a href="#" @click.prevent="showBetMatrix = true" class="text-center py-1 w-1/2" title="Bet Matrix"><i v-if="oddTypesWithBetMatrix.includes(bet.odd_type_id) && !failedbetStatus.includes(bet.status)" class="fas fa-chart-area"></i></a>
             <a href="#" @click.prevent="showOddsHistory = true" class="text-center py-1 w-1/2" title="Odds History"><i class="fas fa-bars"></i></a>
         </div>
         <odds-history v-if="showOddsHistory" @close="closeOddsHistory" :market_id="bet.market_id"></odds-history>
@@ -37,7 +37,8 @@ export default {
         return {
             showOddsHistory: false,
             showBetMatrix: false,
-            oddTypesWithBetMatrix: [3, 4, 11, 12]
+            oddTypesWithBetMatrix: [3, 4, 11, 12],
+            failedbetStatus: ['PENDING', 'FAILED', 'CANCELLED', 'REJECTED']
         }
     },
     computed: {

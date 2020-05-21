@@ -6,28 +6,35 @@
             </div>
             <div class="p-6" v-else>
                 <p class="text-gray-700 mb-4">Current Score: {{analysisData.home_score}} - {{analysisData.away_score}}</p>
-                <div class="flex items-center bg-black text-white pl-4">
-                    <i class="material-icons sportsIcon pr-3">sports_soccer</i>
-                    <div class="result p-1 text-center" v-for="(matrix, index) in matrix_table" :key="index">
-                        {{index}}
+                <div class="matrixTable" v-if="selectedOrders.length != 0">
+                    <div class="flex items-center bg-black text-white pl-4">
+                        <i class="material-icons sportsIcon pr-3">sports_soccer</i>
+                        <div class="result p-1 text-center" v-for="(matrix, index) in matrix_table" :key="index">
+                            {{index}}
+                        </div>
+                    </div>
+                    <div class="flex flex-wrap items-center" v-for="(matrix, index) in matrix_table" :key="index">
+                        <span class="w-12 label block p-1 text-center bg-black text-white">{{index}}</span>
+                        <div class="result p-1 text-center text-white border border-white" :class="{'grey': data.color=='grey', 'green': data.color=='green', 'lightgreen': data.color=='lightgreen', 'red': data.color=='red', 'lightred': data.color=='lightred', 'white': data.color=='white'}" v-for="(data, index) in matrix" :key="index">
+                            {{data.result | twoDecimalPlacesFormat }}
+                        </div>
                     </div>
                 </div>
-                <div class="flex flex-wrap items-center" v-for="(matrix, index) in matrix_table" :key="index">
-                    <span class="w-12 label block p-1 text-center bg-black text-white">{{index}}</span>
-                    <div class="result p-1 text-center text-white border border-white" :class="{'grey': data.color=='grey', 'green': data.color=='green', 'lightgreen': data.color=='lightgreen', 'red': data.color=='red', 'lightred': data.color=='lightred', 'white': data.color=='white'}" v-for="(data, index) in matrix" :key="index">
-                        {{data.result | twoDecimalPlacesFormat }}
-                    </div>
+                <div v-else>
+                    <p class="text-gray-700 mb-4">No order selected. Please select an order to generate bet matrix.</p>
                 </div>
                 <div class="flex items-center bg-black text-white p-1 pl-4">
-                    <span class="w-2/3">Bet Type</span>
-                    <span class="w-1/3">Price</span>
-                    <span class="w-1/3">Stake</span>
+                    <span class="w-1/4">Bet Type</span>
+                    <span class="w-1/4">Price</span>
+                    <span class="w-1/4">Stake</span>
+                    <span class="w-1/4">Order Date</span>
                 </div>
                 <div class="bets">
-                    <div class="flex items-center text-gray-700 text-white p-1 pl-4" v-for="(order, index) in matrix_orders" :key="index">
-                        <span class="w-2/3">{{analysisData.bet_team}} {{order.type}} {{order.points}} {{`(${analysisData.price_format})`}}</span>
-                        <span class="w-1/3">{{order.odds}}</span>
-                        <span class="w-1/3">{{analysisData.currency_symbol}} {{Number(order.stake) | moneyFormat}}</span>
+                    <div class="flex items-center text-gray-700 text-white p-2 pl-4 my-1 cursor-pointer" v-for="order in matrix_orders_list" :key="order.order_id" :class="{'bg-white shadow-xl rounded-lg' : selectedOrders.includes(order.order_id)}" @click="toggleEventOrder(order, order.order_id)">
+                        <span class="w-1/4">{{analysisData.bet_team}} {{order.type}} {{order.points}} {{`(${analysisData.price_format})`}}</span>
+                        <span class="w-1/4">{{order.odds}}</span>
+                        <span class="w-1/4">{{analysisData.currency_symbol}} {{Number(order.stake) | moneyFormat}}</span>
+                        <span class="w-1/4">{{order.created_at}}</span>
                     </div>
                 </div>
             </div>
@@ -61,7 +68,9 @@ export default {
                 points: convertPointAsNumeric(this.analysisData.points, this.analysisData.odd_type),
                 created_at: this.analysisData.created_at
             },
+            matrix_orders_list: [],
             matrix_orders: [],
+            selectedOrders: [],
             isLoadingBetMatrixOrders: true
         }
     },
@@ -84,7 +93,9 @@ export default {
             axios.get(`v1/orders/bet-matrix/${this.event_id}`, { headers: { 'Authorization': `Bearer ${token}` }})
             .then(response => {
                 this.isLoadingBetMatrixOrders = false
+                this.matrix_orders_list = response.data.data
                 this.matrix_orders = response.data.data
+                this.selectedOrders = response.data.data.map(order => order.order_id)
                 this.generateBetMatrix()
             })
             .catch(err => {
@@ -107,6 +118,7 @@ export default {
                     var against_team_counter = 0;
                     while(against_team_counter <= 10) {
                         var result = 0
+                        var color = ''
                         if(type == 'HDP') {
                             var difference = (points + bet_team_counter) - against_team_counter
                             if(difference > 0.25) {
@@ -137,6 +149,11 @@ export default {
                                 var result = stake * -1
                             }
                         }
+
+                        if(against_team_counter < this.matrix_data.away_score || bet_team_counter < this.matrix_data.home_score) {
+                            var color = 'grey'
+                        }
+
                         if(typeof(this.matrix_table[bet_team_counter])=="undefined") {
                             this.matrix_table[bet_team_counter] = []
                         }
@@ -146,10 +163,15 @@ export default {
                         if(typeof(this.matrix_table[bet_team_counter][against_team_counter]['result'])=="undefined") {
                             this.matrix_table[bet_team_counter][against_team_counter]['result'] = ''
                         }
+                        if(typeof(this.matrix_table[bet_team_counter][against_team_counter]['color'])=="undefined") {
+                            this.matrix_table[bet_team_counter][against_team_counter]['color'] = ''
+                        }
                         if(this.matrix_table[bet_team_counter][against_team_counter]['result'] != '') {
                             this.matrix_table[bet_team_counter][against_team_counter]['result'] += result
+                            this.matrix_table[bet_team_counter][against_team_counter]['color'] = color
                         } else {
                             this.matrix_table[bet_team_counter][against_team_counter]['result'] = result
+                            this.matrix_table[bet_team_counter][against_team_counter]['color'] = color
                         }
                         against_team_counter++
                     }
@@ -158,19 +180,32 @@ export default {
             })
             this.matrix_table.map(row => {
                 row.map(col => {
-                    if(col.result == totalTowin) {
-                        col.color = 'green'
-                    } else if(col.result > 0 && col.result < totalTowin) {
-                        col.color ='lightgreen'
-                    } else if(col.result < 0 && col.result == (totalStake * -1)) {
-                        col.color = 'red'
-                    } else if(col.result < 0 == col.result > (totalStake * -1)) {
-                        col.color = 'lightred'
-                    } else {
-                        col.color = 'white'
+                    if(col.color == '') {
+                        if(col.result == totalTowin) {
+                            col.color = 'green'
+                        } else if(col.result > 0 && col.result < totalTowin) {
+                            col.color ='lightgreen'
+                        } else if(col.result < 0 && col.result == (totalStake * -1)) {
+                            col.color = 'red'
+                        } else if(col.result < 0 == col.result > (totalStake * -1)) {
+                            col.color = 'lightred'
+                        } else {
+                            col.color = 'white'
+                        }
                     }
                 })
             })
+        },
+        toggleEventOrder(order, order_id) {
+            if(this.selectedOrders.includes(order_id)) {
+                this.selectedOrders = this.selectedOrders.filter(id => id != order_id)
+                this.matrix_orders = this.matrix_orders.filter(order => order.order_id != order_id)
+            } else {
+                this.selectedOrders.push(order_id)
+                this.matrix_orders.push(order)
+            }
+            this.matrix_table = []
+            this.generateBetMatrix()
         }
     },
     directives: {

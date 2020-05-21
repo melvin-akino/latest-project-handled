@@ -36,7 +36,11 @@ export default router.beforeEach((to, from, next) => {
                 next()
             }
         } else {
-            next('/login')
+            if(to.matched[0].path === '/bet-matrix') {
+                next()
+            } else {
+                next('/login')
+            }
         }
     }
 })
