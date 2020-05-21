@@ -16,7 +16,7 @@ class UpdateForeignKeysOnTables extends Migration
     {
         if (Schema::hasTable($this->userSelectedLeaguesTable)) {
             Schema::table($this->userSelectedLeaguesTable, function (Blueprint $table) {
-                $table->integer('master_league_id')->index();
+                $table->integer('master_league_id')->nullable()->index();
                 $table->index('game_schedule');
                 $table->foreign('master_league_id')
                     ->references('id')
@@ -27,7 +27,7 @@ class UpdateForeignKeysOnTables extends Migration
 
         if (Schema::hasTable($this->userWatchlistTable)) {
             Schema::table($this->userWatchlistTable, function (Blueprint $table) {
-                $table->integer('master_event_id')->index();
+                $table->integer('master_event_id')->nullable()->index();
                 $table->foreign('master_event_id')
                     ->references('id')
                     ->on($this->masterEventsTable)
