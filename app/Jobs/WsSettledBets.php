@@ -145,7 +145,7 @@ class WsSettledBets implements ShouldQueue
             ->first();
 
         $returnBetSourceId = DB::table('sources')
-            ->where('source_name', 'LIKE', 'RETURN_BET')
+            ->where('source_name', 'LIKE', 'RETURN_STAKE')
             ->first();
 
         DB::beginTransaction();
