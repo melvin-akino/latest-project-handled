@@ -161,8 +161,8 @@ class DataToSwt implements CustomProcessInterface
     {
         $masterEvents      = DB::table('master_events as me')
                             ->join('sports as s', 's.id', 'me.sport_id')
-                            ->join('master_event_links as mel', 'mel.master_event_unique_id',
-                                'me.master_event_unique_id')
+                            ->join('master_event_links as mel', 'mel.master_event_id',
+                                'me.id')
                             ->join('events as e', 'e.id', 'mel.event_id')
                             ->whereNull('me.deleted_at')
                             ->whereNull('e.deleted_at')
@@ -227,7 +227,7 @@ class DataToSwt implements CustomProcessInterface
                     'is_main'                       => $eventMarket->is_main,
                     'market_flag'                   => $eventMarket->market_flag,
                 ]);
-        }, $masterEventMarkets);
+        }, $masterEventMarkets->toArray());
     }
 
     private static function db2SwtUserWatchlist(Server $swoole)
@@ -299,9 +299,7 @@ class DataToSwt implements CustomProcessInterface
                             'o.master_event_market_id')
                         ->join('master_events as me', 'me.master_event_unique_id', 'mem.master_event_unique_id')
                         ->whereNull('me.deleted_at')
-                        ->select('o.id', 'o.status', 'o.stake', 'o.created_at', 'o.actual_stake', 'o.odds',
-                            'o.market_id', 'mem.master_event_unique_id', 'mem.master_event_market_unique_id',
-                            'me.score', 'o.bet_id', 'o.order_expiry', 'pa.id AS provider_account_id', 'pa.username')
+                        ->select('o.id', 'o.status', 'o.created_at', 'o.bet_id', 'o.order_expiry', 'pa.username')
                         ->get();
         $ordersTable = $swoole->ordersTable;
 
