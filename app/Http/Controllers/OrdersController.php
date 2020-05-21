@@ -722,7 +722,9 @@ class OrdersController extends Controller
                 ->join('master_events AS me', 'me.master_event_unique_id', 'mem.master_event_unique_id')
                 ->where('user_id', auth()->user()->id)
                 ->where('mem.master_event_unique_id', $uid)
-                ->whereIn('mem.odd_type_id', [3, 4, 11, 12])
+                ->whereIn('mem.odd_type_id', function($query) {
+                    $query->select('id')->from('odd_types')->whereIn('type', ['HDP', 'HT HDP', 'OU', 'HT OU']);
+                })
                 ->select('stake', 'odds', 'odd_label AS points', 'mem.odd_type_id')
                 ->distinct()
                 ->get();
@@ -734,9 +736,9 @@ class OrdersController extends Controller
                     $type = 'HDP';
                     $points = $order->points;
                 } else if ($order->odd_type_id == 4 || $order->odd_type_id == 12) {
-                    $ou_odd_label = explode(' ', $order->points);
-                    $type = $ou_odd_label[0];
-                    $points = $ou_odd_label[1];
+                    $ouOddLabel = explode(' ', $order->points);
+                    $type = $ouOddLabel[0];
+                    $points = $ouOddLabel[1];
                 }
 
                 $data[] = [
