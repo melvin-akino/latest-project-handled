@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Schema;
 class AlterTablesMV689 extends Migration
 {
     protected $em   = "event_markets";
+    protected $me   = "master_events";
     protected $us   = "user_selected_leagues";
     protected $mem  = "master_event_markets";
     protected $mel  = "master_event_links";
@@ -31,6 +32,20 @@ class AlterTablesMV689 extends Migration
                     ->onUpdate('cascade');
             });
         // EVENT MARKET :: END
+
+        // MASTER EVENTS :: START
+            Schema::table($this->me, function (Blueprint $table) {
+                $table->integer('master_league_id')->index()->nullable();
+
+                $table->index('game_schedule');
+                $table->index('sport_id');
+
+                $table->foreign('master_league_id')
+                    ->references('id')
+                    ->on('master_leagues')
+                    ->onUpdate('cascade');
+            });
+        // MASTER EVENTS :: END
 
         // MASTER EVENT MARKETS :: START
             Schema::table($this->mem, function (Blueprint $table) {
@@ -84,6 +99,19 @@ class AlterTablesMV689 extends Migration
                 $table->dropColumn('master_event_id');
             });
         // EVENT MARKET :: END
+
+        // MASTER EVENTS :: START
+            Schema::table($this->me, function (Blueprint $table) {
+                $table->dropForeign([ 'master_league_id' ]);
+
+                $table->dropIndex($this->me . '_game_schedule_index');
+                $table->dropIndex($this->me . '_sport_id_index');
+            });
+
+            Schema::table($this->me, function (Blueprint $table) {
+                $table->dropColumn('master_league_id');
+            });
+        // MASTER EVENTS :: END
 
         // MASTER EVENT MARKETS :: START
             Schema::table($this->mem, function (Blueprint $table) {
