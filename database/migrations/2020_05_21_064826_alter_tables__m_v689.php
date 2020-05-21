@@ -12,6 +12,7 @@ class AlterTablesMV689 extends Migration
     protected $mem  = "master_event_markets";
     protected $mel  = "master_event_links";
     protected $meml = "master_event_market_links";
+    protected $or   = "orders";
 
     /**
      * Run the migrations.
@@ -79,6 +80,21 @@ class AlterTablesMV689 extends Migration
                 $table->integer('master_event_market_id')->index()->nullable();
             });
         // MASTER EVENT MARKET LINKS :: END
+
+        // ORDER :: START
+            Schema::table($this->or, function (Blueprint $table) {
+                $table->integer('master_event_market_id')->index()->nullable();
+
+                $table->index('bet_id');
+                $table->index('status');
+                $table->index('provider_id');
+
+                $table->foreign('master_event_market_id')
+                    ->references('id')
+                    ->on('master_event_markets')
+                    ->onUpdate('cascade');
+            });
+        // ORDER :: END
     }
 
     /**
@@ -143,5 +159,19 @@ class AlterTablesMV689 extends Migration
                 $table->string('master_event_market_unique_id')->nullable();
             });
         // MASTER EVENT MARKET LINKS :: END
+
+        // ORDER :: START
+            Schema::table($this->or, function (Blueprint $table) {
+                $table->dropForeign([ 'master_event_market_id' ]);
+
+                $table->dropIndex($this->or . '_bet_id_index');
+                $table->dropIndex($this->or . '_status_index');
+                $table->dropIndex($this->or . '_provider_id_index');
+            });
+
+            Schema::table($this->or, function (Blueprint $table) {
+                $table->dropColumn('master_event_market_id');
+            });
+        // ORDER :: END
     }
 }
