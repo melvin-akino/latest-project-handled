@@ -17,7 +17,7 @@
             <a href="#" @click.prevent="showOddsHistory = true" class="text-center py-1 w-1/2" title="Odds History"><i class="fas fa-bars"></i></a>
         </div>
         <odds-history v-if="showOddsHistory" @close="closeOddsHistory" :market_id="bet.market_id"></odds-history>
-        <bet-matrix v-if="showBetMatrix" @close="closeBetMatrix" :market_id="bet.market_id" :analysis-data="analysisData"></bet-matrix>
+        <bet-matrix v-if="showBetMatrix" @close="closeBetMatrix" :market_id="bet.market_id" :analysis-data="analysisData" :event_id="bet.event_id"></bet-matrix>
     </div>
 </template>
 

@@ -131,7 +131,7 @@
             </div>
         </dialog-drag>
         <odds-history v-if="showOddsHistory" @close="closeOddsHistory" :market_id="market_id"></odds-history>
-        <bet-matrix v-if="showBetMatrix" @close="closeBetMatrix" :market_id="market_id" :analysis-data="analysisData"></bet-matrix>
+        <bet-matrix v-if="showBetMatrix" @close="closeBetMatrix" :market_id="market_id" :analysis-data="analysisData" :event_id="odd_details.game.uid"></bet-matrix>
     </div>
 </template>
 

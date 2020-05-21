@@ -87,6 +87,7 @@ class TradeController extends Controller
                     $data[] = [
                         'order_id'       => $betData->order_id,
                         'provider_alias' => $betData->alias,
+                        'event_id'       => $betData->master_event_unique_id,
                         'market_id'      => $betData->master_event_market_unique_id,
                         'odd_type_id'    => $betData->odd_type_id,
                         'league_name'    => $betData->master_league_name,

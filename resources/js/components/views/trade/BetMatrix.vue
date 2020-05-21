@@ -1,21 +1,11 @@
 <template>
     <div class="betMatrix text-sm">
         <dialog-drag title="Bet Matrix" :options="options" @close="$emit('close')" v-bet-matrix="activeBetSlip==market_id">
-            <div class="p-6">
-                <div class="flex justify-between items-center mb-4">
-                    <p class="text-gray-700">Current Score: {{analysisData.home_score}} - {{analysisData.away_score}}</p>
-                    <div class="relative w-40">
-                        <select class="shadow appearance-none border rounded text-sm w-full py-1 px-3 text-gray-700 leading-tight focus:outline-none" @change="changePoint" v-model="selectedPoint">
-                            <option v-for="(order, index) in matrix_orders" :key="index" :value="order" :selected="order.points">{{order.points}}</option>
-                        </select>
-                        <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
-                            <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
-                        </div>
-                    </div>
-                </div>
-                <div class="bg-gray-400 p-2">
-                    <div class="container mx-auto text-sm text-gray-700">Order placed at {{matrix_data.created_at}}</div>
-                </div>
+            <div class="text-center text-sm m-4" v-if="isLoadingBetMatrixOrders">
+                <span class="text-gray-700">Loading bet matrix orders <i class="fas fa-circle-notch fa-spin"></i></span>
+            </div>
+            <div class="p-6" v-else>
+                <p class="text-gray-700 mb-4">Current Score: {{analysisData.home_score}} - {{analysisData.away_score}}</p>
                 <div class="flex items-center bg-black text-white pl-4">
                     <i class="material-icons sportsIcon pr-3">sports_soccer</i>
                     <div class="result p-1 text-center" v-for="(matrix, index) in matrix_table" :key="index">
@@ -25,7 +15,7 @@
                 <div class="flex flex-wrap items-center" v-for="(matrix, index) in matrix_table" :key="index">
                     <span class="w-12 label block p-1 text-center bg-black text-white">{{index}}</span>
                     <div class="result p-1 text-center text-white border border-white" :class="{'grey': data.color=='grey', 'green': data.color=='green', 'lightgreen': data.color=='lightgreen', 'red': data.color=='red', 'lightred': data.color=='lightred', 'white': data.color=='white'}" v-for="(data, index) in matrix" :key="index">
-                        {{data.result}}
+                        {{data.result | twoDecimalPlacesFormat }}
                     </div>
                 </div>
                 <div class="flex items-center bg-black text-white p-1 pl-4">
@@ -33,10 +23,12 @@
                     <span class="w-1/3">Price</span>
                     <span class="w-1/3">Stake</span>
                 </div>
-                <div class="flex items-center text-gray-700 text-white p-1 pl-4">
-                    <span class="w-2/3">{{analysisData.bet_team}} {{matrix_data.points}} {{`(${analysisData.price_format})`}}</span>
-                    <span class="w-1/3">{{matrix_data.price}}</span>
-                    <span class="w-1/3">{{analysisData.currency_symbol}} {{matrix_data.stake | moneyFormat}}</span>
+                <div class="bets">
+                    <div class="flex items-center text-gray-700 text-white p-1 pl-4" v-for="(order, index) in matrix_orders" :key="index">
+                        <span class="w-2/3">{{analysisData.bet_team}} {{order.type}} {{order.points}} {{`(${analysisData.price_format})`}}</span>
+                        <span class="w-1/3">{{order.odds}}</span>
+                        <span class="w-1/3">{{analysisData.currency_symbol}} {{Number(order.stake) | moneyFormat}}</span>
+                    </div>
                 </div>
             </div>
         </dialog-drag>
@@ -50,7 +42,7 @@ import Cookies from 'js-cookie'
 import { twoDecimalPlacesFormat, convertPointAsNumeric, moneyFormat } from '../../../helpers/numberFormat'
 
 export default {
-    props: ['market_id', 'analysisData'],
+    props: ['market_id', 'analysisData', 'event_id'],
     components: {
         DialogDrag
     },
@@ -70,20 +62,11 @@ export default {
                 created_at: this.analysisData.created_at
             },
             matrix_orders: [],
-            selectedPoint: {}
+            isLoadingBetMatrixOrders: true
         }
     },
     computed: {
         ...mapState('trade', ['activeBetSlip']),
-        towin() {
-            return this.matrix_data.stake * this.matrix_data.price
-        },
-        halfwin() {
-            return this.towin / 2
-        },
-        halflose() {
-            return this.matrix_data.stake / 2
-        }
     },
     watch: {
         analysisData() {
@@ -93,66 +76,101 @@ export default {
     },
     mounted() {
         this.getBetMatrixOrders()
-        this.generateBetMatrix()
     },
     methods: {
         getBetMatrixOrders() {
             let token = Cookies.get('mltoken')
 
-            axios.get(`v1/orders/bet-matrix/${this.market_id}`, { headers: { 'Authorization': `Bearer ${token}` }})
+            axios.get(`v1/orders/bet-matrix/${this.event_id}`, { headers: { 'Authorization': `Bearer ${token}` }})
             .then(response => {
+                this.isLoadingBetMatrixOrders = false
                 this.matrix_orders = response.data.data
-                this.selectedPoint = response.data.data.filter(order => order.points === this.analysisData.points && order.created_at === this.analysisData.created_at)[0]
+                this.generateBetMatrix()
             })
             .catch(err => {
                 this.$store.dispatch('auth/checkIfTokenIsValid', err.response.data.status_code)
             })
         },
         generateBetMatrix() {
-            var bet_team_counter = 0;
-            while(bet_team_counter <= 10) {
-                var table = []
-                var against_team_counter = 0;
-                while(against_team_counter <= 10) {
-                    let difference = (this.matrix_data.points + bet_team_counter) - against_team_counter
-                    if(difference > 0) {
-                        if(difference == 0.25) {
-                            var result = this.halfwin
-                            var color = 'lightgreen'
-                        } else {
-                            var result = this.towin
-                            var color = 'green'
+            let totalStake = 0
+            let totalTowin = 0
+            this.matrix_orders.forEach(order => {
+                let stake = Number(order.stake)
+                let price = Number(order.odds)
+                let towin = Number(order.stake) * Number(order.odds)
+                let points = Number(order.points)
+                let type = order.type
+                totalStake += stake
+                totalTowin += towin
+                var bet_team_counter = 0;
+                while(bet_team_counter <= 10) {
+                    var against_team_counter = 0;
+                    while(against_team_counter <= 10) {
+                        var result = 0
+                        if(type == 'HDP') {
+                            var difference = (points + bet_team_counter) - against_team_counter
+                            if(difference > 0.25) {
+                                var result = stake * price
+                            } else if(difference == 0.25) {
+                                var result = (stake * price) / 2
+                            } else if(difference == 0) {
+                                var result = 0
+                            } else if(difference == -0.25) {
+                                var result = (stake / 2) * -1
+                            } else {
+                                var result = stake * -1
+                            }
                         }
-                    } else if(difference < 0) {
-                        if(difference == -0.25) {
-                            var result = this.halflose * -1
-                            var color = 'lightred'
-                        } else {
-                            var result = this.matrix_data.stake * -1
-                            var color = 'red'
+                        if(type == 'O') {
+                            var teamTotals = bet_team_counter + against_team_counter
+                            if(teamTotals > points) {
+                                var result = stake * price
+                            } else {
+                                var result = stake * -1
+                            }
                         }
-                    } else {
-                        var result = 'Push'
-                        var color = 'white'
+                        if(type == 'U') {
+                            var teamTotals = bet_team_counter + against_team_counter
+                            if(teamTotals < points) {
+                                var result = stake * price
+                            } else {
+                                var result = stake * -1
+                            }
+                        }
+                        if(typeof(this.matrix_table[bet_team_counter])=="undefined") {
+                            this.matrix_table[bet_team_counter] = []
+                        }
+                        if(typeof(this.matrix_table[bet_team_counter][against_team_counter])=="undefined") {
+                            this.matrix_table[bet_team_counter][against_team_counter] = {}
+                        }
+                        if(typeof(this.matrix_table[bet_team_counter][against_team_counter]['result'])=="undefined") {
+                            this.matrix_table[bet_team_counter][against_team_counter]['result'] = ''
+                        }
+                        if(this.matrix_table[bet_team_counter][against_team_counter]['result'] != '') {
+                            this.matrix_table[bet_team_counter][against_team_counter]['result'] += result
+                        } else {
+                            this.matrix_table[bet_team_counter][against_team_counter]['result'] = result
+                        }
+                        against_team_counter++
                     }
-
-                    if(against_team_counter < this.matrix_data.away_score || bet_team_counter < this.matrix_data.home_score) {
-                        var color = 'grey'
-                    }
-                    table.push({ 'color': color, 'result': twoDecimalPlacesFormat(result) })
-                    against_team_counter++
+                    bet_team_counter++
                 }
-                this.matrix_table.push(table)
-                bet_team_counter++
-            }
-        },
-        changePoint() {
-            this.matrix_table = []
-            this.matrix_data.stake = Number(twoDecimalPlacesFormat(this.selectedPoint.stake))
-            this.matrix_data.price = Number(this.selectedPoint.odds)
-            this.matrix_data.points = Number(this.selectedPoint.points)
-            this.matrix_data.created_at = this.selectedPoint.created_at
-            this.generateBetMatrix()
+            })
+            this.matrix_table.map(row => {
+                row.map(col => {
+                    if(col.result == totalTowin) {
+                        col.color = 'green'
+                    } else if(col.result > 0 && col.result < totalTowin) {
+                        col.color ='lightgreen'
+                    } else if(col.result < 0 && col.result == (totalStake * -1)) {
+                        col.color = 'red'
+                    } else if(col.result < 0 == col.result > (totalStake * -1)) {
+                        col.color = 'lightred'
+                    } else {
+                        col.color = 'white'
+                    }
+                })
+            })
         }
     },
     directives: {
