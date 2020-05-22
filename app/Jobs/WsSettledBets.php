@@ -97,6 +97,7 @@ class WsSettledBets implements ShouldQueue
 
                 break;
             case 'PUSH':
+            case 'VOID':
                 $balance = $orders->stake;
                 $debit   = 0;
                 $credit  = $balance;
