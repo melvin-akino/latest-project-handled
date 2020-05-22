@@ -58,4 +58,18 @@ class Order extends Model
     {
         return self::where('user_id', auth()->user()->id)->count();
     }
+
+    public static function getOrdersByEvent($event_id)
+    {
+        return DB::table('orders')
+        ->join('master_event_markets AS mem', 'mem.master_event_market_unique_id', 'orders.master_event_market_unique_id')
+        ->join('master_events AS me', 'me.master_event_unique_id', 'mem.master_event_unique_id')
+        ->where('user_id', auth()->user()->id)
+        ->where('mem.master_event_unique_id', $event_id)
+        ->whereNotIn('status', ['PENDING', 'FAILED', 'CANCELLED', 'REJECTED', 'SUSPENDED'])
+        ->whereIn('mem.odd_type_id', function($query) {
+            $query->select('id')->from('odd_types')->whereIn('type', ['HDP', 'HT HDP', 'OU', 'HT OU']);
+        })
+        ->select('orders.id', 'stake', 'odds', 'odd_label AS points', 'mem.odd_type_id', 'orders.created_at');
+    }
 }

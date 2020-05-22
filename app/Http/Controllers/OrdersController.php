@@ -203,6 +203,13 @@ class OrdersController extends Controller
                 ];
             }
 
+            $eventBets = Order::getOrdersByEvent($masterEventMarket->master_event_unique_id)->count();
+
+            $hasBets = false;
+            if($eventBets > 0) {
+                $hasBets = true;
+            }
+
             $data = [
                 'league_name'   => $masterEvent->master_league_name,
                 'home'          => $masterEvent->master_home_team_name,
@@ -217,6 +224,7 @@ class OrdersController extends Controller
                 'odd_type'      => OddType::getTypeByID($masterEventMarket->odd_type_id),
                 'sport'         => Sport::getNameByID($masterEvent->sport_id),
                 'spreads'       => $spreads,
+                'has_bets'      => $hasBets
             ];
 
             return response()->json([
@@ -717,19 +725,7 @@ class OrdersController extends Controller
     public function betMatrixOrders(string $uid)
     {
         try  {
-            $orders = DB::table('orders')
-                ->join('master_event_markets AS mem', 'mem.master_event_market_unique_id', 'orders.master_event_market_unique_id')
-                ->join('master_events AS me', 'me.master_event_unique_id', 'mem.master_event_unique_id')
-                ->where('user_id', auth()->user()->id)
-                ->where('mem.master_event_unique_id', $uid)
-                ->whereNotIn('status', ['PENDING', 'FAILED', 'CANCELLED', 'REJECTED'])
-                ->whereIn('mem.odd_type_id', function($query) {
-                    $query->select('id')->from('odd_types')->whereIn('type', ['HDP', 'HT HDP', 'OU', 'HT OU']);
-                })
-                ->select('stake', 'odds', 'odd_label AS points', 'mem.odd_type_id')
-                ->distinct()
-                ->get();
-
+            $orders = Order::getOrdersByEvent($uid)->get();
             $data = [];
             foreach($orders as $order) {
                 $type = '';
@@ -743,10 +739,12 @@ class OrdersController extends Controller
                 }
 
                 $data[] = [
-                    'stake'  => $order->stake,
-                    'points' => $points,
-                    'odds'   => $order->odds,
-                    'type'   => $type
+                    'order_id'   => $order->id,
+                    'stake'      => $order->stake,
+                    'points'     => $points,
+                    'odds'       => $order->odds,
+                    'type'       => $type,
+                    'created_at' => $order->created_at
                 ];
             }
 
