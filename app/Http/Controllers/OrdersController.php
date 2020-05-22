@@ -744,6 +744,7 @@ class OrdersController extends Controller
                     'points'     => $points,
                     'odds'       => $order->odds,
                     'type'       => $type,
+                    'bet_team'   => $order->market_flag,
                     'created_at' => $order->created_at
                 ];
             }

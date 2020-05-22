@@ -70,6 +70,6 @@ class Order extends Model
         ->whereIn('mem.odd_type_id', function($query) {
             $query->select('id')->from('odd_types')->whereIn('type', ['HDP', 'HT HDP', 'OU', 'HT OU']);
         })
-        ->select('orders.id', 'stake', 'odds', 'odd_label AS points', 'mem.odd_type_id', 'orders.created_at');
+        ->select('orders.id', 'stake', 'odds', 'odd_label AS points', 'mem.odd_type_id', 'mem.market_flag', 'orders.created_at');
     }
 }

@@ -24,17 +24,23 @@
                     <p class="text-gray-700 mb-4">No order selected. Please select an order to generate bet matrix.</p>
                 </div>
                 <div class="flex items-center bg-black text-white p-1 pl-4">
-                    <span class="w-1/4">Bet Type</span>
-                    <span class="w-1/4">Price</span>
-                    <span class="w-1/4">Stake</span>
-                    <span class="w-1/4">Order Date</span>
+                    <span class="w-1/6"></span>
+                    <span class="w-2/6">Bet Type</span>
+                    <span class="w-1/6">Price</span>
+                    <span class="w-1/6">Stake</span>
+                    <span class="w-1/6">Order Date</span>
                 </div>
                 <div class="bets">
-                    <div class="flex items-center text-gray-700 text-white p-2 pl-4 my-1 cursor-pointer" v-for="order in matrix_orders_list" :key="order.order_id" :class="{'bg-white shadow-xl rounded-lg' : selectedOrders.includes(order.order_id)}" @click="toggleEventOrder(order, order.order_id)">
-                        <span class="w-1/4">{{analysisData.bet_team}} {{order.type}} {{order.points}} {{`(${analysisData.price_format})`}}</span>
-                        <span class="w-1/4">{{order.odds}}</span>
-                        <span class="w-1/4">{{analysisData.currency_symbol}} {{Number(order.stake) | moneyFormat}}</span>
-                        <span class="w-1/4">{{order.created_at}}</span>
+                    <div class="flex items-center text-gray-700 text-white p-1 my-1 cursor-pointer" v-for="order in matrix_orders_list" :key="order.order_id">
+                        <div class="w-3/6">
+                            <label class="text-gray-500 font-bold">
+                                <input class="mr-2 leading-tight" type="checkbox" @change="toggleEventOrder(order, order.order_id)" :checked="selectedOrders.includes(order.order_id)">
+                            </label>
+                            {{analysisData.bet_team}} {{order.type}} {{order.points}} {{`(${analysisData.price_format})`}}
+                        </div>
+                        <span class="w-1/6">{{order.odds}}</span>
+                        <span class="w-1/6">{{analysisData.currency_symbol}} {{Number(order.stake) | moneyFormat}}</span>
+                        <span class="w-1/6">{{order.created_at}}</span>
                     </div>
                 </div>
             </div>
@@ -111,16 +117,22 @@ export default {
                 let towin = Number(order.stake) * Number(order.odds)
                 let points = Number(order.points)
                 let type = order.type
+                let bet_team = order.bet_team
                 totalStake += stake
                 totalTowin += towin
-                var bet_team_counter = 0;
-                while(bet_team_counter <= 10) {
-                    var against_team_counter = 0;
-                    while(against_team_counter <= 10) {
+                var home_team_counter = 0;
+                while(home_team_counter <= 10) {
+                    var away_team_counter = 0;
+                    while(away_team_counter <= 10) {
                         var result = 0
                         var color = ''
                         if(type == 'HDP') {
-                            var difference = (points + bet_team_counter) - against_team_counter
+                            if(bet_team == 'HOME') {
+                                var difference = (points + home_team_counter) - away_team_counter
+                            } else {
+                                var difference = (points + away_team_counter) - home_team_counter
+                            }
+
                             if(difference > 0.25) {
                                 var result = stake * price
                             } else if(difference == 0.25) {
@@ -134,7 +146,7 @@ export default {
                             }
                         }
                         if(type == 'O') {
-                            var teamTotals = bet_team_counter + against_team_counter
+                            var teamTotals = home_team_counter + away_team_counter
                             if(teamTotals > points) {
                                 var result = stake * price
                             } else {
@@ -142,7 +154,7 @@ export default {
                             }
                         }
                         if(type == 'U') {
-                            var teamTotals = bet_team_counter + against_team_counter
+                            var teamTotals = home_team_counter + away_team_counter
                             if(teamTotals < points) {
                                 var result = stake * price
                             } else {
@@ -150,32 +162,32 @@ export default {
                             }
                         }
 
-                        if(against_team_counter < this.matrix_data.away_score || bet_team_counter < this.matrix_data.home_score) {
+                        if(away_team_counter < this.matrix_data.away_score || home_team_counter < this.matrix_data.home_score) {
                             var color = 'grey'
                         }
 
-                        if(typeof(this.matrix_table[bet_team_counter])=="undefined") {
-                            this.matrix_table[bet_team_counter] = []
+                        if(typeof(this.matrix_table[home_team_counter])=="undefined") {
+                            this.matrix_table[home_team_counter] = []
                         }
-                        if(typeof(this.matrix_table[bet_team_counter][against_team_counter])=="undefined") {
-                            this.matrix_table[bet_team_counter][against_team_counter] = {}
+                        if(typeof(this.matrix_table[home_team_counter][away_team_counter])=="undefined") {
+                            this.matrix_table[home_team_counter][away_team_counter] = {}
                         }
-                        if(typeof(this.matrix_table[bet_team_counter][against_team_counter]['result'])=="undefined") {
-                            this.matrix_table[bet_team_counter][against_team_counter]['result'] = ''
+                        if(typeof(this.matrix_table[home_team_counter][away_team_counter]['result'])=="undefined") {
+                            this.matrix_table[home_team_counter][away_team_counter]['result'] = ''
                         }
-                        if(typeof(this.matrix_table[bet_team_counter][against_team_counter]['color'])=="undefined") {
-                            this.matrix_table[bet_team_counter][against_team_counter]['color'] = ''
+                        if(typeof(this.matrix_table[home_team_counter][away_team_counter]['color'])=="undefined") {
+                            this.matrix_table[home_team_counter][away_team_counter]['color'] = ''
                         }
-                        if(this.matrix_table[bet_team_counter][against_team_counter]['result'] != '') {
-                            this.matrix_table[bet_team_counter][against_team_counter]['result'] += result
-                            this.matrix_table[bet_team_counter][against_team_counter]['color'] = color
+                        if(this.matrix_table[home_team_counter][away_team_counter]['result'] != '') {
+                            this.matrix_table[home_team_counter][away_team_counter]['result'] += result
+                            this.matrix_table[home_team_counter][away_team_counter]['color'] = color
                         } else {
-                            this.matrix_table[bet_team_counter][against_team_counter]['result'] = result
-                            this.matrix_table[bet_team_counter][against_team_counter]['color'] = color
+                            this.matrix_table[home_team_counter][away_team_counter]['result'] = result
+                            this.matrix_table[home_team_counter][away_team_counter]['color'] = color
                         }
-                        against_team_counter++
+                        away_team_counter++
                     }
-                    bet_team_counter++
+                    home_team_counter++
                 }
             })
             this.matrix_table.map(row => {
