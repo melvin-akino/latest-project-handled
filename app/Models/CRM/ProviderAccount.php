@@ -24,7 +24,6 @@ class ProviderAccount extends Model
         'is_enabled',
     ];
 
-
     public static function getBettingAccount($providerId, $stake, $isVIP, $eventId,$oddType,$marketFlag) 
     {
         
@@ -63,16 +62,15 @@ class ProviderAccount extends Model
             if ($finalProvider)
             {
 
-                $provider_account_id = $finalProvider->id;
+                $providerAccountId = $finalProvider->id;
                 $rules = ProviderBetRules::create([
-                    'event_id' => $eventId,
-                    'provider_account_id' => $provider_account_id,
-                    'odd_type_id' => $oddType,
-                    'team_ground'   => $marketFlag,
-                    'not_allowed_ground' => $notAllowed
+                    'event_id'              => $eventId,
+                    'provider_account_id'   => $providerAccountId,
+                    'odd_type_id'           => $oddType,
+                    'team_ground'           => $marketFlag,
+                    'not_allowed_ground'    => $notAllowed
                 ]);
             }
-
 
             return $finalProvider;
 

@@ -18,8 +18,8 @@ class CreateProviderQueTable extends Migration
             $table->integer('event_id');
             $table->integer('provider_account_id');
             $table->integer('odd_type_id');
-            $table->string('team_ground');
-            $table->string('not_allowed_ground');
+            $table->string('team_ground',10);
+            $table->string('not_allowed_ground',10);
             $table->timestamps();
 
         });
