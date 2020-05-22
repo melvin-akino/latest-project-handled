@@ -451,7 +451,7 @@ class TradeController extends Controller
                         'em.odds',
                         'em.odd_label',
                         'em.provider_id',
-                        DB::raw('(SELECT count(*) FROM orders as internalOrder WHERE internalOrder.market_id = em.bet_identifier AND internalOrder.user_id = ' . auth()->user()->id . ') as bet_count')
+                        'em.bet_identifier',
                     ])
                     ->distinct()->get();
 
@@ -459,6 +459,10 @@ class TradeController extends Controller
 
                 if ($row == 'user_watchlist') {
                     array_map(function ($transformed) use (&$watchlist, $userConfig) {
+                        $betCount = Orders::where('market_id', $transformed->bet_identifier)
+                            ->where('user_id', auth()->user()->id)
+                            ->count();
+
                         if ($userConfig == self::SORT_EVENT_BY_LEAGUE_NAME) {
                             $groupIndex = $transformed->master_league_name;
                         } else {
@@ -476,7 +480,7 @@ class TradeController extends Controller
                                 'league_name'   => $transformed->master_league_name,
                                 'running_time'  => $transformed->running_time,
                                 'ref_schedule'  => $transformed->ref_schedule,
-                                'has_bet'        => $transformed->bet_count > 0 ? true : false
+                                'has_bet'       => $betCount > 0 ? true : false
                             ];
                         }
                         if (empty($watchlist[$groupIndex][$transformed->master_event_unique_id]['home'])) {
@@ -511,6 +515,10 @@ class TradeController extends Controller
                 } else {
                     $topicTable = app('swoole')->topicTable;
                     array_map(function ($transformed) use (&$userSelected, $row, $userConfig, $topicTable) {
+                        $betCount = Orders::where('market_id', $transformed->bet_identifier)
+                            ->where('user_id', auth()->user()->id)
+                            ->count();
+
                         if ($userConfig == self::SORT_EVENT_BY_LEAGUE_NAME) {
                             $groupIndex = $transformed->master_league_name;
                         } else {
@@ -528,7 +536,7 @@ class TradeController extends Controller
                                 'league_name'   => $transformed->master_league_name,
                                 'running_time'  => $transformed->running_time,
                                 'ref_schedule'  => $transformed->ref_schedule,
-                                'has_bet'        => $transformed->bet_count > 0 ? true : false
+                                'has_bet'       => $betCount > 0 ? true : false
                             ];
                         }
 
