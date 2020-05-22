@@ -15,7 +15,7 @@
                     </div>
                     <div class="flex flex-wrap items-center" v-for="(matrix, index) in matrix_table" :key="index">
                         <span class="w-12 label block p-1 text-center bg-black text-white">{{index}}</span>
-                        <div class="result p-1 text-center text-white border border-white" :class="{'grey': data.color=='grey', 'green': data.color=='green', 'lightgreen': data.color=='lightgreen', 'red': data.color=='red', 'lightred': data.color=='lightred', 'white': data.color=='white'}" v-for="(data, index) in matrix" :key="index">
+                        <div class="result p-1 text-center text-white border border-white" :class="{'grey': data.color=='grey', 'green': data.color=='green', 'lightgreen': data.color=='lightgreen', 'red': data.color=='red', 'lightred': data.color=='lightred', 'white': data.color=='white', 'font-bold': data.highlight}" v-for="(data, index) in matrix" :key="index">
                             {{data.result | twoDecimalPlacesFormat }}
                         </div>
                     </div>
@@ -189,8 +189,8 @@ export default {
                     home_team_counter++
                 }
             })
-            this.matrix_table.map(row => {
-                row.map(col => {
+            this.matrix_table.map((row, rowIndex) => {
+                row.map((col, colIndex) => {
                     if(col.color == '') {
                         if(col.result == totalTowin) {
                             col.color = 'green'
@@ -203,6 +203,9 @@ export default {
                         } else {
                             col.color = 'white'
                         }
+                    }
+                    if(rowIndex == this.matrix_data.home_score && colIndex == this.matrix_data.away_score) {
+                        col.highlight = true
                     }
                 })
             })

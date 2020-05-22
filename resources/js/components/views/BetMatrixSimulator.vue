@@ -30,7 +30,7 @@
             </div>
             <div class="flex items-center" v-for="(matrix, index) in matrix_table" :key="index">
                 <span class="w-full label block p-1 text-center bg-black text-white">{{index}}</span>
-                <div class="w-full p-1 text-center text-white border border-white" :class="{'grey': data.color=='grey', 'green': data.color=='green', 'lightgreen': data.color=='lightgreen', 'red': data.color=='red', 'lightred': data.color=='lightred', 'white': data.color=='white'}" v-for="(data, index) in matrix" :key="index">
+                <div class="w-full p-1 text-center text-white border border-white" :class="{'grey': data.color=='grey', 'green': data.color=='green', 'lightgreen': data.color=='lightgreen', 'red': data.color=='red', 'lightred': data.color=='lightred', 'white': data.color=='white', 'font-bold': data.highlight}" v-for="(data, index) in matrix" :key="index">
                     {{data.result}}
                 </div>
             </div>
@@ -154,8 +154,8 @@ export default {
                     this.error = 'Please check your JSON input if it has a stake, odds, points and type value. The simulated bet matrix may be inaccurate due to missing required parameters.'
                 }
             })
-            this.matrix_table.map(row => {
-                row.map(col => {
+            this.matrix_table.map((row, rowIndex) => {
+                row.map((col, colIndex) => {
                     if(col.color == '') {
                         if(col.result == totalTowin) {
                             col.color = 'green'
@@ -168,6 +168,10 @@ export default {
                         } else {
                             col.color = 'white'
                         }
+                    }
+
+                    if(rowIndex == this.home_score && colIndex == this.away_score) {
+                        col.highlight = true
                     }
                 })
             })
