@@ -24,8 +24,7 @@
                     <p class="text-gray-700 mb-4">No order selected. Please select an order to generate bet matrix.</p>
                 </div>
                 <div class="flex items-center bg-black text-white p-1 pl-4">
-                    <span class="w-1/6"></span>
-                    <span class="w-2/6">Bet Type</span>
+                    <span class="w-3/6">Bet Type</span>
                     <span class="w-1/6">Price</span>
                     <span class="w-1/6">Stake</span>
                     <span class="w-1/6">Order Date</span>
