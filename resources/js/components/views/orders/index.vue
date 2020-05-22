@@ -86,7 +86,7 @@ export default {
                 'Result'                 : 'score',
                 'Profit/Loss'            : 'pl'
             },
-            failedbetStatus: ['PENDING', 'FAILED', 'CANCELLED', 'REJECTED']
+            failedbetStatus: ['PENDING', 'FAILED', 'CANCELLED', 'REJECTED', 'SUSPENDED']
         }
     },
     head: {

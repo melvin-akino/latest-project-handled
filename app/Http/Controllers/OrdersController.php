@@ -205,11 +205,9 @@ class OrdersController extends Controller
 
             $eventBets = Order::getOrdersByEvent($masterEventMarket->master_event_unique_id)->count();
 
-            $hasBets = '';
+            $hasBets = false;
             if($eventBets > 0) {
                 $hasBets = true;
-            } else {
-                $hasBets = false;
             }
 
             $data = [

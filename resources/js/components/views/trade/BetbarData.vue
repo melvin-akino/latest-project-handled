@@ -38,7 +38,7 @@ export default {
             showOddsHistory: false,
             showBetMatrix: false,
             oddTypesWithBetMatrix: [3, 4, 11, 12],
-            failedbetStatus: ['PENDING', 'FAILED', 'CANCELLED', 'REJECTED']
+            failedbetStatus: ['PENDING', 'FAILED', 'CANCELLED', 'REJECTED', 'SUSPENDED']
         }
     },
     computed: {
