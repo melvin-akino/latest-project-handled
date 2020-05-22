@@ -31,7 +31,7 @@
             <div class="flex items-center" v-for="(matrix, index) in matrix_table" :key="index">
                 <span class="w-full label block p-1 text-center bg-black text-white">{{index}}</span>
                 <div class="w-full p-1 text-center text-white border border-white" :class="{'grey': data.color=='grey', 'green': data.color=='green', 'lightgreen': data.color=='lightgreen', 'red': data.color=='red', 'lightred': data.color=='lightred', 'white': data.color=='white', 'font-bold': data.highlight}" v-for="(data, index) in matrix" :key="index">
-                    {{data.result}}
+                    {{data.result | twoDecimalPlacesFormat}}
                 </div>
             </div>
         </div>
@@ -182,6 +182,9 @@ export default {
             this.showMatrixTable = false
             this.error = ''
         }
+    },
+    filters: {
+        twoDecimalPlacesFormat
     }
 }
 </script>
