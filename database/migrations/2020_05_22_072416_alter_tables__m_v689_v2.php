@@ -8,6 +8,7 @@ class AlterTablesMV689V2 extends Migration
 {
     protected $ev   = "events";
     protected $me   = "master_events";
+    protected $mel  = "master_event_links";
     protected $em   = "event_markets";
     protected $mem  = "master_event_markets";
     protected $meml = "master_event_market_logs";
@@ -27,9 +28,12 @@ class AlterTablesMV689V2 extends Migration
     {
         // EVENTS :: START
             Schema::table($this->ev, function (Blueprint $table) {
-                $table->dropColumn('league_name');
-                $table->dropColumn('home_team_name');
-                $table->dropColumn('away_team_name');
+                $table->dropColumn([
+                    'league_name',
+                    'home_team_name',
+                    'away_team_name',
+                    'game_schedule',
+                ]);
 
                 $table->integer('league_id')->index()->nullable();
                 $table->integer('home_team_id')->index()->nullable();
@@ -57,12 +61,6 @@ class AlterTablesMV689V2 extends Migration
 
         // MASTER EVENTS :: START
             Schema::table($this->me, function (Blueprint $table) {
-                // $table->dropColumn([
-                //     'master_league_name',
-                //     'master_home_team_name',
-                //     'master_away_team_name',
-                // ]);
-
                 $table->integer('master_home_team_id')->index()->nullable();
                 $table->integer('master_away_team_id')->index()->nullable();
 
@@ -80,6 +78,12 @@ class AlterTablesMV689V2 extends Migration
                     ->onUpdate('cascade');
             });
         // MASTER EVENTS :: END
+
+        // MASTER EVENT LINKS :: START
+            Schema::table($this->mel, function (Blueprint $table) {
+                $table->string('game_schedule', 10)->index()->nullable();
+            });
+        // MASTER EVENT LINKS :: END
 
         // EVENT MARKETS :: START
             Schema::table($this->em, function (Blueprint $table) {
@@ -187,6 +191,12 @@ class AlterTablesMV689V2 extends Migration
                 $table->string('master_away_team_name', 100)->nullable();
             });
         // MASTER EVENTS :: END
+
+        // MASTER EVENT LINKS :: START
+            Schema::table($this->mel, function (Blueprint $table) {
+                $table->dropColumn('game_schedule');
+            });
+        // MASTER EVENT LINKS :: END
 
         // EVENT MARKETS :: START
             Schema::table($this->em, function (Blueprint $table) {
