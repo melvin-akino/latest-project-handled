@@ -745,6 +745,7 @@ class OrdersController extends Controller
                     'odds'       => $order->odds,
                     'type'       => $type,
                     'bet_team'   => $order->market_flag,
+                    'team_name'  => $order->market_flag == 'HOME' ? $order->master_home_team_name : $order->master_away_team_name,
                     'created_at' => $order->created_at
                 ];
             }

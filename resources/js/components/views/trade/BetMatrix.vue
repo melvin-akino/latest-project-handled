@@ -23,20 +23,22 @@
                 <div v-else>
                     <p class="text-gray-700 mb-4">No order selected. Please select an order to generate bet matrix.</p>
                 </div>
-                <div class="flex items-center bg-black text-white p-1 pl-4">
-                    <span class="w-3/6">Bet Type</span>
+                <div class="flex items-center bg-black text-white p-1">
+                    <span class="w-2/6">Bet Type</span>
+                    <span class="w-1/6">Bet Team</span>
                     <span class="w-1/6">Price</span>
                     <span class="w-1/6">Stake</span>
                     <span class="w-1/6">Order Date</span>
                 </div>
                 <div class="bets">
                     <div class="flex items-center text-gray-700 text-white p-1 my-1 cursor-pointer" v-for="order in matrix_orders_list" :key="order.order_id">
-                        <div class="w-3/6">
+                        <div class="w-2/6">
                             <label class="text-gray-500 font-bold">
                                 <input class="mr-2 leading-tight" type="checkbox" @change="toggleEventOrder(order, order.order_id)" :checked="selectedOrders.includes(order.order_id)">
                             </label>
-                            {{analysisData.bet_team}} {{order.type}} {{order.points}} {{`(${analysisData.price_format})`}}
+                            {{order.team_name}} {{order.type}} {{order.points}} {{`(${analysisData.price_format})`}}
                         </div>
+                        <span class="w-1/6">{{order.bet_team}}</span>
                         <span class="w-1/6">{{order.odds}}</span>
                         <span class="w-1/6">{{analysisData.currency_symbol}} {{Number(order.stake) | moneyFormat}}</span>
                         <span class="w-1/6">{{order.created_at}}</span>
