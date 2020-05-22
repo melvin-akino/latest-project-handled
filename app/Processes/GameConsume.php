@@ -36,7 +36,7 @@ class GameConsume implements CustomProcessInterface
                 Log::info("Game Consume Starts");
                 while (!self::$quit) {
                     if ($swoole->priorityTriggerTable->exist('priority')) {
-                        usleep(100000);
+                        usleep(10000);
                         continue;
                     }
 
@@ -68,7 +68,6 @@ class GameConsume implements CustomProcessInterface
             }
         } catch (Exception $e) {
             Log::error($e->getMessage());
-            Log::debug('Payload' . $message->payload);
         }
 
     }

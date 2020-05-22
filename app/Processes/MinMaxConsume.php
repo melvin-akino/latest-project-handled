@@ -38,8 +38,15 @@ class MinMaxConsume implements CustomProcessInterface
                             continue;
                         }
 
-                        if (!empty($payload->data->timestamp) &&
-                            $swoole->minmaxMarketTable->exist('minmax-market:' . $payload->data->market_id) &&
+                        $doesMinMaxKeyExist = false;
+                        foreach ($swoole->minmaxMarketTable as $key => $minmaxValue) {
+                            if ($key == 'minmax-market:' . $payload->data->market_id) {
+                                $doesMinMaxKeyExist = true;
+                                break;
+                            }
+                        }
+
+                        if (!empty($payload->data->timestamp) && $doesMinMaxKeyExist &&
                             $swoole->minmaxMarketTable->get('minmax-market:' . $payload->data->market_id)['value'] >= $payload->data->timestamp
                         ) {
                             Log::info("Min Max Transformation ignored - Same or Old Timestamp");

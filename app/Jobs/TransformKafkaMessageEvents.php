@@ -31,7 +31,14 @@ class TransformKafkaMessageEvents implements ShouldQueue
                     'schedule:' . $this->message->data->schedule
                 ]);
 
-            if ($eventScrapingTable->exists($timestampSwtId)) {
+            $doesExist = false;
+            foreach ($eventScrapingTable as $key => $value) {
+                if ($key == $timestampSwtId) {
+                    $doesExist = true;
+                    break;
+                }
+            }
+            if ($doesExist) {
                 $swooleTS = $eventScrapingTable[$timestampSwtId]['value'];
 
                 if ($swooleTS > $this->message->request_ts) {
@@ -59,7 +66,15 @@ class TransformKafkaMessageEvents implements ShouldQueue
              */
             $providerSwtId = "providerAlias:" . strtolower($this->message->data->provider);
 
-            if ($providersTable->exist($providerSwtId)) {
+            $doesExist = false;
+            foreach ($providersTable as $key => $value) {
+                if ($key == $providerSwtId) {
+                    $doesExist = true;
+                    break;
+                }
+            }
+
+            if ($doesExist) {
                 $providerId = $providersTable->get($providerSwtId)['id'];
             } else {
                 Log::info("Event Transformation ignored - Provider doesn't exist");
@@ -77,7 +92,14 @@ class TransformKafkaMessageEvents implements ShouldQueue
              */
             $sportSwtId = "sId:" . $this->message->data->sport;
 
-            if ($sportsTable->exists($sportSwtId)) {
+            $doesExist = false;
+            foreach ($sportsTable as $key => $value) {
+                if ($key == $sportSwtId) {
+                    $doesExist = true;
+                    break;
+                }
+            }
+            if ($doesExist) {
                 $sportId = $sportsTable->get($sportSwtId)['id'];
             } else {
                 Log::info("Event Transformation ignored - Sport doesn't exist");
@@ -89,15 +111,32 @@ class TransformKafkaMessageEvents implements ShouldQueue
                 'pId:' . $providerId,
                 'schedule:' . $this->message->data->schedule
             ]);
-            if ($activeEventsTable->exists($activeEventsSwtId)) {
+
+            $doesExist = false;
+            foeach ($activeEventsTable as $key => $value) {
+                if ($key == $activeEventsSwtId) {
+                    $doesExist = true;
+                    break;
+                }
+            }
+
+            if ($doesExist) {
                 $eventsJson = $activeEventsTable->get($activeEventsSwtId);
                 $events     = json_decode($eventsJson['events'], true);
 
                 $inActiveEvents = array_diff($events, $this->message->data->event_ids);
 
                 foreach ($inActiveEvents as $eventId) {
-                    if ($eventsTable->exists("sId:$sportId:pId:$providerId:eventIdentifier:$eventId")) {
-                        $eventsTable->del("sId:$sportId:pId:$providerId:eventIdentifier:$eventId");
+                    $eventTableKey = "sId:$sportId:pId:$providerId:eventIdentifier:$eventId";
+                    $doesExist = false;
+                    foreach ($eventsTable as $k => $v) {
+                        if ($k == $eventTableKey) {
+                            $doesExist = true;
+                            break;
+                        }
+                    }
+                    if ($doesExist) {
+                        $eventsTable->del($eventTableKey);
                     }
                 }
                 WsForRemovalEvents::dispatch($inActiveEvents, $providerId);

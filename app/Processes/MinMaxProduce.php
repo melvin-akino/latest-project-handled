@@ -48,8 +48,8 @@ class MinMaxProduce implements CustomProcessInterface
                         if (!empty($systemConfigurationsTimers)) {
 
                             foreach ($minMaxRequestsTable as $minMaxRequest) {
-                                $requestId = Str::uuid();
-                                $requestTs = self::milliseconds();
+                                $requestId = (string) Str::uuid();
+                                $requestTs = getMilliseconds();
                                 $scheduleFrequency = 1;
                                 foreach ($systemConfigurationsTimers as $systemConfigurationsTimer) {
                                     if (
@@ -104,21 +104,11 @@ class MinMaxProduce implements CustomProcessInterface
         ])->get()->toArray();
     }
 
-    private static function milliseconds()
-    {
-        $mt = explode(' ', microtime());
-        return bcadd($mt[1], $mt[0], 8);
-    }
-
-    private static function pushToKafka(array $message = [], string $key, string $kafkaTopic, int $delayInSeconds = 0)
+    private static function pushToKafka(array $message = [], string $key, string $kafkaTopic)
     {
         try {
-            if (empty($delayInMinutes)) {
-                self::$producerHandler->setTopic($kafkaTopic)
-                    ->send($message, $key);
-            } else {
-                KafkaPush::dispatch($kafkaTopic, $message, $key)->delay(now()->addSeconds($delayInSeconds));
-            }
+            self::$producerHandler->setTopic($kafkaTopic)
+                ->send($message, $key);
         } catch (Exception $e) {
             Log::critical('Sending Kafka Message Failed', [
                 'error' => $e->getMessage(),

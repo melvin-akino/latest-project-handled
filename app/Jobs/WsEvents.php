@@ -42,7 +42,14 @@ class WsEvents implements ShouldQueue
                             "pId:"    . $provider['id']
                         ]);
 
-                        if ($userProviderConfigTable->exists($userProviderConfigSwtId)) {
+                        $doesExist = false;
+                        foreach ($userProviderConfigTable as $k => $v) {
+                            if ($k == $userProviderConfigSwtId) {
+                                $doesExist = true;
+                                break;
+                            }
+                        }
+                        if ($doesExist) {
                             if ($userProviderConfigTable->get($userProviderConfigSwtId)['active']) {
                                 $providerId = $userProviderConfigTable->get($userProviderConfigSwtId)['provider_id'];
                             }
@@ -65,19 +72,20 @@ class WsEvents implements ShouldQueue
                 throw new Exception('[VALIDATION_ERROR] No Providers found.');
             }
 
+            $userBets = DB::table('orders')->where('user_id', $this->userId)->get()->toArray();
+
             $transformed = DB::table('master_leagues as ml')
                 ->join('sports as s', 's.id', 'ml.sport_id')
-                ->join('master_events as me', 'me.master_league_name', 'ml.master_league_name')
-                ->join('master_event_markets as mem', 'mem.master_event_unique_id', 'me.master_event_unique_id')
+                ->join('master_events as me', 'me.master_league_id', 'ml.id')
+                ->join('master_event_markets as mem', 'mem.master_event_id', 'me.id')
                 ->join('odd_types as ot', 'ot.id', 'mem.odd_type_id')
-                ->join('master_event_market_links as meml', 'meml.master_event_market_unique_id', 'mem.master_event_market_unique_id')
+                ->join('master_event_market_links as meml', 'meml.master_event_market_id', 'mem.id')
                 ->join('event_markets as em', 'em.id', 'meml.event_market_id')
                 ->select('ml.sport_id', 'ml.master_league_name', 's.sport',
                     'me.master_event_unique_id', 'me.master_home_team_name', 'me.master_away_team_name',
                     'me.ref_schedule', 'me.game_schedule', 'me.score', 'me.running_time',
                     'me.home_penalty', 'me.away_penalty', 'mem.odd_type_id', 'mem.master_event_market_unique_id', 'mem.is_main', 'mem.market_flag',
-                    'ot.type', 'em.odds', 'em.odd_label', 'em.provider_id',
-                    DB::raw('(SELECT count(*) FROM orders as internalOrder WHERE internalOrder.market_id = em.bet_identifier AND internalOrder.user_id = ' . $this->userId . ') as bet_count'))
+                    'ot.type', 'em.odds', 'em.odd_label', 'em.provider_id', 'em.bet_identifier')
                 ->where('ml.master_league_name', $this->master_league_name)
                 ->where('me.game_schedule', $this->schedule)
                 ->where('mem.is_main', true)
@@ -87,9 +95,18 @@ class WsEvents implements ShouldQueue
                 ->distinct()->get();
             $data = [];
             $userId = $this->userId;
-            array_map(function ($transformed) use (&$data, $topicTable, $userId) {
+            array_map(function ($transformed) use (&$data, $topicTable, $userId, $userBets) {
                 $mainOrOther = $transformed->is_main ? 'main' : 'other';
                 if (empty($data[$transformed->master_event_unique_id])) {
+                    $hasBet = false;
+
+                    if (!empty($userBets)) {
+                        $userOrderMarkets = array_column($userBets, 'market_id');
+                        if (in_array($transformed->bet_identifier, $userOrderMarkets)) {
+                            $hasBet = true;
+                        }
+                    }
+
                     $data[$transformed->master_event_unique_id] = [
                         'uid'           => $transformed->master_event_unique_id,
                         'sport_id'      => $transformed->sport_id,
@@ -99,7 +116,7 @@ class WsEvents implements ShouldQueue
                         'league_name'   => $transformed->master_league_name,
                         'running_time'  => $transformed->running_time,
                         'ref_schedule'  => $transformed->ref_schedule,
-                        'has_bet'        => $transformed->bet_count > 0 ? true : false
+                        'has_bet'       => $hasBet
                     ];
                 }
 
@@ -145,7 +162,6 @@ class WsEvents implements ShouldQueue
                 }
 
             }, $transformed->toArray());
-
             $eventData = array_values($data);
             if (!empty($eventData)) {
                 $server->push($fd['value'], json_encode([

@@ -47,8 +47,8 @@ class WsForRemovalEvents implements ShouldQueue
                 if ($event && $this->providerId == $providerId) {
                     $eventLink = MasterEventLink::where('event_id', $event->id)->first();
                     if ($eventLink) {
-                        UserWatchlist::where('master_event_unique_id', $eventLink->master_event_unique_id)->delete();
-                        MasterEvent::where('master_event_unique_id', $eventLink->master_event_unique_id)->delete();
+                        UserWatchlist::where('master_event_id', $eventLink->master_event_id)->delete();
+                        MasterEvent::where('id', $eventLink->master_event_unique_id)->delete();
                         $data[] = $eventLink->master_event_unique_id;
                     }
                 }

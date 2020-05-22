@@ -56,10 +56,8 @@ class SettlementProduce implements CustomProcessInterface
                                         $providerAlias = strtolower($pRow['provider_alias']);
                                         $username      = $pRow['username'];
 
-                                        $randomRangeInMinutes = rand(0, 10);
-
-                                        $requestId = Str::uuid();
-                                        $requestTs = self::milliseconds();
+                                        $requestId = (string) Str::uuid();
+                                        $requestTs = getMilliseconds();
 
                                         $payload = [
                                             'request_uid' => $requestId,
@@ -75,7 +73,7 @@ class SettlementProduce implements CustomProcessInterface
                                         ];
 
                                         self::pushToKafka($payload, $requestId,
-                                            $providerAlias . env('KAFKA_SCRAPE_SETTLEMENT_POSTFIX', '_settlement_req'), $randomRangeInMinutes);
+                                            $providerAlias . env('KAFKA_SCRAPE_SETTLEMENT_POSTFIX', '_settlement_req'));
 
                                         $startTime = $newTime;
                                     }
@@ -109,15 +107,11 @@ class SettlementProduce implements CustomProcessInterface
         return bcadd($mt[1], $mt[0], 8);
     }
 
-    private static function pushToKafka(array $message = [], string $key, string $kafkaTopic, int $delayInSeconds = 0)
+    private static function pushToKafka(array $message = [], string $key, string $kafkaTopic)
     {
         try {
-            if (empty($delayInMinutes)) {
-                self::$producerHandler->setTopic($kafkaTopic)
-                    ->send($message, $key);
-            } else {
-                KafkaPush::dispatch($kafkaTopic, $message, $key)->delay(now()->addSeconds($delayInSeconds));
-            }
+            self::$producerHandler->setTopic($kafkaTopic)
+                ->send($message, $key);
         } catch (Exception $e) {
             Log::critical('Sending Kafka Message Failed', [
                 'error' => $e->getMessage(),

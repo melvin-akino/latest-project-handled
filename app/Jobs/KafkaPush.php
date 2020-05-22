@@ -2,7 +2,6 @@
 
 namespace App\Jobs;
 
-use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Support\Facades\Log;
@@ -10,7 +9,7 @@ use App\Handlers\ProducerHandler;
 
 class KafkaPush implements ShouldQueue
 {
-    use Dispatchable, Queueable;
+    use Dispatchable;
 
     /**
      * Create a new job instance.

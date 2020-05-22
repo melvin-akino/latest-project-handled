@@ -62,7 +62,6 @@ class OddsValidationHandler
             $teamsTable                               = $swoole->teamsTable;
             $eventsTable                              = $swoole->eventsTable;
             $oddTypesTable                            = $swoole->oddTypesTable;
-            $sportOddTypesTable                       = $swoole->sportOddTypesTable;
             $eventMarketsTable                        = $swoole->eventMarketsTable;
             $leagueLookUpTable                        = $swoole->leagueLookUpTable;
             $teamLookUpTable                          = $swoole->teamLookUpTable;

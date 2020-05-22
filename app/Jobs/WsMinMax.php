@@ -35,7 +35,7 @@ class WsMinMax implements ShouldQueue
                     break;
                 }
             }
-            if (empty($doesExist)) {
+            if ($doesExist) {
                 $topicTable->set('userId:' . $this->userId . ':unique:' . uniqid(), [
                     'user_id'    => $this->userId,
                     'topic_name' => 'min-max-' . $this->master_event_market_unique_id
@@ -43,12 +43,12 @@ class WsMinMax implements ShouldQueue
             }
 
             $eventMarket = DB::table('event_markets as em')
-                ->join('master_event_links as mel', 'mel.master_event_unique_id', 'em.master_event_unique_id')
-                ->join('events as e', 'e.id', 'mel.event_id')
                 ->join('master_event_market_links as meml', 'meml.event_market_id', 'em.id')
-                ->join('master_event_markets as mem', 'mem.master_event_market_unique_id',
-                    'meml.master_event_market_unique_id')
-                ->join('master_events as me', 'me.master_event_unique_id', 'mem.master_event_unique_id')
+                ->join('master_event_markets as mem', 'mem.id',
+                    'meml.master_event_market_id')
+                ->join('master_events as me', 'me.id', 'em.master_event_id')
+                ->join('master_event_links as mel', 'mel.master_event_id', 'me.master_event_unique_id')
+                ->join('events as e', 'e.id', 'mel.event_id')
                 ->join('providers as p', 'p.id', 'em.provider_id')
                 ->where('mem.master_event_market_unique_id', $this->master_event_market_unique_id)
                 ->select('em.bet_identifier', 'p.alias', 'me.sport_id', 'me.game_schedule', 'e.event_identifier')
@@ -66,7 +66,7 @@ class WsMinMax implements ShouldQueue
                 PrometheusMatric::MakeMatrix('swoole_table_total', 'Swoole minMaxRequestsTable total ','minMaxRequestsTable');
 
                 $requestId = (string) Str::uuid();
-                $requestTs = $this->milliseconds();
+                $requestTs = getMilliseconds();
 
                 $payload         = [
                     'request_uid' => $requestId,
@@ -85,7 +85,14 @@ class WsMinMax implements ShouldQueue
                 Log::info('Min Max Initial Request');
                 KafkaPush::dispatch(strtolower($eventMarket->alias) . '_minmax_req', $payload, $requestId);
 
-                if ($minMaxCachesTable->exist('memUID:' . $this->master_event_market_unique_id)) {
+                $doesExist = false;
+                foreach ($minMaxCachesTable as $k => $v) {
+                    if ($k == 'memUID:' . $this->master_event_market_unique_id) {
+                        $doesExist = true;
+                        break;
+                    }
+                }
+                if ($doesExist) {
                     $minmaxCache = $minMaxCachesTable->get('memUID:' . $this->master_event_market_unique_id);
                     $fd = $wsTable->get('uid:' . $this->userId)['value'];
                     $swoole->push($fd, json_encode([
@@ -96,11 +103,5 @@ class WsMinMax implements ShouldQueue
         } catch (Exception $e) {
             Log::error($e->getMessage());
         }
-    }
-
-    private function milliseconds()
-    {
-        $mt = explode(' ', microtime());
-        return bcadd($mt[1], $mt[0], 8);
     }
 }
