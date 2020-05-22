@@ -83,8 +83,7 @@ class AlterTablesMV689 extends Migration
 
         // ORDER :: START
             Schema::table($this->or, function (Blueprint $table) {
-                $table->integer('master_event_market_id')->index()->nullable();
-
+                $table->index('master_event_market_id');
                 $table->index('bet_id');
                 $table->index('status');
                 $table->index('provider_id');
@@ -167,10 +166,6 @@ class AlterTablesMV689 extends Migration
                 $table->dropIndex($this->or . '_bet_id_index');
                 $table->dropIndex($this->or . '_status_index');
                 $table->dropIndex($this->or . '_provider_id_index');
-            });
-
-            Schema::table($this->or, function (Blueprint $table) {
-                $table->dropColumn('master_event_market_id');
             });
         // ORDER :: END
     }

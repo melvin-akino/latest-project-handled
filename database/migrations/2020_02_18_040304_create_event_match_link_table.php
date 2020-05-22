@@ -20,9 +20,9 @@ class CreateEventMatchLinkTable extends Migration
                 $table->integerIncrements('id');
                 $table->integer('sport_id');
                 $table->string('master_event_unique_id');
-                $table->string('master_league_name')->index();
-                $table->string('master_home_team_name')->index();
-                $table->string('master_away_team_name')->index();
+                // $table->string('master_league_name')->index();
+                // $table->string('master_home_team_name')->index();
+                // $table->string('master_away_team_name')->index();
                 $table->string('ref_schedule');
                 $table->string('game_schedule', 10)->default('early');
                 $table->softDeletes();

@@ -34,13 +34,6 @@ class AlterTablesOrderRelated extends Migration
                     ->references('id')
                     ->on('providers')
                     ->onUpdate('cascade');
-
-                if ($row == "orders") {
-                    $table->foreign('master_event_market_unique_id')
-                        ->references('master_event_market_unique_id')
-                        ->on('master_event_markets')
-                        ->onUpdate('cascade');
-                }
             });
         }
     }
@@ -57,10 +50,6 @@ class AlterTablesOrderRelated extends Migration
                 if (!isset($_SERVER['_PHPUNIT'])) {
                     $table->dropForeign(['user_id']);
                     $table->dropForeign(['provider_id']);
-
-                    if ($row == "orders") {
-                        $table->dropForeign(['master_event_market_unique_id']);
-                    }
                 }
             });
 

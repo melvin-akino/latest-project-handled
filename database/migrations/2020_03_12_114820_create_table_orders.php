@@ -8,12 +8,12 @@ class CreateTableOrders extends Migration
 {
     protected $tablename = "orders";
     protected $strings   = [
-        'master_event_market_unique_id',
         'market_id',
         'status',
         'bet_id',
     ];
     protected $integers  = [
+        'master_event_market_id',
         'provider_id',
         'sport_id',
     ];

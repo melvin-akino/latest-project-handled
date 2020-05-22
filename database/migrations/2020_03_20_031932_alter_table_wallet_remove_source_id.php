@@ -29,7 +29,7 @@ class AlterTableWalletRemoveSourceId extends Migration
     public function down()
     {
         Schema::table($this->tablename, function (Blueprint $table) {
-            $table->integer('source_id');
+            $table->integer('source_id')->nullable();
         });
     }
 }

@@ -17,7 +17,7 @@ class CreateProviderAccounts extends Migration
         Schema::create($this->tablename, function (Blueprint $table) {
             $table->bigIncrements('id');
             $table->integer('provider_id');
-            $table->integer('type');
+            $table->string('type', 50);
             $table->string('username');
             $table->string('password');
             $table->float('punter_percentage', 2, 2);

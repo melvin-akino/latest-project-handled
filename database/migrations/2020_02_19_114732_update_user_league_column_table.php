@@ -46,10 +46,11 @@ class UpdateUserLeagueColumnTable extends Migration
     {
         if (Schema::hasTable($this->tablename)) {
             Schema::table($this->tablename, function (Blueprint $table) {
-                $table->string('uid', 100);
+                $table->string('uid', 100)->nullable();
                 $table->unique('uid');
                 $table->tinyInteger('flag')
-                    ->comment('0 - for deletion, 1 - selected, 2 - watchlist');
+                    ->comment('0 - for deletion, 1 - selected, 2 - watchlist')
+                    ->nullable();
             });
 
             Schema::table($this->tablename, function (Blueprint $table) {
