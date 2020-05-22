@@ -45,7 +45,7 @@ export default {
     name: 'BetMatrixSimulator',
     data() {
         return {
-            matrix_json: '[{"stake": "50.00", "odds": "1.99", "points": "-0.5", "type": "HDP", "bet_team": "HOME"}]',
+            matrix_json: '[{"stake": "50.00", "odds": "1", "points": "-0.5", "type": "HDP", "bet_team": "HOME"}]',
             matrix_orders: [],
             matrix_table: [],
             error: '',
