@@ -525,9 +525,9 @@ class OrdersController extends Controller
                     $teamname . " @ " . number_format($row['price'], 2),
                     $query->column_type . " " . $query->odd_label . "(" . $query->score . ")",
                 ]);
-
-                $providerAccount = ProviderAccount::getProviderAccount($row['provider_id'], $actualStake, $isUserVIP);
-
+            
+                $providerAccount = ProviderAccount::getBettingAccount($row['provider_id'], $actualStake, $isUserVIP, $payload['event_id'], $query->odd_type_id, $query->market_flag);
+ 
                 if (!$providerAccount) {
                     return response()->json([
                         'status'      => false,
