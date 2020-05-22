@@ -33,9 +33,8 @@ class TradeController extends Controller
         try {
             $betBarData = DB::table('orders AS o')
                 ->join('providers AS p', 'p.id', 'o.provider_id')
-                ->join('master_event_markets AS mem', 'mem.master_event_market_unique_id',
-                    'o.master_event_market_unique_id')
-                ->join('master_events AS me', 'me.master_event_unique_id', 'mem.master_event_unique_id')
+                ->join('master_event_markets AS mem', 'mem.id', 'o.master_event_market_id')
+                ->join('master_events AS me', 'me.id', 'mem.master_event_id')
                 ->join('odd_types AS ot', 'ot.id', 'mem.odd_type_id')
                 ->join('sport_odd_type AS sot', 'sot.odd_type_id', 'ot.id')
                 ->distinct()
@@ -145,8 +144,9 @@ class TradeController extends Controller
                     $leagueId = MasterLeague::getIdByName($request->data);
 
                     if ($leagueId) {
-                        $masterEventUniqueIds = MasterEvent::getActiveEvents('master_league_name', '=',
-                            $request->data)->get('master_event_unique_id')->toArray();
+                        $masterEventUniqueIds = MasterEvent::getActiveEvents('master_league_name', '=', $request->data)
+                            ->get('master_event_unique_id')
+                            ->toArray();
                     } else {
                         return response()->json([
                             'status'      => false,
@@ -157,8 +157,9 @@ class TradeController extends Controller
                     break;
 
                 case 'event':
-                    $masterEventUniqueIds = MasterEvent::getActiveEvents('master_event_unique_id', '=',
-                        $request->data)->get('master_event_unique_id')->toArray();
+                    $masterEventUniqueIds = MasterEvent::getActiveEvents('master_event_unique_id', '=', $request->data)
+                        ->get('master_event_unique_id')
+                        ->toArray();
                     break;
             }
 
@@ -172,8 +173,9 @@ class TradeController extends Controller
                             'master_event_unique_id' => $row['master_event_unique_id']
                         ]
                     );
-                    app('swoole')->userWatchlistTable->set('userWatchlist:' . auth()->user()->id . ':masterEventUniqueId:' . $row['master_event_unique_id'],
-                        ['value' => true]);
+                    app('swoole')->userWatchlistTable->set('userWatchlist:' . auth()->user()->id . ':masterEventUniqueId:' . $row['master_event_unique_id'], [
+                        'value' => true
+                    ]);
                 }
             }
 
@@ -222,8 +224,8 @@ class TradeController extends Controller
             ];
             foreach ($dataSchedule as $key => $sched) {
                 $leaguesQuery = DB::table('master_leagues')
-                    ->join('master_events', 'master_events.master_league_name', 'master_leagues.master_league_name')
-                    ->join('master_event_links', 'master_event_links.master_event_unique_id', 'master_events.master_event_unique_id')
+                    ->join('master_events', 'master_events.master_league_id', 'master_leagues.id')
+                    ->join('master_event_links', 'master_event_links.master_event_id', 'master_events.id')
                     ->join('events', 'events.id', 'master_event_links.event_id')
                     ->where('master_leagues.sport_id', $data['default_sport'])
                     ->whereNull('master_leagues.deleted_at')
@@ -284,9 +286,11 @@ class TradeController extends Controller
                 ->where('sport_id', $request->sport_id);
 
             $userSelectedLeagueTable = app('swoole')->userSelectedLeaguesTable;
+
             if (Sport::find($request->sport_id)) {
                 $userId = auth()->user()->id;
                 $swtKey = 'userId:' . $userId . ':sId:' . $request->sport_id . ':schedule:' . $request->schedule . ':uniqueId:' . uniqid();
+
                 if ($checkTable->count() == 0) {
                     if (MasterLeague::where('master_league_name', $request->league_name)->count() != 0) {
                         UserSelectedLeague::create(
@@ -297,13 +301,15 @@ class TradeController extends Controller
                                 'sport_id'           => $request->sport_id
                             ]
                         );
+
                         if (empty($_SERVER['_PHPUNIT'])) {
                             $isSelectedLeagueFoundInSWT = false;
+
                             foreach ($userSelectedLeagueTable as $key => $row) {
-                                if (strpos($key,
-                                    'userId:' . $userId . ':sId:' . $request->sport_id . ':schedule:' . $request->schedule) === 0) {
+                                if (strpos($key, 'userId:' . $userId . ':sId:' . $request->sport_id . ':schedule:' . $request->schedule) === 0) {
                                     if ($row['league_name'] == $request->league_name && $row['schedule'] == $request->schedule && $row['sport_id'] == $request->sport_id) {
                                         $isSelectedLeagueFoundInSWT = true;
+
                                         break;
                                     }
                                 }
@@ -317,15 +323,13 @@ class TradeController extends Controller
                                         'sport_id'    => $request->sport_id
                                     ]);
                             }
-
-
                         }
                     } else if (empty($_SERVER['_PHPUNIT'])) {
                         foreach ($userSelectedLeagueTable as $key => $row) {
-                            if (strpos($key,
-                                    'userId:' . $userId . ':sId:' . $request->sport_id . ':schedule:' . $request->schedule) === 0) {
+                            if (strpos($key, 'userId:' . $userId . ':sId:' . $request->sport_id . ':schedule:' . $request->schedule) === 0) {
                                 if ($row['league_name'] == $request->league_name && $row['schedule'] == $request->schedule && $row['sport_id'] == $request->sport_id) {
                                     $userSelectedLeagueTable->del($key);
+
                                     break;
                                 }
                             }
@@ -347,12 +351,12 @@ class TradeController extends Controller
 
                         foreach ($eventsTable as $eKey => $event) {
                             if ($event['master_league_name'] == $request->league_name && $event['game_schedule'] == $request->schedule) {
-
                                 foreach ($eventMarketsTable as $eMKey => $eventMarket) {
                                     if ($eventMarket['master_event_unique_id'] == $event['master_event_unique_id']) {
                                         foreach ($topicTable as $k => $topic) {
                                             if ($topic['user_id'] == auth()->user()->id && $topic['topic_name'] == 'market-id-' . $eventMarket['master_event_market_unique_id']) {
                                                 $topicTable->del($k);
+
                                                 break;
                                             }
                                         }
@@ -362,10 +366,10 @@ class TradeController extends Controller
                         }
 
                         foreach ($userSelectedLeagueTable as $key => $row) {
-                            if (strpos($key,
-                                    'userId:' . $userId . ':sId:' . $request->sport_id . ':schedule:' . $request->schedule) === 0) {
+                            if (strpos($key, 'userId:' . $userId . ':sId:' . $request->sport_id . ':schedule:' . $request->schedule) === 0) {
                                 if ($row['league_name'] == $request->league_name && $row['schedule'] == $request->schedule && $row['sport_id'] == $request->sport_id) {
                                     $userSelectedLeagueTable->del($key);
+
                                     break;
                                 }
                             }
@@ -406,22 +410,19 @@ class TradeController extends Controller
             foreach ($type AS $row) {
                 $transformed = DB::table('master_leagues as ml')
                     ->join('sports as s', 's.id', 'ml.sport_id')
-                    ->join('master_events as me', 'me.master_league_name', 'ml.master_league_name')
-                    ->join('master_event_markets as mem', 'mem.master_event_unique_id', 'me.master_event_unique_id')
+                    ->join('master_events as me', 'me.master_league_id', 'ml.id')
+                    ->join('master_event_markets as mem', 'mem.master_event_id', 'me.id')
                     ->join('odd_types as ot', 'ot.id', 'mem.odd_type_id')
-                    ->join('master_event_market_links as meml', 'meml.master_event_market_unique_id',
-                        'mem.master_event_market_unique_id')
+                    ->join('master_event_market_links as meml', 'meml.master_event_market_id', 'mem.id')
                     ->join('event_markets as em', 'em.id', 'meml.event_market_id')
                     ->whereNull('me.deleted_at')
                     ->whereNull('ml.deleted_at');
 
                 if ($row == 'user_watchlist') {
-                    $transformed = $transformed->join('user_watchlist AS uw', 'me.master_event_unique_id', '=',
-                        'uw.master_event_unique_id')
+                    $transformed = $transformed->join('user_watchlist AS uw', 'me.master_event_unique_id', '=', 'uw.master_event_unique_id')
                         ->where('uw.user_id', auth()->user()->id);
                 } else {
-                    $transformed = $transformed->join('user_selected_leagues AS sl', 'ml.master_league_name', '=',
-                        'sl.master_league_name')
+                    $transformed = $transformed->join('user_selected_leagues AS sl', 'ml.id', '=', 'sl.master_league_id')
                         ->where('sl.game_schedule', DB::raw('me.game_schedule'))
                         ->where('sl.game_schedule', DB::raw('em.game_schedule'))
                         ->where('sl.user_id', auth()->user()->id);
@@ -429,13 +430,29 @@ class TradeController extends Controller
 
                 $transformed = $transformed->whereNull('me.deleted_at')
                     ->where('mem.is_main', true)
-                    ->select('ml.sport_id', 'ml.master_league_name', 's.sport',
-                        'me.master_event_unique_id', 'me.master_home_team_name', 'me.master_away_team_name',
-                        'me.ref_schedule', 'me.game_schedule', 'me.score', 'me.running_time',
-                        'me.home_penalty', 'me.away_penalty', 'mem.odd_type_id', 'mem.master_event_market_unique_id',
-                        'mem.is_main', 'mem.market_flag',
-                        'ot.type', 'em.odds', 'em.odd_label', 'em.provider_id', 
-                        DB::raw('(SELECT count(*) FROM orders as internalOrder WHERE internalOrder.market_id = em.bet_identifier AND internalOrder.user_id = ' . auth()->user()->id . ') as bet_count'))
+                    ->select([
+                        'ml.sport_id',
+                        'ml.master_league_name',
+                        's.sport',
+                        'me.master_event_unique_id',
+                        'me.master_home_team_name',
+                        'me.master_away_team_name',
+                        'me.ref_schedule',
+                        'me.game_schedule',
+                        'me.score',
+                        'me.running_time',
+                        'me.home_penalty',
+                        'me.away_penalty',
+                        'mem.odd_type_id',
+                        'mem.master_event_market_unique_id',
+                        'mem.is_main',
+                        'mem.market_flag',
+                        'ot.type',
+                        'em.odds',
+                        'em.odd_label',
+                        'em.provider_id',
+                        DB::raw('(SELECT count(*) FROM orders as internalOrder WHERE internalOrder.market_id = em.bet_identifier AND internalOrder.user_id = ' . auth()->user()->id . ') as bet_count')
+                    ])
                     ->distinct()->get();
 
                 $userConfig = getUserDefault(auth()->user()->id, 'sort-event')['default_sort'];
@@ -465,16 +482,14 @@ class TradeController extends Controller
                         if (empty($watchlist[$groupIndex][$transformed->master_event_unique_id]['home'])) {
                             $watchlist[$groupIndex][$transformed->master_event_unique_id]['home'] = [
                                 'name'    => $transformed->master_home_team_name,
-                                'score'   => empty($transformed->score) ? '' : array_values(explode(' - ',
-                                    $transformed->score))[0],
+                                'score'   => empty($transformed->score) ? '' : array_values(explode(' - ', $transformed->score))[0],
                                 'redcard' => $transformed->home_penalty
                             ];
                         }
                         if (empty($watchlist[$groupIndex][$transformed->master_event_unique_id]['away'])) {
                             $watchlist[$groupIndex][$transformed->master_event_unique_id]['away'] = [
                                 'name'    => $transformed->master_away_team_name,
-                                'score'   => empty($transformed->score) ? '' : array_values(explode(' - ',
-                                    $transformed->score))[1],
+                                'score'   => empty($transformed->score) ? '' : array_values(explode(' - ', $transformed->score))[1],
                                 'redcard' => $transformed->home_penalty
                             ];
                         }
@@ -483,11 +498,13 @@ class TradeController extends Controller
                                 'odds'      => (double)$transformed->odds,
                                 'market_id' => $transformed->master_event_market_unique_id
                             ];
+
                             if (!empty($transformed->odd_label)) {
                                 $watchlist[$groupIndex][$transformed->master_event_unique_id]['market_odds']['main'][$transformed->type][$transformed->market_flag]['points'] = $transformed->odd_label;
                             }
                         }
                     }, $transformed->toArray());
+
                     foreach ($watchlist as $key => $league) {
                         $watchlistData[$key] = array_values($watchlist[$key]);
                     }
@@ -500,6 +517,7 @@ class TradeController extends Controller
                             $refSchedule = DateTime::createFromFormat('Y-m-d H:i:s', $transformed->ref_schedule);
                             $groupIndex  = $refSchedule->format('[H:i:s]') . ' ' . $transformed->master_league_name;
                         }
+
                         if (empty($userSelected[$transformed->game_schedule][$groupIndex][$transformed->master_event_unique_id])) {
                             $userSelected[$transformed->game_schedule][$groupIndex][$transformed->master_event_unique_id] = [
                                 "uid"           => $transformed->master_event_unique_id,
@@ -513,6 +531,7 @@ class TradeController extends Controller
                                 'has_bet'        => $transformed->bet_count > 0 ? true : false
                             ];
                         }
+
                         if (empty($userSelected[$transformed->game_schedule][$groupIndex][$transformed->master_event_unique_id]['home'])) {
                             $userSelected[$transformed->game_schedule][$groupIndex][$transformed->master_event_unique_id]['home'] = [
                                 'name'    => $transformed->master_home_team_name,
@@ -521,6 +540,7 @@ class TradeController extends Controller
                                 'redcard' => $transformed->home_penalty
                             ];
                         }
+
                         if (empty($userSelected[$transformed->game_schedule][$groupIndex][$transformed->master_event_unique_id]['away'])) {
                             $userSelected[$transformed->game_schedule][$groupIndex][$transformed->master_event_unique_id]['away'] = [
                                 'name'    => $transformed->master_away_team_name,
@@ -529,6 +549,7 @@ class TradeController extends Controller
                                 'redcard' => $transformed->home_penalty
                             ];
                         }
+
                         if (empty($userSelected[$transformed->game_schedule][$groupIndex][$transformed->master_event_unique_id]['market_odds']['main'][$transformed->type][$transformed->market_flag])) {
                             $userSelected[$transformed->game_schedule][$groupIndex][$transformed->master_event_unique_id]['market_odds']['main'][$transformed->type][$transformed->market_flag] = [
                                 'odds'      => (double)$transformed->odds,
@@ -541,6 +562,7 @@ class TradeController extends Controller
 
                             if (empty($_SERVER['_PHPUNIT'])) {
                                 $notFound = true;
+
                                 foreach ($topicTable as $key => $row) {
                                     if ($row['topic_name'] == 'market-id-' . $transformed->master_event_market_unique_id) {
                                         $notFound = false;
@@ -557,6 +579,7 @@ class TradeController extends Controller
                             }
                         }
                     }, $transformed->toArray());
+
                     foreach ($userSelected as $key => $schedule) {
                         foreach ($schedule as $k => $league) {
                             $userSelectedData[$key][$k] = array_values($userSelected[$key][$k]);
@@ -588,21 +611,35 @@ class TradeController extends Controller
         try {
             $transformed = DB::table('master_events as me')
                 ->join('sports as s', 's.id', 'me.sport_id')
-                ->join('master_event_markets as mem', 'mem.master_event_unique_id', 'me.master_event_unique_id')
+                ->join('master_event_markets as mem', 'mem.master_event_id', 'me.id')
                 ->join('odd_types as ot', 'ot.id', 'mem.odd_type_id')
-                ->join('master_event_market_links as meml', 'meml.master_event_market_unique_id',
-                    'mem.master_event_market_unique_id')
+                ->join('master_event_market_links as meml', 'meml.master_event_market_id', 'mem.id')
                 ->join('event_markets as em', 'em.id', 'meml.event_market_id')
                 ->whereNull('me.deleted_at')
                 ->where('mem.is_main', false)
                 ->where('me.master_event_unique_id', $memUID)
                 ->where('me.game_schedule', DB::raw('em.game_schedule'))
-                ->select('s.sport',
-                    'me.master_event_unique_id', 'me.master_home_team_name', 'me.master_away_team_name',
-                    'me.ref_schedule', 'me.game_schedule', 'me.score', 'me.running_time',
-                    'me.home_penalty', 'me.away_penalty', 'mem.odd_type_id', 'mem.master_event_market_unique_id',
-                    'mem.is_main', 'mem.market_flag',
-                    'ot.type', 'em.odds', 'em.odd_label', 'em.provider_id', 'em.event_identifier')
+                ->select([
+                    's.sport',
+                    'me.master_event_unique_id',
+                    'me.master_home_team_name',
+                    'me.master_away_team_name',
+                    'me.ref_schedule',
+                    'me.game_schedule',
+                    'me.score',
+                    'me.running_time',
+                    'me.home_penalty',
+                    'me.away_penalty',
+                    'mem.odd_type_id',
+                    'mem.master_event_market_unique_id',
+                    'mem.is_main',
+                    'mem.market_flag',
+                    'ot.type',
+                    'em.odds',
+                    'em.odd_label',
+                    'em.provider_id',
+                    'em.event_identifier'
+                ])
                 ->distinct()->get();
 
             $data = [];
@@ -619,6 +656,7 @@ class TradeController extends Controller
             }, $transformed->toArray());
 
             krsort($data, SORT_NUMERIC);
+
             return response()->json([
                 'status'      => true,
                 'status_code' => 200,
