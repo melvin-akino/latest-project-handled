@@ -4,9 +4,9 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class CreateTableUserLeagues extends Migration
+class CreateTableUserSelectedLeagues extends Migration
 {
-    protected $tablename = "user_leagues";
+    protected $tablename = "user_selected_leagues";
 
     /**
      * Run the migrations.
@@ -17,10 +17,19 @@ class CreateTableUserLeagues extends Migration
     {
         Schema::create($this->tablename, function (Blueprint $table) {
             $table->bigIncrements('id');
-            $table->string('uid', 100)->unique();
-            $table->tinyInteger('flag')
-                ->comment('0 - for deletion, 1 - selected, 2 - watchlist');
+            $table->integer('master_league_id')->index();
+            $table->integer('user_id')->index();
             $table->timestamps();
+
+            $table->foreign('user_id')
+                ->references('id')
+                ->on('users')
+                ->onUpdate('cascade');
+
+            $table->foreign('master_league_id')
+                ->references('id')
+                ->on('master_leagues')
+                ->onUpdate('cascade');
         });
     }
 

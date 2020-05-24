@@ -17,7 +17,7 @@ class AlterTableOrdersAddOddLabel extends Migration
     public function up()
     {
         Schema::table($this->tablename, function (Blueprint $table) {
-            $table->string($this->column)->nullable();
+            $table->string($this->column, 10)->nullable();
         });
     }
 

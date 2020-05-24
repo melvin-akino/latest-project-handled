@@ -34,10 +34,10 @@ class CreateViewSearchSuggestionsV2 extends Migration
             ON me.master_league_id = ml.id
 
             JOIN master_teams AS mth
-            ON me.master_home_team_id = mth.id
+            ON me.master_team_home_id = mth.id
 
             JOIN master_teams AS mta
-            ON me.master_away_team_id = mta.id
+            ON me.master_team_away_id = mta.id
 
             ORDER BY label ASC;
         ");

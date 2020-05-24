@@ -19,7 +19,7 @@ class CreateMasterLeaguesTable extends Migration
             Schema::create($this->tablename, function (Blueprint $table) {
                 $table->integerIncrements('id');
                 $table->integer('sport_id');
-                $table->string('master_league_name', 100)->index();
+                $table->string('name', 100)->unique();
                 $table->softDeletes();
                 $table->timestamps();
 

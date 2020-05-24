@@ -17,8 +17,8 @@ class AddScheduleUserSelectedLeaguesTable extends Migration
     {
         if (Schema::hasTable($this->tableName)) {
             Schema::table($this->tableName, function (Blueprint $table) {
-                $table->string('game_schedule', 6)->default('early');
-                $table->integer('sport_id')->default(1);
+                $table->string('game_schedule', 10)->index()->default('early');
+                $table->integer('sport_id')->index()->default(1);
                 $table->foreign('sport_id')
                     ->references('id')
                     ->on('sports')
