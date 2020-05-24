@@ -17,9 +17,19 @@ class CreateUserWatchlistTable extends Migration
     {
         Schema::create($this->tablename, function (Blueprint $table) {
             $table->bigIncrements('id');
-            $table->integer('user_id');
-            $table->integer('master_event_id');
+            $table->integer('user_id')->index();
+            $table->integer('master_event_id')->index();
             $table->timestamps();
+
+            $table->foreign('user_id')
+                ->references('id')
+                ->on('users')
+                ->onUpdate('cascade');
+
+            $table->foreign('master_event_id')
+                ->references('id')
+                ->on('master_events')
+                ->onUpdate('cascade');
         });
     }
 

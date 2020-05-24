@@ -97,6 +97,7 @@ class WsSettledBets implements ShouldQueue
 
                 break;
             case 'PUSH':
+            case 'VOID':
                 $balance = $orders->stake;
                 $debit   = 0;
                 $credit  = $balance;
@@ -145,7 +146,7 @@ class WsSettledBets implements ShouldQueue
             ->first();
 
         $returnBetSourceId = DB::table('sources')
-            ->where('source_name', 'LIKE', 'RETURN_BET')
+            ->where('source_name', 'LIKE', 'RETURN_STAKE')
             ->first();
 
         DB::beginTransaction();

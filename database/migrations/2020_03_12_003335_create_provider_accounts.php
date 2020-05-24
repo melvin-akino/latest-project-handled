@@ -4,10 +4,9 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class CreateTableUserLeagues extends Migration
+class CreateProviderAccounts extends Migration
 {
-    protected $tablename = "user_leagues";
-
+    protected $tablename = "provider_accounts";
     /**
      * Run the migrations.
      *
@@ -17,11 +16,22 @@ class CreateTableUserLeagues extends Migration
     {
         Schema::create($this->tablename, function (Blueprint $table) {
             $table->bigIncrements('id');
-            $table->string('uid', 100)->unique();
-            $table->tinyInteger('flag')
-                ->comment('0 - for deletion, 1 - selected, 2 - watchlist');
+            $table->integer('provider_id');
+            $table->string('type', 50);
+            $table->string('username');
+            $table->string('password');
+            $table->float('punter_percentage', 2, 2);
+            $table->float('credits', 15, 2);
+            $table->softDeletes();
             $table->timestamps();
+
+            $table->foreign('provider_id')
+                ->references('id')
+                ->on('providers')
+                ->onUpdate('cascade');
         });
+
+
     }
 
     /**

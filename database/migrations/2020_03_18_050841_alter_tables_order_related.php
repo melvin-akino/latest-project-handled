@@ -20,27 +20,8 @@ class AlterTablesOrderRelated extends Migration
     {
         foreach ($this->tables AS $row) {
             Schema::table($row, function (Blueprint $table) use ($row) {
-                $table->integer('user_id')->nullable();
                 $table->text('reason')->nullable();
-                $table->float('profit_loss')->nullable();
-                $table->string('settled_date')->nullable()->change();
-
-                $table->foreign('user_id')
-                    ->references('id')
-                    ->on('users')
-                    ->onUpdate('cascade');
-
-                $table->foreign('provider_id')
-                    ->references('id')
-                    ->on('providers')
-                    ->onUpdate('cascade');
-
-                if ($row == "orders") {
-                    $table->foreign('master_event_market_unique_id')
-                        ->references('master_event_market_unique_id')
-                        ->on('master_event_markets')
-                        ->onUpdate('cascade');
-                }
+                $table->float('profit_loss', 10, 2)->nullable();
             });
         }
     }
@@ -54,18 +35,6 @@ class AlterTablesOrderRelated extends Migration
     {
         foreach ($this->tables AS $row) {
             Schema::table($row, function (Blueprint $table) use ($row) {
-                if (!isset($_SERVER['_PHPUNIT'])) {
-                    $table->dropForeign(['user_id']);
-                    $table->dropForeign(['provider_id']);
-
-                    if ($row == "orders") {
-                        $table->dropForeign(['master_event_market_unique_id']);
-                    }
-                }
-            });
-
-            Schema::table($row, function (Blueprint $table) use ($row) {
-                $table->dropColumn('user_id');
                 $table->dropColumn('reason');
                 $table->dropColumn('profit_loss');
             });

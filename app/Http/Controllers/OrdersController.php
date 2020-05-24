@@ -85,6 +85,7 @@ class OrdersController extends Controller
                         'bet_id'        => $myOrder->ml_bet_identifier,
                         'bet_selection' => nl2br($myOrder->bet_selection),
                         'provider'      => strtoupper($myOrder->alias),
+                        'event_id'      => $myOrder->master_event_unique_id,
                         'market_id'     => $myOrder->master_event_market_unique_id,
                         'odds'          => $myOrder->odds,
                         'stake'         => $myOrder->stake,
@@ -173,8 +174,7 @@ class OrdersController extends Controller
 
             $getOtherMarkets = DB::table('event_markets AS em')
                 ->join('master_event_market_links AS meml', 'meml.event_market_id', 'em.id')
-                ->join('master_event_markets AS mem', 'mem.master_event_market_unique_id',
-                    'meml.master_event_market_unique_id')
+                ->join('master_event_markets AS mem', 'mem.id', 'meml.master_event_market_id')
                 ->where('mem.master_event_unique_id', $masterEventMarket->master_event_unique_id)
                 ->where('mem.odd_type_id', $masterEventMarket->odd_type_id)
                 ->where('em.market_flag', $masterEventMarket->market_flag)
@@ -202,6 +202,13 @@ class OrdersController extends Controller
                 ];
             }
 
+            $eventBets = Order::getOrdersByEvent($masterEventMarket->master_event_unique_id)->count();
+
+            $hasBets = false;
+            if($eventBets > 0) {
+                $hasBets = true;
+            }
+
             $data = [
                 'league_name'   => $masterEvent->master_league_name,
                 'home'          => $masterEvent->master_home_team_name,
@@ -216,6 +223,7 @@ class OrdersController extends Controller
                 'odd_type'      => OddType::getTypeByID($masterEventMarket->odd_type_id),
                 'sport'         => Sport::getNameByID($masterEvent->sport_id),
                 'spreads'       => $spreads,
+                'has_bets'      => $hasBets
             ];
 
             return response()->json([
@@ -411,10 +419,9 @@ class OrdersController extends Controller
                 }
 
                 $query = DB::table('master_events AS me')
-                    ->join('master_event_markets AS mem', 'me.master_event_unique_id', '=',
-                        'mem.master_event_unique_id')
+                    ->join('master_event_markets AS mem', 'me.id', '=', 'mem.master_event_id')
                     ->join('event_markets AS em', function ($join) {
-                        $join->on('me.master_event_unique_id', '=', 'em.master_event_unique_id');
+                        $join->on('me.id', '=', 'em.master_event_id');
                         $join->on('mem.odd_type_id', '=', 'em.odd_type_id');
                         $join->on('mem.is_main', '=', 'em.is_main');
                         $join->on('mem.market_flag', '=', 'em.market_flag');
@@ -525,7 +532,7 @@ class OrdersController extends Controller
                     $query->column_type . " " . $query->odd_label . "(" . $query->score . ")",
                 ]);
 
-                $providerAccount = ProviderAccount::getProviderAccount($row['provider_id'], $actualStake, $isUserVIP);
+                $providerAccount = ProviderAccount::getBettingAccount($row['provider_id'], $actualStake, $isUserVIP, $payload['event_id'], $query->odd_type_id, $query->market_flag);
 
                 if (!$providerAccount) {
                     return response()->json([
@@ -713,19 +720,39 @@ class OrdersController extends Controller
         }
     }
 
-    public function betMatrixOrders(string $memUID)
+    public function betMatrixOrders(string $uid)
     {
         try  {
-            $orders = Order::where('user_id', auth()->user()->id)
-                ->where('master_event_market_unique_id', $memUID)
-                ->select('stake', 'odds', 'odd_label AS points', DB::raw('MAX(created_at) AS created_at'))
-                ->groupBy('stake', 'odds', 'odd_label')
-                ->get();
+            $orders = Order::getOrdersByEvent($uid)->get();
+
+            $data = [];
+            foreach($orders as $order) {
+                $type = '';
+                if ($order->odd_type_id == 3 || $order->odd_type_id == 11) {
+                    $type = 'HDP';
+                    $points = $order->points;
+                } else if ($order->odd_type_id == 4 || $order->odd_type_id == 12) {
+                    $ouOddLabel = explode(' ', $order->points);
+                    $type = $ouOddLabel[0];
+                    $points = $ouOddLabel[1];
+                }
+
+                $data[] = [
+                    'order_id'   => $order->id,
+                    'stake'      => $order->stake,
+                    'points'     => $points,
+                    'odds'       => $order->odds,
+                    'type'       => $type,
+                    'bet_team'   => $order->market_flag,
+                    'team_name'  => $order->market_flag == 'HOME' ? $order->master_home_team_name : $order->master_away_team_name,
+                    'created_at' => $order->created_at
+                ];
+            }
 
             return response()->json([
                 'status'      => true,
                 'status_code' => 200,
-                'data'        => $orders,
+                'data'        => $data,
             ], 200);
         } catch (Exception $e) {
             Log::error($e->getMessage());
