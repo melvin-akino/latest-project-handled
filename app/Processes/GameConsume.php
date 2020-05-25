@@ -7,7 +7,6 @@ use App\Jobs\{
     TransformKafkaMessageLeagues
 };
 use App\Handlers\OddsValidationHandler;
-use Hhxsv5\LaravelS\Swoole\Task\Task;
 use Hhxsv5\LaravelS\Swoole\Process\CustomProcessInterface;
 use Illuminate\Support\Facades\Log;
 use Swoole\Http\Server;
@@ -36,7 +35,7 @@ class GameConsume implements CustomProcessInterface
                 Log::info("Game Consume Starts");
                 while (!self::$quit) {
                     if ($swoole->priorityTriggerTable->exist('priority')) {
-                        usleep(100000);
+                        usleep(10000);
                         continue;
                     }
 
@@ -68,7 +67,6 @@ class GameConsume implements CustomProcessInterface
             }
         } catch (Exception $e) {
             Log::error($e->getMessage());
-            Log::debug('Payload' . $message->payload);
         }
 
     }

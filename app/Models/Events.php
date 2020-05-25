@@ -11,12 +11,13 @@ class Events extends Model
     protected $table = "events";
 
     protected $fillable = [
-        'league_name',
+        'master_event_id',
         'sport_id',
         'provider_id',
         'event_identifier',
-        'home_team_name',
-        'away_team_name',
+        'league_id',
+        'team_home_id',
+        'team_away_id',
         'ref_schedule',
         'game_schedule',
         'deleted_at'

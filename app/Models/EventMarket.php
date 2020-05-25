@@ -11,7 +11,8 @@ class EventMarket extends Model
     protected $table = "event_markets";
 
     protected $fillable = [
-        'master_event_unique_id',
+        'master_event_market_id',
+        'event_id',
         'odd_type_id',
         'odds',
         'odd_label',
@@ -19,8 +20,6 @@ class EventMarket extends Model
         'is_main',
         'market_flag',
         'provider_id',
-        'event_identifier',
         'deleted_at',
-        'game_schedule',
     ];
 }

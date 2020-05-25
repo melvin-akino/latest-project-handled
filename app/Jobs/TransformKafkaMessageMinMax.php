@@ -67,7 +67,14 @@ class TransformKafkaMessageMinMax implements ShouldQueue
                                 ];
                                 $providerSwtId    = "providerAlias:" . $data->provider;
 
-                                if ($provTable->exists($providerSwtId)) {
+                                $doesExist = false;
+                                foreach ($provTable as $k => $v) {
+                                    if ($k == $providerSwtId) {
+                                        $doesExist = true;
+                                        break;
+                                    }
+                                }
+                                if ($doesExist) {
                                     $providerCurrency['id'] = $provTable->get($providerSwtId)['currency_id'];
                                     $punterPercentage       = $provTable->get($providerSwtId)['punter_percentage'];
                                 }
@@ -78,11 +85,18 @@ class TransformKafkaMessageMinMax implements ShouldQueue
                                 ];
                                 $userSwtId    = "userId:" . $userId;
 
-                                if ($usersTable->exists($userSwtId)) {
+                                $doesExist = false;
+                                foreach ($usersTable as $k => $v) {
+                                    if ($k == $userSwtId) {
+                                        $doesExist = true;
+                                        break;
+                                    }
+                                }
+                                if ($doesExist) {
                                     $userCurrency['id'] = $usersTable->get($userSwtId)['currency_id'];
                                 }
 
-                                $maximum = (double)$data->maximum * ($punterPercentage / 100);
+                                $maximum = (double) $data->maximum * ($punterPercentage / 100);
 
                                 $timeDiff = time() - (int)$data->timestamp;
                                 $age      = ($timeDiff > 60) ? floor($timeDiff / 60) . 'm' : $timeDiff . 's';
@@ -116,7 +130,14 @@ class TransformKafkaMessageMinMax implements ShouldQueue
                                         "to:" . $providerCurrency['code'],
                                     ]);
 
-                                    if ($exchangeRatesTable->exists($erSwtId)) {
+                                    $doesExist = false;
+                                    foreach ($exchangeRatesTable as $k => $v) {
+                                        if ($k == $erSwtId) {
+                                            $doesExist = true;
+                                            break;
+                                        }
+                                    }
+                                    if ($doesExist) {
                                         $exchangeRate = $exchangeRatesTable->get($erSwtId)['exchange_rate'];
                                     }
 

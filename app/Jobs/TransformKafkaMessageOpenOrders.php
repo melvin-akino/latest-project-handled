@@ -80,7 +80,7 @@ class TransformKafkaMessageOpenOrders implements ShouldQueue
                     if (time() - strtotime($orderTable['created_at']) > $expiry &&
                         $status == 'PENDING' && empty($orderData->bet_id)
                     ) {
-                        $reason = "No Kafka payload received";
+                        $reason = "Bookmaker can't be reached";
 
                         Order::where('id', $orderId)->update([
                             'provider_account_id' => ProviderAccount::getUsernameId($orderTable['username']),

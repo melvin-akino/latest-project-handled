@@ -105,10 +105,6 @@ class SwtController extends Controller
                 'name' => 'Provider Accounts',
                 'count' => $swoole->providerAccountsTable->count()
             ],
-            'minMaxQueues' => [
-                'name' => 'Min Max Queues',
-                'count' => $swoole->minMaxQueuesTable->count()
-            ]
         ];
 
         $table = '';

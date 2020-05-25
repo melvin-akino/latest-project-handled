@@ -13,9 +13,9 @@ class MasterEvent extends Model
     protected $fillable = [
         'sport_id',
         'master_event_unique_id',
-        'master_league_name',
-        'master_home_team_name',
-        'master_away_team_name',
+        'master_league_id',
+        'master_team_home_id',
+        'master_team_away_id',
         'ref_schedule',
         'game_schedule',
         'score',

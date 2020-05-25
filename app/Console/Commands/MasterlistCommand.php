@@ -26,8 +26,8 @@ class MasterlistCommand extends Command
         $providerId = $this->argument('provider_id');
 
         $masterLeague = MasterLeague::withTrashed()->updateOrCreate([
-            'master_league_name' => $leagueName,
-            'sport_id'           => $sportId
+            'name'       => $leagueName,
+            'sport_id'   => $sportId
         ], [
             'deleted_at' => null
         ]);
@@ -36,21 +36,21 @@ class MasterlistCommand extends Command
             'master_league_id' => $masterLeague->id,
             'sport_id'         => $sportId,
             'provider_id'      => $providerId,
-            'league_name'      => $leagueName
+            'name'             => $leagueName
         ], [
             'deleted_at' => null
         ]);
 
         $masterTeam1 = MasterTeam::withTrashed()->updateOrCreate([
-            'sport_id'         => $sportId,
-            'master_team_name' => $team1,
+            'sport_id' => $sportId,
+            'name'     => $team1,
         ], [
             'deleted_at' => null
         ]);
 
         MasterTeamLink::withTrashed()->updateOrCreate([
             'sport_id'       => $sportId,
-            'team_name'      => $team1,
+            'name'           => $team1,
             'provider_id'    => $providerId,
             'master_team_id' => $masterTeam1->id
         ], [
@@ -58,15 +58,15 @@ class MasterlistCommand extends Command
         ]);
 
         $masterTeam2 = MasterTeam::withTrashed()->updateOrCreate([
-            'sport_id'         => $sportId,
-            'master_team_name' => $team2,
+            'sport_id' => $sportId,
+            'name'     => $team2,
         ], [
             'deleted_at' => null
         ]);
 
         MasterTeamLink::withTrashed()->updateOrCreate([
             'sport_id'       => $sportId,
-            'team_name'      => $team2,
+            'name'           => $team2,
             'provider_id'    => $providerId,
             'master_team_id' => $masterTeam2->id
         ], [

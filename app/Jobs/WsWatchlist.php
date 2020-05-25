@@ -46,15 +46,17 @@ class WsWatchlist implements ShouldQueue
             }
         }
 
+        $userBets = DB::table('orders')->where('user_id', $this->userId)->get()->toArray();
+
         $transformed = DB::table('master_leagues as ml')
             ->join('sports as s', 's.id', 'ml.sport_id')
-            ->join('master_events as me', 'me.master_league_name', 'ml.master_league_name')
-            ->join('master_event_markets as mem', 'mem.master_event_unique_id', 'me.master_event_unique_id')
+            ->join('master_events as me', 'me.master_league_id', 'ml.id')
+            ->join('master_event_markets as mem', 'mem.master_event_id', 'me.id')
             ->join('odd_types as ot', 'ot.id', 'mem.odd_type_id')
-            ->join('master_event_market_links as meml', 'meml.master_event_market_unique_id',
-                'mem.master_event_market_unique_id')
+            ->join('master_event_market_links as meml', 'meml.master_event_market_id',
+                'mem.id')
             ->join('event_markets as em', 'em.id', 'meml.event_market_id')
-            ->join('user_watchlist as uw', 'uw.master_event_unique_id', 'me.master_event_unique_id')
+            ->join('user_watchlist as uw', 'uw.master_event_id', 'me.id')
             ->select('ml.sport_id', 'ml.master_league_name', 's.sport',
                 'me.master_event_unique_id', 'me.master_home_team_name', 'me.master_away_team_name',
                 'me.ref_schedule', 'me.game_schedule', 'me.score', 'me.running_time',
@@ -69,6 +71,15 @@ class WsWatchlist implements ShouldQueue
         array_map(function ($transformed) use (&$data) {
             $mainOrOther = $transformed->is_main ? 'main' : 'other';
             if (empty($data[$transformed->master_event_unique_id])) {
+                $hasBet = false;
+
+                if (!empty($userBets)) {
+                    $userOrderMarkets = array_column($userBets, 'market_id');
+                    if (in_array($transformed->bet_identifier, $userOrderMarkets)) {
+                        $hasBet = true;
+                    }
+                }
+
                 $data[$transformed->master_event_unique_id] = [
                     'uid'           => $transformed->master_event_unique_id,
                     'sport_id'      => $transformed->sport_id,
@@ -78,6 +89,7 @@ class WsWatchlist implements ShouldQueue
                     'league_name'   => $transformed->master_league_name,
                     'running_time'  => $transformed->running_time,
                     'ref_schedule'  => $transformed->ref_schedule,
+                    'has_bet'       => $hasBet
                 ];
             }
 
