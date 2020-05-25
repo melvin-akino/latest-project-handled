@@ -47,17 +47,17 @@ class CreateEventsTable extends Migration
 
                 $table->foreign('league_id')
                     ->references('id')
-                    ->on('master_leagues')
+                    ->on('master_league_links')
                     ->onUpdate('cascade');
 
                 $table->foreign('team_home_id')
                     ->references('id')
-                    ->on('master_teams')
+                    ->on('master_team_links')
                     ->onUpdate('cascade');
 
                 $table->foreign('team_away_id')
                     ->references('id')
-                    ->on('master_teams')
+                    ->on('master_team_links')
                     ->onUpdate('cascade');
             });
         }
