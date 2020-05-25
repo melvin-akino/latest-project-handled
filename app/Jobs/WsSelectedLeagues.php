@@ -5,6 +5,7 @@ namespace App\Jobs;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Support\Facades\DB;
+use App\Models\UserSelectedLeague;
 
 class WsSelectedLeagues implements ShouldQueue
 {
@@ -22,12 +23,11 @@ class WsSelectedLeagues implements ShouldQueue
         $fd = $server->wsTable->get('uid:' . $this->userId);
 
         $leagues = [];
-        $userSelectedLeagues = DB::table('user_selected_leagues')
-                            ->where('sport_id', $this->sportId)
+        $userSelectedLeagues = UserSelectedLeague::where('sport_id', $this->sportId)
                             ->where('user_id', $this->userId)
                             ->get();
         array_map(function($userSelectedLeague) use (&$leagues) {
-            $leagues[$userSelectedLeague->game_schedule][] = $userSelectedLeague->master_league_name;
+            $leagues[$userSelectedLeague['game_schedule']][] = $userSelectedLeague['master_league_name'];
         }, $userSelectedLeagues->toArray());
 
         $server->push($fd['value'], json_encode([

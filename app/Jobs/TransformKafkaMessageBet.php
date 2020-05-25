@@ -2,7 +2,7 @@
 
 namespace App\Jobs;
 
-use App\Models\{Order, ProviderAccount};
+use App\Models\{Order, ProviderAccount, OrderLogs};
 use Carbon\Carbon;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -66,21 +66,18 @@ class TransformKafkaMessageBet implements ShouldQueue
                     $order->actual_to_win = $order->actual_stake * $this->message->data->odds;
                     $order->save();
 
-                    DB::table('order_logs')
-                        ->insert([
-                            'provider_id'   => $order->provider_id,
-                            'sport_id'      => $order->sport_id,
-                            'bet_id'        => $this->message->data->bet_id,
-                            'bet_selection' => $order->bet_selection,
-                            'status'        => $status,
-                            'user_id'       => $order->user_id,
-                            'reason'        => $this->message->data->reason,
-                            'profit_loss'   => $order->profit_loss,
-                            'order_id'      => $order->id,
-                            'settled_date'  => '',
-                            'created_at'    => Carbon::now(),
-                            'updated_at'    => Carbon::now(),
-                        ]);
+                    OrderLogs::create([
+                        'provider_id'   => $order->provider_id,
+                        'sport_id'      => $order->sport_id,
+                        'bet_id'        => $this->message->data->bet_id,
+                        'bet_selection' => $order->bet_selection,
+                        'status'        => $status,
+                        'user_id'       => $order->user_id,
+                        'reason'        => $this->message->data->reason,
+                        'profit_loss'   => $order->profit_loss,
+                        'order_id'      => $order->id,
+                        'settled_date'  => null,
+                    ]);
 
                     WSOrderStatus::dispatch(
                         $row['user_id'],

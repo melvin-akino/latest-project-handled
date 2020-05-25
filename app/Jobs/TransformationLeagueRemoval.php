@@ -26,12 +26,7 @@ class TransformationLeagueRemoval implements ShouldQueue
         try {
             $userSelectedLeaguesTable = app('swoole')->userSelectedLeaguesTable;
             foreach ($this->data AS $row) {
-                $userSelectedLeague = DB::table('user_selected_leagues as usl')
-                    ->join('master_leagues as ml', 'ml.id', 'usl.master_league_id')
-                    ->where('usl.sport_id', $this->sportId)
-                    ->where('ml.master_league_name', $row['name'])
-                    ->where('usl.game_schedule', $row['schedule'])
-                    ->first();
+                $userSelectedLeague = UserSelectedLeague::getSelectedLeague($this->sportId, $row)
 
                 if ($userSelectedLeague) {
                     $userSelectedLeague->delete();

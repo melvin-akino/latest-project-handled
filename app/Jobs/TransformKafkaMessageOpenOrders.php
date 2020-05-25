@@ -2,8 +2,8 @@
 
 namespace App\Jobs;
 
-use App\Models\Order;
-use App\Models\CRM\ProviderAccount;
+use App\Models\{Order, ExchangeRate, UserWallet, Source, OrderLogs, OrderTransaction};
+use App\Models\CRM\{ProviderAccount, WalletLedger};
 use App\Jobs\WSOrderStatus;
 
 use Carbon\Carbon;
@@ -53,22 +53,15 @@ class TransformKafkaMessageOpenOrders implements ShouldQueue
 
                     $providerCurrency = $providers->get('providerAlias:' . $order->provider)['currency_id'];
 
-                    $exchangeRate = DB::table('exchange_rates')
-                        ->where('from_currency_id', $providerCurrency)
-                        ->where('to_currency_id', 1)
-                        ->first();
+                    $exchangeRate = ExchangeRate::where('from_currency_id', $providerCurrency)
+                                                ->where('to_currency_id', 1)
+                                                ->first();
 
-                    $orderData = DB::table('orders')
-                        ->where('id', $orderId)
-                        ->first();
+                    $orderData = Order::find($orderId);
 
-                    $userWallet = DB::table('wallet')
-                        ->where('user_id', $orderData->user_id)
-                        ->first();
+                    $userWallet = UserWallet::where('user_id', $orderData->user_id)>first();
 
-                    $sourceId = DB::table('sources')
-                        ->where('source_name', 'LIKE', 'PLACE_BET')
-                        ->first();
+                    $sourceId = Source::where('source_name', 'LIKE', 'PLACE_BET')->first();
 
                     $userId = $orderData->user_id;
 
@@ -89,8 +82,7 @@ class TransformKafkaMessageOpenOrders implements ShouldQueue
                             'updated_at'          => Carbon::now(),
                         ]);
 
-                        $orderLogsId = DB::table('order_logs')
-                            ->insertGetId([
+                        $orderLogs = OrderLogs::create([
                                 'provider_id'   => $orderData->provider_id,
                                 'sport_id'      => $orderData->sport_id,
                                 'bet_id'        => $orderData->bet_id,
@@ -100,31 +92,30 @@ class TransformKafkaMessageOpenOrders implements ShouldQueue
                                 'reason'        => $reason,
                                 'profit_loss'   => $orderData->profit_loss,
                                 'order_id'      => $orderId,
-                                'settled_date'  => $orderData->settled_date,
-                                'created_at'    => Carbon::now(),
-                                'updated_at'    => Carbon::now(),
+                                'settled_date'  => $orderData->settled_date
                             ]);
+
+                        $orderLogsId = $orderLogs->id;
 
                         $credit     = $orderData->stake;
                         $balance    = $credit * $exchangeRate->exchange_rate;
                         $newBalance = $userWallet->balance + $balance;
 
-                        DB::table('wallet')->where('user_id', $orderData->user_id)
+                        UserWallet::where('user_id', $orderData->user_id)
                             ->update([
                                 'balance'    => $newBalance,
                                 'updated_at' => Carbon::now(),
                             ]);
 
-                        $walletLedgerId = DB::table('wallet_ledger')
-                            ->insertGetId([
-                                'wallet_id'  => $userWallet->id,
-                                'source_id'  => $sourceId->id,
-                                'debit'      => 0,
-                                'credit'     => $credit,
-                                'balance'    => $newBalance,
-                                'created_at' => Carbon::now(),
-                                'updated_at' => Carbon::now(),
-                            ]);
+                        $walletLedger = WalletLedger::create([
+                            'wallet_id'  => $userWallet->id,
+                            'source_id'  => $sourceId->id,
+                            'debit'      => 0,
+                            'credit'     => $credit,
+                            'balance'    => $newBalance
+                        ]);
+
+                        $walletLedgerId = $walletLedger->id;
 
                         WSOrderStatus::dispatch($userId, $orderId, 'FAILED', $orderData->odds, $expiry, $orderTable['created_at']);
 
@@ -151,8 +142,7 @@ class TransformKafkaMessageOpenOrders implements ShouldQueue
                                     'to_win'              => $orderData->stake * $order->odds,
                                 ]);
 
-                                $orderLogsId = DB::table('order_logs')
-                                    ->insertGetId([
+                                $orderLogs = OrderLogs::create([
                                         'provider_id'   => $orderData->provider_id,
                                         'sport_id'      => $orderData->sport_id,
                                         'bet_id'        => $orderData->bet_id,
@@ -162,10 +152,9 @@ class TransformKafkaMessageOpenOrders implements ShouldQueue
                                         'reason'        => $reason,
                                         'profit_loss'   => $orderData->profit_loss,
                                         'order_id'      => $orderId,
-                                        'settled_date'  => $orderData->settled_date,
-                                        'created_at'    => Carbon::now(),
-                                        'updated_at'    => Carbon::now(),
+                                        'settled_date'  => $orderData->settled_date
                                     ]);
+                                $orderLogsId = $orderLogs->id;
 
                                 if (in_array(strtoupper($order->status), [
                                     'FAILED',
@@ -175,22 +164,20 @@ class TransformKafkaMessageOpenOrders implements ShouldQueue
                                     $balance    = $credit * $exchangeRate->exchange_rate;
                                     $newBalance = $userWallet->balance + $balance;
 
-                                    DB::table('wallet')->where('user_id', $orderData->user_id)
+                                    UserWallet::where('user_id', $orderData->user_id)
                                         ->update([
                                             'balance'    => $newBalance,
                                             'updated_at' => Carbon::now(),
-                                        ]);
+                                        ]);                                   
 
-                                    $walletLedgerId = DB::table('wallet_ledger')
-                                        ->insertGetId([
+                                    $walletLedger = WalletLedger::create([
                                             'wallet_id'  => $userWallet->id,
                                             'source_id'  => $sourceId->id,
                                             'debit'      => 0,
                                             'credit'     => $credit,
-                                            'balance'    => $newBalance,
-                                            'created_at' => Carbon::now(),
-                                            'updated_at' => Carbon::now(),
+                                            'balance'    => $newBalance
                                         ]);
+                                    $walletLedgerId = $walletLedger->id;
                                 }
 
                                 WSOrderStatus::dispatch($userId, $orderId, strtoupper($order->status), $order->odds,
@@ -206,21 +193,16 @@ class TransformKafkaMessageOpenOrders implements ShouldQueue
                         }
                     }
 
-                    DB::table('order_transactions')
-                        ->insert(
-                            [
-                                'order_logs_id'       => $orderLogsId,
-                                'user_id'             => $userId,
-                                'source_id'           => $sourceId->id,
-                                'currency_id'         => $providerCurrency,
-                                'wallet_ledger_id'    => $walletLedgerId,
-                                'provider_account_id' => ProviderAccount::getUsernameId($orderTable['username']),
-                                'reason'              => $reason,
-                                'amount'              => $credit,
-                                'created_at'          => Carbon::now(),
-                                'updated_at'          => Carbon::now(),
-                            ]
-                        );
+                    OrderTransaction::create([
+                        'order_logs_id'       => $orderLogsId,
+                        'user_id'             => $userId,
+                        'source_id'           => $sourceId->id,
+                        'currency_id'         => $providerCurrency,
+                        'wallet_ledger_id'    => $walletLedgerId,
+                        'provider_account_id' => ProviderAccount::getUsernameId($orderTable['username']),
+                        'reason'              => $reason,
+                        'amount'              => $credit
+                    ]);
                 }
             }
             DB::commit();

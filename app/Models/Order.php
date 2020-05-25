@@ -96,4 +96,9 @@ class Order extends Model
         })
         ->select('orders.id', 'stake', 'odds', 'odd_label AS points', 'mem.odd_type_id', 'mem.market_flag', 'me.master_home_team_name', 'me.master_away_team_name', 'orders.created_at');
     }
+
+    public static function getOrdersByUserId(int $userId)
+    {
+        return DB::table('orders')->where('user_id', $userId)->get()->toArray();
+    }
 }
