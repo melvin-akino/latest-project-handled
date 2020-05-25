@@ -15,7 +15,7 @@ class MasterTeamLink extends Model
         'sport_id',
         'master_team_id',
         'provider_id',
-        'team_name'
+        'name'
     ];
 
     protected $hidden = [

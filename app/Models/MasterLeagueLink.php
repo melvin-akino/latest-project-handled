@@ -14,7 +14,7 @@ class MasterLeagueLink extends Model
     protected $fillable = [
         'sport_id',
         'master_league_id',
-        'league_name',
+        'name',
         'provider_id'
     ];
 

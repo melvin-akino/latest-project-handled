@@ -101,7 +101,7 @@ class DataToSwt implements CustomProcessInterface
         $leagues      = DB::table('master_leagues as ml')
                         ->join('master_league_links as mll', 'ml.id', 'mll.master_league_id')
                         ->whereNull('ml.deleted_at')
-                        ->select('ml.id', 'ml.sport_id', 'ml.name as master_league_name', 'mll.name as  league_name', 'mll.provider_id', 'ml.updated_at')
+                        ->select('ml.id', 'ml.sport_id', 'ml.name as master_league_name', 'mll.name as  league_name', 'mll.provider_id', 'ml.updated_at', 'mll.id as raw_id')
                         ->get();
         $leaguesTable = $swoole->leaguesTable;
         array_map(function ($league) use ($leaguesTable) {
@@ -112,6 +112,7 @@ class DataToSwt implements CustomProcessInterface
                     'provider_id'        => $league->provider_id,
                     'master_league_name' => $league->master_league_name,
                     'league_name'        => $league->league_name,
+                    'raw_id'             => $league->raw_id
                 ]
             );
         }, $leagues->toArray());
@@ -121,7 +122,7 @@ class DataToSwt implements CustomProcessInterface
     {
         $teams      = DB::table('master_teams as mt')
                     ->join('master_team_links as mtl', 'mtl.master_team_id', 'mt.id')
-                    ->select('mt.id', 'mtl.name as team_name', 'mt.name as master_team_name', 'mtl.provider_id')
+                    ->select('mt.id', 'mtl.name as team_name', 'mt.name as master_team_name', 'mtl.provider_id', 'mtl.id as raw_id')
                     ->get();
         $teamsTable = $swoole->teamsTable;
         array_map(function ($team) use ($teamsTable) {
@@ -130,7 +131,8 @@ class DataToSwt implements CustomProcessInterface
                     'id'               => $team->id,
                     'team_name'        => $team->team_name,
                     'master_team_name' => $team->master_team_name,
-                    'provider_id'      => $team->provider_id
+                    'provider_id'      => $team->provider_id,
+                    'raw_id'           => $team->raw_id
                 ]);
         }, $teams->toArray());
     }
@@ -161,14 +163,14 @@ class DataToSwt implements CustomProcessInterface
                             ->join('sports as s', 's.id', 'me.sport_id')
                             ->join('events as e', 'e.master_event_id', 'me.id')
                             ->join('master_leagues as ml', 'ml.id', 'me.master_league_id')
-                            ->join('master_teams as mth','mth.id', 'me.master_team_home_id')
-                            ->join('master_teams as mta', 'mta.id', 'me.master_team_away_id')
+                            // ->join('master_teams as mth','mth.id', 'me.master_team_home_id')
+                            // ->join('master_teams as mta', 'mta.id', 'me.master_team_away_id')
                             ->whereNull('me.deleted_at')
                             ->whereNull('e.deleted_at')
                             ->select('me.id', 'me.master_event_unique_id', 'e.provider_id',
                                 'e.event_identifier', 'me.master_league_id', 'me.sport_id',
-                                'me.ref_schedule', 'me.game_schedule', 'mth.name as master_home_team_name',
-                                'mta.name as master_away_team_name', 'ml.name as master_league_name', 'me.score',
+                                'me.ref_schedule', 'me.game_schedule', 'me.master_team_home_id',
+                                'me.master_team_away_id', 'e.team_home_id', 'e.team_away_id', 'me.score',
                                 'me.running_time', 'me.home_penalty', 'me.away_penalty')
                             ->get();
         $masterEventsTable = $swoole->eventsTable;
@@ -181,9 +183,10 @@ class DataToSwt implements CustomProcessInterface
                     'provider_id'            => $event->provider_id,
                     'master_event_unique_id' => $event->master_event_unique_id,
                     'master_league_id'       => $event->master_league_id,
-                    'master_league_name'     => $event->master_league_name,
-                    'master_home_team_name'  => $event->master_home_team_name,
-                    'master_away_team_name'  => $event->master_away_team_name,
+                    'team_home_id'           => $event->team_home_id,
+                    'team_away_id'           => $event->team_away_id,
+                    'master_team_home_id'    => $event->master_team_home_id,
+                    'master_team_away_id'    => $event->master_team_away_id,
                     'ref_schedule'           => $event->ref_schedule,
                     'game_schedule'          => $event->game_schedule,
                     'score'                  => $event->score,

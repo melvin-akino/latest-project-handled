@@ -261,7 +261,9 @@ return [
                 ['name' => 'provider_id', 'type' => \Swoole\Table::TYPE_INT],
                 ['name' => 'sport_id', 'type' => \Swoole\Table::TYPE_INT],
                 ['name' => 'master_league_name', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 100],
-                ['name' => 'league_name', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 100]
+                ['name' => 'league_id', 'type' => \Swoole\Table::TYPE_INT],
+                ['name' => 'league_name', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 100],
+                ['name' => 'raw_id', 'type' => \Swoole\Table::TYPE_INT],
             ],
         ],
         'teams'               => [ //key format ['pId:$providerId:id:$id] = [id = $teamId, team_name = $teamName]
@@ -271,6 +273,7 @@ return [
                 ['name' => 'team_name', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 100],
                 ['name' => 'master_team_name', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 100],
                 ['name' => 'provider_id', 'type' => \Swoole\Table::TYPE_INT],
+                ['name' => 'raw_id', 'type' => \Swoole\Table::TYPE_INT],
             ],
         ],
         'events'              => [ //key format [sId:$sportId:pId:$providerId:eventIdentifier:$eventIdentifier] = [id = $id, ...]
@@ -281,9 +284,10 @@ return [
                 ['name' => 'sport_id', 'type' => \Swoole\Table::TYPE_INT],
                 ['name' => 'master_event_unique_id', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 30],
                 ['name' => 'master_league_id', 'type' => \Swoole\Table::TYPE_INT],
-                ['name' => 'master_league_name', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 100],
-                ['name' => 'master_home_team_name', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 100],
-                ['name' => 'master_away_team_name', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 100],
+                ['name' => 'team_home_id', 'type' => \Swoole\Table::TYPE_INT],
+                ['name' => 'team_away_id', 'type' => \Swoole\Table::TYPE_INT],
+                ['name' => 'master_team_home_id', 'type' => \Swoole\Table::TYPE_INT],
+                ['name' => 'master_team_away_id', 'type' => \Swoole\Table::TYPE_INT],
                 ['name' => 'game_schedule', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 30],
                 ['name' => 'ref_schedule', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 30],
                 ['name' => 'score', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 30],
