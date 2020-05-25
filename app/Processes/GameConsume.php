@@ -7,7 +7,6 @@ use App\Jobs\{
     TransformKafkaMessageLeagues
 };
 use App\Handlers\OddsValidationHandler;
-use Hhxsv5\LaravelS\Swoole\Task\Task;
 use Hhxsv5\LaravelS\Swoole\Process\CustomProcessInterface;
 use Illuminate\Support\Facades\Log;
 use Swoole\Http\Server;

@@ -91,7 +91,7 @@ return [
             'redirect' => false,
             'pipe'     => 0,
             'enable'   => env('LARAVELS_KAFKA_PRODUCE', true)
-            
+
         ],
     ],
     'timer'                    => [
@@ -143,7 +143,7 @@ return [
                 ['name' => 'value', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 10000],
             ],
         ],
-        'userWatchlist'       => [// key format [userWatchlist:$userId:masterEventUniqueId:$masterEventUniqueId] = [value = true]
+        'userWatchlist'       => [// key format [userWatchlist:$userId:masterEventId:$masterEventId] = [value = true]
             'size'   => 10000,// The max size
             'column' => [// Define the columns
                 ['name' => 'value', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 10000],
@@ -205,7 +205,7 @@ return [
                 ['name' => 'value', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 10000],
             ],
         ],
-        'userSelectedLeagues' => [// key format [userId:1:sId:$sportId:schedule:early:uniqueId:uniquid()] => [league_name = $multileaguename, ...]
+        'userSelectedLeagues' => [// key format [userId:1:sId:$sportId:schedule:early:id:$id] => [league_name = $multileaguename, ...]
             'size'   => env('SWT_MAX_SIZE', 102400),// The max size
             'column' => [// Define the columns
                 ['name' => 'league_name', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 100],
@@ -254,7 +254,7 @@ return [
                 ['name' => 'type', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 20],
             ],
         ],
-        'leagues'             => [ // key format [sId:$sportId:pId:$providerId:leagueLookUpId:$leagueLookUpId] = [id = $multiLeagueId, ...]
+        'leagues'             => [ // key format [sId:$sportId:pId:$providerId:id:$id] = [id = $multiLeagueId, ...]
             'size'   => 10000,
             'column' => [
                 ['name' => 'id', 'type' => \Swoole\Table::TYPE_INT],
@@ -264,7 +264,7 @@ return [
                 ['name' => 'league_name', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 100]
             ],
         ],
-        'teams'               => [ //key format ['pId:$providerId:teamLookUpId:$teamLookUpId] = [id = $teamId, team_name = $teamName]
+        'teams'               => [ //key format ['pId:$providerId:id:$id] = [id = $teamId, team_name = $teamName]
             'size'   => 20000,
             'column' => [
                 ['name' => 'id', 'type' => \Swoole\Table::TYPE_INT],

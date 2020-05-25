@@ -3,7 +3,6 @@
 namespace App\Processes;
 
 use App\Handlers\ProducerHandler;
-use App\Jobs\KafkaPush;
 use App\Models\SystemConfiguration;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
