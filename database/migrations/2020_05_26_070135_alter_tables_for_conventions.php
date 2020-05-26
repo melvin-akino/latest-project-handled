@@ -9,7 +9,7 @@ class AlterTablesForConventions extends Migration
     protected $fromTeamTable    = 'master_team_links';
     protected $fromLeagueTable  = 'master_league_links';
     protected $toTeamTable      = 'teams';
-    protected $toLeagueTable    = 'league';
+    protected $toLeagueTable    = 'leagues';
     protected $eventsTable      = 'events';
 
     /**
