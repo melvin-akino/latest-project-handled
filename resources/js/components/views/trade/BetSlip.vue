@@ -10,7 +10,7 @@
                     <div class="flex items-center">
                         <span class="text-white uppercase font-bold mr-2 my-2 px-2 bg-orange-500">{{market_details.odd_type}}</span>
                         <span class="text-gray-800 font-bold my-2 pr-6">{{market_details.league_name}}</span>
-                        <a href="#" @click.prevent="showBetMatrix = true" class="text-center py-1 pr-1" title="Bet Matrix" v-if="oddTypesWithSpreads.includes(market_details.odd_type) && isBetSuccessful && market_details.has_bets"><i class="fas fa-chart-area"></i></a>
+                        <a href="#" @click.prevent="showBetMatrix = true" class="text-center py-1 pr-1" title="Bet Matrix" v-if="oddTypesWithSpreads.includes(market_details.odd_type) && odd_details.has_bet"><i class="fas fa-chart-area"></i></a>
                         <a href="#" @click.prevent="showOddsHistory = true" class="text-center py-1" title="Odds History"><i class="fas fa-bars"></i></a>
                     </div>
                     <div class="flex items-center">
@@ -267,6 +267,7 @@ export default {
                 this.market_details = response.data.data
                 this.formattedRefSchedule = response.data.data.ref_schedule.split(' ')
                 this.points = this.odd_details.points
+                this.$store.commit('trade/SHOW_BET_MATRIX_IN_BETSLIP', { market_id: odd_details.market_id, has_bet: response.data.data.has_bets })
             })
             .catch(err => {
                 this.$store.dispatch('auth/checkIfTokenIsValid', err.response.data.status_code)

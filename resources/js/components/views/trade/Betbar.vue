@@ -28,7 +28,7 @@ export default {
         BetbarData
     },
     computed: {
-        ...mapState('trade', ['isBetBarOpen', 'bets'])
+        ...mapState('trade', ['isBetBarOpen', 'bets', 'failedBetStatus'])
     },
     mounted() {
         this.$store.dispatch('trade/getBetbarData')
@@ -66,6 +66,9 @@ export default {
                                 bet.bet_info[4],
                                 bet.bet_info[5],
                             ])
+                            if(!this.failedBetStatus.includes(orderStatus.status)) {
+                                this.$store.commit('trade/SHOW_BET_MATRIX_IN_BETSLIP', { market_id: bet.market_id, has_bet: true })
+                            }
                             this.$store.dispatch('trade/getWalletData')
                         }
                     })
