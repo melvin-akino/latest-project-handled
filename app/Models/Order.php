@@ -41,7 +41,7 @@ class Order extends Model
     {
         $whereClause[] = ['user_id', auth()->user()->id];
 
-        return DB::table(self::$table)
+        return DB::table('orders')
             ->join('providers', 'providers.id', 'orders.provider_id')
             ->join('master_event_markets AS mem', 'mem.id', 'orders.master_event_market_id')
             ->join('master_events AS me', 'me.id', 'mem.master_event_id')
@@ -83,13 +83,13 @@ class Order extends Model
         return self::where('user_id', auth()->user()->id)->count();
     }
 
-    public static function getOrdersByEvent($event_id)
+    public static function getOrdersByEvent($eventId)
     {
-        return DB::table(self::$table)
-        ->join('master_event_markets AS mem', 'mem.master_event_market_unique_id', 'orders.master_event_market_unique_id')
-        ->join('master_events AS me', 'me.master_event_unique_id', 'mem.master_event_unique_id')
+        return DB::table('orders')
+        ->join('master_event_markets AS mem', 'mem.id', 'orders.master_event_market_id')
+        ->join('master_events AS me', 'me.id', 'mem.master_event_id')
         ->where('user_id', auth()->user()->id)
-        ->where('mem.master_event_unique_id', $event_id)
+        ->where('mem.master_event_unique_id', $eventId)
         ->whereNotIn('status', ['PENDING', 'FAILED', 'CANCELLED', 'REJECTED', 'VOID', 'ABNORMAL BET', 'REFUNDED'])
         ->whereIn('mem.odd_type_id', function($query) {
             $query->select('id')->from('odd_types')->whereIn('type', ['HDP', 'HT HDP', 'OU', 'HT OU']);
@@ -99,30 +99,32 @@ class Order extends Model
 
     public static function getOrdersByUserId(int $userId)
     {
-        return DB::table(self::$table)->where('user_id', $userId)->get()->toArray();
+        return DB::table('orders')->where('user_id', $userId)->get()->toArray();
     }
 
     public static function getBetBarData(int $userId)
     {
-        return DB::table(self::$table . ' AS o')
+        return DB::table('orders AS o')
                 ->join('providers AS p', 'p.id', 'o.provider_id')
                 ->join('master_event_markets AS mem', 'mem.id', 'o.master_event_market_id')
                 ->join('master_events AS me', 'me.id', 'mem.master_event_id')
+                ->join('master_leagues as ml', 'ml.id', 'me.master_league_id')
+                ->join('master_teams as mth', 'mth.id', 'me.master_team_home_id')
+                ->join('master_teams as mta', 'mta.id', 'me.master_team_home_id')
                 ->join('odd_types AS ot', 'ot.id', 'mem.odd_type_id')
                 ->join('sport_odd_type AS sot', 'sot.odd_type_id', 'ot.id')
                 ->distinct()
                 ->where('sot.sport_id', DB::raw('o.sport_id'))
                 ->where('o.user_id', $userId)
-                ->where('o.settled_date', '=', '')
-                ->orWhereNull('o.settled_date')
+                ->whereNull('o.settled_date')
                 ->select([
                     'o.id AS order_id',
                     'p.alias',
-                    'o.master_event_market_unique_id',
+                    'mem.master_event_market_unique_id',
                     'me.master_event_unique_id',
-                    'me.master_league_name',
-                    'me.master_home_team_name',
-                    'me.master_away_team_name',
+                    'ml.name as master_league_name',
+                    'mth.name as master_home_team_name',
+                    'mta.name as master_away_team_name',
                     'me.score',
                     'me.game_schedule',
                     'mem.market_flag',

@@ -73,7 +73,7 @@ class WsEvents implements ShouldQueue
                 throw new Exception('[VALIDATION_ERROR] No Providers found.');
             }
 
-            $userBets     = Order::getOrdersByUserId($this->user_id);
+            $userBets     = Order::getOrdersByUserId($this->userId);
             $masterLeague = MasterLeague::where('name', $this->master_league_name)->first();
             $gameDetails  = Game::getGameDetails($masterLeague->id, $this->schedule);
 

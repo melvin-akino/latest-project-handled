@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\DB;
 
 class UserSelectedLeague extends Model
 {
@@ -22,11 +23,20 @@ class UserSelectedLeague extends Model
 
     public static function getSelectedLeague(int $sportId, array $filters = [])
     {
-        return $userSelectedLeague = DB::table(self::$table . ' as usl')
+        return DB::table('user_selected_leagues as usl')
                     ->join('master_leagues as ml', 'ml.id', 'usl.master_league_id')
                     ->where('usl.sport_id', $this->sportId)
                     ->where('ml.name', $filters['name'])
                     ->where('usl.game_schedule', $filters['schedule'])
                     ->first();
+    }
+
+    public static function getSelectedLeagueByUserId(int $userId)
+    {
+        return DB::table('user_selected_leagues as usl')
+                ->join('master_leagues as ml', 'ml.id', 'usl.master_league_id')
+                ->where('user_id', $userId)
+                ->select('usl.game_schedule', 'ml.name as master_league_name')
+                ->get();
     }
 }

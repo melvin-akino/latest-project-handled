@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\{
     Game,
+    Order,
     MasterEvent,
     MasterLeague,
     Sport,
@@ -32,7 +33,7 @@ class TradeController extends Controller
     public function getUserBetbar()
     {
         try {
-            $betBarData = Game::getBetBarData(auth()->user()->id);
+            $betBarData = Order::getBetBarData(auth()->user()->id);
 
             $data = [];
             foreach ($betBarData as $betData) {
@@ -192,7 +193,7 @@ class TradeController extends Controller
                 'early'  => []
             ];
             foreach ($dataSchedule as $key => $sched) {
-                $leaguesQuery = Game::getLeaguesBySportAndGameShedule($data['default_sport'], $key);
+                $leaguesQuery = MasterLeague::getLeaguesBySportAndGameShedule($data['default_sport'], $key);
 
                 foreach ($leaguesQuery as $league) {
                     $dataSchedule[$key][$league->master_league_name] = [
@@ -236,111 +237,118 @@ class TradeController extends Controller
     public function postManageSidebarLeagues(Request $request)
     {
         try {
-            $checkTable = UserSelectedLeague::where('user_id', auth()->user()->id)
-                ->where('master_league_name', $request->league_name)
+            $masterLeague = MasterLeague::where('name', $request->league_name)->first();
+
+            if ($masterLeague) {
+                $checkTable = UserSelectedLeague::where('user_id', auth()->user()->id)
+                ->where('master_league_id', $masterLeague->id)
                 ->where('game_schedule', $request->schedule)
                 ->where('sport_id', $request->sport_id);
 
-            $userSelectedLeagueTable = app('swoole')->userSelectedLeaguesTable;
+                $userSelectedLeagueTable = app('swoole')->userSelectedLeaguesTable;
 
-            if (Sport::find($request->sport_id)) {
-                $userId = auth()->user()->id;
-                $swtKey = 'userId:' . $userId . ':sId:' . $request->sport_id . ':schedule:' . $request->schedule . ':uniqueId:' . uniqid();
+                if (Sport::find($request->sport_id)) {
+                    $userId = auth()->user()->id;
+                    $swtKey = 'userId:' . $userId . ':sId:' . $request->sport_id . ':schedule:' . $request->schedule . ':uniqueId:' . uniqid();
 
-                if ($checkTable->count() == 0) {
-                    if (MasterLeague::where('master_league_name', $request->league_name)->count() != 0) {
-                        UserSelectedLeague::create(
-                            [
-                                'user_id'            => $userId,
-                                'master_league_name' => $request->league_name,
-                                'game_schedule'      => $request->schedule,
-                                'sport_id'           => $request->sport_id
-                            ]
-                        );
+                    if ($checkTable->count() == 0) {
+                        if (MasterLeague::where('name', $request->league_name)->count() != 0) {
+                            UserSelectedLeague::create(
+                                [
+                                    'user_id'          => $userId,
+                                    'master_league_id' => $masterLeague->id,
+                                    'game_schedule'    => $request->schedule,
+                                    'sport_id'         => $request->sport_id
+                                ]
+                            );
 
-                        if (empty($_SERVER['_PHPUNIT'])) {
-                            $isSelectedLeagueFoundInSWT = false;
+                            if (empty($_SERVER['_PHPUNIT'])) {
+                                $isSelectedLeagueFoundInSWT = false;
 
+                                foreach ($userSelectedLeagueTable as $key => $row) {
+                                    if (strpos($key, 'userId:' . $userId . ':sId:' . $request->sport_id . ':schedule:' . $request->schedule) === 0) {
+                                        if ($row['league_name'] == $request->league_name && $row['schedule'] == $request->schedule && $row['sport_id'] == $request->sport_id) {
+                                            $isSelectedLeagueFoundInSWT = true;
+
+                                            break;
+                                        }
+                                    }
+                                }
+
+                                if (!$isSelectedLeagueFoundInSWT) {
+                                    $userSelectedLeagueTable->set($swtKey, [
+                                            'user_id'     => $userId,
+                                            'schedule'    => $request->schedule,
+                                            'league_name' => $request->league_name,
+                                            'sport_id'    => $request->sport_id
+                                        ]);
+                                }
+                            }
+                        } else if (empty($_SERVER['_PHPUNIT'])) {
                             foreach ($userSelectedLeagueTable as $key => $row) {
                                 if (strpos($key, 'userId:' . $userId . ':sId:' . $request->sport_id . ':schedule:' . $request->schedule) === 0) {
                                     if ($row['league_name'] == $request->league_name && $row['schedule'] == $request->schedule && $row['sport_id'] == $request->sport_id) {
-                                        $isSelectedLeagueFoundInSWT = true;
+                                        $userSelectedLeagueTable->del($key);
 
                                         break;
                                     }
                                 }
                             }
 
-                            if (!$isSelectedLeagueFoundInSWT) {
-                                $userSelectedLeagueTable->set($swtKey, [
-                                        'user_id'     => $userId,
-                                        'schedule'    => $request->schedule,
-                                        'league_name' => $request->league_name,
-                                        'sport_id'    => $request->sport_id
-                                    ]);
-                            }
+                            return response()->json([
+                                'status'      => true,
+                                'status_code' => 405,
+                                'message'     => trans('generic.method-not-allowed')
+                            ], 405);
                         }
-                    } else if (empty($_SERVER['_PHPUNIT'])) {
-                        foreach ($userSelectedLeagueTable as $key => $row) {
-                            if (strpos($key, 'userId:' . $userId . ':sId:' . $request->sport_id . ':schedule:' . $request->schedule) === 0) {
-                                if ($row['league_name'] == $request->league_name && $row['schedule'] == $request->schedule && $row['sport_id'] == $request->sport_id) {
-                                    $userSelectedLeagueTable->del($key);
+                    } else {
+                        $checkTable->delete();
 
-                                    break;
-                                }
-                            }
-                        }
+                        if (empty($_SERVER['_PHPUNIT'])) {
+                            $topicTable        = app('swoole')->topicTable;
+                            $eventsTable       = app('swoole')->eventsTable;
+                            $eventMarketsTable = app('swoole')->eventMarketsTable;
 
-                        return response()->json([
-                            'status'      => true,
-                            'status_code' => 405,
-                            'message'     => trans('generic.method-not-allowed')
-                        ], 405);
-                    }
-                } else {
-                    $checkTable->delete();
+                            foreach ($eventsTable as $eKey => $event) {
+                                if ($event['master_league_id'] == $masterLeague->id && $event['game_schedule'] == $request->schedule) {
+                                    foreach ($eventMarketsTable as $eMKey => $eventMarket) {
+                                        if ($eventMarket['master_event_unique_id'] == $event['master_event_unique_id']) {
+                                            foreach ($topicTable as $k => $topic) {
+                                                if ($topic['user_id'] == auth()->user()->id && $topic['topic_name'] == 'market-id-' . $eventMarket['master_event_market_unique_id']) {
+                                                    $topicTable->del($k);
 
-                    if (empty($_SERVER['_PHPUNIT'])) {
-                        $topicTable        = app('swoole')->topicTable;
-                        $eventsTable       = app('swoole')->eventsTable;
-                        $eventMarketsTable = app('swoole')->eventMarketsTable;
-
-                        foreach ($eventsTable as $eKey => $event) {
-                            if ($event['master_league_name'] == $request->league_name && $event['game_schedule'] == $request->schedule) {
-                                foreach ($eventMarketsTable as $eMKey => $eventMarket) {
-                                    if ($eventMarket['master_event_unique_id'] == $event['master_event_unique_id']) {
-                                        foreach ($topicTable as $k => $topic) {
-                                            if ($topic['user_id'] == auth()->user()->id && $topic['topic_name'] == 'market-id-' . $eventMarket['master_event_market_unique_id']) {
-                                                $topicTable->del($k);
-
-                                                break;
+                                                    break;
+                                                }
                                             }
                                         }
                                     }
                                 }
                             }
-                        }
 
-                        foreach ($userSelectedLeagueTable as $key => $row) {
-                            if (strpos($key, 'userId:' . $userId . ':sId:' . $request->sport_id . ':schedule:' . $request->schedule) === 0) {
-                                if ($row['league_name'] == $request->league_name && $row['schedule'] == $request->schedule && $row['sport_id'] == $request->sport_id) {
-                                    $userSelectedLeagueTable->del($key);
+                            foreach ($userSelectedLeagueTable as $key => $row) {
+                                if (strpos($key, 'userId:' . $userId . ':sId:' . $request->sport_id . ':schedule:' . $request->schedule) === 0) {
+                                    if ($row['league_name'] == $request->league_name && $row['schedule'] == $request->schedule && $row['sport_id'] == $request->sport_id) {
+                                        $userSelectedLeagueTable->del($key);
 
-                                    break;
+                                        break;
+                                    }
                                 }
                             }
                         }
                     }
-                }
 
-                return response()->json([
-                    'status'      => true,
-                    'status_code' => 200,
-                    'message'     => trans('notifications.save.success')
-                ], 200);
+                    return response()->json([
+                        'status'      => true,
+                        'status_code' => 200,
+                        'message'     => trans('notifications.save.success')
+                    ], 200);
+                } else {
+                    throw new Exception(trans('generic.internal-server-error'));
+                }
             } else {
                 throw new Exception(trans('generic.internal-server-error'));
             }
+            
         } catch (Exception $e) {
             Log::error($e->getMessage());
             return response()->json([
@@ -374,7 +382,7 @@ class TradeController extends Controller
 
                 if ($row == 'user_watchlist') {
                     array_map(function ($transformed) use (&$watchlist, $userConfig) {
-                        $betCount = Orders::where('market_id', $transformed->bet_identifier)
+                        $betCount = Order::where('market_id', $transformed->bet_identifier)
                             ->where('user_id', auth()->user()->id)
                             ->count();
 
@@ -430,7 +438,7 @@ class TradeController extends Controller
                 } else {
                     $topicTable = app('swoole')->topicTable;
                     array_map(function ($transformed) use (&$userSelected, $row, $userConfig, $topicTable) {
-                        $betCount = Orders::where('market_id', $transformed->bet_identifier)
+                        $betCount = Order::where('market_id', $transformed->bet_identifier)
                             ->where('user_id', auth()->user()->id)
                             ->count();
 
