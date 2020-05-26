@@ -26,7 +26,7 @@ class EventMarket extends Model
 
     public static function getEventMarkeByMemUID(string $memUID)
     {
-        return DB::table(self::$table . ' as em')
+        return DB::table('event_markets as em')
                 ->join('providers as p', 'p.id', 'em.provider_id')
                 ->join('events as e', 'e.id', 'em.event_id')
                 ->join('master_event_markets as mem', 'mem.id', 'em.master_event_market_id')
