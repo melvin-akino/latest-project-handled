@@ -158,10 +158,10 @@ class OrdersController extends Controller
                 'is_main',
                 'market_flag',
                 'odd_type_id',
-                'master_event_unique_id'
+                'master_event_id'
             ]);
 
-            $masterEvent = MasterEvent::where('master_event_unique_id', $masterEventMarket->master_event_unique_id);
+            $masterEvent = MasterEvent::where('id', $masterEventMarket->master_event_id);
 
             if (!$masterEvent->exists()) {
                 return response()->json([
@@ -174,11 +174,11 @@ class OrdersController extends Controller
             $masterEvent = $masterEvent->first();
 
             $getOtherMarkets = Game::getOtherMarketSpreadDetails([
-                'odd_type_id'            => $masterEventMarket->odd_type_id,
-                'master_event_unique_id' => $masterEventMarket->master_event_unique_id,
-                'market_flag'            => $masterEventMarket->market_flag,
-                'provider_id'            => $userProvider->id,
-                'game_schedule'          => $masterEvent->game_schedule
+                'odd_type_id'     => $masterEventMarket->odd_type_id,
+                'master_event_id' => $masterEventMarket->master_event_id,
+                'market_flag'     => $masterEventMarket->market_flag,
+                'provider_id'     => $userProvider->id,
+                'game_schedule'   => $masterEvent->game_schedule
             ]);
 
             $spreads = [];

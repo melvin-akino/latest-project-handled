@@ -67,8 +67,8 @@ class Game extends Model
     {
         return DB::table('event_markets AS em')
                 ->join('master_event_markets AS mem', 'mem.id', 'em.master_event_market_id')
-                ->join('master_events as me', 'me', 'mem.master_event_id')
-                ->where('mem.master_event_unique_id', $fields['master_event_unique_id'])
+                ->join('master_events as me', 'me.id', 'mem.master_event_id')
+                ->where('mem.master_event_id', $fields['master_event_id'])
                 ->where('mem.odd_type_id', $fields['odd_type_id'])
                 ->where('em.market_flag', $fields['market_flag'])
                 ->where('em.provider_id', $fields['provider_id'])

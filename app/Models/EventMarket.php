@@ -29,9 +29,10 @@ class EventMarket extends Model
         return DB::table('event_markets as em')
                 ->join('providers as p', 'p.id', 'em.provider_id')
                 ->join('events as e', 'e.id', 'em.event_id')
+                ->join('master_events as me', 'me.id', 'e.master_event_id')
                 ->join('master_event_markets as mem', 'mem.id', 'em.master_event_market_id')
                 ->where('mem.master_event_market_unique_id', $memUID)
-                ->select('em.bet_identifier', 'p.alias', 'e.sport_id', 'e.game_schedule', 'e.event_identifier')
+                ->select('em.bet_identifier', 'p.alias', 'e.sport_id', 'me.game_schedule', 'e.event_identifier')
                 ->distinct()
                 ->first();
     }

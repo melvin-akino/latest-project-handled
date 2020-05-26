@@ -89,7 +89,7 @@ class Order extends Model
         ->join('master_event_markets AS mem', 'mem.id', 'orders.master_event_market_id')
         ->join('master_events AS me', 'me.id', 'mem.master_event_id')
         ->where('user_id', auth()->user()->id)
-        ->where('mem.master_event_unique_id', $eventId)
+        ->where('me.master_event_unique_id', $eventId)
         ->whereNotIn('status', ['PENDING', 'FAILED', 'CANCELLED', 'REJECTED', 'VOID', 'ABNORMAL BET', 'REFUNDED'])
         ->whereIn('mem.odd_type_id', function($query) {
             $query->select('id')->from('odd_types')->whereIn('type', ['HDP', 'HT HDP', 'OU', 'HT OU']);
