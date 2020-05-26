@@ -38,17 +38,18 @@ class StartKafaBalanceMonitoring extends Command
     public function message($message)
     {
         try {
-            $threshold = env('PROVIDER_THRESHOLD', 3000)
-            $payload = json_decode($message->payload);
-            $provider = $payload->data->provider;
-            $username = $payload->data->username;
-            $balance = $payload->data->available_balance;
-            $currency = $payload->data->currency;
+            $threshold  = env('PROVIDER_THRESHOLD', 3000);
+            $payload    = json_decode($message->payload);
+            $provider   = $payload->data->provider;
+            $username   = $payload->data->username;
+            $balance    = $payload->data->available_balance;
+            $currency   = $payload->data->currency;
             if ( (!empty($provider)) && (!empty($username)) && ((float)$balance <= $threshold) ) {
-                $data = ['provider' => $provider,
-                         'username' => $username,
-                         'balance' => $balance,
-                         'currency' => $currency   
+                $data = ['provider'  => $provider,
+                         'username'  => $username,
+                         'balance'   => $balance,
+                         'currency'  => $currency,
+                         'threshold' => $threshold   
                         ];
                 $emails = explode(",", env('MAIL_TO_BALANCE_PROVIDER'));
                 Mail::send('mail.balance-provider-threshold', $data, function($message) use ($emails) {

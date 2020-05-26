@@ -27,6 +27,10 @@
                 <td>Available Balance</td>
                 <td>{{ $currency}} {{ $balance }}</td>
             </tr>
+            <tr>
+                <td>Threshold</td>
+                <td> {{ $threshold }}</td>
+            </tr>
         </table>
     </div>
 
