@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\DB;
 
 class MasterLeague extends Model
 {
@@ -30,5 +31,21 @@ class MasterLeague extends Model
         }
 
         return $query->first()->id;
+    }
+
+    public static function getLeaguesBySportAndGameShedule(int $sportId, string $gameSchedule)
+    {
+        return DB::table('master_leagues')
+                    ->join('master_events', 'master_events.master_league_id', 'master_leagues.id')
+                    ->join('events', 'events.master_event_id', 'master_events.id')
+                    ->where('master_leagues.sport_id', $sportId)
+                    ->whereNull('master_leagues.deleted_at')
+                    ->whereNull('master_events.deleted_at')
+                    ->where('master_events.game_schedule', $gameSchedule)
+                    ->groupBy('master_leagues.master_league_name')
+                    ->select('master_leagues.master_league_name',
+                        DB::raw('COUNT(master_leagues.master_league_name) as match_count'))
+                    ->distinct()
+                    ->get();
     }
 }

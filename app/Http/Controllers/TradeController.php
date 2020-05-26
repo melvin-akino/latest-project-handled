@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\{
+    Game,
     MasterEvent,
     MasterLeague,
     Sport,
@@ -31,39 +32,7 @@ class TradeController extends Controller
     public function getUserBetbar()
     {
         try {
-            $betBarData = DB::table('orders AS o')
-                ->join('providers AS p', 'p.id', 'o.provider_id')
-                ->join('master_event_markets AS mem', 'mem.id', 'o.master_event_market_id')
-                ->join('master_events AS me', 'me.id', 'mem.master_event_id')
-                ->join('odd_types AS ot', 'ot.id', 'mem.odd_type_id')
-                ->join('sport_odd_type AS sot', 'sot.odd_type_id', 'ot.id')
-                ->distinct()
-                ->where('sot.sport_id', DB::raw('o.sport_id'))
-                ->where('o.user_id', auth()->user()->id)
-                ->where('o.settled_date', '=', '')
-                ->orWhereNull('o.settled_date')
-                ->select([
-                    'o.id AS order_id',
-                    'p.alias',
-                    'o.master_event_market_unique_id',
-                    'me.master_event_unique_id',
-                    'me.master_league_name',
-                    'me.master_home_team_name',
-                    'me.master_away_team_name',
-                    'me.score',
-                    'me.game_schedule',
-                    'mem.market_flag',
-                    'ot.id AS odd_type_id',
-                    'sot.name',
-                    'o.odds',
-                    'o.stake',
-                    'o.status',
-                    'o.created_at',
-                    'o.order_expiry',
-                    'o.odd_label'
-                ])
-                ->orderBy('o.created_at', 'desc')
-                ->get();
+            $betBarData = Game::getBetBarData(auth()->user()->id);
 
             $data = [];
             foreach ($betBarData as $betData) {
@@ -223,20 +192,7 @@ class TradeController extends Controller
                 'early'  => []
             ];
             foreach ($dataSchedule as $key => $sched) {
-                $leaguesQuery = DB::table('master_leagues')
-                    ->join('master_events', 'master_events.master_league_id', 'master_leagues.id')
-                    ->join('master_event_links', 'master_event_links.master_event_id', 'master_events.id')
-                    ->join('events', 'events.id', 'master_event_links.event_id')
-                    ->where('master_leagues.sport_id', $data['default_sport'])
-                    ->whereNull('master_leagues.deleted_at')
-                    ->whereNull('master_events.deleted_at')
-                    ->whereNull('events.deleted_at')
-                    ->where('master_events.game_schedule', $key)
-                    ->groupBy('master_leagues.master_league_name')
-                    ->select('master_leagues.master_league_name',
-                        DB::raw('COUNT(master_leagues.master_league_name) as match_count'))
-                    ->distinct()
-                    ->get();
+                $leaguesQuery = Game::getLeaguesBySportAndGameShedule($data['default_sport'], $key);
 
                 foreach ($leaguesQuery as $league) {
                     $dataSchedule[$key][$league->master_league_name] = [
@@ -408,52 +364,11 @@ class TradeController extends Controller
             ];
 
             foreach ($type AS $row) {
-                $transformed = DB::table('master_leagues as ml')
-                    ->join('sports as s', 's.id', 'ml.sport_id')
-                    ->join('master_events as me', 'me.master_league_id', 'ml.id')
-                    ->join('master_event_markets as mem', 'mem.master_event_id', 'me.id')
-                    ->join('odd_types as ot', 'ot.id', 'mem.odd_type_id')
-                    ->join('master_event_market_links as meml', 'meml.master_event_market_id', 'mem.id')
-                    ->join('event_markets as em', 'em.id', 'meml.event_market_id')
-                    ->whereNull('me.deleted_at')
-                    ->whereNull('ml.deleted_at');
-
                 if ($row == 'user_watchlist') {
-                    $transformed = $transformed->join('user_watchlist AS uw', 'me.master_event_unique_id', '=', 'uw.master_event_unique_id')
-                        ->where('uw.user_id', auth()->user()->id);
+                    $transformed = Game::getWatchlistEvents(auth()->user()->id);
                 } else {
-                    $transformed = $transformed->join('user_selected_leagues AS sl', 'ml.id', '=', 'sl.master_league_id')
-                        ->where('sl.game_schedule', DB::raw('me.game_schedule'))
-                        ->where('sl.game_schedule', DB::raw('em.game_schedule'))
-                        ->where('sl.user_id', auth()->user()->id);
+                    $transformed = Game::getSelectedLeagueEvents(auth()->user()->id);
                 }
-
-                $transformed = $transformed->whereNull('me.deleted_at')
-                    ->where('mem.is_main', true)
-                    ->select([
-                        'ml.sport_id',
-                        'ml.master_league_name',
-                        's.sport',
-                        'me.master_event_unique_id',
-                        'me.master_home_team_name',
-                        'me.master_away_team_name',
-                        'me.ref_schedule',
-                        'me.game_schedule',
-                        'me.score',
-                        'me.running_time',
-                        'me.home_penalty',
-                        'me.away_penalty',
-                        'mem.odd_type_id',
-                        'mem.master_event_market_unique_id',
-                        'mem.is_main',
-                        'mem.market_flag',
-                        'ot.type',
-                        'em.odds',
-                        'em.odd_label',
-                        'em.provider_id',
-                        'em.bet_identifier',
-                    ])
-                    ->distinct()->get();
 
                 $userConfig = getUserDefault(auth()->user()->id, 'sort-event')['default_sort'];
 
@@ -617,38 +532,7 @@ class TradeController extends Controller
     public function getEventOtherMarkets($memUID, Request $request)
     {
         try {
-            $transformed = DB::table('master_events as me')
-                ->join('sports as s', 's.id', 'me.sport_id')
-                ->join('master_event_markets as mem', 'mem.master_event_id', 'me.id')
-                ->join('odd_types as ot', 'ot.id', 'mem.odd_type_id')
-                ->join('master_event_market_links as meml', 'meml.master_event_market_id', 'mem.id')
-                ->join('event_markets as em', 'em.id', 'meml.event_market_id')
-                ->whereNull('me.deleted_at')
-                ->where('mem.is_main', false)
-                ->where('me.master_event_unique_id', $memUID)
-                ->where('me.game_schedule', DB::raw('em.game_schedule'))
-                ->select([
-                    's.sport',
-                    'me.master_event_unique_id',
-                    'me.master_home_team_name',
-                    'me.master_away_team_name',
-                    'me.ref_schedule',
-                    'me.game_schedule',
-                    'me.score',
-                    'me.running_time',
-                    'me.home_penalty',
-                    'me.away_penalty',
-                    'mem.odd_type_id',
-                    'mem.master_event_market_unique_id',
-                    'mem.is_main',
-                    'mem.market_flag',
-                    'ot.type',
-                    'em.odds',
-                    'em.odd_label',
-                    'em.provider_id',
-                    'em.event_identifier'
-                ])
-                ->distinct()->get();
+            $transformed = Game::getOtherMarketsByMemUID($memUID);
 
             $data = [];
             array_map(function ($transformed) use (&$data) {
@@ -700,8 +584,7 @@ class TradeController extends Controller
             }
 
             $limit = 20;
-            $data  = DB::table('search_suggestions')
-                ->where('label', 'ILIKE', '%' . trim($request->keyword) . '%');
+            $data  = Game::searchSuggestion($request->keyword);
             $query = $data->limit($limit)
                 ->offset(($request->page - 1) * $limit);
 

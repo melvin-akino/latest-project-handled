@@ -41,7 +41,7 @@ class Order extends Model
     {
         $whereClause[] = ['user_id', auth()->user()->id];
 
-        return DB::table('orders')
+        return DB::table(self::$table)
             ->join('providers', 'providers.id', 'orders.provider_id')
             ->join('master_event_markets AS mem', 'mem.id', 'orders.master_event_market_id')
             ->join('master_events AS me', 'me.id', 'mem.master_event_id')
@@ -85,7 +85,7 @@ class Order extends Model
 
     public static function getOrdersByEvent($event_id)
     {
-        return DB::table('orders')
+        return DB::table(self::$table)
         ->join('master_event_markets AS mem', 'mem.master_event_market_unique_id', 'orders.master_event_market_unique_id')
         ->join('master_events AS me', 'me.master_event_unique_id', 'mem.master_event_unique_id')
         ->where('user_id', auth()->user()->id)
@@ -99,6 +99,43 @@ class Order extends Model
 
     public static function getOrdersByUserId(int $userId)
     {
-        return DB::table('orders')->where('user_id', $userId)->get()->toArray();
+        return DB::table(self::$table)->where('user_id', $userId)->get()->toArray();
+    }
+
+    public static function getBetBarData(int $userId)
+    {
+        return DB::table(self::$table . ' AS o')
+                ->join('providers AS p', 'p.id', 'o.provider_id')
+                ->join('master_event_markets AS mem', 'mem.id', 'o.master_event_market_id')
+                ->join('master_events AS me', 'me.id', 'mem.master_event_id')
+                ->join('odd_types AS ot', 'ot.id', 'mem.odd_type_id')
+                ->join('sport_odd_type AS sot', 'sot.odd_type_id', 'ot.id')
+                ->distinct()
+                ->where('sot.sport_id', DB::raw('o.sport_id'))
+                ->where('o.user_id', $userId)
+                ->where('o.settled_date', '=', '')
+                ->orWhereNull('o.settled_date')
+                ->select([
+                    'o.id AS order_id',
+                    'p.alias',
+                    'o.master_event_market_unique_id',
+                    'me.master_event_unique_id',
+                    'me.master_league_name',
+                    'me.master_home_team_name',
+                    'me.master_away_team_name',
+                    'me.score',
+                    'me.game_schedule',
+                    'mem.market_flag',
+                    'ot.id AS odd_type_id',
+                    'sot.name',
+                    'o.odds',
+                    'o.stake',
+                    'o.status',
+                    'o.created_at',
+                    'o.order_expiry',
+                    'o.odd_label'
+                ])
+                ->orderBy('o.created_at', 'desc')
+                ->get();
     }
 }
