@@ -10,7 +10,7 @@ er <template>
                         <span class="text-center py-1 cursor-pointer"><i class="fas fa-file-export" title="Export orders data."></i></span>
                     </json-excel>
                 </div>
-                <div slot="betSelection" slot-scope="props" v-html="props.row.bet_selection"></div>
+                <div slot="bet_selection" slot-scope="props" v-html="props.row.bet_selection"></div>
                 <div slot="reason" slot-scope="props">
                     <span class="text-xs" v-if="props.row.status == 'FAILED'">{{props.row.reason}}</span>
                     <span class="text-sm" v-else>-</span>
@@ -48,11 +48,11 @@ export default {
         return {
             myorders: [],
             totalPL: '',
-            columns: ['bet_id', 'created', 'betSelection', 'provider', 'odds', 'stake', 'towin', 'status', 'reason', 'score', 'pl', 'betData'],
+            columns: ['bet_id', 'created', 'bet_selection', 'provider', 'odds', 'stake', 'towin', 'status', 'reason', 'score', 'pl', 'betData'],
             options: {
                 headings: {
                     bet_id: 'Bet ID',
-                    betSelection: 'Bet Selection',
+                    bet_selection: 'Bet Selection',
                     created: 'Transaction Date & Time',
                     pl: 'Profit/Loss',
                     towin: 'To Win',
@@ -61,7 +61,7 @@ export default {
                     betData: ''
                 },
                 columnsClasses: {
-                    betSelection: 'betSelection',
+                    bet_selection: 'betSelection',
                     odds: 'alignRight',
                     stake: 'alignRight',
                     towin: 'towin',
