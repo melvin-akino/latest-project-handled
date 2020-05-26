@@ -2,7 +2,7 @@
 
 namespace App\Console\Commands;
 
-use App\Models\{MasterLeague, MasterLeagueLink, MasterTeam, MasterTeamLink};
+use App\Models\{MasterLeague, League, MasterTeam, Team};
 use Illuminate\Console\Command;
 
 class MasterlistCommand extends Command
@@ -32,7 +32,7 @@ class MasterlistCommand extends Command
             'deleted_at' => null
         ]);
 
-        MasterLeagueLink::withTrashed()->updateOrCreate([
+        League::withTrashed()->updateOrCreate([
             'master_league_id' => $masterLeague->id,
             'sport_id'         => $sportId,
             'provider_id'      => $providerId,
@@ -48,7 +48,7 @@ class MasterlistCommand extends Command
             'deleted_at' => null
         ]);
 
-        MasterTeamLink::withTrashed()->updateOrCreate([
+        Team::withTrashed()->updateOrCreate([
             'sport_id'       => $sportId,
             'name'           => $team1,
             'provider_id'    => $providerId,
@@ -64,7 +64,7 @@ class MasterlistCommand extends Command
             'deleted_at' => null
         ]);
 
-        MasterTeamLink::withTrashed()->updateOrCreate([
+        Team::withTrashed()->updateOrCreate([
             'sport_id'       => $sportId,
             'name'           => $team2,
             'provider_id'    => $providerId,

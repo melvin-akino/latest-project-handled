@@ -121,8 +121,8 @@ class DataToSwt implements CustomProcessInterface
     private static function db2SwtMasterTeams(Server $swoole)
     {
         $teams      = DB::table('master_teams as mt')
-                    ->join('master_team_links as mtl', 'mtl.master_team_id', 'mt.id')
-                    ->select('mt.id', 'mtl.name as team_name', 'mt.name as master_team_name', 'mtl.provider_id', 'mtl.id as raw_id')
+                    ->join('teams as t', 't.master_team_id', 'mt.id')
+                    ->select('mt.id', 't.name as team_name', 'mt.name as master_team_name', 't.provider_id', 't.id as raw_id')
                     ->get();
         $teamsTable = $swoole->teamsTable;
         array_map(function ($team) use ($teamsTable) {

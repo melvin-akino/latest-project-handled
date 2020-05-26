@@ -4,9 +4,9 @@ namespace App\Console\Commands;
 
 use App\Models\{
     MasterLeague,
-    MasterLeagueLink,
+    League,
     MasterTeam,
-    MasterTeamLink,
+    Team,
     Provider
 };
 
@@ -79,7 +79,7 @@ class MatchedMasterlistCommand extends Command
 
             $matchedLeagueId = $masterLeague->id;
 
-            MasterLeagueLink::withTrashed()->updateOrCreate([
+            League::withTrashed()->updateOrCreate([
                 'master_league_id' => $matchedLeagueId,
                 'sport_id'         => $sportId,
                 'provider_id'      => $providerId,
@@ -97,7 +97,7 @@ class MatchedMasterlistCommand extends Command
 
             $matchedHomeTeamId = $masterTeam1->id;
 
-            MasterTeamLink::withTrashed()->updateOrCreate([
+            Team::withTrashed()->updateOrCreate([
                 'sport_id'       => $sportId,
                 'team_name'      => $team1,
                 'provider_id'    => $providerId,
@@ -115,7 +115,7 @@ class MatchedMasterlistCommand extends Command
 
             $matchedAwayTeamId = $masterTeam2->id;
 
-            MasterTeamLink::withTrashed()->updateOrCreate([
+            Team::withTrashed()->updateOrCreate([
                 'sport_id'       => $sportId,
                 'team_name'      => $team2,
                 'provider_id'    => $providerId,
