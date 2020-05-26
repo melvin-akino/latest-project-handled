@@ -99,9 +99,9 @@ class DataToSwt implements CustomProcessInterface
     private static function db2SwtMasterLeagues(Server $swoole)
     {
         $leagues      = DB::table('master_leagues as ml')
-                        ->join('master_league_links as mll', 'ml.id', 'mll.master_league_id')
+                        ->join('leagues as l', 'ml.id', 'l.master_league_id')
                         ->whereNull('ml.deleted_at')
-                        ->select('ml.id', 'ml.sport_id', 'ml.name as master_league_name', 'mll.name as  league_name', 'mll.provider_id', 'ml.updated_at', 'mll.id as raw_id')
+                        ->select('ml.id', 'ml.sport_id', 'ml.name as master_league_name', 'l.name as  league_name', 'l.provider_id', 'ml.updated_at', 'l.id as raw_id')
                         ->get();
         $leaguesTable = $swoole->leaguesTable;
         array_map(function ($league) use ($leaguesTable) {
