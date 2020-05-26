@@ -570,7 +570,10 @@ class OrdersController extends Controller
                     'ml_bet_identifier'             => $mlBetId,
                 ]);
 
-                ProviderAccount::find($providerAccountId)->update(['updated_at' => Carbon::now()]);
+                $updateProvider = ProviderAccount::find($providerAccountId); 
+                $updateProvider->updated_at = Carbon::now();
+                $updateProvider->save();
+                
 
                 $incrementIds['id'][]               = $orderIncrement->id;
                 $incrementIds['created_at'][]       = $orderIncrement->created_at;

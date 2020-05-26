@@ -33,7 +33,7 @@ class ProviderAccount extends Model
             ->where('provider_id', $providerId)
             ->where('is_enabled', true)
             ->where('type', $type)
-            ->inRandomOrder();
+            ->orderBy('updated_at', 'ASC');
 
         $marketFlag = strtoupper($marketFlag);
 
