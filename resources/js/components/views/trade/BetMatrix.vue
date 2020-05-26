@@ -150,6 +150,8 @@ export default {
                             var teamTotals = home_team_counter + away_team_counter
                             if(teamTotals > points) {
                                 var result = stake * price
+                            } else if(teamTotals == points) {
+                                var result = 0
                             } else {
                                 var result = stake * -1
                             }
@@ -158,6 +160,8 @@ export default {
                             var teamTotals = home_team_counter + away_team_counter
                             if(teamTotals < points) {
                                 var result = stake * price
+                            } else if(teamTotals == points) {
+                                var result = 0
                             } else {
                                 var result = stake * -1
                             }
