@@ -260,8 +260,10 @@ class DataToSwt implements CustomProcessInterface
 
     private static function db2SwtActiveEvents(Server $swoole)
     {
-        $events            = DB::table('events')
-                            ->whereNull('deleted_at')
+        $events            = DB::table('events as e')
+                            ->join('master_events as me', 'me.id', 'e.master_event_id')
+                            ->whereNull('e.deleted_at')
+                            ->select('e.*', 'me.game_schedule')
                             ->get();
         $activeEvents      = $swoole->activeEventsTable;
         $activeEventsArray = [];
