@@ -153,7 +153,7 @@ class OddsSaveToDbHandler
                         $this->swoole->additionalEventsTable->set($additionalEventsSwtId, [
                             'value' => json_encode([
                                 'sport_id'    => $this->eventRawData['Event']['data']['sport_id'],
-                                'schedule'    => $this->eventRawData['MasterEvent']['data']['game_schedule'],
+                                'schedule'    => $this->eventData['MasterEvent']['data']['game_schedule'],
                                 'league_name' => $masterLeague->name
                             ])
                         ]);
