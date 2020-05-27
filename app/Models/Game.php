@@ -217,6 +217,9 @@ class Game extends Model
     public static function getOtherMarketsByMemUID(string $memUID)
     {
         return DB::table('master_events as me')
+                ->join('events as e', 'e.master_event_id', 'me.id')
+                ->join('master_teams as mth', 'mth.id', 'me.master_team_home_id')
+                ->join('master_teams as mta', 'mta.id', 'me.master_team_away_id')
                 ->join('sports as s', 's.id', 'me.sport_id')
                 ->join('master_event_markets as mem', 'mem.master_event_id', 'me.id')
                 ->join('event_markets as em', 'em.master_event_market_id', 'mem.id')
@@ -227,8 +230,8 @@ class Game extends Model
                 ->select([
                     's.sport',
                     'me.master_event_unique_id',
-                    'me.master_home_team_name',
-                    'me.master_away_team_name',
+                    'mth.name as master_home_team_name',
+                    'mta.name as master_away_team_name',
                     'me.ref_schedule',
                     'me.game_schedule',
                     'me.score',
@@ -243,7 +246,7 @@ class Game extends Model
                     'em.odds',
                     'em.odd_label',
                     'em.provider_id',
-                    'em.event_identifier'
+                    'e.event_identifier'
                 ])
                 ->distinct()->get();
     }
