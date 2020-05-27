@@ -110,7 +110,7 @@ class Order extends Model
                 ->join('master_events AS me', 'me.id', 'mem.master_event_id')
                 ->join('master_leagues as ml', 'ml.id', 'me.master_league_id')
                 ->join('master_teams as mth', 'mth.id', 'me.master_team_home_id')
-                ->join('master_teams as mta', 'mta.id', 'me.master_team_home_id')
+                ->join('master_teams as mta', 'mta.id', 'me.master_team_away_id')
                 ->join('odd_types AS ot', 'ot.id', 'mem.odd_type_id')
                 ->join('sport_odd_type AS sot', 'sot.odd_type_id', 'ot.id')
                 ->distinct()
