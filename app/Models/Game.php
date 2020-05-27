@@ -121,7 +121,7 @@ class Game extends Model
     public static function getBetSlipLogs(int $userId, string $memUID)
     {
         return DB::table('bet_slip_logs')
-                ->where(function ($cond) {
+                ->where(function ($cond) use ($userId){
                     $cond->where('user_id', 0)
                         ->orWhere('user_id', $userId);
                 })
