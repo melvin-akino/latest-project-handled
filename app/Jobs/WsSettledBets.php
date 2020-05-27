@@ -137,6 +137,16 @@ class WsSettledBets implements ShouldQueue
                 break;
         }
 
+        $score                    = $this->data->score;
+        $betSelectionArray        = explode("\n", $orders->bet_selection);
+        $betSelectionOddsAndScore = explode("(", $betSelectionArray[2]);
+        $updatedOddsAndScore      = $betSelectionOddsAndScore[0] . " (" . $score . ")";
+        $updatedBetSelection      = implode("\n", [
+            $betSelectionArray[0],
+            $betSelectionArray[1],
+            $updatedOddsAndScore
+        ]);
+
         $sourceId = Source::where('source_name', 'LIKE', $sourceName)
             ->first();
 
@@ -149,11 +159,12 @@ class WsSettledBets implements ShouldQueue
             Order::where('bet_id', $this->data->bet_id)
                 ->update(
                     [
-                        'status'       => strtoupper($this->data->status),
-                        'profit_loss'  => $balance,
-                        'reason'       => $this->data->reason,
-                        'settled_date' => Carbon::now(),
-                        'updated_at'   => Carbon::now(),
+                        'bet_selection' => $updatedBetSelection,
+                        'status'        => strtoupper($this->data->status),
+                        'profit_loss'   => $balance,
+                        'reason'        => $this->data->reason,
+                        'settled_date'  => Carbon::now(),
+                        'updated_at'    => Carbon::now(),
                     ]
                 );
 
