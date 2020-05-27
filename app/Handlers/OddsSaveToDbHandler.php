@@ -64,7 +64,7 @@ class OddsSaveToDbHandler
 
             $event = Events::withTrashed()->where('event_identifier',
                 $this->eventRawData['Event']['data']['event_identifier'])->first();
-            if ($event && $event->game_schedule != $this->eventRawData['Event']['data']['game_schedule']) {
+            if ($event && $event->game_schedule != $this->eventData['MasterEvent']['data']['game_schedule']) {
                 EventMarket::where('event_id', $event->event_id)
                     ->delete();
             }
@@ -153,7 +153,7 @@ class OddsSaveToDbHandler
                         $this->swoole->additionalEventsTable->set($additionalEventsSwtId, [
                             'value' => json_encode([
                                 'sport_id'    => $this->eventRawData['Event']['data']['sport_id'],
-                                'schedule'    => $this->eventRawData['Event']['data']['game_schedule'],
+                                'schedule'    => $this->eventRawData['MasterEvent']['data']['game_schedule'],
                                 'league_name' => $masterLeague->name
                             ])
                         ]);

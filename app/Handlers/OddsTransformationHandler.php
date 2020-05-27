@@ -160,7 +160,6 @@ class OddsTransformationHandler
                 'team_home_id'     => $teamHomeId,
                 'team_away_id'     => $teamAwayId,
                 'ref_schedule'     => date("Y-m-d H:i:s", strtotime($this->message->data->referenceSchedule)),
-                'game_schedule'    => $this->message->data->schedule,
                 'deleted_at'       => null
             ];
 
