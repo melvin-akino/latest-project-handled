@@ -87,10 +87,11 @@ Route::get('/prometheus_GGT8', 'PrometheusController@index');
          
         Route::namespace('Monitoring')->group(function() {
         	Route::prefix('monitoring')->group(function() {
-        		Route::get('minmax', 'MonitoringToolController@minmax')->name('monitoring.minmax');
-        		
+        		Route::get('minmax', 'MonitoringToolController@minmax')->name('monitoring.minmax');        		
         		Route::get('placedbet', 'MonitoringToolController@placedBet')->name('monitoring.placedBet');
         		Route::get('odds', 'MonitoringToolController@odds')->name('monitoring.odds');
+        		Route::get('open', 'MonitoringToolController@open')->name('monitoring.open');
+        		Route::get('settled', 'MonitoringToolController@settled')->name('monitoring.settled');
         	});
         });
         /* end monitoring route */
