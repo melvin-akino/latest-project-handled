@@ -137,11 +137,11 @@ class WsSettledBets implements ShouldQueue
                 break;
         }
 
-        $score = $this->data->score;
-        $betSelectionArray = explode("\n", $orders->bet_selection);
+        $score                    = $this->data->score;
+        $betSelectionArray        = explode("\n", $orders->bet_selection);
         $betSelectionOddsAndScore = explode("(", $betSelectionArray[2]);
-        $updatedOddsAndScore = $betSelectionOddsAndScore[0]." "."(".$score.")";
-        $updatedBetSelection = implode("\n", [
+        $updatedOddsAndScore      = $betSelectionOddsAndScore[0]. " (" .$score. ")";
+        $updatedBetSelection      = implode("\n", [
             $betSelectionArray[0],
             $betSelectionArray[1],
             $updatedOddsAndScore
