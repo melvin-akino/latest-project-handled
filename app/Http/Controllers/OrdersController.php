@@ -518,9 +518,11 @@ class OrdersController extends Controller
                 $providerAccountUserName = $providerAccount->username;
                 $providerAccountId       = $providerAccount->id;
 
+                $masterEventMarket = MasterEventMarket::where('master_event_market_unique_id', $request->market_id)->first();
+
                 $orderIncrement = Order::create([
                     'user_id'                       => auth()->user()->id,
-                    'master_event_market_unique_id' => $request->market_id,
+                    'master_event_market_id'        => $masterEventMarket->id,
                     'market_id'                     => $query->bet_identifier,
                     'status'                        => "PENDING",
                     'bet_id'                        => "",
