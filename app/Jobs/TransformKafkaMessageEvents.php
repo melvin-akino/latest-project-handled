@@ -113,7 +113,7 @@ class TransformKafkaMessageEvents implements ShouldQueue
             ]);
 
             $doesExist = false;
-            foeach ($activeEventsTable as $key => $value) {
+            foreach ($activeEventsTable as $key => $value) {
                 if ($key == $activeEventsSwtId) {
                     $doesExist = true;
                     break;
