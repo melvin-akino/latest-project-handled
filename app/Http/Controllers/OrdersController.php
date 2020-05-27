@@ -161,7 +161,23 @@ class OrdersController extends Controller
                 'master_event_id'
             ]);
 
-            $masterEvent = MasterEvent::where('id', $masterEventMarket->master_event_id);
+            $masterEvent = DB::table('master_events as me')
+                ->where('me.id', $masterEventMarket->master_event_id)
+                ->join('master_leagues as ml', 'ml.id', 'me.master_league_id')
+                ->join('master_teams as ht', 'ht.id', 'me.master_team_home_id')
+                ->join('master_teams as at', 'at.id', 'me.master_team_away_id')
+                ->select([
+                    'ml.name as league_name',
+                    'ht.name as home_team_name',
+                    'at.name as away_team_name',
+                    'game_schedule',
+                    'ref_schedule',
+                    'running_time',
+                    'score',
+                    'home_penalty',
+                    'away_penalty',
+                    'sport_id'
+                ]);
 
             if (!$masterEvent->exists()) {
                 return response()->json([
@@ -200,9 +216,9 @@ class OrdersController extends Controller
             }
 
             $data = [
-                'league_name'   => $masterEvent->master_league_name,
-                'home'          => $masterEvent->master_home_team_name,
-                'away'          => $masterEvent->master_away_team_name,
+                'league_name'   => $masterEvent->league_name,
+                'home'          => $masterEvent->home_team_name,
+                'away'          => $masterEvent->away_team_name,
                 'game_schedule' => $masterEvent->game_schedule,
                 'ref_schedule'  => $masterEvent->ref_schedule,
                 'running_time'  => $masterEvent->running_time,
