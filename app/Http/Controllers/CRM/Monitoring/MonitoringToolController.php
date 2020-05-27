@@ -103,4 +103,48 @@ class MonitoringToolController extends Controller
         }
         return view('CRM.monitoring.odds')->with($data);
     }
+
+    public function open()
+    {
+        $orders       = [];
+        $redisTopic    = env('REDIS_TOOL_OPEN_REQUEST', 'REDIS-MON-TOOL-OPEN-REQUEST');
+        $smembers      = Redis::smembers($redisTopic);
+
+        if (count($smembers) != 0) {
+            foreach ($smembers as $v) {
+                $orders[] = Redis::hget($v);
+            }
+        }
+
+        $data['page_title']        = "Open Orders Monitoring";
+        $data['page_description']  = 'Lists all open orders';
+        $data['orders']           = $orders;
+        $data['monitoring_menu']   = true;
+        $data['logs_menu']         = false;
+        $data['minmax_menu']       = false;
+        $data['placebet_menu']     = true;
+        return view('CRM.monitoring.open_orders')->with($data);
+    }
+
+    public function settled()
+    {
+        $orders       = [];
+        $redisTopic    = env('REDIS_TOOL_SETTLEMENT_REQUEST', 'REDIS-MON-TOOL-SETTLEMENT-REQUEST');
+        $smembers      = Redis::smembers($redisTopic);
+
+        if (count($smembers) != 0) {
+            foreach ($smembers as $v) {
+                $orders[] = Redis::hget($v);
+            }
+        }
+
+        $data['page_title']        = "Settled Orders Monitoring";
+        $data['page_description']  = 'Lists all settled orders';
+        $data['orders']           = $orders;
+        $data['monitoring_menu']   = true;
+        $data['logs_menu']         = false;
+        $data['minmax_menu']       = false;
+        $data['placebet_menu']     = true;
+        return view('CRM.monitoring.settled')->with($data);
+    }
 }
