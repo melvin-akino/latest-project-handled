@@ -176,7 +176,7 @@ class OrdersController extends Controller
                     'score',
                     'home_penalty',
                     'away_penalty',
-                    'sport_id'
+                    'me.sport_id'
                 ]);
 
             if (!$masterEvent->exists()) {
