@@ -17,13 +17,29 @@ class CreateTableOrderLogs extends Migration
     {
         Schema::create($this->tablename, function (Blueprint $table) {
             $table->bigIncrements('id');
-            $table->integer('provider_id');
-            $table->integer('sport_id');
-            $table->string('bet_id');
+            $table->integer('user_id')->index();
+            $table->integer('provider_id')->index();
+            $table->integer('sport_id')->index();
+            $table->string('bet_id', 30)->index();
             $table->text('bet_selection');
-            $table->string('status');
-            $table->dateTime('settled_date');
+            $table->string('status', 30)->index();
+            $table->dateTimeTz('settled_date')->index()->nullable();
             $table->timestamps();
+
+            $table->foreign('user_id')
+                ->references('id')
+                ->on('users')
+                ->onUpdate('cascade');
+
+            $table->foreign('provider_id')
+                ->references('id')
+                ->on('providers')
+                ->onUpdate('cascade');
+
+            $table->foreign('sport_id')
+                ->references('id')
+                ->on('sports')
+                ->onUpdate('cascade');
         });
     }
 

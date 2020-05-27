@@ -4,9 +4,10 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class CreateProviderAccounts extends Migration
+class CreateTableUserSelectedLeagues extends Migration
 {
-    protected $tablename = "provider_accounts";
+    protected $tablename = "user_selected_leagues";
+
     /**
      * Run the migrations.
      *
@@ -16,22 +17,20 @@ class CreateProviderAccounts extends Migration
     {
         Schema::create($this->tablename, function (Blueprint $table) {
             $table->bigIncrements('id');
-            $table->integer('provider_id');
-            $table->integer('type');
-            $table->string('username');
-            $table->string('password');
-            $table->float('punter_percentage', 2, 2);
-            $table->float('credits', 15, 2);
-            $table->softDeletes();
+            $table->integer('master_league_id')->index();
+            $table->integer('user_id')->index();
             $table->timestamps();
 
-            $table->foreign('provider_id')
+            $table->foreign('user_id')
                 ->references('id')
-                ->on('providers')
+                ->on('users')
+                ->onUpdate('cascade');
+
+            $table->foreign('master_league_id')
+                ->references('id')
+                ->on('master_leagues')
                 ->onUpdate('cascade');
         });
-
-
     }
 
     /**

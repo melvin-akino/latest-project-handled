@@ -3,14 +3,19 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
-class Teams extends Model
+class Team extends Model
 {
+    use SoftDeletes;
+
     protected $table = "teams";
 
     protected $fillable = [
-        'team',
+        'sport_id',
+        'master_team_id',
         'provider_id',
+        'name'
     ];
 
     protected $hidden = [

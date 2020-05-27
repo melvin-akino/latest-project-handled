@@ -57,7 +57,15 @@ class TransformKafkaMessageLeagues implements ShouldQueue
 
             $providerSwtId = "providerAlias:" . strtolower($this->message->data->provider);
 
-            if ($providersTable->exist($providerSwtId)) {
+            $doesExist = false;
+            foreach ($providersTable as $key => $value) {
+                if ($key == $providerSwtId) {
+                    $doesExist = true;
+                    break;
+                }
+            }
+
+            if ($doesExist) {
                 $providerId = $providersTable->get($providerSwtId)['id'];
             } else {
                 Log::info("League Transformation ignored - Provider doesn't exist");
@@ -66,7 +74,14 @@ class TransformKafkaMessageLeagues implements ShouldQueue
 
             $sportSwtId = "sId:" . $this->message->data->sport;
 
-            if ($sportsTable->exists($sportSwtId)) {
+            $doesExist = false;
+            foreach ($sportsTable as $key => $value) {
+                if ($key == $sportSwtId) {
+                    $doesExist = true;
+                    break;
+                }
+            }
+            if ($doesExist) {
                 $sportId = $sportsTable->get($sportSwtId)['id'];
             } else {
                 Log::info("League Transformation ignored - Sport doesn't exist");
@@ -84,7 +99,14 @@ class TransformKafkaMessageLeagues implements ShouldQueue
 
             $timestampSwtId = $consumeLeaguesTablewtId . "::KAFKA_CONSUME_LEAGUES";
 
-            if ($consumeLeaguesTable->exists($timestampSwtId)) {
+            $doesExist = false;
+            foreach ($consumeLeaguesTable as $key => $value) {
+                if ($key == $timestampSwtId) {
+                    $doesExist = true;
+                    break;
+                }
+            }
+            if ($doesExist) {
                 $swooleTS = $consumeLeaguesTable[$timestampSwtId]['value'];
 
                 if ($swooleTS > $this->message->request_ts) {
@@ -108,7 +130,14 @@ class TransformKafkaMessageLeagues implements ShouldQueue
                 'add' => [],
             ];
 
-            if ($consumeLeaguesTable->exists($wsLeagueTableSwtId)) {
+            $doesExist = false;
+            foreach ($consumeLeaguesTable as $key => $value) {
+                if ($key == $wsLeagueTableSwtId) {
+                    $doesExist = true;
+                    break;
+                }
+            }
+            if ($doesExist) {
                 if (md5($consumeLeaguesTable[$wsLeagueTableSwtId]['value']) != md5(json_encode($leagueList))) {
                     $swooleValue = json_decode($consumeLeaguesTable[$wsLeagueTableSwtId]['value'], true);
                     $diff['rmv'] = array_diff($swooleValue, $leagueList);
@@ -126,22 +155,30 @@ class TransformKafkaMessageLeagues implements ShouldQueue
             foreach ($diff AS $key => $_diff) {
                 if (!empty($_diff)) {
                     foreach ($_diff AS $actionLeague) {
-                        $leagueLookupId = null;
+                        // $leagueLookupId = null;
 
-                        foreach ($leagueLookUpTable as $_key => $value) {
-                            if ($value['value'] == $actionLeague) {
-                                $leagueLookupId = substr($_key, strlen('leagueLookUpId:'));
+                        // foreach ($leagueLookUpTable as $_key => $value) {
+                        //     if ($value['value'] == $actionLeague) {
+                        //         $leagueLookupId = substr($_key, strlen('leagueLookUpId:'));
+                        //     }
+                        // }
+
+                        // $leagueSwtId = implode(':', [
+                        //     "sId:" . $sportId,
+                        //     "pId:" . $providerId,
+                        //     "leagueLookUpId:" . $leagueLookupId
+                        // ]);
+
+                        $doesExist = false;
+                        foreach ($leaguesTable as $k => $v) {
+                            if ($v['league_name'] == $actionLeague) {
+                                $doesExist = true;
+                                break;
                             }
                         }
-
-                        $leagueSwtId = implode(':', [
-                            "sId:" . $sportId,
-                            "pId:" . $providerId,
-                            "leagueLookUpId:" . $leagueLookupId
-                        ]);
-
-                        if ($leaguesTable->exists($leagueSwtId)) {
+                        if ($doesExist) {
                             $masterLeagueName = $leaguesTable->get($leagueSwtId)['master_league_name'];
+                            $masterLeagueId = $leaguesTable->get($leagueSwtId)['id'];
                         } else {
                             break;
                         }
@@ -151,7 +188,7 @@ class TransformKafkaMessageLeagues implements ShouldQueue
                         foreach ($eventsTable AS $eventKey => $event) {
                             if (strpos($eventKey,
                                     'sId:' . $sportId . ':pId: ' . $providerId . ':eventIdentifier:') == 0) {
-                                if ($eventsTable[$eventKey]['master_league_name'] == $masterLeagueName) {
+                                if ($eventsTable[$eventKey]['master_league_id'] == $masterLeagueId) {
                                     $ctr++;
                                 }
                             }
@@ -180,7 +217,14 @@ class TransformKafkaMessageLeagues implements ShouldQueue
                         ":" . $action
                     ]);
 
-                    if (!$getActionLeaguesTable->exists($swooleId)) {
+                    $doesExist = false;
+                    foreach ($getActionLeaguesTable as $k => $v) {
+                        if ($k == $swooleId) {
+                            $doesExist = true;
+                            break;
+                        }
+                    }
+                    if (!$doesExist) {
                         $getActionLeaguesTable->set($swooleId, ['value' => json_encode($data)]);
                     }
                 }

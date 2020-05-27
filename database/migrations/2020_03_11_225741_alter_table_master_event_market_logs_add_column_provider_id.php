@@ -16,7 +16,11 @@ class AlterTableMasterEventMarketLogsAddColumnProviderId extends Migration
     public function up()
     {
         Schema::table($this->tablename, function (Blueprint $table) {
-            $table->integer('provider_id')->nullable();
+            $table->integer('provider_id')->index()->default(1);
+            $table->foreign('provider_id')
+                ->references('id')
+                ->on('providers')
+                ->onUpdate('cascade');
         });
     }
 

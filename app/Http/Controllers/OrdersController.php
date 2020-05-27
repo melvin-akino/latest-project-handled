@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\{
     Currency,
     ExchangeRate,
+    Game,
     MasterEvent,
     MasterEventMarket,
     MasterEventMarketLog,
@@ -157,10 +158,10 @@ class OrdersController extends Controller
                 'is_main',
                 'market_flag',
                 'odd_type_id',
-                'master_event_unique_id'
+                'master_event_id'
             ]);
 
-            $masterEvent = MasterEvent::where('master_event_unique_id', $masterEventMarket->master_event_unique_id);
+            $masterEvent = MasterEvent::where('id', $masterEventMarket->master_event_id);
 
             if (!$masterEvent->exists()) {
                 return response()->json([
@@ -172,25 +173,13 @@ class OrdersController extends Controller
 
             $masterEvent = $masterEvent->first();
 
-            $getOtherMarkets = DB::table('event_markets AS em')
-                ->join('master_event_market_links AS meml', 'meml.event_market_id', 'em.id')
-                ->join('master_event_markets AS mem', 'mem.master_event_market_unique_id',
-                    'meml.master_event_market_unique_id')
-                ->where('mem.master_event_unique_id', $masterEventMarket->master_event_unique_id)
-                ->where('mem.odd_type_id', $masterEventMarket->odd_type_id)
-                ->where('em.market_flag', $masterEventMarket->market_flag)
-                ->where('em.provider_id', $userProvider->id)
-                ->where('em.game_schedule', $masterEvent->game_schedule)
-                ->whereNull('em.deleted_at')
-                ->distinct()
-                ->get(
-                    [
-                        'mem.master_event_market_unique_id',
-                        'em.odds',
-                        'em.odd_label',
-                        'em.is_main'
-                    ]
-                );
+            $getOtherMarkets = Game::getOtherMarketSpreadDetails([
+                'odd_type_id'     => $masterEventMarket->odd_type_id,
+                'master_event_id' => $masterEventMarket->master_event_id,
+                'market_flag'     => $masterEventMarket->market_flag,
+                'provider_id'     => $userProvider->id,
+                'game_schedule'   => $masterEvent->game_schedule
+            ]);
 
             $spreads = [];
 
@@ -419,41 +408,7 @@ class OrdersController extends Controller
                     }
                 }
 
-                $query = DB::table('master_events AS me')
-                    ->join('master_event_markets AS mem', 'me.master_event_unique_id', '=',
-                        'mem.master_event_unique_id')
-                    ->join('event_markets AS em', function ($join) {
-                        $join->on('me.master_event_unique_id', '=', 'em.master_event_unique_id');
-                        $join->on('mem.odd_type_id', '=', 'em.odd_type_id');
-                        $join->on('mem.is_main', '=', 'em.is_main');
-                        $join->on('mem.market_flag', '=', 'em.market_flag');
-                    })
-                    ->join('odd_types AS ot', 'ot.id', '=', 'mem.odd_type_id')
-                    ->join('master_event_market_links AS meml', 'em.id', '=', 'meml.event_market_id')
-                    ->whereNull('me.deleted_at')
-                    ->where('mem.master_event_market_unique_id', $request->market_id)
-                    ->where('meml.master_event_market_unique_id', $request->market_id)
-                    ->orderBy('mem.odd_type_id', 'asc')
-                    ->select([
-                        'me.sport_id',
-                        'me.master_event_unique_id',
-                        'me.master_league_name',
-                        'me.master_home_team_name',
-                        'me.master_away_team_name',
-                        'me.game_schedule',
-                        'me.running_time',
-                        'me.score',
-                        'mem.master_event_market_unique_id',
-                        'mem.is_main',
-                        'mem.market_flag',
-                        'mem.odd_type_id',
-                        'em.bet_identifier',
-                        'em.provider_id',
-                        'em.odds',
-                        'em.odd_label',
-                        'ot.type AS column_type',
-                    ])
-                    ->first();
+                $query = Game::getmasterEventByMarketId($request->market_id);
 
                 if (!$query) {
                     return response()->json([
@@ -533,9 +488,9 @@ class OrdersController extends Controller
                     $teamname . " @ " . number_format($row['price'], 2),
                     $query->column_type . " " . $query->odd_label . "(" . $query->score . ")",
                 ]);
-            
+
                 $providerAccount = ProviderAccount::getBettingAccount($row['provider_id'], $actualStake, $isUserVIP, $payload['event_id'], $query->odd_type_id, $query->market_flag);
- 
+
                 if (!$providerAccount) {
                     return response()->json([
                         'status'      => false,
@@ -692,15 +647,7 @@ class OrdersController extends Controller
         try {
             $data = [];
 
-            $view = DB::table('bet_slip_logs')
-                ->where(function ($cond) {
-                    $cond->where('user_id', 0)
-                        ->orWhere('user_id', auth()->user()->id);
-                })
-                ->where('memuid', $memUID)
-                ->orderBy('timestamp', 'desc')
-                ->limit(20)
-                ->get();
+            $view = Game::getBetSlipLogs(auth()->user()->id, $memUID);
 
             foreach ($view AS $row) {
                 $data[$row->timestamp][$row->log_type][$row->provider] = [
@@ -729,6 +676,7 @@ class OrdersController extends Controller
     {
         try  {
             $orders = Order::getOrdersByEvent($uid)->get();
+
             $data = [];
             foreach($orders as $order) {
                 $type = '';

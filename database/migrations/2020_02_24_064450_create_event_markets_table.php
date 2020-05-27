@@ -8,8 +8,6 @@ class CreateEventMarketsTable extends Migration
 {
     protected $tablename = 'event_markets';
 
-    protected $masterEventsTable = 'master_events';
-
     /**
      * Run the migrations.
      *
@@ -17,16 +15,11 @@ class CreateEventMarketsTable extends Migration
      */
     public function up()
     {
-        if (Schema::hasTable($this->masterEventsTable)) {
-            Schema::table($this->masterEventsTable, function (Blueprint $table) {
-                $table->string('master_event_unique_id', 30)->change();
-                $table->unique('master_event_unique_id');
-            });
-        }
         if (!Schema::hasTable($this->tablename)) {
             Schema::create($this->tablename, function (Blueprint $table) {
                 $table->integerIncrements('id');
-                $table->string('master_event_unique_id', 30)->unique();
+                $table->bigInteger('master_event_market_id')->index();
+                $table->integer('event_id')->index();
                 $table->integer('odd_type_id')->index();
                 $table->double('odds');
                 $table->string('odd_label', 10);
@@ -39,9 +32,14 @@ class CreateEventMarketsTable extends Migration
                 ]);
                 $table->timestamps();
 
-                $table->foreign('master_event_unique_id')
-                    ->references('master_event_unique_id')
-                    ->on('master_events')
+                $table->foreign('master_event_market_id')
+                    ->references('id')
+                    ->on('master_event_markets')
+                    ->onUpdate('cascade');
+
+                $table->foreign('event_id')
+                    ->references('id')
+                    ->on('events')
                     ->onUpdate('cascade');
 
                 $table->foreign('odd_type_id')
@@ -60,10 +58,5 @@ class CreateEventMarketsTable extends Migration
     public function down()
     {
         Schema::dropIfExists($this->tablename);
-        if (Schema::hasTable($this->masterEventsTable)) {
-            Schema::table($this->masterEventsTable, function (Blueprint $table) {
-                $table->dropUnique(['master_event_unique_id']);
-            });
-        }
     }
 }

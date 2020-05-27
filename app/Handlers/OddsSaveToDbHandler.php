@@ -9,7 +9,9 @@ use App\Models\{
     MasterEventLink,
     MasterEventMarket,
     MasterEventMarketLink,
-    MasterEventMarketLog
+    MasterEventMarketLog,
+    MasterLeague,
+    Game
 };
 
 use Exception;
@@ -60,112 +62,83 @@ class OddsSaveToDbHandler
         try {
             DB::beginTransaction();
 
-            foreach ($this->removeEventMarket AS $key => $_row) {
-                EventMarket::where('event_identifier', $_row['event_identifier'])
-                    ->where('odd_type_id', $_row['odd_type_id'])
-                    ->where('provider_id', $_row['provider_id'])
-                    ->where('market_flag', $_row['market_flag'])
-                    ->delete();
-            }
-
             $event = Events::withTrashed()->where('event_identifier',
                 $this->eventRawData['Event']['data']['event_identifier'])->first();
-            if ($event && $event->game_schedule != $this->eventRawData['Event']['data']['game_schedule']) {
-                EventMarket::where('master_event_unique_id', $event->master_event_unique_id)
+            if ($event && $event->game_schedule != $this->eventData['MasterEvent']['data']['game_schedule']) {
+                EventMarket::where('event_id', $event->event_id)
                     ->delete();
             }
 
-            $eventModel = Events::withTrashed()->updateOrCreate([
-                'event_identifier' => $this->eventRawData['Event']['data']['event_identifier']
-            ], $this->eventRawData['Event']['data']);
+            $masterEventModel = MasterEvent::withTrashed()->updateOrCreate([
+                'master_event_unique_id' => $this->eventData['MasterEvent']['data']['master_event_unique_id']
+            ], $this->eventData['MasterEvent']['data']);
 
-            if (!$this->dbOptions['event-only']) {
-                $masterEventModel = MasterEvent::withTrashed()->updateOrCreate([
-                    'master_event_unique_id' => $this->eventData['MasterEvent']['data']['master_event_unique_id']
-                ], $this->eventData['MasterEvent']['data']);
+            $this->eventRawData['Event']['data']['master_event_id'] = $masterEventModel->id;
 
-                if ($masterEventModel && $eventModel) {
-                    $rawEventId      = $eventModel->id;
-                    $masterEventLink = MasterEventLink::updateOrCreate([
-                        'event_id'               => $rawEventId,
-                        'master_event_unique_id' => $this->eventData['MasterEvent']['data']['master_event_unique_id']
-                    ], []);
-                }
+            if ($masterEventModel) {
+                $eventModel = Events::withTrashed()->updateOrCreate([
+                    'event_identifier' => $this->eventRawData['Event']['data']['event_identifier']
+                ], $this->eventRawData['Event']['data']);
 
-                if (!empty($this->eventMarketsData)) {
-                    foreach ($this->eventMarketsData as $eventMarket) {
-                        $eventMarketModel = EventMarket::withTrashed()->updateOrCreate(
-                            [
-                                'bet_identifier'         => $eventMarket['EventMarket']['data']['bet_identifier'],
-                                'master_event_unique_id' => $eventMarket['EventMarket']['data']['master_event_unique_id']
-                            ], $eventMarket['EventMarket']['data']
-                        );
+                if ($eventModel) {
+                    if (!empty($this->eventMarketsData)) {
+                        foreach ($this->eventMarketsData as $eventMarket) {
+                            $eventMarket['MasterEventMarket']['data']['master_event_id'] = $masterEventModel->id;
+                            $masterEventMarketModel = MasterEventMarket::updateOrCreate([
+                                'master_event_market_unique_id' => $eventMarket['MasterEventMarket']['data']['master_event_market_unique_id']
+                            ], $eventMarket['MasterEventMarket']['data']);
 
-                        $eventMarketId = $eventMarketModel->id;
+                            if ($masterEventMarketModel) {
+                                $masterEventMarketId = $masterEventMarketModel->id;
 
-                        $masterEventMarketLink = MasterEventMarketLink::where('event_market_id', $eventMarketId);
-                        $hasMasterEventMarketLink = false;
-                        if ($masterEventMarketLink->exists()) {
-                            $eventMarket['MasterEventMarket']['data']['master_event_market_unique_id'] = ($masterEventMarketLink->first())->master_event_market_unique_id;
-                            $hasMasterEventMarketLink = true;
-                        }
+                                $eventMarket['EventMarket']['data']['event_id'] = $eventModel->id;
+                                $eventMarket['EventMarket']['data']['master_event_market_id'] = $masterEventMarketId;
+                                $eventMarketModel = EventMarket::withTrashed()->updateOrCreate(
+                                    [
+                                        'bet_identifier' => $eventMarket['EventMarket']['data']['bet_identifier'],
+                                        'event_id'       => $eventMarket['EventMarket']['data']['event_id']
+                                    ], $eventMarket['EventMarket']['data']
+                                );
 
-                        $masterEventMarketModel = MasterEventMarket::updateOrCreate([
-                            'master_event_market_unique_id' => $eventMarket['MasterEventMarket']['data']['master_event_market_unique_id']
-                        ], $eventMarket['MasterEventMarket']['data']);
+                                if (!empty($eventMarket['MasterEventMarketLog'])) {
+                                    $eventMarket['MasterEventMarketLog']['data']['master_event_market_id'] = $masterEventMarketId;
 
-                        if ($masterEventMarketModel) {
-                            $masterEventMarketId = $masterEventMarketModel->id;
-
-                            if (!$hasMasterEventMarketLink) {
-                                MasterEventMarketLink::updateOrCreate([
-                                    'event_market_id'               => $eventMarketId,
-                                    'master_event_market_unique_id' => $masterEventMarketModel->master_event_market_unique_id
-                                ], []);
-                            }
-
-                            if (!empty($eventMarket['MasterEventMarketLog'])) {
-                                $eventMarket['MasterEventMarketLog']['data']['master_event_market_id'] = $masterEventMarketId;
-
-                                $masterEventMarketLog = MasterEventMarketLog::where('master_event_market_id', $masterEventMarketId)
-                                                                            ->orderBy('created_at', 'DESC');
-                                if ($masterEventMarketLog->count() > 0) {
-                                    $masterEventMarketLogData = $masterEventMarketLog->first();
-                                    if ($masterEventMarketLogData->odds != $eventMarket['MasterEventMarketLog']['data']['odds']) {
+                                    $masterEventMarketLog = MasterEventMarketLog::where('master_event_market_id', $masterEventMarketId)
+                                                                                ->orderBy('created_at', 'DESC');
+                                    if ($masterEventMarketLog->count() > 0) {
+                                        $masterEventMarketLogData = $masterEventMarketLog->first();
+                                        if ($masterEventMarketLogData->odds != $eventMarket['MasterEventMarketLog']['data']['odds']) {
+                                            MasterEventMarketLog::create($eventMarket['MasterEventMarketLog']['data']);
+                                        }
+                                    } else {
                                         MasterEventMarketLog::create($eventMarket['MasterEventMarketLog']['data']);
                                     }
-                                } else {
-                                    MasterEventMarketLog::create($eventMarket['MasterEventMarketLog']['data']);
                                 }
                             }
                         }
+
+                        if (!empty($this->updatedOddsData)) {
+                            $eventRawData = $this->eventRawData;
+
+                            array_map(function ($marketOdds) use ($eventRawData) {
+                                Game::updateOddsData($marketOdds, $eventRawData['Event']['data']['provider_id']);
+                            }, $this->updatedOddsData);
+                        }
                     }
                 }
-
-                if (!empty($this->updatedOddsData)) {
-                    $uid          = $this->uid;
-                    $eventRawData = $this->eventRawData;
-
-                    array_map(function ($marketOdds) use ($uid, $eventRawData) {
-                        DB::table('event_markets as em')
-                            ->join('master_event_market_links as meml', 'meml.event_market_id', 'em.id')
-                            ->where('meml.master_event_market_unique_id', $marketOdds['market_id'])
-                            ->where('em.provider_id', $eventRawData['Event']['data']['provider_id'])
-                            ->update([
-                                'em.odds' => $marketOdds['odds']
-                            ]);
-                    }, $this->updatedOddsData);
-                }
             }
+            
 
             DB::commit();
 
-            if ($masterEventModel && $eventModel && $masterEventLink) {
+            if ($masterEventModel && $eventModel) {
                 $masterEventData = [
                     'master_event_unique_id' => $this->eventData['MasterEvent']['data']['master_event_unique_id'],
-                    'master_league_name'     => $this->eventData['MasterEvent']['data']['master_league_name'],
-                    'master_home_team_name'  => $this->eventData['MasterEvent']['data']['master_home_team_name'],
-                    'master_away_team_name'  => $this->eventData['MasterEvent']['data']['master_away_team_name'],
+                    'master_league_id'       => $this->eventData['MasterEvent']['data']['master_league_id'],
+                    'master_team_home_id'    => $this->eventData['MasterEvent']['data']['master_team_home_id'],
+                    'master_team_away_id'    => $this->eventData['MasterEvent']['data']['master_team_away_id'],
+                    'team_home_id'           => $this->eventData['Event']['data']['team_home_id'],
+                    'team_away_id'           => $this->eventData['Event']['data']['team_away_id'],
                     'game_schedule'          => $this->eventData['MasterEvent']['data']['game_schedule'],
                     'home_penalty'           => $this->eventData['MasterEvent']['data']['home_penalty'],
                     'away_penalty'           => $this->eventData['MasterEvent']['data']['away_penalty'],
@@ -173,14 +146,18 @@ class OddsSaveToDbHandler
                 $this->swoole->eventsTable->set($this->eventData['MasterEvent']['swtKey'], $masterEventData);
 
                 if ($this->dbOptions['is-event-new']) {
-                    $additionalEventsSwtId = "additionalEvents:" . $this->eventData['MasterEvent']['data']['master_event_unique_id'];
-                    $this->swoole->additionalEventsTable->set($additionalEventsSwtId, [
-                        'value' => json_encode([
-                            'sport_id'    => $this->eventRawData['Event']['data']['sport_id'],
-                            'schedule'    => $this->eventRawData['Event']['data']['game_schedule'],
-                            'league_name' => $this->eventData['MasterEvent']['data']['master_league_name']
-                        ])
-                    ]);
+
+                    $masterLeague = MasterLeague::find($this->eventData['MasterEvent']['data']['master_league_id']);
+                    if ($masterLeague) {
+                        $additionalEventsSwtId = "additionalEvents:" . $this->eventData['MasterEvent']['data']['master_event_unique_id'];
+                        $this->swoole->additionalEventsTable->set($additionalEventsSwtId, [
+                            'value' => json_encode([
+                                'sport_id'    => $this->eventRawData['Event']['data']['sport_id'],
+                                'schedule'    => $this->eventRawData['MasterEvent']['data']['game_schedule'],
+                                'league_name' => $masterLeague->name
+                            ])
+                        ]);
+                    }
                 }
             }
 
@@ -200,7 +177,7 @@ class OddsSaveToDbHandler
                         $array = [
                             'odd_type_id'                   => $eventMarket['MasterEventMarket']['data']['odd_type_id'],
                             'master_event_market_unique_id' => $eventMarket['MasterEventMarket']['data']['master_event_market_unique_id'],
-                            'master_event_unique_id'        => $eventMarket['MasterEventMarket']['data']['master_event_unique_id'],
+                            'master_event_unique_id'        => $eventMarket['MasterEvent']['data']['master_event_unique_id'],
                             'provider_id'                   => $eventMarket['EventMarket']['data']['provider_id'],
                             'odds'                          => $eventMarket['EventMarket']['data']['odds'],
                             'odd_label'                     => $eventMarket['EventMarket']['data']['odd_label'],

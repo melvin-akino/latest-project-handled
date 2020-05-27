@@ -3,7 +3,6 @@
 namespace App\Processes;
 
 use App\Handlers\ProducerHandler;
-use App\Jobs\KafkaPush;
 use App\Models\SystemConfiguration;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
@@ -12,7 +11,6 @@ use Swoole\Http\Server;
 use Swoole\Process;
 use Exception;
 use Carbon\Carbon;
-use Storage;
 use PrometheusMatric;
 
 class BalanceProduce implements CustomProcessInterface
@@ -48,11 +46,9 @@ class BalanceProduce implements CustomProcessInterface
 
                         if (!empty($systemConfigurationsTimers)) {
                             foreach ($systemConfigurationsTimers as $systemConfigurationsTimer) {
-                                if (!empty((int)$systemConfigurationsTimer['value'])) {
-                                    if ($balanceTime % (int)$systemConfigurationsTimer['value'] == 0) {
-                                        self::sendBalancePayload($systemConfigurationsTimer['type'],
-                                            env('KAFKA_SCRAPE_BALANCE_POSTFIX', '_balance_req'), $swoole);
-                                    }
+                                if (!empty((int)$systemConfigurationsTimer['value']) && $balanceTime % (int) $systemConfigurationsTimer['value'] == 0) {
+                                    self::sendBalancePayload($systemConfigurationsTimer['type'],
+                                        env('KAFKA_SCRAPE_BALANCE_POSTFIX', '_balance_req'), $swoole);
                                 }
                             }
                         }
@@ -72,30 +68,17 @@ class BalanceProduce implements CustomProcessInterface
         self::$quit = true;
     }
 
-    private static function milliseconds()
-    {
-        $mt = explode(' ', microtime());
-        return bcadd($mt[1], $mt[0], 8);
-    }
-
-    private static function pushToKafka(array $message = [], string $key, string $kafkaTopic, int $delayInSeconds = 0)
+    private static function pushToKafka(array $message = [], string $key, string $kafkaTopic)
     {
         try {
-            if (empty($delayInMinutes)) {
-                self::$producerHandler->setTopic($kafkaTopic)
-                    ->send($message, $key);
-            } else {
-                KafkaPush::dispatch($kafkaTopic, $message, $key)->delay(now()->addSeconds($delayInSeconds));
-            }
+            self::$producerHandler->setTopic($kafkaTopic)
+                ->send($message, $key);
         } catch (Exception $e) {
             Log::critical('Sending Kafka Message Failed', [
                 'error' => $e->getMessage(),
                 'code'  => $e->getCode()
             ]);
         } finally {
-            if (env('KAFKA_LOG', false)) {
-                Storage::append('producers-' . date('Y-m-d') . '.log', json_encode($message));
-            }
             Log::channel('kafkaproducelog')->info(json_encode($message));
         }
     }
@@ -113,8 +96,8 @@ class BalanceProduce implements CustomProcessInterface
             $username = $providerAccount['username'];
             $provider = strtolower($providerAccount['provider_alias']);
 
-            $requestId = (string)Str::uuid();
-            $requestTs = self::milliseconds();
+            $requestId = (string) Str::uuid();
+            $requestTs = getMilliseconds();
 
             $payload         = [
                 'request_uid' => $requestId,
@@ -127,7 +110,7 @@ class BalanceProduce implements CustomProcessInterface
                 'username' => $username
             ];
 
-            self::pushToKafka($payload, $requestId, $provider . $topic, rand(1, 180));
+            self::pushToKafka($payload, $requestId, $provider . $topic);
         }
     }
 }

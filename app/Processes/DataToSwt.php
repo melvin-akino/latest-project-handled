@@ -24,6 +24,7 @@ class DataToSwt implements CustomProcessInterface
         // DB to SWT Initialization
         $swooleProcesses = [
             'Sports',
+            'OddTypes',
             'Providers',
             'MasterLeagues',
             'MasterTeams',
@@ -67,8 +68,10 @@ class DataToSwt implements CustomProcessInterface
         array_map(function ($sport) use ($sportsTable) {
             $sportsTable->set('sId:' . $sport['id'], ['sport' => $sport['sport'], 'id' => $sport['id']]);
         }, $sports->toArray());
+    }
 
-        // Odd Types
+    private static function db2SwtOddTypes(Server $swoole)
+    {
         $oddTypes      = DB::table('odd_types')->get();
         $oddTypesTable = $swoole->oddTypesTable;
         array_map(function ($oddType) use ($oddTypesTable) {
@@ -95,24 +98,21 @@ class DataToSwt implements CustomProcessInterface
 
     private static function db2SwtMasterLeagues(Server $swoole)
     {
-        /** TODO: table source will be changed */
-        $leagues      = DB::table('master_leagues')
-            ->join('master_league_links', 'master_leagues.id', 'master_league_links.master_league_id')
-            ->whereNull('master_leagues.deleted_at')
-            ->select('master_leagues.id', 'master_leagues.sport_id', 'master_leagues.master_league_name',
-                'master_league_links.league_name',
-                'master_league_links.provider_id', 'master_leagues.updated_at')
-            ->get();
+        $leagues      = DB::table('master_leagues as ml')
+                        ->join('leagues as l', 'ml.id', 'l.master_league_id')
+                        ->whereNull('ml.deleted_at')
+                        ->select('ml.id', 'ml.sport_id', 'ml.name as master_league_name', 'l.name as  league_name', 'l.provider_id', 'ml.updated_at', 'l.id as raw_id')
+                        ->get();
         $leaguesTable = $swoole->leaguesTable;
         array_map(function ($league) use ($leaguesTable) {
-            $leagueLookUpId = uniqid();
-            $leaguesTable->set('sId:' . $league->sport_id . ':pId:' . $league->provider_id . ':leagueLookUpId:' . $leagueLookUpId,
+            $leaguesTable->set('sId:' . $league->sport_id . ':pId:' . $league->provider_id . ':id:' . $league->id,
                 [
                     'id'                 => $league->id,
                     'sport_id'           => $league->sport_id,
                     'provider_id'        => $league->provider_id,
                     'master_league_name' => $league->master_league_name,
                     'league_name'        => $league->league_name,
+                    'raw_id'             => $league->raw_id
                 ]
             );
         }, $leagues->toArray());
@@ -120,32 +120,31 @@ class DataToSwt implements CustomProcessInterface
 
     private static function db2SwtMasterTeams(Server $swoole)
     {
-        $teams      = DB::table('master_teams')
-            ->join('master_team_links', 'master_team_links.master_team_id', 'master_teams.id')
-            ->select('master_teams.id', 'master_team_links.team_name', 'master_teams.master_team_name',
-                'master_team_links.provider_id')
-            ->get();
+        $teams      = DB::table('master_teams as mt')
+                    ->join('teams as t', 't.master_team_id', 'mt.id')
+                    ->select('mt.id', 't.name as team_name', 'mt.name as master_team_name', 't.provider_id', 't.id as raw_id')
+                    ->get();
         $teamsTable = $swoole->teamsTable;
         array_map(function ($team) use ($teamsTable) {
-            $teamLookUpId = uniqid();
-            // app('swoole')->teamLookUpTable->set('teamLookUpId:' . $teamLookUpId, ['value' => $team->team_name]);
-            $teamsTable->set('pId:' . $team->provider_id . ':teamLookUpId:' . $teamLookUpId,
+            $teamsTable->set('pId:' . $team->provider_id . ':id:' . $team->id,
                 [
                     'id'               => $team->id,
                     'team_name'        => $team->team_name,
                     'master_team_name' => $team->master_team_name,
-                    'provider_id'      => $team->provider_id
+                    'provider_id'      => $team->provider_id,
+                    'raw_id'           => $team->raw_id
                 ]);
         }, $teams->toArray());
     }
 
     private static function db2SwtSportOddTypes(Server $swoole)
     {
-        $sportOddTypes      = DB::table('sport_odd_type')
-            ->join('odd_types', 'odd_types.id', 'sport_odd_type.odd_type_id')
-            ->join('sports', 'sports.id', 'sport_odd_type.sport_id')
-            ->select('sport_odd_type.sport_id', 'sport_odd_type.odd_type_id', 'odd_types.type', 'sport_odd_type.id')
-            ->get();
+        $sportOddTypes      = DB::table('sport_odd_type as sot')
+                            ->join('odd_types as ot', 'ot.id', 'sot.odd_type_id')
+                            ->join('sports as s', 's.id', 'sot.sport_id')
+                            ->where('s.is_enabled', true)
+                            ->select('sot.sport_id', 'sot.odd_type_id', 'ot.type', 'sot.id')
+                            ->get();
         $sportOddTypesTable = $swoole->sportOddTypesTable;
         array_map(function ($sportOddType) use ($sportOddTypesTable) {
             $sportOddTypesTable->set('sId:' . $sportOddType->sport_id . ':oddType:' . Str::slug($sportOddType->type),
@@ -160,19 +159,20 @@ class DataToSwt implements CustomProcessInterface
 
     private static function db2SwtMasterEvents(Server $swoole)
     {
-        $masterEvents      = DB::table('master_events')
-            ->join('sports', 'sports.id', 'master_events.sport_id')
-            ->join('master_event_links', 'master_event_links.master_event_unique_id',
-                'master_events.master_event_unique_id')
-            ->join('events', 'events.id', 'master_event_links.event_id')
-            ->join('master_leagues', 'master_leagues.master_league_name', 'master_events.master_league_name')
-            ->whereNull('master_events.deleted_at')
-            ->select('master_events.id', 'master_events.master_event_unique_id', 'events.provider_id',
-                'events.event_identifier', 'master_leagues.id as master_league_id', 'master_events.sport_id',
-                'master_events.ref_schedule', 'master_events.game_schedule', 'master_events.master_home_team_name',
-                'master_events.master_away_team_name', 'master_leagues.master_league_name', 'master_events.score',
-                'master_events.running_time', 'master_events.home_penalty', 'master_events.away_penalty')
-            ->get();
+        $masterEvents      = DB::table('master_events as me')
+                            ->join('sports as s', 's.id', 'me.sport_id')
+                            ->join('events as e', 'e.master_event_id', 'me.id')
+                            ->join('master_leagues as ml', 'ml.id', 'me.master_league_id')
+                            // ->join('master_teams as mth','mth.id', 'me.master_team_home_id')
+                            // ->join('master_teams as mta', 'mta.id', 'me.master_team_away_id')
+                            ->whereNull('me.deleted_at')
+                            ->whereNull('e.deleted_at')
+                            ->select('me.id', 'me.master_event_unique_id', 'e.provider_id',
+                                'e.event_identifier', 'me.master_league_id', 'me.sport_id',
+                                'me.ref_schedule', 'me.game_schedule', 'me.master_team_home_id',
+                                'me.master_team_away_id', 'e.team_home_id', 'e.team_away_id', 'me.score',
+                                'me.running_time', 'me.home_penalty', 'me.away_penalty')
+                            ->get();
         $masterEventsTable = $swoole->eventsTable;
         array_map(function ($event) use ($masterEventsTable) {
             $masterEventsTable->set('sId:' . $event->sport_id . ':pId:' . $event->provider_id . ':eventIdentifier:' . $event->event_identifier,
@@ -182,11 +182,13 @@ class DataToSwt implements CustomProcessInterface
                     'sport_id'               => $event->sport_id,
                     'provider_id'            => $event->provider_id,
                     'master_event_unique_id' => $event->master_event_unique_id,
-                    'master_home_team_name'  => $event->master_home_team_name,
-                    'master_away_team_name'  => $event->master_away_team_name,
+                    'master_league_id'       => $event->master_league_id,
+                    'team_home_id'           => $event->team_home_id,
+                    'team_away_id'           => $event->team_away_id,
+                    'master_team_home_id'    => $event->master_team_home_id,
+                    'master_team_away_id'    => $event->master_team_away_id,
                     'ref_schedule'           => $event->ref_schedule,
                     'game_schedule'          => $event->game_schedule,
-                    'master_league_name'     => $event->master_league_name,
                     'score'                  => $event->score,
                     'running_time'           => $event->running_time,
                     'home_penalty'           => $event->home_penalty,
@@ -197,23 +199,18 @@ class DataToSwt implements CustomProcessInterface
 
     private static function db2SwtMasterEventMarkets(Server $swoole)
     {
-        $masterEventMarkets      = DB::table('master_event_markets')
-            ->join('master_event_market_links', 'master_event_market_links.master_event_market_unique_id',
-                'master_event_markets.master_event_market_unique_id')
-            ->join('event_markets', 'event_markets.id', 'master_event_market_links.event_market_id')
-            ->join('master_events', 'master_events.master_event_unique_id',
-                'master_event_markets.master_event_unique_id')
-            ->join('odd_types', 'odd_types.id', 'master_event_markets.odd_type_id')
-            ->select('event_markets.id', 'master_event_markets.master_event_unique_id',
-                'master_event_markets.master_event_market_unique_id',
-                'master_event_market_links.event_market_id',
-                'event_markets.odd_type_id', 'event_markets.provider_id',
-                'event_markets.odds', 'event_markets.odd_label', 'event_markets.bet_identifier',
-                'event_markets.is_main', 'event_markets.market_flag')
-            ->get();
+        $masterEventMarkets      = DB::table('master_event_markets as mem')
+                                ->join('master_events as me', 'me.id', 'mem.master_event_id')
+                                ->join('event_markets as em', 'em.master_event_market_id', 'mem.id')
+                                ->join('odd_types as ot', 'ot.id', 'mem.odd_type_id')
+                                ->whereNull('em.deleted_at')
+                                ->select('em.id', 'mem.master_event_id', 'mem.master_event_market_unique_id', 'me.master_event_unique_id',
+                                    'em.odd_type_id', 'em.provider_id', 'em.odds', 'em.odd_label',
+                                    'em.bet_identifier', 'em.is_main', 'em.market_flag')
+                                ->get();
         $masterEventMarketsTable = $swoole->eventMarketsTable;
         array_map(function ($eventMarket) use ($masterEventMarketsTable) {
-            $odds = $eventMarket->bet_identifier == "" ? 0 : (float)$eventMarket->odds;
+            $odds = $eventMarket->bet_identifier == "" ? 0 : (float) $eventMarket->odds;
 
             $masterEventMarketsTable->set(
                 'pId:' . $eventMarket->provider_id .
@@ -236,13 +233,12 @@ class DataToSwt implements CustomProcessInterface
 
     private static function db2SwtUserWatchlist(Server $swoole)
     {
-        $userWatchlist      = DB::table('user_watchlist')
-            ->get();
+        $userWatchlist      = DB::table('user_watchlist')->get();
         $userWatchlistTable = $swoole->userWatchlistTable;
         array_map(function ($watchlist) use ($userWatchlistTable) {
             $userWatchlistTable->set(
                 'userWatchlist:' . $watchlist->user_id .
-                ':masterEventUniqueId:' . $watchlist->master_event_unique_id,
+                ':masterEventId:' . $watchlist->master_event_id,
                 ['value' => $watchlist->id]);
         }, $userWatchlist->toArray());
     }
@@ -250,9 +246,7 @@ class DataToSwt implements CustomProcessInterface
     private static function db2SwtUserProviderConfig(Server $swoole)
     {
         $swooleTable        = $swoole->userProviderConfigTable;
-        $userProviderConfig = DB::table('user_provider_configurations')
-            ->get();
-
+        $userProviderConfig = DB::table('user_provider_configurations')->get();
         array_map(function ($userConfig) use ($swooleTable) {
             $swooleTable->set('userId:' . $userConfig->user_id . ':pId:' . $userConfig->provider_id,
                 [
@@ -266,10 +260,12 @@ class DataToSwt implements CustomProcessInterface
 
     private static function db2SwtActiveEvents(Server $swoole)
     {
-        $events       = DB::table('events')
-            ->whereNull('deleted_at')
-            ->get();
-        $activeEvents = $swoole->activeEventsTable;
+        $events            = DB::table('events as e')
+                            ->join('master_events as me', 'me.id', 'e.master_event_id')
+                            ->whereNull('e.deleted_at')
+                            ->select('e.*', 'me.game_schedule')
+                            ->get();
+        $activeEvents      = $swoole->activeEventsTable;
         $activeEventsArray = [];
         array_map(function ($event) use ($activeEvents, &$activeEventsArray) {
             $activeEventsArray[$event->sport_id][$event->provider_id][$event->game_schedule][] = $event->event_identifier;
@@ -280,8 +276,10 @@ class DataToSwt implements CustomProcessInterface
 
     private static function db2SwtUserSelectedLeagues(Server $swoole)
     {
-        $userSelectedLeagues      = DB::table('user_selected_leagues')
-            ->get();
+        $userSelectedLeagues      = DB::table('user_selected_leagues as usl')
+                                    ->join('master_leagues as ml', 'ml.id', 'usl.master_league_id')
+                                    ->select('usl.user_id', 'usl.id', 'usl.sport_id', 'usl.game_schedule', 'ml.name as master_league_name')
+                                    ->get();
         $userSelectedLeaguesTable = $swoole->userSelectedLeaguesTable;
         array_map(function ($userSelectedLeague) use ($userSelectedLeaguesTable) {
             $userSelectedLeaguesTable->set(
@@ -289,7 +287,7 @@ class DataToSwt implements CustomProcessInterface
                     'userId:' . $userSelectedLeague->user_id,
                     'sId:' . $userSelectedLeague->sport_id,
                     'schedule:' . $userSelectedLeague->game_schedule,
-                    'uniqueId:' . uniqid()
+                    'id:' . $userSelectedLeague->id
                 ]), [
                 'userId'      => $userSelectedLeague->user_id,
                 'sId'         => $userSelectedLeague->sport_id,
@@ -301,31 +299,14 @@ class DataToSwt implements CustomProcessInterface
 
     private static function db2SwtOrders(Server $swoole)
     {
-        $orders = DB::table('orders as o')
-            ->join('provider_accounts AS pa', 'o.provider_account_id', '=', 'pa.id')
-            ->join('master_event_markets as mem', 'mem.master_event_market_unique_id',
-                'o.master_event_market_unique_id')
-            ->join('master_events as me', 'me.master_event_unique_id', 'mem.master_event_unique_id')
-            ->join('master_event_links as mel', 'mel.master_event_unique_id', 'me.master_event_unique_id')
-            ->join('events as e', 'e.id', 'mel.event_id')
-            ->select([
-                'o.id',
-                'o.status',
-                'o.stake',
-                'o.created_at',
-                'o.actual_stake',
-                'o.odds',
-                'o.market_id',
-                'mem.master_event_unique_id',
-                'mem.master_event_market_unique_id',
-                'me.score',
-                'o.bet_id',
-                'o.order_expiry',
-                'pa.id AS provider_account_id',
-                'pa.username',
-            ])
-            ->get();
-
+        $orders      = DB::table('orders as o')
+                        ->join('provider_accounts AS pa', 'o.provider_account_id', '=', 'pa.id')
+                        ->join('master_event_markets as mem', 'mem.id',
+                            'o.master_event_market_id')
+                        ->join('master_events as me', 'me.id', 'mem.master_event_id')
+                        ->whereNull('me.deleted_at')
+                        ->select('o.id', 'o.status', 'o.created_at', 'o.bet_id', 'o.order_expiry', 'pa.username')
+                        ->get();
         $ordersTable = $swoole->ordersTable;
 
         array_map(function ($order) use ($ordersTable) {
@@ -345,16 +326,12 @@ class DataToSwt implements CustomProcessInterface
             ->join('currency AS cf', 'er.from_currency_id', '=', 'cf.id')
             ->join('currency AS ct', 'er.to_currency_id', '=', 'ct.id')
             ->get([
-                'er.from_currency_id',
-                'er.to_currency_id',
                 'cf.code AS from_code',
                 'ct.code AS to_code',
                 'er.default_amount',
                 'er.exchange_rate',
             ]);
-
-        $swTable = $swoole->exchangeRatesTable;
-
+        $swTable       = $swoole->exchangeRatesTable;
         array_map(function ($exchangeRates) use ($swTable) {
             $erSwtId = implode(':', [
                 "from:" . $exchangeRates->from_code,
@@ -370,11 +347,8 @@ class DataToSwt implements CustomProcessInterface
 
     private static function db2SwtCurrencies(Server $swoole)
     {
-        $currency = DB::table('currency')
-            ->get();
-
-        $swTable = $swoole->currenciesTable;
-
+        $currency = DB::table('currency')->get();
+        $swTable  = $swoole->currenciesTable;
         array_map(function ($currency) use ($swTable) {
             $swtId = implode(':', [
                 "currencycId:" . $currency->id,
@@ -390,11 +364,8 @@ class DataToSwt implements CustomProcessInterface
 
     private static function db2SwtUserInfo(Server $swoole)
     {
-        $users = DB::table('users')
-            ->get();
-
+        $users   = DB::table('users')->get();
         $swTable = $swoole->usersTable;
-
         array_map(function ($users) use ($swTable) {
             $swtId = "userId:" . $users->id;
 
@@ -409,6 +380,7 @@ class DataToSwt implements CustomProcessInterface
         $providerAccounts = DB::table('provider_accounts as pa')
             ->join('providers as p', 'p.id', 'pa.provider_id')
             ->where('pa.is_enabled', true)
+            ->where('p.is_enabled', true)
             ->select('pa.id', 'pa.provider_id', 'pa.type', 'pa.username', 'pa.password', 'pa.punter_percentage',
                 'pa.credits', 'p.alias')
             ->orderBy('pa.updated_at', 'desc')

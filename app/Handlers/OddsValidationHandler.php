@@ -62,7 +62,6 @@ class OddsValidationHandler
             $teamsTable                               = $swoole->teamsTable;
             $eventsTable                              = $swoole->eventsTable;
             $oddTypesTable                            = $swoole->oddTypesTable;
-            $sportOddTypesTable                       = $swoole->sportOddTypesTable;
             $eventMarketsTable                        = $swoole->eventMarketsTable;
             $leagueLookUpTable                        = $swoole->leagueLookUpTable;
             $teamLookUpTable                          = $swoole->teamLookUpTable;
@@ -144,6 +143,7 @@ class OddsValidationHandler
             foreach ($leaguesTable as $k => $v) {
                 if ($v['sport_id'] == $sportId && $v['provider_id'] == $providerId && $v['league_name'] == $this->message->data->leagueName) {
                     $multiLeagueId    = $leaguesTable->get($k)['id'];
+                    $leagueId         = $leaguesTable->get($k)['raw_id'];
                     $masterLeagueName = $leaguesTable->get($k)['master_league_name'];
 
                     $leagueExist = true;
@@ -165,8 +165,9 @@ class OddsValidationHandler
                 $teamExist = false;
                 foreach ($teamsTable as $k => $v) {
                     if ($v['provider_id'] == $providerId && $v['team_name'] == $row) {
-                        $multiTeam[$key]['id']   = $teamsTable->get($k)['id'];
-                        $multiTeam[$key]['name'] = $teamsTable->get($k)['team_name'];
+                        $multiTeam[$key]['id']     = $teamsTable->get($k)['id'];
+                        $multiTeam[$key]['name']   = $teamsTable->get($k)['team_name'];
+                        $multiTeam[$key]['raw_id'] = $teamsTable->get($k)['raw_id'];
 
                         $teamExist = true;
                         break;
@@ -188,10 +189,10 @@ class OddsValidationHandler
             }
 
             if ($isLeagueSelected) {
-                $oddsTransformationHandler = new OddsTransformationHandler($this->message, compact('providerId', 'sportId', 'multiLeagueId', 'masterLeagueName', 'multiTeam', 'isLeagueSelected'));
+                $oddsTransformationHandler = new OddsTransformationHandler($this->message, compact('providerId', 'sportId', 'multiLeagueId', 'masterLeagueName', 'multiTeam', 'isLeagueSelected', 'leagueId'));
                 $oddsTransformationHandler->handle();
             } else {
-                Task::deliver(new TransformKafkaMessageOdds($this->message, compact('providerId', 'sportId', 'multiLeagueId', 'masterLeagueName', 'multiTeam', 'isLeagueSelected')));
+                Task::deliver(new TransformKafkaMessageOdds($this->message, compact('providerId', 'sportId', 'multiLeagueId', 'masterLeagueName', 'multiTeam', 'isLeagueSelected', 'leagueId')));
             }
         } catch (Exception $e) {
             Log::error($e->getMessage());
