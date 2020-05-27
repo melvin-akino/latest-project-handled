@@ -38,7 +38,8 @@ const state = {
     activeBetSlip: null,
     wallet: {},
     isLoadingLeagues: true,
-    isLoadingEvents: true
+    isLoadingEvents: true,
+    failedBetStatus: ['PENDING', 'FAILED', 'CANCELLED', 'REJECTED', 'VOID', 'ABNORMAL BET', 'REFUNDED']
 }
 
 const mutations = {
@@ -162,10 +163,20 @@ const mutations = {
     },
     OPEN_BETSLIP: (state, data) => {
         Vue.set(data.odd, 'game', data.game)
+        Vue.set(data.odd, 'has_bet', false)
         state.openedBetSlips.push(data.odd)
     },
     CLOSE_BETSLIP: (state, market_id) => {
         state.openedBetSlips = state.openedBetSlips.filter(openedBetSlip => openedBetSlip.market_id != market_id)
+    },
+    SHOW_BET_MATRIX_IN_BETSLIP: (state, data) => {
+        if(!_.isEmpty(state.openedBetSlips)) {
+            state.openedBetSlips.map(betSlip => {
+                if(betSlip.market_id == data.market_id) {
+                    Vue.set(betSlip, 'has_bet', data.has_bet)
+                }
+            })
+        }
     },
     SET_BOOKIES: (state, bookies) => {
         state.bookies = bookies

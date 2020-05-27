@@ -8,6 +8,8 @@ class OrderLogs extends Model
 {
     protected $table = "order_logs";
 
+    public $timestamps = true;
+
     protected $fillable = [
         'user_id',
         'provider_id',

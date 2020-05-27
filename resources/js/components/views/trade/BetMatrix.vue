@@ -36,11 +36,11 @@
                             <label class="text-gray-500 font-bold">
                                 <input class="mr-2 leading-tight" type="checkbox" @change="toggleEventOrder(order, order.order_id)" :checked="selectedOrders.includes(order.order_id)">
                             </label>
-                            {{order.team_name}} {{order.type}} {{order.points}} {{`(${analysisData.price_format})`}}
+                            {{order.team_name}} {{order.type}} {{order.points}} {{`(${defaultPriceFormat})`}}
                         </div>
                         <span class="w-1/6">{{order.bet_team}}</span>
                         <span class="w-1/6">{{order.odds}}</span>
-                        <span class="w-1/6">{{analysisData.currency_symbol}} {{Number(order.stake) | moneyFormat}}</span>
+                        <span class="w-1/6">{{wallet.currency_symbol}} {{Number(order.stake) | moneyFormat}}</span>
                         <span class="w-1/6">{{order.created_at}}</span>
                     </div>
                 </div>
@@ -82,7 +82,8 @@ export default {
         }
     },
     computed: {
-        ...mapState('trade', ['activeBetSlip']),
+        ...mapState('trade', ['wallet', 'activeBetSlip']),
+        ...mapState('settings', ['defaultPriceFormat']),
     },
     watch: {
         analysisData() {

@@ -5,7 +5,7 @@ namespace App\Jobs;
 use App\Models\UserSelectedLeague;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
-use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\{Log, DB};
 use Exception;
 
 class TransformationLeagueRemoval implements ShouldQueue
@@ -26,11 +26,9 @@ class TransformationLeagueRemoval implements ShouldQueue
         try {
             $userSelectedLeaguesTable = app('swoole')->userSelectedLeaguesTable;
             foreach ($this->data AS $row) {
-                $userSelectedLeague = UserSelectedLeague::where('sport_id', $this->sportId)
-                    ->where('master_league_name', $row['name'])
-                    ->where('game_schedule', $row['schedule']);
+                $userSelectedLeague = UserSelectedLeague::getSelectedLeague($this->sportId, $row)
 
-                if ($userSelectedLeague->exists()) {
+                if ($userSelectedLeague) {
                     $userSelectedLeague->delete();
                     foreach ($userSelectedLeaguesTable as $key => $userSelected) {
                         if ($userSelected['league_name'] == $row['name']) {

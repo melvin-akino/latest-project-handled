@@ -33,7 +33,7 @@ class CreateViewBetSlipLogs extends Migration
             ON o.provider_id = p.id
 
             JOIN master_event_markets AS mem
-            ON o.master_event_market_unique_id = mem.master_event_market_unique_id
+            ON o.master_event_market_id = mem.id
 
             UNION ALL
 

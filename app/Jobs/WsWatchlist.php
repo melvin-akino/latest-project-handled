@@ -6,6 +6,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use App\Models\{Game, Order};
 
 class WsWatchlist implements ShouldQueue
 {
@@ -46,29 +47,23 @@ class WsWatchlist implements ShouldQueue
             }
         }
 
-        $transformed = DB::table('master_leagues as ml')
-            ->join('sports as s', 's.id', 'ml.sport_id')
-            ->join('master_events as me', 'me.master_league_name', 'ml.master_league_name')
-            ->join('master_event_markets as mem', 'mem.master_event_unique_id', 'me.master_event_unique_id')
-            ->join('odd_types as ot', 'ot.id', 'mem.odd_type_id')
-            ->join('master_event_market_links as meml', 'meml.master_event_market_unique_id',
-                'mem.master_event_market_unique_id')
-            ->join('event_markets as em', 'em.id', 'meml.event_market_id')
-            ->join('user_watchlist as uw', 'uw.master_event_unique_id', 'me.master_event_unique_id')
-            ->select('ml.sport_id', 'ml.master_league_name', 's.sport',
-                'me.master_event_unique_id', 'me.master_home_team_name', 'me.master_away_team_name',
-                'me.ref_schedule', 'me.game_schedule', 'me.score', 'me.running_time',
-                'me.home_penalty', 'me.away_penalty', 'mem.odd_type_id', 'mem.master_event_market_unique_id',
-                'mem.is_main', 'mem.market_flag',
-                'ot.type', 'em.odds', 'em.odd_label', 'em.provider_id')
-            ->where('uw.user_id', $this->userId)
-            ->where('mem.is_main', true)
-            ->whereNull('ml.deleted_at')
-            ->distinct()->get();
+        $userBets = Order::getOrdersByUserId($this->userId);
+
+        $gameDetails = Game::getWatchlistGameDetails($this->user_id);
+
         $data        = [];
         array_map(function ($transformed) use (&$data) {
             $mainOrOther = $transformed->is_main ? 'main' : 'other';
             if (empty($data[$transformed->master_event_unique_id])) {
+                $hasBet = false;
+
+                if (!empty($userBets)) {
+                    $userOrderMarkets = array_column($userBets, 'market_id');
+                    if (in_array($transformed->bet_identifier, $userOrderMarkets)) {
+                        $hasBet = true;
+                    }
+                }
+
                 $data[$transformed->master_event_unique_id] = [
                     'uid'           => $transformed->master_event_unique_id,
                     'sport_id'      => $transformed->sport_id,
@@ -78,6 +73,7 @@ class WsWatchlist implements ShouldQueue
                     'league_name'   => $transformed->master_league_name,
                     'running_time'  => $transformed->running_time,
                     'ref_schedule'  => $transformed->ref_schedule,
+                    'has_bet'       => $hasBet
                 ];
             }
 
@@ -106,7 +102,7 @@ class WsWatchlist implements ShouldQueue
                     $data[$transformed->master_event_unique_id]['market_odds'][$mainOrOther][$transformed->type][$transformed->market_flag]['points'] = $transformed->odd_label;
                 }
             }
-        }, $transformed->toArray());
+        }, $gameDetails->toArray());
 
         $watchlist = array_values($data);
         if (!empty($watchlist)) {

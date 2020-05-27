@@ -53,9 +53,9 @@ class SwtToWs implements CustomProcessInterface
                 if (strpos($key, 'fd:') === 0) {
                     $fd = $wsTable->get('uid:' . $row['value']);
                     $swoole->push($fd['value'], json_encode(['getUpdatedEventsSchedule' => $updatedEventSchedule]));
-                    $eventScheduleChangeTable->del($k);
                 }
             }
+            $eventScheduleChangeTable->del($k);
         }
     }
 
@@ -66,24 +66,19 @@ class SwtToWs implements CustomProcessInterface
         foreach ($additionalEventsTable as $k => $r) {
             $additionalEvents = json_decode($r['value']);
             if (!empty($additionalEvents)) {
-                foreach ($wsTable as $key => $row) {
-                    if (strpos($key, 'fd:') === 0) {
-                        $userId       = $row['value'];
-                        $sportId      = $additionalEvents->sport_id;
-                        $gameSchedule = $additionalEvents->schedule;
-                        $leagueName   = $additionalEvents->league_name;
-                        $defaultSport = getUserDefault($userId, 'sport');
-                        if ((int)$defaultSport['default_sport'] == $sportId) {
-                            $userSelectedLeaguesTable = $swoole->userSelectedLeaguesTable;
-                            foreach ($userSelectedLeaguesTable as $uslKey => $uslData) {
-                                if (strpos($uslKey, 'userId:' . $userId . ':sId:' . $sportId) === 0 &&
-                                    $gameSchedule == $uslData['schedule'] && $uslData['league_name'] == $leagueName
-                                ) {
-                                    WsEvents::dispatch($userId, [1 => $uslData['league_name'], 2 => $gameSchedule]);
-                                }
-                            }
+                $sportId      = $additionalEvents->sport_id;
+                $gameSchedule = $additionalEvents->schedule;
+                $leagueName   = $additionalEvents->league_name;
+                
+                $userSelectedLeaguesTable = $swoole->userSelectedLeaguesTable;
+                foreach ($userSelectedLeaguesTable as $uslKey => $uslData) {
+                    $userId       = $uslData['user_id'];
+                    $defaultSport = getUserDefault($userId, 'sport');
+                    if ((int) $defaultSport['default_sport'] == $sportId) {
+                        if ($sportId == $uslData['sport_id'] && $gameSchedule == $uslData['schedule'] && $uslData['league_name'] == $leagueName
+                        ) {
+                            WsEvents::dispatch($userId, [1 => $uslData['league_name'], 2 => $gameSchedule]);
                         }
-
                     }
                 }
                 $additionalEventsTable->del($k);
@@ -97,22 +92,15 @@ class SwtToWs implements CustomProcessInterface
         $wsTable            = $swoole->wsTable;
         $topicTable         = $swoole->topicTable;
         foreach ($updatedEventsTable as $k => $r) {
-            foreach ($wsTable as $key => $row) {
-                $updatedMarkets = json_decode($r['value']);
-                if (!empty($updatedMarkets)) {
-                    if (strpos($key, 'fd:') === 0) {
-                        foreach ($topicTable as $topic) {
-                            if (strpos($topic['topic_name'], 'market-id-') === 0) {
-                                if ($topic['user_id'] == $row['value']) {
-                                    $fd = $wsTable->get('uid:' . $row['value']);
-                                    $swoole->push($fd['value'], json_encode(['getUpdatedOdds' => $updatedMarkets]));
-                                    $updatedEventsTable->del($k);
-                                    break;
-                                }
-                            }
-                        }
+            $updatedMarkets = json_decode($r['value']);
+            if (!empty($updatedMarkets)) {
+                foreach ($topicTable as $topic) {
+                    if (strpos($topic['topic_name'], 'market-id-') === 0) {
+                        $fd = $wsTable->get('uid:' . $topic['user_id']);
+                        $swoole->push($fd['value'], json_encode(['getUpdatedOdds' => $updatedMarkets]));
                     }
                 }
+                $updatedEventsTable->del($k);
             }
         }
     }
@@ -124,21 +112,18 @@ class SwtToWs implements CustomProcessInterface
         $topicTable         = $swoole->topicTable;
 
         foreach ($updatedEventsTable as $k => $r) {
-            foreach ($wsTable as $key => $row) {
-                $updatedMarkets = json_decode($r['value']);
-                if (!empty($updatedMarkets)) {
-                    foreach ($topicTable AS $topic => $_row) {
-                        if (strpos($_row['topic_name'], 'min-max-') === 0) {
-                            $userId = $_row['user_id'];
-                            $fd     = $wsTable->get('uid:' . $userId);
-                            foreach ($updatedMarkets as $updatedMarket) {
-                                $swoole->push($fd['value'], json_encode(['getUpdatedPrice' => $updatedMarket]));
-                            }
-                            $updatedEventsTable->del($k);
-                            break;
+            $updatedMarkets = json_decode($r['value']);
+            if (!empty($updatedMarkets)) {
+                foreach ($topicTable AS $topic => $_row) {
+                    if (strpos($_row['topic_name'], 'min-max-') === 0) {
+                        $userId = $_row['user_id'];
+                        $fd     = $wsTable->get('uid:' . $userId);
+                        foreach ($updatedMarkets as $updatedMarket) {
+                            $swoole->push($fd['value'], json_encode(['getUpdatedPrice' => $updatedMarket]));
                         }
                     }
                 }
+                $updatedEventsTable->del($k);
             }
         }
     }
@@ -154,16 +139,16 @@ class SwtToWs implements CustomProcessInterface
 
         foreach ($getActionLeaguesTable AS $_key => $_row) {
             if (strpos($_key, $swtKey) > -1) {
-                $data = json_decode($getActionLeaguesTable[$_key]['value']);
-                foreach ($wsTable as $key => $row) {
-                    if (strpos($key, 'fd:') === 0) {
-                        $fd = $wsTable->get('uid:' . $row['value']);
-                        if (!empty($data)) {
+                $data = json_decode($_row['value']);
+                if (!empty($data)) {
+                    foreach ($wsTable as $key => $row) {
+                        if (strpos($key, 'fd:') === 0) {
+                            $fd = $wsTable->get('uid:' . $row['value']);
                             $swoole->push($fd['value'], json_encode([$topic => $data->{$abbr}]));
-                            $getActionLeaguesTable->del($_key);
                         }
                     }
                 }
+                $getActionLeaguesTable->del($_key);
             }
         }
     }
@@ -180,13 +165,12 @@ class SwtToWs implements CustomProcessInterface
 
         foreach ($getActionLeaguesTable AS $_key => $_row) {
             if (strpos($_key, $swtKey) === 0) {
-                $data = json_decode($getActionLeaguesTable[$_key]['value']);
-                foreach ($wsTable as $key => $row) {
-                    if (strpos($key, 'fd:') === 0) {
-                        $fd = $wsTable->get('uid:' . $row['value']);
-                        if (!empty($data)) {
+                $data = json_decode($_row['value']);
+                if (!empty($data)) {
+                    foreach ($wsTable as $key => $row) {
+                        if (strpos($key, 'fd:') === 0) {
+                            $fd = $wsTable->get('uid:' . $row['value']);
                             $swoole->push($fd['value'], json_encode([$topic => $data->{$abbr}]));
-                            $getActionLeaguesTable->del($_key);
 
                             foreach ($slTable AS $slKey => $slRow) {
                                 foreach ($data->{$abbr} AS $_abbr) {
@@ -201,6 +185,7 @@ class SwtToWs implements CustomProcessInterface
                         }
                     }
                 }
+                $getActionLeaguesTable->del($_key);
             }
         }
     }

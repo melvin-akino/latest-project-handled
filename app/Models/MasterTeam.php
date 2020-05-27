@@ -13,7 +13,7 @@ class MasterTeam extends Model
 
     protected $fillable = [
         'sport_id',
-        'master_team_name',
+        'name',
     ];
 
     protected $hidden = [

@@ -23,7 +23,14 @@ class WSOrderStatus implements ShouldQueue
     {
         $swoole = app('swoole');
 
-        if ($swoole->wsTable->exists('uid:' . $this->userId)) {
+        $doesExist = false;
+        foreach ($swoole->wsTable as $key => $value) {
+            if ($key == 'uid:' . $this->userId) {
+                $doesExist = true;
+                break;
+            }
+        }
+        if ($doesExist) {
             $fd = $swoole->wsTable->get('uid:' . $this->userId);
 
             $swoole->push($fd['value'], json_encode([

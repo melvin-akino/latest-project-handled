@@ -3,16 +3,12 @@
 namespace App\Processes;
 
 use App\Handlers\ProducerHandler;
-use App\Jobs\KafkaPush;
-use App\Models\SystemConfiguration;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Str;
 use Hhxsv5\LaravelS\Swoole\Process\CustomProcessInterface;
 use Swoole\Http\Server;
 use Swoole\Process;
 use Exception;
 use Carbon\Carbon;
-use Storage;
 use PrometheusMatric;
 
 class BetProduce implements CustomProcessInterface
@@ -74,30 +70,17 @@ class BetProduce implements CustomProcessInterface
         self::$quit = true;
     }
 
-    private static function milliseconds()
-    {
-        $mt = explode(' ', microtime());
-        return bcadd($mt[1], $mt[0], 8);
-    }
-
-    private static function pushToKafka(array $message = [], string $key, string $kafkaTopic, int $delayInSeconds = 0)
+    private static function pushToKafka(array $message = [], string $key, string $kafkaTopic)
     {
         try {
-            if (empty($delayInMinutes)) {
-                self::$producerHandler->setTopic($kafkaTopic)
-                    ->send($message, $key);
-            } else {
-                KafkaPush::dispatch($kafkaTopic, $message, $key)->delay(now()->addSeconds($delayInSeconds));
-            }
+            self::$producerHandler->setTopic($kafkaTopic)
+                ->send($message, $key);
         } catch (Exception $e) {
             Log::critical('Sending Kafka Message Failed', [
                 'error' => $e->getMessage(),
                 'code'  => $e->getCode()
             ]);
         } finally {
-            if (env('KAFKA_LOG', false)) {
-                Storage::append('producers-' . date('Y-m-d') . '.log', json_encode($message));
-            }
             Log::channel('kafkaproducelog')->info(json_encode($message));
         }
     }

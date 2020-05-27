@@ -2,7 +2,7 @@
 
 namespace App\Jobs;
 
-use App\Models\UserWallet;
+use App\Models\{UserWallet, Order, OrderLogs, UserWallet, ExchangeRate, Source, OrderTransaction};
 
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -46,16 +46,12 @@ class WsSettledBets implements ShouldQueue
             $status = "LOSE";
         }
 
-        $orders = DB::table('orders')
-            ->where('bet_id', $this->data->bet_id)
+        $orders = Order::where('bet_id', $this->data->bet_id)->first();
+
+        $userWallet = UserWallet::where('user_id', $orders->user_id)
             ->first();
 
-        $userWallet = DB::table('wallet')
-            ->where('user_id', $orders->user_id)
-            ->first();
-
-        $exchangeRate = DB::table('exchange_rates')
-            ->where('from_currency_id', $this->providerCurrency)
+        $exchangeRate = ExchangeRate::where('from_currency_id', $this->providerCurrency)
             ->where('to_currency_id', 1)
             ->first();
 
@@ -141,31 +137,38 @@ class WsSettledBets implements ShouldQueue
                 break;
         }
 
-        $sourceId = DB::table('sources')
-            ->where('source_name', 'LIKE', $sourceName)
+        $score                    = $this->data->score;
+        $betSelectionArray        = explode("\n", $orders->bet_selection);
+        $betSelectionOddsAndScore = explode("(", $betSelectionArray[2]);
+        $updatedOddsAndScore      = $betSelectionOddsAndScore[0] . " (" . $score . ")";
+        $updatedBetSelection      = implode("\n", [
+            $betSelectionArray[0],
+            $betSelectionArray[1],
+            $updatedOddsAndScore
+        ]);
+
+        $sourceId = Source::where('source_name', 'LIKE', $sourceName)
             ->first();
 
-        $returnBetSourceId = DB::table('sources')
-            ->where('source_name', 'LIKE', 'RETURN_STAKE')
+        $returnBetSourceId = Source::where('source_name', 'LIKE', 'RETURN_STAKE')
             ->first();
 
         DB::beginTransaction();
 
         try {
-            DB::table('orders')->where('bet_id', $this->data->bet_id)
+            Order::where('bet_id', $this->data->bet_id)
                 ->update(
                     [
-                        'status'       => strtoupper($this->data->status),
-                        'profit_loss'  => $balance,
-                        'reason'       => $this->data->reason,
-                        'settled_date' => Carbon::now(),
-                        'updated_at'   => Carbon::now(),
+                        'bet_selection' => $updatedBetSelection,
+                        'status'        => strtoupper($this->data->status),
+                        'profit_loss'   => $balance,
+                        'reason'        => $this->data->reason,
+                        'settled_date'  => Carbon::now(),
+                        'updated_at'    => Carbon::now(),
                     ]
                 );
 
-            $orderLogsId = DB::table('order_logs')
-                ->insertGetId(
-                    [
+            $orderLogs = OrderLogs::create([
                         'provider_id'   => $this->providerId,
                         'sport_id'      => $this->data->sport,
                         'bet_id'        => $this->data->bet_id,
@@ -178,8 +181,8 @@ class WsSettledBets implements ShouldQueue
                         'settled_date'  => Carbon::now(),
                         'created_at'    => Carbon::now(),
                         'updated_at'    => Carbon::now(),
-                    ]
-                );
+                    ]);
+            $orderLogsId = $orderLogs->id;
 
             $chargeType     = $charge;
             $receiver       = $orders->user_id;
@@ -191,9 +194,7 @@ class WsSettledBets implements ShouldQueue
 
             $balance += $stake;
 
-            DB::table('order_transactions')
-                ->insert(
-                    [
+            OrderTransaction::create([
                         'order_logs_id'       => $orderLogsId,
                         'user_id'             => $orders->user_id,
                         'source_id'           => $sourceId->id,
@@ -201,9 +202,7 @@ class WsSettledBets implements ShouldQueue
                         'wallet_ledger_id'    => $ledger->id,
                         'provider_account_id' => $orders->provider_account_id,
                         'reason'              => $this->data->reason,
-                        'amount'              => $balance,
-                        'created_at'          => Carbon::now(),
-                        'updated_at'          => Carbon::now(),
+                        'amount'              => $balance
                     ]
                 );
 
@@ -215,9 +214,7 @@ class WsSettledBets implements ShouldQueue
                 $chargeType     = "Credit";
                 $ledger         = UserWallet::makeTransaction($receiver, $transferAmount, $currency, $source, $chargeType);
 
-                DB::table('order_transactions')
-                    ->insert(
-                        [
+                OrderTransaction::create([
                             'order_logs_id'       => $orderLogsId,
                             'user_id'             => $orders->user_id,
                             'source_id'           => $returnBetSourceId->id,
@@ -225,11 +222,8 @@ class WsSettledBets implements ShouldQueue
                             'wallet_ledger_id'    => $ledger->id,
                             'provider_account_id' => $orders->provider_account_id,
                             'reason'              => $this->data->reason,
-                            'amount'              => $stake,
-                            'created_at'          => Carbon::now(),
-                            'updated_at'          => Carbon::now(),
-                        ]
-                    );
+                            'amount'              => $stake
+                        ]);
             }
 
             DB::commit();

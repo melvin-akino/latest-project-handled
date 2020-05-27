@@ -20,13 +20,18 @@ class CreateMasterTeamLinksTable extends Migration
                 $table->integerIncrements('id');
                 $table->integer('master_team_id');
                 $table->integer('provider_id');
-                $table->string('team_name');
+                $table->string('name');
                 $table->softDeletes();
                 $table->timestamps();
 
                 $table->foreign('master_team_id')
                     ->references('id')
                     ->on('master_teams')
+                    ->onUpdate('cascade');
+
+                $table->foreign('provider_id')
+                    ->references('id')
+                    ->on('providers')
                     ->onUpdate('cascade');
             });
         }
