@@ -49,7 +49,7 @@ class WsWatchlist implements ShouldQueue
 
         $userBets = Order::getOrdersByUserId($this->userId);
 
-        $gameDetails = Game::getWatchlistGameDetails($this->user_id);
+        $gameDetails = Game::getWatchlistGameDetails($this->userId);
 
         $data        = [];
         array_map(function ($transformed) use (&$data) {
