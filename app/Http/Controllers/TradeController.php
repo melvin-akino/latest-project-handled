@@ -9,7 +9,8 @@ use App\Models\{
     MasterLeague,
     Sport,
     UserSelectedLeague,
-    UserWatchlist
+    UserWatchlist,
+    UserConfiguration
 };
 use Illuminate\Support\Facades\{
     DB,
