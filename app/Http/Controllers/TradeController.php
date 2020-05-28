@@ -381,7 +381,7 @@ Log::debug(json_encode($masterEventUniqueIds));
                 /** TO DO: Adjust getUserDefault */
                 $userConfig    = getUserDefault(auth()->user()->id, 'sort-event')['default_sort'];
                 $userTz        = "Etc/UTC";
-                $getUserConfig = UserConfiguration::getUserConfig($userId)
+                $getUserConfig = UserConfiguration::getUserConfig(auth()->user()->id)
                     ->where('type', 'timezone');
 
                 if ($getUserConfig->first()) {
