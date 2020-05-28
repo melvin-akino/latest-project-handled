@@ -49,11 +49,18 @@ class StartKafaScrapingOdds extends Command
             $redis_smember      = $leagueName .'-' .$homeTeam .'-'. $awayTeam .'-'. $provider .'-'. $sport .'-'. $schedule;
             $redis_smember      = str_replace(" ","",$redis_smember);
 
-            $gameExist = DB::table('master_events')->select('*')
-                        ->where('master_league_name',$leagueName)
-                        ->where('master_home_team_name',$homeTeam)
-                        ->where('master_away_team_name',$awayTeam)
-                        ->where('game_schedule',$schedule)
+            $gameExist = DB::table('master_events as me')
+                        ->join('master_leagues as ml', 'ml.id', 'me.master_league_id')
+                        ->join('master_teams as ht', 'ht.id', 'me.master_team_home_id')
+                        ->join('master_teams as at', 'at.id', 'me.master_team_away_id')
+                        ->where('ml.name', $leagueName)
+                        ->where('ht.name', $homeTeam)
+                        ->where('at.name', $awayTeam)
+                        ->where('game_schedule', $schedule)
+                        ->select(['ml.name as league_name',
+                                'ht.name as home_team_name',
+                                'at.name as away_team_name',
+                                'game_schedule', 'me.deleted_at'])
                         ->first();
            
             if ($gameExist)
