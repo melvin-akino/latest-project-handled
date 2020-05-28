@@ -1,21 +1,89 @@
 <template>
     <div class="container mx-auto mt-4 mb-8 betMatrixSimulator">
         <h3 class="text-base text-gray-700">Bet Matrix Simulator</h3>
-        <form @submit.prevent="processMatrixJson" class="mt-4">
+        <form @submit.prevent="simulate" class="mt-4">
             <div class="flex mb-4">
-                <div class="w-1/2 mr-6">
-                    <label class="block capitalize text-gray-700 text-sm">Home Score</label>
-                    <input type="text" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 text-sm leading-tight focus:outline-none" v-model="home_score" @keyup="clearMatrixTable">
+                <div class="w-1/3">
+                    <div class="mb-4">
+                        <label class="block capitalize text-gray-700 text-sm">Home Score</label>
+                        <input type="text" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 text-sm leading-tight focus:outline-none" v-model="$v.matrix_data.home_score.$model" @keyup="clearMatrixTable">
+                        <span class="text-red-600 text-xs" v-if="$v.matrix_data.home_score.$dirty && !$v.matrix_data.home_score.required">Home score is required.</span>
+                        <span class="text-red-600 text-xs" v-if="$v.matrix_data.home_score.$dirty && !$v.matrix_data.home_score.integer">Home score should ba an integer value.</span>
+                    </div>
+                    <div>
+                        <label class="block capitalize text-gray-700 text-sm">Away Score</label>
+                        <input type="text" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 text-sm leading-tight focus:outline-none" v-model="$v.matrix_data.away_score.$model" @keyup="clearMatrixTable">
+                        <span class="text-red-600 text-xs" v-if="$v.matrix_data.away_score.$dirty && !$v.matrix_data.away_score.required">Away score is required.</span>
+                        <span class="text-red-600 text-xs" v-if="$v.matrix_data.away_score.$dirty && !$v.matrix_data.away_score.integer">Away score should ba an integer value.</span>
+                    </div>
                 </div>
-                <div class="w-1/2">
-                    <label class="block capitalize text-gray-700 text-sm">Away Score</label>
-                    <input type="text" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 text-sm leading-tight focus:outline-none" v-model="away_score" @keyup="clearMatrixTable">
+                <div class="w-1/3"></div>
+                <div class="flex flex-col justify-end items-end w-1/3">
+                    <button type="button" class="bg-orange-500 hover:bg-orange-600 text-white text-sm uppercase px-4 py-2" @click="addMatrixOrder"><span class="text-xs"><i class="fas fa-plus"></i></span> Add Bet</button>
                 </div>
             </div>
             <div class="mb-4">
-                <label class="block capitalize text-gray-700 text-sm">Event Orders:</label>
-                <textarea rows="10" cols="100" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 text-sm leading-tight focus:outline-none" v-model="matrix_json" @keyup="clearMatrixTable"></textarea>
-                <span class="text-red-600 text-sm">{{error}}</span>
+                <div class="flex justify-center py-2 pl-2 ordersHeading">
+                    <span class="w-64 text-sm text-white">Stake</span>
+                    <span class="w-64 text-sm text-white">Price (Odds)</span>
+                    <span class="w-64 text-sm text-white">Points (HDP/OU)</span>
+                    <span class="w-64 text-sm text-white">Type</span>
+                    <span class="w-64 text-sm text-white">Bet Team</span>
+                    <span class="w-20"></span>
+                </div>
+                <div v-if="matrix_data.matrix_orders.length == 0">
+                    <p class="text-gray-700 m-4 text-center">Add a bet to simulate bet matrix.</p>
+                </div>
+                <div class="betMatrixRows" v-else>
+                    <div class="flex justify-center py-2" v-for="(order, index) in $v.matrix_data.matrix_orders.$each.$iter" :key="index">
+                        <div class="w-64 mr-2">
+                            <input type="text" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 text-sm leading-tight focus:outline-none" v-model="order.stake.$model" @keyup="clearMatrixTable">
+                            <span class="text-red-600 text-xs" v-if="order.stake.$dirty && !order.stake.required">Stake is required.</span>
+                            <span class="text-red-600 text-xs" v-if="order.stake.$dirty && !order.stake.decimal">Stake should ba a numeric/decimal value.</span>
+                        </div>
+                        <div class="w-64 mr-2">
+                            <input type="text" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 text-sm leading-tight focus:outline-none" v-model="order.odds.$model" @keyup="clearMatrixTable">
+                            <span class="text-red-600 text-xs" v-if="order.odds.$dirty && !order.odds.required">Odds is required.</span>
+                            <span class="text-red-600 text-xs" v-if="order.odds.$dirty && !order.odds.decimal">Odds should ba a numeric/decimal value.</span>
+                        </div>
+                        <div class="w-64 mr-2">
+                            <input type="text" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700
+                            text-sm leading-tight focus:outline-none" v-model="order.points.$model" @keyup="clearMatrixTable">
+                            <span class="text-red-600 text-xs" v-if="order.points.$dirty && !order.points.required">Points is required.</span>
+                            <span class="text-red-600 text-xs" v-if="order.points.$dirty && !order.points.decimal">Points should ba a numeric/decimal value.</span>
+                        </div>
+                        <div class="w-64 mr-2">
+                            <div class="relative">
+                                <select class="text-sm shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none" v-model="order.type.$model" @change="clearMatrixTable">
+                                    <option :value="null">Select Type</option>
+                                    <option value="HDP">HDP</option>
+                                    <option value="O">O</option>
+                                    <option value="U">U</option>
+                                </select>
+                                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+                                    <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
+                                </div>
+                            </div>
+                            <span class="text-red-600 text-xs" v-if="order.type.$dirty && !order.type.required">Type is required.</span>
+                        </div>
+                        <div class="w-64">
+                            <div class="relative">
+                                <select class="text-sm shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none" v-model="order.bet_team.$model" @change="clearMatrixTable">
+                                    <option :value="null">Select Team</option>
+                                    <option value="HOME">HOME</option>
+                                    <option value="AWAY">AWAY</option>
+                                </select>
+                                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+                                    <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
+                                </div>
+                            </div>
+                            <span class="text-red-600 text-xs" v-if="order.bet_team.$dirty && !order.bet_team.required">Bet team is required.</span>
+                        </div>
+                        <div class="w-20">
+                            <button type="submit" class="bg-orange-500 hover:bg-orange-600 text-white text-xs uppercase ml-2 px-3 py-2 rounded-lg" @click="removeMatrixOrder(index)"><i class="fas fa-trash"></i></button>
+                        </div>
+                    </div>
+                </div>
             </div>
             <div class="flex justify-end">
                 <button type="submit" class="bg-orange-500 hover:bg-orange-600 text-white text-sm uppercase px-4 py-2">Simulate</button>
@@ -40,123 +108,136 @@
 
 <script>
 import { twoDecimalPlacesFormat } from '../../helpers/numberFormat'
+import { required, decimal, integer } from 'vuelidate/lib/validators'
 
 export default {
     name: 'BetMatrixSimulator',
+    head: {
+        title() {
+            return {
+                inner: 'Bet Matrix Simulator'
+            }
+        }
+    },
     data() {
         return {
-            matrix_json: '[{"stake": "50.00", "odds": "1", "points": "-0.5", "type": "HDP", "bet_team": "HOME"}]',
-            matrix_orders: [],
             matrix_table: [],
-            error: '',
             showMatrixTable: false,
-            home_score: 0,
-            away_score: 0
+            matrix_data: {
+                home_score: 0,
+                away_score: 0,
+                matrix_orders: [{stake: 50.00, odds: 1, points: -0.5, type: "HDP", bet_team: "HOME"}],
+            }
+        }
+    },
+    validations: {
+        matrix_data: {
+            required,
+            home_score: { required, integer },
+            away_score: { required, integer },
+            matrix_orders: {
+                required,
+                $each: {
+                    stake: { required, decimal },
+                    odds: { required, decimal },
+                    points: { required, decimal },
+                    type: { required },
+                    bet_team: { required }
+                }
+            }
         }
     },
     mounted() {
-        this.processMatrixJson()
+        this.simulate()
     },
     methods: {
-        processMatrixJson() {
-            try {
-                this.matrix_orders = JSON.parse(this.matrix_json)
-                this.simulate()
-            } catch(err) {
-                this.error = 'Invalid JSON input: Check for missing quotes in key/value pairs.'
-            }
-        },
-        simulate() {
+        generateBetMatrix() {
             let totalStake = 0
             let totalTowin = 0
-            this.matrix_orders.forEach(order => {
-                if(typeof(order.stake) != "undefined" && typeof(order.odds) != "undefined" && typeof(order.points) != "undefined" && typeof(order.type) != "undefined" && typeof(order.bet_team) != "undefined") {
-                    let stake = Number(order.stake)
-                    let price = Number(order.odds)
-                    let towin = Number(order.stake) * Number(order.odds)
-                    let points = Number(order.points)
-                    let type = order.type
-                    let bet_team = order.bet_team
-                    totalStake += stake
-                    totalTowin += towin
-                    var home_team_counter = 0;
-                    while(home_team_counter <= 10) {
-                        var away_team_counter = 0;
-                        while(away_team_counter <= 10) {
-                            var result = 0
-                            var color = ''
-                            var difference = 0
-                            if(type == 'HDP') {
-                                if(bet_team == 'HOME') {
-                                    var difference = (points + home_team_counter) - away_team_counter
-                                } else {
-                                    var difference = (points + away_team_counter) - home_team_counter
-                                }
-
-                                if(difference > 0.25) {
-                                    var result = stake * price
-                                } else if(difference == 0.25) {
-                                    var result = (stake * price) / 2
-                                } else if(difference == 0) {
-                                    var result = 0
-                                } else if(difference == -0.25) {
-                                    var result = (stake / 2) * -1
-                                } else {
-                                    var result = stake * -1
-                                }
-                            }
-                            if(type == 'O') {
-                                var teamTotals = home_team_counter + away_team_counter
-                                if(teamTotals > points) {
-                                    var result = stake * price
-                                } else if(teamTotals == points) {
-                                    var result = 0
-                                } else {
-                                    var result = stake * -1
-                                }
-                            }
-                            if(type == 'U') {
-                                var teamTotals = home_team_counter + away_team_counter
-                                if(teamTotals < points) {
-                                    var result = stake * price
-                                } else if(teamTotals == points) {
-                                    var result = 0
-                                } else {
-                                    var result = stake * -1
-                                }
-                            }
-
-                            if(away_team_counter < this.away_score || home_team_counter < this.home_score) {
-                                var color = 'grey'
-                            }
-
-                            if(typeof(this.matrix_table[home_team_counter])=="undefined") {
-                                this.matrix_table[home_team_counter] = []
-                            }
-                            if(typeof(this.matrix_table[home_team_counter][away_team_counter])=="undefined") {
-                                this.matrix_table[home_team_counter][away_team_counter] = {}
-                            }
-                            if(typeof(this.matrix_table[home_team_counter][away_team_counter]['result'])=="undefined") {
-                                this.matrix_table[home_team_counter][away_team_counter]['result'] = ''
-                            }
-                            if(typeof(this.matrix_table[home_team_counter][away_team_counter]['color'])=="undefined") {
-                                this.matrix_table[home_team_counter][away_team_counter]['color'] = ''
-                            }
-                            if(this.matrix_table[home_team_counter][away_team_counter]['result'] != '') {
-                                this.matrix_table[home_team_counter][away_team_counter]['result'] += result
-                                this.matrix_table[home_team_counter][away_team_counter]['color'] = color
+            this.matrix_data.matrix_orders.forEach(order => {
+                let stake = Number(order.stake)
+                let price = Number(order.odds)
+                let towin = Number(order.stake) * Number(order.odds)
+                let points = Number(order.points)
+                let type = order.type
+                let bet_team = order.bet_team
+                totalStake += stake
+                totalTowin += towin
+                var home_team_counter = 0;
+                while(home_team_counter <= 10) {
+                    var away_team_counter = 0;
+                    while(away_team_counter <= 10) {
+                        var result = 0
+                        var color = ''
+                        var difference = 0
+                        if(type == 'HDP') {
+                            if(bet_team == 'HOME') {
+                                var difference = (points + home_team_counter) - away_team_counter
                             } else {
-                                this.matrix_table[home_team_counter][away_team_counter]['result'] = result
-                                this.matrix_table[home_team_counter][away_team_counter]['color'] = color
+                                var difference = (points + away_team_counter) - home_team_counter
                             }
-                            away_team_counter++
+
+                            if(difference > 0.25) {
+                                var result = stake * price
+                            } else if(difference == 0.25) {
+                                var result = (stake * price) / 2
+                            } else if(difference == 0) {
+                                var result = 0
+                            } else if(difference == -0.25) {
+                                var result = (stake / 2) * -1
+                            } else {
+                                var result = stake * -1
+                            }
                         }
-                        home_team_counter++
+                        if(type == 'O') {
+                            var teamTotals = home_team_counter + away_team_counter
+                            if(teamTotals > points) {
+                                var result = stake * price
+                            } else if(teamTotals == points) {
+                                var result = 0
+                            } else {
+                                var result = stake * -1
+                            }
+                        }
+                        if(type == 'U') {
+                            var teamTotals = home_team_counter + away_team_counter
+                            if(teamTotals < points) {
+                                var result = stake * price
+                            } else if(teamTotals == points) {
+                                var result = 0
+                            } else {
+                                var result = stake * -1
+                            }
+                        }
+
+                        if(away_team_counter < this.matrix_data.away_score || home_team_counter < this.matrix_data.home_score) {
+                            var color = 'grey'
+                        }
+
+                        if(typeof(this.matrix_table[home_team_counter])=="undefined") {
+                            this.matrix_table[home_team_counter] = []
+                        }
+                        if(typeof(this.matrix_table[home_team_counter][away_team_counter])=="undefined") {
+                            this.matrix_table[home_team_counter][away_team_counter] = {}
+                        }
+                        if(typeof(this.matrix_table[home_team_counter][away_team_counter]['result'])=="undefined") {
+                            this.matrix_table[home_team_counter][away_team_counter]['result'] = ''
+                        }
+                        if(typeof(this.matrix_table[home_team_counter][away_team_counter]['color'])=="undefined") {
+                            this.matrix_table[home_team_counter][away_team_counter]['color'] = ''
+                        }
+                        if(this.matrix_table[home_team_counter][away_team_counter]['result'] != '') {
+                            this.matrix_table[home_team_counter][away_team_counter]['result'] += result
+                            this.matrix_table[home_team_counter][away_team_counter]['color'] = color
+                        } else {
+                            this.matrix_table[home_team_counter][away_team_counter]['result'] = result
+                            this.matrix_table[home_team_counter][away_team_counter]['color'] = color
+                        }
+                        away_team_counter++
                     }
-                    this.showMatrixTable = true
-                } else {
-                    this.error = 'Please check your JSON input if it has a stake, odds, points and type value. The simulated bet matrix may be inaccurate due to missing required parameters.'
+                    home_team_counter++
                 }
+                this.showMatrixTable = true
             })
             this.matrix_table.map((row, rowIndex) => {
                 row.map((col, colIndex) => {
@@ -174,17 +255,49 @@ export default {
                         }
                     }
 
-                    if(rowIndex == this.home_score && colIndex == this.away_score) {
+                    if(rowIndex == this.matrix_data.home_score && colIndex == this.matrix_data.away_score) {
                         col.highlight = true
                     }
                 })
             })
         },
+        simulate() {
+            if(this.$v.matrix_data.$invalid) {
+                this.$v.matrix_data.home_score.$touch()
+                this.$v.matrix_data.away_score.$touch()
+                Object.keys(this.$v.matrix_data.matrix_orders.$each.$iter).map(order => {
+                    this.$v.matrix_data.matrix_orders.$each.$iter[order].stake.$touch()
+                    this.$v.matrix_data.matrix_orders.$each.$iter[order].odds.$touch()
+                    this.$v.matrix_data.matrix_orders.$each.$iter[order].points.$touch()
+                    this.$v.matrix_data.matrix_orders.$each.$iter[order].type.$touch()
+                    this.$v.matrix_data.matrix_orders.$each.$iter[order].bet_team.$touch()
+                })
+            } else {
+                this.generateBetMatrix()
+            }
+        },
+        addMatrixOrder() {
+            this.clearMatrixTable()
+            this.matrix_data.matrix_orders.push({
+                stake: '',
+                odds: '',
+                points: '',
+                type: null,
+                bet_team: null
+            })
+        },
+        removeMatrixOrder(index) {
+            this.matrix_data.matrix_orders.splice(index, 1)
+            this.matrix_table = []
+            this.simulate()
+
+            if(this.matrix_data.matrix_orders.length == 0) {
+                this.showMatrixTable = false
+            }
+        },
         clearMatrixTable() {
             this.matrix_table = []
-            this.matrix_orders = []
             this.showMatrixTable = false
-            this.error = ''
         }
     },
     filters: {
@@ -194,6 +307,11 @@ export default {
 </script>
 
 <style>
+    .ordersHeading {
+        background-color: #ed8936;
+        color: #ffffff;
+        font-size:14px;
+    }
     .green {
         background-color: #006400;
     }

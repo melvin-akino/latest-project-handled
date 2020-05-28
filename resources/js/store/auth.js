@@ -1,6 +1,7 @@
 import Cookies from 'js-cookie'
 
 const state = {
+    authLayout: null,
     isAuthenticated: false,
     authUser: '',
     resetPasswordEmail: '',
@@ -9,6 +10,9 @@ const state = {
 }
 
 const mutations = {
+    SET_AUTH_LAYOUT: (state, data) => {
+        state.authLayout = data
+    },
     SET_IS_AUTHENTICATED: (state, data) => {
         state.isAuthenticated = data
     },
