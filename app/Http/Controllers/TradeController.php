@@ -381,10 +381,9 @@ Log::debug(json_encode($masterEventUniqueIds));
                 $userConfig    = getUserDefault(auth()->user()->id, 'sort-event')['default_sort'];
                 $userTz        = "Etc/UTC";
                 $getUserConfig = UserConfiguration::getUserConfig($userId)
-                    ->where('type', 'timezone')
-                    ->first();
+                    ->where('type', 'timezone');
 
-                if (!is_null($getUserConfig)) {
+                if ($getUserConfig->first()) {
                     $userTz = Timezones::find($getUserConfig->value)->name;
                 }
 

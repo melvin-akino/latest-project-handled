@@ -85,10 +85,9 @@ class WsEvents implements ShouldQueue
             $userId        = $this->userId;
             $userTz        = "Etc/UTC";
             $getUserConfig = UserConfiguration::getUserConfig($userId)
-                ->where('type', 'timezone')
-                ->first();
+                ->where('type', 'timezone');
 
-            if (!is_null($getUserConfig)) {
+            if ($getUserConfig->first()) {
                 $userTz = Timezones::find($getUserConfig->value)->name;
             }
 
