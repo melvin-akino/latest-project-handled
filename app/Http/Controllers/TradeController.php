@@ -389,7 +389,7 @@ Log::debug(json_encode($masterEventUniqueIds));
                 }
 
                 if ($row == 'user_watchlist') {
-                    array_map(function ($transformed) use (&$watchlist, $userConfig) {
+                    array_map(function ($transformed) use (&$watchlist, $userConfig, $userTz) {
                         $betCount = Order::where('market_id', $transformed->bet_identifier)
                             ->where('user_id', auth()->user()->id)
                             ->count();
@@ -445,7 +445,7 @@ Log::debug(json_encode($masterEventUniqueIds));
                     }
                 } else {
                     $topicTable = app('swoole')->topicTable;
-                    array_map(function ($transformed) use (&$userSelected, $row, $userConfig, $topicTable) {
+                    array_map(function ($transformed) use (&$userSelected, $row, $userConfig, $topicTable, $userTz) {
                         $betCount = Order::where('market_id', $transformed->bet_identifier)
                             ->where('user_id', auth()->user()->id)
                             ->count();
