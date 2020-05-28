@@ -7,7 +7,8 @@ use App\Models\{
     Game,
     MasterLeague,
     Order,
-    Timezones
+    Timezones,
+    UserConfiguration
 };
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
