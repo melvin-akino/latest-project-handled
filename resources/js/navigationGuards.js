@@ -21,6 +21,7 @@ export default router.beforeEach((to, from, next) => {
         }
     } else {
         if (authRoutes.includes(to.matched[0].path)) {
+            store.commit('auth/SET_AUTH_LAYOUT', true)
             if (to.matched[0].path === '/reset-password/:token') {
                 axios.get(`/v1/auth/password/find/${to.params.token}`)
                 .then(response => {
@@ -37,8 +38,10 @@ export default router.beforeEach((to, from, next) => {
             }
         } else {
             if(to.matched[0].path === '/bet-matrix') {
+                store.commit('auth/SET_AUTH_LAYOUT', false)
                 next()
             } else {
+                store.commit('auth/SET_AUTH_LAYOUT', true)
                 next('/login')
             }
         }
