@@ -3,7 +3,12 @@
 namespace App\Jobs;
 
 use Exception;
-use App\Models\{Game, MasterLeague, Order};
+use App\Models\{
+    Game,
+    MasterLeague,
+    Order,
+    Timezones
+};
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Support\Facades\{DB, Log};
@@ -32,7 +37,6 @@ class WsEvents implements ShouldQueue
             $topicTable              = $server->topicTable;
 
             /** TODO: Provider Maintenance Validation */
-
             foreach ($providersTable as $key => $provider) {
                 if (empty($providerId) || $providerPriority > $provider['priority']) {
                     if ($provider['is_enabled']) {
@@ -77,10 +81,20 @@ class WsEvents implements ShouldQueue
             $masterLeague = MasterLeague::where('name', $this->master_league_name)->first();
             $gameDetails  = Game::getGameDetails($masterLeague->id, $this->schedule);
 
-            $data = [];
-            $userId = $this->userId;
+            $data          = [];
+            $userId        = $this->userId;
+            $userTz        = "Etc/UTC";
+            $getUserConfig = UserConfiguration::getUserConfig($userId)
+                ->where('type', 'timezone')
+                ->first();
+
+            if (!is_null($getUserConfig)) {
+                $userTz = Timezones::find($getUserConfig->value)->name;
+            }
+
             array_map(function ($transformed) use (&$data, $topicTable, $userId, $userBets) {
                 $mainOrOther = $transformed->is_main ? 'main' : 'other';
+
                 if (empty($data[$transformed->master_event_unique_id])) {
                     $hasBet = false;
 
@@ -99,7 +113,7 @@ class WsEvents implements ShouldQueue
                         'game_schedule' => $transformed->game_schedule,
                         'league_name'   => $transformed->master_league_name,
                         'running_time'  => $transformed->running_time,
-                        'ref_schedule'  => $transformed->ref_schedule,
+                        'ref_schedule'  => Carbon::createFromFormat("Y-m-d H:i:s", $transformed->ref_schedule, 'Etc/UTC')->setTimezone($userTz)->format("Y-m-d H:i:s"),
                         'has_bet'       => $hasBet
                     ];
                 }

@@ -184,14 +184,13 @@ Log::debug(json_encode($masterEventUniqueIds));
     {
         try {
             /** Get Authenticated User's Default Initial Sport : Last Sport visited */
-            $data = getUserDefault(auth()->user()->id, 'sport');
-
-
+            $data         = getUserDefault(auth()->user()->id, 'sport');
             $dataSchedule = [
                 'inplay' => [],
                 'today'  => [],
                 'early'  => []
             ];
+
             foreach ($dataSchedule as $key => $sched) {
                 $leaguesQuery = MasterLeague::getLeaguesBySportAndGameShedule($data['default_sport'], $key);
 
@@ -348,7 +347,7 @@ Log::debug(json_encode($masterEventUniqueIds));
             } else {
                 throw new Exception(trans('generic.internal-server-error'));
             }
-            
+
         } catch (Exception $e) {
             Log::error($e->getMessage());
             return response()->json([
@@ -378,7 +377,16 @@ Log::debug(json_encode($masterEventUniqueIds));
                     $transformed = Game::getSelectedLeagueEvents(auth()->user()->id);
                 }
 
-                $userConfig = getUserDefault(auth()->user()->id, 'sort-event')['default_sort'];
+                /** TO DO: Adjust getUserDefault */
+                $userConfig    = getUserDefault(auth()->user()->id, 'sort-event')['default_sort'];
+                $userTz        = "Etc/UTC";
+                $getUserConfig = UserConfiguration::getUserConfig($userId)
+                    ->where('type', 'timezone')
+                    ->first();
+
+                if (!is_null($getUserConfig)) {
+                    $userTz = Timezones::find($getUserConfig->value)->name;
+                }
 
                 if ($row == 'user_watchlist') {
                     array_map(function ($transformed) use (&$watchlist, $userConfig) {
@@ -402,7 +410,7 @@ Log::debug(json_encode($masterEventUniqueIds));
                                 'game_schedule' => $transformed->game_schedule,
                                 'league_name'   => $transformed->master_league_name,
                                 'running_time'  => $transformed->running_time,
-                                'ref_schedule'  => $transformed->ref_schedule,
+                                'ref_schedule'  => Carbon::createFromFormat("Y-m-d H:i:s", $transformed->ref_schedule, 'Etc/UTC')->setTimezone($userTz)->format("Y-m-d H:i:s"),
                                 'has_bet'       => $betCount > 0 ? true : false
                             ];
                         }
@@ -458,7 +466,7 @@ Log::debug(json_encode($masterEventUniqueIds));
                                 'game_schedule' => $transformed->game_schedule,
                                 'league_name'   => $transformed->master_league_name,
                                 'running_time'  => $transformed->running_time,
-                                'ref_schedule'  => $transformed->ref_schedule,
+                                'ref_schedule'  => Carbon::createFromFormat("Y-m-d H:i:s", $transformed->ref_schedule, 'Etc/UTC')->setTimezone($userTz)->format("Y-m-d H:i:s"),
                                 'has_bet'       => $betCount > 0 ? true : false
                             ];
                         }
