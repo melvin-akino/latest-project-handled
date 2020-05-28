@@ -39,15 +39,16 @@ class StartKafaBalanceMonitoring extends Command
 
     public function redisCheck($username, $provider, $currency, $balance)
     {
-        $return = true;
+        $return          = true;
         $redisTopic      = env('REDIS_TOOL_BALANCE', 'REDIS-MON-TOOL-BALANCE');
         $redisExpiration = env('REDIS_TOOL_BALANCE_EXPIRE', 3600);
-        $ttl = Redis::ttl($redisTopic);
+        $ttl             = Redis::ttl($redisTopic);
+
         if ($ttl < 0) Redis::expire($redisTopic, $redisExpiration);
 
         $redisSmember = $username. '-' .$provider. '-' .$currency;
-        $members = Redis::sadd($redisTopic, $redisSmember);
-        $isRecord= Redis::hget($redisSmember, 'balance');
+        $members  = Redis::sadd($redisTopic, $redisSmember);
+        $isRecord = Redis::hget($redisSmember, 'balance');
 
         if ($isRecord) $return = false;
 
@@ -100,7 +101,8 @@ class StartKafaBalanceMonitoring extends Command
                          'threshold' => $threshold   
                         ];
                 if ($shouldEmail) {
-                    $emails = explode(",", env('MAIL_TO_BALANCE_PROVIDER'));
+                    //$emails = explode(",", env('MAIL_TO_BALANCE_PROVIDER'));
+                    $emails = SystemConfiguration::where('type', 'PROVIDER_THRESHOLD_SEND_EMAIL')->first()->value;
                     Mail::send('mail.balance-provider-threshold', $data, function($message) use ($emails) {
                         $message->to($emails)->subject('Provider account in threshold');         
                         }
