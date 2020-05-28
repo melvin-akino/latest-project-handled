@@ -519,7 +519,6 @@ class OrdersController extends Controller
                 $providerAccountId       = $providerAccount->id;
 
                 $masterEventMarket = MasterEventMarket::where('master_event_market_unique_id', $request->market_id)->first();
-
                 $orderIncrement = Order::create([
                     'user_id'                       => auth()->user()->id,
                     'master_event_market_id'        => $masterEventMarket->id,
@@ -535,7 +534,7 @@ class OrdersController extends Controller
                     'to_win'                        => (($payloadStake * $row['price']) * $exchangeRate),
                     'actual_stake'                  => $actualStake,
                     'actual_to_win'                 => $actualStake * $row['price'],
-                    'settled_date'                  => "",
+                    'settled_date'                  => null,
                     'reason'                        => "",
                     'profit_loss'                   => 0.00,
                     'order_expiry'                  => $request->orderExpiry,
@@ -559,7 +558,7 @@ class OrdersController extends Controller
                     'bet_id'        => "",
                     'bet_selection' => nl2br($betSelection),
                     'status'        => "PENDING",
-                    'settled_date'  => "",
+                    'settled_date'  => null,
                     'reason'        => "",
                     'profit_loss'   => 0.00,
                     'order_id'      => $orderIncrement->id,
