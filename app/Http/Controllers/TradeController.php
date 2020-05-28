@@ -114,7 +114,7 @@ class TradeController extends Controller
                     $leagueId = MasterLeague::getIdByName($request->data);
 
                     if ($leagueId) {
-                        $masterEventUniqueIds = MasterEvent::getActiveEvents('master_league_name', '=', $request->data)
+                        $masterEventUniqueIds = MasterEvent::getActiveEvents('master_league_id', '=', $leagueId)
                             ->get('master_event_unique_id')
                             ->toArray();
                     } else {
@@ -137,10 +137,11 @@ class TradeController extends Controller
                 $lang = "added";
 
                 foreach ($masterEventUniqueIds AS $row) {
+                    $masterEvent = MasterEvent::where('master_event_unique_id', $row['master_event_unique_id'])->first();
                     UserWatchlist::create(
                         [
-                            'user_id'                => auth()->user()->id,
-                            'master_event_unique_id' => $row['master_event_unique_id']
+                            'user_id'         => auth()->user()->id,
+                            'master_event_id' => $masterEvent->id
                         ]
                     );
                     app('swoole')->userWatchlistTable->set('userWatchlist:' . auth()->user()->id . ':masterEventUniqueId:' . $row['master_event_unique_id'], [
@@ -153,8 +154,10 @@ class TradeController extends Controller
                 $lang = "removed";
 
                 foreach ($masterEventUniqueIds AS $row) {
+                    $masterEvent = MasterEvent::where('master_event_unique_id', $row['master_event_unique_id'])->first();
+
                     UserWatchlist::where('user_id', auth()->user()->id)
-                        ->where('master_event_unique_id', $row['master_event_unique_id'])
+                        ->where('master_event_id', $masterEvent->id)
                         ->delete();
                     app('swoole')->userWatchlistTable->del('userWatchlist:' . auth()->user()->id . ':masterEventUniqueId:' . $row['master_event_unique_id']);
                 }

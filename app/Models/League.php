@@ -25,7 +25,7 @@ class League extends Model
 
     public static function getIdByName($name)
     {
-        $query = self::where('master_league_name', $name);
+        $query = self::where('name', $name);
 
         if ($query->count() == 0) {
             return false;
