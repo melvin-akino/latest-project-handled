@@ -88,13 +88,15 @@ class Order extends Model
         return DB::table('orders')
         ->join('master_event_markets AS mem', 'mem.id', 'orders.master_event_market_id')
         ->join('master_events AS me', 'me.id', 'mem.master_event_id')
+        ->join('master_teams as ht', 'ht.id', 'me.master_team_home_id')
+        ->join('master_teams as at', 'at.id', 'me.master_team_away_id')
         ->where('user_id', auth()->user()->id)
         ->where('me.master_event_unique_id', $eventId)
         ->whereNotIn('status', ['PENDING', 'FAILED', 'CANCELLED', 'REJECTED', 'VOID', 'ABNORMAL BET', 'REFUNDED'])
         ->whereIn('mem.odd_type_id', function($query) {
             $query->select('id')->from('odd_types')->whereIn('type', ['HDP', 'HT HDP', 'OU', 'HT OU']);
         })
-        ->select('orders.id', 'stake', 'odds', 'odd_label AS points', 'mem.odd_type_id', 'mem.market_flag', 'me.master_home_team_name', 'me.master_away_team_name', 'orders.created_at');
+        ->select('orders.id', 'stake', 'odds', 'odd_label AS points', 'mem.odd_type_id', 'mem.market_flag', 'ht.name as home_team_name', 'at.name as away_team_name', 'orders.created_at');
     }
 
     public static function getOrdersByUserId(int $userId)
