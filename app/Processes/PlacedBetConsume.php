@@ -34,6 +34,10 @@ class PlacedBetConsume implements CustomProcessInterface
                             $kafkaConsumer->commit($message);
                             Log::channel('kafkalog')->info(json_encode($message));
                             continue;
+                        } else if (strpos($payload->data->reason, "Internal Error: Session Inactive") >= 0) {
+                            Log::info("Bet Transformation ignored - Internal error");
+                            $kafkaConsumer->commit($message);
+                            continue;
                         }
 
                         TransformKafkaMessageBet::dispatch($payload);
