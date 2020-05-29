@@ -14,7 +14,7 @@ class AddCurrentScoreOnOrdersTable extends Migration
     public function up()
     {
         Schema::table('orders', function (Blueprint $table) {
-            $table->string('score_on_bet');
+            $table->string('score_on_bet')->default(null)->nullable();
         });
     }
 
