@@ -35,6 +35,15 @@ class TradeController extends Controller
     public function getUserBetbar()
     {
         try {
+            $userTz        = "Etc/UTC";
+            $getUserConfig = UserConfiguration::getUserConfig(auth()->user()->id)
+                ->where('type', 'timezone')
+                ->first();
+
+            if (!is_null($getUserConfig)) {
+                $userTz = Timezones::find($getUserConfig->value)->name;
+            }
+
             $betBarData = Order::getBetBarData(auth()->user()->id);
 
             $data = [];
@@ -77,7 +86,7 @@ class TradeController extends Controller
                         'home_score'     => $score[0],
                         'away_score'     => $score[1],
                         'status'         => $betData->status,
-                        'created_at'     => $betData->created_at
+                        'created_at'     => Carbon::createFromFormat("Y-m-d H:i:s", $betData->created_at, 'Etc/UTC')->setTimezone($userTz)->format("Y-m-d H:i:s"),
                     ];
                 }
             }
