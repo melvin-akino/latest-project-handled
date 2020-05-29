@@ -564,9 +564,9 @@ Log::debug(json_encode($masterEventUniqueIds));
             $data = [];
             array_map(function ($transformed) use (&$data) {
                 if (!empty($transformed->odd_label)) {
-                    if (empty($data[$transformed->event_identifier][$transformed->type][$transformed->market_flag])) {
-                        $data[$transformed->event_identifier][$transformed->type][$transformed->market_flag] = [
-                            'odds'      => (double)$transformed->odds,
+                    if (empty($data[$transformed->market_event_identifier][$transformed->type][$transformed->market_flag])) {
+                        $data[$transformed->market_event_identifier][$transformed->type][$transformed->market_flag] = [
+                            'odds'      => (double) $transformed->odds,
                             'market_id' => $transformed->master_event_market_unique_id,
                             'points'    => $transformed->odd_label
                         ];

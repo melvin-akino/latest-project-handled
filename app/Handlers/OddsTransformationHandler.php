@@ -314,17 +314,17 @@ class OddsTransformationHandler
                             ];
 
                             $toInsert['EventMarket']['data'] = [
-                                'provider_id'            => $providerId,
-                                // 'master_event_unique_id' => $uid,
-                                'odd_type_id'            => $oddTypeId,
-                                'odds'                   => $marketOdds,
-                                'odd_label'              => $marketPoints,
-                                'bet_identifier'         => $markets->market_id,
-                                'is_main'                => $event->market_type == 1 ? true : false,
-                                'market_flag'            => strtoupper($markets->indicator),
-                                'event_identifier'       => $event->eventId,
-                                'deleted_at'             => null,
-                                // 'game_schedule'          => $this->message->data->schedule,
+                                'provider_id'             => $providerId,
+                                // 'master_event_unique_id'  => $uid,
+                                'odd_type_id'             => $oddTypeId,
+                                'odds'                    => $marketOdds,
+                                'odd_label'               => $marketPoints,
+                                'bet_identifier'          => $markets->market_id,
+                                'is_main'                 => $event->market_type == 1 ? true : false,
+                                'market_flag'             => strtoupper($markets->indicator),
+                                'market_event_identifier' => $event->eventId,
+                                'deleted_at'              => null,
+                                // 'game_schedule'           => $this->message->data->schedule,
                             ];
 
                             if (!$isMarketSame) {
