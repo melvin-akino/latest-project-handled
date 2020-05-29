@@ -59,7 +59,7 @@ class TransformKafkaMessageOpenOrders implements ShouldQueue
 
                     $orderData = Order::find($orderId);
 
-                    $userWallet = UserWallet::where('user_id', $orderData->user_id)>first();
+                    $userWallet = UserWallet::where('user_id', $orderData->user_id)->first();
 
                     $sourceId = Source::where('source_name', 'LIKE', 'PLACE_BET')->first();
 
