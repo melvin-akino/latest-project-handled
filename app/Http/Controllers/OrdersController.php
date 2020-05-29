@@ -538,12 +538,13 @@ class OrdersController extends Controller
                     'order_expiry'                  => $request->orderExpiry,
                     'provider_account_id'           => $providerAccountId,
                     'ml_bet_identifier'             => $mlBetId,
+                    'score_on_bet'                  => $query->score
                 ]);
 
-                $updateProvider = ProviderAccount::find($providerAccountId); 
+                $updateProvider = ProviderAccount::find($providerAccountId);
                 $updateProvider->updated_at = Carbon::now();
                 $updateProvider->save();
-                
+
 
                 $incrementIds['id'][]               = $orderIncrement->id;
                 $incrementIds['created_at'][]       = $orderIncrement->created_at;
