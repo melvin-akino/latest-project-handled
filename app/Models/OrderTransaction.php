@@ -11,7 +11,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class OrderTransaction extends Model
 {
-    protected $table    = "wallet";
+    protected $table    = "order_transactions";
 
     public $timestamps = true;
 
