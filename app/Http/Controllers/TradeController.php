@@ -10,7 +10,8 @@ use App\Models\{
     Sport,
     UserSelectedLeague,
     UserWatchlist,
-    UserConfiguration
+    UserConfiguration,
+    Timezones
 };
 use Illuminate\Support\Facades\{
     DB,
