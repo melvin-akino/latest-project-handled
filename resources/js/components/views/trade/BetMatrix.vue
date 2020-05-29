@@ -24,24 +24,26 @@
                     <p class="text-gray-700 mb-4">No order selected. Please select an order to generate bet matrix.</p>
                 </div>
                 <div class="flex items-center bg-black text-white p-1">
-                    <span class="w-2/6">Bet Type</span>
-                    <span class="w-1/6">Bet Team</span>
-                    <span class="w-1/6">Price</span>
-                    <span class="w-1/6">Stake</span>
-                    <span class="w-1/6">Order Date</span>
+                    <span class="w-64">Bet Type</span>
+                    <span class="w-32">Bet Team</span>
+                    <span class="w-32">Price</span>
+                    <span class="w-32">Stake</span>
+                    <span class="w-32">Score on Bet</span>
+                    <span class="w-40">Order Date</span>
                 </div>
                 <div class="bets">
                     <div class="flex items-center text-gray-700 text-white p-1 my-1 cursor-pointer" v-for="order in matrix_orders_list" :key="order.order_id">
-                        <div class="w-2/6">
+                        <div class="w-64">
                             <label class="text-gray-500 font-bold">
                                 <input class="mr-2 leading-tight" type="checkbox" @change="toggleEventOrder(order, order.order_id)" :checked="selectedOrders.includes(order.order_id)">
                             </label>
                             {{order.team_name}} {{order.type}} {{order.points}} {{`(${defaultPriceFormat})`}}
                         </div>
-                        <span class="w-1/6">{{order.bet_team}}</span>
-                        <span class="w-1/6">{{order.odds}}</span>
-                        <span class="w-1/6">{{wallet.currency_symbol}} {{Number(order.stake) | moneyFormat}}</span>
-                        <span class="w-1/6">{{order.created_at}}</span>
+                        <span class="w-32">{{order.bet_team}}</span>
+                        <span class="w-32">{{order.odds}}</span>
+                        <span class="w-32">{{wallet.currency_symbol}} {{Number(order.stake) | moneyFormat}}</span>
+                        <span class="w-32">{{order.home_score_on_bet}} - {{order.away_score_on_bet}}</span>
+                        <span class="w-40">{{order.created_at}}</span>
                     </div>
                 </div>
             </div>
@@ -118,6 +120,8 @@ export default {
                 let price = Number(order.odds)
                 let towin = Number(order.stake) * Number(order.odds)
                 let points = Number(order.points)
+                let home_score_on_bet = Number(order.home_score_on_bet)
+                let away_score_on_bet = Number(order.away_score_on_bet)
                 let type = order.type
                 let bet_team = order.bet_team
                 totalStake += stake
@@ -130,9 +134,9 @@ export default {
                         var color = ''
                         if(type == 'HDP') {
                             if(bet_team == 'HOME') {
-                                var difference = (points + home_team_counter) - away_team_counter
+                                var difference = (points + (home_team_counter + home_score_on_bet + away_score_on_bet)) - (away_team_counter + away_score_on_bet + home_score_on_bet)
                             } else {
-                                var difference = (points + away_team_counter) - home_team_counter
+                                var difference = (points + (away_team_counter + away_score_on_bet + home_score_on_bet)) - (home_team_counter + home_score_on_bet + away_score_on_bet)
                             }
 
                             if(difference > 0.25) {

@@ -8,13 +8,13 @@
                         <label class="block capitalize text-gray-700 text-sm">Home Score</label>
                         <input type="text" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 text-sm leading-tight focus:outline-none" v-model="$v.matrix_data.home_score.$model" @keyup="clearMatrixTable">
                         <span class="text-red-600 text-xs" v-if="$v.matrix_data.home_score.$dirty && !$v.matrix_data.home_score.required">Home score is required.</span>
-                        <span class="text-red-600 text-xs" v-if="$v.matrix_data.home_score.$dirty && !$v.matrix_data.home_score.integer">Home score should ba an integer value.</span>
+                        <span class="text-red-600 text-xs" v-if="$v.matrix_data.home_score.$dirty && !$v.matrix_data.home_score.integer">Home score should be an integer value.</span>
                     </div>
                     <div>
                         <label class="block capitalize text-gray-700 text-sm">Away Score</label>
                         <input type="text" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 text-sm leading-tight focus:outline-none" v-model="$v.matrix_data.away_score.$model" @keyup="clearMatrixTable">
                         <span class="text-red-600 text-xs" v-if="$v.matrix_data.away_score.$dirty && !$v.matrix_data.away_score.required">Away score is required.</span>
-                        <span class="text-red-600 text-xs" v-if="$v.matrix_data.away_score.$dirty && !$v.matrix_data.away_score.integer">Away score should ba an integer value.</span>
+                        <span class="text-red-600 text-xs" v-if="$v.matrix_data.away_score.$dirty && !$v.matrix_data.away_score.integer">Away score should be an integer value.</span>
                     </div>
                 </div>
                 <div class="w-1/3"></div>
@@ -29,6 +29,8 @@
                     <span class="w-64 text-sm text-white">Points (HDP/OU)</span>
                     <span class="w-64 text-sm text-white">Type</span>
                     <span class="w-64 text-sm text-white">Bet Team</span>
+                    <span class="w-64 text-sm text-white">Home Score</span>
+                    <span class="w-64 text-sm text-white">Away Score</span>
                     <span class="w-20"></span>
                 </div>
                 <div v-if="matrix_data.matrix_orders.length == 0">
@@ -39,18 +41,18 @@
                         <div class="w-64 mr-2">
                             <input type="text" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 text-sm leading-tight focus:outline-none" v-model="order.stake.$model" @keyup="clearMatrixTable">
                             <span class="text-red-600 text-xs" v-if="order.stake.$dirty && !order.stake.required">Stake is required.</span>
-                            <span class="text-red-600 text-xs" v-if="order.stake.$dirty && !order.stake.decimal">Stake should ba a numeric/decimal value.</span>
+                            <span class="text-red-600 text-xs" v-if="order.stake.$dirty && !order.stake.decimal">Stake should be a numeric/decimal value.</span>
                         </div>
                         <div class="w-64 mr-2">
                             <input type="text" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 text-sm leading-tight focus:outline-none" v-model="order.odds.$model" @keyup="clearMatrixTable">
                             <span class="text-red-600 text-xs" v-if="order.odds.$dirty && !order.odds.required">Odds is required.</span>
-                            <span class="text-red-600 text-xs" v-if="order.odds.$dirty && !order.odds.decimal">Odds should ba a numeric/decimal value.</span>
+                            <span class="text-red-600 text-xs" v-if="order.odds.$dirty && !order.odds.decimal">Odds should be a numeric/decimal value.</span>
                         </div>
                         <div class="w-64 mr-2">
                             <input type="text" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700
                             text-sm leading-tight focus:outline-none" v-model="order.points.$model" @keyup="clearMatrixTable">
                             <span class="text-red-600 text-xs" v-if="order.points.$dirty && !order.points.required">Points is required.</span>
-                            <span class="text-red-600 text-xs" v-if="order.points.$dirty && !order.points.decimal">Points should ba a numeric/decimal value.</span>
+                            <span class="text-red-600 text-xs" v-if="order.points.$dirty && !order.points.decimal">Points should be a numeric/decimal value.</span>
                         </div>
                         <div class="w-64 mr-2">
                             <div class="relative">
@@ -66,7 +68,7 @@
                             </div>
                             <span class="text-red-600 text-xs" v-if="order.type.$dirty && !order.type.required">Type is required.</span>
                         </div>
-                        <div class="w-64">
+                        <div class="w-64 mr-2">
                             <div class="relative">
                                 <select class="text-sm shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none" v-model="order.bet_team.$model" @change="clearMatrixTable">
                                     <option :value="null">Select Team</option>
@@ -78,6 +80,16 @@
                                 </div>
                             </div>
                             <span class="text-red-600 text-xs" v-if="order.bet_team.$dirty && !order.bet_team.required">Bet team is required.</span>
+                        </div>
+                        <div class="w-64 mr-2">
+                            <input type="text" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 text-sm leading-tight focus:outline-none" v-model="order.home_score_on_bet.$model" @keyup="clearMatrixTable">
+                            <span class="text-red-600 text-xs" v-if="order.home_score_on_bet.$dirty && !order.home_score_on_bet.required">Home score is required.</span>
+                            <span class="text-red-600 text-xs" v-if="order.home_score_on_bet.$dirty && !order.home_score_on_bet.integer">Home score should be an integer.</span>
+                        </div>
+                        <div class="w-64 mr-2">
+                            <input type="text" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 text-sm leading-tight focus:outline-none" v-model="order.away_score_on_bet.$model" @keyup="clearMatrixTable">
+                            <span class="text-red-600 text-xs" v-if="order.away_score_on_bet.$dirty && !order.away_score_on_bet.required">Away score is required.</span>
+                            <span class="text-red-600 text-xs" v-if="order.away_score_on_bet.$dirty && !order.away_score_on_bet.integer">Away score should be an integer.</span>
                         </div>
                         <div class="w-20">
                             <button type="submit" class="bg-orange-500 hover:bg-orange-600 text-white text-xs uppercase ml-2 px-3 py-2 rounded-lg" @click="removeMatrixOrder(index)"><i class="fas fa-trash"></i></button>
@@ -126,7 +138,7 @@ export default {
             matrix_data: {
                 home_score: 0,
                 away_score: 0,
-                matrix_orders: [{stake: 50.00, odds: 1, points: -0.5, type: "HDP", bet_team: "HOME"}],
+                matrix_orders: [{stake: 50.00, odds: 1, points: -0.5, type: "HDP", bet_team: "HOME", home_score_on_bet: 0, away_score_on_bet: 0}],
             }
         }
     },
@@ -142,7 +154,9 @@ export default {
                     odds: { required, decimal },
                     points: { required, decimal },
                     type: { required },
-                    bet_team: { required }
+                    bet_team: { required },
+                    home_score_on_bet: {  required, integer },
+                    away_score_on_bet: {  required, integer },
                 }
             }
         }
@@ -159,6 +173,8 @@ export default {
                 let price = Number(order.odds)
                 let towin = Number(order.stake) * Number(order.odds)
                 let points = Number(order.points)
+                let home_score_on_bet = Number(order.home_score_on_bet)
+                let away_score_on_bet = Number(order.away_score_on_bet)
                 let type = order.type
                 let bet_team = order.bet_team
                 totalStake += stake
@@ -172,9 +188,9 @@ export default {
                         var difference = 0
                         if(type == 'HDP') {
                             if(bet_team == 'HOME') {
-                                var difference = (points + home_team_counter) - away_team_counter
+                                var difference = (points + (home_team_counter + home_score_on_bet + away_score_on_bet)) - (away_team_counter + away_score_on_bet + home_score_on_bet)
                             } else {
-                                var difference = (points + away_team_counter) - home_team_counter
+                                var difference = (points + (away_team_counter + away_score_on_bet + home_score_on_bet)) - (home_team_counter + home_score_on_bet + away_score_on_bet)
                             }
 
                             if(difference > 0.25) {
