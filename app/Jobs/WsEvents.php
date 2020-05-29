@@ -13,6 +13,7 @@ use App\Models\{
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Support\Facades\{DB, Log};
+use Carbon\Carbon;
 
 class WsEvents implements ShouldQueue
 {
@@ -86,13 +87,14 @@ class WsEvents implements ShouldQueue
             $userId        = $this->userId;
             $userTz        = "Etc/UTC";
             $getUserConfig = UserConfiguration::getUserConfig($userId)
-                ->where('type', 'timezone');
+                ->where('type', 'timezone')
+                ->first();
 
-            if ($getUserConfig->first()) {
+            if ($getUserConfig) {
                 $userTz = Timezones::find($getUserConfig->value)->name;
             }
 
-            array_map(function ($transformed) use (&$data, $topicTable, $userId, $userBets) {
+            array_map(function ($transformed) use (&$data, $topicTable, $userId, $userBets, $userTz) {
                 $mainOrOther = $transformed->is_main ? 'main' : 'other';
 
                 if (empty($data[$transformed->master_event_unique_id])) {
