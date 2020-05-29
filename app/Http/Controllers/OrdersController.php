@@ -704,16 +704,18 @@ class OrdersController extends Controller
                     $type = $ouOddLabel[0];
                     $points = $ouOddLabel[1];
                 }
-
+                $current_score = explode(' - ', $order->score_on_bet);
                 $data[] = [
-                    'order_id'   => $order->id,
-                    'stake'      => $order->stake,
-                    'points'     => $points,
-                    'odds'       => $order->odds,
-                    'type'       => $type,
-                    'bet_team'   => $order->market_flag,
-                    'team_name'  => $order->market_flag == 'HOME' ? $order->home_team_name : $order->away_team_name,
-                    'created_at' => $order->created_at
+                    'order_id'          => $order->id,
+                    'stake'             => $order->stake,
+                    'points'            => $points,
+                    'odds'              => $order->odds,
+                    'type'              => $type,
+                    'bet_team'          => $order->market_flag,
+                    'team_name'         => $order->market_flag == 'HOME' ? $order->home_team_name : $order->away_team_name,
+                    'home_score_on_bet' => $current_score[0],
+                    'away_score_on_bet' => $current_score[1],
+                    'created_at'        => $order->created_at
                 ];
             }
 
