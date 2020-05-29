@@ -29,6 +29,7 @@ class Order extends Model
         'provider_account_id',
         'order_expiry',
         'ml_bet_identifier',
+        'score_on_bet'
     ];
 
     protected $hidden = [];
