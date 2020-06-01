@@ -35,6 +35,6 @@ class EventMarket extends Model
                 ->where('mem.master_event_market_unique_id', $memUID)
                 ->select('em.bet_identifier', 'p.alias', 'e.sport_id', 'me.game_schedule', 'e.event_identifier')
                 ->distinct()
-                ->first();
+                ->get();
     }
 }
