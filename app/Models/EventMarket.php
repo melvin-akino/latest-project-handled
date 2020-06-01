@@ -25,16 +25,33 @@ class EventMarket extends Model
         'market_event_identifier',
     ];
 
-    public static function getEventMarkeByMemUID(string $memUID)
+    public static function getEventMarketByMemUID(string $memUID)
     {
+        $eventMarket = self::getProviderEventMarketsByMemUID($memUID);
+
+        if (!$eventMarket) {
+            return null;
+        }
+
         return DB::table('event_markets as em')
                 ->join('providers as p', 'p.id', 'em.provider_id')
                 ->join('events as e', 'e.id', 'em.event_id')
                 ->join('master_events as me', 'me.id', 'e.master_event_id')
-                ->join('master_event_markets as mem', 'mem.id', 'em.master_event_market_id')
-                ->where('mem.master_event_market_unique_id', $memUID)
+                ->where('e.master_event_id', $eventMarket->master_event_id)
+                ->where('em.odd_type_id', $eventMarket->odd_type_id)
+                ->where('em.odd_label', $eventMarket->odd_label)
+                ->where('em.market_flag', $eventMarket->market_flag)
                 ->select('em.bet_identifier', 'p.alias', 'e.sport_id', 'me.game_schedule', 'e.event_identifier')
                 ->distinct()
                 ->get();
+    }
+
+    public static function getProviderEventMarketsByMemUID(string $memUID)
+    {
+        return DB::table('event_markets as em')
+                 ->join('master_event_markets as mem', 'mem.id', 'em.master_event_market_id')
+                 ->where('mem.master_event_market_unique_id', $memUID)
+                 ->distinct()
+                 ->first();
     }
 }
