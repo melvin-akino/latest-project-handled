@@ -28,7 +28,7 @@ class WsRemoveMinMax implements ShouldQueue
             $minmaxMarketTable   = $server->minmaxMarketTable;
             $minmaxPayloadTable  = $server->minmaxPayloadTable;
 
-            $eventMarket = EventMarket::getEventMarkeByMemUID($this->master_event_market_unique_id);
+            $eventMarket = EventMarket::getProviderEventMarketsByMemUID($this->master_event_market_unique_id);
 
             if ($eventMarket) {
                 $fd = $wsTable->get('uid:' . $this->userId);

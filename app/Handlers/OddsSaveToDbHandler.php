@@ -127,7 +127,6 @@ class OddsSaveToDbHandler
                     }
                 }
             }
-            
 
             DB::commit();
 
@@ -145,8 +144,6 @@ class OddsSaveToDbHandler
                     'sport_id'               => $this->eventData['MasterEvent']['data']['sport_id'],
                 ];
                 $this->swoole->eventsTable->set($this->eventData['MasterEvent']['swtKey'], $masterEventData);
-                Log::debug($this->eventData['MasterEvent']['swtKey']);
-                Log::debug(json_encode($masterEventData));
 
                 if ($this->dbOptions['is-event-new']) {
 
