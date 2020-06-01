@@ -146,8 +146,7 @@ class StartKafaBalanceMonitoring extends Command
         $topicConf->set('offset.store.method', 'broker');
         $topicConf->set('auto.offset.reset', 'latest');
         $queue = $rk->newQueue();
-        #$topic = $rk->newTopic(env('KAFKA_SCRAPE_BALANCE'), $topicConf);
-        $topic = $rk->newTopic('JAN-BALANCE', $topicConf);
+        $topic = $rk->newTopic(env('KAFKA_SCRAPE_BALANCE'), $topicConf);
         $topic->consumeQueueStart(0, RD_KAFKA_OFFSET_END, $queue);
      
         while (true) {
