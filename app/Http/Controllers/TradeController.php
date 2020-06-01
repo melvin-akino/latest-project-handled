@@ -37,6 +37,15 @@ class TradeController extends Controller
     public function getUserBetbar()
     {
         try {
+            $userTz        = "Etc/UTC";
+            $getUserConfig = UserConfiguration::getUserConfig(auth()->user()->id)
+                ->where('type', 'timezone')
+                ->first();
+
+            if (!is_null($getUserConfig)) {
+                $userTz = Timezones::find($getUserConfig->value)->name;
+            }
+
             $betBarData = Order::getBetBarData(auth()->user()->id);
 
             $data = [];
@@ -79,7 +88,7 @@ class TradeController extends Controller
                         'home_score'     => $score[0],
                         'away_score'     => $score[1],
                         'status'         => $betData->status,
-                        'created_at'     => $betData->created_at
+                        'created_at'     => Carbon::createFromFormat("Y-m-d H:i:s", $betData->created_at, 'Etc/UTC')->setTimezone($userTz)->format("Y-m-d H:i:s"),
                     ];
                 }
             }
@@ -569,9 +578,9 @@ Log::debug(json_encode($masterEventUniqueIds));
             $data = [];
             array_map(function ($transformed) use (&$data) {
                 if (!empty($transformed->odd_label)) {
-                    if (empty($data[$transformed->event_identifier][$transformed->type][$transformed->market_flag])) {
-                        $data[$transformed->event_identifier][$transformed->type][$transformed->market_flag] = [
-                            'odds'      => (double)$transformed->odds,
+                    if (empty($data[$transformed->market_event_identifier][$transformed->type][$transformed->market_flag])) {
+                        $data[$transformed->market_event_identifier][$transformed->type][$transformed->market_flag] = [
+                            'odds'      => (double) $transformed->odds,
                             'market_id' => $transformed->master_event_market_unique_id,
                             'points'    => $transformed->odd_label
                         ];

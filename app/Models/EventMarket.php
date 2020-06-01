@@ -22,6 +22,7 @@ class EventMarket extends Model
         'market_flag',
         'provider_id',
         'deleted_at',
+        'market_event_identifier',
     ];
 
     public static function getEventMarkeByMemUID(string $memUID)

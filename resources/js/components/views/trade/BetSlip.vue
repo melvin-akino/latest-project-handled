@@ -172,7 +172,6 @@ export default {
                 width: 825,
                 buttonPin: false,
             },
-            analysisData: {},
             isPlacingOrder: null,
             isDoneBetting: false,
             isLoadingMarketDetailsAndProviders: true,
@@ -251,6 +250,12 @@ export default {
                 })
                 return qualifiedPrices.length
             }
+        },
+        analysisData() {
+            return {
+                home_score: this.market_details.score.split(' - ')[0],
+                away_score: this.market_details.score.split(' - ')[1]
+            }
         }
     },
     mounted() {
@@ -267,7 +272,7 @@ export default {
                 this.market_details = response.data.data
                 this.formattedRefSchedule = response.data.data.ref_schedule.split(' ')
                 this.points = this.odd_details.points
-                this.$store.commit('trade/SHOW_BET_MATRIX_IN_BETSLIP', { market_id: odd_details.market_id, has_bet: response.data.data.has_bets })
+                this.$store.commit('trade/SHOW_BET_MATRIX_IN_BETSLIP', { market_id: this.odd_details.market_id, has_bet: response.data.data.has_bets })
             })
             .catch(err => {
                 this.$store.dispatch('auth/checkIfTokenIsValid', err.response.data.status_code)
@@ -324,25 +329,27 @@ export default {
             this.$options.sockets.onmessage = (response => {
                 if(getSocketKey(response.data) === 'getMinMax') {
                     let minmax = getSocketValue(response.data, 'getMinMax')
-                    if(minmax.market_id == this.market_id) {
-                        if(!_.isEmpty(this.minMaxData)) {
-                            let providerIds = this.minMaxData.map(minMaxData => minMaxData.provider_id)
-                            if(providerIds.includes(minmax.provider_id)) {
-                                this.minMaxData.map(minMaxData => {
-                                    if(minMaxData.provider_id == minmax.provider_id) {
-                                        minMaxData.min = Number(minmax.min)
-                                        minMaxData.max = Number(minmax.max)
-                                        minMaxData.price = Number(minmax.price)
-                                        minMaxData.priority = Number(minmax.priority)
-                                        minMaxData.age = minmax.age
-                                        minMaxData.hasMarketData = true
-                                        this.retrievedMarketData = true
-                                        this.marketDataMessage = 'No Market Available'
-                                    }
-                                })
+                    if(minmax.message == '') {
+                        if(minmax.market_id == this.market_id) {
+                            if(!_.isEmpty(this.minMaxData)) {
+                                let providerIds = this.minMaxData.map(minMaxData => minMaxData.provider_id)
+                                if(providerIds.includes(minmax.provider_id)) {
+                                    this.minMaxData.map(minMaxData => {
+                                        if(minMaxData.provider_id == minmax.provider_id) {
+                                            minMaxData.min = Number(minmax.min)
+                                            minMaxData.max = Number(minmax.max)
+                                            minMaxData.price = Number(minmax.price)
+                                            minMaxData.priority = Number(minmax.priority)
+                                            minMaxData.age = minmax.age
+                                            minMaxData.hasMarketData = true
+                                        }
+                                    })
+                                }
                             }
                         }
                     }
+                    this.retrievedMarketData = true
+                    this.marketDataMessage = 'No Market Available'
                 }
             })
         },
@@ -489,24 +496,6 @@ export default {
                     this.$store.dispatch('trade/getBetbarData')
                     this.$store.commit('trade/TOGGLE_BETBAR', true)
                     this.$store.dispatch('trade/getWalletData')
-
-                    if(this.oddTypesWithSpreads.includes(this.market_details.odd_type) && this.isBetSuccessful) {
-                        let prices = data.markets.map(market => market.price)
-                        let sumOfPrices = prices.reduce((firstPrice, secondPrice) => firstPrice + secondPrice, 0)
-                        let averagePrice = sumOfPrices / prices.length
-                        this.analysisData = {
-                            stake: data.stake,
-                            points: this.points,
-                            price: Math.floor(averagePrice * 100) / 100,
-                            home_score: this.market_details.score.split(' - ')[0],
-                            away_score: this.market_details.score.split(' - ')[1],
-                            odd_type: this.market_details.odd_type,
-                            created_at: response.data.created_at,
-                            bet_team: this.market_details.market_flag == "HOME" ?  this.market_details.home :  this.market_details.away,
-                            price_format: this.defaultPriceFormat,
-                            currency_symbol: this.wallet.currency_symbol
-                        }
-                    }
 
                     if(this.betSlipSettings.bets_to_fav == 1 && this.isBetSuccessful) {
                         this.$store.dispatch('trade/addToWatchlist', { type: 'event', data: this.odd_details.game.uid, payload: this.odd_details.game })

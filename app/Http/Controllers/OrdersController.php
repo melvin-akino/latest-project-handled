@@ -142,6 +142,15 @@ class OrdersController extends Controller
 
             $userProvider = $userProvider->first();
 
+            $userTz        = "Etc/UTC";
+            $getUserConfig = UserConfiguration::getUserConfig(auth()->user()->id)
+                ->where('type', 'timezone')
+                ->first();
+
+            if (!is_null($getUserConfig)) {
+                $userTz = Timezones::find($getUserConfig->value)->name;
+            }
+
             $masterEventMarket = MasterEventMarket::where('master_event_market_unique_id', $memUID);
 
             if (!$masterEventMarket->exists()) {
@@ -168,6 +177,7 @@ class OrdersController extends Controller
                     'ml.name as league_name',
                     'ht.name as home_team_name',
                     'at.name as away_team_name',
+                    'master_event_unique_id',
                     'game_schedule',
                     'ref_schedule',
                     'running_time',
@@ -206,7 +216,7 @@ class OrdersController extends Controller
                 ];
             }
 
-            $eventBets = Order::getOrdersByEvent($masterEventMarket->master_event_unique_id)->count();
+            $eventBets = Order::getOrdersByEvent($masterEvent->master_event_unique_id)->count();
 
             $hasBets = false;
             if($eventBets > 0) {
@@ -218,7 +228,7 @@ class OrdersController extends Controller
                 'home'          => $masterEvent->home_team_name,
                 'away'          => $masterEvent->away_team_name,
                 'game_schedule' => $masterEvent->game_schedule,
-                'ref_schedule'  => $masterEvent->ref_schedule,
+                'ref_schedule'  => Carbon::createFromFormat("Y-m-d H:i:s", $masterEvent->ref_schedule, 'Etc/UTC')->setTimezone($userTz)->format("Y-m-d H:i:s"),
                 'running_time'  => $masterEvent->running_time,
                 'score'         => $masterEvent->score,
                 'home_penalty'  => $masterEvent->home_penalty,
@@ -538,12 +548,13 @@ class OrdersController extends Controller
                     'order_expiry'                  => $request->orderExpiry,
                     'provider_account_id'           => $providerAccountId,
                     'ml_bet_identifier'             => $mlBetId,
+                    'score_on_bet'                  => $query->score
                 ]);
 
-                $updateProvider = ProviderAccount::find($providerAccountId); 
+                $updateProvider = ProviderAccount::find($providerAccountId);
                 $updateProvider->updated_at = Carbon::now();
                 $updateProvider->save();
-                
+
 
                 $incrementIds['id'][]               = $orderIncrement->id;
                 $incrementIds['created_at'][]       = $orderIncrement->created_at;
@@ -690,6 +701,15 @@ class OrdersController extends Controller
     public function betMatrixOrders(string $uid)
     {
         try  {
+            $userTz        = "Etc/UTC";
+            $getUserConfig = UserConfiguration::getUserConfig(auth()->user()->id)
+                ->where('type', 'timezone')
+                ->first();
+
+            if (!is_null($getUserConfig)) {
+                $userTz = Timezones::find($getUserConfig->value)->name;
+            }
+
             $orders = Order::getOrdersByEvent($uid)->get();
 
             $data = [];
@@ -703,16 +723,18 @@ class OrdersController extends Controller
                     $type = $ouOddLabel[0];
                     $points = $ouOddLabel[1];
                 }
-
+                $current_score = explode(' - ', $order->score_on_bet);
                 $data[] = [
-                    'order_id'   => $order->id,
-                    'stake'      => $order->stake,
-                    'points'     => $points,
-                    'odds'       => $order->odds,
-                    'type'       => $type,
-                    'bet_team'   => $order->market_flag,
-                    'team_name'  => $order->market_flag == 'HOME' ? $order->home_team_name : $order->away_team_name,
-                    'created_at' => $order->created_at
+                    'order_id'          => $order->id,
+                    'stake'             => $order->stake,
+                    'points'            => $points,
+                    'odds'              => $order->odds,
+                    'type'              => $type,
+                    'bet_team'          => $order->market_flag,
+                    'team_name'         => $order->market_flag == 'HOME' ? $order->home_team_name : $order->away_team_name,
+                    'home_score_on_bet' => $current_score[0],
+                    'away_score_on_bet' => $current_score[1],
+                    'created_at'        => Carbon::createFromFormat("Y-m-d H:i:s", $order->created_at, 'Etc/UTC')->setTimezone($userTz)->format("Y-m-d H:i:s"),
                 ];
             }
 

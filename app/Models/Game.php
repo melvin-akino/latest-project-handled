@@ -249,7 +249,8 @@ class Game extends Model
                     'em.odds',
                     'em.odd_label',
                     'em.provider_id',
-                    'e.event_identifier'
+                    'e.event_identifier',
+                    'em.market_event_identifier',
                 ])
                 ->distinct()->get();
     }

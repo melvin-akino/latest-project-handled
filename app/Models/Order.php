@@ -29,6 +29,7 @@ class Order extends Model
         'provider_account_id',
         'order_expiry',
         'ml_bet_identifier',
+        'score_on_bet'
     ];
 
     protected $hidden = [];
@@ -93,7 +94,7 @@ class Order extends Model
         ->whereIn('mem.odd_type_id', function($query) {
             $query->select('id')->from('odd_types')->whereIn('type', ['HDP', 'HT HDP', 'OU', 'HT OU']);
         })
-        ->select('orders.id', 'stake', 'odds', 'odd_label AS points', 'mem.odd_type_id', 'mem.market_flag', 'ht.name as home_team_name', 'at.name as away_team_name', 'orders.created_at');
+        ->select('orders.id', 'stake', 'odds', 'odd_label AS points', 'mem.odd_type_id', 'mem.market_flag', 'ht.name as home_team_name', 'at.name as away_team_name', 'orders.created_at', 'score_on_bet');
     }
 
     public static function getOrdersByUserId(int $userId)
