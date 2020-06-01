@@ -142,8 +142,11 @@ class OddsSaveToDbHandler
                     'game_schedule'          => $this->eventData['MasterEvent']['data']['game_schedule'],
                     'home_penalty'           => $this->eventData['MasterEvent']['data']['home_penalty'],
                     'away_penalty'           => $this->eventData['MasterEvent']['data']['away_penalty'],
+                    'sport_id'               => $this->eventData['MasterEvent']['data']['sport_id'],
                 ];
                 $this->swoole->eventsTable->set($this->eventData['MasterEvent']['swtKey'], $masterEventData);
+                Log::debug($this->eventData['MasterEvent']['swtKey']);
+                Log::debug(json_encode($masterEventData));
 
                 if ($this->dbOptions['is-event-new']) {
 

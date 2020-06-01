@@ -95,27 +95,40 @@ class OddsTransformationHandler
                     "eventIdentifier:" . $this->message->data->events[0]->eventId
                 ]);
 
-                if ($eventsTable->exists($eventSwtId)) {
-                    $eventId        = $eventsTable->get($eventSwtId)['id'];
-                    $uid            = $eventsTable->get($eventSwtId)['master_event_unique_id'];
+                $doesExist = false;
+                foreach ($eventsTable as $key => $value) {
+                    if (
+                        $sportId == $value['sport_id'] && 
+                        $multiTeam['home']['id'] == $value['master_team_home_id'] &&
+                        $multiTeam['away']['id'] == $value['master_team_away_id'] &&
+                        $this->message->data->schedule == $value['game_schedule']
+                    ) {
+                        $eventSwtId = $key;
+                        $eventsData = $value;
+                        $doesExist = true;
+                    }
+                }
+                if ($doesExist) {
+                    $eventId        = $eventsData['id'];
+                    $uid            = $eventsData['master_event_unique_id'];
 
-                    $masterTeamHomeId = $eventsTable->get($eventSwtId)['master_team_home_id'];
-                    $masterTeamAwayId = $eventsTable->get($eventSwtId)['master_team_away_id'];
+                    $masterTeamHomeId = $eventsData['master_team_home_id'];
+                    $masterTeamAwayId = $eventsData['master_team_away_id'];
 
-                    $teamHomeId = $eventsTable->get($eventSwtId)['team_home_id'];
-                    $teamAwayId = $eventsTable->get($eventSwtId)['team_away_id'];
+                    $teamHomeId = $eventsData['team_home_id'];
+                    $teamAwayId = $eventsData['team_away_id'];
 
-                    if ($this->message->data->schedule == 'early' && $eventsTable->get($eventSwtId)['game_schedule'] == 'today') {
+                    if ($this->message->data->schedule == 'early' && $eventsData['game_schedule'] == 'today') {
                         Log::info("Transformation ignored - event is already in today");
                         return;
                     }
 
-                    if ($this->message->data->schedule == 'today' && $eventsTable->get($eventSwtId)['game_schedule'] == 'inplay') {
+                    if ($this->message->data->schedule == 'today' && $eventsData['game_schedule'] == 'inplay') {
                         Log::info("Transformation ignored - event is already in play");
                         return;
                     }
 
-                    if (($eventsTable->get($eventSwtId)['game_schedule'] != "") && ($eventsTable->get($eventSwtId)['game_schedule'] != $this->message->data->schedule)) {
+                    if (($eventsData['game_schedule'] != "") && ($eventsData['game_schedule'] != $this->message->data->schedule)) {
                         $subTasks['remove-previous-market'][] = [
                             'uid'    => $uid,
                             'swtKey' => implode(':', [

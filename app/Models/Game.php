@@ -19,7 +19,7 @@ class Game extends Model
                 ]);
     }
 
-    public static function getGameDetails(int $masterLeagueId, string $schedule = 'early')
+    public static function getGameDetails(int $masterLeagueId, string $schedule = 'early', int $providerId)
     {
         return DB::table('master_leagues as ml')
                 ->join('sports as s', 's.id', 'ml.sport_id')
@@ -38,6 +38,7 @@ class Game extends Model
                 ->where('me.game_schedule', $schedule)
                 ->where('mem.is_main', true)
                 ->whereNull('me.deleted_at')
+                ->where('em.provider_id', $providerId)
                 ->distinct()->get();
     }
 
@@ -131,7 +132,7 @@ class Game extends Model
                 ->get();
     }
 
-    public static function getSelectedLeagueEvents(int $userId)
+    public static function getSelectedLeagueEvents(int $userId, int $providerId)
     {
         return DB::table('master_leagues as ml')
                     ->join('sports as s', 's.id', 'ml.sport_id')
@@ -147,6 +148,7 @@ class Game extends Model
                     ->whereNull('me.deleted_at')
                     ->where('mem.is_main', true)
                     ->whereNull('ml.deleted_at')
+                    ->where('em.provider_id', $providerId)
                     ->select([
                         'ml.sport_id',
                         'ml.name as master_league_name',
@@ -173,7 +175,7 @@ class Game extends Model
                     ->distinct()->get();
     }
 
-    public static function getWatchlistEvents(int $userId)
+    public static function getWatchlistEvents(int $userId, int $providerId)
     {
         return DB::table('master_leagues as ml')
                     ->join('sports as s', 's.id', 'ml.sport_id')
@@ -188,6 +190,7 @@ class Game extends Model
                     ->whereNull('me.deleted_at')
                     ->whereNull('ml.deleted_at')
                     ->where('mem.is_main', true)
+                    ->where('em.provider_id', $providerId)
                     ->select([
                         'ml.sport_id',
                         'ml.name as master_league_name',

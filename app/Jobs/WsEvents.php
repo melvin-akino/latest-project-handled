@@ -8,7 +8,9 @@ use App\Models\{
     MasterLeague,
     Order,
     Timezones,
-    UserConfiguration
+    UserConfiguration,
+    Provider,
+    UserProviderConfiguration
 };
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -33,55 +35,25 @@ class WsEvents implements ShouldQueue
             $fd        = $server->wsTable->get('uid:' . $this->userId);
 
             $providerPriority        = 0;
-            $providerId              = 0;
             $providersTable          = $server->providersTable;
             $userProviderConfigTable = $server->userProviderConfigTable;
             $topicTable              = $server->topicTable;
 
-            /** TODO: Provider Maintenance Validation */
-            foreach ($providersTable as $key => $provider) {
-                if (empty($providerId) || $providerPriority > $provider['priority']) {
-                    if ($provider['is_enabled']) {
-                        $providerId = $provider['id'];
-
-                        $userProviderConfigSwtId = implode(':', [
-                            "userId:" . $this->userId,
-                            "pId:"    . $provider['id']
-                        ]);
-
-                        $doesExist = false;
-                        foreach ($userProviderConfigTable as $k => $v) {
-                            if ($k == $userProviderConfigSwtId) {
-                                $doesExist = true;
-                                break;
-                            }
-                        }
-                        if ($doesExist) {
-                            if ($userProviderConfigTable->get($userProviderConfigSwtId)['active']) {
-                                $providerId = $userProviderConfigTable->get($userProviderConfigSwtId)['provider_id'];
-                            }
-                        } else {
-                            $userProviderConfigTable->set($userProviderConfigSwtId,
-                                [
-                                    'user_id'     => $this->userId,
-                                    'provider_id' => $provider['id'],
-                                    'active'      => $provider['is_enabled'],
-                                ]
-                            );
-                        }
-
-                        $providerPriority = $provider['priority'];
-                    }
+            $providerId = Provider::where('is_enabled', true)->orderBy('priority', 'asc')->first()->id;
+            if ($providerId) {
+                $userProviderConfiguration = UserProviderConfiguration::join('providers', 'providers.id', 'provider_id')
+                                            ->where('user_id', $this->userId)
+                                            ->where('active', true)
+                                            ->orderBy('priority', 'asc');
+                if ($userProviderConfiguration->count() > 0) {
+                    $providerId = $userProviderConfiguration->first()->provider_id;
                 }
-            }
-
-            if (empty($providerId)) {
+            } else {
                 throw new Exception('[VALIDATION_ERROR] No Providers found.');
             }
-
             $userBets     = Order::getOrdersByUserId($this->userId);
             $masterLeague = MasterLeague::where('name', $this->master_league_name)->first();
-            $gameDetails  = Game::getGameDetails($masterLeague->id, $this->schedule);
+            $gameDetails  = Game::getGameDetails($masterLeague->id, $this->schedule, $providerId);
 
             $data          = [];
             $userId        = $this->userId;
@@ -93,7 +65,6 @@ class WsEvents implements ShouldQueue
             if ($getUserConfig) {
                 $userTz = Timezones::find($getUserConfig->value)->name;
             }
-
             array_map(function ($transformed) use (&$data, $topicTable, $userId, $userBets, $userTz) {
                 $mainOrOther = $transformed->is_main ? 'main' : 'other';
 

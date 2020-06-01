@@ -294,6 +294,7 @@ return [
                 ['name' => 'running_time', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 30],
                 ['name' => 'home_penalty', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 30],
                 ['name' => 'away_penalty', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 30],
+                ['name' => 'provider_id', 'type' => \Swoole\Table::TYPE_INT],
             ],
         ],
         'eventMarkets'        => [ //key format [pId:$providerId:meUID:$meUID:betIdentifier:$betIdentifier] = [id = $id, ...]
