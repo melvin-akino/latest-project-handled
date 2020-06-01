@@ -177,6 +177,7 @@ class OrdersController extends Controller
                     'ml.name as league_name',
                     'ht.name as home_team_name',
                     'at.name as away_team_name',
+                    'master_event_unique_id',
                     'game_schedule',
                     'ref_schedule',
                     'running_time',
@@ -215,7 +216,7 @@ class OrdersController extends Controller
                 ];
             }
 
-            $eventBets = Order::getOrdersByEvent($masterEventMarket->master_event_unique_id)->count();
+            $eventBets = Order::getOrdersByEvent($masterEvent->master_event_unique_id)->count();
 
             $hasBets = false;
             if($eventBets > 0) {
