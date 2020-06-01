@@ -46,7 +46,7 @@ class WsMinMax implements ShouldQueue
             $eventMarkets = EventMarket::getEventMarketByMemUID($this->master_event_market_unique_id);
 
             if ($eventMarkets) {
-                foreach ($eventMarkets as $eventMarket) {Log::debug('Test 1');
+                foreach ($eventMarkets as $eventMarket) {
                     $minMaxRequestsTable->set('memUID:' . $this->master_event_market_unique_id, [
                         'provider'  => strtolower($eventMarket->alias),
                         'market_id' => $eventMarket->bet_identifier,
