@@ -30,7 +30,39 @@
                     </div>
                 </div>
                 <div class="flex w-full">
-                    <div class="flex flex-col mt-4 mr-3 p-2 shadow shadow-xl bg-white w-2/5 h-full">
+                    <div class="flex flex-col mt-4 mr-3 w-3/5 h-full">
+                        <div class="flex flex-col items-center bg-white shadow shadow-xl mb-2" v-if="oddTypesWithSpreads.includes(market_details.odd_type)">
+                            <div class="text-white uppercase font-bold p-2 bg-orange-500 w-full text-center">{{market_details.odd_type}}</div>
+                            <div class="flex justify-center items-center p-2">
+                                <a href="#" class="m-1 w-12 text-center text-gray-800" @click="previousPoint" v-if="spreads.length > 1"><i class="fas fa-chevron-left"></i></a>
+                                <a href="#" class="m-1 w-16 text-center text-sm" :class="[spread.points == points ? 'text-white bg-orange-500 px-1 py-1' : 'text-gray-800']" v-for="(spread, index) in spreads" :key="index" @click="changePoint(spread.points, spread.market_id, spread.odds)">{{spread.points}}</a>
+                                <a href="#" class="m-1 w-12 text-center text-gray-800" @click="nextPoint" v-if="spreads.length > 1"><i class="fas fa-chevron-right"></i></a>
+                            </div>
+                        </div>
+                        <div class="flex flex-col bg-white shadow shadow-xl">
+                            <div class="flex justify-between items-center py-2 bg-orange-500 text-white">
+                                <span class="w-1/5"></span>
+                                <span class="w-1/5 text-sm font-bold text-center">Min</span>
+                                <span class="w-1/5 text-sm font-bold text-center">Max</span>
+                                <span class="w-1/5 text-sm font-bold text-center">Price</span>
+                                <span class="w-1/5"></span>
+                            </div>
+                            <div class="flex items-center py-2" v-for="minmax in minMaxProviders" :key="minmax.provider_id">
+                                <span class="w-1/5 text-sm font-bold text-center pl-3">
+                                    <label class="text-gray-500 font-bold">
+                                        <input class="mr-2 leading-tight" type="checkbox" @change="toggleMinmaxProviders(minmax, minmax.provider_id)" :checked="selectedProviders.includes(minmax.provider_id)" :disabled="!minmax.hasMarketData">
+                                    </label>
+                                    {{minmax.provider}}
+                                </span>
+                                <span class="w-1/5 text-sm text-center" v-if="minmax.hasMarketData">{{minmax.min | moneyFormat}}</span>
+                                <span class="w-1/5 text-sm text-center" v-if="minmax.hasMarketData">{{minmax.max | moneyFormat}}</span>
+                                <a href="#" @click.prevent="updatePrice(minmax.price)" class="w-1/5 text-sm font-bold underline text-center" v-if="minmax.hasMarketData">{{minmax.price | twoDecimalPlacesFormat}}</a>
+                                <span class="w-1/5 text-sm text-center" v-if="minmax.hasMarketData">{{minmax.age}}</span>
+                                <div class="text-sm text-center" v-if="!minmax.hasMarketData">{{marketDataMessage}} <span v-if="!retrievedMarketData" class="pl-1"><i class="fas fa-circle-notch fa-spin"></i></span></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex flex-col mt-4 p-2 shadow shadow-xl bg-white w-2/5 h-full">
                         <div class="advanceBetSlipInfo" :class="{'hidden': betSlipSettings.adv_betslip_info == 0, 'block': betSlipSettings.adv_betslip_info == 1}">
                             <div class="flex justify-between items-center py-2">
                                 <span class="text-sm">Min Stake</span>
@@ -96,37 +128,10 @@
                             <span class="absolute clearOrderMessage float-right cursor-pointer text-xs" @click="isDoneBetting = false"><i class="fas fa-times-circle"></i></span>
                         </div>
                     </div>
-                    <div class="flex flex-col mt-4 w-3/5 h-full">
-                        <div class="flex flex-col items-center bg-white shadow shadow-xl mb-2" v-if="oddTypesWithSpreads.includes(market_details.odd_type)">
-                            <div class="text-white uppercase font-bold p-2 bg-orange-500 w-full text-center">{{market_details.odd_type}}</div>
-                            <div class="flex justify-center items-center p-2">
-                                <a href="#" class="m-1 w-12 text-center text-gray-800" @click="previousPoint" v-if="spreads.length > 1"><i class="fas fa-chevron-left"></i></a>
-                                <a href="#" class="m-1 w-16 text-center text-sm" :class="[spread.points == points ? 'text-white bg-orange-500 px-1 py-1' : 'text-gray-800']" v-for="(spread, index) in spreads" :key="index" @click="changePoint(spread.points, spread.market_id, spread.odds)">{{spread.points}}</a>
-                                <a href="#" class="m-1 w-12 text-center text-gray-800" @click="nextPoint" v-if="spreads.length > 1"><i class="fas fa-chevron-right"></i></a>
-                            </div>
-                        </div>
-                        <div class="flex flex-col bg-white shadow shadow-xl">
-                            <div class="flex justify-between items-center py-2 bg-orange-500 text-white">
-                                <span class="w-1/5"></span>
-                                <span class="w-1/5 text-sm font-bold text-center">Min</span>
-                                <span class="w-1/5 text-sm font-bold text-center">Max</span>
-                                <span class="w-1/5 text-sm font-bold text-center">Price</span>
-                                <span class="w-1/5"></span>
-                            </div>
-                            <div class="flex items-center py-2" v-for="minmax in minMaxData" :key="minmax.provider_id">
-                                <span class="w-1/5 text-sm font-bold text-center pl-3">{{minmax.provider}}</span>
-                                <span class="w-1/5 text-sm text-center" v-if="minmax.hasMarketData">{{minmax.min | moneyFormat}}</span>
-                                <span class="w-1/5 text-sm text-center" v-if="minmax.hasMarketData">{{minmax.max | moneyFormat}}</span>
-                                <a href="#" @click.prevent="updatePrice(minmax.price)" class="w-1/5 text-sm font-bold underline text-center" v-if="minmax.hasMarketData">{{minmax.price | twoDecimalPlacesFormat}}</a>
-                                <span class="w-1/5 text-sm text-center" v-if="minmax.hasMarketData">{{minmax.age}}</span>
-                                <div class="text-sm text-center" v-if="!minmax.hasMarketData">{{marketDataMessage}} <span v-if="!retrievedMarketData" class="pl-1"><i class="fas fa-circle-notch fa-spin"></i></span></div>
-                            </div>
-                        </div>
-                    </div>
                 </div>
                 <div class="flex justify-center w-full">
                     <button v-if="isPlacingOrder" @click="placeOrder" class="bg-orange-500 text-white rounded-lg w-full text-sm uppercase p-2 mt-2 opacity-75" disabled>Placing Order... <span class="text-sm"><i class="fas fa-circle-notch fa-spin"></i></span></button>
-                    <button v-if="!isPlacingOrder" @click="placeOrder" class="bg-orange-500 text-white rounded-lg w-full text-sm uppercase p-2 mt-2 focus:outline-none" :class="[!retrievedMarketData ? 'opacity-75' : 'hover:bg-orange-600']" :disabled="!retrievedMarketData">Place Order</button>
+                    <button v-if="!isPlacingOrder" @click="placeOrder" class="bg-orange-500 text-white rounded-lg w-full text-sm uppercase p-2 mt-2 focus:outline-none" :class="[!retrievedMarketData || minMaxData.length == 0 ? 'opacity-75' : 'hover:bg-orange-600']" :disabled="!retrievedMarketData || minMaxData.length == 0">Place Order</button>
                 </div>
             </div>
         </dialog-drag>
@@ -165,6 +170,8 @@ export default {
                 betType: 'FAST_BET',
                 markets: []
             },
+            minMaxProviders: [],
+            selectedProviders: [],
             minMaxData: [],
             oddTypesWithSpreads: ['HDP', 'HT HDP', 'OU', 'HT OU'],
             orderMessage: '',
@@ -200,7 +207,7 @@ export default {
             if(!_.isEmpty(this.minMaxData)) {
                 let minValues = this.minMaxData.filter(minmax => minmax.min != null).map(minmax => minmax.min)
                 if(!_.isEmpty(minValues)) {
-                    return Math.max(...minValues)
+                    return Math.min(...minValues)
                 } else {
                     return 0
                 }
@@ -258,6 +265,13 @@ export default {
             }
         }
     },
+    watch: {
+        retrievedMarketData() {
+            let providersPriority = this.minMaxProviders.map(minmax => minmax.priority)
+            this.minMaxData = this.minMaxProviders.filter(minmax => minmax.priority == Math.min(...providersPriority))
+            this.selectedProviders = this.minMaxData.map(minmax => minmax.provider_id)
+        }
+    },
     mounted() {
         this.getMarketDetails()
         this.setMinMaxProviders()
@@ -286,7 +300,7 @@ export default {
             let settingsConfig = await this.$store.dispatch('settings/getUserSettingsConfig', 'bookies')
             this.disabledBookies = settingsConfig.disabled_bookies
             let enabledBookies = this.bookies.filter(bookie => !this.disabledBookies.includes(bookie.id))
-            enabledBookies.map(bookie => this.minMaxData.push({ provider_id: bookie.id, provider: bookie.alias, min: null, max: null, price: null, priority: null, age: null, hasMarketData: false }))
+            enabledBookies.map(bookie => this.minMaxProviders.push({ provider_id: bookie.id, provider: bookie.alias, min: null, max: null, price: null, priority: bookie.priority, age: null, hasMarketData: false }))
             this.isLoadingMarketDetailsAndProviders = false
             this.marketDataMessage = 'Retrieving Market'
             this.minmax(this.market_id)
@@ -331,17 +345,17 @@ export default {
                     let minmax = getSocketValue(response.data, 'getMinMax')
                     if(minmax.message == '') {
                         if(minmax.market_id == this.market_id) {
-                            if(!_.isEmpty(this.minMaxData)) {
-                                let providerIds = this.minMaxData.map(minMaxData => minMaxData.provider_id)
-                                if(providerIds.includes(minmax.provider_id)) {
-                                    this.minMaxData.map(minMaxData => {
-                                        if(minMaxData.provider_id == minmax.provider_id) {
-                                            minMaxData.min = Number(minmax.min)
-                                            minMaxData.max = Number(minmax.max)
-                                            minMaxData.price = Number(minmax.price)
-                                            minMaxData.priority = Number(minmax.priority)
-                                            minMaxData.age = minmax.age
-                                            minMaxData.hasMarketData = true
+                            if(!_.isEmpty(this.minMaxProviders)) {
+                                let minMaxProviderIds = this.minMaxProviders.map(provider => provider.provider_id)
+                                if(minMaxProviderIds.includes(minmax.provider_id)) {
+                                    this.minMaxProviders.map(provider => {
+                                        if(provider.provider_id == minmax.provider_id) {
+                                            provider.min = Number(minmax.min)
+                                            provider.max = Number(minmax.max)
+                                            provider.price = Number(minmax.price)
+                                            provider.priority = Number(minmax.priority)
+                                            provider.age = minmax.age
+                                            provider.hasMarketData = true
                                         }
                                     })
                                 }
@@ -353,35 +367,21 @@ export default {
                 }
             })
         },
-        getUpdatedPrice() {
-            this.$options.sockets.onmessage = (response => {
-                if(getSocketKey(response.data) === 'getUpdatedPrice') {
-                    let updatedPrice = getSocketValue(response.data, 'getUpdatedPrice')
-                    if(!_.isEmpty(this.minMaxData)) {
-                        this.minMaxData.map(minMaxData => {
-                            if(minMaxData.provider_id == updatedPrice.provider_id) {
-                                minMaxData.price = Number(updatedPrice.odds)
-                            }
-                        })
-                    }
-                }
-            })
-        },
         getRemoveMinMax() {
             this.$options.sockets.onmessage = (response => {
                 if(getSocketKey(response.data) === 'removeMinMax') {
                     let removeMinMax = getSocketValue(response.data, 'removeMinMax')
                     if(removeMinMax.status) {
-                        this.minMaxData.map(minmax => {
-                            minmax.min = null
-                            minmax.max = null
-                            minmax.price = null
-                            minmax.priority = null
-                            minmax.age = null
-                            minmax.hasMarketData = false
-                            this.retrievedMarketData = false
-                            this.marketDataMessage = 'Retrieving Market'
+                        this.minMaxProviders.map(provider => {
+                            provider.min = null
+                            provider.max = null
+                            provider.price = null
+                            provider.age = null
+                            provider.hasMarketData = false
                         })
+                        this.retrievedMarketData = false
+                        this.marketDataMessage = 'Retrieving Market'
+                        this.minMaxData = []
                     }
                 }
             })
@@ -396,7 +396,6 @@ export default {
             this.sendMinMax(market_id)
             .then(() => {
                 this.getMinMaxData()
-                this.getUpdatedPrice()
             })
         },
         closeBetSlip(market_id) {
@@ -416,6 +415,16 @@ export default {
         updatePrice(price) {
             this.inputPrice = twoDecimalPlacesFormat(price)
             this.clearOrderMessage()
+        },
+        toggleMinmaxProviders(minmax, provider_id) {
+            this.clearOrderMessage()
+            if(this.selectedProviders.includes(provider_id)) {
+                this.selectedProviders = this.selectedProviders.filter(provider => provider != provider_id)
+                this.minMaxData = this.minMaxData.filter(minmax => minmax.provider_id != provider_id)
+            } else {
+                this.selectedProviders.push(provider_id)
+                this.minMaxData.push(minmax)
+            }
         },
         placeOrder() {
             this.isDoneBetting = true

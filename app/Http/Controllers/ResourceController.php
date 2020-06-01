@@ -33,7 +33,8 @@ class ResourceController extends Controller
         try {
             $providers = Provider::getActiveProviders()->get([
                 'id',
-                'alias'
+                'alias',
+                'priority'
             ]);
 
             return response()->json([
