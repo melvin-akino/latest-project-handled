@@ -25,8 +25,6 @@ class StartKafaBalanceMonitoring extends Command
      */
     protected $description = 'This will start a Kafka balance monitoring tool and send email base from threshold';
 
-    
-    protected $threshold = 3000;
     /**
      * Create a new command instance.
      *
