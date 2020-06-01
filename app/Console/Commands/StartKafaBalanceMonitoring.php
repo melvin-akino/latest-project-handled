@@ -42,17 +42,19 @@ class StartKafaBalanceMonitoring extends Command
         $return          = true;
         $redisTopic      = env('REDIS_TOOL_BALANCE', 'REDIS-MON-TOOL-BALANCE');
         $redisExpiration = env('REDIS_TOOL_BALANCE_EXPIRE', 3600);
-        $ttl             = Redis::ttl($redisTopic);
-
-        if ($ttl < 0) Redis::expire($redisTopic, $redisExpiration);
-
+        
         $redisSmember = $username. '-' .$provider. '-' .$currency;
         $members  = Redis::sadd($redisTopic, $redisSmember);
-        $isRecord = Redis::hget($redisSmember, 'balance');
+        $ttl     = Redis::ttl($redisTopic);
 
+        if ($ttl < 0) Redis::expire($redisTopic, $redisExpiration);
+        $isRecord = Redis::hget($redisSmember, 'balance');
+       
         if ($isRecord) $return = false;
 
         Redis::hmset($redisSmember, 'balance', $balance); 
+        $ttl  = Redis::ttl($redisSmember);
+        if ($ttl < 0) Redis::expire($redisSmember, $redisExpiration);
 
         return $return;
 
@@ -64,12 +66,14 @@ class StartKafaBalanceMonitoring extends Command
           
             $threshold  = env('PROVIDER_THRESHOLD', 3000);
             $payload    = json_decode($message->payload);
+            if (count((array)$payload->data)==0) return; 
+
             $provider   = $payload->data->provider;
             $username   = $payload->data->username;
             $balance    = $payload->data->available_balance;
             $currency   = $payload->data->currency; 
 
-            $shouldEmail = $this->redisCheck($username, $provider, $currency, $balance);
+            $shouldEmail  = $this->redisCheck($username, $provider, $currency, $balance);
             $baseCurrency = Currency::where('code', 'CNY')->first();
             $currencyCode = $baseCurrency->code;
 
@@ -94,21 +98,25 @@ class StartKafaBalanceMonitoring extends Command
 
 
             if ( (!empty($provider)) && (!empty($username)) && ((float)$balance <= (float)$threshold )) {
+            
                 $data = ['provider'  => $provider,
                          'username'  => $username,
                          'balance'   => $balance,
                          'currency'  => $currency,
                          'threshold' => $threshold   
                         ];
+
                 if ($shouldEmail) {
-                    //$emails = explode(",", env('MAIL_TO_BALANCE_PROVIDER'));
-                    $emails = SystemConfiguration::where('type', 'PROVIDER_THRESHOLD_SEND_EMAIL')->first()->value;
+                   
+                    $configuration = SystemConfiguration::where('type', 'PROVIDER_THRESHOLD_SEND_EMAIL_TO')->first();
+                    $emails = $configuration->value;
+                    $emails = explode(",",$emails);
                     Mail::send('mail.balance-provider-threshold', $data, function($message) use ($emails) {
                         $message->to($emails)->subject('Provider account in threshold');         
                         }
 
                     );
-                }
+                }  
             }
 
             
@@ -138,7 +146,8 @@ class StartKafaBalanceMonitoring extends Command
         $topicConf->set('offset.store.method', 'broker');
         $topicConf->set('auto.offset.reset', 'latest');
         $queue = $rk->newQueue();
-        $topic = $rk->newTopic(env('KAFKA_SCRAPE_BALANCE'), $topicConf);
+        #$topic = $rk->newTopic(env('KAFKA_SCRAPE_BALANCE'), $topicConf);
+        $topic = $rk->newTopic('JAN-BALANCE', $topicConf);
         $topic->consumeQueueStart(0, RD_KAFKA_OFFSET_END, $queue);
      
         while (true) {

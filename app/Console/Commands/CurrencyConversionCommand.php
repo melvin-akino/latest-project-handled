@@ -26,12 +26,12 @@ class CurrencyConversionCommand extends Command
 
     public function handle()
     {
-        $executionTime = '00:00:00';
+        //$executionTime = '10:13:00';
 
-        while(true) {
-            $currentTime = (new DateTime())->format('H:i:s');
+        //while(true) {
+           // $currentTime = (new DateTime())->format('H:i:s');
 
-            if ($currentTime == $executionTime) {
+           // if ($currentTime == $executionTime) {
                 $conversionApi = "https://api.exchangeratesapi.io/latest?base=%s&symbols=%s";
                 $currencies    = DB::table('currency AS cfrom', '!=', DB::raw('0'))
                     ->join('currency AS cto', function ($join) {
@@ -63,7 +63,7 @@ class CurrencyConversionCommand extends Command
                         ]);
                     }
                 }
-            }
-        }
+            //}
+        //}
     }
 }
