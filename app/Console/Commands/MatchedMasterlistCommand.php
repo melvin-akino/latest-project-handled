@@ -71,7 +71,7 @@ class MatchedMasterlistCommand extends Command
             }
 
             $masterLeague = MasterLeague::withTrashed()->updateOrCreate([
-                'name' => $row->league,
+                'name' => $leagueName,
                 'sport_id'           => $sportId
             ], [
                 'deleted_at' => null
@@ -83,14 +83,14 @@ class MatchedMasterlistCommand extends Command
                 'master_league_id' => $matchedLeagueId,
                 'sport_id'         => $sportId,
                 'provider_id'      => $providerId,
-                'name'             => $leagueName
+                'name'             => $row->league
             ], [
                 'deleted_at' => null
             ]);
 
             $masterTeam1 = MasterTeam::withTrashed()->updateOrCreate([
                 'sport_id' => $sportId,
-                'name'     => $row->home,
+                'name'     => $team1,
             ], [
                 'deleted_at' => null
             ]);
@@ -99,7 +99,7 @@ class MatchedMasterlistCommand extends Command
 
             Team::withTrashed()->updateOrCreate([
                 'sport_id'       => $sportId,
-                'name'           => $team1,
+                'name'           => $row->home,
                 'provider_id'    => $providerId,
                 'master_team_id' => $matchedHomeTeamId
             ], [
@@ -108,7 +108,7 @@ class MatchedMasterlistCommand extends Command
 
             $masterTeam2 = MasterTeam::withTrashed()->updateOrCreate([
                 'sport_id' => $sportId,
-                'name'     => $row->away,
+                'name'     => $team2,
             ], [
                 'deleted_at' => null
             ]);
@@ -117,7 +117,7 @@ class MatchedMasterlistCommand extends Command
 
             Team::withTrashed()->updateOrCreate([
                 'sport_id'       => $sportId,
-                'name'           => $team2,
+                'name'           => $row->away,
                 'provider_id'    => $providerId,
                 'master_team_id' => $matchedAwayTeamId
             ], [
