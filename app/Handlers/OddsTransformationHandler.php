@@ -58,16 +58,10 @@ class OddsTransformationHandler
 
             /** DATABASE TABLES */
             /** LOOK-UP TABLES */
-            $providersTable                           = $swoole->providersTable;
-            $sportsTable                              = $swoole->sportsTable;
-            $leaguesTable                             = $swoole->leaguesTable;
-            $teamsTable                               = $swoole->teamsTable;
             $eventsTable                              = $swoole->eventsTable;
             $oddTypesTable                            = $swoole->oddTypesTable;
             $sportOddTypesTable                       = $swoole->sportOddTypesTable;
             $eventMarketsTable                        = $swoole->eventMarketsTable;
-            $leagueLookUpTable                        = $swoole->leagueLookUpTable;
-            $teamLookUpTable                          = $swoole->teamLookUpTable;
             $eventScheduleChangeTable                 = $swoole->eventScheduleChangeTable;
 
             list('providerId'       => $providerId,
@@ -75,7 +69,6 @@ class OddsTransformationHandler
                 'multiLeagueId'     => $multiLeagueId,
                 'masterLeagueName'  => $masterLeagueName,
                 'multiTeam'         => $multiTeam,
-                'isLeagueSelected'  => $isLeagueSelected,
                 'leagueId'          => $leagueId) = $this->internalParameters;
 
             if (!empty($masterLeagueName) && !empty($multiTeam) && count($multiTeam) == 2) {
@@ -98,7 +91,7 @@ class OddsTransformationHandler
                 $doesExist = false;
                 foreach ($eventsTable as $key => $value) {
                     if (
-                        $sportId == $value['sport_id'] && 
+                        $sportId == $value['sport_id'] &&
                         $multiTeam['home']['id'] == $value['master_team_home_id'] &&
                         $multiTeam['away']['id'] == $value['master_team_away_id'] &&
                         $this->message->data->schedule == $value['game_schedule']
@@ -365,7 +358,7 @@ class OddsTransformationHandler
 
             if (!empty($subTasks['event'])) {
                 Log::info('Transformation - finished, continue to saving');
-                    Task::deliver(new TransformKafkaMessageOddsSaveToDb($subTasks, $uid, $this->dbOptions));
+                Task::deliver(new TransformKafkaMessageOddsSaveToDb($subTasks, $uid, $this->dbOptions));
             }
         } catch (Exception $e) {
             Log::error($e->getMessage());

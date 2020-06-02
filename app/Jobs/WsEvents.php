@@ -14,7 +14,7 @@ use App\Models\{
 };
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
-use Illuminate\Support\Facades\{DB, Log};
+use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
 
 class WsEvents implements ShouldQueue
@@ -34,9 +34,6 @@ class WsEvents implements ShouldQueue
             $server    = app('swoole');
             $fd        = $server->wsTable->get('uid:' . $this->userId);
 
-            $providerPriority        = 0;
-            $providersTable          = $server->providersTable;
-            $userProviderConfigTable = $server->userProviderConfigTable;
             $topicTable              = $server->topicTable;
 
             $providerId = Provider::where('is_enabled', true)->orderBy('priority', 'asc')->first()->id;

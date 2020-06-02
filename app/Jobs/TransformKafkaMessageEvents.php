@@ -144,7 +144,13 @@ class TransformKafkaMessageEvents implements ShouldQueue
 
             $activeEventsTable->set($activeEventsSwtId, ['events' => json_encode($this->message->data->event_ids)]);
         } catch (Exception $e) {
-            Log::error($e->getMessage());
+            Log::error(json_encode(
+                [
+                    'message' => $e->getMessage(),
+                    'line'    => $e->getLine(),
+                    'file'    => $e->getFile(),
+                ]
+            ));
         }
     }
 }

@@ -3,7 +3,6 @@
 namespace App\Handlers;
 
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Str;
 use Hhxsv5\LaravelS\Swoole\Task\Task;
 use App\Tasks\TransformKafkaMessageOdds;
 use Exception;
@@ -13,10 +12,6 @@ class OddsValidationHandler
     protected $message;
     protected $updated   = false;
     protected $uid       = null;
-    protected $dbOptions = [
-        'event-only'   => true,
-        'is-event-new' => true
-    ];
 
     protected $disregard = [
         'No. of Corners',
@@ -51,7 +46,6 @@ class OddsValidationHandler
     {
         try {
             $swoole                                   = app('swoole');
-            $toInsert                                 = [];
             $subTasks['remove-previous-market']       = [];
 
             /** DATABASE TABLES */
@@ -60,12 +54,6 @@ class OddsValidationHandler
             $sportsTable                              = $swoole->sportsTable;
             $leaguesTable                             = $swoole->leaguesTable;
             $teamsTable                               = $swoole->teamsTable;
-            $eventsTable                              = $swoole->eventsTable;
-            $oddTypesTable                            = $swoole->oddTypesTable;
-            $eventMarketsTable                        = $swoole->eventMarketsTable;
-            $leagueLookUpTable                        = $swoole->leagueLookUpTable;
-            $teamLookUpTable                          = $swoole->teamLookUpTable;
-            $eventScheduleChangeTable                 = $swoole->eventScheduleChangeTable;
 
             if (!isset($this->message->data->events)) {
                 Log::info("Transformation ignored - No Event Found");
@@ -189,10 +177,10 @@ class OddsValidationHandler
             }
 
             if ($isLeagueSelected) {
-                $oddsTransformationHandler = new OddsTransformationHandler($this->message, compact('providerId', 'sportId', 'multiLeagueId', 'masterLeagueName', 'multiTeam', 'isLeagueSelected', 'leagueId'));
+                $oddsTransformationHandler = new OddsTransformationHandler($this->message, compact('providerId', 'sportId', 'multiLeagueId', 'masterLeagueName', 'multiTeam', 'leagueId'));
                 $oddsTransformationHandler->handle();
             } else {
-                Task::deliver(new TransformKafkaMessageOdds($this->message, compact('providerId', 'sportId', 'multiLeagueId', 'masterLeagueName', 'multiTeam', 'isLeagueSelected', 'leagueId')));
+                Task::deliver(new TransformKafkaMessageOdds($this->message, compact('providerId', 'sportId', 'multiLeagueId', 'masterLeagueName', 'multiTeam', 'leagueId')));
             }
         } catch (Exception $e) {
             Log::error($e->getMessage());

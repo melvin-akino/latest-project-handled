@@ -6,9 +6,7 @@ use App\Models\{
     EventMarket,
     Events,
     MasterEvent,
-    MasterEventLink,
     MasterEventMarket,
-    MasterEventMarketLink,
     MasterEventMarketLog,
     MasterLeague,
     Game
@@ -16,15 +14,14 @@ use App\Models\{
 
 use Exception;
 use Illuminate\Support\Facades\{DB, Log};
-use Hhxsv5\LaravelS\Swoole\Task\Task;
 
 class OddsSaveToDbHandler
 {
     protected $message;
     protected $swoole;
-    protected $subTasks  = [];
-    protected $updated   = false;
-    protected $uid       = null;
+    protected $subTasks = [];
+    protected $updated = false;
+    protected $uid = null;
     protected $dbOptions = [
         'event-only'          => true,
         'is-event-new'        => true,
@@ -57,7 +54,6 @@ class OddsSaveToDbHandler
         $this->updatedOddsData      = $this->subTasks['updated-odds'] ?? [];
         $this->removeEventMarket    = $this->subTasks['remove-event-market'] ?? [];
         $this->removePreviousMarket = $this->subTasks['remove-previous-market'] ?? [];
-        $previousMarkets            = [];
 
         try {
             DB::beginTransaction();
@@ -66,7 +62,7 @@ class OddsSaveToDbHandler
                 $this->eventRawData['Event']['data']['event_identifier'])->first();
             if ($event && $event->game_schedule != $this->eventData['MasterEvent']['data']['game_schedule']) {
                 EventMarket::where('event_id', $event->event_id)
-                    ->delete();
+                           ->delete();
             }
 
             $masterEventModel = MasterEvent::withTrashed()->updateOrCreate([
@@ -84,16 +80,16 @@ class OddsSaveToDbHandler
                     if (!empty($this->eventMarketsData)) {
                         foreach ($this->eventMarketsData as $eventMarket) {
                             $eventMarket['MasterEventMarket']['data']['master_event_id'] = $masterEventModel->id;
-                            $masterEventMarketModel = MasterEventMarket::updateOrCreate([
+                            $masterEventMarketModel                                      = MasterEventMarket::updateOrCreate([
                                 'master_event_market_unique_id' => $eventMarket['MasterEventMarket']['data']['master_event_market_unique_id']
                             ], $eventMarket['MasterEventMarket']['data']);
 
                             if ($masterEventMarketModel) {
                                 $masterEventMarketId = $masterEventMarketModel->id;
 
-                                $eventMarket['EventMarket']['data']['event_id'] = $eventModel->id;
+                                $eventMarket['EventMarket']['data']['event_id']               = $eventModel->id;
                                 $eventMarket['EventMarket']['data']['master_event_market_id'] = $masterEventMarketId;
-                                $eventMarketModel = EventMarket::withTrashed()->updateOrCreate(
+                                EventMarket::withTrashed()->updateOrCreate(
                                     [
                                         'bet_identifier' => $eventMarket['EventMarket']['data']['bet_identifier'],
                                         'event_id'       => $eventMarket['EventMarket']['data']['event_id']
@@ -162,8 +158,8 @@ class OddsSaveToDbHandler
             }
 
             if (!empty($this->removePreviousMarket)) {
-                foreach ($this->removePreviousMarket AS $prevMarket) {
-                    foreach ($this->swoole->eventMarketsTable AS $emKey => $emRow) {
+                foreach ($this->removePreviousMarket as $prevMarket) {
+                    foreach ($this->swoole->eventMarketsTable as $emKey => $emRow) {
                         if (strpos($emKey, $prevMarket['swtKey']) === 0) {
                             $this->swoole->eventMarketsTable->del($emKey);
                         }
