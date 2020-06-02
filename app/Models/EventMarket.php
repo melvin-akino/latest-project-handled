@@ -41,7 +41,7 @@ class EventMarket extends Model
                 ->where('em.odd_type_id', $eventMarket->odd_type_id)
                 ->where('em.odd_label', $eventMarket->odd_label)
                 ->where('em.market_flag', $eventMarket->market_flag)
-                ->select('em.bet_identifier', 'p.alias', 'e.sport_id', 'me.game_schedule', 'e.event_identifier')
+                ->select('em.bet_identifier', 'p.alias', 'e.sport_id', 'me.game_schedule', 'e.event_identifier', 'em.odds')
                 ->distinct()
                 ->get();
     }

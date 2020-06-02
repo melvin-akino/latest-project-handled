@@ -71,6 +71,7 @@ class WsMinMax implements ShouldQueue
                         'sport'     => $eventMarket->sport_id,
                         'event_id'  => (string) $eventMarket->event_identifier,
                         'schedule'  => $eventMarket->game_schedule,
+                        'odds'      => $eventMarket->odds
                     ];
 
                     Log::info('Min Max Initial Request');
