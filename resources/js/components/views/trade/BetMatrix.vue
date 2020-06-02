@@ -134,9 +134,13 @@ export default {
                         var color = ''
                         if(type == 'HDP') {
                             if(bet_team == 'HOME') {
-                                var difference = (points + (home_team_counter + home_score_on_bet + away_score_on_bet)) - (away_team_counter + away_score_on_bet + home_score_on_bet)
+                                var score_on_bet = points < 0 ? home_score_on_bet * -1 : home_score_on_bet
+                                var hdp = points + score_on_bet;
+                                var difference = (hdp + (home_team_counter + home_score_on_bet)) - (away_team_counter + home_score_on_bet - away_score_on_bet)
                             } else {
-                                var difference = (points + (away_team_counter + away_score_on_bet + home_score_on_bet)) - (home_team_counter + home_score_on_bet + away_score_on_bet)
+                                var score_on_bet = points < 0 ? away_score_on_bet * -1 : away_score_on_bet
+                                var hdp = points + score_on_bet;
+                                var difference = (hdp + (away_team_counter + away_score_on_bet)) - (home_team_counter + away_score_on_bet - home_score_on_bet)
                             }
 
                             if(difference > 0.25) {
@@ -174,6 +178,7 @@ export default {
 
                         if(away_team_counter < this.matrix_data.away_score || home_team_counter < this.matrix_data.home_score) {
                             var color = 'grey'
+                            var result = ''
                         }
 
                         if(typeof(this.matrix_table[home_team_counter])=="undefined") {
@@ -277,6 +282,7 @@ export default {
 
     .grey {
         background-color: #aaaaaa;
+        height: 31px;
     }
 
     .white {

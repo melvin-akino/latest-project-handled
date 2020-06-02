@@ -28,7 +28,7 @@ class SystemConfigurationRequest extends FormRequest
         return [
             'id'    => 'required',
             'type'  => 'required',
-            'value' => 'required|numeric'
+            'value' => 'required'
         ];
     }
 
