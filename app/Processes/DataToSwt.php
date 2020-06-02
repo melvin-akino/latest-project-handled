@@ -268,7 +268,7 @@ class DataToSwt implements CustomProcessInterface
         $activeEvents      = $swoole->activeEventsTable;
         $activeEventsArray = [];
         array_map(function ($event) use ($activeEvents, &$activeEventsArray) {
-            $activeEventsArray[$event->sport_id][$event->provider_id][$event->game_schedule][] = $event->event_identifier;
+            $activeEventsArray[$event->sport_id][$event->provider_id][$event->game_schedule][] = (string) $event->event_identifier;
             $activeEvents->set('sId:' . $event->sport_id . ':pId:' . $event->provider_id . ':schedule:' . $event->game_schedule,
                 ['events' => json_encode($activeEventsArray[$event->sport_id][$event->provider_id][$event->game_schedule])]);
         }, $events->toArray());

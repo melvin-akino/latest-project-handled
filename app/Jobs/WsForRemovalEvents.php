@@ -44,15 +44,16 @@ class WsForRemovalEvents implements ShouldQueue
             $data = [];
             foreach ($this->data as $eventIdentifier) {
                 $event = Events::where('event_identifier', $eventIdentifier)->first();
-                $masterEvent = MasterEvent::find($event->master_event_id);
-                if ($event && $this->providerId == $providerId) {
-                    if ($masterEvent) {
-                        UserWatchlist::where('master_event_id', $event->master_event_id)->delete();
-                        MasterEvent::where('id', $event->master_event_id)->delete();
-                        $data[] = $masterEvent->master_event_unique_id;
-                    }
-                }
                 if ($event) {
+                    $masterEvent = MasterEvent::find($event->master_event_id);
+                    if ($masterEvent && $this->providerId == $providerId) {
+                        if ($masterEvent) {
+                            UserWatchlist::where('master_event_id', $event->master_event_id)->delete();
+                            MasterEvent::where('id', $event->master_event_id)->delete();
+                            $data[] = $masterEvent->master_event_unique_id;
+                        }
+                    }
+
                     $event->delete();
                 }
             }
@@ -66,7 +67,13 @@ class WsForRemovalEvents implements ShouldQueue
             }
             Log::info("For Removal Event - Processed");
         } catch (Exception $e) {
-            Log::error($e->getMessage());
+            Log::error(json_encode(
+                [
+                    'message' => $e->getMessage(),
+                    'line'    => $e->getLine(),
+                    'file'    => $e->getFile(),
+                ]
+            ));
         }
     }
 }
