@@ -3,6 +3,9 @@
 namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\Redis;
+use App\Models\{Currency, ExchangeRate, SystemConfiguration};
+use App\Models\CRM\ProviderAccount;
 use Exception;
 use Mail;
 
@@ -22,8 +25,6 @@ class StartKafaBalanceMonitoring extends Command
      */
     protected $description = 'This will start a Kafka balance monitoring tool and send email base from threshold';
 
-    
-    protected $threshold = 3000;
     /**
      * Create a new command instance.
      *
@@ -34,28 +35,86 @@ class StartKafaBalanceMonitoring extends Command
         parent::__construct();
     }
 
+    public function redisCheck($username, $provider, $currency, $balance)
+    {
+        $return          = true;
+        $redisTopic      = env('REDIS_TOOL_BALANCE', 'REDIS-MON-TOOL-BALANCE');
+        $redisExpiration = env('REDIS_TOOL_BALANCE_EXPIRE', 3600);
+        
+        $redisSmember = $username. '-' .$provider. '-' .$currency;
+        $members  = Redis::sadd($redisTopic, $redisSmember);
+        $ttl     = Redis::ttl($redisTopic);
+
+        if ($ttl < 0) Redis::expire($redisTopic, $redisExpiration);
+        $isRecord = Redis::hget($redisSmember, 'balance');
+       
+        if ($isRecord) $return = false;
+
+        Redis::hmset($redisSmember, 'balance', $balance); 
+        $ttl  = Redis::ttl($redisSmember);
+        if ($ttl < 0) Redis::expire($redisSmember, $redisExpiration);
+
+        return $return;
+
+    }
     
     public function message($message)
     {
         try {
+          
             $threshold  = env('PROVIDER_THRESHOLD', 3000);
             $payload    = json_decode($message->payload);
+            if (count((array)$payload->data)==0) return; 
+
             $provider   = $payload->data->provider;
             $username   = $payload->data->username;
             $balance    = $payload->data->available_balance;
-            $currency   = $payload->data->currency;
-            if ( (!empty($provider)) && (!empty($username)) && ((float)$balance <= $threshold) ) {
+            $currency   = $payload->data->currency; 
+
+            $shouldEmail  = $this->redisCheck($username, $provider, $currency, $balance);
+            $baseCurrency = Currency::where('code', 'CNY')->first();
+            $currencyCode = $baseCurrency->code;
+
+            if ((strtoupper($currency) != strtoupper($currencyCode))) {
+            
+                $providerCurrency = Currency::where('code', $currency)->first();
+                if ($providerCurrency) {
+                    $exchangeRate = ExchangeRate::where('from_currency_id', $baseCurrency->id)
+                        ->where('to_currency_id', $providerCurrency->id)
+                        ->first();
+                    $balance = $balance * $exchangeRate->exchange_rate;
+
+                }   
+            }
+            $providerUser = ProviderAccount::where('username',$username)->where('is_enabled', true)->first();
+
+            if ($providerUser) {
+                $type = $providerUser->type;
+                $thresholdType = $type =='BET_NORMAL' ? 'BET_NORMAL_THRESHOLD' : 'BET_VIP_THRESHOLD';
+                $threshold = SystemConfiguration::where('type', $thresholdType)->first()->value;
+            }
+
+
+            if ( (!empty($provider)) && (!empty($username)) && ((float)$balance <= (float)$threshold )) {
+            
                 $data = ['provider'  => $provider,
                          'username'  => $username,
                          'balance'   => $balance,
                          'currency'  => $currency,
                          'threshold' => $threshold   
                         ];
-                $emails = explode(",", env('MAIL_TO_BALANCE_PROVIDER'));
-                Mail::send('mail.balance-provider-threshold', $data, function($message) use ($emails) {
-                    $message->to($emails)->subject('Provider account in threshold');         
-                    }
-                );
+
+                if ($shouldEmail) {
+                   
+                    $configuration = SystemConfiguration::where('type', 'PROVIDER_THRESHOLD_SEND_EMAIL_TO')->first();
+                    $emails = $configuration->value;
+                    $emails = explode(",",$emails);
+                    Mail::send('mail.balance-provider-threshold', $data, function($message) use ($emails) {
+                        $message->to($emails)->subject('Provider account in threshold');         
+                        }
+
+                    );
+                }  
             }
 
             
