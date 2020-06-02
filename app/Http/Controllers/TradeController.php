@@ -197,6 +197,16 @@ Log::debug(json_encode($masterEventUniqueIds));
     {
         try {
             /** Get Authenticated User's Default Initial Sport : Last Sport visited */
+            $userProvider = UserProviderConfiguration::where('user_id', auth()->user()->id)
+                ->join('providers', 'provider_id', 'providers.id');
+            if ($userProvider->exists()) {
+                $userProvider = $userProvider->where('active', true)->orderBy('priority', 'ASC');
+                $userProvider = $userProvider->first()->provider_id;
+            } else {
+                $userProvider = Provider::where('is_enabled', true)->orderBy('priority', 'ASC');
+                $userProvider = $userProvider->first()->id;
+            }
+
             $data         = getUserDefault(auth()->user()->id, 'sport');
             $dataSchedule = [
                 'inplay' => [],
@@ -205,7 +215,7 @@ Log::debug(json_encode($masterEventUniqueIds));
             ];
 
             foreach ($dataSchedule as $key => $sched) {
-                $leaguesQuery = MasterLeague::getLeaguesBySportAndGameShedule($data['default_sport'], $key);
+                $leaguesQuery = MasterLeague::getLeaguesBySportAndGameShedule($data['default_sport'], $userProvider, $key);
 
                 foreach ($leaguesQuery as $league) {
                     $dataSchedule[$key][$league->master_league_name] = [
