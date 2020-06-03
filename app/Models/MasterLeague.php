@@ -41,6 +41,7 @@ class MasterLeague extends Model
                     ->where('master_leagues.sport_id', $sportId)
                     ->whereNull('master_leagues.deleted_at')
                     ->whereNull('master_events.deleted_at')
+                    ->whereNull('events.deleted_at')
                     ->where('master_events.game_schedule', $gameSchedule)
                     ->where('events.provider_id', $providerId)
                     ->groupBy('master_leagues.name')
