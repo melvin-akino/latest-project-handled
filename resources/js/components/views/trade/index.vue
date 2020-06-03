@@ -381,6 +381,8 @@ export default {
         }
     },
     beforeRouteLeave(to, from, next) {
+        this.$store.commit('trade/SET_IS_LOADING_LEAGUES', true)
+        this.$store.commit('trade/SET_IS_LOADING_EVENTS', true)
         this.$store.commit('trade/CLEAR_EVENTS')
         this.$store.commit('trade/CLEAR_EVENTS_LIST')
         this.$store.commit('trade/CLEAR_ALL_EVENTS_LIST')

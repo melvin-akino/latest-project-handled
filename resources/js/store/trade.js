@@ -204,11 +204,11 @@ const mutations = {
     SET_WALLET: (state, data) => {
         state.wallet = data
     },
-    SET_IS_LOADING_LEAGUES: (state) => {
-        state.isLoadingLeagues = false
+    SET_IS_LOADING_LEAGUES: (state, data) => {
+        state.isLoadingLeagues = data
     },
-    SET_IS_LOADING_EVENTS: (state) => {
-        state.isLoadingEvents = false
+    SET_IS_LOADING_EVENTS: (state, data) => {
+        state.isLoadingEvents = data
     }
 }
 
