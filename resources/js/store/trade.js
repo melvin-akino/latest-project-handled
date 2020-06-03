@@ -113,6 +113,11 @@ const mutations = {
     REMOVE_FROM_PREVIOUSLY_SELECTED_EVENT_LIST: (state, data) => {
         state.previouslySelectedEvents = state.previouslySelectedEvents.filter(uid => uid != data)
     },
+    CLEAR_EVENTS: (state) => {
+        Object.keys(state.events).map(key => {
+            state.events[key] = {}
+        })
+    },
     CLEAR_EVENTS_LIST: (state, event) => {
         state.eventsList = []
     },
@@ -247,6 +252,7 @@ const actions = {
         .then(response => {
             if(response.data.sport_id == state.selectedSport) {
                 commit('SET_LEAGUES', response.data.data)
+                Vue.prototype.$socket.send(`getSelectedLeagues_${state.selectedSport}`)
             }
             commit('SET_IS_LOADING_LEAGUES', false)
         })

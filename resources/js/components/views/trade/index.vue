@@ -381,6 +381,7 @@ export default {
         }
     },
     beforeRouteLeave(to, from, next) {
+        this.$store.commit('trade/CLEAR_EVENTS')
         this.$store.commit('trade/CLEAR_EVENTS_LIST')
         this.$store.commit('trade/CLEAR_ALL_EVENTS_LIST')
         next()
