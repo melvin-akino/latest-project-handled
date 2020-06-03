@@ -114,9 +114,7 @@ class TransformKafkaMessageOpenOrders implements ShouldQueue
 
                         $ordersTable->del($_key);
                     } else {
-                        $uid = explode('-', $this->data->request_uid);
-
-                        if (!empty($betId) && ($orderId == end($uid)) && empty($orderData->bet_id)) {
+                        if (!empty($betId) && empty($orderData->bet_id)) {
                             if (strtoupper($order->status) != strtoupper($orderData->status)) {
                                 $ordersTable[$_key]['status'] = strtoupper($order->status);
 
