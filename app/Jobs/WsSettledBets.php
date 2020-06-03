@@ -2,7 +2,14 @@
 
 namespace App\Jobs;
 
-use App\Models\{UserWallet, Order, OrderLogs, UserWallet, ExchangeRate, Source, OrderTransaction};
+use App\Models\{
+    Order,
+    OrderLogs,
+    UserWallet,
+    ExchangeRate,
+    Source,
+    OrderTransaction
+};
 
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
