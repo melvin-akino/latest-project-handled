@@ -171,7 +171,7 @@ class Game extends Model
                         'ot.type',
                         'em.odds',
                         'em.odd_label',
-                        'em.provider_id',
+                        'e.provider_id',
                         'em.bet_identifier',
                     ])
                     ->distinct()->get();
@@ -182,7 +182,7 @@ class Game extends Model
         return DB::table('master_leagues as ml')
                     ->join('sports as s', 's.id', 'ml.sport_id')
                     ->join('master_events as me', 'me.master_league_id', 'ml.id')
-                    ->join('events', 'events.master_event_id', 'me.id')
+                    ->join('events as e', 'e.master_event_id', 'me.id')
                     ->join('master_teams as mth', 'mth.id', 'me.master_team_home_id')
                     ->join('master_teams as mta', 'mta.id', 'me.master_team_away_id')
                     ->join('master_event_markets as mem', 'mem.master_event_id', 'me.id')
@@ -193,7 +193,7 @@ class Game extends Model
                     ->whereNull('me.deleted_at')
                     ->whereNull('ml.deleted_at')
                     ->where('mem.is_main', true)
-                    ->where('events.provider_id', $providerId)
+                    ->where('e.provider_id', $providerId)
                     ->select([
                         'ml.sport_id',
                         'ml.name as master_league_name',
@@ -214,7 +214,7 @@ class Game extends Model
                         'ot.type',
                         'em.odds',
                         'em.odd_label',
-                        'em.provider_id',
+                        'e.provider_id',
                         'em.bet_identifier',
                     ])
                     ->distinct()->get();
