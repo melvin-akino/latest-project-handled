@@ -140,4 +140,40 @@ class Order extends Model
                 ->orderBy('o.created_at', 'desc')
                 ->get();
     }
+
+    public static function getProviderAccountTransactions($providerAccountId)
+    {
+        return DB::table('orders')
+            ->join('providers', 'providers.id', 'orders.provider_id')
+            ->join('master_event_markets AS mem', 'mem.id', 'orders.master_event_market_id')
+            ->join('master_events AS me', 'me.id', 'mem.master_event_id')
+            ->join('odd_types AS ot', 'ot.id', 'mem.odd_type_id')
+            ->select(
+                [
+                    'orders.id',
+                    'orders.bet_id',
+                    'orders.bet_selection',
+                    'orders.odds',
+                    'mem.master_event_market_unique_id',
+                    'orders.stake',
+                    'orders.to_win',
+                    'orders.created_at',
+                    'orders.settled_date',
+                    'orders.profit_loss',
+                    'orders.status',
+                    'orders.odd_label',
+                    'orders.reason',
+                    'me.master_event_unique_id',
+                    'me.score',
+                    'ot.id AS odd_type_id',
+                    'providers.alias',
+                    'ml_bet_identifier',
+                ]
+            )
+            ->where('provider_account_id', $providerAccountId)
+            ->whereNotIn('status', ['PENDING', 'FAILED'])
+            ->orderBy('orders.created_at', 'desc')
+            ->get()
+            ->toArray();
+    }
 }

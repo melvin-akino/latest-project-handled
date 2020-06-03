@@ -32,12 +32,13 @@ Route::get('/prometheus_GGT8', 'PrometheusController@index');
         Route::get('provider_accounts/{id}', 'ProviderAccountsController@index')->name('provider.accounts');
         Route::get('provider_accounts/delete/{id}', 'ProviderAccountsController@softDelete')->name('provider_accounts.softdelete');
         Route::post('provider_accounts/manage', 'ProviderAccountsController@manage')->name('provider_accounts.manage');
+        Route::get('provider_accounts/transactions/{providerAccountId}', 'OrdersController@providerAccountTransactions')->name('provider_accounts.transactions');
 
         /*System Configurations Routes*/
         Route::get('system_configurations', 'SystemConfigurationsController@index')->name('system_configurations');
         Route::get('system_configurations/all', 'SystemConfigurationsController@all')->name('system_configurations.all');
         Route::post('system_configurations/manage', 'SystemConfigurationsController@manage')->name('system_configurations.manage');
-        Route::get('system_configurations/list', 'SystemConfigurationsController@list')->name('system_configurations.list');
+        Route::get('system_configurations/list', 'SystemConfigurationsController@list')->name('system_configurations.list');        
 
          /* Wallet route */
     	Route::namespace('Wallet')->prefix('wallet')->group(function () {

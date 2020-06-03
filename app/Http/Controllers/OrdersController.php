@@ -759,4 +759,23 @@ class OrdersController extends Controller
 
         return bcadd($mt[1], $mt[0], 8);
     }
+
+    public function providerAccountTransactions(int $providerAccountId) {
+        try  {
+            $data = Order::getProviderAccountTransactions($providerAccountId);
+
+            return response()->json([
+                'status'      => true,
+                'status_code' => 200,
+                'data'        => $data,
+            ], 200);
+        } catch (Exception $e) {
+            Log::error($e->getMessage());
+            return response()->json([
+                'status'      => false,
+                'status_code' => 500,
+                'message'     => trans('generic.internal-server-error')
+            ], 500);
+        }
+    }
 }

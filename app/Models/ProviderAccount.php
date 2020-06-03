@@ -30,9 +30,4 @@ class ProviderAccount extends Model
     {
         return $this->belongsTo('App\Models\Provider');
     }
-
-    public static function getProviderAccounts($providerId) 
-    {
-    	return self::where('provider_id', $providerId)->get()->toArray();
-    }
 }
