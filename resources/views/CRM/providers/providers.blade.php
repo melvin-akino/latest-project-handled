@@ -62,6 +62,7 @@
     </div>
     @include('CRM.providers.manage')
     @include('CRM.provider_accounts.manage')
+    @include('CRM.provider_accounts.transactions')
 @endsection
 
 @section('styles')
@@ -280,7 +281,7 @@
                             },
                             { 
                                 "data": null, 
-                                "defaultContent": "<button class='edit-pa-modal btn btn-info'><span class='glyphicon glyphicon-edit'></span> Edit</button> <button class='delete-pa-modal btn btn-danger'><span class='glyphicon glyphicon-remove'></span> Delete</button>",
+                                "defaultContent": "<button class='edit-pa-modal btn btn-info'><span class='glyphicon glyphicon-edit'></span> Edit</button> <button class='delete-pa-modal btn btn-danger'><span class='glyphicon glyphicon-remove'></span> Delete</button> <button class='view-pa-modal btn btn-info'><span class='glyphicon glyphicon-edit'></span> Transactions</button>",
                                 "orderable": false 
                             }
                         ],
@@ -379,6 +380,37 @@
                             }
                         });
                                                        
+                    });
+
+                    //Clicking this will open the manage provider interace with pre-set data from the databale
+                    $('#child_details'+index+' tbody').on('click', 'button.view-pa-modal', function () {
+                        var pa_tr = $(this).closest('tr');
+                        var providerAccountId = $(this).closest('tr').attr('id').replace('provider-account-id-', '');
+                        $('#modal-manage-provider-accounts').modal('show');
+                        //Construct the table now to be displayed in the tables
+                        $('#ProviderAccountTransactions').DataTable({
+                            autoWidth : true,
+                            ajax: function (data, callback, settings) {
+                                $.ajax({
+                                    url: "provider_accounts/transactions" + providerAccountId, 
+                                }).then ( function(json) {
+                                    var data = json.data;
+                                     callback({data: display});               
+                                });
+                            },
+                            columns: [
+                                { "data": "bet_id" },
+                                { "data": "bet_selection" },
+                                { "data": "odds" },
+                                { "data": "actual_stake" },
+                                { "data": "actual_towin" },
+                                { "data": "created_at" },
+                                { "data": "settled_date" },
+                                { "data": "status" },
+                            ],
+                            destroy: true
+                        });
+
                     });
 
                     tr.addClass('shown');

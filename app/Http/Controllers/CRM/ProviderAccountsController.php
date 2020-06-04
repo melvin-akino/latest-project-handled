@@ -4,7 +4,7 @@ namespace App\Http\Controllers\CRM;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\CRM\ProviderAccountRequest;
-use App\Models\{ProviderAccount, SystemConfiguration};
+use App\Models\{ProviderAccount, SystemConfiguration, Order};
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -114,6 +114,25 @@ class ProviderAccountsController extends Controller
             ], 200);
         }
         catch (Exception $e) {
+            return response()->json([
+                'status'      => false,
+                'status_code' => 500,
+                'message'     => trans('generic.internal-server-error')
+            ], 500);
+        }
+    }
+
+    public function providerAccountTransactions(int $providerAccountId) {
+        try  {
+            $data = Order::getProviderAccountTransactions($providerAccountId);
+
+            return response()->json([
+                'status'      => true,
+                'status_code' => 200,
+                'data'        => $data,
+            ], 200);
+        } catch (Exception $e) {
+            Log::error($e->getMessage());
             return response()->json([
                 'status'      => false,
                 'status_code' => 500,
