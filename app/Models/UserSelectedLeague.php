@@ -25,18 +25,22 @@ class UserSelectedLeague extends Model
     {
         return DB::table('user_selected_leagues as usl')
                     ->join('master_leagues as ml', 'ml.id', 'usl.master_league_id')
-                    ->where('usl.sport_id', $this->sportId)
+                    ->where('usl.sport_id', $sportId)
                     ->where('ml.name', $filters['name'])
                     ->where('usl.game_schedule', $filters['schedule'])
                     ->first();
     }
 
-    public static function getSelectedLeagueByUserId(int $userId)
+    public static function getSelectedLeagueByUserId(int $userId, int $providerId)
     {
         return DB::table('user_selected_leagues as usl')
                 ->join('master_leagues as ml', 'ml.id', 'usl.master_league_id')
+                ->join('master_events as me', 'ml.id', 'me.master_league_id')
+                ->join('events as e', 'me.id', 'e.master_event_id')
                 ->where('user_id', $userId)
+                ->where('e.provider_id', $providerId)
                 ->select('usl.game_schedule', 'ml.name as master_league_name')
+                ->distinct()
                 ->get();
     }
 }

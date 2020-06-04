@@ -3,7 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-
+use App\Models\UserProviderConfiguration;
 class Provider extends Model
 {
     protected $table = 'providers';
@@ -44,5 +44,19 @@ class Provider extends Model
         if ($query->exists()) {
             return $query->first()->id;
         }
+    }
+
+    public static  function getMostPriorityProvider(int $userId)
+    {
+        $userProvider = UserProviderConfiguration::where('user_id', $userId)
+            ->join('providers', 'provider_id', 'providers.id');
+        if ($userProvider->exists()) {
+            $userProvider = $userProvider->where('active', true)->orderBy('priority', 'ASC');
+            $userProvider = $userProvider->first()->provider_id;
+        } else {
+            $userProvider = self::where('is_enabled', true)->orderBy('priority', 'ASC');
+            $userProvider = $userProvider->first()->id;
+        }
+        return $userProvider;
     }
 }
