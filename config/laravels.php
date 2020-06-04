@@ -352,13 +352,14 @@ return [
         ],
         'minMaxRequests'      => [
             'size'   => 10000,
-            'column' => [ // KEY FORMAT: [memUID:$memUID]
+            'column' => [ // KEY FORMAT: [mId:$marketId:memUID:$memUID]
                 ['name' => 'provider', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 5],
                 ['name' => 'market_id', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 50],
                 ['name' => 'sport', 'type' => \Swoole\Table::TYPE_INT],
                 ['name' => 'schedule', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 10],
                 ['name' => 'event_id', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 30],
                 ['name' => 'odds', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 20],
+                ['name' => 'memUID', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 30],
             ],
         ],
         'exchangeRates'       => [

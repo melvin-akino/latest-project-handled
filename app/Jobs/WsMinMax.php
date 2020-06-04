@@ -47,13 +47,14 @@ class WsMinMax implements ShouldQueue
 
             if ($eventMarkets) {
                 foreach ($eventMarkets as $eventMarket) {
-                    $minMaxRequestsTable->set('memUID:' . $this->master_event_market_unique_id, [
+                    $minMaxRequestsTable->set('mId:' . $eventMarket->bet_identifier . '"memUID:' . $this->master_event_market_unique_id, [
                         'provider'  => strtolower($eventMarket->alias),
                         'market_id' => $eventMarket->bet_identifier,
                         'sport'     => $eventMarket->sport_id,
                         'schedule'  => $eventMarket->game_schedule,
                         'event_id'  => $eventMarket->event_identifier,
-                        'odds'      => $eventMarket->odds
+                        'odds'      => $eventMarket->odds,
+                        'memUID'    => $this->master_event_market_unique_id
                     ]);
                     PrometheusMatric::MakeMatrix('swoole_table_total', 'Swoole minMaxRequestsTable total ', 'minMaxRequestsTable');
 

@@ -38,12 +38,10 @@ class TransformKafkaMessageMinMax implements ShouldQueue
             $minmaxMarketTable->set('minmax-market:' . $this->data->data->market_id, [
                 'value' => $this->data->data->timestamp
             ]);
-
             foreach ($minMaxRequests AS $key => $row) {
                 $data = $this->data->data;
                 if ($row['market_id'] == $data->market_id) {
-                    $memUID = substr($key, strlen('memUID:'));
-
+                    $memUID = $row['memUID'];
                     foreach ($topics AS $_key => $_row) {
                         if (strpos($_row['topic_name'], 'min-max-' . $memUID) === 0) {
                             $userId = explode(':', $_key)[1];
