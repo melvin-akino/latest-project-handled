@@ -203,7 +203,7 @@ Log::debug(json_encode($masterEventUniqueIds));
                 'today'  => [],
                 'early'  => []
             ];
-            $providerId = getMostPriorityProvider(auth()->user()->id);
+            $providerId = Provider::getMostPriorityProvider(auth()->user()->id);
 
             foreach ($dataSchedule as $key => $sched) {
                 $leaguesQuery = MasterLeague::getLeaguesBySportAndGameShedule($data['default_sport'], $providerId, $key);

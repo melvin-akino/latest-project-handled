@@ -5,7 +5,10 @@ namespace App\Jobs;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Support\Facades\DB;
-use App\Models\UserSelectedLeague;
+use App\Models\{
+    UserSelectedLeague,
+    Provider
+};
 
 class WsSelectedLeagues implements ShouldQueue
 {
@@ -21,7 +24,7 @@ class WsSelectedLeagues implements ShouldQueue
     {
         $server = app('swoole');
         $fd = $server->wsTable->get('uid:' . $this->userId);
-        $providerId = getMostPriorityProvider($this->userId);
+        $providerId = Provider::getMostPriorityProvider($this->userId);
         $leagues = [];
         $userSelectedLeagues = UserSelectedLeague::getSelectedLeagueByUserId($this->userId, $providerId);
         array_map(function($userSelectedLeague) use (&$leagues) {

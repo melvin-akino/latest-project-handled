@@ -28,8 +28,7 @@ use App\Models\{
     UserConfiguration,
     UserWallet,
     Source,
-    Order,
-    UserProviderConfiguration
+    Order
 };
 use App\Models\CRM\{
     OrderTransaction,
@@ -327,21 +326,5 @@ if (!function_exists('getMilliseconds')) {
     {
         $mt = explode(' ', microtime());
         return bcadd($mt[1], $mt[0], 8);
-    }
-}
-
-if (!function_exists('getMostPriorityProvider')) {
-    function getMostPriorityProvider(int $userId)
-    {
-        $userProvider = UserProviderConfiguration::where('user_id', $userId)
-            ->join('providers', 'provider_id', 'providers.id');
-        if ($userProvider->exists()) {
-            $userProvider = $userProvider->where('active', true)->orderBy('priority', 'ASC');
-            $userProvider = $userProvider->first()->provider_id;
-        } else {
-            $userProvider = Provider::where('is_enabled', true)->orderBy('priority', 'ASC');
-            $userProvider = $userProvider->first()->id;
-        }
-        return $userProvider;
     }
 }
