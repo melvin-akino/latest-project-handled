@@ -39,7 +39,7 @@ class UserSelectedLeague extends Model
                 ->join('events as e', 'me.id', 'e.master_event_id')
                 ->where('user_id', $userId)
                 ->where('e.provider_id', $providerId)
-                ->select('usl.game_schedule', 'ml.name as master_league_name', 'e.provider_id')
+                ->select('usl.game_schedule', 'ml.name as master_league_name')
                 ->distinct()
                 ->get();
     }
