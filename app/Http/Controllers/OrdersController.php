@@ -132,16 +132,6 @@ class OrdersController extends Controller
     public function getEventMarketsDetails(string $memUID)
     {
         try {
-            $userProvider = UserProviderConfiguration::where('user_id', auth()->user()->id);
-
-            if ($userProvider->exists()) {
-                $userProvider = $userProvider->where('active', true);
-            } else {
-                $userProvider = Provider::where('is_enabled', true)->orderBy('priority', 'ASC');
-            }
-
-            $userProvider = $userProvider->first();
-
             $userTz        = "Etc/UTC";
             $getUserConfig = UserConfiguration::getUserConfig(auth()->user()->id)
                 ->where('type', 'timezone')
@@ -196,12 +186,13 @@ class OrdersController extends Controller
             }
 
             $masterEvent = $masterEvent->first();
+            $providerId = Provider::getMostPriorityProvider(auth()->user()->id);
 
             $getOtherMarkets = Game::getOtherMarketSpreadDetails([
                 'odd_type_id'     => $masterEventMarket->odd_type_id,
                 'master_event_id' => $masterEventMarket->master_event_id,
                 'market_flag'     => $masterEventMarket->market_flag,
-                'provider_id'     => $userProvider->id,
+                'provider_id'     => $providerId,
                 'game_schedule'   => $masterEvent->game_schedule
             ]);
 
