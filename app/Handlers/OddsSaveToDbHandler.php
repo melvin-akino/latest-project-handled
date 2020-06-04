@@ -19,9 +19,9 @@ class OddsSaveToDbHandler
 {
     protected $message;
     protected $swoole;
-    protected $subTasks = [];
-    protected $updated = false;
-    protected $uid = null;
+    protected $subTasks  = [];
+    protected $updated   = false;
+    protected $uid       = null;
     protected $dbOptions = [
         'event-only'          => true,
         'is-event-new'        => true,
@@ -60,7 +60,7 @@ class OddsSaveToDbHandler
 
             $event = Events::withTrashed()->where('event_identifier',
                 $this->eventRawData['Event']['data']['event_identifier'])->first();
-            if ($event && $event->game_schedule != $this->eventData['MasterEvent']['data']['game_schedule']) {
+            if ($event && $event->game_schedule != $this->eventData['MasterEvent']['data']['game_schedule'] || $this->dbOptions['has-empty-market']) {
                 EventMarket::where('event_id', $event->event_id)
                            ->delete();
             }
@@ -80,9 +80,31 @@ class OddsSaveToDbHandler
                     if (!empty($this->eventMarketsData)) {
                         foreach ($this->eventMarketsData as $eventMarket) {
                             $eventMarket['MasterEventMarket']['data']['master_event_id'] = $masterEventModel->id;
-                            $masterEventMarketModel                                      = MasterEventMarket::updateOrCreate([
-                                'master_event_market_unique_id' => $eventMarket['MasterEventMarket']['data']['master_event_market_unique_id']
-                            ], $eventMarket['MasterEventMarket']['data']);
+
+                            $newMasterEvent = true;
+
+                            if (empty($eventMarket['MasterEventMarket']['data']['master_event_market_unique_id'])) {
+                                $eventMarket['MasterEventMarket']['data']['master_event_market_unique_id'] = uniqid();
+
+                                $existingMasterEventMarket = MasterEventMarket::getExistingMemUID($masterEventModel->id,
+                                    $eventMarket['EventMarket']['data']['odd_type_id'],
+                                    $eventMarket['EventMarket']['data']['odd_label'],
+                                    $eventMarket['EventMarket']['data']['market_flag']
+                                );
+
+                                if ($existingMasterEventMarket) {
+                                    $newMasterEvent                                                            = false;
+                                    $eventMarket['MasterEventMarket']['data']['master_event_market_unique_id'] = $existingMasterEventMarket->master_event_market_unique_id;
+                                }
+                            }
+
+                            if ($newMasterEvent) {
+                                $masterEventMarketModel = MasterEventMarket::updateOrCreate([
+                                    'master_event_market_unique_id' => $eventMarket['MasterEventMarket']['data']['master_event_market_unique_id']
+                                ], $eventMarket['MasterEventMarket']['data']);
+                            } else {
+                                $masterEventMarketModel = MasterEventMarket::where('master_event_market_unique_id', $eventMarket['MasterEventMarket']['data']['master_event_market_unique_id'])->first();
+                            }
 
                             if ($masterEventMarketModel) {
                                 $masterEventMarketId = $masterEventMarketModel->id;
