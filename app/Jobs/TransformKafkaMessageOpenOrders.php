@@ -47,24 +47,18 @@ class TransformKafkaMessageOpenOrders implements ShouldQueue
                 $betId = $order->bet_id;
 
                 foreach ($ordersTable as $_key => $orderTable) {
-                    $orderId = substr($_key, strlen('orderId:'));
-                    $expiry  = $orderTable['orderExpiry'];
-                    $status  = $orderTable['status'];
-
+                    $orderId          = substr($_key, strlen('orderId:'));
+                    $expiry           = $orderTable['orderExpiry'];
+                    $status           = $orderTable['status'];
                     $providerCurrency = $providers->get('providerAlias:' . $order->provider)['currency_id'];
-
-                    $exchangeRate = ExchangeRate::where('from_currency_id', $providerCurrency)
+                    $exchangeRate     = ExchangeRate::where('from_currency_id', $providerCurrency)
                                                 ->where('to_currency_id', 1)
                                                 ->first();
 
-                    $orderData = Order::find($orderId);
-
-                    $userWallet = UserWallet::where('user_id', $orderData->user_id)->first();
-
-                    $sourceId = Source::where('source_name', 'LIKE', 'PLACE_BET')->first();
-
-                    $userId = $orderData->user_id;
-
+                    $orderData      = Order::find($orderId);
+                    $userWallet     = UserWallet::where('user_id', $orderData->user_id)->first();
+                    $sourceId       = Source::where('source_name', 'LIKE', 'PLACE_BET')->first();
+                    $userId         = $orderData->user_id;
                     $orderLogsId    = 0;
                     $walletLedgerId = 0;
                     $credit         = 0;
@@ -83,23 +77,22 @@ class TransformKafkaMessageOpenOrders implements ShouldQueue
                         ]);
 
                         $orderLogs = OrderLogs::create([
-                                'provider_id'   => $orderData->provider_id,
-                                'sport_id'      => $orderData->sport_id,
-                                'bet_id'        => $orderData->bet_id,
-                                'bet_selection' => $orderData->bet_selection,
-                                'status'        => 'FAILED',
-                                'user_id'       => $userId,
-                                'reason'        => $reason,
-                                'profit_loss'   => $orderData->profit_loss,
-                                'order_id'      => $orderId,
-                                'settled_date'  => $orderData->settled_date
-                            ]);
+                            'provider_id'   => $orderData->provider_id,
+                            'sport_id'      => $orderData->sport_id,
+                            'bet_id'        => $orderData->bet_id,
+                            'bet_selection' => $orderData->bet_selection,
+                            'status'        => 'FAILED',
+                            'user_id'       => $userId,
+                            'reason'        => $reason,
+                            'profit_loss'   => $orderData->profit_loss,
+                            'order_id'      => $orderId,
+                            'settled_date'  => $orderData->settled_date
+                        ]);
 
                         $orderLogsId = $orderLogs->id;
-
-                        $credit     = $orderData->stake;
-                        $balance    = $credit * $exchangeRate->exchange_rate;
-                        $newBalance = $userWallet->balance + $balance;
+                        $credit      = $orderData->stake;
+                        $balance     = $credit * $exchangeRate->exchange_rate;
+                        $newBalance  = $userWallet->balance + $balance;
 
                         UserWallet::where('user_id', $orderData->user_id)
                             ->update([
@@ -121,7 +114,7 @@ class TransformKafkaMessageOpenOrders implements ShouldQueue
 
                         $ordersTable->del($_key);
                     } else {
-                        if ($orderTable['bet_id'] == $betId) {
+                        if (!empty($betId) && empty($orderData->bet_id)) {
                             if (strtoupper($order->status) != strtoupper($orderData->status)) {
                                 $ordersTable[$_key]['status'] = strtoupper($order->status);
 
@@ -140,20 +133,22 @@ class TransformKafkaMessageOpenOrders implements ShouldQueue
                                     'reason'              => $reason,
                                     'bet_selection'       => $betSelection,
                                     'to_win'              => $orderData->stake * $order->odds,
+                                    'bet_id'              => $betId,
                                 ]);
 
                                 $orderLogs = OrderLogs::create([
-                                        'provider_id'   => $orderData->provider_id,
-                                        'sport_id'      => $orderData->sport_id,
-                                        'bet_id'        => $orderData->bet_id,
-                                        'bet_selection' => $betSelection,
-                                        'status'        => strtoupper($order->status),
-                                        'user_id'       => $userId,
-                                        'reason'        => $reason,
-                                        'profit_loss'   => $orderData->profit_loss,
-                                        'order_id'      => $orderId,
-                                        'settled_date'  => $orderData->settled_date
-                                    ]);
+                                    'provider_id'   => $orderData->provider_id,
+                                    'sport_id'      => $orderData->sport_id,
+                                    'bet_id'        => $betId,
+                                    'bet_selection' => $betSelection,
+                                    'status'        => strtoupper($order->status),
+                                    'user_id'       => $userId,
+                                    'reason'        => $reason,
+                                    'profit_loss'   => $orderData->profit_loss,
+                                    'order_id'      => $orderId,
+                                    'settled_date'  => $orderData->settled_date
+                                ]);
+
                                 $orderLogsId = $orderLogs->id;
 
                                 if (in_array(strtoupper($order->status), [
@@ -168,7 +163,7 @@ class TransformKafkaMessageOpenOrders implements ShouldQueue
                                         ->update([
                                             'balance'    => $newBalance,
                                             'updated_at' => Carbon::now(),
-                                        ]);                                   
+                                        ]);
 
                                     $walletLedger = WalletLedger::create([
                                             'wallet_id'  => $userWallet->id,
