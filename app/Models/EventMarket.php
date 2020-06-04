@@ -37,7 +37,7 @@ class EventMarket extends Model
                 ->join('providers as p', 'p.id', 'em.provider_id')
                 ->join('events as e', 'e.id', 'em.event_id')
                 ->join('master_events as me', 'me.id', 'e.master_event_id')
-                ->where('e.id', $eventMarket->event_id)
+                ->where('e.master_event_id', $eventMarket->master_event_id)
                 ->where('em.odd_type_id', $eventMarket->odd_type_id)
                 ->where('em.odd_label', $eventMarket->odd_label)
                 ->where('em.market_flag', $eventMarket->market_flag)

@@ -15,8 +15,9 @@ class OddsTransformationHandler
     protected $updated   = false;
     protected $uid       = null;
     protected $dbOptions = [
-        'event-only'   => true,
-        'is-event-new' => true
+        'event-only'       => true,
+        'is-event-new'     => true,
+        'has-empty-market' => false
     ];
 
     protected $disregard = [
@@ -52,24 +53,24 @@ class OddsTransformationHandler
     public function handle()
     {
         try {
-            $swoole                                   = app('swoole');
-            $toInsert                                 = [];
-            $subTasks['remove-previous-market']       = [];
+            $swoole                             = app('swoole');
+            $toInsert                           = [];
+            $subTasks['remove-previous-market'] = [];
 
             /** DATABASE TABLES */
             /** LOOK-UP TABLES */
-            $eventsTable                              = $swoole->eventsTable;
-            $oddTypesTable                            = $swoole->oddTypesTable;
-            $sportOddTypesTable                       = $swoole->sportOddTypesTable;
-            $eventMarketsTable                        = $swoole->eventMarketsTable;
-            $eventScheduleChangeTable                 = $swoole->eventScheduleChangeTable;
+            $eventsTable              = $swoole->eventsTable;
+            $oddTypesTable            = $swoole->oddTypesTable;
+            $sportOddTypesTable       = $swoole->sportOddTypesTable;
+            $eventMarketsTable        = $swoole->eventMarketsTable;
+            $eventScheduleChangeTable = $swoole->eventScheduleChangeTable;
 
-            list('providerId'       => $providerId,
-                'sportId'           => $sportId,
-                'multiLeagueId'     => $multiLeagueId,
-                'masterLeagueName'  => $masterLeagueName,
-                'multiTeam'         => $multiTeam,
-                'leagueId'          => $leagueId) = $this->internalParameters;
+            list('providerId' => $providerId,
+                'sportId' => $sportId,
+                'multiLeagueId' => $multiLeagueId,
+                'masterLeagueName' => $masterLeagueName,
+                'multiTeam' => $multiTeam,
+                'leagueId' => $leagueId) = $this->internalParameters;
 
             if (!empty($masterLeagueName) && !empty($multiTeam) && count($multiTeam) == 2) {
                 /**
@@ -98,12 +99,12 @@ class OddsTransformationHandler
                     ) {
                         $eventSwtId = $key;
                         $eventsData = $value;
-                        $doesExist = true;
+                        $doesExist  = true;
                     }
                 }
                 if ($doesExist) {
-                    $eventId        = $eventsData['id'];
-                    $uid            = $eventsData['master_event_unique_id'];
+                    $eventId = $eventsData['id'];
+                    $uid     = $eventsData['master_event_unique_id'];
 
                     $masterTeamHomeId = $eventsData['master_team_home_id'];
                     $masterTeamAwayId = $eventsData['master_team_away_id'];
@@ -193,11 +194,11 @@ class OddsTransformationHandler
                 'away_penalty'           => $this->message->data->away_redcard,
                 'deleted_at'             => null
             ];
-            $subTasks['event']           = $toInsert;
+            $subTasks['event']                 = $toInsert;
 
-            foreach ($arrayEvents AS $keyEvent => $event) {
+            foreach ($arrayEvents as $keyEvent => $event) {
                 if (!empty($event)) {
-                    foreach ($event->market_odds AS $columns) {
+                    foreach ($event->market_odds as $columns) {
                         /**
                          * ODD TYPES Swoole Table
                          *
@@ -234,7 +235,7 @@ class OddsTransformationHandler
                         }
 
                         /** loop each `marketSelection` from each `market_odds` */
-                        foreach ($columns->marketSelection AS $markets) {
+                        foreach ($columns->marketSelection as $markets) {
                             /**
                              * EVENT MARKETS (MASTER) Swoole Table
                              *
@@ -260,7 +261,7 @@ class OddsTransformationHandler
                                 }
                             }
 
-                            $marketOdds = trim($marketOdds) == '' ? 0 : (float)$marketOdds;
+                            $marketOdds = trim($marketOdds) == '' ? 0 : (float) $marketOdds;
 
                             if (array_key_exists('points', $markets)) {
                                 $marketPoints = $markets->points;
@@ -286,7 +287,13 @@ class OddsTransformationHandler
                             ]);
 
                             $isMarketSame = true;
-                            if ($eventMarketsTable->exist($masterEventMarketSwtId) && !empty($markets->market_id)) {
+
+                            if (empty($markets->market_id)) {
+                                $this->dbOptions['has-empty-market'] = true;
+                                continue;
+                            }
+
+                            if ($eventMarketsTable->exist($masterEventMarketSwtId)) {
                                 $memUID = $eventMarketsTable->get($masterEventMarketSwtId)['master_event_market_unique_id'];
                                 $odds   = $eventMarketsTable->get($masterEventMarketSwtId)['odds'];
 
@@ -305,7 +312,7 @@ class OddsTransformationHandler
                                     $isMarketSame  = false;
                                 }
                             } else {
-                                $memUID       = uniqid();
+                                $memUID       = null;
                                 $isMarketSame = false;
                             }
 
