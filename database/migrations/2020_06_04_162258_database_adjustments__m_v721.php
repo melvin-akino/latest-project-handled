@@ -38,6 +38,8 @@ class DatabaseAdjustmentsMV721 extends Migration
         });
 
         Schema::table($this->or, function (Blueprint $table) {
+            $table->dropColumn('actual_stake');
+            $table->dropColumn('actual_to_win');
             $table->dropColumn('actual_profit_loss');
         });
     }
@@ -52,6 +54,8 @@ class DatabaseAdjustmentsMV721 extends Migration
         Schema::dropIfExists($this->pao);
 
         Schema::table($this->or, function (Blueprint $table) {
+            $table->float('actual_stake', 10, 2)->nullable();
+            $table->float('actual_to_win', 10, 2)->nullable();
             $table->float('actual_profit_loss', 10, 2)->nullable();
         });
     }
