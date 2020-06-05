@@ -26,15 +26,14 @@ class BetProduce implements CustomProcessInterface
             self::$producerHandler = new ProducerHandler($kafkaProducer);
 
             if ($swoole->data2SwtTable->exist('data2Swt')) {
-                $payloadsTable              = $swoole->payloadsTable;
-                $initialTime                = Carbon::createFromFormat('H:i:s', Carbon::now()->format('H:i:s'));
+                $payloadsTable = $swoole->payloadsTable;
+                $initialTime   = Carbon::createFromFormat('H:i:s', Carbon::now()->format('H:i:s'));
+                $startTime     = $betInitialTime = $initialTime;
 
-                $startTime = $betInitialTime = $initialTime;
                 while (!self::$quit) {
                     $newTime = Carbon::createFromFormat('H:i:s', Carbon::now()->format('H:i:s'));
 
                     if ($newTime->diffInSeconds(Carbon::parse($initialTime)) >= 1) {
-
                         if ($newTime->diffInSeconds(Carbon::parse($betInitialTime)) >= 30) {
                             foreach ($payloadsTable AS $pKey => $pRow) {
                                 if (strpos($pKey, 'place-bet-') === 0) {
@@ -44,18 +43,19 @@ class BetProduce implements CustomProcessInterface
 
                                     $dateNow = Carbon::now()->toDateTimeString();
                                     if (strtotime($dateNow) - strtotime($payload->data->created_at) < (int)$payload->data->orderExpiry) {
-                                        self::pushToKafka((array)$payload, $requestId,
-                                            $provider . env('KAFKA_SCRAPE_ORDER_REQUEST_POSTFIX', '_bet_req'));
+                                        self::pushToKafka((array)$payload, $requestId, $provider . env('KAFKA_SCRAPE_ORDER_REQUEST_POSTFIX', '_bet_req'));
                                     } else {
                                         $payloadsTable->del($pKey);
                                     }
                                 }
                             }
+
                             $betInitialTime = $newTime;
                         }
 
                         $initialTime = $newTime;
                     }
+
                     usleep(1000000);
                 }
             }

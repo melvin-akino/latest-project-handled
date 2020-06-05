@@ -17,7 +17,8 @@ use App\Models\{
     Order,
     OrderLogs,
     Timezones,
-    UserWallet
+    UserWallet,
+    ProviderAccountOrder
 };
 use App\Models\CRM\{
     ProviderAccount
@@ -325,20 +326,22 @@ class OrdersController extends Controller
                 $betType         = $request->betType;
                 $percentage      = 0;
                 $alias           = "";
-                $exchangeRate    = 1; // FROM CNY
-                $revExchangeRate = 1; // TO CNY
                 $mlBetId         = generateMLBetIdentifier();
+                $exchangeRate    = ExchangeRate::where('from_currency_id', $baseCurrency->id)
+                    ->where('to_currency_id', $baseCurrency->id)
+                    ->first();
+                $revExchangeRate = ExchangeRate::where('to_currency_id', $baseCurrency->id)
+                    ->where('from_currency_id', $baseCurrency->id)
+                    ->first();
 
                 if ($baseCurrency->id != $userCurrency) {
                     $exchangeRate = ExchangeRate::where('from_currency_id', $baseCurrency->id)
                         ->where('to_currency_id', $userCurrency)
-                        ->first()
-                        ->exchange_rate;
+                        ->first();
 
                     $revExchangeRate = ExchangeRate::where('to_currency_id', $baseCurrency->id)
                         ->where('from_currency_id', $userCurrency)
-                        ->first()
-                        ->exchange_rate;
+                        ->first();
                 }
 
                 /** TO DO: Wallet Balance Sufficiency Check */
@@ -352,9 +355,9 @@ class OrdersController extends Controller
                     ], 404);
                 }
 
-                $userBalance = $userWallet->first()->balance * $exchangeRate;
+                $userBalance = $userWallet->first()->balance * $exchangeRate->exchange_rate;
 
-                if ($userBalance < ($request->stake * $exchangeRate)) {
+                if ($userBalance < ($request->stake * $exchangeRate->exchange_rate)) {
                     return response()->json([
                         'status'      => false,
                         'status_code' => 400,
@@ -457,13 +460,13 @@ class OrdersController extends Controller
 
                 if ($providerCurrency == $baseCurrency->id) {
                     if ($userCurrency != $providerCurrency) {
-                        $payloadStake *= $revExchangeRate;
-                        $actualStake  *= $revExchangeRate;
+                        $payloadStake *= $revExchangeRate->exchange_rate;
+                        $actualStake  *= $revExchangeRate->exchange_rate;
                     }
                 } else {
                     if ($userCurrency != $providerCurrency) {
-                        $payloadStake *= $exchangeRate;
-                        $actualStake  *= $exchangeRate;
+                        $payloadStake *= $exchangeRate->exchange_rate;
+                        $actualStake  *= $exchangeRate->exchange_rate;
                     }
                 }
 
@@ -480,21 +483,22 @@ class OrdersController extends Controller
                     $actualStake .= '00';
                 }
 
-                $payload['user_id']       = auth()->user()->id;
-                $payload['provider_id']   = strtolower($alias);
-                $payload['odds']          = $row['price'];
-                $payload['stake']         = ($payloadStake * $exchangeRate);
-                $payload['to_win']        = (($payloadStake * $row['price']) * $exchangeRate);
-                $payload['actual_stake']  = $actualStake;
-                $payload['actual_to_win'] = $actualStake * $row['price'];
-                $payload['market_id']     = $query->bet_identifier;
-                $payload['event_id']      = explode('-', $query->master_event_unique_id)[3];
-                $payload['score']         = $query->score;
-                $payload['orderExpiry']   = $request->orderExpiry;
-                $payload['order_id']      = $orderId;
-                $payload['sport_id']      = $query->sport_id;
-
-                $incrementIds['payload'][] = $payload;
+                $payload['user_id']          = auth()->user()->id;
+                $payload['provider_id']      = strtolower($alias);
+                $payload['odds']             = $row['price'];
+                $payload['stake']            = ($payloadStake * $exchangeRate->exchange_rate);
+                $payload['to_win']           = (($payloadStake * $row['price']) * $exchangeRate->exchange_rate);
+                $payload['actual_stake']     = $actualStake;
+                $payload['actual_to_win']    = $actualStake * $row['price'];
+                $payload['market_id']        = $query->bet_identifier;
+                $payload['event_id']         = explode('-', $query->master_event_unique_id)[3];
+                $payload['score']            = $query->score;
+                $payload['orderExpiry']      = $request->orderExpiry;
+                $payload['order_id']         = $orderId;
+                $payload['sport_id']         = $query->sport_id;
+                $payload['exchange_rate_id'] = $exchangeRate->id;
+                $payload['exchange_rate']    = $exchangeRate->exchange_rate;
+                $incrementIds['payload'][]   = $payload;
 
                 $teamname = $query->market_flag == "HOME" ? $query->master_home_team_name : $query->master_away_team_name;
 
@@ -516,36 +520,34 @@ class OrdersController extends Controller
 
                 $providerAccountUserName = $providerAccount->username;
                 $providerAccountId       = $providerAccount->id;
-
-                $masterEventMarket = MasterEventMarket::where('master_event_market_unique_id', $request->market_id)->first();
-                $orderIncrement = Order::create([
-                    'user_id'                       => auth()->user()->id,
-                    'master_event_market_id'        => $masterEventMarket->id,
-                    'market_id'                     => $query->bet_identifier,
-                    'status'                        => "PENDING",
-                    'bet_id'                        => "",
-                    'bet_selection'                 => $betSelection,
-                    'provider_id'                   => $row['provider_id'],
-                    'sport_id'                      => $query->sport_id,
-                    'odds'                          => $row['price'],
-                    'odd_label'                     => $query->odd_label,
-                    'stake'                         => ($payloadStake * $exchangeRate),
-                    'to_win'                        => (($payloadStake * $row['price']) * $exchangeRate),
-                    'actual_stake'                  => $actualStake,
-                    'actual_to_win'                 => $actualStake * $row['price'],
-                    'settled_date'                  => null,
-                    'reason'                        => "",
-                    'profit_loss'                   => 0.00,
-                    'order_expiry'                  => $request->orderExpiry,
-                    'provider_account_id'           => $providerAccountId,
-                    'ml_bet_identifier'             => $mlBetId,
-                    'score_on_bet'                  => $query->score
+                $masterEventMarket       = MasterEventMarket::where('master_event_market_unique_id', $request->market_id)->first();
+                $orderIncrement          = Order::create([
+                    'user_id'                => auth()->user()->id,
+                    'master_event_market_id' => $masterEventMarket->id,
+                    'market_id'              => $query->bet_identifier,
+                    'status'                 => "PENDING",
+                    'bet_id'                 => "",
+                    'bet_selection'          => $betSelection,
+                    'provider_id'            => $row['provider_id'],
+                    'sport_id'               => $query->sport_id,
+                    'odds'                   => $row['price'],
+                    'odd_label'              => $query->odd_label,
+                    'stake'                  => ($payloadStake * $exchangeRate->exchange_rate),
+                    'to_win'                 => (($payloadStake * $row['price']) * $exchangeRate->exchange_rate),
+                    // 'actual_stake'           => $actualStake,
+                    // 'actual_to_win'          => $actualStake * $row['price'],
+                    'settled_date'           => null,
+                    'reason'                 => "",
+                    'profit_loss'            => 0.00,
+                    'order_expiry'           => $request->orderExpiry,
+                    'provider_account_id'    => $providerAccountId,
+                    'ml_bet_identifier'      => $mlBetId,
+                    'score_on_bet'           => $query->score
                 ]);
 
-                $updateProvider = ProviderAccount::find($providerAccountId);
+                $updateProvider             = ProviderAccount::find($providerAccountId);
                 $updateProvider->updated_at = Carbon::now();
                 $updateProvider->save();
-
 
                 $incrementIds['id'][]               = $orderIncrement->id;
                 $incrementIds['created_at'][]       = $orderIncrement->created_at;
@@ -564,7 +566,16 @@ class OrdersController extends Controller
                     'order_id'      => $orderIncrement->id,
                 ])->id;
 
-                userWalletTransaction(auth()->user()->id, 'PLACE_BET', ($payloadStake * $exchangeRate), $orderLogsId);
+                ProviderAccountOrder::create([
+                    'order_log_id'       => $orderLogsId,
+                    'exchange_rate_id'   => $exchangeRate->id,
+                    'actual_stake'       => $actualStake,
+                    'actual_to_win'      => $actualStake * $row['price'],
+                    'actual_profit_loss' => 0.00,
+                    'exchange_rate'      => $exchangeRate->exchange_rate,
+                ]);
+
+                userWalletTransaction(auth()->user()->id, 'PLACE_BET', ($payloadStake * $exchangeRate->exchange_rate), $orderLogsId);
 
                 if ($request->betType == "FAST_BET") {
                     if ($prevStake == 0) {
@@ -582,7 +593,7 @@ class OrdersController extends Controller
                 if (!$topics->exists($topicsId)) {
                     $topics->set($topicsId, [
                         'user_id'    => auth()->user()->id,
-                        'topic_name' => "order-" . $orderId
+                        'topic_name' => "order-" . $orderIncrement->id
                     ]);
                 }
 
@@ -612,16 +623,18 @@ class OrdersController extends Controller
                 ];
 
                 $payload['data'] = [
-                    'provider'    => $incrementIds['payload'][$i]['provider_id'],
-                    'sport'       => $incrementIds['payload'][$i]['sport_id'],
-                    'stake'       => $incrementIds['payload'][$i]['actual_stake'],
-                    'odds'        => $incrementIds['payload'][$i]['odds'],
-                    'market_id'   => $incrementIds['payload'][$i]['market_id'],
-                    'event_id'    => $incrementIds['payload'][$i]['event_id'],
-                    'score'       => $incrementIds['payload'][$i]['score'],
-                    'username'    => $incrementIds['provider_account'][$i],
-                    'created_at'  => $incrementIds['created_at'][$i],
-                    'orderExpiry' => $incrementIds['payload'][$i]['orderExpiry'],
+                    'provider'         => $incrementIds['payload'][$i]['provider_id'],
+                    'sport'            => $incrementIds['payload'][$i]['sport_id'],
+                    'stake'            => $incrementIds['payload'][$i]['actual_stake'],
+                    'odds'             => $incrementIds['payload'][$i]['odds'],
+                    'market_id'        => $incrementIds['payload'][$i]['market_id'],
+                    'event_id'         => $incrementIds['payload'][$i]['event_id'],
+                    'score'            => $incrementIds['payload'][$i]['score'],
+                    'username'         => $incrementIds['provider_account'][$i],
+                    'created_at'       => $incrementIds['created_at'][$i],
+                    'orderExpiry'      => $incrementIds['payload'][$i]['orderExpiry'],
+                    'exchange_rate_id' => $incrementIds['payload'][$i]['exchange_rate_id'],
+                    'exchange_rate'    => $incrementIds['payload'][$i]['exchange_rate'],
                 ];
 
                 $payloadsSwtId = implode(':', [
@@ -631,7 +644,9 @@ class OrdersController extends Controller
                 ]);
 
                 if (!$payloadsSwt->exists($payloadsSwtId)) {
-                    $payloadsSwt->set($payloadsSwtId, ['payload' => json_encode($payload)]);
+                    $payloadsSwt->set($payloadsSwtId, [
+                        'payload' => json_encode($payload),
+                    ]);
                 }
 
                 $ordersTable['orderId:' . $incrementIds['id'][$i]]['username']    = $payload['data']['username'];
