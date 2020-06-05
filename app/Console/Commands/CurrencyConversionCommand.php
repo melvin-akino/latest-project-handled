@@ -26,43 +26,37 @@ class CurrencyConversionCommand extends Command
 
     public function handle()
     {
-        $executionTime = '00:00:00';
 
-        $currentTime = (new DateTime())->format('H:i:s');
+        $conversionApi = "https://api.exchangeratesapi.io/latest?base=%s&symbols=%s";
+        $currencies    = DB::table('currency AS cfrom', '!=', DB::raw('0'))
+            ->join('currency AS cto', function ($join) {
+                $join->on('cfrom.id', '=', 'cto.id');
+                $join->orOn('cfrom.id', '!=', 'cto.id');
+            })
+            ->orderBy('cfrom.id', 'asc')
+            ->orderBy('cto.id', 'asc')
+            ->get([
+                'cfrom.id AS from_id',
+                'cfrom.code AS from_code',
+                'cto.id AS to_id',
+                'cto.code AS to_code',
+            ]);
 
-        if ($currentTime == $executionTime) {
-            $conversionApi = "https://api.exchangeratesapi.io/latest?base=%s&symbols=%s";
-            $currencies    = DB::table('currency AS cfrom', '!=', DB::raw('0'))
-                ->join('currency AS cto', function ($join) {
-                    $join->on('cfrom.id', '=', 'cto.id');
-                    $join->orOn('cfrom.id', '!=', 'cto.id');
-                })
-                ->orderBy('cfrom.id', 'asc')
-                ->orderBy('cto.id', 'asc')
-                ->get([
-                    'cfrom.id AS from_id',
-                    'cfrom.code AS from_code',
-                    'cto.id AS to_id',
-                    'cto.code AS to_code',
+        foreach ($currencies as $currency) {
+            $api      = sprintf($conversionApi, trim($currency->from_code), trim($currency->to_code));
+            $response = $this->client->request('GET', $api);
+
+            if ($response->getStatusCode() == 200) {
+                $objectResponse = json_decode($response->getBody()->getContents());
+
+                ExchangeRate::updateOrCreate([
+                    'from_currency_id' => $currency->from_id,
+                    'to_currency_id'   => $currency->to_id,
+                ], [
+                    'default_amount' => 1,
+                    'exchange_rate'  => $objectResponse->rates->{trim($currency->to_code)}
                 ]);
-
-            foreach ($currencies as $currency) {
-                $api      = sprintf($conversionApi, trim($currency->from_code), trim($currency->to_code));
-                $response = $this->client->request('GET', $api);
-
-                if ($response->getStatusCode() == 200) {
-                    $objectResponse = json_decode($response->getBody()->getContents());
-
-                    ExchangeRate::updateOrCreate([
-                        'from_currency_id' => $currency->from_id,
-                        'to_currency_id'   => $currency->to_id,
-                    ], [
-                        'default_amount' => 1,
-                        'exchange_rate'  => $objectResponse->rates->{trim($currency->to_code)}
-                    ]);
-                }
             }
-        }
-        
+        }       
     }
 }
