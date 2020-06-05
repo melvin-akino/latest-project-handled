@@ -39,7 +39,11 @@ class DatabaseAdjustmentsMV721 extends Migration
 
         Schema::table($this->or, function (Blueprint $table) {
             $table->dropColumn('actual_stake');
+        });
+        Schema::table($this->or, function (Blueprint $table) {
             $table->dropColumn('actual_to_win');
+        });
+        Schema::table($this->or, function (Blueprint $table) {
             $table->dropColumn('actual_profit_loss');
         });
     }
