@@ -56,7 +56,13 @@ export default {
         }
     },
     computed: {
-        ...mapState('trade', ['isBetBarOpen', 'selectedSport', 'selectedLeagues', 'oddsTypeBySport', 'columnsToDisplay', 'allEventsList', 'eventsList', 'events', 'openedBetSlips', 'tradePageSettings'])
+        ...mapState('trade', ['isBetBarOpen', 'selectedSport', 'selectedLeagues', 'oddsTypeBySport', 'columnsToDisplay', 'allEventsList', 'eventsList', 'events', 'openedBetSlips', 'tradePageSettings']),
+        eventsListUID() {
+            return this.eventsList.map(event => event.uid)
+        },
+        allEventsListUID() {
+            return this.allEventsList.map(event => event.uid)
+        }
     },
     mounted() {
         this.$store.dispatch('trade/getTradeWindowData')
@@ -116,21 +122,14 @@ export default {
             this.$options.sockets.onmessage = (response => {
                 if(getSocketKey(response.data) === 'getEvents') {
                     let receivedEvents = getSocketValue(response.data, 'getEvents')
-                    receivedEvents.map(receivedEvent => {
-                        Object.keys(this.selectedLeagues).map(schedule => {
-                            this.selectedLeagues[schedule].map(league => {
-                                if(receivedEvent.game_schedule == schedule && receivedEvent.league_name == league) {
-                                    let eventsListCheckUID = this.eventsList.findIndex(event => event.uid === receivedEvent.uid)
-                                    let allEventsListCheckUID = this.allEventsList.findIndex(event => event.uid === receivedEvent.uid)
+                    Object.keys(this.selectedLeagues).map(schedule => {
+                        this.selectedLeagues[schedule].map(league => {
+                            receivedEvents.map(receivedEvent => {
+                                if(receivedEvent.game_schedule == schedule && receivedEvent.league_name == league && receivedEvent.sport_id == this.selectedSport) {
                                     this.$delete(receivedEvent.market_odds, 'other')
-                                    if(receivedEvent.sport_id == this.selectedSport) {
-                                        if(eventsListCheckUID === -1) {
-                                            this.$store.commit('trade/SET_EVENTS_LIST', receivedEvent)
-                                        }
-
-                                        if(allEventsListCheckUID === -1) {
-                                            this.$store.commit('trade/SET_ALL_EVENTS_LIST', receivedEvent)
-                                        }
+                                    if(!this.eventsListUID.includes(receivedEvent.uid) && !this.allEventsListUID.includes(receivedEvent.uid)) {
+                                        this.$store.commit('trade/SET_EVENTS_LIST', receivedEvent)
+                                        this.$store.commit('trade/SET_ALL_EVENTS_LIST', receivedEvent)
                                     }
                                 }
                             })
