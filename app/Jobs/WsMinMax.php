@@ -28,26 +28,27 @@ class WsMinMax implements ShouldQueue
             $minMaxRequestsTable = $swoole->minMaxRequestsTable;
             $minMaxCachesTable   = $swoole->minMaxCachesTable;
             $wsTable             = $swoole->wsTable;
-            $doesExist           = false;
-            foreach ($topicTable as $topic) {
-                if ($topic['topic_name'] == 'min-max-' . $this->master_event_market_unique_id &&
-                    $topic['user_id'] == $this->userId) {
-                    $doesExist = true;
-                    break;
-                }
-            }
-            if (!$doesExist) {
-                $topicTable->set('userId:' . $this->userId . ':unique:' . uniqid(), [
-                    'user_id'    => $this->userId,
-                    'topic_name' => 'min-max-' . $this->master_event_market_unique_id
-                ]);
-            }
 
             $eventMarkets = EventMarket::getEventMarketByMemUID($this->master_event_market_unique_id);
 
             if ($eventMarkets) {
                 foreach ($eventMarkets as $eventMarket) {
-                    $minMaxRequestsTable->set('mId:' . $eventMarket->bet_identifier . '"memUID:' . $this->master_event_market_unique_id, [
+                    $doesExist = false;
+                    foreach ($topicTable as $topic) {
+                        if ($topic['topic_name'] == 'min-max-' . $eventMarket->bet_identifier &&
+                            $topic['user_id'] == $this->userId) {
+                            $doesExist = true;
+                            break;
+                        }
+                    }
+                    if (!$doesExist) {
+                        $topicTable->set('userId:' . $this->userId . ':unique:' . uniqid(), [
+                            'user_id'    => $this->userId,
+                            'topic_name' => 'min-max-' . $eventMarket->bet_identifier
+                        ]);
+                    }
+
+                    $minMaxRequestsTable->set('mId:' . $eventMarket->bet_identifier . ':memUID:' . $this->master_event_market_unique_id, [
                         'provider'  => strtolower($eventMarket->alias),
                         'market_id' => $eventMarket->bet_identifier,
                         'sport'     => $eventMarket->sport_id,

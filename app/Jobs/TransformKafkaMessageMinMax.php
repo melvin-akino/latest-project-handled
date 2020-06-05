@@ -38,12 +38,12 @@ class TransformKafkaMessageMinMax implements ShouldQueue
             $minmaxMarketTable->set('minmax-market:' . $this->data->data->market_id, [
                 'value' => $this->data->data->timestamp
             ]);
-            foreach ($minMaxRequests AS $key => $row) {
+            foreach ($minMaxRequests as $key => $row) {
                 $data = $this->data->data;
                 if ($row['market_id'] == $data->market_id) {
                     $memUID = $row['memUID'];
-                    foreach ($topics AS $_key => $_row) {
-                        if (strpos($_row['topic_name'], 'min-max-' . $memUID) === 0) {
+                    foreach ($topics as $_key => $_row) {
+                        if (strpos($_row['topic_name'], 'min-max-' . $data->market_id) === 0) {
                             $userId = explode(':', $_key)[1];
                             $fd     = $wsTable->get('uid:' . $userId);
 
@@ -52,7 +52,7 @@ class TransformKafkaMessageMinMax implements ShouldQueue
                                     'getMinMax' => ['message' => $this->data->message]
                                 ]));
 
-                                $minMaxRequests->del('memUID:' . $memUID);
+                                $minMaxRequests->del('mId:' . $data->market_id . ':memUID:' . $memUID);
 
                                 Log::info("MIN MAX Transformation - Message Found");
                             } else if ($this->data->message == 'onqueue') {
@@ -96,7 +96,7 @@ class TransformKafkaMessageMinMax implements ShouldQueue
 
                                 $maximum = (double) $data->maximum * ($punterPercentage / 100);
 
-                                $timeDiff = time() - (int)$data->timestamp;
+                                $timeDiff = time() - (int) $data->timestamp;
                                 $age      = ($timeDiff > 60) ? floor($timeDiff / 60) . 'm' : $timeDiff . 's';
 
                                 $transformed = [
@@ -113,7 +113,7 @@ class TransformKafkaMessageMinMax implements ShouldQueue
                                 ];
 
                                 if (!$providerCurrency['id'] == $userCurrency['id']) {
-                                    foreach ($currenciesTable AS $currencyKey => $currencyRow) {
+                                    foreach ($currenciesTable as $currencyKey => $currencyRow) {
                                         if (strpos($currencyKey, 'currencyId:' . $userCurrency['id']) === 0) {
                                             $userCurrency['code'] = $currenciesTable->get($currencyKey)['code'];
                                         }

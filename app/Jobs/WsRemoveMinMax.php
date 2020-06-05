@@ -31,38 +31,37 @@ class WsRemoveMinMax implements ShouldQueue
             $eventMarket = EventMarket::getProviderEventMarketsByMemUID($this->master_event_market_unique_id);
 
             if ($eventMarket) {
+                foreach ($minMaxRequestsTable as $minMaxReqkey => $minMaxRequest) {
+                    if ($this->master_event_market_unique_id == $minMaxRequest['memUID']) {
+                        foreach ($topicTable as $key => $topic) {
+                            if ($topic['topic_name'] == 'min-max-' . $minMaxRequest['market_id'] && $topic['user_id'] == $this->userId) {
+                                $topicTable->del($key);
+                                break;
+                            }
+                        }
+
+                        $noSubscription = true;
+                        foreach ($topicTable as $key => $topic) {
+                            if ($topic['topic_name'] == 'min-max-' . $minMaxRequest['market_id']) {
+                                $noSubscription = false;
+                                break;
+                            }
+                        }
+
+                        if ($noSubscription) {
+                            $minMaxRequestsTable->del($minMaxReqkey);
+
+                        }
+                        $minmaxMarketTable->del('minmax-market:' . $minMaxRequest['market_id']);
+                        $minmaxPayloadTable->del('minmax-payload:' . $minMaxRequest['market_id']);
+                    }
+                }
                 $fd = $wsTable->get('uid:' . $this->userId);
                 $server->push($fd['value'], json_encode([
                     'removeMinMax' => [
                         'status' => true
                     ]
                 ]));
-
-                foreach ($topicTable as $key => $topic) {
-                    if ($topic['topic_name'] == 'min-max-' . $this->master_event_market_unique_id &&
-                        $topic['user_id'] == $this->userId) {
-                        $topicTable->del($key);
-                        break;
-                    }
-                }
-
-                $noSubscription = true;
-                foreach ($topicTable as $key => $topic) {
-                    if ($topic['topic_name'] == 'min-max-' . $this->master_event_market_unique_id) {
-                        $noSubscription = false;
-                        break;
-                    }
-                }
-                if ($noSubscription) {
-                    foreach($minMaxRequestsTable as $key => $minMaxRequest) {
-                        if ($minMaxRequest['memUID'] == $this->master_event_market_unique_id) {
-                            $minMaxRequestsTable->del($key);
-                        }
-                    }
-
-                }
-                $minmaxMarketTable->del('minmax-market:' . $eventMarket->bet_identifier);
-                $minmaxPayloadTable->del('minmax-payload:' . $eventMarket->bet_identifier);
             }
         } catch (Exception $e) {
             Log::error($e->getMessage());
