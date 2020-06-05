@@ -85,7 +85,7 @@ class OddsValidationHandler
             }
 
             foreach ($this->disregard AS $disregard) {
-                if (strpos($this->message->data->leagueName, $disregard) === 0) {
+                if (strpos($this->message->data->leagueName, $disregard) !== false) {
                     Log::info("Transformation ignored - Filtered League");
                     return;
                 }
