@@ -252,12 +252,11 @@ const actions = {
         .then(response => {
             if(response.data.sport_id == state.selectedSport) {
                 commit('SET_LEAGUES', response.data.data)
-                Vue.prototype.$socket.send(`getSelectedLeagues_${state.selectedSport}`)
             }
             commit('SET_IS_LOADING_LEAGUES', false)
         })
         .catch(err => {
-            dispatch('auth/checkIfTokenIsValid', err.response.data.status_code,  { root: true })
+            dispatch('auth/checkIfTokenIsValid', err.response.data.status_code, { root: true })
         })
     },
     getInitialEvents({commit, dispatch, state}) {
