@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use App\Models\UserProviderConfiguration;
+
 class Provider extends Model
 {
     protected $table = 'providers';
@@ -24,7 +25,7 @@ class Provider extends Model
     public static function getActiveProviders()
     {
         return self::where('is_enabled', true)
-            ->orderBy('priority', 'asc');
+                   ->orderBy('priority', 'asc');
     }
 
     public static function getAllProviders()
@@ -46,17 +47,17 @@ class Provider extends Model
         }
     }
 
-    public static  function getMostPriorityProvider(int $userId)
+    public static function getMostPriorityProvider(int $userId)
     {
         $userProvider = UserProviderConfiguration::where('user_id', $userId)
-            ->join('providers', 'provider_id', 'providers.id');
+                                                 ->join('providers', 'provider_id', 'providers.id');
         if ($userProvider->exists()) {
             $userProvider = $userProvider->where('active', true)->orderBy('priority', 'ASC');
-            $userProvider = $userProvider->first()->provider_id;
+            $providerId   = $userProvider->first()->provider_id;
         } else {
             $userProvider = self::where('is_enabled', true)->orderBy('priority', 'ASC');
-            $userProvider = $userProvider->first()->id;
+            $providerId   = $userProvider->first()->id;
         }
-        return $userProvider;
+        return $providerId;
     }
 }

@@ -39,8 +39,8 @@ class TradeController extends Controller
         try {
             $userTz        = "Etc/UTC";
             $getUserConfig = UserConfiguration::getUserConfig(auth()->user()->id)
-                ->where('type', 'timezone')
-                ->first();
+                                              ->where('type', 'timezone')
+                                              ->first();
 
             if (!is_null($getUserConfig)) {
                 $userTz = Timezones::find($getUserConfig->value)->name;
@@ -64,7 +64,7 @@ class TradeController extends Controller
                 }
 
                 if ($proceed) {
-                    $score  = explode(" - ", $betData->score);
+                    $score = explode(" - ", $betData->score);
 
                     $data[] = [
                         'order_id'       => $betData->order_id,
@@ -128,8 +128,8 @@ class TradeController extends Controller
 
                     if ($leagueId) {
                         $masterEventUniqueIds = MasterEvent::getActiveEvents('master_league_id', '=', $leagueId)
-                            ->get(['id', 'master_event_unique_id'])
-                            ->toArray();
+                                                           ->get(['id', 'master_event_unique_id'])
+                                                           ->toArray();
                     } else {
                         return response()->json([
                             'status'      => false,
@@ -141,15 +141,14 @@ class TradeController extends Controller
 
                 case 'event':
                     $masterEventUniqueIds = MasterEvent::getActiveEvents('master_event_unique_id', '=', $request->data)
-                        ->get(['id', 'master_event_unique_id'])
-                        ->toArray();
+                                                       ->get(['id', 'master_event_unique_id'])
+                                                       ->toArray();
                     break;
             }
 
             if ($action == "add") {
                 $lang = "added";
-Log::debug(json_encode($masterEventUniqueIds));
-                foreach ($masterEventUniqueIds AS $row) {
+                foreach ($masterEventUniqueIds as $row) {
                     UserWatchlist::create(
                         [
                             'user_id'         => auth()->user()->id,
@@ -165,10 +164,10 @@ Log::debug(json_encode($masterEventUniqueIds));
             if ($action == "remove") {
                 $lang = "removed";
 
-                foreach ($masterEventUniqueIds AS $row) {
+                foreach ($masterEventUniqueIds as $row) {
                     UserWatchlist::where('user_id', auth()->user()->id)
-                        ->where('master_event_id', $row['id'])
-                        ->delete();
+                                 ->where('master_event_id', $row['id'])
+                                 ->delete();
                     app('swoole')->userWatchlistTable->del('userWatchlist:' . auth()->user()->id . ':masterEventUniqueId:' . $row['master_event_unique_id']);
                 }
             }
@@ -203,7 +202,7 @@ Log::debug(json_encode($masterEventUniqueIds));
                 'today'  => [],
                 'early'  => []
             ];
-            $providerId = Provider::getMostPriorityProvider(auth()->user()->id);
+            $providerId   = Provider::getMostPriorityProvider(auth()->user()->id);
 
             foreach ($dataSchedule as $key => $sched) {
                 $leaguesQuery = MasterLeague::getLeaguesBySportAndGameShedule($data['default_sport'], $providerId, $key);
@@ -254,9 +253,9 @@ Log::debug(json_encode($masterEventUniqueIds));
 
             if ($masterLeague) {
                 $checkTable = UserSelectedLeague::where('user_id', auth()->user()->id)
-                ->where('master_league_id', $masterLeague->id)
-                ->where('game_schedule', $request->schedule)
-                ->where('sport_id', $request->sport_id);
+                                                ->where('master_league_id', $masterLeague->id)
+                                                ->where('game_schedule', $request->schedule)
+                                                ->where('sport_id', $request->sport_id);
 
                 $userSelectedLeagueTable = app('swoole')->userSelectedLeaguesTable;
 
@@ -290,11 +289,11 @@ Log::debug(json_encode($masterEventUniqueIds));
 
                                 if (!$isSelectedLeagueFoundInSWT) {
                                     $userSelectedLeagueTable->set($swtKey, [
-                                            'user_id'     => $userId,
-                                            'schedule'    => $request->schedule,
-                                            'league_name' => $request->league_name,
-                                            'sport_id'    => $request->sport_id
-                                        ]);
+                                        'user_id'     => $userId,
+                                        'schedule'    => $request->schedule,
+                                        'league_name' => $request->league_name,
+                                        'sport_id'    => $request->sport_id
+                                    ]);
                                 }
                             }
                         } else if (empty($_SERVER['_PHPUNIT'])) {
@@ -385,17 +384,9 @@ Log::debug(json_encode($masterEventUniqueIds));
             ];
             $userId           = auth()->user()->id;
 
-            $providerId = Provider::where('is_enabled', true)->orderBy('priority', 'asc')->first()->id;
+            $providerId = Provider::getMostPriorityProvider(auth()->user()->id);
             if ($providerId) {
-                $userProviderConfiguration = UserProviderConfiguration::join('providers', 'providers.id', 'provider_id')
-                                            ->where('user_id', $userId)
-                                            ->where('active', true)
-                                            ->orderBy('priority', 'asc');
-                if ($userProviderConfiguration->count() > 0) {
-                    $providerId = $userProviderConfiguration->first()->provider_id;
-                }
-
-                foreach ($type AS $row) {
+                foreach ($type as $row) {
                     if ($row == 'user_watchlist') {
                         $transformed = Game::getWatchlistEvents($userId, $providerId);
                     } else {
@@ -406,8 +397,8 @@ Log::debug(json_encode($masterEventUniqueIds));
                     $userConfig    = getUserDefault($userId, 'sort-event')['default_sort'];
                     $userTz        = "Etc/UTC";
                     $getUserConfig = UserConfiguration::getUserConfig($userId)
-                        ->where('type', 'timezone')
-                        ->first();
+                                                      ->where('type', 'timezone')
+                                                      ->first();
 
                     if ($getUserConfig) {
                         $userTz = Timezones::find($getUserConfig->value)->name;
@@ -416,8 +407,8 @@ Log::debug(json_encode($masterEventUniqueIds));
                     if ($row == 'user_watchlist') {
                         array_map(function ($transformed) use (&$watchlist, $userConfig, $userTz, $userId) {
                             $betCount = Order::where('market_id', $transformed->bet_identifier)
-                                ->where('user_id', $userId)
-                                ->count();
+                                             ->where('user_id', $userId)
+                                             ->count();
 
                             if ($userConfig == self::SORT_EVENT_BY_LEAGUE_NAME) {
                                 $groupIndex = $transformed->master_league_name;
@@ -455,7 +446,7 @@ Log::debug(json_encode($masterEventUniqueIds));
                             }
                             if (empty($watchlist[$groupIndex][$transformed->master_event_unique_id]['market_odds']['main'][$transformed->type][$transformed->market_flag])) {
                                 $watchlist[$groupIndex][$transformed->master_event_unique_id]['market_odds']['main'][$transformed->type][$transformed->market_flag] = [
-                                    'odds'      => (double)$transformed->odds,
+                                    'odds'      => (double) $transformed->odds,
                                     'market_id' => $transformed->master_event_market_unique_id
                                 ];
 
@@ -472,8 +463,8 @@ Log::debug(json_encode($masterEventUniqueIds));
                         $topicTable = app('swoole')->topicTable;
                         array_map(function ($transformed) use (&$userSelected, $row, $userConfig, $topicTable, $userTz, $userId) {
                             $betCount = Order::where('market_id', $transformed->bet_identifier)
-                                ->where('user_id', $userId)
-                                ->count();
+                                             ->where('user_id', $userId)
+                                             ->count();
 
                             if ($userConfig == self::SORT_EVENT_BY_LEAGUE_NAME) {
                                 $groupIndex = $transformed->master_league_name;
@@ -516,7 +507,7 @@ Log::debug(json_encode($masterEventUniqueIds));
 
                             if (empty($userSelected[$transformed->game_schedule][$groupIndex][$transformed->master_event_unique_id]['market_odds']['main'][$transformed->type][$transformed->market_flag])) {
                                 $userSelected[$transformed->game_schedule][$groupIndex][$transformed->master_event_unique_id]['market_odds']['main'][$transformed->type][$transformed->market_flag] = [
-                                    'odds'      => (double)$transformed->odds,
+                                    'odds'      => (double) $transformed->odds,
                                     'market_id' => $transformed->master_event_market_unique_id
                                 ];
 
@@ -571,10 +562,11 @@ Log::debug(json_encode($masterEventUniqueIds));
         }
     }
 
-    public function getEventOtherMarkets($memUID, Request $request)
+    public function getEventOtherMarkets($meUID, Request $request)
     {
         try {
-            $transformed = Game::getOtherMarketsByMemUID($memUID);
+            $providerId  = Provider::getMostPriorityProvider(auth()->user()->id);
+            $transformed = Game:: getOtherMarketsByMemUID($meUID, $providerId);
 
             $data = [];
             array_map(function ($transformed) use (&$data) {
@@ -628,7 +620,7 @@ Log::debug(json_encode($masterEventUniqueIds));
             $limit = 20;
             $data  = Game::searchSuggestion($request->keyword);
             $query = $data->limit($limit)
-                ->offset(($request->page - 1) * $limit);
+                          ->offset(($request->page - 1) * $limit);
 
             return response()->json([
                 'status'      => true,

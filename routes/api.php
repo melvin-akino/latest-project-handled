@@ -113,7 +113,7 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
                 });
 
                 Route::get('events', 'TradeController@getUserEvents');
-                Route::get('other-markets/{memUID}', 'TradeController@getEventOtherMarkets');
+                Route::get('other-markets/{meUID}', 'TradeController@getEventOtherMarkets');
                 /** Search Suggestions Route Endpoint */
                 Route::post('search', 'TradeController@postSearchSuggestions');
             });

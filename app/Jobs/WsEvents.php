@@ -31,23 +31,13 @@ class WsEvents implements ShouldQueue
     public function handle()
     {
         try {
-            $server    = app('swoole');
-            $fd        = $server->wsTable->get('uid:' . $this->userId);
+            $server = app('swoole');
+            $fd     = $server->wsTable->get('uid:' . $this->userId);
 
-            $topicTable              = $server->topicTable;
+            $topicTable = $server->topicTable;
 
-            $providerId = Provider::where('is_enabled', true)->orderBy('priority', 'asc')->first()->id;
-            if ($providerId) {
-                $userProviderConfiguration = UserProviderConfiguration::join('providers', 'providers.id', 'provider_id')
-                                            ->where('user_id', $this->userId)
-                                            ->where('active', true)
-                                            ->orderBy('priority', 'asc');
-                if ($userProviderConfiguration->count() > 0) {
-                    $providerId = $userProviderConfiguration->first()->provider_id;
-                }
-            } else {
-                throw new Exception('[VALIDATION_ERROR] No Providers found.');
-            }
+            $providerId = Provider::getMostPriorityProvider($this->userId);
+
             $userBets     = Order::getOrdersByUserId($this->userId);
             $masterLeague = MasterLeague::where('name', $this->master_league_name)->first();
             $gameDetails  = Game::getGameDetails($masterLeague->id, $this->schedule, $providerId);
@@ -56,8 +46,8 @@ class WsEvents implements ShouldQueue
             $userId        = $this->userId;
             $userTz        = "Etc/UTC";
             $getUserConfig = UserConfiguration::getUserConfig($userId)
-                ->where('type', 'timezone')
-                ->first();
+                                              ->where('type', 'timezone')
+                                              ->first();
 
             if ($getUserConfig) {
                 $userTz = Timezones::find($getUserConfig->value)->name;
@@ -90,23 +80,23 @@ class WsEvents implements ShouldQueue
 
                 if (empty($data[$transformed->master_event_unique_id]['home'])) {
                     $data[$transformed->master_event_unique_id]['home'] = [
-                        'name' => $transformed->master_home_team_name,
-                        'score' => empty($transformed->score) ? '' : array_values(explode(' - ', $transformed->score))[0],
+                        'name'    => $transformed->master_home_team_name,
+                        'score'   => empty($transformed->score) ? '' : array_values(explode(' - ', $transformed->score))[0],
                         'redcard' => $transformed->home_penalty
                     ];
                 }
 
                 if (empty($data[$transformed->master_event_unique_id]['away'])) {
                     $data[$transformed->master_event_unique_id]['away'] = [
-                        'name' => $transformed->master_away_team_name,
-                        'score' => empty($transformed->score) ? '' : array_values(explode(' - ', $transformed->score))[1],
+                        'name'    => $transformed->master_away_team_name,
+                        'score'   => empty($transformed->score) ? '' : array_values(explode(' - ', $transformed->score))[1],
                         'redcard' => $transformed->home_penalty
                     ];
                 }
 
                 if (empty($data[$transformed->master_event_unique_id]['market_odds'][$mainOrOther][$transformed->type][$transformed->market_flag])) {
                     $data[$transformed->master_event_unique_id]['market_odds'][$mainOrOther][$transformed->type][$transformed->market_flag] = [
-                        'odds' => (double) $transformed->odds,
+                        'odds'      => (double) $transformed->odds,
                         'market_id' => $transformed->master_event_market_unique_id
                     ];
                     if (!empty($transformed->odd_label)) {
@@ -114,7 +104,7 @@ class WsEvents implements ShouldQueue
                     }
 
                     $doesExist = false;
-                    foreach($topicTable as $topic) {
+                    foreach ($topicTable as $topic) {
                         if ($topic['topic_name'] == 'market-id-' . $transformed->master_event_market_unique_id &&
                             $topic['user_id'] == $userId) {
                             $doesExist = true;
@@ -123,8 +113,8 @@ class WsEvents implements ShouldQueue
                     }
                     if (empty($doesExist)) {
                         $topicTable->set('userId:' . $userId . ':unique:' . uniqid(), [
-                            'user_id'       => $userId,
-                            'topic_name'    => 'market-id-' . $transformed->master_event_market_unique_id
+                            'user_id'    => $userId,
+                            'topic_name' => 'market-id-' . $transformed->master_event_market_unique_id
                         ]);
                     }
                 }
