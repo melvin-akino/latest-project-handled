@@ -111,21 +111,33 @@ class OddsSaveToDbHandler
 
                                 $eventMarket['EventMarket']['data']['event_id']               = $eventModel->id;
                                 $eventMarket['EventMarket']['data']['master_event_market_id'] = $masterEventMarketId;
+
+                                $eventMarketModel = EventMarket::where('bet_identifier', $eventMarket['EventMarket']['data']['bet_identifier'])->first();
+
                                 EventMarket::where('event_id', $eventMarket['EventMarket']['data']['event_id'])
                                            ->where('odd_label', $eventMarket['EventMarket']['data']['odd_label'])
                                            ->where('odd_type_id', $eventMarket['EventMarket']['data']['odd_type_id'])
                                            ->where('market_flag', $eventMarket['EventMarket']['data']['market_flag'])
                                            ->where('provider_id', $eventMarket['EventMarket']['data']['provider_id'])
                                            ->delete();
-                                EventMarket::withTrashed()->updateOrCreate(
-                                    [
-                                        'event_id'    => $eventMarket['EventMarket']['data']['event_id'],
-                                        'odd_label'   => $eventMarket['EventMarket']['data']['odd_label'],
-                                        'odd_type_id' => $eventMarket['EventMarket']['data']['odd_type_id'],
-                                        'market_flag' => $eventMarket['EventMarket']['data']['market_flag'],
-                                        'provider_id' => $eventMarket['EventMarket']['data']['provider_id']
-                                    ], $eventMarket['EventMarket']['data']
-                                );
+
+                                if ($eventMarketModel) {
+                                    EventMarket::withTrashed()->updateOrCreate(
+                                        [
+                                            'bet_identifier' => $eventMarket['EventMarket']['data']['bet_identifier'],
+                                        ], $eventMarket['EventMarket']['data']
+                                    );
+                                } else {
+                                    EventMarket::withTrashed()->updateOrCreate(
+                                        [
+                                            'event_id'    => $eventMarket['EventMarket']['data']['event_id'],
+                                            'odd_label'   => $eventMarket['EventMarket']['data']['odd_label'],
+                                            'odd_type_id' => $eventMarket['EventMarket']['data']['odd_type_id'],
+                                            'market_flag' => $eventMarket['EventMarket']['data']['market_flag'],
+                                            'provider_id' => $eventMarket['EventMarket']['data']['provider_id']
+                                        ], $eventMarket['EventMarket']['data']
+                                    );
+                                }
 
                                 if (!empty($eventMarket['MasterEventMarketLog'])) {
                                     $eventMarket['MasterEventMarketLog']['data']['master_event_market_id'] = $masterEventMarketId;
