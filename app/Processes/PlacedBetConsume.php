@@ -54,8 +54,8 @@ class PlacedBetConsume implements CustomProcessInterface
         } catch (Exception $e) {
             Log::error(json_encode([
                 'PlacedBetConsume' => [
-                    'qwe' => $e->getMessage(),
-                    'asd' => $e->getLine(),
+                    'message' => $e->getMessage(),
+                    'line'    => $e->getLine(),
                 ]
             ]));
         }

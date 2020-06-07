@@ -227,7 +227,8 @@ class TransformKafkaMessageOpenOrders implements ShouldQueue
         } catch (Exception $e) {
             Log::error(json_encode([
                 'TransformKafkaMessageOpenOrders' => [
-                    'qwe' => $e->getMessage()
+                    'message' => $e->getMessage(),
+                    'line'    => $e->getLine(),
                 ]
             ]));
 

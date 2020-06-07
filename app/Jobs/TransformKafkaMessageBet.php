@@ -138,8 +138,8 @@ class TransformKafkaMessageBet implements ShouldQueue
         } catch (Exception $e) {
             Log::error(json_encode([
                 'TransformKafkaMessageBet' => [
-                    'qwe' => $e->getMessage(),
-                    'asd' => $e->getLine(),
+                    'message' => $e->getMessage(),
+                    'line'    => $e->getLine(),
                 ]
             ]));
 
