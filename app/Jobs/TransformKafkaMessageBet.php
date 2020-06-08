@@ -49,15 +49,6 @@ class TransformKafkaMessageBet implements ShouldQueue
                     $messageOrderId  = end($requestUIDArray);
                     $orderData       = Order::where('id', $messageOrderId);
 
-                    \Log::info(json_encode([
-                        'TransformKafkaMessageBet' => [
-                            'test1' => $orderId,
-                            'test2' => $messageOrderId,
-                            'test3' => $orderData->count(),
-                            'test4' => $this->message,
-                        ]
-                    ]));
-
                     if ($orderData->count()) {
                         $status = strtoupper($this->message->data->status);
 
@@ -110,16 +101,6 @@ class TransformKafkaMessageBet implements ShouldQueue
                         ]);
 
                         $payload        = json_decode($payloadsTable->get($payloadsSwtId)['payload']);
-
-                        \Log::info(json_encode([
-                            'TransformKafkaMessageBet' => [
-                                'test5' => $payload,
-                                'test6' => $payloadsTable->get($payloadsSwtId)['payload'],
-                                'test7' => $payloadsSwtId,
-                                'test8' => $order,
-                            ]
-                        ]));
-
                         $actualStake    = $payload->data->stake;
                         $exchangeRate   = $payload->data->exchange_rate;
                         $exchangeRateId = $payload->data->exchange_rate_id;

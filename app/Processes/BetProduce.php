@@ -45,10 +45,6 @@ class BetProduce implements CustomProcessInterface
                                     if (strtotime($dateNow) - strtotime($payload->data->created_at) < (int)$payload->data->orderExpiry) {
                                         self::pushToKafka((array)$payload, $requestId, $provider . env('KAFKA_SCRAPE_ORDER_REQUEST_POSTFIX', '_bet_req'));
                                     }
-                                    // Temporary
-                                    // else {
-                                    //     $payloadsTable->del($pKey);
-                                    // }
                                 }
                             }
 

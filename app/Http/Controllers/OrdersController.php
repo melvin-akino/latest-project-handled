@@ -643,13 +643,6 @@ class OrdersController extends Controller
                     "mId:" . $incrementIds['payload'][$i]['market_id']
                 ]);
 
-                \Log::info(json_encode([
-                    'TransformKafkaMessageBet' => [
-                        'test9'  => $payloadsSwtId,
-                        'test10' => $payload,
-                    ]
-                ]));
-
                 if (!$payloadsSwt->exists($payloadsSwtId)) {
                     $payloadsSwt->set($payloadsSwtId, [
                         'payload' => json_encode($payload),
