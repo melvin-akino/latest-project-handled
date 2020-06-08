@@ -25,11 +25,15 @@ class TransformKafkaMessageBet implements ShouldQueue
 
     public function __construct($message)
     {
+        \Log::info('TransformKafkaMessageBet : CONSTRUCT');
+
         $this->message = $message;
     }
 
     public function handle()
     {
+        \Log::info('TransformKafkaMessageBet : HANDLE');
+
         try {
             DB::beginTransaction();
 
@@ -44,6 +48,15 @@ class TransformKafkaMessageBet implements ShouldQueue
                     $requestUIDArray = explode('-', $this->message->request_uid);
                     $messageOrderId  = end($requestUIDArray);
                     $orderData       = Order::where('id', $messageOrderId);
+
+                    \Log::info(json_encode([
+                        'TransformKafkaMessageBet' => [
+                            'test1' => $orderId,
+                            'test2' => $messageOrderId,
+                            'test3' => $orderData->count(),
+                            'test4' => $this->message,
+                        ]
+                    ]));
 
                     if ($orderData->count()) {
                         $status = strtoupper($this->message->data->status);
@@ -97,6 +110,13 @@ class TransformKafkaMessageBet implements ShouldQueue
                         ]);
 
                         $payload        = json_decode($payloadsTable->get($payloadsSwtId)['payload']);
+
+                        \Log::info(json_encode([
+                            'TransformKafkaMessageBet' => [
+                                'test5' => $payload,
+                            ]
+                        ]));
+
                         $actualStake    = $payload->data->stake;
                         $exchangeRate   = $payload->data->exchange_rate;
                         $exchangeRateId = $payload->data->exchange_rate_id;
