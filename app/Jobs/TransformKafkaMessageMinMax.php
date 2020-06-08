@@ -40,8 +40,10 @@ class TransformKafkaMessageMinMax implements ShouldQueue
             ]);
             foreach ($minMaxRequests as $key => $row) {
                 $data = $this->data->data;
+
                 if ($row['market_id'] == $data->market_id) {
                     $memUID = $row['memUID'];
+
                     foreach ($topics as $_key => $_row) {
                         if (strpos($_row['topic_name'], 'min-max-' . $data->market_id) === 0) {
                             $userId = explode(':', $_key)[1];
@@ -59,38 +61,38 @@ class TransformKafkaMessageMinMax implements ShouldQueue
                                 continue;
                             } else {
                                 /** AS DEFAULT */
+                                $providerSwtId    = "providerAlias:" . $data->provider;
                                 $providerCurrency = [
                                     'id'   => 1,
                                     'code' => "CNY",
                                 ];
-                                $providerSwtId    = "providerAlias:" . $data->provider;
 
-                                $doesExist = false;
-                                foreach ($provTable as $k => $v) {
-                                    if ($k == $providerSwtId) {
-                                        $doesExist = true;
-                                        break;
-                                    }
-                                }
-                                if ($doesExist) {
+                                // $doesExist = false;
+                                // foreach ($provTable as $k => $v) {
+                                //     if ($k == $providerSwtId) {
+                                //         $doesExist = true;
+                                //         break;
+                                //     }
+                                // }
+                                if ($provTable->exists($providerSwtId)) {
                                     $providerCurrency['id'] = $provTable->get($providerSwtId)['currency_id'];
                                     $punterPercentage       = $provTable->get($providerSwtId)['punter_percentage'];
                                 }
 
+                                $userSwtId    = "userId:" . $userId;
                                 $userCurrency = [
                                     'id'   => 1,
                                     'code' => "CNY",
                                 ];
-                                $userSwtId    = "userId:" . $userId;
 
-                                $doesExist = false;
-                                foreach ($usersTable as $k => $v) {
-                                    if ($k == $userSwtId) {
-                                        $doesExist = true;
-                                        break;
-                                    }
-                                }
-                                if ($doesExist) {
+                                // $doesExist = false;
+                                // foreach ($usersTable as $k => $v) {
+                                //     if ($k == $userSwtId) {
+                                //         $doesExist = true;
+                                //         break;
+                                //     }
+                                // }
+                                if ($usersTable->exists($userSwtId)) {
                                     $userCurrency['id'] = $usersTable->get($userSwtId)['currency_id'];
                                 }
 
@@ -112,7 +114,7 @@ class TransformKafkaMessageMinMax implements ShouldQueue
                                     'message'     => ''
                                 ];
 
-                                if (!$providerCurrency['id'] == $userCurrency['id']) {
+                                if ($providerCurrency['id'] != $userCurrency['id']) {
                                     foreach ($currenciesTable as $currencyKey => $currencyRow) {
                                         if (strpos($currencyKey, 'currencyId:' . $userCurrency['id']) === 0) {
                                             $userCurrency['code'] = $currenciesTable->get($currencyKey)['code'];
@@ -128,14 +130,14 @@ class TransformKafkaMessageMinMax implements ShouldQueue
                                         "to:" . $providerCurrency['code'],
                                     ]);
 
-                                    $doesExist = false;
-                                    foreach ($exchangeRatesTable as $k => $v) {
-                                        if ($k == $erSwtId) {
-                                            $doesExist = true;
-                                            break;
-                                        }
-                                    }
-                                    if ($doesExist) {
+                                    // $doesExist = false;
+                                    // foreach ($exchangeRatesTable as $k => $v) {
+                                    //     if ($k == $erSwtId) {
+                                    //         $doesExist = true;
+                                    //         break;
+                                    //     }
+                                    // }
+                                    if ($exchangeRatesTable->exists($erSwtId)) {
                                         $exchangeRate = $exchangeRatesTable->get($erSwtId)['exchange_rate'];
                                     }
 
