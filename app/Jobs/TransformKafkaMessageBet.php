@@ -114,6 +114,9 @@ class TransformKafkaMessageBet implements ShouldQueue
                         \Log::info(json_encode([
                             'TransformKafkaMessageBet' => [
                                 'test5' => $payload,
+                                'test6' => $payloadsTable->get($payloadsSwtId)['payload'],
+                                'test7' => $payloadsSwtId,
+                                'test8' => $order,
                             ]
                         ]));
 
