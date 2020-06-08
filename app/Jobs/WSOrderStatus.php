@@ -11,11 +11,11 @@ class WSOrderStatus implements ShouldQueue
 
     public function __construct($userId, $orderId, $status, $odds, $expiry, $createdAt)
     {
-        $this->userId  = $userId;
-        $this->orderId = $orderId;
-        $this->status  = $status;
-        $this->odds    = $odds;
-        $this->expiry  = $expiry;
+        $this->userId     = $userId;
+        $this->orderId    = $orderId;
+        $this->status     = $status;
+        $this->odds       = $odds;
+        $this->expiry     = $expiry;
         $this->created_at = $createdAt;
     }
 

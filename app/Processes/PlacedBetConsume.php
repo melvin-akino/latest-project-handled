@@ -3,6 +3,7 @@
 namespace App\Processes;
 
 use App\Jobs\TransformKafkaMessageBet;
+
 use Hhxsv5\LaravelS\Swoole\Process\CustomProcessInterface;
 use Illuminate\Support\Facades\Log;
 use Swoole\Http\Server;
@@ -34,7 +35,7 @@ class PlacedBetConsume implements CustomProcessInterface
                             $kafkaConsumer->commit($message);
                             Log::channel('kafkalog')->info(json_encode($message));
                             continue;
-                        } else if (strpos($payload->data->reason, "Internal Error: Session Inactive") >= 0) {
+                        } else if (strpos($payload->data->reason, "Internal Error: Session Inactive")) {
                             Log::info("Bet Transformation ignored - Internal error");
                             $kafkaConsumer->commit($message);
                             continue;
@@ -46,13 +47,18 @@ class PlacedBetConsume implements CustomProcessInterface
                         Log::channel('kafkalog')->info(json_encode($message));
                         continue;
                     }
+
                     usleep(100000);
                 }
             }
         } catch (Exception $e) {
-            Log::error($e->getMessage());
+            Log::error(json_encode([
+                'PlacedBetConsume' => [
+                    'message' => $e->getMessage(),
+                    'line'    => $e->getLine(),
+                ]
+            ]));
         }
-
     }
 
     // Requirements: LaravelS >= v3.4.0 & callback() must be async non-blocking program.

@@ -8,7 +8,8 @@ use App\Models\{
     UserWallet,
     ExchangeRate,
     Source,
-    OrderTransaction
+    OrderTransaction,
+    ProviderAccountOrder
 };
 
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -44,6 +45,7 @@ class WsSettledBets implements ShouldQueue
         $stake               = 0;
         $sourceName          = "RETURN_STAKE";
         $stakeReturnToLedger = false;
+        $transferAmount      = 0;
 
         if ($status == "WON") {
             $status = "WIN";
@@ -53,13 +55,11 @@ class WsSettledBets implements ShouldQueue
             $status = "LOSE";
         }
 
-        $orders = Order::where('bet_id', $this->data->bet_id)->first();
-
-        $userWallet = UserWallet::where('user_id', $orders->user_id)
-            ->first();
-
+        $orders       = Order::where('bet_id', $this->data->bet_id)->first();
+        $userWallet   = UserWallet::where('user_id', $orders->user_id)->first();
+        $baseCurrency = Currency::where('code', 'CNY')->first();
         $exchangeRate = ExchangeRate::where('from_currency_id', $this->providerCurrency)
-            ->where('to_currency_id', 1)
+            ->where('to_currency_id', $baseCurrency->id)
             ->first();
 
         switch ($status) {
@@ -71,14 +71,16 @@ class WsSettledBets implements ShouldQueue
                 $sourceName          = "BET_WIN";
                 $stakeReturnToLedger = true;
                 $charge              = 'Credit';
+                $transferAmount      = $orders->to_win - $orders->stake;
 
                 break;
             case 'LOSE':
-                $balance    = $orders->stake * -1;
-                $debit      = $balance;
-                $credit     = 0;
-                $sourceName = "BET_LOSE";
-                $charge     = 'Debit';
+                $balance        = $orders->stake * -1;
+                $debit          = $balance;
+                $credit         = 0;
+                $sourceName     = "BET_LOSE";
+                $charge         = 'Debit';
+                $transferAmount = 0;
 
                 break;
             case 'HALF WIN':
@@ -89,52 +91,24 @@ class WsSettledBets implements ShouldQueue
                 $sourceName          = "BET_HALF_WIN";
                 $stakeReturnToLedger = true;
                 $charge              = 'Credit';
+                $transferAmount      = ($orders->to_win / 2) - $orders->stake;
 
                 break;
             case 'HALF LOSE':
-                $balance    = $orders->stake / 2;
-                $debit      = 0;
-                $credit     = $balance;
-                $sourceName = "BET_HALF_LOSE";
-                $charge     = 'Debit';
+                $balance        = $orders->stake / 2;
+                $debit          = 0;
+                $credit         = $balance;
+                $sourceName     = "BET_HALF_LOSE";
+                $charge         = 'Debit';
+                $transferAmount = ($orders->to_win / 2) - $orders->stake;
 
                 break;
             case 'PUSH':
             case 'VOID':
-                $balance = $orders->stake;
-                $debit   = 0;
-                $credit  = $balance;
-                $charge  = 'Credit';
-
-                break;
             case 'DRAW':
-                $balance = $orders->stake;
-                $debit   = 0;
-                $credit  = $balance;
-                $charge  = 'Credit';
-
-                break;
             case 'CANCELLED':
-                $balance = $orders->stake;
-                $debit   = 0;
-                $credit  = $balance;
-                $charge  = 'Credit';
-
-                break;
             case 'REJECTED':
-                $balance = $orders->stake;
-                $debit   = 0;
-                $credit  = $balance;
-                $charge  = 'Credit';
-
-                break;
             case 'ABNORMAL BET':
-                $balance = $orders->stake;
-                $debit   = 0;
-                $credit  = $balance;
-                $charge  = 'Credit';
-
-                break;
             case 'REFUNDED':
                 $balance = $orders->stake;
                 $debit   = 0;
@@ -144,6 +118,9 @@ class WsSettledBets implements ShouldQueue
                 break;
         }
 
+        $balance                 *= $exchangeRate->exchange_rate;
+        $sourceId                 = Source::where('source_name', 'LIKE', $sourceName)->first();
+        $returnBetSourceId        = Source::where('source_name', 'LIKE', 'RETURN_STAKE')->first();
         $score                    = $this->data->score;
         $betSelectionArray        = explode("\n", $orders->bet_selection);
         $betSelectionOddsAndScore = explode("(", $betSelectionArray[2]);
@@ -154,64 +131,61 @@ class WsSettledBets implements ShouldQueue
             $updatedOddsAndScore
         ]);
 
-        $sourceId = Source::where('source_name', 'LIKE', $sourceName)
-            ->first();
-
-        $returnBetSourceId = Source::where('source_name', 'LIKE', 'RETURN_STAKE')
-            ->first();
-
         DB::beginTransaction();
 
         try {
             Order::where('bet_id', $this->data->bet_id)
-                ->update(
-                    [
-                        'bet_selection' => $updatedBetSelection,
-                        'status'        => strtoupper($this->data->status),
-                        'profit_loss'   => $balance,
-                        'reason'        => $this->data->reason,
-                        'settled_date'  => Carbon::now(),
-                        'updated_at'    => Carbon::now(),
-                    ]
-                );
+                ->update([
+                    'bet_selection' => $updatedBetSelection,
+                    'status'        => strtoupper($this->data->status),
+                    'profit_loss'   => $balance,
+                    'reason'        => $this->data->reason,
+                    'settled_date'  => Carbon::now(),
+                    'updated_at'    => Carbon::now(),
+                ]);
 
             $orderLogs = OrderLogs::create([
-                        'provider_id'   => $this->providerId,
-                        'sport_id'      => $this->data->sport,
-                        'bet_id'        => $this->data->bet_id,
-                        'bet_selection' => $orders->bet_selection,
-                        'status'        => $status,
-                        'user_id'       => $orders->user_id,
-                        'reason'        => $this->data->reason,
-                        'profit_loss'   => $balance,
-                        'order_id'      => $orders->id,
-                        'settled_date'  => Carbon::now(),
-                        'created_at'    => Carbon::now(),
-                        'updated_at'    => Carbon::now(),
-                    ]);
-            $orderLogsId = $orderLogs->id;
+                'provider_id'   => $this->providerId,
+                'sport_id'      => $this->data->sport,
+                'bet_id'        => $this->data->bet_id,
+                'bet_selection' => $orders->bet_selection,
+                'status'        => $status,
+                'user_id'       => $orders->user_id,
+                'reason'        => $this->data->reason,
+                'profit_loss'   => $balance,
+                'order_id'      => $orders->id,
+                'settled_date'  => Carbon::now(),
+                'created_at'    => Carbon::now(),
+                'updated_at'    => Carbon::now(),
+            ]);
 
+            $orderLogsId    = $orderLogs->id;
             $chargeType     = $charge;
             $receiver       = $orders->user_id;
-            $transferAmount = $stake * $exchangeRate->exchange_rate;
+            $transferAmount = $transferAmount ?: ($orders->to_win - $stake) * $exchangeRate->exchange_rate;
             $currency       = $userWallet->currency_id;
             $source         = $sourceId->id;
             $ledger         = UserWallet::makeTransaction($receiver, $transferAmount, $currency, $source, $chargeType);
 
-
-            $balance += $stake;
+            ProviderAccountOrder::create([
+                'order_log_id'       => $orderLogsId,
+                'exchange_rate_id'   => $exchangeRate->id,
+                'actual_stake'       => $this->data->stake,
+                'actual_to_win'      => $this->data->stake * $this->data->odds,
+                'actual_profit_loss' => $this->data->profit_loss,
+                'exchange_rate'      => $exchangeRate->exchange_rate,
+            ]);
 
             OrderTransaction::create([
-                        'order_logs_id'       => $orderLogsId,
-                        'user_id'             => $orders->user_id,
-                        'source_id'           => $sourceId->id,
-                        'currency_id'         => $userWallet->currency_id,
-                        'wallet_ledger_id'    => $ledger->id,
-                        'provider_account_id' => $orders->provider_account_id,
-                        'reason'              => $this->data->reason,
-                        'amount'              => $balance
-                    ]
-                );
+                'order_logs_id'       => $orderLogsId,
+                'user_id'             => $orders->user_id,
+                'source_id'           => $sourceId->id,
+                'currency_id'         => $userWallet->currency_id,
+                'wallet_ledger_id'    => $ledger->id,
+                'provider_account_id' => $orders->provider_account_id,
+                'reason'              => $this->data->reason,
+                'amount'              => $balance
+            ]);
 
             if ($stakeReturnToLedger == true) {
                 $transferAmount = $stake;
@@ -222,29 +196,27 @@ class WsSettledBets implements ShouldQueue
                 $ledger         = UserWallet::makeTransaction($receiver, $transferAmount, $currency, $source, $chargeType);
 
                 OrderTransaction::create([
-                            'order_logs_id'       => $orderLogsId,
-                            'user_id'             => $orders->user_id,
-                            'source_id'           => $returnBetSourceId->id,
-                            'currency_id'         => $userWallet->currency_id,
-                            'wallet_ledger_id'    => $ledger->id,
-                            'provider_account_id' => $orders->provider_account_id,
-                            'reason'              => $this->data->reason,
-                            'amount'              => $stake
-                        ]);
+                    'order_logs_id'       => $orderLogsId,
+                    'user_id'             => $orders->user_id,
+                    'source_id'           => $returnBetSourceId->id,
+                    'currency_id'         => $userWallet->currency_id,
+                    'wallet_ledger_id'    => $ledger->id,
+                    'provider_account_id' => $orders->provider_account_id,
+                    'reason'              => $this->data->reason,
+                    'amount'              => $stake
+                ]);
             }
 
             DB::commit();
         } catch (\Exception $e) {
-            Log::error(json_encode(
-                [
-                    'WS_SETTLED_BETS' => [
-                        'message' => $e->getMessage(),
-                        'line'    => $e->getLine(),
-                        'file'    => $e->getFile(),
-                        'data'    => $this->data,
-                    ]
+            Log::error(json_encode([
+                'WS_SETTLED_BETS' => [
+                    'message' => $e->getMessage(),
+                    'line'    => $e->getLine(),
+                    'file'    => $e->getFile(),
+                    'data'    => $this->data,
                 ]
-            ));
+            ]));
 
             DB::rollBack();
         }

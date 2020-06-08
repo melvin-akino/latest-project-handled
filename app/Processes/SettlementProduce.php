@@ -28,17 +28,18 @@ class SettlementProduce implements CustomProcessInterface
             self::$producerHandler = new ProducerHandler($kafkaProducer);
 
             if ($swoole->data2SwtTable->exist('data2Swt')) {
-                $sportsTable                = $swoole->sportsTable;
-                $providerAccountsTable      = $swoole->providerAccountsTable;
-                $initialTime                = Carbon::createFromFormat('H:i:s', Carbon::now()->format('H:i:s'));
-                $settlementTime             = 0;
-                $systemConfigurationsTimer  = null;
+                $sportsTable               = $swoole->sportsTable;
+                $providerAccountsTable     = $swoole->providerAccountsTable;
+                $initialTime               = Carbon::createFromFormat('H:i:s', Carbon::now()->format('H:i:s'));
+                $settlementTime            = 0;
+                $systemConfigurationsTimer = null;
+                $startTime                 = $initialTime;
 
-                $startTime = $initialTime;
                 while (!self::$quit) {
                     $newTime = Carbon::createFromFormat('H:i:s', Carbon::now()->format('H:i:s'));
                     if ($newTime->diffInSeconds(Carbon::parse($initialTime)) >= 1) {
                         $refreshDBInterval = config('settlement.refresh-db-interval');
+
                         if ($settlementTime % $refreshDBInterval == 0) {
                             $systemConfigurationsTimer = self::refreshSettlementDbConfig();
                         }
@@ -46,7 +47,6 @@ class SettlementProduce implements CustomProcessInterface
                         $settlementTime++;
 
                         if ($systemConfigurationsTimer) {
-
                             foreach ($sportsTable AS $sRow) {
                                 $sportId = $sRow['id'];
 
@@ -54,11 +54,9 @@ class SettlementProduce implements CustomProcessInterface
                                     foreach ($providerAccountsTable AS $pRow) {
                                         $providerAlias = strtolower($pRow['provider_alias']);
                                         $username      = $pRow['username'];
-
-                                        $requestId = (string) Str::uuid();
-                                        $requestTs = getMilliseconds();
-
-                                        $payload = [
+                                        $requestId     = (string) Str::uuid();
+                                        $requestTs     = getMilliseconds();
+                                        $payload       = [
                                             'request_uid' => $requestId,
                                             'request_ts'  => $requestTs,
                                             'sub_command' => 'scrape',
@@ -71,16 +69,17 @@ class SettlementProduce implements CustomProcessInterface
                                             'username' => $username
                                         ];
 
-                                        self::pushToKafka($payload, $requestId,
-                                            $providerAlias . env('KAFKA_SCRAPE_SETTLEMENT_POSTFIX', '_settlement_req'));
+                                        self::pushToKafka($payload, $requestId, $providerAlias . env('KAFKA_SCRAPE_SETTLEMENT_POSTFIX', '_settlement_req'));
 
                                         $startTime = $newTime;
                                     }
                                 }
                             }
                         }
+
                         $initialTime = $newTime;
                     }
+
                     usleep(1000000);
                 }
             }
@@ -103,6 +102,7 @@ class SettlementProduce implements CustomProcessInterface
     private static function milliseconds()
     {
         $mt = explode(' ', microtime());
+
         return bcadd($mt[1], $mt[0], 8);
     }
 
