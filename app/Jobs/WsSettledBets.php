@@ -3,6 +3,7 @@
 namespace App\Jobs;
 
 use App\Models\{
+    Currency,
     Order,
     OrderLogs,
     UserWallet,
