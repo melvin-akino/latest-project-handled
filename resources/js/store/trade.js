@@ -248,7 +248,7 @@ const actions = {
         })
     },
     getInitialLeagues({commit, dispatch, state}) {
-        axios.get('v1/trade/leagues', { headers: { 'Authorization': `Bearer ${token}` }})
+        return axios.get('v1/trade/leagues', { headers: { 'Authorization': `Bearer ${token}` }})
         .then(response => {
             if(response.data.sport_id == state.selectedSport) {
                 commit('SET_LEAGUES', response.data.data)
@@ -301,12 +301,15 @@ const actions = {
     },
     async getTradeWindowData({dispatch}) {
         await dispatch('getSports')
-        dispatch('getBetColumns', state.selectedSport)
-        dispatch('getInitialLeagues')
+        await dispatch('getBetColumns', state.selectedSport)
+        await dispatch('getInitialLeagues')
+        Vue.prototype.$socket.send(`getSelectedLeagues_${state.selectedSport}`)
         dispatch('getInitialEvents')
+        await dispatch('getBetbarData')
+        dispatch('getOrders')
     },
     getBetbarData({commit, state, dispatch}) {
-        axios.get('v1/trade/betbar', { headers: { 'Authorization': `Bearer ${token}` }})
+        return axios.get('v1/trade/betbar', { headers: { 'Authorization': `Bearer ${token}` }})
         .then(response => {
             commit('SET_BETS', response.data.data)
             if(state.bets.length != 0) {
@@ -315,6 +318,11 @@ const actions = {
         })
         .catch(err => {
             dispatch('auth/checkIfTokenIsValid', err.response.data.status_code, { root: true })
+        })
+    },
+    getOrders() {
+        state.bets.map(bet => {
+            Vue.prototype.$socket.send(`getOrder_${bet.order_id}`)
         })
     },
     getWalletData({commit, dispatch}) {

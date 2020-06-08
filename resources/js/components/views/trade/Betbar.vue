@@ -31,25 +31,16 @@ export default {
         ...mapState('trade', ['isBetBarOpen', 'bets', 'failedBetStatus'])
     },
     mounted() {
-        this.$store.dispatch('trade/getBetbarData')
         this.getOrderStatus()
     },
     watch: {
         bets() {
-            this.getOrders()
             this.getOrderStatus()
         }
     },
     methods: {
         toggleBetBar() {
             this.$store.commit('trade/TOGGLE_BETBAR', !this.isBetBarOpen)
-        },
-        getOrders() {
-            this.bets.map(bet => {
-                if(this.$socket.readyState == 1) {
-                    this.$socket.send(`getOrder_${bet.order_id}`)
-                }
-            })
         },
         getOrderStatus() {
             this.$options.sockets.onmessage = (response => {

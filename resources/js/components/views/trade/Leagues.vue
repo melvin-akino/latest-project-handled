@@ -58,9 +58,6 @@ export default {
             }
         },
         modifyLeaguesFromSocket() {
-            if(this.$socket.readyState == 1) {
-                this.$socket.send(`getSelectedLeagues_${this.selectedSport}`)
-            }
             this.$options.sockets.onmessage = (response) => {
                 if (getSocketKey(response.data) === 'getAdditionalLeagues') {
                     if(getSocketValue(response.data, 'getAdditionalLeagues') != '') {
