@@ -351,7 +351,7 @@ class DataToSwt implements CustomProcessInterface
         $swTable  = $swoole->currenciesTable;
         array_map(function ($currency) use ($swTable) {
             $swtId = implode(':', [
-                "currencycId:" . $currency->id,
+                "currencyId:" . $currency->id,
                 "currencyCode:" . $currency->code,
             ]);
 
