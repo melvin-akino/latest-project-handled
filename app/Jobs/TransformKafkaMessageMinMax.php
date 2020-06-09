@@ -97,22 +97,6 @@ class TransformKafkaMessageMinMax implements ShouldQueue
                                     $userCurrency['id'] = $usersTable->get($userSwtId)['currency_id'];
                                 }
 
-                                $erSwtId = implode(':', [
-                                    "from:" . $userCurrency['code'],
-                                    "to:" . $providerCurrency['code'],
-                                ]);
-
-                                $doesExist = false;
-                                foreach ($exchangeRatesTable as $k => $v) {
-                                    if ($k == $erSwtId) {
-                                        $doesExist = true;
-                                        break;
-                                    }
-                                }
-                                if ($doesExist) {
-                                    $exchangeRate = $exchangeRatesTable->get($erSwtId)['exchange_rate'];
-                                }
-
                                 $maximum     = (double) $data->maximum * ($punterPercentage / 100);
                                 $timeDiff    = time() - (int) $data->timestamp;
                                 $age         = ($timeDiff > 60) ? floor($timeDiff / 60) . 'm' : $timeDiff . 's';
@@ -142,6 +126,22 @@ class TransformKafkaMessageMinMax implements ShouldQueue
 
                                     $transformed['min'] = $data->minimum / $exchangeRate;
                                     $transformed['max'] = $data->maximum / $exchangeRate;
+                                }
+
+                                $erSwtId = implode(':', [
+                                    "from:" . $userCurrency['code'],
+                                    "to:" . $providerCurrency['code'],
+                                ]);
+
+                                $doesExist = false;
+                                foreach ($exchangeRatesTable as $k => $v) {
+                                    if ($k == $erSwtId) {
+                                        $doesExist = true;
+                                        break;
+                                    }
+                                }
+                                if ($doesExist) {
+                                    $exchangeRate = $exchangeRatesTable->get($erSwtId)['exchange_rate'];
                                 }
 
                                 Log::info('Task: MinMax emitWS');
