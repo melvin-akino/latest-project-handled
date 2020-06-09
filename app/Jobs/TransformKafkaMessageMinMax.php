@@ -57,35 +57,6 @@ class TransformKafkaMessageMinMax implements ShouldQueue
                         $punterPercentage       = $provTable->get($providerSwtId)['punter_percentage'];
                     }
 
-                    $userSwtId = "userId:" . $userId;
-                    $doesExist = false;
-                    foreach ($usersTable as $k => $v) {
-                        if ($k == $userSwtId) {
-                            $doesExist = true;
-                            break;
-                        }
-                    }
-
-                    if ($doesExist) {
-                        $userCurrency['id'] = $usersTable->get($userSwtId)['currency_id'];
-                    }
-
-                    $erSwtId = implode(':', [
-                        "from:" . $userCurrency['code'],
-                        "to:" . $providerCurrency['code'],
-                    ]);
-
-                    $doesExist = false;
-                    foreach ($exchangeRatesTable as $k => $v) {
-                        if ($k == $erSwtId) {
-                            $doesExist = true;
-                            break;
-                        }
-                    }
-                    if ($doesExist) {
-                        $exchangeRate = $exchangeRatesTable->get($erSwtId)['exchange_rate'];
-                    }
-
                     foreach ($topics as $_key => $_row) {
                         if (strpos($_row['topic_name'], 'min-max-' . $data->market_id) === 0) {
                             $userId = explode(':', $_key)[1];
@@ -102,6 +73,35 @@ class TransformKafkaMessageMinMax implements ShouldQueue
                             } else if ($this->data->message == 'onqueue') {
                                 continue;
                             } else {
+                                $userSwtId = "userId:" . $userId;
+                                $doesExist = false;
+                                foreach ($usersTable as $k => $v) {
+                                    if ($k == $userSwtId) {
+                                        $doesExist = true;
+                                        break;
+                                    }
+                                }
+
+                                if ($doesExist) {
+                                    $userCurrency['id'] = $usersTable->get($userSwtId)['currency_id'];
+                                }
+
+                                $erSwtId = implode(':', [
+                                    "from:" . $userCurrency['code'],
+                                    "to:" . $providerCurrency['code'],
+                                ]);
+
+                                $doesExist = false;
+                                foreach ($exchangeRatesTable as $k => $v) {
+                                    if ($k == $erSwtId) {
+                                        $doesExist = true;
+                                        break;
+                                    }
+                                }
+                                if ($doesExist) {
+                                    $exchangeRate = $exchangeRatesTable->get($erSwtId)['exchange_rate'];
+                                }
+
                                 /** AS DEFAULT */
                                 $providerCurrency = [
                                     'id'   => 1,
