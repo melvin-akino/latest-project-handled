@@ -42,6 +42,7 @@ class Game extends Model
                  ->where('me.game_schedule', $schedule)
                  ->where('mem.is_main', true)
                  ->whereNull('me.deleted_at')
+                 ->whereNull('e.deleted_at')
                  ->where('em.provider_id', $providerId)
                  ->distinct()->get();
     }
@@ -157,11 +158,11 @@ class Game extends Model
                  ->join('user_selected_leagues AS sl', 'ml.id', 'sl.master_league_id')
                  ->where('sl.game_schedule', DB::raw('me.game_schedule'))
                  ->where('sl.user_id', $userId)
-                 ->whereNull('me.deleted_at')
                  ->where('mem.is_main', true)
+                 ->whereNull('me.deleted_at')
+                 ->whereNull('e.deleted_at')
                  ->whereNull('ml.deleted_at')
                  ->where('em.provider_id', $providerId)
-                 ->whereNull('e.deleted_at')
                  ->select([
                      'ml.sport_id',
                      'ml.name as master_league_name',
