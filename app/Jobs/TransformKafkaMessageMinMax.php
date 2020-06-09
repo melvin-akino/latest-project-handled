@@ -114,16 +114,6 @@ class TransformKafkaMessageMinMax implements ShouldQueue
                                     $punterPercentage = $userProviderConfigTable->get($userProviderSwtId)['punter_percentage'];
                                 }
 
-                                \Log::info([
-                                    'TransformKafkaMessageMinMax' => [
-                                        'test1' => $doesExist,
-                                        'test2' => $punterPercentage,
-                                        'test3' => $userProviderSwtId,
-                                        'test4' => $userCurrency['id'],
-                                        'test5' => $providerCurrency['id'],
-                                    ]
-                                ]);
-
                                 $maximum     = (double) $data->maximum * ($punterPercentage / 100);
                                 $timeDiff    = time() - (int) $data->timestamp;
                                 $age         = ($timeDiff > 60) ? floor($timeDiff / 60) . 'm' : $timeDiff . 's';
