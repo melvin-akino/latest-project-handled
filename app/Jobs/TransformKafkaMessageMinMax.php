@@ -24,15 +24,16 @@ class TransformKafkaMessageMinMax implements ShouldQueue
         Log::info('Task: MinMax handle');
         $swoole = app('swoole');
 
-        $topics             = $swoole->topicTable;
-        $minMaxRequests     = $swoole->minMaxRequestsTable;
-        $wsTable            = $swoole->wsTable;
-        $provTable          = $swoole->providersTable;
-        $usersTable         = $swoole->usersTable;
-        $currenciesTable    = $swoole->currenciesTable;
-        $exchangeRatesTable = $swoole->exchangeRatesTable;
-        $minmaxMarketTable  = $swoole->minmaxMarketTable;
-        $minMaxCachesTable  = $swoole->minMaxCachesTable;
+        $topics                  = $swoole->topicTable;
+        $minMaxRequests          = $swoole->minMaxRequestsTable;
+        $wsTable                 = $swoole->wsTable;
+        $provTable               = $swoole->providersTable;
+        $usersTable              = $swoole->usersTable;
+        $currenciesTable         = $swoole->currenciesTable;
+        $exchangeRatesTable      = $swoole->exchangeRatesTable;
+        $minmaxMarketTable       = $swoole->minmaxMarketTable;
+        $minMaxCachesTable       = $swoole->minMaxCachesTable;
+        $userProviderConfigTable = $swoole->userProviderConfigTable;
 
         try {
             $minmaxMarketTable->set('minmax-market:' . $this->data->data->market_id, [
@@ -97,6 +98,22 @@ class TransformKafkaMessageMinMax implements ShouldQueue
                                     $punterPercentage       = $provTable->get($providerSwtId)['punter_percentage'];
                                 }
 
+                                $doesExist         = false;
+                                $userProviderSwtId = implode(':', [
+                                    "userId" . $userId,
+                                    "pId:" . $provTable->get($providerSwtId)['id'],
+                                ]);
+                                foreach ($userProviderConfigTable as $k => $v) {
+                                    if ($k == $userProviderSwtId) {
+                                        $doesExist = true;
+                                        break;
+                                    }
+                                }
+
+                                if ($doesExist) {
+                                    $punterPercentage = $userProviderConfigTable->get($userProviderSwtId)['punter_percentage'];
+                                }
+
                                 $maximum     = (double) $data->maximum * ($punterPercentage / 100);
                                 $timeDiff    = time() - (int) $data->timestamp;
                                 $age         = ($timeDiff > 60) ? floor($timeDiff / 60) . 'm' : $timeDiff . 's';
@@ -106,7 +123,7 @@ class TransformKafkaMessageMinMax implements ShouldQueue
                                     "provider"    => strtoupper($data->provider),
                                     "min"         => $data->minimum,
                                     "max"         => $maximum,
-                                    "price"       => $data->odds,
+                                    "price"       => (double) $data->odds,
                                     "priority"    => $provTable->get($providerSwtId)['priority'],
                                     'market_id'   => $memUID,
                                     'age'         => $age,
@@ -114,6 +131,16 @@ class TransformKafkaMessageMinMax implements ShouldQueue
                                 ];
 
                                 if ($providerCurrency['id'] != $userCurrency['id']) {
+                                    foreach ($currenciesTable as $currencyKey => $currencyRow) {
+                                        if (strpos($currencyKey, 'currencyId:' . $userCurrency['id']) === 0) {
+                                            $userCurrency['code'] = $currenciesTable->get($currencyKey)['code'];
+                                        }
+
+                                        if (strpos($currencyKey, 'currencyId:' . $providerCurrency['id']) === 0) {
+                                            $providerCurrency['code'] = $currenciesTable->get($currencyKey)['code'];
+                                        }
+                                    }
+
                                     $exchangeRate = 1;
                                     $erSwtId      = implode(':', [
                                         "from:" . $providerCurrency['code'],
@@ -129,16 +156,6 @@ class TransformKafkaMessageMinMax implements ShouldQueue
                                     }
                                     if ($doesExist) {
                                         $exchangeRate = $exchangeRatesTable->get($erSwtId)['exchange_rate'];
-                                    }
-
-                                    foreach ($currenciesTable as $currencyKey => $currencyRow) {
-                                        if (strpos($currencyKey, 'currencyId:' . $userCurrency['id']) === 0) {
-                                            $userCurrency['code'] = $currenciesTable->get($currencyKey)['code'];
-                                        }
-
-                                        if (strpos($currencyKey, 'currencyId:' . $providerCurrency['id']) === 0) {
-                                            $providerCurrency['code'] = $currenciesTable->get($currencyKey)['code'];
-                                        }
                                     }
 
                                     $transformed['min'] = $data->minimum * $exchangeRate;

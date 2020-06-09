@@ -250,9 +250,10 @@ class DataToSwt implements CustomProcessInterface
         array_map(function ($userConfig) use ($swooleTable) {
             $swooleTable->set('userId:' . $userConfig->user_id . ':pId:' . $userConfig->provider_id,
                 [
-                    'user_id'     => $userConfig->user_id,
-                    'provider_id' => $userConfig->provider_id,
-                    'active'      => $userConfig->active,
+                    'user_id'           => $userConfig->user_id,
+                    'provider_id'       => $userConfig->provider_id,
+                    'active'            => $userConfig->active,
+                    'punter_percentage' => $userConfig->punter_percentage,
                 ]
             );
         }, $userProviderConfig->toArray());
