@@ -653,7 +653,7 @@ class OrdersController extends Controller
 
                 KafkaPush::dispatch(
                     $incrementIds['payload'][$i]['provider_id'] . env('KAFKA_SCRAPE_ORDER_REQUEST_POSTFIX', '_bet_req'),
-                    json_encode($payload),
+                    $payload,
                     $requestId
                 );
 
