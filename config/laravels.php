@@ -325,6 +325,7 @@ return [
                 ['name' => 'user_id', 'type' => \Swoole\Table::TYPE_INT],
                 ['name' => 'provider_id', 'type' => \Swoole\Table::TYPE_INT],
                 ['name' => 'active', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 5],
+                ['name' => 'punter_percentage', 'type' => \Swoole\Table::TYPE_INT],
             ],
         ],
         'activeEvents'        => [
