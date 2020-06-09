@@ -265,13 +265,6 @@ export default {
             }
         }
     },
-    watch: {
-        retrievedMarketData() {
-            let providersPriority = this.minMaxProviders.map(minmax => minmax.priority)
-            this.minMaxData = this.minMaxProviders.filter(minmax => minmax.priority == Math.min(...providersPriority) && minmax.hasMarketData)
-            this.selectedProviders = this.minMaxData.map(minmax => minmax.provider_id)
-        }
-    },
     mounted() {
         this.getMarketDetails()
         this.setMinMaxProviders()
@@ -349,6 +342,11 @@ export default {
                                         }
                                     })
                                 }
+                            }
+
+                            if(_.isEmpty(this.minMaxData)) {
+                                this.minMaxData.push(minmax)
+                                this.selectedProviders = this.minMaxData.map(minmax => minmax.provider_id)
                             }
                         }
                     }
