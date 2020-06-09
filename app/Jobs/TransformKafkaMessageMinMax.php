@@ -114,7 +114,8 @@ class TransformKafkaMessageMinMax implements ShouldQueue
                                 ];
 
                                 if ($providerCurrency['id'] != $userCurrency['id']) {
-                                    $erSwtId = implode(':', [
+                                    $exchangeRate = 1;
+                                    $erSwtId      = implode(':', [
                                         "from:" . $providerCurrency['code'],
                                         "to:" . $userCurrency['code'],
                                     ]);
