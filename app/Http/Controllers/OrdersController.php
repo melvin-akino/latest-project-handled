@@ -652,9 +652,9 @@ class OrdersController extends Controller
                 }
 
                 KafkaPush::dispatch(
-                    $incrementIds['payload'][$i]['provider_id'] . env('KAFKA_SCRAPE_ORDER_REQUEST_POSTFIX', '_bet_req')
+                    $incrementIds['payload'][$i]['provider_id'] . env('KAFKA_SCRAPE_ORDER_REQUEST_POSTFIX', '_bet_req'),
                     json_encode($payload),
-                    $requestId,
+                    $requestId
                 );
 
                 $ordersTable['orderId:' . $incrementIds['id'][$i]]['username']    = $payload['data']['username'];
