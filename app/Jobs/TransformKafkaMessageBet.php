@@ -9,7 +9,8 @@ use App\Models\{
     ProviderAccount,
     OrderLogs,
     ProviderAccountOrder,
-    UserWallet
+    UserWallet,
+    Source
 };
 
 use Carbon\Carbon;
@@ -110,18 +111,34 @@ class TransformKafkaMessageBet implements ShouldQueue
                                 'actual_profit_loss' => 0.00,
                                 'exchange_rate'      => $exchangeRate,
                             ]);
+                        } else {
+                            $userWallet = UserWallet::where('user_id', $order->user_id)->first();
+                            $source     = Source::where('source_name', 'LIKE', 'RETURN_STAKE')->first();
+                            $orderLogs  = OrderLogs::create([
+                                'provider_id'   => $order->provider_id,
+                                'sport_id'      => $order->sport_id,
+                                'bet_id'        => $this->message->data->bet_id,
+                                'bet_selection' => $order->bet_selection,
+                                'status'        => $status,
+                                'user_id'       => $order->user_id,
+                                'reason'        => $this->message->data->reason,
+                                'profit_loss'   => $order->profit_loss,
+                                'order_id'      => $order->id,
+                                'settled_date'  => null,
+                            ]);
+
+                            if ($order->status == "SUCCESS") {
+                                continue;
+                            }
+
+                            UserWallet::makeTransaction(
+                                $order->user_id,
+                                $order->stake,
+                                $userWallet->currency_id,
+                                $source->id,
+                                'Credit'
+                            );
                         }
-
-                        $userWallet = UserWallet::where('user_id', $orders->user_id)->first();
-                        $source     = Source::where('source_name', 'LIKE', 'RETURN_STAKE')->first();
-
-                        UserWallet::makeTransaction(
-                            $order->user_id,
-                            $order->stake,
-                            $userWallet->currency_id,
-                            $source->id,
-                            'Credit'
-                        );
 
                         WSOrderStatus::dispatch(
                             $row['user_id'],
