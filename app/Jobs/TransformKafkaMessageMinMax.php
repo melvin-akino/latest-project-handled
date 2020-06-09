@@ -73,6 +73,17 @@ class TransformKafkaMessageMinMax implements ShouldQueue
                             } else if ($this->data->message == 'onqueue') {
                                 continue;
                             } else {
+                                /** AS DEFAULT */
+                                $providerCurrency = [
+                                    'id'   => 1,
+                                    'code' => "CNY",
+                                ];
+
+                                $userCurrency = [
+                                    'id'   => 1,
+                                    'code' => "CNY",
+                                ];
+
                                 $userSwtId = "userId:" . $userId;
                                 $doesExist = false;
                                 foreach ($usersTable as $k => $v) {
@@ -101,17 +112,6 @@ class TransformKafkaMessageMinMax implements ShouldQueue
                                 if ($doesExist) {
                                     $exchangeRate = $exchangeRatesTable->get($erSwtId)['exchange_rate'];
                                 }
-
-                                /** AS DEFAULT */
-                                $providerCurrency = [
-                                    'id'   => 1,
-                                    'code' => "CNY",
-                                ];
-
-                                $userCurrency = [
-                                    'id'   => 1,
-                                    'code' => "CNY",
-                                ];
 
                                 $maximum     = (double) $data->maximum * ($punterPercentage / 100);
                                 $timeDiff    = time() - (int) $data->timestamp;
