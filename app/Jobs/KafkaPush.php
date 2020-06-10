@@ -14,13 +14,16 @@ class KafkaPush implements ShouldQueue
     /**
      * Create a new job instance.
      *
+     * @param string $kafkaTopic
+     * @param array  $message
+     * @param string $key
      * @return void
      */
     public function __construct($kafkaTopic, $message, $key)
     {
         $this->kafkaTopic = $kafkaTopic;
-        $this->message = $message;
-        $this->key = $key;
+        $this->message    = $message;
+        $this->key        = $key;
     }
 
     /**
