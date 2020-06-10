@@ -523,29 +523,27 @@ class OrdersController extends Controller
                 $providerAccountUserName = $providerAccount->username;
                 $providerAccountId       = $providerAccount->id;
                 $masterEventMarket       = MasterEventMarket::where('master_event_market_unique_id', $request->market_id)->first();
-                $orderIncrement          = Order::create([
-                    'user_id'                => auth()->user()->id,
+
+                $_orderData = [
                     'master_event_market_id' => $masterEventMarket->id,
                     'market_id'              => $query->bet_identifier,
-                    'status'                 => "PENDING",
-                    'bet_id'                 => "",
-                    'bet_selection'          => $betSelection,
-                    'provider_id'            => $row['provider_id'],
-                    'sport_id'               => $query->sport_id,
                     'odds'                   => $row['price'],
                     'odd_label'              => $query->odd_label,
-                    'stake'                  => ($payloadStake * $exchangeRate->exchange_rate),
-                    'to_win'                 => (($payloadStake * $row['price']) * $exchangeRate->exchange_rate),
-                    // 'actual_stake'           => $actualStake,
-                    // 'actual_to_win'          => $actualStake * $row['price'],
-                    'settled_date'           => null,
-                    'reason'                 => "",
-                    'profit_loss'            => 0.00,
-                    'order_expiry'           => $request->orderExpiry,
-                    'provider_account_id'    => $providerAccountId,
-                    'ml_bet_identifier'      => $mlBetId,
-                    'score_on_bet'           => $query->score
-                ]);
+                    'stake'                  => $payloadStake,
+                    'actual_stake'           => $actualStake,
+                    'score'                  => $query->score,
+                    'expiry'                 => $request->orderExpiry,
+                    'bet_selection'          => $betSelection,
+                ];
+
+                $_exchangeRate = [
+                    'id'            => $exchangeRate->id,
+                    'exchange_rate' => $exchangeRate->exchange_rate
+                ];
+
+                ordersCreation(auth()->user()->id, $query->sport_id, $row['provider_id'], $providerAccountId, $_orderData, $_exchangeRate, $mlBetId);
+
+                userWalletTransaction(auth()->user()->id, 'PLACE_BET', ($payloadStake * $exchangeRate->exchange_rate), $orderLogsId);
 
                 $updateProvider             = ProviderAccount::find($providerAccountId);
                 $updateProvider->updated_at = Carbon::now();
@@ -554,30 +552,6 @@ class OrdersController extends Controller
                 $incrementIds['id'][]               = $orderIncrement->id;
                 $incrementIds['created_at'][]       = $orderIncrement->created_at;
                 $incrementIds['provider_account'][] = $providerAccountUserName;
-
-                $orderLogsId = OrderLogs::create([
-                    'user_id'       => auth()->user()->id,
-                    'provider_id'   => $row['provider_id'],
-                    'sport_id'      => $query->sport_id,
-                    'bet_id'        => "",
-                    'bet_selection' => nl2br($betSelection),
-                    'status'        => "PENDING",
-                    'settled_date'  => null,
-                    'reason'        => "",
-                    'profit_loss'   => 0.00,
-                    'order_id'      => $orderIncrement->id,
-                ])->id;
-
-                ProviderAccountOrder::create([
-                    'order_log_id'       => $orderLogsId,
-                    'exchange_rate_id'   => $exchangeRate->id,
-                    'actual_stake'       => $actualStake,
-                    'actual_to_win'      => $actualStake * $row['price'],
-                    'actual_profit_loss' => 0.00,
-                    'exchange_rate'      => $exchangeRate->exchange_rate,
-                ]);
-
-                userWalletTransaction(auth()->user()->id, 'PLACE_BET', ($payloadStake * $exchangeRate->exchange_rate), $orderLogsId);
 
                 if ($request->betType == "FAST_BET") {
                     if ($prevStake == 0) {
