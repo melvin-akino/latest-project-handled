@@ -340,7 +340,7 @@ export default {
             }
 
             if(this.spreads.length > 5) {
-                if(this.endPointIndex !== this.points.length && this.displayedSpreads[0] != this.spreads[this.spreads.length - 5]) {
+                if(this.endPointIndex !== this.spreads.length && this.displayedSpreads[0].points != this.spreads[this.spreads.length - 5].points) {
                     this.startPointIndex = this.startPointIndex + 1;
                     this.endPointIndex = this.endPointIndex + 1;
                     this.displaySpreadsByFive();
