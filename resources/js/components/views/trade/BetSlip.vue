@@ -31,6 +31,14 @@
                 </div>
                 <div class="flex w-full">
                     <div class="flex flex-col mt-4 mr-3 w-3/5 h-full">
+                        <div class="flex flex-col items-center bg-white shadow shadow-xl mb-2" v-if="oddTypesWithSpreads.includes(market_details.odd_type)">
+                            <div class="text-white uppercase font-bold p-2 bg-orange-500 w-full text-center">{{market_details.odd_type}}</div>
+                            <div class="relative flex justify-center items-center p-2">
+                                <a href="#" class="previousPoint absolute m-1 w-12 text-center text-gray-800" @click="previousPoint" v-if="points != spreads[0].points && spreads.length > 2"><i class="fas fa-chevron-left"></i></a>
+                                <a href="#" class="m-1 w-16 text-center text-sm" :class="[spread.points == points ? 'text-white bg-orange-500 px-1 py-1' : 'text-gray-800']" v-for="(spread, index) in displayedSpreads" :key="index" @click="changePoint(spread.points, spread.market_id, spread.odds)">{{spread.points}}</a>
+                                <a href="#" class="nextPoint absolute m-1 w-12 text-center text-gray-800" @click="nextPoint" v-if="points != spreads[spreads.length - 1].points && spreads.length > 2"><i class="fas fa-chevron-right"></i></a>
+                            </div>
+                        </div>
                         <div class="flex flex-col bg-white shadow shadow-xl">
                             <div class="flex justify-between items-center py-2 bg-orange-500 text-white">
                                 <span class="w-1/5"></span>
@@ -73,16 +81,9 @@
                                 <span class="text-sm">{{towin | moneyFormat}}</span>
                             </div>
                         </div>
-                        <div class="flex justify-between items-center py-2" v-if="oddTypesWithSpreads.includes(market_details.odd_type)">
-                            <label class="text-sm">{{market_details.odd_type}}</label>
-                            <div class="relative w-40">
-                                <select class="shadow appearance-none border rounded text-sm w-full py-1 px-3 text-gray-700 leading-tight focus:outline-none" v-model="selectedPoint" @change="changePoint">
-                                    <option v-for="(spread, index) in spreads" :key="index" :value="spread">{{spread.points}}</option>
-                                </select>
-                                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
-                                    <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
-                                </div>
-                            </div>
+                        <div class="flex justify-between items-center py-2">
+                            <span class="text-sm">{{market_details.odd_type}}</span>
+                            <span class="text-sm">{{points}}</span>
                         </div>
                         <div class="flex justify-between items-center py-2">
                             <label class="text-sm">Stake</label>
@@ -187,17 +188,16 @@ export default {
             showBetMatrix: false,
             disabledBookies: [],
             marketDataMessage: '',
-            retrievedMarketData: false
+            retrievedMarketData: false,
+            spreads: [],
+            displayedSpreads: [],
+            startPointIndex: 0,
+            endPointIndex: 5
         }
     },
     computed: {
         ...mapState('trade', ['activeBetSlip', 'bookies', 'betSlipSettings', 'wallet']),
         ...mapState('settings', ['defaultPriceFormat']),
-        spreads() {
-            if(!_.isEmpty(this.market_details)) {
-                return this.market_details.spreads
-            }
-        },
         activePointIndex() {
             if(!_.isEmpty(this.spreads)) {
                 return this.spreads.findIndex(spread => spread.points == this.points)
@@ -285,7 +285,8 @@ export default {
                 this.market_details = response.data.data
                 this.formattedRefSchedule = response.data.data.ref_schedule.split(' ')
                 this.points = this.odd_details.points
-                this.selectedPoint = response.data.data.spreads.filter(spread => spread.market_id == this.market_id)[0]
+                this.spreads = response.data.data.spreads
+                this.displaySpreadsByFive()
                 this.$store.commit('trade/SHOW_BET_MATRIX_IN_BETSLIP', { market_id: this.odd_details.market_id, has_bet: response.data.data.has_bets })
             })
             .catch(err => {
@@ -305,8 +306,10 @@ export default {
             this.marketDataMessage = 'Retrieving Market'
             this.minmax(this.market_id)
         },
-        changePoint() {
-            let { points, market_id, odds } = this.selectedPoint
+        displaySpreadsByFive() {
+            this.displayedSpreads = this.spreads.slice(this.startPointIndex, this.endPointIndex)
+        },
+        changePoint(points, market_id, odds) {
             this.emptyMinMax(this.market_id)
             this.points = points
             this.market_id = market_id
@@ -315,6 +318,34 @@ export default {
             this.minmax(market_id)
             this.showBetMatrix = false
             this.clearOrderMessage()
+        },
+        previousPoint() {
+            if(this.activePointIndex != 0) {
+                let previousSpread = this.spreads[this.activePointIndex - 1]
+                this.changePoint(previousSpread.points, previousSpread.market_id, previousSpread.odds)
+            }
+
+            if(this.spreads.length > 5) {
+                if(this.startPointIndex !== 0) {
+                    this.startPointIndex = this.startPointIndex - 1;
+                    this.endPointIndex = this.endPointIndex - 1;
+                    this.displaySpreadsByFive();
+                }
+            }
+        },
+        nextPoint() {
+            if(this.activePointIndex != (this.spreads.length - 1)) {
+                let nextSpread = this.spreads[this.activePointIndex + 1]
+                this.changePoint(nextSpread.points, nextSpread.market_id, nextSpread.odds)
+            }
+
+            if(this.spreads.length > 5) {
+                if(this.endPointIndex !== this.points.length && this.displayedSpreads[0] != this.spreads[this.spreads.length - 5]) {
+                    this.startPointIndex = this.startPointIndex + 1;
+                    this.endPointIndex = this.endPointIndex + 1;
+                    this.displaySpreadsByFive();
+                }
+            }
         },
         sendMinMax(market_id) {
             return new Promise((resolve) => {
@@ -566,5 +597,13 @@ export default {
 
     .clearOrderMessage {
         right: 5px;
+    }
+
+    .previousPoint {
+        left: -30px;
+    }
+
+    .nextPoint {
+        right: -30px;
     }
 </style>
