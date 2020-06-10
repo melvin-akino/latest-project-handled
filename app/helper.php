@@ -28,7 +28,9 @@ use App\Models\{
     UserConfiguration,
     UserWallet,
     Source,
-    Order
+    Order,
+    OrderLogs,
+    ProviderAccountOrder
 };
 use App\Models\CRM\{
     OrderTransaction,
@@ -326,5 +328,68 @@ if (!function_exists('getMilliseconds')) {
     {
         $mt = explode(' ', microtime());
         return bcadd($mt[1], $mt[0], 8);
+    }
+}
+
+/**
+ * Reusable Orders and Orders-related Table Insertion.
+ *
+ * @param  int     $userId
+ * @param  int     $sportId
+ * @param  int     $providerId
+ * @param  int     $providerAccountId
+ * @param  array   $orderData          ['master_event_market_id', 'market_id', 'odds', 'odd_label', 'stake', 'actual_stake', 'score', 'expiry', 'bet_selection']
+ * @param  array   $exchangeRate       ['id', 'exchange_rate']
+ * @param  string  $mlBetId
+ * @return void
+ *
+ * @author  Kevin Uy
+ */
+if (!function_exists('ordersCreation')) {
+    function ordersCreation (int $userId, int $sportId, int $providerId, int $providerAccountId, array $orderData, array $exchangeRate, string $mlBetId)
+    {
+        $order = Order::create([
+            'user_id'                => $userId,
+            'master_event_market_id' => $orderData['master_event_market_id'],
+            'market_id'              => $orderData['market_id'],
+            'status'                 => "PENDING",
+            'bet_id'                 => "",
+            'bet_selection'          => $orderData['bet_selection'],
+            'provider_id'            => $providerId,
+            'sport_id'               => $sportId,
+            'odds'                   => $orderData['odds'],
+            'odd_label'              => $orderData['odd_label'],
+            'stake'                  => $orderData['stake'] * $exchangeRate['exchange_rate'],
+            'to_win'                 => ($orderData['stake'] * $orderData['odds']) * $exchangeRate['exchange_rate'],
+            'settled_date'           => null,
+            'reason'                 => "",
+            'profit_loss'            => 0.00,
+            'order_expiry'           => $orderData['expiry'],
+            'provider_account_id'    => $providerAccountId,
+            'ml_bet_identifier'      => $mlBetId,
+            'score_on_bet'           => $orderData['score'],
+        ]);
+
+        $orderLogs = OrderLogs::create([
+            'user_id'       => $userId,
+            'provider_id'   => $providerId,
+            'sport_id'      => $sportId,
+            'bet_id'        => "",
+            'bet_selection' => nl2br($orderData['bet_selection']),
+            'status'        => "PENDING",
+            'settled_date'  => null,
+            'reason'        => "",
+            'profit_loss'   => 0.00,
+            'order_id'      => $order->id,
+        ]);
+
+        ProviderAccountOrder::create([
+            'order_log_id'       => $orderLogs->id,
+            'exchange_rate_id'   => $exchangeRate['id'],
+            'actual_stake'       => $orderData['actual_stake'],
+            'actual_to_win'      => $orderData['actual_stake'] * $orderData['odds'],
+            'actual_profit_loss' => 0.00,
+            'exchange_rate'      => $exchangeRate['exchange_rate'],
+        ]);
     }
 }
