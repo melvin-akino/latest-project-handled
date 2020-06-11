@@ -51,7 +51,6 @@ class TransformKafkaMessageBet implements ShouldQueue
             $messageOrderId  = end($requestUIDArray);
 
             if ($this->message->data->status == self::STATUS_RECEIVED) {
-                Log::debug('Received');
                 $doesExist = false;
                 foreach ($orderRetriesTable as $key => $row) {
                     if (strpos($key, 'orderId:' . $messageOrderId) === 0) {
@@ -60,7 +59,6 @@ class TransformKafkaMessageBet implements ShouldQueue
                     }
                 }
                 if (!$doesExist) {
-                    Log::debug('Order Retry for ' . $messageOrderId);
                     $orderRetriesTable->set('orderId:' . $messageOrderId, ['time' => Carbon::createFromFormat('H:i:s', Carbon::now()->format('H:i:s'))]);
                 }
             } else {

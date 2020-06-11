@@ -45,10 +45,10 @@ class BetProduce implements CustomProcessInterface
             self::$producerHandler = new ProducerHandler($kafkaProducer);
 
             if ($swoole->data2SwtTable->exist('data2Swt')) {
-                $orderPayloadsTable     = $swoole->orderPayloadsTable;
-                $orderRetriesTable = $swoole->orderRetriesTable;
-                $providersTable    = $swoole->providersTable;
-                $initialTime       = Carbon::createFromFormat('H:i:s', Carbon::now()->format('H:i:s'));
+                $orderPayloadsTable = $swoole->orderPayloadsTable;
+                $orderRetriesTable  = $swoole->orderRetriesTable;
+                $providersTable     = $swoole->providersTable;
+                $initialTime        = Carbon::createFromFormat('H:i:s', Carbon::now()->format('H:i:s'));
 
                 $timedOutSourceId  = Source::where('source_name', 'LIKE', self::SOURCE_BET_TIMEDOUT)->first();
                 $placedBetSourceId = Source::where('source_name', 'LIKE', self::SOURCE_PLACE_BET)->first();
@@ -60,7 +60,7 @@ class BetProduce implements CustomProcessInterface
                             if ($newTime->diffInSeconds(Carbon::parse($row['time'])) >= 30) {
                                 $orderId = substr($key, strlen('orderId:'));
 
-                                $order          = Order::find($orderId);
+                                $order = Order::find($orderId);
 
                                 if (in_array($order->user_id, [self::INTERNAL_CNY_USER, self::INTERNAL_USD_USER])) {
                                     Log::info('Bet Produce - Internal Users don\'t need to retry');
@@ -125,8 +125,8 @@ class BetProduce implements CustomProcessInterface
                                     ]);
 
                                     $orderLogsId = $orderLogs->id;
-                                    $stake   = $order->stake;
-                                    $balance = $stake * $exchangeRate->exchange_rate;
+                                    $stake       = $order->stake;
+                                    $balance     = $stake * $exchangeRate->exchange_rate;
 
                                     $providerAccountOrder          = ProviderAccountOrder::where('order_log_id', $orderLog->id)->first();
                                     $duplicateProviderAccountOrder = $providerAccountOrder->replicate();
@@ -156,7 +156,7 @@ class BetProduce implements CustomProcessInterface
                                     //created new order record and order logs record
                                     $duplicateOrder->save();
                                     $duplicateOrderLog->order_id = $duplicateOrder->id;
-                                    $duplicateOrderLog->user_id = $duplicateOrder->user_id;
+                                    $duplicateOrderLog->user_id  = $duplicateOrder->user_id;
                                     $duplicateOrderLog->save();
                                     $duplicateUserProviderAccountOrder->order_log_id = $duplicateOrderLog->id;
                                     $duplicateUserProviderAccountOrder->save();
@@ -201,14 +201,14 @@ class BetProduce implements CustomProcessInterface
                                         'command'     => 'bet'
                                     ];
                                     $payload['data'] = [
-                                        'provider'         => $providerAlias,
-                                        'sport'            => $duplicateOrder->sport_id,
-                                        'stake'            => $duplicateProviderAccountOrder->actual_stake,
-                                        'odds'             => $duplicateOrder->odds,
-                                        'market_id'        => $duplicateOrder->market_id,
-                                        'event_id'         => $event->event_identifier,
-                                        'score'            => $duplicateOrder->score_on_bet,
-                                        'username'         => $providerAccount->username,
+                                        'provider'  => $providerAlias,
+                                        'sport'     => $duplicateOrder->sport_id,
+                                        'stake'     => $duplicateProviderAccountOrder->actual_stake,
+                                        'odds'      => $duplicateOrder->odds,
+                                        'market_id' => $duplicateOrder->market_id,
+                                        'event_id'  => $event->event_identifier,
+                                        'score'     => $duplicateOrder->score_on_bet,
+                                        'username'  => $providerAccount->username,
                                     ];
 
                                     $payloadsSwtId = implode(':', [
