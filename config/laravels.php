@@ -383,10 +383,17 @@ return [
                 ['name' => 'currency_id', 'type' => \Swoole\Table::TYPE_INT],
             ],
         ],
-        'payloads'            => [
+        'orderPayloads'            => [
             'size'   => 100000,
             'column' => [
                 ['name' => 'payload', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 1000],
+            ],
+        ],
+        'orderRetries'        => [ // KEY FORMAT: [orderId:$orderId]
+            'size'   => 10000,
+            'column' => [
+                // ['name' => 'order_id', 'type' => \Swoole\Table::TYPE_INT],
+                ['name' => 'time', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 50],
             ],
         ],
         'providerAccounts'    => [ // KEY FORMAT: [providerId:$providerId:unique:<uniqid()>]

@@ -99,7 +99,7 @@ class SwtController extends Controller
             ],
             'payloads' => [
                 'name' => 'Payloads',
-                'count' => $swoole->payloadsTable->count()
+                'count' => $swoole->orderPayloadsTable->count()
             ],
             'providerAccounts' => [
                 'name' => 'Provider Accounts',
