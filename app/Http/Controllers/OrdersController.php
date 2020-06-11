@@ -541,7 +541,9 @@ class OrdersController extends Controller
                     'exchange_rate' => $exchangeRate->exchange_rate
                 ];
 
-                ordersCreation(auth()->user()->id, $query->sport_id, $row['provider_id'], $providerAccountId, $_orderData, $_exchangeRate, $mlBetId);
+                $orderCreation  = ordersCreation(auth()->user()->id, $query->sport_id, $row['provider_id'], $providerAccountId, $_orderData, $_exchangeRate, $mlBetId);
+                $orderIncrement = $orderCreation['orders'];
+                $orderLogsId    = $orderCreation['order_logs']->id;
 
                 userWalletTransaction(auth()->user()->id, 'PLACE_BET', ($payloadStake * $exchangeRate->exchange_rate), $orderLogsId);
 
