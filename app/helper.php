@@ -391,5 +391,10 @@ if (!function_exists('ordersCreation')) {
             'actual_profit_loss' => 0.00,
             'exchange_rate'      => $exchangeRate['exchange_rate'],
         ]);
+
+        return [
+            'orders'     => $order,
+            'order_logs' => $orderLogs,
+        ];
     }
 }
