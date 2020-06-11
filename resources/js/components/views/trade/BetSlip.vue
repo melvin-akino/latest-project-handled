@@ -207,7 +207,7 @@ export default {
             if(!_.isEmpty(this.minMaxData)) {
                 let minValues = this.minMaxData.filter(minmax => minmax.min != null).map(minmax => minmax.min)
                 if(!_.isEmpty(minValues)) {
-                    return Math.min(...minValues)
+                    return Math.max(...minValues)
                 } else {
                     return 0
                 }
@@ -219,7 +219,7 @@ export default {
             if(!_.isEmpty(this.minMaxData)) {
                 let maxValues = this.minMaxData.filter(minmax => minmax.max != null).map(minmax => minmax.max)
                 if(!_.isEmpty(maxValues)) {
-                    return Math.max(...maxValues)
+                    return maxValues.reduce((firstMax, secondMax) => firstMax + secondMax, 0)
                 } else {
                     return 0
                 }
