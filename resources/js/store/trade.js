@@ -97,9 +97,11 @@ const mutations = {
     },
     SET_EVENTS_LIST: (state, event) => {
         state.eventsList.push(event)
+        state.eventsList = _.uniqBy(state.eventsList, 'uid')
     },
     SET_ALL_EVENTS_LIST: (state, event) => {
         state.allEventsList.push(event)
+        state.allEventsList = _.uniqBy(state.allEventsList, 'uid')
     },
     SET_PREVIOUSLY_SELECTED_EVENTS: (state, event) => {
         state.previouslySelectedEvents.push(event)
