@@ -55,25 +55,23 @@ class WsWatchlist implements ShouldQueue
         array_map(function ($transformed) use (&$data) {
             $mainOrOther = $transformed->is_main ? 'main' : 'other';
             if (empty($data[$transformed->master_event_unique_id])) {
-                $hasBet = false;
+                $betCount = Order::where('market_id', $transformed->bet_identifier)
+                                 ->where('user_id', $this->userId)
+                                 ->count();
 
-                if (!empty($userBets)) {
-                    $userOrderMarkets = array_column($userBets, 'market_id');
-                    if (in_array($transformed->bet_identifier, $userOrderMarkets)) {
-                        $hasBet = true;
-                    }
-                }
+                $providersOfEvents = Game::providersOfEvents($transformed->master_event_id);
 
                 $data[$transformed->master_event_unique_id] = [
-                    'uid'           => $transformed->master_event_unique_id,
-                    'sport_id'      => $transformed->sport_id,
-                    'sport'         => $transformed->sport,
-                    'provider_id'   => $transformed->provider_id,
-                    'game_schedule' => $transformed->game_schedule,
-                    'league_name'   => $transformed->master_league_name,
-                    'running_time'  => $transformed->running_time,
-                    'ref_schedule'  => $transformed->ref_schedule,
-                    'has_bet'       => $hasBet
+                    'uid'            => $transformed->master_event_unique_id,
+                    'sport_id'       => $transformed->sport_id,
+                    'sport'          => $transformed->sport,
+                    'provider_id'    => $transformed->provider_id,
+                    'game_schedule'  => $transformed->game_schedule,
+                    'league_name'    => $transformed->master_league_name,
+                    'running_time'   => $transformed->running_time,
+                    'ref_schedule'   => $transformed->ref_schedule,
+                    'has_bet'        => $betCount > 0 ? true : false,
+                    'with_providers' => $providersOfEvents
                 ];
             }
 

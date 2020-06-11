@@ -43,10 +43,10 @@ class Order extends Model
         $whereClause[] = ['user_id', auth()->user()->id];
 
         return DB::table('orders')
-            ->join('providers', 'providers.id', 'orders.provider_id')
-            ->join('master_event_markets AS mem', 'mem.id', 'orders.master_event_market_id')
-            ->join('master_events AS me', 'me.id', 'mem.master_event_id')
-            ->join('odd_types AS ot', 'ot.id', 'mem.odd_type_id')
+            ->leftJoin('providers', 'providers.id', 'orders.provider_id')
+            ->leftJoin('master_event_markets AS mem', 'mem.id', 'orders.master_event_market_id')
+            ->leftJoin('master_events AS me', 'me.id', 'mem.master_event_id')
+            ->leftJoin('odd_types AS ot', 'ot.id', 'mem.odd_type_id')
             ->select(
                 [
                     'orders.id',
@@ -84,10 +84,10 @@ class Order extends Model
     public static function getOrdersByEvent($eventId)
     {
         return DB::table('orders')
-        ->join('master_event_markets AS mem', 'mem.id', 'orders.master_event_market_id')
-        ->join('master_events AS me', 'me.id', 'mem.master_event_id')
-        ->join('master_teams as ht', 'ht.id', 'me.master_team_home_id')
-        ->join('master_teams as at', 'at.id', 'me.master_team_away_id')
+        ->leftJoin('master_event_markets AS mem', 'mem.id', 'orders.master_event_market_id')
+        ->leftJoin('master_events AS me', 'me.id', 'mem.master_event_id')
+        ->leftJoin('master_teams as ht', 'ht.id', 'me.master_team_home_id')
+        ->leftJoin('master_teams as at', 'at.id', 'me.master_team_away_id')
         ->where('user_id', auth()->user()->id)
         ->where('me.master_event_unique_id', $eventId)
         ->whereNotIn('status', ['PENDING', 'FAILED', 'CANCELLED', 'REJECTED', 'VOID', 'ABNORMAL BET', 'REFUNDED'])
@@ -105,14 +105,14 @@ class Order extends Model
     public static function getBetBarData(int $userId)
     {
         return DB::table('orders AS o')
-                ->join('providers AS p', 'p.id', 'o.provider_id')
-                ->join('master_event_markets AS mem', 'mem.id', 'o.master_event_market_id')
-                ->join('master_events AS me', 'me.id', 'mem.master_event_id')
-                ->join('master_leagues as ml', 'ml.id', 'me.master_league_id')
-                ->join('master_teams as mth', 'mth.id', 'me.master_team_home_id')
-                ->join('master_teams as mta', 'mta.id', 'me.master_team_away_id')
-                ->join('odd_types AS ot', 'ot.id', 'mem.odd_type_id')
-                ->join('sport_odd_type AS sot', 'sot.odd_type_id', 'ot.id')
+                ->leftJoin('providers AS p', 'p.id', 'o.provider_id')
+                ->leftJoin('master_event_markets AS mem', 'mem.id', 'o.master_event_market_id')
+                ->leftJoin('master_events AS me', 'me.id', 'mem.master_event_id')
+                ->leftJoin('master_leagues as ml', 'ml.id', 'me.master_league_id')
+                ->leftJoin('master_teams as mth', 'mth.id', 'me.master_team_home_id')
+                ->leftJoin('master_teams as mta', 'mta.id', 'me.master_team_away_id')
+                ->leftJoin('odd_types AS ot', 'ot.id', 'mem.odd_type_id')
+                ->leftJoin('sport_odd_type AS sot', 'sot.odd_type_id', 'ot.id')
                 ->distinct()
                 ->where('sot.sport_id', DB::raw('o.sport_id'))
                 ->where('o.user_id', $userId)
