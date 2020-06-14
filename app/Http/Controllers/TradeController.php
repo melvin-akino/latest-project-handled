@@ -26,9 +26,6 @@ use Carbon\Carbon;
 
 class TradeController extends Controller
 {
-
-    const SORT_EVENT_BY_LEAGUE_NAME = 1;
-
     /**
      * Fetch Authenticated User's Lists of Open Orders
      *
@@ -388,9 +385,9 @@ class TradeController extends Controller
             if ($providerId) {
                 foreach ($type as $row) {
                     if ($row == 'user_watchlist') {
-                        $transformed = Game::getWatchlistEvents($userId, $providerId);
+                        $transformed = Game::getWatchlistEvents($userId);
                     } else {
-                        $transformed = Game::getSelectedLeagueEvents($userId, $providerId);
+                        $transformed = Game::getSelectedLeagueEvents($userId);
                     }
 
                     /** TO DO: Adjust getUserDefault */
@@ -404,137 +401,15 @@ class TradeController extends Controller
                         $userTz = Timezones::find($getUserConfig->value)->name;
                     }
 
+                    $userProviderIds = UserProviderConfiguration::getProviderIdList($userId);
+                    $topicTable = app('swoole')->topicTable;
                     if ($row == 'user_watchlist') {
-                        array_map(function ($transformed) use (&$watchlist, $userConfig, $userTz, $userId) {
-                            $betCount = Order::where('market_id', $transformed->bet_identifier)
-                                             ->where('user_id', $userId)
-                                             ->count();
-
-                            if ($userConfig == self::SORT_EVENT_BY_LEAGUE_NAME) {
-                                $groupIndex = $transformed->master_league_name;
-                            } else {
-                                $refSchedule = DateTime::createFromFormat('Y-m-d H:i:s', $transformed->ref_schedule);
-                                $groupIndex  = $refSchedule->format('[H:i:s]') . ' ' . $transformed->master_league_name;
-                            }
-
-                            if (empty($watchlist[$groupIndex][$transformed->master_event_unique_id])) {
-                                $watchlist[$groupIndex][$transformed->master_event_unique_id] = [
-                                    "uid"           => $transformed->master_event_unique_id,
-                                    'sport_id'      => $transformed->sport_id,
-                                    'sport'         => $transformed->sport,
-                                    'provider_id'   => $transformed->provider_id,
-                                    'game_schedule' => $transformed->game_schedule,
-                                    'league_name'   => $transformed->master_league_name,
-                                    'running_time'  => $transformed->running_time,
-                                    'ref_schedule'  => Carbon::createFromFormat("Y-m-d H:i:s", $transformed->ref_schedule, 'Etc/UTC')->setTimezone($userTz)->format("Y-m-d H:i:s"),
-                                    'has_bet'       => $betCount > 0 ? true : false
-                                ];
-                            }
-                            if (empty($watchlist[$groupIndex][$transformed->master_event_unique_id]['home'])) {
-                                $watchlist[$groupIndex][$transformed->master_event_unique_id]['home'] = [
-                                    'name'    => $transformed->master_home_team_name,
-                                    'score'   => empty($transformed->score) ? '' : array_values(explode(' - ', $transformed->score))[0],
-                                    'redcard' => $transformed->home_penalty
-                                ];
-                            }
-                            if (empty($watchlist[$groupIndex][$transformed->master_event_unique_id]['away'])) {
-                                $watchlist[$groupIndex][$transformed->master_event_unique_id]['away'] = [
-                                    'name'    => $transformed->master_away_team_name,
-                                    'score'   => empty($transformed->score) ? '' : array_values(explode(' - ', $transformed->score))[1],
-                                    'redcard' => $transformed->home_penalty
-                                ];
-                            }
-                            if (empty($watchlist[$groupIndex][$transformed->master_event_unique_id]['market_odds']['main'][$transformed->type][$transformed->market_flag])) {
-                                $watchlist[$groupIndex][$transformed->master_event_unique_id]['market_odds']['main'][$transformed->type][$transformed->market_flag] = [
-                                    'odds'      => (double) $transformed->odds,
-                                    'market_id' => $transformed->master_event_market_unique_id
-                                ];
-
-                                if (!empty($transformed->odd_label)) {
-                                    $watchlist[$groupIndex][$transformed->master_event_unique_id]['market_odds']['main'][$transformed->type][$transformed->market_flag]['points'] = $transformed->odd_label;
-                                }
-                            }
-                        }, $transformed->toArray());
-
+                        $watchlist = eventTransformation($transformed, $userConfig, $userTz, $userId, $userProviderIds, $topicTable, 'watchlist');
                         foreach ($watchlist as $key => $league) {
                             $watchlistData[$key] = array_values($watchlist[$key]);
                         }
                     } else {
-                        $topicTable = app('swoole')->topicTable;
-                        array_map(function ($transformed) use (&$userSelected, $row, $userConfig, $topicTable, $userTz, $userId) {
-                            $betCount = Order::where('market_id', $transformed->bet_identifier)
-                                             ->where('user_id', $userId)
-                                             ->count();
-
-                            if ($userConfig == self::SORT_EVENT_BY_LEAGUE_NAME) {
-                                $groupIndex = $transformed->master_league_name;
-                            } else {
-                                $refSchedule = DateTime::createFromFormat('Y-m-d H:i:s', $transformed->ref_schedule);
-                                $groupIndex  = $refSchedule->format('[H:i:s]') . ' ' . $transformed->master_league_name;
-                            }
-
-                            if (empty($userSelected[$transformed->game_schedule][$groupIndex][$transformed->master_event_unique_id])) {
-                                $userSelected[$transformed->game_schedule][$groupIndex][$transformed->master_event_unique_id] = [
-                                    "uid"           => $transformed->master_event_unique_id,
-                                    'sport_id'      => $transformed->sport_id,
-                                    'sport'         => $transformed->sport,
-                                    'provider_id'   => $transformed->provider_id,
-                                    'game_schedule' => $transformed->game_schedule,
-                                    'league_name'   => $transformed->master_league_name,
-                                    'running_time'  => $transformed->running_time,
-                                    'ref_schedule'  => Carbon::createFromFormat("Y-m-d H:i:s", $transformed->ref_schedule, 'Etc/UTC')->setTimezone($userTz)->format("Y-m-d H:i:s"),
-                                    'has_bet'       => $betCount > 0 ? true : false
-                                ];
-                            }
-
-                            if (empty($userSelected[$transformed->game_schedule][$groupIndex][$transformed->master_event_unique_id]['home'])) {
-                                $userSelected[$transformed->game_schedule][$groupIndex][$transformed->master_event_unique_id]['home'] = [
-                                    'name'    => $transformed->master_home_team_name,
-                                    'score'   => empty($transformed->score) ? '' : array_values(explode(' - ',
-                                        $transformed->score))[0],
-                                    'redcard' => $transformed->home_penalty
-                                ];
-                            }
-
-                            if (empty($userSelected[$transformed->game_schedule][$groupIndex][$transformed->master_event_unique_id]['away'])) {
-                                $userSelected[$transformed->game_schedule][$groupIndex][$transformed->master_event_unique_id]['away'] = [
-                                    'name'    => $transformed->master_away_team_name,
-                                    'score'   => empty($transformed->score) ? '' : array_values(explode(' - ',
-                                        $transformed->score))[1],
-                                    'redcard' => $transformed->home_penalty
-                                ];
-                            }
-
-                            if (empty($userSelected[$transformed->game_schedule][$groupIndex][$transformed->master_event_unique_id]['market_odds']['main'][$transformed->type][$transformed->market_flag])) {
-                                $userSelected[$transformed->game_schedule][$groupIndex][$transformed->master_event_unique_id]['market_odds']['main'][$transformed->type][$transformed->market_flag] = [
-                                    'odds'      => (double) $transformed->odds,
-                                    'market_id' => $transformed->master_event_market_unique_id
-                                ];
-
-                                if (!empty($transformed->odd_label)) {
-                                    $userSelected[$transformed->game_schedule][$groupIndex][$transformed->master_event_unique_id]['market_odds']['main'][$transformed->type][$transformed->market_flag]['points'] = $transformed->odd_label;
-                                }
-
-                                if (empty($_SERVER['_PHPUNIT'])) {
-                                    $notFound = true;
-
-                                    foreach ($topicTable as $key => $row) {
-                                        if ($row['topic_name'] == 'market-id-' . $transformed->master_event_market_unique_id) {
-                                            $notFound = false;
-                                            break;
-                                        }
-                                    }
-
-                                    if ($notFound) {
-                                        $topicTable->set('userId:' . $userId . ':unique:' . uniqid(), [
-                                            'user_id'    => $userId,
-                                            'topic_name' => 'market-id-' . $transformed->master_event_market_unique_id
-                                        ]);
-                                    }
-                                }
-                            }
-                        }, $transformed->toArray());
-
+                        $userSelected = eventTransformation($transformed, $userConfig, $userTz, $userId, $userProviderIds, $topicTable, 'selected');
                         foreach ($userSelected as $key => $schedule) {
                             foreach ($schedule as $k => $league) {
                                 $userSelectedData[$key][$k] = array_values($userSelected[$key][$k]);
