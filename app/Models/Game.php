@@ -33,7 +33,7 @@ class Game extends Model
                      $join->on('em.master_event_market_id', '=', 'mem.id');
                      $join->on('em.event_id', '=', 'e.id');
                  })
-                 ->select('ml.sport_id', 'ml.name as master_league_name', 's.sport',
+                 ->select('ml.sport_id', 'ml.name as master_league_name', 's.sport', 'e.master_event_id',
                      'me.master_event_unique_id', 'mth.name as master_home_team_name', 'mta.name as master_away_team_name',
                      'me.ref_schedule', 'me.game_schedule', 'me.score', 'me.running_time',
                      'me.home_penalty', 'me.away_penalty', 'mem.odd_type_id', 'mem.master_event_market_unique_id', 'mem.is_main', 'mem.market_flag',

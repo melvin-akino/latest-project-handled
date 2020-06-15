@@ -31,7 +31,8 @@ use App\Models\{
     Source,
     Order,
     OrderLogs,
-    ProviderAccountOrder
+    ProviderAccountOrder,
+    Game
 };
 use App\Models\CRM\{
     OrderTransaction,
@@ -427,6 +428,8 @@ if (!function_exists('eventTransformation')) {
             }
 
             if (empty($data[$transformed->master_event_unique_id])) {
+                $providersOfEvents = Game::providersOfEvents($transformed->master_event_id);
+                
                 $data[$transformed->master_event_unique_id] = [
                     "uid"           => $transformed->master_event_unique_id,
                     'sport_id'      => $transformed->sport_id,
@@ -436,7 +439,8 @@ if (!function_exists('eventTransformation')) {
                     'league_name'   => $transformed->master_league_name,
                     'running_time'  => $transformed->running_time,
                     'ref_schedule'  => Carbon::createFromFormat("Y-m-d H:i:s", $transformed->ref_schedule, 'Etc/UTC')->setTimezone($userTz)->format("Y-m-d H:i:s"),
-                    'has_bet'       => $hasBet
+                    'has_bet'       => $hasBet,
+                    'with_providers' => $providersOfEvents
                 ];
             }
             if (empty($data[$transformed->master_event_unique_id]['home'])) {
