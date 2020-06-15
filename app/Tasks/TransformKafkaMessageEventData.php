@@ -10,7 +10,7 @@ class TransformKafkaMessageEventData extends Task
     protected $message;
     protected $internalParameters;
 
-    CONST PRIORITY_HG_PROVIDER = 1;
+    const PRIORITY_HG_PROVIDER = 1;
 
     public function __construct($message, $internalParameters)
     {
@@ -42,7 +42,7 @@ class TransformKafkaMessageEventData extends Task
                 'ref_schedule'     => date("Y-m-d H:i:s", strtotime($this->message->data->referenceSchedule)),
                 'game_schedule'    => $this->message->data->schedule,
                 'event_identifier' => $this->message->data->events[0]->eventId,
-                'is_matched' => false
+                'is_matched'       => false
             ], []);
         }
 
@@ -64,12 +64,12 @@ class TransformKafkaMessageEventData extends Task
             }
         } else if ($providerId == self::PRIORITY_HG_PROVIDER) {
             $leagueName = $this->message->data->leagueName;
-            $team1 = $this->message->data->homeTeam;
-            $team2 = $this->message->data->awayTeam;
+            $team1      = $this->message->data->homeTeam;
+            $team2      = $this->message->data->awayTeam;
 
             $masterLeague = MasterLeague::withTrashed()->updateOrCreate([
-                'name' => $leagueName,
-                'sport_id'           => $sportId
+                'name'     => $leagueName,
+                'sport_id' => $sportId
             ], [
                 'deleted_at' => null
             ]);
