@@ -311,7 +311,7 @@ class OrdersController extends Controller
         try {
             $swt          = app('swoole');
             $topics       = $swt->topicTable;
-            $payloadsSwt  = $swt->payloadsTable;
+            $payloadsSwt  = $swt->orderPayloadsTable;
             $ordersTable  = $swt->ordersTable;
             $betType      = "";
             $return       = "";

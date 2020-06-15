@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Eloquent\{Model, SoftDeletes};
 
 class Events extends Model
@@ -27,4 +28,13 @@ class Events extends Model
         'created_at',
         'updated_at',
     ];
+
+    public static function getEventByMarketId($marketId)
+    {
+        return DB::table('events as e')
+            ->join('event_markets as em', 'em.event_id', 'e.id')
+            ->where('em.bet_identifier', $marketId)
+            ->select('e.*')
+            ->first();
+    }
 }

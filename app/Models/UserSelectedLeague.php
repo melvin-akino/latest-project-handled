@@ -24,7 +24,7 @@ class UserSelectedLeague extends Model
     public static function getSelectedLeague(int $sportId, array $filters = [])
     {
         return DB::table('user_selected_leagues as usl')
-                    ->join('master_leagues as ml', 'ml.id', 'usl.master_league_id')
+                    ->leftJoin('master_leagues as ml', 'ml.id', 'usl.master_league_id')
                     ->where('usl.sport_id', $sportId)
                     ->where('ml.name', $filters['name'])
                     ->where('usl.game_schedule', $filters['schedule'])
@@ -34,9 +34,9 @@ class UserSelectedLeague extends Model
     public static function getSelectedLeagueByUserId(int $userId, int $providerId)
     {
         return DB::table('user_selected_leagues as usl')
-                ->join('master_leagues as ml', 'ml.id', 'usl.master_league_id')
-                ->join('master_events as me', 'ml.id', 'me.master_league_id')
-                ->join('events as e', 'me.id', 'e.master_event_id')
+                ->leftJoin('master_leagues as ml', 'ml.id', 'usl.master_league_id')
+                ->leftJoin('master_events as me', 'ml.id', 'me.master_league_id')
+                ->leftJoin('events as e', 'me.id', 'e.master_event_id')
                 ->where('user_id', $userId)
                 ->where('e.provider_id', $providerId)
                 ->select('usl.game_schedule', 'ml.name as master_league_name')

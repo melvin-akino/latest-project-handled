@@ -31,8 +31,13 @@
                                             <div><span class="font-bold text-red-600 mr-2">A</span>{{game.away.name}}</div>
                                             <div><span class="mr-3">&nbsp;</span>Draw</div>
                                         </div>
-                                        <div class="w-1/12 flex justify-center">
-                                            <span>{{game.sport}}</span>
+                                        <div class="w-1/12 flex-col justify-center">
+                                            <div class="text-center">
+                                                <span>{{game.sport}}</span>
+                                            </div>
+                                            <div class="text-center">
+                                                <span v-for="(provider, index) in game.with_providers" class="font-bold" :class="[index % 2 == 0 ? 'text-orange-700' : 'text-yellow-700']" >[{{provider}}]</span>
+                                            </div>
                                         </div>
                                         <div class="w-1/12 flex flex-col items-center">
                                             <span v-if="gameSchedType === 'inplay' || (gameSchedType === 'watchlist' && game.game_schedule === 'inplay')">{{game.home.score}} - {{game.away.score}}</span>
@@ -209,6 +214,17 @@ export default {
                 data = data.split('] ')[1]
             }
             this.$store.dispatch('trade/addToWatchlist', { type: type, data: data, payload: payload })
+        },
+        providerColors(provider) {
+            var color = '';
+            switch(provider) {
+                case 'hg':
+                    color = 'text-green';
+                case 'pin':
+                default:
+                    color = 'text-indigo';
+            }
+            return color;
         },
         removeFromWatchlist(type, data, payload) {
             let token = Cookies.get('mltoken')

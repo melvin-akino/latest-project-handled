@@ -25,141 +25,159 @@ class TransformKafkaMessageBet implements ShouldQueue
 
     protected $message;
 
+    CONST STATUS_RECEIVED = 'received';
+
     public function __construct($message)
     {
-        \Log::info('TransformKafkaMessageBet : CONSTRUCT');
+        Log::info('TransformKafkaMessageBet : CONSTRUCT');
 
         $this->message = $message;
     }
 
     public function handle()
     {
-        \Log::info('TransformKafkaMessageBet : HANDLE');
+        Log::info('TransformKafkaMessageBet : HANDLE');
 
         try {
             DB::beginTransaction();
 
-            $swoole        = app('swoole');
-            $topics        = $swoole->topicTable;
-            $ordersTable   = $swoole->ordersTable;
-            $payloadsTable = $swoole->payloadsTable;
+            $swoole            = app('swoole');
+            $topics            = $swoole->topicTable;
+            $ordersTable       = $swoole->ordersTable;
+            $payloadsTable     = $swoole->orderPayloadsTable;
+            $orderRetriesTable = $swoole->orderRetriesTable;
 
-            foreach ($topics AS $key => $row) {
-                if (strpos($row['topic_name'], 'order-') === 0) {
-                    $orderId         = substr($row['topic_name'], strlen('order-'));
-                    $requestUIDArray = explode('-', $this->message->request_uid);
-                    $messageOrderId  = end($requestUIDArray);
-                    $orderData       = Order::where('id', $messageOrderId);
+            $requestUIDArray = explode('-', $this->message->request_uid);
+            $messageOrderId  = end($requestUIDArray);
 
-                    if ($orderData->count()) {
-                        $status = strtoupper($this->message->data->status);
-                        $order  = Order::updateOrCreate([
-                            'id' => $messageOrderId
-                        ], [
-                            'bet_id' => $this->message->data->bet_id,
-                            'reason' => $this->message->data->reason,
-                            'status' => $status,
-                            'odds'   => $this->message->data->odds
-                        ]);
+            if ($this->message->data->status == self::STATUS_RECEIVED) {
+                $doesExist = false;
+                foreach ($orderRetriesTable as $key => $row) {
+                    if (strpos($key, 'orderId:' . $messageOrderId) === 0) {
+                        $doesExist = true;
+                        break;
+                    }
+                }
+                if (!$doesExist) {
+                    $orderRetriesTable->set('orderId:' . $messageOrderId, ['time' => Carbon::createFromFormat('H:i:s', Carbon::now()->format('H:i:s'))]);
+                }
+            } else {
+                foreach ($topics AS $key => $row) {
+                    if (strpos($row['topic_name'], 'order-') === 0) {
+                        $orderId         = substr($row['topic_name'], strlen('order-'));
+                        $orderData       = Order::where('id', $messageOrderId);
 
-                        $payloadsSwtId = implode(':', [
-                            "place-bet-" . $messageOrderId,
-                            "uId:" . $row['user_id'],
-                            "mId:" . $order->market_id
-                        ]);
-
-                        if ($status != "FAILED") {
-                            ProviderAccount::find($order->provider_account_id)->update([
-                                'updated_at' => Carbon::now()
+                        if ($orderData->count()) {
+                            $status = strtoupper($this->message->data->status);
+                            $order  = Order::updateOrCreate([
+                                'id' => $messageOrderId
+                            ], [
+                                'bet_id' => $this->message->data->bet_id,
+                                'reason' => $this->message->data->reason,
+                                'status' => $status,
+                                'odds'   => $this->message->data->odds
                             ]);
 
-                            $betSelectionArray         = explode("\n", $order->bet_selection);
-                            $betSelectionTeamOddsArray = explode('@ ', $betSelectionArray[1]);
-                            $updatedOrderOdds          = $betSelectionTeamOddsArray[0] . '@ ' . number_format($order->odds, 2);
-                            $order->bet_selection      = implode("\n", [
-                                $betSelectionArray[0],
-                                $updatedOrderOdds,
-                                $betSelectionArray[2]
+                            $payloadsSwtId = implode(':', [
+                                "place-bet-" . $messageOrderId,
+                                "uId:" . $row['user_id'],
+                                "mId:" . $order->market_id
                             ]);
 
-                            $order->to_win = $order->stake * $this->message->data->odds;
-                            $order->save();
+                            if ($status != "FAILED") {
+                                ProviderAccount::find($order->provider_account_id)->update([
+                                    'updated_at' => Carbon::now()
+                                ]);
 
-                            $orderLogs = OrderLogs::create([
-                                'provider_id'   => $order->provider_id,
-                                'sport_id'      => $order->sport_id,
-                                'bet_id'        => $this->message->data->bet_id,
-                                'bet_selection' => $order->bet_selection,
-                                'status'        => $status,
-                                'user_id'       => $order->user_id,
-                                'reason'        => $this->message->data->reason,
-                                'profit_loss'   => $order->profit_loss,
-                                'order_id'      => $order->id,
-                                'settled_date'  => null,
-                            ]);
+                                $betSelectionArray         = explode("\n", $order->bet_selection);
+                                $betSelectionTeamOddsArray = explode('@ ', $betSelectionArray[1]);
+                                $updatedOrderOdds          = $betSelectionTeamOddsArray[0] . '@ ' . number_format($order->odds, 2);
+                                $order->bet_selection      = implode("\n", [
+                                    $betSelectionArray[0],
+                                    $updatedOrderOdds,
+                                    $betSelectionArray[2]
+                                ]);
 
-                            $payload        = json_decode($payloadsTable->get($payloadsSwtId)['payload']);
-                            $actualStake    = $payload->data->stake;
-                            $exchangeRate   = $payload->data->exchange_rate;
-                            $exchangeRateId = $payload->data->exchange_rate_id;
+                                $order->to_win = $order->stake * $this->message->data->odds;
+                                $order->save();
 
-                            ProviderAccountOrder::create([
-                                'order_log_id'       => $orderLogs->id,
-                                'exchange_rate_id'   => $exchangeRateId,
-                                'actual_stake'       => $actualStake,
-                                'actual_to_win'      => $actualStake * $order->odds,
-                                'actual_profit_loss' => 0.00,
-                                'exchange_rate'      => $exchangeRate,
-                            ]);
-                        } else {
-                            $userWallet = UserWallet::where('user_id', $order->user_id)->first();
-                            $source     = Source::where('source_name', 'LIKE', 'RETURN_STAKE')->first();
-                            $orderLogs  = OrderLogs::create([
-                                'provider_id'   => $order->provider_id,
-                                'sport_id'      => $order->sport_id,
-                                'bet_id'        => $this->message->data->bet_id,
-                                'bet_selection' => $order->bet_selection,
-                                'status'        => $status,
-                                'user_id'       => $order->user_id,
-                                'reason'        => $this->message->data->reason,
-                                'profit_loss'   => $order->profit_loss,
-                                'order_id'      => $order->id,
-                                'settled_date'  => null,
-                            ]);
+                                $orderLogs = OrderLogs::create([
+                                    'provider_id'   => $order->provider_id,
+                                    'sport_id'      => $order->sport_id,
+                                    'bet_id'        => $this->message->data->bet_id,
+                                    'bet_selection' => $order->bet_selection,
+                                    'status'        => $status,
+                                    'user_id'       => $order->user_id,
+                                    'reason'        => $this->message->data->reason,
+                                    'profit_loss'   => $order->profit_loss,
+                                    'order_id'      => $order->id,
+                                    'settled_date'  => null,
+                                ]);
 
-                            if ($order->status == "SUCCESS") {
-                                continue;
+                                $payload        = json_decode($payloadsTable->get($payloadsSwtId)['payload']);
+                                $actualStake    = $payload->data->stake;
+                                $exchangeRate   = $payload->data->exchange_rate;
+                                $exchangeRateId = $payload->data->exchange_rate_id;
+
+                                ProviderAccountOrder::create([
+                                    'order_log_id'       => $orderLogs->id,
+                                    'exchange_rate_id'   => $exchangeRateId,
+                                    'actual_stake'       => $actualStake,
+                                    'actual_to_win'      => $actualStake * $order->odds,
+                                    'actual_profit_loss' => 0.00,
+                                    'exchange_rate'      => $exchangeRate,
+                                ]);
+                            } else {
+                                $userWallet = UserWallet::where('user_id', $order->user_id)->first();
+                                $source     = Source::where('source_name', 'LIKE', 'RETURN_STAKE')->first();
+                                $orderLogs  = OrderLogs::create([
+                                    'provider_id'   => $order->provider_id,
+                                    'sport_id'      => $order->sport_id,
+                                    'bet_id'        => $this->message->data->bet_id,
+                                    'bet_selection' => $order->bet_selection,
+                                    'status'        => $status,
+                                    'user_id'       => $order->user_id,
+                                    'reason'        => $this->message->data->reason,
+                                    'profit_loss'   => $order->profit_loss,
+                                    'order_id'      => $order->id,
+                                    'settled_date'  => null,
+                                ]);
+
+                                if ($order->status == "SUCCESS") {
+                                    continue;
+                                }
+
+                                UserWallet::makeTransaction(
+                                    $order->user_id,
+                                    $order->stake,
+                                    $userWallet->currency_id,
+                                    $source->id,
+                                    'Credit'
+                                );
                             }
 
-                            UserWallet::makeTransaction(
-                                $order->user_id,
-                                $order->stake,
-                                $userWallet->currency_id,
-                                $source->id,
-                                'Credit'
+                            WSOrderStatus::dispatch(
+                                $row['user_id'],
+                                $orderId,
+                                $status,
+                                $this->message->data->odds,
+                                $ordersTable['orderId:' . $messageOrderId]['orderExpiry'],
+                                $ordersTable['orderId:' . $messageOrderId]['created_at']
                             );
+
+                            $topics->set('unique:' . uniqid(), [
+                                'user_id'    => $row['user_id'],
+                                'topic_name' => 'open-order-' . $this->message->data->bet_id
+                            ]);
+
+                            $ordersTable['orderId:' . $messageOrderId]['bet_id'] = $this->message->data->bet_id;
+                            $ordersTable['orderId:' . $messageOrderId]['status'] = $status;
+
+                            if ($payloadsTable->exists($payloadsSwtId)) {
+                                $payloadsTable->del($payloadsSwtId);
+                            }
                         }
-
-                        WSOrderStatus::dispatch(
-                            $row['user_id'],
-                            $orderId,
-                            $status,
-                            $this->message->data->odds,
-                            $ordersTable['orderId:' . $messageOrderId]['orderExpiry'],
-                            $ordersTable['orderId:' . $messageOrderId]['created_at']
-                        );
-
-                        $topics->set('unique:' . uniqid(), [
-                            'user_id'    => $row['user_id'],
-                            'topic_name' => 'open-order-' . $this->message->data->bet_id
-                        ]);
-
-                        $ordersTable['orderId:' . $messageOrderId]['bet_id'] = $this->message->data->bet_id;
-                        $ordersTable['orderId:' . $messageOrderId]['status'] = $status;
-
-                        if ($payloadsTable->exists($payloadsSwtId)) {
-                            $payloadsTable->del($payloadsSwtId);
-                        }
+                        break;
                     }
                 }
             }

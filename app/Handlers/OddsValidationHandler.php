@@ -4,7 +4,7 @@ namespace App\Handlers;
 
 use Illuminate\Support\Facades\Log;
 use Hhxsv5\LaravelS\Swoole\Task\Task;
-use App\Tasks\TransformKafkaMessageOdds;
+use App\Tasks\{TransformKafkaMessageOdds, TransformKafkaMessageEventData, UpdateMatchedEventData};
 use Exception;
 
 class OddsValidationHandler
@@ -127,6 +127,8 @@ class OddsValidationHandler
                 return;
             }
 
+            Task::deliver(new TransformKafkaMessageEventData($this->message, compact('providerId', 'sportId')));
+
             $leagueExist = false;
             foreach ($leaguesTable as $k => $v) {
                 if ($v['sport_id'] == $sportId && $v['provider_id'] == $providerId && $v['league_name'] == $this->message->data->leagueName) {
@@ -182,6 +184,7 @@ class OddsValidationHandler
             } else {
                 Task::deliver(new TransformKafkaMessageOdds($this->message, compact('providerId', 'sportId', 'multiLeagueId', 'masterLeagueName', 'multiTeam', 'leagueId')));
             }
+            Task::deliver(new UpdateMatchedEventData($this->message));
         } catch (Exception $e) {
             Log::error($e->getMessage());
             Log::error($e->getLine());
