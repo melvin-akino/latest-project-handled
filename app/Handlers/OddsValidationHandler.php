@@ -4,7 +4,7 @@ namespace App\Handlers;
 
 use Illuminate\Support\Facades\Log;
 use Hhxsv5\LaravelS\Swoole\Task\Task;
-use App\Tasks\TransformKafkaMessageOdds;
+use App\Tasks\{TransformKafkaMessageOdds, TransformKafkaMessageEventData};
 use Exception;
 
 class OddsValidationHandler
@@ -126,6 +126,8 @@ class OddsValidationHandler
                 Log::info("Transformation ignored - Sport doesn't exist");
                 return;
             }
+
+            Task::deliver(new TransformKafkaMessageEventData($this->message, compact('providerId', 'sportId')));
 
             $leagueExist = false;
             foreach ($leaguesTable as $k => $v) {
