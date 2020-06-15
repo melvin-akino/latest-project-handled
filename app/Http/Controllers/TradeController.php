@@ -402,7 +402,7 @@ class TradeController extends Controller
                     }
 
                     $userProviderIds = UserProviderConfiguration::getProviderIdList($userId);
-                    $topicTable = app('swoole')->topicTable;
+                    $topicTable      = app('swoole')->topicTable;
                     if ($row == 'user_watchlist') {
                         $watchlist = eventTransformation($transformed, $userConfig, $userTz, $userId, $userProviderIds, $topicTable, 'watchlist');
                         foreach ($watchlist as $key => $league) {
@@ -440,31 +440,61 @@ class TradeController extends Controller
     public function getEventOtherMarkets($meUID, Request $request)
     {
         try {
-            $providerId  = Provider::getMostPriorityProvider(auth()->user()->id);
-            $transformed = Game:: getOtherMarketsByMemUID($meUID, $providerId);
+            $transformed     = Game:: getOtherMarketsByMemUID($meUID);
+            $userProviderIds = UserProviderConfiguration::getProviderIdList(auth()->user()->id);
 
             $data = [];
-            array_map(function ($transformed) use (&$data) {
+            array_map(function ($transformed) use (&$data, $userProviderIds) {
+                if (!in_array($transformed->provider_id, $userProviderIds)) {
+                    return $transformed;
+                }
                 if (!empty($transformed->odd_label)) {
-                    if (empty($data[$transformed->market_event_identifier][$transformed->type][$transformed->market_flag])) {
-                        $data[$transformed->market_event_identifier][$transformed->type][$transformed->market_flag] = [
-                            'odds'      => (double) $transformed->odds,
-                            'market_id' => $transformed->master_event_market_unique_id,
-                            'points'    => $transformed->odd_label
-                        ];
-                    }
+                    $data[$transformed->market_event_identifier][$transformed->odd_label . $transformed->type . $transformed->market_flag] = [
+                        'odds'                    => (double) $transformed->odds,
+                        'market_id'               => $transformed->master_event_market_unique_id,
+                        'points'                  => $transformed->odd_label,
+                        'master_event_identifier' => $transformed->market_event_identifier,
+                        'odd_type'                => $transformed->type,
+                        'market_flag'             => $transformed->market_flag,
+                        'market_event_identifier' => $transformed->market_event_identifier
+                    ];
                 }
             }, $transformed->toArray());
 
-            krsort($data, SORT_NUMERIC);
+            $result      = [];
+            $otherValues = [];
+            foreach ($data as $masterEventIdentifier) {
+                foreach ($masterEventIdentifier as $k => $d) {
+                    if (empty($otherValues[$d['odd_type'] . $d['market_flag'] . $d['points']])) {
+                        $result[$d['market_event_identifier']][$d['odd_type']][$d['market_flag']] = [
+                            'market_id' => $d['market_id'],
+                            'odds'      => $d['odds'],
+                            'points'    => $d['points']
+                        ];
+                        $otherValues[$d['odd_type'] . $d['market_flag'] . $d['points']]           = $d['market_event_identifier'];
+                    } else {
+                        $key = $otherValues[$d['odd_type'] . $d['market_flag'] . $d['points']];
+                        if (
+                            !empty($result[$key][$d['odd_type']]) &&
+                            $result[$key][$d['odd_type']][$d['market_flag']]['market_id'] == $d['market_id'] &&
+                            $result[$key][$d['odd_type']][$d['market_flag']]['odds'] < $d['odds']
+                        ) {
+                            $result[$key][$d['odd_type']][$d['market_flag']]['odds'] = $d['odds'];
+                        }
+                    }
+                }
+            }
+
+            krsort($result, SORT_NUMERIC);
 
             return response()->json([
                 'status'      => true,
                 'status_code' => 200,
-                'data'        => $data
+                'data'        => $result
             ], 200);
         } catch (Exception $e) {
             Log::error($e->getMessage());
+            Log::error($e->getLine());
             return response()->json([
                 'status'      => false,
                 'status_code' => 500,

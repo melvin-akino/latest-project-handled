@@ -22,42 +22,42 @@ class Game extends Model
     public static function getGameDetails(int $masterLeagueId, string $schedule = 'early')
     {
         return DB::table('master_leagues as ml')
-             ->leftJoin('sports as s', 's.id', 'ml.sport_id')
-             ->leftJoin('master_events as me', 'me.master_league_id', 'ml.id')
-             ->leftJoin('events as e', 'e.master_event_id', 'me.id')
-             ->leftJoin('master_teams as mth', 'mth.id', 'me.master_team_home_id')
-             ->leftJoin('master_teams as mta', 'mta.id', 'me.master_team_away_id')
-             ->leftJoin('master_event_markets as mem', 'mem.master_event_id', 'me.id')
-             ->leftJoin('odd_types as ot', 'ot.id', 'mem.odd_type_id')
-             ->leftJoin('event_markets as em', function ($join) {
-                 $join->on('em.master_event_market_id', '=', 'mem.id');
-                 $join->on('em.event_id', '=', 'e.id');
-             })
-             ->select('ml.sport_id', 'ml.name as master_league_name', 's.sport',
-                 'me.master_event_unique_id', 'mth.name as master_home_team_name', 'mta.name as master_away_team_name',
-                 'me.ref_schedule', 'me.game_schedule', 'me.score', 'me.running_time',
-                 'me.home_penalty', 'me.away_penalty', 'mem.odd_type_id', 'mem.master_event_market_unique_id', 'mem.is_main', 'mem.market_flag',
-                 'ot.type', 'em.odds', 'em.odd_label', 'em.provider_id', 'em.bet_identifier')
-             ->where('ml.id', $masterLeagueId)
-             ->where('me.game_schedule', $schedule)
-             ->where('mem.is_main', true)
-             ->whereNull('me.deleted_at')
-             ->whereNull('e.deleted_at')
-             ->whereNull('ml.deleted_at')
-             ->get();
+                 ->leftJoin('sports as s', 's.id', 'ml.sport_id')
+                 ->leftJoin('master_events as me', 'me.master_league_id', 'ml.id')
+                 ->leftJoin('events as e', 'e.master_event_id', 'me.id')
+                 ->leftJoin('master_teams as mth', 'mth.id', 'me.master_team_home_id')
+                 ->leftJoin('master_teams as mta', 'mta.id', 'me.master_team_away_id')
+                 ->leftJoin('master_event_markets as mem', 'mem.master_event_id', 'me.id')
+                 ->leftJoin('odd_types as ot', 'ot.id', 'mem.odd_type_id')
+                 ->leftJoin('event_markets as em', function ($join) {
+                     $join->on('em.master_event_market_id', '=', 'mem.id');
+                     $join->on('em.event_id', '=', 'e.id');
+                 })
+                 ->select('ml.sport_id', 'ml.name as master_league_name', 's.sport',
+                     'me.master_event_unique_id', 'mth.name as master_home_team_name', 'mta.name as master_away_team_name',
+                     'me.ref_schedule', 'me.game_schedule', 'me.score', 'me.running_time',
+                     'me.home_penalty', 'me.away_penalty', 'mem.odd_type_id', 'mem.master_event_market_unique_id', 'mem.is_main', 'mem.market_flag',
+                     'ot.type', 'em.odds', 'em.odd_label', 'em.provider_id', 'em.bet_identifier')
+                 ->where('ml.id', $masterLeagueId)
+                 ->where('me.game_schedule', $schedule)
+                 ->where('mem.is_main', true)
+                 ->whereNull('me.deleted_at')
+                 ->whereNull('e.deleted_at')
+                 ->whereNull('ml.deleted_at')
+                 ->get();
     }
 
     public static function providersOfEvents(int $masterEventId)
     {
         return DB::table('master_events as me')
-                ->leftJoin('events as e', 'e.master_event_id', 'me.id')
-                ->leftJoin('providers as p', 'p.id', 'e.provider_id')
-                ->where('e.master_event_id', $masterEventId)
-                ->whereNull('me.deleted_at')
-                ->whereNull('e.deleted_at')
-                ->select('p.alias as provider')
-                ->distinct()
-                ->pluck('p.alias as provider');
+                 ->leftJoin('events as e', 'e.master_event_id', 'me.id')
+                 ->leftJoin('providers as p', 'p.id', 'e.provider_id')
+                 ->where('e.master_event_id', $masterEventId)
+                 ->whereNull('me.deleted_at')
+                 ->whereNull('e.deleted_at')
+                 ->select('p.alias as provider')
+                 ->distinct()
+                 ->pluck('p.alias as provider');
     }
 
     public static function getWatchlistGameDetails(int $userId)
@@ -248,7 +248,7 @@ class Game extends Model
                  ->get();
     }
 
-    public static function getOtherMarketsByMemUID(string $meUID, int $providerId)
+    public static function getOtherMarketsByMemUID(string $meUID)
     {
         return DB::table('master_events as me')
                  ->leftJoin('events as e', 'e.master_event_id', 'me.id')
@@ -264,7 +264,6 @@ class Game extends Model
                  ->whereNull('me.deleted_at')
                  ->where('mem.is_main', false)
                  ->where('me.master_event_unique_id', $meUID)
-                 ->where('em.provider_id', $providerId)
                  ->select([
                      's.sport',
                      'me.master_event_unique_id',
@@ -285,7 +284,10 @@ class Game extends Model
                      'em.odd_label',
                      'em.provider_id',
                      'e.event_identifier',
+                     'e.master_event_id',
                      'em.market_event_identifier',
+                     'em.master_event_market_id',
+                     'em.event_id'
                  ])
                  ->distinct()->get();
     }
