@@ -418,16 +418,19 @@ class TradeController extends Controller
                             }
 
                             if (empty($watchlist[$groupIndex][$transformed->master_event_unique_id])) {
+                                $providersOfEvents = Game::providersOfEvents($transformed->master_event_id);
+
                                 $watchlist[$groupIndex][$transformed->master_event_unique_id] = [
-                                    "uid"           => $transformed->master_event_unique_id,
-                                    'sport_id'      => $transformed->sport_id,
-                                    'sport'         => $transformed->sport,
-                                    'provider_id'   => $transformed->provider_id,
-                                    'game_schedule' => $transformed->game_schedule,
-                                    'league_name'   => $transformed->master_league_name,
-                                    'running_time'  => $transformed->running_time,
-                                    'ref_schedule'  => Carbon::createFromFormat("Y-m-d H:i:s", $transformed->ref_schedule, 'Etc/UTC')->setTimezone($userTz)->format("Y-m-d H:i:s"),
-                                    'has_bet'       => $betCount > 0 ? true : false
+                                    "uid"            => $transformed->master_event_unique_id,
+                                    'sport_id'       => $transformed->sport_id,
+                                    'sport'          => $transformed->sport,
+                                    'provider_id'    => $transformed->provider_id,
+                                    'game_schedule'  => $transformed->game_schedule,
+                                    'league_name'    => $transformed->master_league_name,
+                                    'running_time'   => $transformed->running_time,
+                                    'ref_schedule'   => Carbon::createFromFormat("Y-m-d H:i:s", $transformed->ref_schedule, 'Etc/UTC')->setTimezone($userTz)->format("Y-m-d H:i:s"),
+                                    'has_bet'        => $betCount > 0 ? true : false,
+                                    'with_providers' => $providersOfEvents
                                 ];
                             }
                             if (empty($watchlist[$groupIndex][$transformed->master_event_unique_id]['home'])) {
@@ -474,16 +477,19 @@ class TradeController extends Controller
                             }
 
                             if (empty($userSelected[$transformed->game_schedule][$groupIndex][$transformed->master_event_unique_id])) {
+                                $providersOfEvents = Game::providersOfEvents($transformed->master_event_id);
+
                                 $userSelected[$transformed->game_schedule][$groupIndex][$transformed->master_event_unique_id] = [
-                                    "uid"           => $transformed->master_event_unique_id,
-                                    'sport_id'      => $transformed->sport_id,
-                                    'sport'         => $transformed->sport,
-                                    'provider_id'   => $transformed->provider_id,
-                                    'game_schedule' => $transformed->game_schedule,
-                                    'league_name'   => $transformed->master_league_name,
-                                    'running_time'  => $transformed->running_time,
-                                    'ref_schedule'  => Carbon::createFromFormat("Y-m-d H:i:s", $transformed->ref_schedule, 'Etc/UTC')->setTimezone($userTz)->format("Y-m-d H:i:s"),
-                                    'has_bet'       => $betCount > 0 ? true : false
+                                    "uid"            => $transformed->master_event_unique_id,
+                                    'sport_id'       => $transformed->sport_id,
+                                    'sport'          => $transformed->sport,
+                                    'provider_id'    => $transformed->provider_id,
+                                    'game_schedule'  => $transformed->game_schedule,
+                                    'league_name'    => $transformed->master_league_name,
+                                    'running_time'   => $transformed->running_time,
+                                    'ref_schedule'   => Carbon::createFromFormat("Y-m-d H:i:s", $transformed->ref_schedule, 'Etc/UTC')->setTimezone($userTz)->format("Y-m-d H:i:s"),
+                                    'has_bet'        => $betCount > 0 ? true : false,
+                                    'with_providers' => $providersOfEvents
                                 ];
                             }
 
