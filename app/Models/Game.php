@@ -55,6 +55,8 @@ class Game extends Model
                 ->where('e.master_event_id', $masterEventId)
                 ->whereNull('me.deleted_at')
                 ->whereNull('e.deleted_at')
+                ->select('p.alias as provider')
+                ->distinct()
                 ->pluck('p.alias as provider');
     }
 
