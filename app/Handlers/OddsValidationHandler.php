@@ -4,7 +4,7 @@ namespace App\Handlers;
 
 use Illuminate\Support\Facades\Log;
 use Hhxsv5\LaravelS\Swoole\Task\Task;
-use App\Tasks\{TransformKafkaMessageOdds, TransformKafkaMessageEventData};
+use App\Tasks\{TransformKafkaMessageOdds, TransformKafkaMessageEventData, UpdateMatchedEventData};
 use Exception;
 
 class OddsValidationHandler
@@ -184,6 +184,7 @@ class OddsValidationHandler
             } else {
                 Task::deliver(new TransformKafkaMessageOdds($this->message, compact('providerId', 'sportId', 'multiLeagueId', 'masterLeagueName', 'multiTeam', 'leagueId')));
             }
+            Task::deliver(new UpdateMatchedEventData($this->message));
         } catch (Exception $e) {
             Log::error($e->getMessage());
             Log::error($e->getLine());
