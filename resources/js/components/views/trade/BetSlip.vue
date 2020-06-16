@@ -59,8 +59,8 @@
                                 <a href="#" @click.prevent="updatePrice(minmax.price)" class="w-1/5 text-sm font-bold underline text-center" v-if="minmax.hasMarketData">{{minmax.price | twoDecimalPlacesFormat}}</a>
                                 <span class="w-1/5 text-sm text-center" v-if="minmax.hasMarketData">{{minmax.age}}</span>
                                 <div class="text-sm text-center" v-if="!minmax.hasMarketData">
-                                    <div v-if="market_details.providers.includes(minmax.provider_id)">Retrieving Market <span class="pl-1"><i class="fas fa-circle-notch fa-spin"></i></span></div>
-                                    <div v-else>No Market Available</div>
+                                    <div v-show="market_details.providers.includes(minmax.provider_id) && !isEventNotAvailable">Retrieving Market <span class="pl-1"><i class="fas fa-circle-notch fa-spin"></i></span></div>
+                                    <div v-show="!market_details.providers.includes(minmax.provider_id) || isEventNotAvailable">No Market Available</div>
                                 </div>
                             </div>
                         </div>
@@ -164,7 +164,7 @@ export default {
         return {
             market_details: {},
             formattedRefSchedule: [],
-            inputPrice: twoDecimalPlacesFormat(this.odd_details.odds),
+            inputPrice: null,
             points: null,
             selectedPoint: {},
             market_id: this.odd_details.market_id,
@@ -194,7 +194,8 @@ export default {
             spreads: [],
             displayedSpreads: [],
             startPointIndex: 0,
-            endPointIndex: 5
+            endPointIndex: 5,
+            isEventNotAvailable: null
         }
     },
     computed: {
@@ -382,6 +383,9 @@ export default {
                                 }
                             }
                         }
+                        this.isEventNotAvailable = false
+                    } else {
+                        this.isEventNotAvailable = true
                     }
                     this.retrievedMarketData = true
                 }
@@ -443,6 +447,13 @@ export default {
             } else {
                 this.selectedProviders.push(provider_id)
                 this.minMaxData.push(minmax)
+            }
+
+            if(this.minMaxData.length != 0) {
+                let minmaxPrices = this.minMaxData.map(minmax => minmax.price)
+                this.inputPrice = twoDecimalPlacesFormat(Math.min(...minmaxPrices))
+            } else {
+                this.inputPrice = null
             }
         },
         placeOrder() {
