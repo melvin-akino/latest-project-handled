@@ -44,8 +44,8 @@ class MasterLeague extends Model
                     ->whereNull('events.deleted_at')
                     ->where('master_events.game_schedule', $gameSchedule)
                     ->whereIn('events.provider_id', $userProviderIds)
-                    ->groupBy('master_leagues.name', 'master_events.id')
-                    ->select('master_leagues.name as master_league_name', 'master_events.id',
+                    ->groupBy('master_leagues.name')
+                    ->select('master_leagues.name as master_league_name',
                         DB::raw('COUNT(master_leagues.name) as match_count'))
                     ->distinct()
                     ->get();
