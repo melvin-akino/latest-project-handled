@@ -199,10 +199,10 @@ class TradeController extends Controller
                 'today'  => [],
                 'early'  => []
             ];
-            $providerId   = Provider::getMostPriorityProvider(auth()->user()->id);
+            $userProviderIds = UserProviderConfiguration::getProviderIdList(auth()->user()->id);
 
             foreach ($dataSchedule as $key => $sched) {
-                $leaguesQuery = MasterLeague::getLeaguesBySportAndGameShedule($data['default_sport'], $providerId, $key);
+                $leaguesQuery = MasterLeague::getLeaguesBySportAndGameShedule($data['default_sport'], $userProviderIds, $key);
 
                 foreach ($leaguesQuery as $league) {
                     $dataSchedule[$key][$league->master_league_name] = [

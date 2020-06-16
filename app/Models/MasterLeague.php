@@ -33,7 +33,7 @@ class MasterLeague extends Model
         return $query->first()->id;
     }
 
-    public static function getLeaguesBySportAndGameShedule(int $sportId, int $providerId, string $gameSchedule)
+    public static function getLeaguesBySportAndGameShedule(int $sportId, array $userProviderIds, string $gameSchedule)
     {
         return DB::table('master_leagues')
                     ->leftJoin('master_events', 'master_events.master_league_id', 'master_leagues.id')
@@ -43,9 +43,9 @@ class MasterLeague extends Model
                     ->whereNull('master_events.deleted_at')
                     ->whereNull('events.deleted_at')
                     ->where('master_events.game_schedule', $gameSchedule)
-                    ->where('events.provider_id', $providerId)
-                    ->groupBy('master_leagues.name')
-                    ->select('master_leagues.name as master_league_name',
+                    ->whereIn('events.provider_id', $userProviderIds)
+                    ->groupBy('master_leagues.name', 'master_events.id')
+                    ->select('master_leagues.name as master_league_name', 'master_events.id',
                         DB::raw('COUNT(master_leagues.name) as match_count'))
                     ->distinct()
                     ->get();
