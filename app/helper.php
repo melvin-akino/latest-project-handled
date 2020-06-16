@@ -429,7 +429,7 @@ if (!function_exists('eventTransformation')) {
 
             if (empty($data[$transformed->master_event_unique_id])) {
                 $providersOfEvents = Game::providersOfEvents($transformed->master_event_id);
-                
+
                 $data[$transformed->master_event_unique_id] = [
                     "uid"           => $transformed->master_event_unique_id,
                     'sport_id'      => $transformed->sport_id,
@@ -469,26 +469,24 @@ if (!function_exists('eventTransformation')) {
                 ];
             }
 
-            if (empty($data[$transformed->master_event_unique_id]['market_odds']['main'][$transformed->type][$transformed->market_flag])) {
-                if (!empty($transformed->odd_label)) {
-                    $data[$transformed->master_event_unique_id]['market_odds']['main'][$transformed->type][$transformed->market_flag]['points'] = $transformed->odd_label;
-                }
+            if (!empty($transformed->odd_label)) {
+                $data[$transformed->master_event_unique_id]['market_odds']['main'][$transformed->type][$transformed->market_flag]['points'] = $transformed->odd_label;
+            }
 
-                if (empty($_SERVER['_PHPUNIT'])) {
-                    $doesExist = false;
-                    foreach ($topicTable as $topic) {
-                        if ($topic['topic_name'] == 'market-id-' . $transformed->master_event_market_unique_id &&
-                            $topic['user_id'] == $userId) {
-                            $doesExist = true;
-                            break;
-                        }
+            if (empty($_SERVER['_PHPUNIT'])) {
+                $doesExist = false;
+                foreach ($topicTable as $topic) {
+                    if ($topic['topic_name'] == 'market-id-' . $transformed->master_event_market_unique_id &&
+                        $topic['user_id'] == $userId) {
+                        $doesExist = true;
+                        break;
                     }
-                    if (empty($doesExist)) {
-                        $topicTable->set('userId:' . $userId . ':unique:' . uniqid(), [
-                            'user_id'    => $userId,
-                            'topic_name' => 'market-id-' . $transformed->master_event_market_unique_id
-                        ]);
-                    }
+                }
+                if (empty($doesExist)) {
+                    $topicTable->set('userId:' . $userId . ':unique:' . uniqid(), [
+                        'user_id'    => $userId,
+                        'topic_name' => 'market-id-' . $transformed->master_event_market_unique_id
+                    ]);
                 }
             }
 
