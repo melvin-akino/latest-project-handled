@@ -46,7 +46,7 @@ class MasterLeague extends Model
                     ->whereIn('events.provider_id', $userProviderIds)
                     ->groupBy('master_leagues.name')
                     ->select('master_leagues.name as master_league_name',
-                        DB::raw('COUNT(master_leagues.name) as match_count'))
+                        DB::raw('COUNT(master_events.id) as match_count'))
                     ->distinct()
                     ->get();
     }
