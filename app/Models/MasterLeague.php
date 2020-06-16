@@ -35,19 +35,16 @@ class MasterLeague extends Model
 
     public static function getLeaguesBySportAndGameShedule(int $sportId, array $userProviderIds, string $gameSchedule)
     {
-        return DB::table('master_leagues')
-                    ->leftJoin('master_events', 'master_events.master_league_id', 'master_leagues.id')
-                    ->leftJoin('events', 'events.master_event_id', 'master_events.id')
-                    ->where('master_leagues.sport_id', $sportId)
-                    ->whereNull('master_leagues.deleted_at')
-                    ->whereNull('master_events.deleted_at')
-                    ->whereNull('events.deleted_at')
-                    ->where('master_events.game_schedule', $gameSchedule)
-                    ->whereIn('events.provider_id', $userProviderIds)
-                    ->groupBy('master_leagues.name')
-                    ->select('master_leagues.name as master_league_name',
-                        DB::raw('COUNT(master_events.id) as match_count'))
-                    ->distinct()
-                    ->get();
+        return DB::SELECT("SELECT  ml.name as master_league_name, count(distinct me.id) as match_count  FROM master_leagues ml
+                    LEFT JOIN sports s on (s.id=ml.sport_id)
+                    LEFT JOIN master_events me on (me.master_league_id=ml.id)
+                    LEFT JOIN events e on (e.master_event_id=me.id)
+                    AND me.deleted_at is null
+                    AND e.deleted_at is null
+                    AND ml.deleted_at is null
+                    AND me.game_schedule = '{$gameSchedule}'
+                    AND e.provider_id IN (" . implode(',', $userProviderIds) . ")
+                    GROUP BY master_league_name");
+
     }
 }
