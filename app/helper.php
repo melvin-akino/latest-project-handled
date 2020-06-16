@@ -428,7 +428,7 @@ if (!function_exists('eventTransformation')) {
             }
 
             if (empty($data[$transformed->master_event_unique_id])) {
-                $providersOfEvents = Game::providersOfEvents($transformed->master_event_id, $userProviderIds);
+                $providersOfEvents = Game::providersOfEvents($transformed->master_event_id, $userProviderIds)->get();
 
                 $data[$transformed->master_event_unique_id] = [
                     "uid"           => $transformed->master_event_unique_id,

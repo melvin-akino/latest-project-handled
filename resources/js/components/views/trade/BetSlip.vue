@@ -58,7 +58,10 @@
                                 <span class="w-1/5 text-sm text-center" v-if="minmax.hasMarketData">{{minmax.max | moneyFormat}}</span>
                                 <a href="#" @click.prevent="updatePrice(minmax.price)" class="w-1/5 text-sm font-bold underline text-center" v-if="minmax.hasMarketData">{{minmax.price | twoDecimalPlacesFormat}}</a>
                                 <span class="w-1/5 text-sm text-center" v-if="minmax.hasMarketData">{{minmax.age}}</span>
-                                <div class="text-sm text-center" v-if="!minmax.hasMarketData">{{marketDataMessage}} <span v-if="!retrievedMarketData" class="pl-1"><i class="fas fa-circle-notch fa-spin"></i></span></div>
+                                <div class="text-sm text-center" v-if="!minmax.hasMarketData">
+                                    <div v-if="withProvidersId.includes(minmax.provider_id)">Retrieving Market <span class="pl-1"><i class="fas fa-circle-notch fa-spin"></i></span></div>
+                                    <div v-else>No Market Available</div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -187,7 +190,6 @@ export default {
             showOddsHistory: false,
             showBetMatrix: false,
             disabledBookies: [],
-            marketDataMessage: '',
             retrievedMarketData: false,
             spreads: [],
             displayedSpreads: [],
@@ -263,6 +265,9 @@ export default {
                 home_score: this.market_details.score.split(' - ')[0],
                 away_score: this.market_details.score.split(' - ')[1]
             }
+        },
+        withProvidersId() {
+            return this.odd_details.game.with_providers.map(provider => provider.id)
         }
     },
     watch: {
@@ -303,7 +308,6 @@ export default {
             let enabledBookies = this.bookies.filter(bookie => !this.disabledBookies.includes(bookie.id))
             enabledBookies.map(bookie => this.minMaxProviders.push({ provider_id: bookie.id, provider: bookie.alias, min: null, max: null, price: null, priority: bookie.priority, age: null, hasMarketData: false }))
             this.isLoadingMarketDetailsAndProviders = false
-            this.marketDataMessage = 'Retrieving Market'
             this.minmax(this.market_id)
         },
         displaySpreadsByFive() {
@@ -383,7 +387,6 @@ export default {
                         }
                     }
                     this.retrievedMarketData = true
-                    this.marketDataMessage = 'No Market Available'
                 }
             })
         },
@@ -400,7 +403,6 @@ export default {
                             provider.hasMarketData = false
                         })
                         this.retrievedMarketData = false
-                        this.marketDataMessage = 'Retrieving Market'
                         this.minMaxData = []
                     }
                 }

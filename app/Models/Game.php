@@ -56,9 +56,8 @@ class Game extends Model
                  ->whereNull('me.deleted_at')
                  ->whereNull('e.deleted_at')
                  ->whereIn('p.id', $userProviderIds)
-                 ->select('p.alias as provider')
-                 ->distinct()
-                 ->pluck('p.alias as provider');
+                 ->select('p.id', 'p.alias as provider')
+                 ->distinct();
     }
 
     public static function getWatchlistGameDetails(int $userId)
