@@ -39,6 +39,7 @@ class MasterLeague extends Model
                     LEFT JOIN sports s on (s.id=ml.sport_id)
                     LEFT JOIN master_events me on (me.master_league_id=ml.id)
                     LEFT JOIN events e on (e.master_event_id=me.id)
+                    WHERE s.id = {$sportId}
                     AND me.deleted_at is null
                     AND e.deleted_at is null
                     AND ml.deleted_at is null
