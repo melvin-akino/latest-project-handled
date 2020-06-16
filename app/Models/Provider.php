@@ -4,7 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use App\Models\UserProviderConfiguration;
-
+use Illuminate\Support\Facades\DB;
 class Provider extends Model
 {
     protected $table = 'providers';
@@ -60,4 +60,14 @@ class Provider extends Model
         }
         return $providerId;
     }
+
+    public static function getProvidersByMemUID(string $memUID)
+    {
+        return DB::table('event_markets as em')
+            ->join('master_event_markets as mem', 'mem.id', 'em.master_event_market_id')
+            ->where('mem.master_event_market_unique_id', $memUID)
+            ->whereNull('em.deleted_at')
+            ->pluck('em.provider_id');
+    }
+
 }

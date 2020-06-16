@@ -59,7 +59,7 @@
                                 <a href="#" @click.prevent="updatePrice(minmax.price)" class="w-1/5 text-sm font-bold underline text-center" v-if="minmax.hasMarketData">{{minmax.price | twoDecimalPlacesFormat}}</a>
                                 <span class="w-1/5 text-sm text-center" v-if="minmax.hasMarketData">{{minmax.age}}</span>
                                 <div class="text-sm text-center" v-if="!minmax.hasMarketData">
-                                    <div v-if="withProvidersId.includes(minmax.provider_id)">Retrieving Market <span class="pl-1"><i class="fas fa-circle-notch fa-spin"></i></span></div>
+                                    <div v-if="market_details.providers.includes(minmax.provider_id)">Retrieving Market <span class="pl-1"><i class="fas fa-circle-notch fa-spin"></i></span></div>
                                     <div v-else>No Market Available</div>
                                 </div>
                             </div>
@@ -265,9 +265,6 @@ export default {
                 home_score: this.market_details.score.split(' - ')[0],
                 away_score: this.market_details.score.split(' - ')[1]
             }
-        },
-        withProvidersId() {
-            return this.odd_details.game.with_providers.map(provider => provider.id)
         }
     },
     watch: {
