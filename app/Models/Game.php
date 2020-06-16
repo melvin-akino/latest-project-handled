@@ -47,7 +47,7 @@ class Game extends Model
                  ->get();
     }
 
-    public static function providersOfEvents(int $masterEventId)
+    public static function providersOfEvents(int $masterEventId, array $userProviderIds)
     {
         return DB::table('master_events as me')
                  ->leftJoin('events as e', 'e.master_event_id', 'me.id')
@@ -55,6 +55,7 @@ class Game extends Model
                  ->where('e.master_event_id', $masterEventId)
                  ->whereNull('me.deleted_at')
                  ->whereNull('e.deleted_at')
+                 ->whereIn('p.id', $userProviderIds)
                  ->select('p.alias as provider')
                  ->distinct()
                  ->pluck('p.alias as provider');
