@@ -481,7 +481,7 @@ class OrdersController extends Controller
                 } else if ($last2 == 0) {
                     $actualStake = $ceil;
                 } else if ($last2 > 50) {
-                    $actualStake = substr($ceil, 0, -2) + 1;
+                    $actualStake = (int) substr($ceil, 0, -2) + 1;
                     $actualStake .= '00';
                 }
 
