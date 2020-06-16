@@ -231,7 +231,8 @@ class OrdersController extends Controller
                 'odd_type'      => OddType::getTypeByID($masterEventMarket->odd_type_id),
                 'sport'         => Sport::getNameByID($masterEvent->sport_id),
                 'spreads'       => $spreads,
-                'has_bets'      => $hasBets
+                'has_bets'      => $hasBets,
+                'providers'     => Provider::getProvidersByMemUID($memUID)
             ];
 
             return response()->json([
