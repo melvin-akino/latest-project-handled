@@ -515,32 +515,34 @@ export default {
                     })
                 }
                 this.$set(data, 'markets', this.orderForm.markets)
-
                 let token = Cookies.get('mltoken')
+                if(this.orderForm.markets.length != 0) {
+                    axios.post('v1/orders/bet', data, { headers: { 'Authorization': `Bearer ${token}` }})
+                    .then(response => {
+                        this.isBetSuccessful = true
+                        this.orderMessage = response.data.data
+                        this.$store.dispatch('trade/getBetbarData')
+                        this.$store.commit('trade/TOGGLE_BETBAR', true)
+                        this.$store.dispatch('trade/getWalletData')
 
-                axios.post('v1/orders/bet', data, { headers: { 'Authorization': `Bearer ${token}` }})
-                .then(response => {
-                    this.isBetSuccessful = true
-                    this.orderMessage = response.data.data
-                    this.$store.dispatch('trade/getBetbarData')
-                    this.$store.commit('trade/TOGGLE_BETBAR', true)
-                    this.$store.dispatch('trade/getWalletData')
-
-                    if(this.betSlipSettings.bets_to_fav == 1 && this.isBetSuccessful) {
-                        this.$store.dispatch('trade/addToWatchlist', { type: 'event', data: this.odd_details.game.uid, payload: this.odd_details.game })
-                    }
+                        if(this.betSlipSettings.bets_to_fav == 1 && this.isBetSuccessful) {
+                            this.$store.dispatch('trade/addToWatchlist', { type: 'event', data: this.odd_details.game.uid, payload: this.odd_details.game })
+                        }
+                        this.isPlacingOrder = false
+                    })
+                    .catch(err => {
+                        this.isBetSuccessful = false
+                        this.isPlacingOrder = false
+                        if(this.orderMessage == '') {
+                            this.orderMessage = err.response.data.message
+                        }
+                        if(err.response.data.status_code != 404) {
+                            this.$store.dispatch('auth/checkIfTokenIsValid', err.response.data.status_code)
+                        }
+                    })
+                } else {
                     this.isPlacingOrder = false
-                })
-                .catch(err => {
-                    this.isBetSuccessful = false
-                    this.isPlacingOrder = false
-                    if(this.orderMessage == '') {
-                        this.orderMessage = err.response.data.message
-                    }
-                    if(err.response.data.status_code != 404) {
-                        this.$store.dispatch('auth/checkIfTokenIsValid', err.response.data.status_code)
-                    }
-                })
+                }
             }
         }
     },
