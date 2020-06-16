@@ -38,6 +38,12 @@ class KafkaPush implements ShouldQueue
 
         Log::info('Sending to Kafka ' . $this->kafkaTopic);
         $producerHandler->setTopic($this->kafkaTopic)->send($this->message, $this->key);
+        for ($flushRetries = 0; $flushRetries < 10; $flushRetries++) {
+            $result = $kafkaProducer->flush(10000);
+            if (RD_KAFKA_RESP_ERR_NO_ERROR === $result) {
+                break;
+            }
+        }
         Log::channel('kafkaproducelog')->info(json_encode($this->message));
     }
 }

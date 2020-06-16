@@ -553,7 +553,7 @@ class OrdersController extends Controller
                 $updateProvider->save();
 
                 $incrementIds['id'][]               = $orderIncrement->id;
-                $incrementIds['created_at'][]       = $orderIncrement->created_at;
+                $incrementIds['created_at'][]       = (string) $orderIncrement->created_at;
                 $incrementIds['provider_account'][] = $providerAccountUserName;
 
                 if ($request->betType == "FAST_BET") {
