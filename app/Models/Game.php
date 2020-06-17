@@ -227,7 +227,7 @@ class Game extends Model
                  ->whereNull('me.deleted_at')
                  ->whereNull('ml.deleted_at')
                  ->where('mem.is_main', true)
-                 ->where('e.missing_count', $this->maxMissingCount)
+                 ->where('e.missing_count', '>', $this->maxMissingCount)
                  ->select([
                      'ml.sport_id',
                      'ml.name as master_league_name',
@@ -271,7 +271,7 @@ class Game extends Model
                  ->whereNull('me.deleted_at')
                  ->where('mem.is_main', false)
                  ->where('me.master_event_unique_id', $meUID)
-                 ->where('e.missing_count', $this->maxMissingCount)
+                 ->where('e.missing_count', '>', $this->maxMissingCount)
                  ->select([
                      's.sport',
                      'me.master_event_unique_id',
