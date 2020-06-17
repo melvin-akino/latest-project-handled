@@ -3,6 +3,7 @@
 namespace App\Processes;
 
 use App\Handlers\ProducerHandler;
+use App\Jobs\KafkaPush;
 use App\Models\SystemConfiguration;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
@@ -69,7 +70,11 @@ class SettlementProduce implements CustomProcessInterface
                                             'username' => $username
                                         ];
 
-                                        self::pushToKafka($payload, $requestId, $providerAlias . env('KAFKA_SCRAPE_SETTLEMENT_POSTFIX', '_settlement_req'));
+                                        KafkaPush::dispatch(
+                                            $providerAlias . env('KAFKA_SCRAPE_SETTLEMENT_POSTFIX', '_settlement_req'),
+                                            $payload,
+                                            $requestId
+                                        );
 
                                         $startTime = $newTime;
                                     }
@@ -104,20 +109,5 @@ class SettlementProduce implements CustomProcessInterface
         $mt = explode(' ', microtime());
 
         return bcadd($mt[1], $mt[0], 8);
-    }
-
-    private static function pushToKafka(array $message = [], string $key, string $kafkaTopic)
-    {
-        try {
-            self::$producerHandler->setTopic($kafkaTopic)
-                ->send($message, $key);
-        } catch (Exception $e) {
-            Log::critical('Sending Kafka Message Failed', [
-                'error' => $e->getMessage(),
-                'code'  => $e->getCode()
-            ]);
-        } finally {
-            Log::channel('kafkaproducelog')->info(json_encode($message));
-        }
     }
 }
