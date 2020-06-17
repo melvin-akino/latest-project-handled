@@ -21,7 +21,8 @@ class Events extends Model
         'team_away_id',
         'ref_schedule',
         'game_schedule',
-        'deleted_at'
+        'deleted_at',
+        'missing_count'
     ];
 
     protected $hidden = [
