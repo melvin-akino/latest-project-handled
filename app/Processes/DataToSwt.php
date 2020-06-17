@@ -20,8 +20,6 @@ class DataToSwt implements CustomProcessInterface
      */
     private static $quit = false;
 
-    protected $maxMissingCount = SystemConfiguration::getSystemConfigurationValue('EVENT_VALID_MAX_MISSING_COUNT');
-
     public static function callback(Server $swoole, Process $process)
     {
         // DB to SWT Initialization
@@ -46,9 +44,21 @@ class DataToSwt implements CustomProcessInterface
             'MLBetId',
         ];
 
+        $maxMissingCount = SystemConfiguration::getSystemConfigurationValue('EVENT_VALID_MAX_MISSING_COUNT')->value;
+
+        $eventsRelated = [
+            'MasterEvents',
+            'ActiveEvents',
+        ];
+
         foreach ($swooleProcesses as $process) {
             $method = "db2Swt" . $process;
-            self::{$method}($swoole);
+
+            if (in_array($process, $eventsRelated)) {
+                self::{$method}($swoole, $maxMissingCount);
+            } else {
+                self::{$method}($swoole);
+            }
         }
 
         $swoole->data2SwtTable->set('data2Swt', ['value' => 1]);
@@ -160,7 +170,7 @@ class DataToSwt implements CustomProcessInterface
         }, $sportOddTypes->toArray());
     }
 
-    private static function db2SwtMasterEvents(Server $swoole)
+    private static function db2SwtMasterEvents(Server $swoole, $maxMissingCount)
     {
         $masterEvents      = DB::table('master_events as me')
                             ->join('sports as s', 's.id', 'me.sport_id')
@@ -170,7 +180,7 @@ class DataToSwt implements CustomProcessInterface
                             // ->join('master_teams as mta', 'mta.id', 'me.master_team_away_id')
                             ->whereNull('me.deleted_at')
                             ->whereNull('e.deleted_at')
-                            ->where('e.missing_count', '<=', $this->maxMissingCount)
+                            ->where('e.missing_count', '<=', $maxMissingCount)
                             ->select('me.id', 'me.master_event_unique_id', 'e.provider_id',
                                 'e.event_identifier', 'me.master_league_id', 'me.sport_id',
                                 'me.ref_schedule', 'me.game_schedule', 'me.master_team_home_id',
@@ -263,12 +273,12 @@ class DataToSwt implements CustomProcessInterface
         }, $userProviderConfig->toArray());
     }
 
-    private static function db2SwtActiveEvents(Server $swoole)
+    private static function db2SwtActiveEvents(Server $swoole, $maxMissingCount)
     {
         $events            = DB::table('events as e')
                             ->join('master_events as me', 'me.id', 'e.master_event_id')
                             ->whereNull('e.deleted_at')
-                            ->where('e.missing_count', '<=', $this->maxMissingCount)
+                            ->where('e.missing_count', '<=', $maxMissingCount)
                             ->select('e.*', 'me.game_schedule')
                             ->get();
         $activeEvents      = $swoole->activeEventsTable;
