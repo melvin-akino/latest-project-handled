@@ -3,6 +3,7 @@
 namespace App\Processes;
 
 use App\Handlers\ProducerHandler;
+use App\Jobs\KafkaPush;
 use App\Models\SystemConfiguration;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
@@ -28,12 +29,10 @@ class BalanceProduce implements CustomProcessInterface
             self::$producerHandler = new ProducerHandler($kafkaProducer);
 
             if ($swoole->data2SwtTable->exist('data2Swt')) {
-                $providerAccountsTable      = $swoole->providerAccountsTable;
                 $initialTime                = Carbon::createFromFormat('H:i:s', Carbon::now()->format('H:i:s'));
                 $balanceTime                = 0;
                 $systemConfigurationsTimers = [];
 
-                $startTime = $initialTime;
                 while (!self::$quit) {
                     $newTime = Carbon::createFromFormat('H:i:s', Carbon::now()->format('H:i:s'));
                     if ($newTime->diffInSeconds(Carbon::parse($initialTime)) >= 1) {
@@ -68,21 +67,6 @@ class BalanceProduce implements CustomProcessInterface
         self::$quit = true;
     }
 
-    private static function pushToKafka(array $message = [], string $key, string $kafkaTopic)
-    {
-        try {
-            self::$producerHandler->setTopic($kafkaTopic)
-                ->send($message, $key);
-        } catch (Exception $e) {
-            Log::critical('Sending Kafka Message Failed', [
-                'error' => $e->getMessage(),
-                'code'  => $e->getCode()
-            ]);
-        } finally {
-            Log::channel('kafkaproducelog')->info(json_encode($message));
-        }
-    }
-
     private static function refreshBalanceDbConfig()
     {
         return SystemConfiguration::whereIn('type', ['BET_VIP', 'BET_NORMAL'])->get()->toArray();
@@ -110,7 +94,7 @@ class BalanceProduce implements CustomProcessInterface
                 'username' => $username
             ];
 
-            self::pushToKafka($payload, $requestId, $provider . $topic);
+            KafkaPush::dispatch($provider . $topic, $payload, $requestId);
         }
     }
 }

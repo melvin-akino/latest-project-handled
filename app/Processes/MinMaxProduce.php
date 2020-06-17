@@ -3,6 +3,7 @@
 namespace App\Processes;
 
 use App\Handlers\ProducerHandler;
+use App\Jobs\KafkaPush;
 use App\Models\SystemConfiguration;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
@@ -73,8 +74,12 @@ class MinMaxProduce implements CustomProcessInterface
 
                                     PrometheusMatric::MakeMatrix('request_market_id_total',
                                         'Min-max  total number of  market id  pushed .', $minMaxRequest['market_id']);
-                                    self::pushToKafka($payload, $requestId,
-                                        strtolower($minMaxRequest['provider']) . env('KAFKA_SCRAPE_MINMAX_REQUEST_POSTFIX', '_minmax_req'));
+
+                                    KafkaPush::dispatch(
+                                        strtolower($minMaxRequest['provider']) . env('KAFKA_SCRAPE_MINMAX_REQUEST_POSTFIX', '_minmax_req'),
+                                        $payload,
+                                        $requestId
+                                    );
                                 }
                             }
                         }
@@ -101,20 +106,5 @@ class MinMaxProduce implements CustomProcessInterface
             'MINMAX_TODAY_REQUEST_TIMER',
             'MINMAX_EARLY_REQUEST_TIMER'
         ])->get()->toArray();
-    }
-
-    private static function pushToKafka(array $message = [], string $key, string $kafkaTopic)
-    {
-        try {
-            self::$producerHandler->setTopic($kafkaTopic)
-                ->send($message, $key);
-        } catch (Exception $e) {
-            Log::critical('Sending Kafka Message Failed', [
-                'error' => $e->getMessage(),
-                'code'  => $e->getCode()
-            ]);
-        } finally {
-            Log::channel('kafkaproducelog')->info(json_encode($message));
-        }
     }
 }

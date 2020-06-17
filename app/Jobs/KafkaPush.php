@@ -35,15 +35,25 @@ class KafkaPush implements ShouldQueue
     {
         $kafkaProducer   = app('KafkaProducer');
         $producerHandler = new ProducerHandler($kafkaProducer);
-
-        Log::info('Sending to Kafka ' . $this->kafkaTopic);
-        $producerHandler->setTopic($this->kafkaTopic)->send($this->message, $this->key);
-        for ($flushRetries = 0; $flushRetries < 10; $flushRetries++) {
-            $result = $kafkaProducer->flush(10000);
-            if (RD_KAFKA_RESP_ERR_NO_ERROR === $result) {
-                break;
+        try {
+            Log::info('Sending to Kafka Topic: ' . $this->kafkaTopic);
+            $producerHandler->setTopic($this->kafkaTopic)->send($this->message, $this->key);
+            if (env('APP_ENV') != 'local') {
+                for ($flushRetries = 0; $flushRetries < 10; $flushRetries++) {
+                    $result = $kafkaProducer->flush(10000);
+                    if (RD_KAFKA_RESP_ERR_NO_ERROR === $result) {
+                        break;
+                    }
+                }
             }
+            Log::info('Sent to Kafka Topic: ' . $this->kafkaTopic);
+        } catch (Exception $e) {
+            Log::critical('Sending Kafka Message Failed', [
+                'error' => $e->getMessage(),
+                'code'  => $e->getCode()
+            ]);
+        } finally {
+            Log::channel('kafkaproducelog')->info(json_encode($this->message));
         }
-        Log::channel('kafkaproducelog')->info(json_encode($this->message));
     }
 }

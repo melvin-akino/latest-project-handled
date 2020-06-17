@@ -252,19 +252,4 @@ class BetProduce implements CustomProcessInterface
     {
         self::$quit = true;
     }
-
-    private static function pushToKafka(array $message = [], string $key, string $kafkaTopic)
-    {
-        try {
-            self::$producerHandler->setTopic($kafkaTopic)
-                                  ->send($message, $key);
-        } catch (Exception $e) {
-            Log::critical('Sending Kafka Message Failed', [
-                'error' => $e->getMessage(),
-                'code'  => $e->getCode()
-            ]);
-        } finally {
-            Log::channel('kafkaproducelog')->info(json_encode($message));
-        }
-    }
 }
