@@ -4,7 +4,8 @@ namespace App\Processes;
 
 use App\Models\{
     Order,
-    Sport
+    Sport,
+    SystemConfiguration
 };
 use Hhxsv5\LaravelS\Swoole\Process\CustomProcessInterface;
 use Illuminate\Support\Facades\DB;
@@ -18,6 +19,8 @@ class DataToSwt implements CustomProcessInterface
      * @var bool Quit tag for Reload updates
      */
     private static $quit = false;
+
+    protected $maxMissingCount = SystemConfiguration::getSystemConfigurationValue('EVENT_VALID_MAX_MISSING_COUNT');
 
     public static function callback(Server $swoole, Process $process)
     {
@@ -167,6 +170,7 @@ class DataToSwt implements CustomProcessInterface
                             // ->join('master_teams as mta', 'mta.id', 'me.master_team_away_id')
                             ->whereNull('me.deleted_at')
                             ->whereNull('e.deleted_at')
+                            ->where('e.missing_count', $this->maxMissingCount)
                             ->select('me.id', 'me.master_event_unique_id', 'e.provider_id',
                                 'e.event_identifier', 'me.master_league_id', 'me.sport_id',
                                 'me.ref_schedule', 'me.game_schedule', 'me.master_team_home_id',
@@ -264,6 +268,7 @@ class DataToSwt implements CustomProcessInterface
         $events            = DB::table('events as e')
                             ->join('master_events as me', 'me.id', 'e.master_event_id')
                             ->whereNull('e.deleted_at')
+                            ->where('e.missing_count', $this->maxMissingCount)
                             ->select('e.*', 'me.game_schedule')
                             ->get();
         $activeEvents      = $swoole->activeEventsTable;

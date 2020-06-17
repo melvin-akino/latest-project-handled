@@ -2,11 +2,14 @@
 
 namespace App\Models;
 
+use App\Models\SystemConfiguration;
+
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\{DB, Log};
 
 class Game extends Model
 {
+    protected $maxMissingCount = SystemConfiguration::getSystemConfigurationValue('EVENT_VALID_MAX_MISSING_COUNT');
 
     public static function updateOddsData(array $marketOdds = [], int $providerId)
     {
@@ -44,6 +47,7 @@ class Game extends Model
                  ->whereNull('me.deleted_at')
                  ->whereNull('e.deleted_at')
                  ->whereNull('ml.deleted_at')
+                 ->where('e.missing_count', $this->maxMissingCount)
                  ->get();
     }
 
@@ -83,6 +87,7 @@ class Game extends Model
                      'ot.type', 'em.odds', 'em.odd_label', 'em.provider_id', 'em.bet_identifier', 'e.master_event_id')
                  ->where('uw.user_id', $userId)
                  ->where('mem.is_main', true)
+                 ->where('e.missing_count', $this->maxMissingCount)
                  ->distinct()->get();
     }
 
@@ -175,6 +180,7 @@ class Game extends Model
                  ->whereNull('me.deleted_at')
                  ->whereNull('e.deleted_at')
                  ->whereNull('ml.deleted_at')
+                 ->where('e.missing_count', $this->maxMissingCount)
                  ->select([
                      'ml.sport_id',
                      'ml.name as master_league_name',
@@ -221,6 +227,7 @@ class Game extends Model
                  ->whereNull('me.deleted_at')
                  ->whereNull('ml.deleted_at')
                  ->where('mem.is_main', true)
+                 ->where('e.missing_count', $this->maxMissingCount)
                  ->select([
                      'ml.sport_id',
                      'ml.name as master_league_name',
@@ -264,6 +271,7 @@ class Game extends Model
                  ->whereNull('me.deleted_at')
                  ->where('mem.is_main', false)
                  ->where('me.master_event_unique_id', $meUID)
+                 ->where('e.missing_count', $this->maxMissingCount)
                  ->select([
                      's.sport',
                      'me.master_event_unique_id',
