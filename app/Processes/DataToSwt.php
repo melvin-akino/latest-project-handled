@@ -170,7 +170,7 @@ class DataToSwt implements CustomProcessInterface
                             // ->join('master_teams as mta', 'mta.id', 'me.master_team_away_id')
                             ->whereNull('me.deleted_at')
                             ->whereNull('e.deleted_at')
-                            ->where('e.missing_count', '>', $this->maxMissingCount)
+                            ->where('e.missing_count', '<=', $this->maxMissingCount)
                             ->select('me.id', 'me.master_event_unique_id', 'e.provider_id',
                                 'e.event_identifier', 'me.master_league_id', 'me.sport_id',
                                 'me.ref_schedule', 'me.game_schedule', 'me.master_team_home_id',
@@ -268,7 +268,7 @@ class DataToSwt implements CustomProcessInterface
         $events            = DB::table('events as e')
                             ->join('master_events as me', 'me.id', 'e.master_event_id')
                             ->whereNull('e.deleted_at')
-                            ->where('e.missing_count', '>', $this->maxMissingCount)
+                            ->where('e.missing_count', '<=', $this->maxMissingCount)
                             ->select('e.*', 'me.game_schedule')
                             ->get();
         $activeEvents      = $swoole->activeEventsTable;
