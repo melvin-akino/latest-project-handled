@@ -259,6 +259,8 @@ export default {
                     }
                 })
                 return qualifiedPrices.length
+            } else {
+                return 0
             }
         },
         analysisData() {
@@ -287,7 +289,7 @@ export default {
             .then(response => {
                 this.market_details = response.data.data
                 this.formattedRefSchedule = response.data.data.ref_schedule.split(' ')
-                this.points = this.odd_details.points
+                this.points = this.odd_details.points || null
                 this.spreads = response.data.data.spreads
                 this.displaySpreadsByFive()
                 this.$store.commit('trade/SHOW_BET_MATRIX_IN_BETSLIP', { market_id: this.odd_details.market_id, has_bet: response.data.data.has_bets })
