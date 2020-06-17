@@ -167,7 +167,8 @@ class OddsTransformationHandler
                 'team_home_id'     => $teamHomeId,
                 'team_away_id'     => $teamAwayId,
                 'ref_schedule'     => date("Y-m-d H:i:s", strtotime($this->message->data->referenceSchedule)),
-                'deleted_at'       => null
+                'deleted_at'       => null,
+                'missing_count'    => 0
             ];
 
             $subTasks['event-raw'] = $toInsert;

@@ -2,10 +2,8 @@
 
 namespace App\Models;
 
-use App\Models\SystemConfiguration;
-
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Facades\{DB, Log};
+use Illuminate\Support\Facades\DB;
 
 class Game extends Model
 {

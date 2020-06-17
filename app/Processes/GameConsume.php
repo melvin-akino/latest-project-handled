@@ -33,6 +33,8 @@ class GameConsume implements CustomProcessInterface
                 ]);
 
                 Log::info("Game Consume Starts");
+
+                $oddsValidationHandler = new OddsValidationHandler();
                 while (!self::$quit) {
                     if ($swoole->priorityTriggerTable->exist('priority')) {
                         usleep(10000);
@@ -51,8 +53,7 @@ class GameConsume implements CustomProcessInterface
                                 TransformKafkaMessageEvents::dispatch($payload);
                                 break;
                             case 'odd':
-                                $oddsValidationHandler = new OddsValidationHandler($payload);
-                                $oddsValidationHandler->handle();
+                                $oddsValidationHandler->init($payload)->handle();
                                 break;
                             default:
                                 break;

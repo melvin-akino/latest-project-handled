@@ -2,6 +2,10 @@
 
 namespace App\Jobs;
 
+use App\Models\Events;
+use App\Models\MasterEvent;
+use App\Models\SystemConfiguration;
+use App\Models\UserWatchlist;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Exception;
@@ -52,8 +56,8 @@ class TransformKafkaMessageEvents implements ShouldQueue
             /** LOOK-UP TABLES */
             $providersTable    = $swoole->providersTable;
             $activeEventsTable = $swoole->activeEventsTable;
-            $sportsTable       = $swoole->sportsTable;
             $eventsTable       = $swoole->eventsTable;
+            $sportsTable       = $swoole->sportsTable;
 
             /**
              * PROVIDERS Swoole Table
@@ -75,9 +79,25 @@ class TransformKafkaMessageEvents implements ShouldQueue
             }
 
             if ($doesExist) {
-                $providerId = $providersTable->get($providerSwtId)['id'];
+                $payloadProviderId = $providersTable->get($providerSwtId)['id'];
             } else {
                 Log::info("Event Transformation ignored - Provider doesn't exist");
+                return;
+            }
+
+            $providerPriority  = 0;
+            $providerId        = 0;
+            foreach ($providersTable as $key => $provider) {
+                if (empty($providerId) || $providerPriority > $provider['priority']) {
+                    if ($provider['is_enabled']) {
+                        $providerId       = $provider['id'];
+                        $providerPriority = $provider['priority'];
+                    }
+                }
+            }
+
+            if (empty($providerId)) {
+                Log::info("For Removal Event - No Providers Found");
                 return;
             }
 
@@ -121,28 +141,68 @@ class TransformKafkaMessageEvents implements ShouldQueue
             }
 
             if ($doesExist) {
-                $eventsJson = $activeEventsTable->get($activeEventsSwtId);
-                $events     = json_decode($eventsJson['events'], true);
+                switch($this->message->data->schedule) {
+                    case 'inplay':
+                        $missingCountConfiguration = SystemConfiguration::where('type', 'INPLAY_MISSING_MAX_COUNT_FOR_DELETION')->first();
+                        break;
+                    case 'today':
+                        $missingCountConfiguration = SystemConfiguration::where('type', 'TODAY_MISSING_MAX_COUNT_FOR_DELETION')->first();
+                        break;
+                    case 'early':
+                    default:
+                        $missingCountConfiguration = SystemConfiguration::where('type', 'EARLY_MISSING_MAX_COUNT_FOR_DELETION')->first();
+                        break;
+                }
 
-                $inActiveEvents = array_diff($events, $this->message->data->event_ids);
+                $data = [];
+                foreach ($this->message->data->event_ids as $eventIdentifier) {
+                    $event = Events::where('event_identifier', $eventIdentifier)->first();
+                    if ($event) {
+                        $event->missing_count += 1;
+                        $event->save();
+                        if ($event->missing_count >= $missingCountConfiguration->value) {
+                            $masterEvent = MasterEvent::find($event->master_event_id);
+                            if ($masterEvent && $payloadProviderId == $providerId) {
+                                if ($masterEvent) {
+                                    UserWatchlist::where('master_event_id', $event->master_event_id)->delete();
+                                    MasterEvent::where('id', $event->master_event_id)->delete();
+                                    $data[] = $masterEvent->master_event_unique_id;
+                                }
+                            }
 
-                foreach ($inActiveEvents as $eventId) {
-                    $eventTableKey = "sId:$sportId:pId:$providerId:eventIdentifier:$eventId";
-                    $doesExist = false;
-                    foreach ($eventsTable as $k => $v) {
-                        if ($k == $eventTableKey) {
-                            $doesExist = true;
-                            break;
+                            $eventTableKey = "sId:{$sportId}:pId:{$providerId}:eventIdentifier:{$event->id}";
+                            $doesExist = false;
+                            foreach ($eventsTable as $k => $v) {
+                                if ($k == $eventTableKey) {
+                                    $doesExist = true;
+                                    break;
+                                }
+                            }
+                            if ($doesExist) {
+                                $eventsTable->del($eventTableKey);
+                                if (($key = array_search($eventIdentifier, $this->message->data->event_ids)) !== false) {
+                                    unset($this->message->data->event_ids[$key]);
+                                }
+                            }
+
+                            $event->delete();
                         }
                     }
-                    if ($doesExist) {
-                        $eventsTable->del($eventTableKey);
+                }
+
+                $activeEventsTable->set($activeEventsSwtId, ['events' => json_encode($this->message->data->event_ids)]);
+
+                foreach ($swoole->wsTable as $key => $row) {
+                    if (strpos($key, 'uid:') === 0 && $swoole->isEstablished($row['value'])) {
+                        if (!empty($data)) {
+                            $swoole->push($row['value'], json_encode(['getForRemovalEvents' => $data]));
+                        }
                     }
                 }
-                WsForRemovalEvents::dispatch($inActiveEvents, $providerId);
+                Log::info("For Removal Event - Processed");
             }
 
-            $activeEventsTable->set($activeEventsSwtId, ['events' => json_encode($this->message->data->event_ids)]);
+
         } catch (Exception $e) {
             Log::error(json_encode(
                 [
