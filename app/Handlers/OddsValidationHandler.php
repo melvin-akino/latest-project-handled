@@ -37,9 +37,10 @@ class OddsValidationHandler
         'TEST'
     ];
 
-    public function __construct($message)
+    public function init($message)
     {
         $this->message = $message;
+        return $this;
     }
 
     public function handle()
