@@ -2,15 +2,11 @@
 
 namespace App\Models;
 
-use App\Models\SystemConfiguration;
-
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Facades\{DB, Log};
+use Illuminate\Support\Facades\DB;
 
 class Game extends Model
 {
-    protected $maxMissingCount = SystemConfiguration::getSystemConfigurationValue('EVENT_VALID_MAX_MISSING_COUNT');
-
     public static function updateOddsData(array $marketOdds = [], int $providerId)
     {
         return DB::table('event_markets as em')
@@ -24,6 +20,8 @@ class Game extends Model
 
     public static function getGameDetails(int $masterLeagueId, string $schedule = 'early')
     {
+        $maxMissingCount = SystemConfiguration::getSystemConfigurationValue('EVENT_VALID_MAX_MISSING_COUNT');
+
         return DB::table('master_leagues as ml')
                  ->leftJoin('sports as s', 's.id', 'ml.sport_id')
                  ->leftJoin('master_events as me', 'me.master_league_id', 'ml.id')
@@ -47,7 +45,7 @@ class Game extends Model
                  ->whereNull('me.deleted_at')
                  ->whereNull('e.deleted_at')
                  ->whereNull('ml.deleted_at')
-                 ->where('e.missing_count', $this->maxMissingCount)
+                 ->where('e.missing_count', $maxMissingCount)
                  ->get();
     }
 
@@ -66,6 +64,7 @@ class Game extends Model
 
     public static function getWatchlistGameDetails(int $userId)
     {
+        $maxMissingCount = SystemConfiguration::getSystemConfigurationValue('EVENT_VALID_MAX_MISSING_COUNT');
         return DB::table('master_leagues as ml')
                  ->leftJoin('sports as s', 's.id', 'ml.sport_id')
                  ->leftJoin('master_events as me', 'me.master_league_id', 'ml.id')
@@ -87,7 +86,7 @@ class Game extends Model
                      'ot.type', 'em.odds', 'em.odd_label', 'em.provider_id', 'em.bet_identifier', 'e.master_event_id')
                  ->where('uw.user_id', $userId)
                  ->where('mem.is_main', true)
-                 ->where('e.missing_count', $this->maxMissingCount)
+                 ->where('e.missing_count', $maxMissingCount)
                  ->distinct()->get();
     }
 
@@ -161,6 +160,7 @@ class Game extends Model
 
     public static function getSelectedLeagueEvents(int $userId)
     {
+        $maxMissingCount = SystemConfiguration::getSystemConfigurationValue('EVENT_VALID_MAX_MISSING_COUNT');
         return DB::table('master_leagues as ml')
                  ->leftJoin('sports as s', 's.id', 'ml.sport_id')
                  ->leftJoin('master_events as me', 'me.master_league_id', 'ml.id')
@@ -180,7 +180,7 @@ class Game extends Model
                  ->whereNull('me.deleted_at')
                  ->whereNull('e.deleted_at')
                  ->whereNull('ml.deleted_at')
-                 ->where('e.missing_count', $this->maxMissingCount)
+                 ->where('e.missing_count', $maxMissingCount)
                  ->select([
                      'ml.sport_id',
                      'ml.name as master_league_name',
@@ -210,6 +210,7 @@ class Game extends Model
 
     public static function getWatchlistEvents(int $userId)
     {
+        $maxMissingCount = SystemConfiguration::getSystemConfigurationValue('EVENT_VALID_MAX_MISSING_COUNT');
         return DB::table('master_leagues as ml')
                  ->leftJoin('sports as s', 's.id', 'ml.sport_id')
                  ->leftJoin('master_events as me', 'me.master_league_id', 'ml.id')
@@ -227,7 +228,7 @@ class Game extends Model
                  ->whereNull('me.deleted_at')
                  ->whereNull('ml.deleted_at')
                  ->where('mem.is_main', true)
-                 ->where('e.missing_count', '<=', $this->maxMissingCount)
+                 ->where('e.missing_count', '<=', $maxMissingCount)
                  ->select([
                      'ml.sport_id',
                      'ml.name as master_league_name',
@@ -257,6 +258,7 @@ class Game extends Model
 
     public static function getOtherMarketsByMemUID(string $meUID)
     {
+        $maxMissingCount = SystemConfiguration::getSystemConfigurationValue('EVENT_VALID_MAX_MISSING_COUNT');
         return DB::table('master_events as me')
                  ->leftJoin('events as e', 'e.master_event_id', 'me.id')
                  ->leftJoin('master_teams as mth', 'mth.id', 'me.master_team_home_id')
@@ -271,7 +273,7 @@ class Game extends Model
                  ->whereNull('me.deleted_at')
                  ->where('mem.is_main', false)
                  ->where('me.master_event_unique_id', $meUID)
-                 ->where('e.missing_count', '<=', $this->maxMissingCount)
+                 ->where('e.missing_count', '<=', $maxMissingCount)
                  ->select([
                      's.sport',
                      'me.master_event_unique_id',
