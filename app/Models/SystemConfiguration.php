@@ -19,8 +19,19 @@ class SystemConfiguration extends Model
         'updated_at',
     ];
 
-    public static function getProviderAccountSettings() 
+    public static function getProviderAccountSettings()
     {
-        return self::where('module', 'ProviderAccount')->get()->toArray();   
+        return self::where('module', 'ProviderAccount')->get()->toArray();
+    }
+
+    public static function getSystemConfigurationValue (string $type, string $module = "")
+    {
+        $data = self::where('type', $type);
+
+        if ($module != "") {
+            $data = $data->where('module', $module);
+        }
+
+        return $data->first();
     }
 }
