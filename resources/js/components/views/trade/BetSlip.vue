@@ -195,7 +195,8 @@ export default {
             displayedSpreads: [],
             startPointIndex: 0,
             endPointIndex: 5,
-            isEventNotAvailable: null
+            isEventNotAvailable: null,
+            minMaxUpdateCounter: 0
         }
     },
     computed: {
@@ -247,7 +248,11 @@ export default {
             return Number(this.inputPrice)
         },
         towin() {
-            return Math.floor(this.orderForm.stake * this.initialPrice * 100) / 100
+            if(this.inputPrice) {
+                return Math.floor(this.orderForm.stake * this.initialPrice * 100) / 100
+            } else {
+                return 0
+            }
         },
         numberOfQualifiedProviders() {
             if(!_.isEmpty(this.minMaxData)) {
@@ -271,14 +276,24 @@ export default {
         }
     },
     watch: {
-        retrievedMarketData() {
-            this.minMaxData = this.minMaxProviders.filter(minmax => minmax.hasMarketData)
-            this.selectedProviders = this.minMaxData.map(minmax => minmax.provider_id)
+        minMaxProviders: {
+            deep: true,
+            handler() {
+                this.minMaxUpdateCounter = this.minMaxUpdateCounter + 1
+                if(this.minMaxUpdateCounter <= (this.market_details.providers.length + 1)) {
+                    let minMaxPrices = this.minMaxProviders.map(minmax => minmax.price)
+                    this.inputPrice = twoDecimalPlacesFormat(Math.max(...minMaxPrices))
+                    this.minMaxData = this.minMaxProviders.filter(minmax => minmax.price == Math.max(...minMaxPrices))
+                    this.selectedProviders = this.minMaxData.map(minmax => minmax.provider_id)
+                }
+                let selectedMinmaxDataPrices = this.minMaxData.map(minmax => minmax.price)
+                this.inputPrice = twoDecimalPlacesFormat(Math.min(...selectedMinmaxDataPrices))
+
+            }
         }
     },
     mounted() {
         this.getMarketDetails()
-        this.setMinMaxProviders()
         this.$store.dispatch('trade/getBetSlipSettings')
     },
     methods: {
@@ -292,6 +307,7 @@ export default {
                 this.points = this.odd_details.points || null
                 this.spreads = response.data.data.spreads
                 this.displaySpreadsByFive()
+                this.setMinMaxProviders()
                 this.$store.commit('trade/SHOW_BET_MATRIX_IN_BETSLIP', { market_id: this.odd_details.market_id, has_bet: response.data.data.has_bets })
             })
             .catch(err => {
@@ -321,6 +337,7 @@ export default {
             this.setActiveBetSlip(market_id)
             this.minmax(market_id)
             this.showBetMatrix = false
+            this.minMaxUpdateCounter = 0
             this.clearOrderMessage()
         },
         previousPoint() {
@@ -463,9 +480,6 @@ export default {
             if(this.orderForm.stake == '' || this.inputPrice == '') {
                 this.orderMessage = 'Please input stake and price.'
                 this.isBetSuccessful = false
-            } else if(this.wallet.credit == 0 || this.orderForm.stake > this.wallet.credit) {
-                this.orderMessage = 'Insufficient wallet balance.'
-                this.isBetSuccessful = false
             } else if(this.numberOfQualifiedProviders == 0) {
                 this.orderMessage = 'Available markets are too low.'
                 this.isBetSuccessful = false
@@ -489,13 +503,23 @@ export default {
                     let sortedByPriorityArray = greaterThanOrEqualThanPriceArray.sort((a, b) => (a.priority > b.priority) ? 1 : -1)
                     sortedByPriorityArray.map(sortedByPriority => {
                         if(this.orderForm.stake > sortedByPriority.max) {
-                            this.orderForm.stake = this.orderForm.stake - sortedByPriority.max
-                            this.orderForm.markets.push(sortedByPriority)
-                            this.orderMessage = ''
+                            if(this.wallet.credit >= sortedByPriority.max) {
+                                this.orderForm.stake = twoDecimalPlacesFormat(this.orderForm.stake - sortedByPriority.max)
+                                this.orderForm.markets.push(sortedByPriority)
+                                this.orderMessage = ''
+                            } else {
+                                this.orderMessage = 'Insufficient wallet balance.'
+                                this.isBetSuccessful = false
+                            }
                         } else if(this.orderForm.stake <= sortedByPriority.max && this.orderForm.stake >= sortedByPriority.min) {
-                            this.orderForm.stake = 0
-                            this.orderForm.markets.push(sortedByPriority)
-                            this.orderMessage = ''
+                            if(this.wallet.credit >= this.orderForm.stake) {
+                                this.orderForm.stake = 0
+                                this.orderForm.markets.push(sortedByPriority)
+                                this.orderMessage = ''
+                            } else {
+                                this.orderMessage = 'Insufficient wallet balance.'
+                                this.isBetSuccessful = false
+                            }
                         } else if(this.orderForm.stake < sortedByPriority.min && this.orderForm.stake != 0) {
                             this.orderMessage = 'Stake lower than minimum stake or cannot proceed to next provider.'
                             this.isBetSuccessful = false
@@ -513,13 +537,23 @@ export default {
                     let mostPriorityArray = bestPricesArray.filter(bestPrices => bestPrices.priority == Math.min(...bestPricesPriorityArray))
                     mostPriorityArray.map(mostPriority => {
                         if(this.orderForm.stake > mostPriority.max) {
-                            this.orderForm.stake = this.orderForm.stake - mostPriority.max
-                            this.orderForm.markets = mostPriorityArray
-                            this.orderMessage = ''
+                            if(this.wallet.credit >= mostPriority.max) {
+                                this.orderForm.stake = twoDecimalPlacesFormat(this.orderForm.stake - mostPriority.max)
+                                this.orderForm.markets = mostPriorityArray
+                                this.orderMessage = ''
+                            } else {
+                                this.orderMessage = 'Insufficient wallet balance.'
+                                this.isBetSuccessful = false
+                            }
                         } else if(this.orderForm.stake <= mostPriority.max && this.orderForm.stake >= mostPriority.min) {
-                            this.orderForm.stake = 0
-                            this.orderForm.markets = mostPriorityArray
-                            this.orderMessage = ''
+                            if(this.wallet.credit >= this.orderForm.stake) {
+                                this.orderForm.stake = 0
+                                this.orderForm.markets = mostPriorityArray
+                                this.orderMessage = ''
+                            } else {
+                                this.orderMessage = 'Insufficient wallet balance.'
+                                this.isBetSuccessful = false
+                            }
                         } else if(this.orderForm.stake < mostPriority.min && this.orderForm.stake != 0) {
                             this.orderMessage = 'Stake lower than minimum stake.'
                             this.isBetSuccessful = false
