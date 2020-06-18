@@ -337,6 +337,7 @@ export default {
             this.setActiveBetSlip(market_id)
             this.minmax(market_id)
             this.showBetMatrix = false
+            this.minMaxUpdateCounter = 0
             this.clearOrderMessage()
         },
         previousPoint() {
@@ -479,9 +480,6 @@ export default {
             if(this.orderForm.stake == '' || this.inputPrice == '') {
                 this.orderMessage = 'Please input stake and price.'
                 this.isBetSuccessful = false
-            } else if(this.wallet.credit == 0 || this.orderForm.stake > this.wallet.credit) {
-                this.orderMessage = 'Insufficient wallet balance.'
-                this.isBetSuccessful = false
             } else if(this.numberOfQualifiedProviders == 0) {
                 this.orderMessage = 'Available markets are too low.'
                 this.isBetSuccessful = false
@@ -505,13 +503,23 @@ export default {
                     let sortedByPriorityArray = greaterThanOrEqualThanPriceArray.sort((a, b) => (a.priority > b.priority) ? 1 : -1)
                     sortedByPriorityArray.map(sortedByPriority => {
                         if(this.orderForm.stake > sortedByPriority.max) {
-                            this.orderForm.stake = this.orderForm.stake - sortedByPriority.max
-                            this.orderForm.markets.push(sortedByPriority)
-                            this.orderMessage = ''
+                            if(this.wallet.credit >= sortedByPriority.max) {
+                                this.orderForm.stake = twoDecimalPlacesFormat(this.orderForm.stake - sortedByPriority.max)
+                                this.orderForm.markets.push(sortedByPriority)
+                                this.orderMessage = ''
+                            } else {
+                                this.orderMessage = 'Insufficient wallet balance.'
+                                this.isBetSuccessful = false
+                            }
                         } else if(this.orderForm.stake <= sortedByPriority.max && this.orderForm.stake >= sortedByPriority.min) {
-                            this.orderForm.stake = 0
-                            this.orderForm.markets.push(sortedByPriority)
-                            this.orderMessage = ''
+                            if(this.wallet.credit >= this.orderForm.stake) {
+                                this.orderForm.stake = 0
+                                this.orderForm.markets.push(sortedByPriority)
+                                this.orderMessage = ''
+                            } else {
+                                this.orderMessage = 'Insufficient wallet balance.'
+                                this.isBetSuccessful = false
+                            }
                         } else if(this.orderForm.stake < sortedByPriority.min && this.orderForm.stake != 0) {
                             this.orderMessage = 'Stake lower than minimum stake or cannot proceed to next provider.'
                             this.isBetSuccessful = false
@@ -529,13 +537,23 @@ export default {
                     let mostPriorityArray = bestPricesArray.filter(bestPrices => bestPrices.priority == Math.min(...bestPricesPriorityArray))
                     mostPriorityArray.map(mostPriority => {
                         if(this.orderForm.stake > mostPriority.max) {
-                            this.orderForm.stake = this.orderForm.stake - mostPriority.max
-                            this.orderForm.markets = mostPriorityArray
-                            this.orderMessage = ''
+                            if(this.wallet.credit >= mostPriority.max) {
+                                this.orderForm.stake = twoDecimalPlacesFormat(this.orderForm.stake - mostPriority.max)
+                                this.orderForm.markets = mostPriorityArray
+                                this.orderMessage = ''
+                            } else {
+                                this.orderMessage = 'Insufficient wallet balance.'
+                                this.isBetSuccessful = false
+                            }
                         } else if(this.orderForm.stake <= mostPriority.max && this.orderForm.stake >= mostPriority.min) {
-                            this.orderForm.stake = 0
-                            this.orderForm.markets = mostPriorityArray
-                            this.orderMessage = ''
+                            if(this.wallet.credit >= this.orderForm.stake) {
+                                this.orderForm.stake = 0
+                                this.orderForm.markets = mostPriorityArray
+                                this.orderMessage = ''
+                            } else {
+                                this.orderMessage = 'Insufficient wallet balance.'
+                                this.isBetSuccessful = false
+                            }
                         } else if(this.orderForm.stake < mostPriority.min && this.orderForm.stake != 0) {
                             this.orderMessage = 'Stake lower than minimum stake.'
                             this.isBetSuccessful = false
