@@ -148,12 +148,15 @@ class Game extends Model
 
     public static function getBetSlipLogs(int $userId, string $memUID)
     {
-        return DB::table('bet_slip_logs')
-                 ->where(function ($cond) use ($userId) {
-                     $cond->where('user_id', 0)
-                          ->orWhere('user_id', $userId);
-                 })
-                 ->where('memuid', $memUID)
+        $subquery = DB::table('bet_slip_logs')
+            ->where('memuid', $memUID)
+            ->whereIn('user_id', [0, $userId])
+            ->selectRaw('DISTINCT ON (odds) *')
+            ->orderBy('odds', 'desc')
+            ->orderBy('timestamp', 'desc');
+
+        return DB::table(DB::raw("({$subquery->toSql()}) as bsl"))
+                 ->mergeBindings($subquery)
                  ->orderBy('timestamp', 'desc')
                  ->limit(20)
                  ->get();
