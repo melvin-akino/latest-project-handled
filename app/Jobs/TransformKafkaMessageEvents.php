@@ -154,8 +154,13 @@ class TransformKafkaMessageEvents implements ShouldQueue
                         break;
                 }
 
+                $eventsJson = $activeEventsTable->get($activeEventsSwtId);
+                $events     = json_decode($eventsJson['events'], true);
+
+                $inActiveEvents = array_diff($events, $this->message->data->event_ids);
+
                 $data = [];
-                foreach ($this->message->data->event_ids as $eventIdentifier) {
+                foreach ($inActiveEvents as $eventIdentifier) {
                     $event = Events::where('event_identifier', $eventIdentifier)->first();
                     if ($event) {
                         $event->missing_count += 1;
