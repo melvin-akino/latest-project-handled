@@ -195,7 +195,8 @@ export default {
             displayedSpreads: [],
             startPointIndex: 0,
             endPointIndex: 5,
-            isEventNotAvailable: null
+            isEventNotAvailable: null,
+            minMaxUpdateCounter: 0
         }
     },
     computed: {
@@ -247,7 +248,11 @@ export default {
             return Number(this.inputPrice)
         },
         towin() {
-            return Math.floor(this.orderForm.stake * this.initialPrice * 100) / 100
+            if(this.inputPrice) {
+                return Math.floor(this.orderForm.stake * this.initialPrice * 100) / 100
+            } else {
+                return 0
+            }
         },
         numberOfQualifiedProviders() {
             if(!_.isEmpty(this.minMaxData)) {
@@ -271,9 +276,20 @@ export default {
         }
     },
     watch: {
-        retrievedMarketData() {
-            this.minMaxData = this.minMaxProviders.filter(minmax => minmax.hasMarketData)
-            this.selectedProviders = this.minMaxData.map(minmax => minmax.provider_id)
+        minMaxProviders: {
+            deep: true,
+            handler() {
+                this.minMaxUpdateCounter = this.minMaxUpdateCounter + 1
+                if(this.minMaxUpdateCounter <= (this.market_details.providers.length + 1)) {
+                    let minMaxPrices = this.minMaxProviders.map(minmax => minmax.price)
+                    this.inputPrice = twoDecimalPlacesFormat(Math.max(...minMaxPrices))
+                    this.minMaxData = this.minMaxProviders.filter(minmax => minmax.price == Math.max(...minMaxPrices))
+                    this.selectedProviders = this.minMaxData.map(minmax => minmax.provider_id)
+                }
+                let selectedMinmaxDataPrices = this.minMaxData.map(minmax => minmax.price)
+                this.inputPrice = twoDecimalPlacesFormat(Math.min(...selectedMinmaxDataPrices))
+
+            }
         }
     },
     mounted() {
