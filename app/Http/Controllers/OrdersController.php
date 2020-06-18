@@ -628,6 +628,8 @@ class OrdersController extends Controller
                     ]);
                 }
 
+                unset($payload['data']['exchange_rate_id']);
+                unset($payload['data']['exchange_rate']);
                 KafkaPush::dispatch(
                     $incrementIds['payload'][$i]['provider_id'] . env('KAFKA_SCRAPE_ORDER_REQUEST_POSTFIX', '_bet_req'),
                     $payload,

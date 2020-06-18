@@ -48,6 +48,7 @@ class BetProduce implements CustomProcessInterface
                 $orderPayloadsTable = $swoole->orderPayloadsTable;
                 $orderRetriesTable  = $swoole->orderRetriesTable;
                 $providersTable     = $swoole->providersTable;
+                $topicsTable        = $swoole->topicTable;
                 $initialTime        = Carbon::createFromFormat('H:i:s', Carbon::now()->format('H:i:s'));
 
                 $timedOutSourceId  = Source::where('source_name', 'LIKE', self::SOURCE_BET_TIMEDOUT)->first();
@@ -61,6 +62,10 @@ class BetProduce implements CustomProcessInterface
                                 $orderId = substr($key, strlen('orderId:'));
 
                                 $order = Order::find($orderId);
+
+                                if ($order->status == 'SUCCESS') {
+                                    continue;
+                                }
 
                                 if (in_array($order->user_id, [self::INTERNAL_CNY_USER, self::INTERNAL_USD_USER])) {
                                     Log::info('Bet Produce - Internal Users don\'t need to retry');
@@ -212,14 +217,77 @@ class BetProduce implements CustomProcessInterface
                                     ];
 
                                     $payloadsSwtId = implode(':', [
+                                        "place-bet-" . $order->id,
+                                        "uId:" . $orderUser->id,
+                                        "mId:" . $duplicateOrder->market_id
+                                    ]);
+                                    if ($orderPayloadsTable->exists($payloadsSwtId)) {
+                                        $data = $orderPayloadsTable->get($payloadsSwtId);
+                                        $orderPayloadsTable->del($payloadsSwtId);
+
+                                        $payloadsSwtId = implode(':', [
+                                            "place-bet-" . $order->id,
+                                            "uId:" . $order->user_id,
+                                            "mId:" . $duplicateOrder->market_id
+                                        ]);
+
+                                        $swtPayload = $payload;
+                                        $swtPayload['data']['exchange_rate_id'] = $exchangeRate->id;
+                                        $swtPayload['data']['exchange_rate'] = $exchangeRate->exchange_rate;
+
+                                        $orderPayloadsTable->set($payloadsSwtId, $data);
+                                    }
+
+                                    $payloadsSwtId = implode(':', [
                                         "place-bet-" . $duplicateOrder->id,
-                                        "uId:" . $duplicateOrder->user_id,
+                                        "uId:" . $orderUser->id,
                                         "mId:" . $duplicateOrder->market_id
                                     ]);
                                     if (!$orderPayloadsTable->exists($payloadsSwtId)) {
+                                        $swtPayload = $payload;
+                                        $swtPayload['data']['exchange_rate_id'] = $exchangeRate->id;
+                                        $swtPayload['data']['exchange_rate'] = $exchangeRate->exchange_rate;
+
                                         $orderPayloadsTable->set($payloadsSwtId, [
-                                            'payload' => json_encode($payload),
+                                            'payload' => json_encode($swtPayload),
                                         ]);
+                                    }
+
+                                    $doesExist = false;
+                                    foreach ($topicsTable AS $tKey => $tRow) {
+                                        if ($tRow['topic_name'] == 'order-' . $orderId) {
+                                            $topicsTable->del($tKey);
+                                            $doesExist = true;
+                                        }
+                                    }
+                                    if ($doesExist) {
+                                        //set topic to internal user
+                                        $topicsId = implode(':', [
+                                            "userId:" . $order->user_id,
+                                            "unique:" . $orderId,
+                                        ]);
+
+
+                                        if (!$topicsTable->exists($topicsId)) {
+                                            $topicsTable->set($topicsId, [
+                                                'user_id'    => $order->user_id,
+                                                'topic_name' => "order-" . $orderId
+                                            ]);
+                                        }
+
+                                        //new topic for user
+                                        $topicsId = implode(':', [
+                                            "userId:" . $orderUser->id,
+                                            "unique:" . $duplicateOrder->id,
+                                        ]);
+
+
+                                        if (!$topicsTable->exists($topicsId)) {
+                                            $topicsTable->set($topicsId, [
+                                                'user_id'    => $orderUser->id,
+                                                'topic_name' => "order-" . $duplicateOrder->id
+                                            ]);
+                                        }
                                     }
 
                                     KafkaPush::dispatch(
@@ -239,7 +307,7 @@ class BetProduce implements CustomProcessInterface
             }
         } catch (Exception $e) {
             Log::error(json_encode([
-                'TransformKafkaMessageBet' => [
+                'BetProduce' => [
                     'message' => $e->getMessage(),
                     'line'    => $e->getLine(),
                 ]
