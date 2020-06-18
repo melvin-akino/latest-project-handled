@@ -321,7 +321,6 @@ class OrdersController extends Controller
             $baseCurrency = Currency::where('code', 'CNY')->first();
             $userCurrency = auth()->user()->currency_id;
             $isUserVIP    = auth()->user()->is_vip;
-            $userProvider = UserProviderConfiguration::where('user_id', auth()->user()->id);
             $orderIds     = [];
             $incrementIds = [];
 
@@ -368,7 +367,9 @@ class OrdersController extends Controller
                     ], 400);
                 }
 
-                if ($userProvider->exists()) {
+                $userProvider = UserProviderConfiguration::where('user_id', auth()->user()->id);
+
+                if ($userProvider->count() > 0) {
                     $userProvider = $userProvider->where('provider_id', $row['provider_id'])
                         ->first();
 
