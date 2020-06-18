@@ -80,7 +80,7 @@ class TransformKafkaMessageBet implements ShouldQueue
 
                             $payloadsSwtId = implode(':', [
                                 "place-bet-" . $messageOrderId,
-                                "uId:" . $row['user_id'],
+                                "uId:" . $order->user_id,
                                 "mId:" . $order->market_id
                             ]);
 
