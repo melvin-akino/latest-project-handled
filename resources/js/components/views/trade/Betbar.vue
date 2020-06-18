@@ -32,10 +32,12 @@ export default {
     },
     mounted() {
         this.getOrderStatus()
+        this.forBetBarRemoval()
     },
     watch: {
         bets() {
             this.getOrderStatus()
+            this.forBetBarRemoval()
         }
     },
     methods: {
@@ -63,6 +65,15 @@ export default {
                             this.$store.dispatch('trade/getWalletData')
                         }
                     })
+                }
+            })
+        },
+        forBetBarRemoval() {
+            this.$options.sockets.onmessage = (response => {
+                if(getSocketKey(response.data) === 'forBetBarRemoval') {
+                    let forBetBarRemoval = getSocketValue(response.data, 'forBetBarRemoval')
+                    let remainingBets = this.bets.filter(bet => bet.order_id != forBetBarRemoval.order_id)
+                    this.$store.commit('trade/SET_BETS', remainingBets)
                 }
             })
         }
