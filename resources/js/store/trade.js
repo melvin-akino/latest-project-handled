@@ -371,7 +371,7 @@ const actions = {
                 dispatch('toggleLeagueByName', { league_name: data.data, sport_id: state.selectedSport })
                 commit('REMOVE_SELECTED_LEAGUE_BY_NAME', data.data)
                 commit('REMOVE_FROM_EVENTS_BY_LEAGUE', data.data)
-                commit('REMOVE_FROM_EVENT_LIST', { type: 'league_name', data: data.data })
+                commit('REMOVE_FROM_EVENT_LIST', { type: 'league_name', data: data.data, game_schedule: data.payload.game_schedule })
             } else if(data.type=='event') {
                 if(!_.isEmpty(data.payload)) {
                     let leaguesLength = 0
@@ -389,7 +389,7 @@ const actions = {
                         commit('REMOVE_SELECTED_LEAGUE', {schedule: data.payload.game_schedule, league: data.payload.league_name })
                         commit('REMOVE_FROM_EVENTS', { schedule: data.payload.game_schedule, removedLeague: data.payload.league_name })
                     }
-                    commit('REMOVE_FROM_EVENT_LIST', { type: 'uid', data: data.payload.uid })
+                    commit('REMOVE_FROM_EVENT_LIST', { type: 'uid', data: data.payload.uid, game_schedule: data.payload.game_schedule })
                 }
             }
             Vue.prototype.$socket.send('getWatchlist')

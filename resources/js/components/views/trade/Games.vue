@@ -204,7 +204,7 @@ export default {
             let token = Cookies.get('mltoken')
             this.$store.commit('trade/REMOVE_SELECTED_LEAGUE', { schedule: this.gameSchedType, league: league })
             this.$store.commit('trade/REMOVE_FROM_EVENTS', { schedule: this.gameSchedType, removedLeague: league })
-            this.$store.commit('trade/REMOVE_FROM_EVENT_LIST', { type: 'league_name', data: league })
+            this.$store.commit('trade/REMOVE_FROM_EVENT_LIST', { type: 'league_name', data: league, game_schedule: this.gameSchedType })
             this.$store.commit('trade/REMOVE_FROM_ALL_EVENT_LIST', { type: 'league_name', data: league })
             this.$store.dispatch('trade/toggleLeague', { league_name: league, sport_id: this.selectedSport, schedule: this.gameSchedType })
         },
