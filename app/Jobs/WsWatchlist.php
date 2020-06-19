@@ -6,7 +6,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
-use App\Models\{Game, Order};
+use App\Models\{Game, Order, UserProviderConfiguration};
 
 class WsWatchlist implements ShouldQueue
 {
@@ -47,19 +47,19 @@ class WsWatchlist implements ShouldQueue
             }
         }
 
-        $userBets = Order::getOrdersByUserId($this->userId);
-
-        $gameDetails = Game::getWatchlistGameDetails($this->userId);
+        $userBets        = Order::getOrdersByUserId($this->userId);
+        $gameDetails     = Game::getWatchlistGameDetails($this->userId);
+        $userProviderIds = UserProviderConfiguration::getProviderIdList($this->userId);
 
         $data        = [];
-        array_map(function ($transformed) use (&$data) {
+        array_map(function ($transformed) use (&$data, $userProviderIds) {
             $mainOrOther = $transformed->is_main ? 'main' : 'other';
             if (empty($data[$transformed->master_event_unique_id])) {
                 $betCount = Order::where('market_id', $transformed->bet_identifier)
                                  ->where('user_id', $this->userId)
                                  ->count();
 
-                $providersOfEvents = Game::providersOfEvents($transformed->master_event_id)->get();
+                $providersOfEvents = Game::providersOfEvents($transformed->master_event_id, $userProviderIds)->get();
 
                 $data[$transformed->master_event_unique_id] = [
                     'uid'            => $transformed->master_event_unique_id,

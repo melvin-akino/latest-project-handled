@@ -51,12 +51,15 @@ class Game extends Model
 
     public static function providersOfEvents(int $masterEventId, array $userProviderIds)
     {
+        $maxMissingCount = SystemConfiguration::getSystemConfigurationValue('EVENT_VALID_MAX_MISSING_COUNT')->value;
+
         return DB::table('master_events as me')
                  ->leftJoin('events as e', 'e.master_event_id', 'me.id')
                  ->leftJoin('providers as p', 'p.id', 'e.provider_id')
                  ->where('e.master_event_id', $masterEventId)
                  ->whereNull('me.deleted_at')
                  ->whereNull('e.deleted_at')
+                 ->where('e.missing_count', '<=', $maxMissingCount)
                  ->whereIn('p.id', $userProviderIds)
                  ->select('p.id', 'p.alias as provider')
                  ->distinct();
