@@ -512,9 +512,7 @@ if (!function_exists('eventTransformation')) {
                     }
                 }
             }
-        }
-
-        if ($type == "watchlist") {
+        } else if ($type == "watchlist") {
             foreach ($result AS $leagueName => $data) {
                 foreach ($data AS $meuid => $event) {
                     if (strpos($leagueName, $event['league_name']) !== false) {
@@ -522,6 +520,8 @@ if (!function_exists('eventTransformation')) {
                     }
                 }
             }
+        } else {
+            return $result;
         }
 
         return $newResult;
