@@ -278,17 +278,18 @@ export default {
     watch: {
         minMaxProviders: {
             deep: true,
-            handler() {
+            handler(value) {
                 this.minMaxUpdateCounter = this.minMaxUpdateCounter + 1
-                if(this.minMaxUpdateCounter <= (this.market_details.providers.length + 1)) {
-                    let minMaxPrices = this.minMaxProviders.map(minmax => minmax.price)
-                    this.inputPrice = twoDecimalPlacesFormat(Math.max(...minMaxPrices))
-                    this.minMaxData = this.minMaxProviders.filter(minmax => minmax.price == Math.max(...minMaxPrices))
-                    this.selectedProviders = this.minMaxData.map(minmax => minmax.provider_id)
+                if(this.minMaxUpdateCounter > 1) {
+                    if(this.minMaxUpdateCounter <= (this.market_details.providers.length + 1)) {
+                        let minMaxPrices = value.filter(minmax => minmax.price != null).map(minmax => minmax.price)
+                        this.inputPrice = twoDecimalPlacesFormat(Math.max(...minMaxPrices))
+                        this.minMaxData = value.filter(minmax => minmax.price == Math.max(...minMaxPrices))
+                        this.selectedProviders = this.minMaxData.map(minmax => minmax.provider_id)
+                    }
+                    let selectedMinmaxDataPrices = this.minMaxData.map(minmax => minmax.price)
+                    this.inputPrice = twoDecimalPlacesFormat(Math.min(...selectedMinmaxDataPrices))
                 }
-                let selectedMinmaxDataPrices = this.minMaxData.map(minmax => minmax.price)
-                this.inputPrice = twoDecimalPlacesFormat(Math.min(...selectedMinmaxDataPrices))
-
             }
         }
     },
