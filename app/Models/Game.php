@@ -102,7 +102,7 @@ class Game extends Model
                  ->where('mem.master_event_id', $fields['master_event_id'])
                  ->where('mem.odd_type_id', $fields['odd_type_id'])
                  ->where('em.market_flag', $fields['market_flag'])
-                 ->where('em.provider_id', $fields['provider_id'])
+                 ->whereIn('em.provider_id', $fields['providers'])
                  ->where('me.game_schedule', $fields['game_schedule'])
                  ->whereNull('em.deleted_at')
                  ->distinct()

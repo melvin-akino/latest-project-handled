@@ -189,13 +189,12 @@ class OrdersController extends Controller
             }
 
             $masterEvent = $masterEvent->first();
-            $providerId = Provider::getMostPriorityProvider(auth()->user()->id);
-
+            
             $getOtherMarkets = Game::getOtherMarketSpreadDetails([
                 'odd_type_id'     => $masterEventMarket->odd_type_id,
                 'master_event_id' => $masterEventMarket->master_event_id,
                 'market_flag'     => $masterEventMarket->market_flag,
-                'provider_id'     => $providerId,
+                'providers'       => UserProviderConfiguration::getProviderIdList(auth()->user()->id),
                 'game_schedule'   => $masterEvent->game_schedule
             ]);
 
