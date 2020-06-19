@@ -512,14 +512,9 @@ if (!function_exists('eventTransformation')) {
                     }
                 }
             }
+        }
 
-            \Log::info([
-                'result' => [
-                    'qwe' => $type,
-                    'asd' => $newResult,
-                ]
-            ]);
-        } else if ($type == "watchlist") {
+        if ($type == "watchlist") {
             foreach ($result AS $leagueName => $data) {
                 foreach ($data AS $meuid => $event) {
                     if (strpos($leagueName, $event['league_name']) !== false) {
@@ -527,26 +522,6 @@ if (!function_exists('eventTransformation')) {
                     }
                 }
             }
-
-            \Log::info([
-                'result' => [
-                    'qwe' => $type,
-                    'asd' => $newResult,
-                ]
-            ]);
-        } else {
-            // foreach ($result AS $meuid => $event) {
-            //     $newResult[$meuid] = (object) $event;
-            // }
-
-            \Log::info([
-                'result' => [
-                    'qwe' => $type,
-                    'asd' => $result,
-                ]
-            ]);
-
-            return $result;
         }
 
         return $newResult;

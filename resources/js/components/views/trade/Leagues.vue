@@ -107,10 +107,11 @@ export default {
         },
         selectLeague(league) {
             let token = Cookies.get('mltoken')
+
             if(this.selectedLeagues[this.selectedLeagueSchedMode].includes(league)) {
                 this.$store.commit('trade/REMOVE_SELECTED_LEAGUE', { schedule: this.selectedLeagueSchedMode, league: league })
                 this.$store.commit('trade/REMOVE_FROM_EVENTS', { schedule: this.selectedLeagueSchedMode, removedLeague: league })
-                this.$store.commit('trade/REMOVE_FROM_EVENT_LIST', { type: 'league_name', data: league })
+                this.$store.commit('trade/REMOVE_FROM_EVENT_LIST', { type: 'league_name', data: league, game_schedule: this.selectedLeagueSchedMode })
                 this.$store.commit('trade/REMOVE_FROM_ALL_EVENT_LIST', { type: 'league_name', data: league })
             } else {
                 this.$store.commit('trade/ADD_TO_SELECTED_LEAGUE', { schedule: this.selectedLeagueSchedMode, league: league })

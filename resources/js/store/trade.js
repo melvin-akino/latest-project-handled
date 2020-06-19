@@ -107,7 +107,12 @@ const mutations = {
         state.previouslySelectedEvents.push(event)
     },
     REMOVE_FROM_EVENT_LIST: (state, data) => {
-        state.eventsList = state.eventsList.filter(event => event[data.type] != data.data)
+        state.eventsList = state.eventsList.filter(event => {
+            let _string = `${ data.data }_${ data.game_schedule }`
+            let _dataString = `${ event[data.type] }_${ event['game_schedule'] }`;
+
+            return _string != _dataString
+        })
     },
     REMOVE_FROM_ALL_EVENT_LIST: (state, data) => {
         state.allEventsList = state.allEventsList.filter(event => event[data.type] != data.data)
