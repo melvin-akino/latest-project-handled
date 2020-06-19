@@ -8,7 +8,6 @@ use Illuminate\Database\Eloquent\Model;
 
 use Exception;
 use Illuminate\Support\Facades\DB;
-use App\Models\Provider;
 
 class UserProviderConfiguration extends Model
 {
