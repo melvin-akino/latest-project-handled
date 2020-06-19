@@ -212,7 +212,7 @@ export default {
                         removedEvents.map(removedEvent => {
                             if(event.uid == removedEvent) {
                                 this.$store.commit('trade/REMOVE_FROM_EVENT_LIST', { type: 'uid', data: removedEvent, game_schedule: event.game_schedule })
-                                this.$store.commit('trade/REMOVE_FROM_ALL_EVENT_LIST', { type: 'uid', data: removedEvent })
+                                this.$store.commit('trade/REMOVE_FROM_ALL_EVENT_LIST', { type: 'uid', data: removedEvent, game_schedule: event.game_schedule })
                                 if(this.tradePageSettings.sort_event == 1) {
                                     if(!_.isEmpty(this.events.watchlist) && event.league_name in this.events.watchlist) {
                                         this.$store.commit('trade/REMOVE_EVENT', { schedule: 'watchlist', removedLeague: event.league_name, removedEvent: removedEvent })

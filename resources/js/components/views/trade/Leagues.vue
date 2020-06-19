@@ -112,7 +112,7 @@ export default {
                 this.$store.commit('trade/REMOVE_SELECTED_LEAGUE', { schedule: this.selectedLeagueSchedMode, league: league })
                 this.$store.commit('trade/REMOVE_FROM_EVENTS', { schedule: this.selectedLeagueSchedMode, removedLeague: league })
                 this.$store.commit('trade/REMOVE_FROM_EVENT_LIST', { type: 'league_name', data: league, game_schedule: this.selectedLeagueSchedMode })
-                this.$store.commit('trade/REMOVE_FROM_ALL_EVENT_LIST', { type: 'league_name', data: league })
+                this.$store.commit('trade/REMOVE_FROM_ALL_EVENT_LIST', { type: 'league_name', data: league, game_schedule: this.selectedLeagueSchedMode })
             } else {
                 this.$store.commit('trade/ADD_TO_SELECTED_LEAGUE', { schedule: this.selectedLeagueSchedMode, league: league })
                 this.$socket.send(`getEvents_${league}_${this.selectedLeagueSchedMode}`)
