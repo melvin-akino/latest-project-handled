@@ -60,7 +60,7 @@ class OddsSaveToDbHandler
 
             $event = Events::withTrashed()->where('event_identifier',
                 $this->eventRawData['Event']['data']['event_identifier'])->first();
-            if ($event && $event->game_schedule != $this->eventData['MasterEvent']['data']['game_schedule'] || $this->dbOptions['has-empty-market']) {
+            if ($event && $event->game_schedule != $this->eventData['MasterEvent']['data']['game_schedule'] || $this->dbOptions['event-only'] || $this->dbOptions['has-empty-market']) {
                 EventMarket::where('event_id', $event->event_id)
                            ->delete();
             }
@@ -79,7 +79,6 @@ class OddsSaveToDbHandler
                     'master_event_unique_id' => $this->eventData['MasterEvent']['data']['master_event_unique_id']
                 ], $this->eventData['MasterEvent']['data']);
             }
-
 
             $this->eventRawData['Event']['data']['master_event_id'] = $masterEventModel->id;
 

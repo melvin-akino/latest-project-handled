@@ -15,7 +15,7 @@ class OddsTransformationHandler
     protected $updated   = false;
     protected $uid       = null;
     protected $dbOptions = [
-        'event-only'       => true,
+        'event-only'       => false,
         'is-event-new'     => true,
         'has-empty-market' => false
     ];
@@ -95,7 +95,9 @@ class OddsTransformationHandler
                         $sportId == $value['sport_id'] &&
                         $multiTeam['home']['id'] == $value['master_team_home_id'] &&
                         $multiTeam['away']['id'] == $value['master_team_away_id'] &&
-                        $this->message->data->schedule == $value['game_schedule']
+                        $this->message->data->schedule == $value['game_schedule'] &&
+                        date("Y-m-d H:i:s", strtotime($this->message->data->referenceSchedule)) == $value['ref_schedule'] &&
+                        $multiLeagueId == $value['master_league_id']
                     ) {
                         $eventSwtId = $key;
                         $eventsData = $value;
@@ -200,6 +202,11 @@ class OddsTransformationHandler
             foreach ($arrayEvents as $keyEvent => $event) {
                 if (!empty($event)) {
                     foreach ($event->market_odds as $columns) {
+                        if (empty($columns->marketSelection)) {
+                            $this->dbOptions['event-only'] = false;
+                            break 2;
+                        }
+
                         /**
                          * ODD TYPES Swoole Table
                          *
