@@ -402,9 +402,9 @@ if (!function_exists('ordersCreation')) {
 if (!function_exists('eventTransformation')) {
     function eventTransformation($transformed, $userConfig, $userTz, $userId, $userProviderIds, $topicTable, $type = 'selected')
     {
-        $data = [];
-        $result = [];
-        $userBets     = Order::getOrdersByUserId($userId);
+        $data     = [];
+        $result   = [];
+        $userBets = Order::getOrdersByUserId($userId);
 
         array_map(function ($transformed) use (&$data, &$result, $userConfig, $userTz, $userId, $userProviderIds, $topicTable, $userBets, $type) {
             if (!in_array($transformed->provider_id, $userProviderIds)) {
@@ -500,6 +500,30 @@ if (!function_exists('eventTransformation')) {
 
         }, $transformed->toArray());
 
-        return $result;
+        $newResult = [];
+
+        if ($type == "selected") {
+            foreach ($result AS $gameSchedule => $row) {
+                foreach ($row AS $leagueName => $data) {
+                    foreach ($data AS $meuid => $event) {
+                        if (($gameSchedule == $event['game_schedule']) && (strpos($leagueName, $event['league_name']) !== false)) {
+                            $newResult[$gameSchedule][$leagueName][$meuid] = (object) $event;
+                        }
+                    }
+                }
+            }
+        } else if ($type == "watchlist") {
+            foreach ($result AS $leagueName => $data) {
+                foreach ($data AS $meuid => $event) {
+                    if (strpos($leagueName, $event['league_name']) !== false) {
+                        $newResult[$leagueName][$meuid] = (object) $event;
+                    }
+                }
+            }
+        } else {
+            return $result;
+        }
+
+        return $newResult;
     }
 }

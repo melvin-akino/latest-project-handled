@@ -107,10 +107,18 @@ const mutations = {
         state.previouslySelectedEvents.push(event)
     },
     REMOVE_FROM_EVENT_LIST: (state, data) => {
-        state.eventsList = state.eventsList.filter(event => event[data.type] != data.data)
+        state.eventsList = state.eventsList.filter(event => {
+            let _string = `${ data.data }_${ data.game_schedule }`
+            let _dataString = `${ event[data.type] }_${ event.game_schedule }`;
+            return _string != _dataString
+        })
     },
     REMOVE_FROM_ALL_EVENT_LIST: (state, data) => {
-        state.allEventsList = state.allEventsList.filter(event => event[data.type] != data.data)
+        state.allEventsList = state.allEventsList.filter(event => {
+            let _string = `${ data.data }_${ data.game_schedule }`
+            let _dataString = `${ event[data.type] }_${ event.game_schedule }`;
+            return _string != _dataString
+        })
     },
     REMOVE_FROM_PREVIOUSLY_SELECTED_EVENT_LIST: (state, data) => {
         state.previouslySelectedEvents = state.previouslySelectedEvents.filter(uid => uid != data)
@@ -366,7 +374,7 @@ const actions = {
                 dispatch('toggleLeagueByName', { league_name: data.data, sport_id: state.selectedSport })
                 commit('REMOVE_SELECTED_LEAGUE_BY_NAME', data.data)
                 commit('REMOVE_FROM_EVENTS_BY_LEAGUE', data.data)
-                commit('REMOVE_FROM_EVENT_LIST', { type: 'league_name', data: data.data })
+                commit('REMOVE_FROM_EVENT_LIST', { type: 'league_name', data: data.data, game_schedule: data.game_schedule })
             } else if(data.type=='event') {
                 if(!_.isEmpty(data.payload)) {
                     let leaguesLength = 0
@@ -384,7 +392,7 @@ const actions = {
                         commit('REMOVE_SELECTED_LEAGUE', {schedule: data.payload.game_schedule, league: data.payload.league_name })
                         commit('REMOVE_FROM_EVENTS', { schedule: data.payload.game_schedule, removedLeague: data.payload.league_name })
                     }
-                    commit('REMOVE_FROM_EVENT_LIST', { type: 'uid', data: data.payload.uid })
+                    commit('REMOVE_FROM_EVENT_LIST', { type: 'uid', data: data.payload.uid, game_schedule: data.payload.game_schedule })
                 }
             }
             Vue.prototype.$socket.send('getWatchlist')
