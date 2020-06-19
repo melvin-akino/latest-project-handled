@@ -12,16 +12,17 @@ class TransformKafkaMessageOdds extends Task
 {
     protected $message;
     protected $internalParameters;
+    protected $oddsTransformationHandler;
 
-    public function __construct($message, $internalParameters)
+    public function __construct($message, $internalParameters, $oddsTransformationHandler)
     {
-        $this->message            = $message;
-        $this->internalParameters = $internalParameters;
+        $this->message                   = $message;
+        $this->internalParameters        = $internalParameters;
+        $this->oddsTransformationHandler = $oddsTransformationHandler;
     }
 
     public function handle()
     {
-        $oddsTransformationHandler = new OddsTransformationHandler($this->message, $this->internalParameters);
-        $oddsTransformationHandler->handle();
+        $oddsTransformationHandler = $this->oddsTransformationHandler->init($this->message, $this->internalParameters)->handle();
     }
 }

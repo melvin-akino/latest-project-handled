@@ -2,11 +2,11 @@
 
 namespace App\Processes;
 
+use App\Handlers\{OddsTransformationHandler, OddsValidationHandler};
 use App\Jobs\{
     TransformKafkaMessageEvents,
     TransformKafkaMessageLeagues
 };
-use App\Handlers\OddsValidationHandler;
 use Hhxsv5\LaravelS\Swoole\Process\CustomProcessInterface;
 use Illuminate\Support\Facades\Log;
 use Swoole\Http\Server;
@@ -34,7 +34,9 @@ class GameConsume implements CustomProcessInterface
 
                 Log::info("Game Consume Starts");
 
-                $oddsValidationHandler = new OddsValidationHandler();
+                $oddsValidationHandler     = new OddsValidationHandler();
+                $oddsTransformationHandler = new OddsTransformationHandler();
+
                 while (!self::$quit) {
                     if ($swoole->priorityTriggerTable->exist('priority')) {
                         usleep(10000);
@@ -53,7 +55,7 @@ class GameConsume implements CustomProcessInterface
                                 TransformKafkaMessageEvents::dispatch($payload);
                                 break;
                             case 'odd':
-                                $oddsValidationHandler->init($payload)->handle();
+                                $oddsValidationHandler->init($payload, $oddsTransformationHandler)->handle();
                                 break;
                             default:
                                 break;

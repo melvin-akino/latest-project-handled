@@ -10,8 +10,9 @@ use Exception;
 class OddsValidationHandler
 {
     protected $message;
-    protected $updated   = false;
-    protected $uid       = null;
+    protected $oddsTransformationHandler;
+    protected $updated = false;
+    protected $uid     = null;
 
     protected $disregard = [
         'No. of Corners',
@@ -37,24 +38,25 @@ class OddsValidationHandler
         'TEST'
     ];
 
-    public function init($message)
+    public function init($message, $oddsTransformationHandler)
     {
-        $this->message = $message;
+        $this->message                   = $message;
+        $this->oddsTransformationHandler = $oddsTransformationHandler;
         return $this;
     }
 
     public function handle()
     {
         try {
-            $swoole                                   = app('swoole');
-            $subTasks['remove-previous-market']       = [];
+            $swoole                             = app('swoole');
+            $subTasks['remove-previous-market'] = [];
 
             /** DATABASE TABLES */
             /** LOOK-UP TABLES */
-            $providersTable                           = $swoole->providersTable;
-            $sportsTable                              = $swoole->sportsTable;
-            $leaguesTable                             = $swoole->leaguesTable;
-            $teamsTable                               = $swoole->teamsTable;
+            $providersTable = $swoole->providersTable;
+            $sportsTable    = $swoole->sportsTable;
+            $leaguesTable   = $swoole->leaguesTable;
+            $teamsTable     = $swoole->teamsTable;
 
             if (!isset($this->message->data->events)) {
                 Log::info("Transformation ignored - No Event Found");
@@ -85,7 +87,7 @@ class OddsValidationHandler
                 ]);
             }
 
-            foreach ($this->disregard AS $disregard) {
+            foreach ($this->disregard as $disregard) {
                 if (strpos($this->message->data->leagueName, $disregard) !== false) {
                     Log::info("Transformation ignored - Filtered League");
                     return;
@@ -152,7 +154,7 @@ class OddsValidationHandler
                 'home' => $this->message->data->homeTeam,
                 'away' => $this->message->data->awayTeam,
             ];
-            foreach ($competitors AS $key => $row) {
+            foreach ($competitors as $key => $row) {
                 $teamExist = false;
                 foreach ($teamsTable as $k => $v) {
                     if ($v['provider_id'] == $providerId && $v['team_name'] == $row) {
@@ -180,10 +182,9 @@ class OddsValidationHandler
             }
 
             if ($isLeagueSelected) {
-                $oddsTransformationHandler = new OddsTransformationHandler($this->message, compact('providerId', 'sportId', 'multiLeagueId', 'masterLeagueName', 'multiTeam', 'leagueId'));
-                $oddsTransformationHandler->handle();
+                $this->oddsTransformationHandler->init($this->message, compact('providerId', 'sportId', 'multiLeagueId', 'masterLeagueName', 'multiTeam', 'leagueId'))->handle();
             } else {
-                Task::deliver(new TransformKafkaMessageOdds($this->message, compact('providerId', 'sportId', 'multiLeagueId', 'masterLeagueName', 'multiTeam', 'leagueId')));
+                Task::deliver(new TransformKafkaMessageOdds($this->message, compact('providerId', 'sportId', 'multiLeagueId', 'masterLeagueName', 'multiTeam', 'leagueId'), $this->oddsTransformationHandler));
             }
             Task::deliver(new UpdateMatchedEventData($this->message));
         } catch (Exception $e) {
