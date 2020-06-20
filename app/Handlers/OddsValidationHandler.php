@@ -4,14 +4,14 @@ namespace App\Handlers;
 
 use Illuminate\Support\Facades\Log;
 use Hhxsv5\LaravelS\Swoole\Task\Task;
-use App\Tasks\{TransformKafkaMessageOdds, TransformKafkaMessageEventData, UpdateMatchedEventData};
 use Exception;
 
 class OddsValidationHandler
 {
     protected $message;
-    protected $updated   = false;
-    protected $uid       = null;
+    protected $oddsTransformationHandler;
+    protected $updated = false;
+    protected $uid     = null;
 
     protected $disregard = [
         'No. of Corners',
@@ -46,15 +46,15 @@ class OddsValidationHandler
     public function handle()
     {
         try {
-            $swoole                                   = app('swoole');
-            $subTasks['remove-previous-market']       = [];
+            $swoole                             = app('swoole');
+            $subTasks['remove-previous-market'] = [];
 
             /** DATABASE TABLES */
             /** LOOK-UP TABLES */
-            $providersTable                           = $swoole->providersTable;
-            $sportsTable                              = $swoole->sportsTable;
-            $leaguesTable                             = $swoole->leaguesTable;
-            $teamsTable                               = $swoole->teamsTable;
+            $providersTable = $swoole->providersTable;
+            $sportsTable    = $swoole->sportsTable;
+            $leaguesTable   = $swoole->leaguesTable;
+            $teamsTable     = $swoole->teamsTable;
 
             if (!isset($this->message->data->events)) {
                 Log::info("Transformation ignored - No Event Found");
@@ -85,7 +85,7 @@ class OddsValidationHandler
                 ]);
             }
 
-            foreach ($this->disregard AS $disregard) {
+            foreach ($this->disregard as $disregard) {
                 if (strpos($this->message->data->leagueName, $disregard) !== false) {
                     Log::info("Transformation ignored - Filtered League");
                     return;
@@ -128,8 +128,8 @@ class OddsValidationHandler
                 return;
             }
 
-            Task::deliver(new TransformKafkaMessageEventData($this->message, compact('providerId', 'sportId')));
-
+            $TransformKafkaMessageEventData = resolve('TransformKafkaMessageEventData');
+            Task::deliver($TransformKafkaMessageEventData->init($this->message, compact('providerId', 'sportId')));
             $leagueExist = false;
             foreach ($leaguesTable as $k => $v) {
                 if ($v['sport_id'] == $sportId && $v['provider_id'] == $providerId && $v['league_name'] == $this->message->data->leagueName) {
@@ -152,7 +152,7 @@ class OddsValidationHandler
                 'home' => $this->message->data->homeTeam,
                 'away' => $this->message->data->awayTeam,
             ];
-            foreach ($competitors AS $key => $row) {
+            foreach ($competitors as $key => $row) {
                 $teamExist = false;
                 foreach ($teamsTable as $k => $v) {
                     if ($v['provider_id'] == $providerId && $v['team_name'] == $row) {
@@ -180,12 +180,14 @@ class OddsValidationHandler
             }
 
             if ($isLeagueSelected) {
-                $oddsTransformationHandler = new OddsTransformationHandler($this->message, compact('providerId', 'sportId', 'multiLeagueId', 'masterLeagueName', 'multiTeam', 'leagueId'));
-                $oddsTransformationHandler->handle();
+                $oddsTransformationHandler = resolve('OddsTransformationHandler');
+                $oddsTransformationHandler->init($this->message, compact('providerId', 'sportId', 'multiLeagueId', 'masterLeagueName', 'multiTeam', 'leagueId'))->handle();
             } else {
-                Task::deliver(new TransformKafkaMessageOdds($this->message, compact('providerId', 'sportId', 'multiLeagueId', 'masterLeagueName', 'multiTeam', 'leagueId')));
+                $transformKafkaMessageOdds = resolve('TransformKafkaMessageOdds');
+                Task::deliver($transformKafkaMessageOdds->init($this->message, compact('providerId', 'sportId', 'multiLeagueId', 'masterLeagueName', 'multiTeam', 'leagueId')));
             }
-            Task::deliver(new UpdateMatchedEventData($this->message));
+            $updateMatchedEventData = resolve('UpdateMatchedEventData');
+            Task::deliver($updateMatchedEventData->init($this->message));
         } catch (Exception $e) {
             Log::error($e->getMessage());
             Log::error($e->getLine());

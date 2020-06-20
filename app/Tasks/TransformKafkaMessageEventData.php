@@ -10,10 +10,11 @@ class TransformKafkaMessageEventData extends Task
     protected $message;
     protected $internalParameters;
 
-    public function __construct($message, $internalParameters)
+    public function init($message, $internalParameters)
     {
         $this->message            = $message;
         $this->internalParameters = $internalParameters;
+        return $this;
     }
 
     public function handle()

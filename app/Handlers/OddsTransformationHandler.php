@@ -5,7 +5,6 @@ namespace App\Handlers;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Hhxsv5\LaravelS\Swoole\Task\Task;
-use App\Tasks\TransformKafkaMessageOddsSaveToDb;
 use Exception;
 
 class OddsTransformationHandler
@@ -44,10 +43,11 @@ class OddsTransformationHandler
         'TEST'
     ];
 
-    public function __construct($message, $internalParameters)
+    public function init($message, $internalParameters)
     {
         $this->message            = $message;
         $this->internalParameters = $internalParameters;
+        return $this;
     }
 
     public function handle()
@@ -373,7 +373,8 @@ class OddsTransformationHandler
 
             if (!empty($subTasks['event'])) {
                 Log::info('Transformation - finished, continue to saving');
-                Task::deliver(new TransformKafkaMessageOddsSaveToDb($subTasks, $uid, $this->dbOptions));
+                $transformKafkaMessageOddsSaveToDb = resolve('TransformKafkaMessageOddsSaveToDb');
+                Task::deliver($transformKafkaMessageOddsSaveToDb->init($subTasks, $uid, $this->dbOptions));
             }
         } catch (Exception $e) {
             Log::error($e->getMessage());
