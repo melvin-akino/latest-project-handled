@@ -49,16 +49,27 @@ class TransformKafkaMessageMinMax implements ShouldQueue
                         if (strpos($_row['topic_name'], 'min-max-' . $data->market_id) === 0) {
                             $userId = explode(':', $_key)[1];
                             $fd     = $wsTable->get('uid:' . $userId);
-
+                            $providerSwtId = "providerAlias:" . $data->provider;
                             if (!empty($this->data->message) && $this->data->message != 'onqueue') {
                                 $swoole->push($fd['value'], json_encode([
-                                    'getMinMax' => ['message' => $this->data->message]
+                                    'getMinMax' => [
+                                        'market_id'   => $memUID,
+                                        'provider_id' => $provTable->get($providerSwtId)['id'],
+                                        'message'     => $this->data->message
+                                    ]
                                 ]));
 
                                 $minMaxRequests->del('mId:' . $data->market_id . ':memUID:' . $memUID);
 
                                 Log::info("MIN MAX Transformation - Message Found");
                             } else if ($this->data->message == 'onqueue') {
+                                $swoole->push($fd['value'], json_encode([
+                                    'getMinMax' => [
+                                        'market_id'   => $memUID,
+                                        'provider_id' => $provTable->get($providerSwtId)['id'],
+                                        'message'     => $this->data->message
+                                    ]
+                                ]));
                                 continue;
                             } else {
                                 $userCurrency = [
@@ -84,7 +95,6 @@ class TransformKafkaMessageMinMax implements ShouldQueue
                                     $userCurrency['id'] = $usersTable->get($userSwtId)['currency_id'];
                                 }
 
-                                $providerSwtId = "providerAlias:" . $data->provider;
                                 $doesExist     = false;
                                 foreach ($provTable as $k => $v) {
                                     if ($k == $providerSwtId) {
