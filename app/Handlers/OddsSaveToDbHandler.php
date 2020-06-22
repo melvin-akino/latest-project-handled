@@ -189,9 +189,9 @@ class OddsSaveToDbHandler
             if ($masterEventModel && $eventModel) {
                 $masterEventData = [
                     'master_event_unique_id' => $masterEventModel->master_event_unique_id,
-                    'master_league_id'       => $this->eventData['Event']['data']['master_league_id'],
-                    'master_team_home_id'    => $this->eventData['Event']['data']['master_team_home_id'],
-                    'master_team_away_id'    => $this->eventData['Event']['data']['master_team_away_id'],
+                    'master_league_id'       => $this->eventData['MasterEvent']['data']['master_league_id'],
+                    'master_team_home_id'    => $this->eventData['MasterEvent']['data']['master_team_home_id'],
+                    'master_team_away_id'    => $this->eventData['MasterEvent']['data']['master_team_away_id'],
                     'team_home_id'           => $this->eventData['Event']['data']['team_home_id'],
                     'team_away_id'           => $this->eventData['Event']['data']['team_away_id'],
                     'game_schedule'          => $this->eventData['MasterEvent']['data']['game_schedule'],
