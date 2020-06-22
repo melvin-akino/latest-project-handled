@@ -29,6 +29,21 @@ class TransformKafkaMessageEvents implements ShouldQueue
             $swoole             = app('swoole');
             $eventScrapingTable = $swoole->eventScrapingTable;
 
+            $doesExist     = false;
+            $swtRequestUID = null;
+            foreach ($swoole->scraperRequestsTable as $key => $scraperRequestsTable) {
+                if ($key == 'type:events:requestUID:' . $this->message->request_uid) {
+                    $swtRequestUID = $this->message->request_uid;
+                    $doesExist     = true;
+                }
+            }
+            if (!$doesExist) {
+                Log::info("Event Transformation ignored - Request UID is from ML");
+                return;
+            } else {
+                $swoole->scraperRequestsTable->del('type:events:requestUID:' . $swtRequestUID);
+            }
+
             $timestampSwtId = 'eventScraping:' . implode(':', [
                     'sport:' . $this->message->data->sport,
                     'provider:' . $this->message->data->provider,
@@ -85,8 +100,8 @@ class TransformKafkaMessageEvents implements ShouldQueue
                 return;
             }
 
-            $providerPriority  = 0;
-            $providerId        = 0;
+            $providerPriority = 0;
+            $providerId       = 0;
             foreach ($providersTable as $key => $provider) {
                 if (empty($providerId) || $providerPriority > $provider['priority']) {
                     if ($provider['is_enabled']) {
@@ -141,7 +156,7 @@ class TransformKafkaMessageEvents implements ShouldQueue
             }
 
             if ($doesExist) {
-                switch($this->message->data->schedule) {
+                switch ($this->message->data->schedule) {
                     case 'inplay':
                         $missingCountConfiguration = SystemConfiguration::where('type', 'INPLAY_MISSING_MAX_COUNT_FOR_DELETION')->first();
                         break;
@@ -176,7 +191,7 @@ class TransformKafkaMessageEvents implements ShouldQueue
                             }
 
                             $eventTableKey = "sId:{$sportId}:pId:{$providerId}:eventIdentifier:{$event->id}";
-                            $doesExist = false;
+                            $doesExist     = false;
                             foreach ($eventsTable as $k => $v) {
                                 if ($k == $eventTableKey) {
                                     $doesExist = true;

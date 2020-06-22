@@ -10,8 +10,8 @@ use Exception;
 class OddsValidationHandler
 {
     protected $message;
-    protected $updated   = false;
-    protected $uid       = null;
+    protected $updated = false;
+    protected $uid     = null;
 
     protected $disregard = [
         'No. of Corners',
@@ -46,20 +46,36 @@ class OddsValidationHandler
     public function handle()
     {
         try {
-            $swoole                                   = app('swoole');
-            $subTasks['remove-previous-market']       = [];
+            $swoole                             = app('swoole');
+            $subTasks['remove-previous-market'] = [];
 
             /** DATABASE TABLES */
             /** LOOK-UP TABLES */
-            $providersTable                           = $swoole->providersTable;
-            $sportsTable                              = $swoole->sportsTable;
-            $leaguesTable                             = $swoole->leaguesTable;
-            $teamsTable                               = $swoole->teamsTable;
+            $providersTable = $swoole->providersTable;
+            $sportsTable    = $swoole->sportsTable;
+            $leaguesTable   = $swoole->leaguesTable;
+            $teamsTable     = $swoole->teamsTable;
 
             if (!isset($this->message->data->events)) {
                 Log::info("Transformation ignored - No Event Found");
                 return;
             }
+
+            $doesExist     = false;
+            $swtRequestUID = null;
+            foreach ($swoole->scraperRequestsTable as $key => $scraperRequestsTable) {
+                if ($key == 'type:odds:requestUID:' . $this->message->request_uid) {
+                    $swtRequestUID = $this->message->request_uid;
+                    $doesExist     = true;
+                }
+            }
+            if (!$doesExist) {
+                Log::info("Transformation ignored - Request UID is from ML");
+                return;
+            } else {
+                $swoole->scraperRequestsTable->del('type:odds:requestUID:' . $swtRequestUID);
+            }
+
             $transformedTable = $swoole->transformedTable;
 
             $transformedSwtId = 'eventIdentifier:' . $this->message->data->events[0]->eventId;
@@ -85,7 +101,7 @@ class OddsValidationHandler
                 ]);
             }
 
-            foreach ($this->disregard AS $disregard) {
+            foreach ($this->disregard as $disregard) {
                 if (strpos($this->message->data->leagueName, $disregard) !== false) {
                     Log::info("Transformation ignored - Filtered League");
                     return;
@@ -152,7 +168,7 @@ class OddsValidationHandler
                 'home' => $this->message->data->homeTeam,
                 'away' => $this->message->data->awayTeam,
             ];
-            foreach ($competitors AS $key => $row) {
+            foreach ($competitors as $key => $row) {
                 $teamExist = false;
                 foreach ($teamsTable as $k => $v) {
                     if ($v['provider_id'] == $providerId && $v['team_name'] == $row) {

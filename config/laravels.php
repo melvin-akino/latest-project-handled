@@ -25,6 +25,12 @@ return [
     ],
     'sockets'                  => [],
     'processes'                => [
+        'scrape_produce'     => [
+            'class'    => \App\Processes\ScrapeProduce::class,
+            'redirect' => false,
+            'pipe'     => 0,
+            'enable'   => true
+        ],
         'data_to_swt'   => [
             'class'    => \App\Processes\DataToSwt::class,
             'redirect' => false,
@@ -419,6 +425,13 @@ return [
             'column' => [
                 [ 'name' => 'ml_bet_id', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 128 ],
             ],
+        ],
+        'scraperRequests' => [ // KEY FORMAT: [requestUID:$requestUID]
+           'size'   => env('SWT_MAX_SIZE', 102400),
+           'column' => [
+               [ 'name' => 'request_uid', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 255 ],
+               [ 'name' => 'request_ts', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 255 ],
+           ],
         ],
     ],
     'register_providers'       => [
