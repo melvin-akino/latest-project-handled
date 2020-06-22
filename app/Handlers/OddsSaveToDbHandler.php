@@ -71,11 +71,14 @@ class OddsSaveToDbHandler
                 unset($masterEventData['master_league_id']);
                 unset($masterEventData['master_team_home_id']);
                 unset($masterEventData['master_team_away_id']);
+                $masterEventModel = MasterEvent::withTrashed()->updateOrCreate([
+                    'master_event_unique_id' => $this->eventData['MasterEvent']['data']['master_event_unique_id']
+                ], $masterEventData);
+            } else {
+                $masterEventModel = MasterEvent::withTrashed()->updateOrCreate([
+                    'master_event_unique_id' => $this->eventData['MasterEvent']['data']['master_event_unique_id']
+                ], $this->eventData['MasterEvent']['data']);
             }
-
-            $masterEventModel = MasterEvent::withTrashed()->updateOrCreate([
-                'master_event_unique_id' => $this->eventData['MasterEvent']['data']['master_event_unique_id']
-            ], $masterEventData);
 
             $this->eventRawData['Event']['data']['master_event_id'] = $masterEventModel->id;
 
