@@ -426,6 +426,13 @@ return [
                 [ 'name' => 'ml_bet_id', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 128 ],
             ],
         ],
+        'scraperRequests' => [ // KEY FORMAT: [requestUID:$requestUID]
+           'size'   => env('SWT_MAX_SIZE', 102400),
+           'column' => [
+               [ 'name' => 'request_uid', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 255 ],
+               [ 'name' => 'request_ts', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 255 ],
+           ],
+        ],
     ],
     'register_providers'       => [
         \Laravel\Passport\PassportServiceProvider::class

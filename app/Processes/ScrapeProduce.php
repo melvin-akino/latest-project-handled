@@ -30,6 +30,7 @@ class ScrapeProduce implements CustomProcessInterface
 
     public static function callback(Server $swoole, Process $process)
     {
+        $swoole            = app('swoole');
         $kafkaProducer     = app('KafkaProducer');
         $refreshDBInterval = config('scraping.refreshDBInterval');
 
@@ -60,7 +61,7 @@ class ScrapeProduce implements CustomProcessInterface
                 self::$scheduleType = $key;
                 if ($i % $req['timer'] == 0) {
                     for ($interval = 0; $interval < $req['requestNumber']; $interval++) {
-                        self::sendPayload();
+                        self::sendPayload($swoole);
                         usleep($req['requestInterval'] * 1000);
                     }
                 }
@@ -77,7 +78,7 @@ class ScrapeProduce implements CustomProcessInterface
         self::$quit = true;
     }
 
-    private static function sendPayload()
+    private static function sendPayload($swoole)
     {
         foreach (self::$providers as $provider) {
             foreach (self::$sports as $sport) {
@@ -98,6 +99,11 @@ class ScrapeProduce implements CustomProcessInterface
                 // publish message to kafka
                 $payload['command'] = 'odd';
                 KafkaPush::dispatch(strtolower($provider->alias) . self::$kafkaTopic, $payload, $requestId);
+
+                $swoole->scraperRequestsTable->set('requestUID:' . $requestId, [
+                    'request_uid' => $requestId,
+                    'request_ts'  => $requestTs
+                ]);
             }
         }
     }
