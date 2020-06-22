@@ -90,6 +90,12 @@ class OddsSaveToDbHandler
                 if ($eventModel) {
                     if (!empty($this->eventMarketsData)) {
                         foreach ($this->eventMarketsData as $eventMarket) {
+                            if (
+                                in_array($eventMarket['EventMarket']['data']['odd_type_id'], [1, 10]) &&
+                                $eventMarket['EventMarket']['data']['is_main'] == false
+                            ) {
+                                continue;
+                            }
                             $eventMarket['MasterEventMarket']['data']['master_event_id'] = $masterEventModel->id;
 
                             $newMasterEvent = true;
