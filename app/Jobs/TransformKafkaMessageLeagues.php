@@ -99,8 +99,6 @@ class TransformKafkaMessageLeagues implements ShouldQueue
             if (!$doesExist) {
                 Log::info("League Transformation ignored - Request UID is from ML");
                 return;
-            } else {
-                $swoole->scraperRequestsTable->del('type:leagues:requestUID:' . $swtRequestUID);
             }
 
             $consumeLeaguesTablewtId = implode(':', [
