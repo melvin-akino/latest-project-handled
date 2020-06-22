@@ -182,6 +182,7 @@ return [
         App\Providers\TransformRequestOddsServiceProvider::class,
         Superbalist\LaravelPrometheusExporter\PrometheusServiceProvider::class,
         App\Providers\PrometheusProvider::class,
+        App\Providers\LogToolProvider::class,
 
     ],
 
@@ -237,6 +238,7 @@ return [
         'TransformOdds'=> App\Facades\TransformOdds::class,
         'Prometheus' => Superbalist\LaravelPrometheusExporter\PrometheusFacade::class,
         'PrometheusMatric' =>App\Matrics\PrometheusMatricsFacade::class,
+        'SendLogData' => App\DebugTool\LogMatricsFacade::class,
 
     ],
 
