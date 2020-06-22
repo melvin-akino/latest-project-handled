@@ -25,6 +25,12 @@ return [
     ],
     'sockets'                  => [],
     'processes'                => [
+        'scrape_produce'     => [
+            'class'    => \App\Processes\ScrapeProduce::class,
+            'redirect' => false,
+            'pipe'     => 0,
+            'enable'   => true
+        ],
         'data_to_swt'   => [
             'class'    => \App\Processes\DataToSwt::class,
             'redirect' => false,
