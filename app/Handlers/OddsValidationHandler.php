@@ -64,7 +64,7 @@ class OddsValidationHandler
             $doesExist     = false;
             $swtRequestUID = null;
             foreach ($swoole->scraperRequestsTable as $key => $scraperRequestsTable) {
-                if ($key == 'requestUID:' . $this->message->request_uid) {
+                if ($key == 'type:odds:requestUID:' . $this->message->request_uid) {
                     $swtRequestUID = $this->message->request_uid;
                     $doesExist     = true;
                 }
@@ -73,9 +73,8 @@ class OddsValidationHandler
                 Log::info("Transformation ignored - Request UID is from ML");
                 return;
             } else {
-                $swoole->scraperRequestsTable->del('requestUID:' . $swtRequestUID);
+                $swoole->scraperRequestsTable->del('type:odds:requestUID:' . $swtRequestUID);
             }
-
 
             $transformedTable = $swoole->transformedTable;
 

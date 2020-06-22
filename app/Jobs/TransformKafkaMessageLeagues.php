@@ -88,6 +88,21 @@ class TransformKafkaMessageLeagues implements ShouldQueue
                 return;
             }
 
+            $doesExist     = false;
+            $swtRequestUID = null;
+            foreach ($swoole->scraperRequestsTable as $key => $scraperRequestsTable) {
+                if ($key == 'type:leagues:requestUID:' . $this->message->request_uid) {
+                    $swtRequestUID = $this->message->request_uid;
+                    $doesExist     = true;
+                }
+            }
+            if (!$doesExist) {
+                Log::info("League Transformation ignored - Request UID is from ML");
+                return;
+            } else {
+                $swoole->scraperRequestsTable->del('type:leagues:requestUID:' . $swtRequestUID);
+            }
+
             $consumeLeaguesTablewtId = implode(':', [
                 "pId:" . $providerId,
                 /** PROVIDER ID */
@@ -152,9 +167,9 @@ class TransformKafkaMessageLeagues implements ShouldQueue
                 $consumeLeaguesTable->set($wsLeagueTableSwtId, ['value' => json_encode($leagueList)]);
             }
 
-            foreach ($diff AS $key => $_diff) {
+            foreach ($diff as $key => $_diff) {
                 if (!empty($_diff)) {
-                    foreach ($_diff AS $actionLeague) {
+                    foreach ($_diff as $actionLeague) {
                         // $leagueLookupId = null;
 
                         // foreach ($leagueLookUpTable as $_key => $value) {
@@ -178,14 +193,14 @@ class TransformKafkaMessageLeagues implements ShouldQueue
                         }
                         if ($doesExist) {
                             $masterLeagueName = $leaguesTable->get($leagueSwtId)['master_league_name'];
-                            $masterLeagueId = $leaguesTable->get($leagueSwtId)['id'];
+                            $masterLeagueId   = $leaguesTable->get($leagueSwtId)['id'];
                         } else {
                             break;
                         }
 
                         $ctr = 0;
 
-                        foreach ($eventsTable AS $eventKey => $event) {
+                        foreach ($eventsTable as $eventKey => $event) {
                             if (strpos($eventKey,
                                     'sId:' . $sportId . ':pId: ' . $providerId . ':eventIdentifier:') == 0) {
                                 if ($eventsTable[$eventKey]['master_league_id'] == $masterLeagueId) {
@@ -244,7 +259,7 @@ class TransformKafkaMessageLeagues implements ShouldQueue
     {
         $i = 0;
 
-        foreach ($this->disregard AS $row) {
+        foreach ($this->disregard as $row) {
             if (strpos($leagueName, $row) > -1) {
                 $i++;
             }

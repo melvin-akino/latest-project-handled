@@ -100,7 +100,17 @@ class ScrapeProduce implements CustomProcessInterface
                 $payload['command'] = 'odd';
                 KafkaPush::dispatch(strtolower($provider->alias) . self::$kafkaTopic, $payload, $requestId);
 
-                $swoole->scraperRequestsTable->set('requestUID:' . $requestId, [
+                $swoole->scraperRequestsTable->set('type:odds:requestUID:' . $requestId, [
+                    'request_uid' => $requestId,
+                    'request_ts'  => $requestTs
+                ]);
+
+                $swoole->scraperRequestsTable->set('type:events:requestUID:' . $requestId, [
+                    'request_uid' => $requestId,
+                    'request_ts'  => $requestTs
+                ]);
+
+                $swoole->scraperRequestsTable->set('type:leagues:requestUID:' . $requestId, [
                     'request_uid' => $requestId,
                     'request_ts'  => $requestTs
                 ]);
