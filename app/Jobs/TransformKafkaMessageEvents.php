@@ -40,8 +40,6 @@ class TransformKafkaMessageEvents implements ShouldQueue
             if (!$doesExist) {
                 Log::info("Event Transformation ignored - Request UID is from ML");
                 return;
-            } else {
-                $swoole->scraperRequestsTable->del('type:events:requestUID:' . $swtRequestUID);
             }
 
             $timestampSwtId = 'eventScraping:' . implode(':', [

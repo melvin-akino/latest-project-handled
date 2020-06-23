@@ -71,11 +71,14 @@ class OddsSaveToDbHandler
                 unset($masterEventData['master_league_id']);
                 unset($masterEventData['master_team_home_id']);
                 unset($masterEventData['master_team_away_id']);
+                $masterEventModel = MasterEvent::withTrashed()->updateOrCreate([
+                    'master_event_unique_id' => $this->eventData['MasterEvent']['data']['master_event_unique_id']
+                ], $masterEventData);
+            } else {
+                $masterEventModel = MasterEvent::withTrashed()->updateOrCreate([
+                    'master_event_unique_id' => $this->eventData['MasterEvent']['data']['master_event_unique_id']
+                ], $this->eventData['MasterEvent']['data']);
             }
-
-            $masterEventModel = MasterEvent::withTrashed()->updateOrCreate([
-                'master_event_unique_id' => $this->eventData['MasterEvent']['data']['master_event_unique_id']
-            ], $masterEventData);
 
             $this->eventRawData['Event']['data']['master_event_id'] = $masterEventModel->id;
 
@@ -185,10 +188,10 @@ class OddsSaveToDbHandler
 
             if ($masterEventModel && $eventModel) {
                 $masterEventData = [
-                    'master_event_unique_id' => $this->eventData['MasterEvent']['data']['master_event_unique_id'],
-                    'master_league_id'       => $masterEventModel->master_league_id,
-                    'master_team_home_id'    => $masterEventModel->master_team_home_id,
-                    'master_team_away_id'    => $masterEventModel->master_team_away_id,
+                    'master_event_unique_id' => $masterEventModel->master_event_unique_id,
+                    'master_league_id'       => $this->eventData['MasterEvent']['data']['master_league_id'],
+                    'master_team_home_id'    => $this->eventData['MasterEvent']['data']['master_team_home_id'],
+                    'master_team_away_id'    => $this->eventData['MasterEvent']['data']['master_team_away_id'],
                     'team_home_id'           => $this->eventData['Event']['data']['team_home_id'],
                     'team_away_id'           => $this->eventData['Event']['data']['team_away_id'],
                     'game_schedule'          => $this->eventData['MasterEvent']['data']['game_schedule'],

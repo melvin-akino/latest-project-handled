@@ -72,8 +72,6 @@ class OddsValidationHandler
             if (!$doesExist) {
                 Log::info("Transformation ignored - Request UID is from ML");
                 return;
-            } else {
-                $swoole->scraperRequestsTable->del('type:odds:requestUID:' . $swtRequestUID);
             }
 
             $transformedTable = $swoole->transformedTable;
