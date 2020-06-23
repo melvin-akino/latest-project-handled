@@ -456,7 +456,8 @@ class TradeController extends Controller
                         'master_event_identifier' => $transformed->market_event_identifier,
                         'odd_type'                => $transformed->type,
                         'market_flag'             => $transformed->market_flag,
-                        'market_event_identifier' => $transformed->market_event_identifier
+                        'market_event_identifier' => $transformed->market_event_identifier,
+                        'provider_alias'          => $transformed->alias
                     ];
                 }
             }, $transformed->toArray());
@@ -467,9 +468,10 @@ class TradeController extends Controller
                 foreach ($masterEventIdentifier as $k => $d) {
                     if (empty($otherValues[$d['odd_type'] . $d['market_flag'] . $d['points']])) {
                         $result[$d['market_event_identifier']][$d['odd_type']][$d['market_flag']] = [
-                            'market_id' => $d['market_id'],
-                            'odds'      => $d['odds'],
-                            'points'    => $d['points']
+                            'market_id'      => $d['market_id'],
+                            'odds'           => $d['odds'],
+                            'points'         => $d['points'],
+                            'provider_alias' => $d['provider_alias']
                         ];
                         $otherValues[$d['odd_type'] . $d['market_flag'] . $d['points']]           = $d['market_event_identifier'];
                     } else {

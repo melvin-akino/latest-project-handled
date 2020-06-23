@@ -34,11 +34,12 @@ class Game extends Model
                      $join->on('em.master_event_market_id', '=', 'mem.id');
                      $join->on('em.event_id', '=', 'e.id');
                  })
+                 ->leftJoin('providers as p', 'p.id', 'em.provider_id')
                  ->select('ml.sport_id', 'ml.name as master_league_name', 's.sport', 'e.master_event_id',
                      'me.master_event_unique_id', 'mth.name as master_home_team_name', 'mta.name as master_away_team_name',
                      'me.ref_schedule', 'me.game_schedule', 'me.score', 'me.running_time',
                      'me.home_penalty', 'me.away_penalty', 'mem.odd_type_id', 'mem.master_event_market_unique_id', 'mem.is_main', 'mem.market_flag',
-                     'ot.type', 'em.odds', 'em.odd_label', 'em.provider_id', 'em.bet_identifier')
+                     'ot.type', 'em.odds', 'em.odd_label', 'em.provider_id', 'em.bet_identifier', 'p.alias')
                  ->where('ml.id', $masterLeagueId)
                  ->where('me.game_schedule', $schedule)
                  ->where('mem.is_main', true)
@@ -81,13 +82,14 @@ class Game extends Model
                      $join->on('em.master_event_market_id', '=', 'mem.id');
                      $join->on('em.event_id', '=', 'e.id');
                  })
+                 ->leftJoin('providers as p', 'p.id', 'em.provider_id')
                  ->leftJoin('user_watchlist as uw', 'uw.master_event_id', 'me.id')
                  ->select('ml.sport_id', 'ml.name as master_league_name', 's.sport',
                      'me.master_event_unique_id', 'mth.name as master_home_team_name', 'mta.name as master_away_team_name',
                      'me.ref_schedule', 'me.game_schedule', 'me.score', 'me.running_time',
                      'me.home_penalty', 'me.away_penalty', 'mem.odd_type_id', 'mem.master_event_market_unique_id',
                      'mem.is_main', 'mem.market_flag',
-                     'ot.type', 'em.odds', 'em.odd_label', 'em.provider_id', 'em.bet_identifier', 'e.master_event_id')
+                     'ot.type', 'em.odds', 'em.odd_label', 'em.provider_id', 'em.bet_identifier', 'e.master_event_id', 'p.alias')
                  ->where('uw.user_id', $userId)
                  ->where('mem.is_main', true)
                  ->where('e.missing_count', '<=', $maxMissingCount)
@@ -180,6 +182,7 @@ class Game extends Model
                      $join->on('em.master_event_market_id', '=', 'mem.id');
                      $join->on('em.event_id', '=', 'e.id');
                  })
+                 ->leftJoin('providers as p', 'p.id', 'em.provider_id')
                  ->leftJoin('odd_types as ot', 'ot.id', 'mem.odd_type_id')
                  ->leftJoin('user_selected_leagues AS sl', 'ml.id', 'sl.master_league_id')
                  ->where('sl.game_schedule', DB::raw('me.game_schedule'))
@@ -212,6 +215,7 @@ class Game extends Model
                      'em.odd_label',
                      'e.provider_id',
                      'em.bet_identifier',
+                     'p.alias'
                  ])
                  ->get();
     }
@@ -231,6 +235,7 @@ class Game extends Model
                      $join->on('em.master_event_market_id', '=', 'mem.id');
                      $join->on('em.event_id', '=', 'e.id');
                  })
+                 ->leftJoin('providers as p', 'p.id', 'em.provider_id')
                  ->leftJoin('odd_types as ot', 'ot.id', 'mem.odd_type_id')
                  ->leftJoin('user_watchlist AS uw', 'me.id', 'uw.master_event_id')
                  ->where('uw.user_id', $userId)
@@ -261,6 +266,7 @@ class Game extends Model
                      'em.odd_label',
                      'e.provider_id',
                      'em.bet_identifier',
+                     'p.alias'
                  ])
                  ->get();
     }
@@ -279,6 +285,7 @@ class Game extends Model
                      $join->on('em.master_event_market_id', '=', 'mem.id');
                      $join->on('em.event_id', '=', 'e.id');
                  })
+                 ->leftJoin('providers as p', 'p.id', 'em.provider_id')
                  ->leftJoin('odd_types as ot', 'ot.id', 'mem.odd_type_id')
                  ->whereNull('me.deleted_at')
                  ->where('mem.is_main', false)
@@ -307,7 +314,8 @@ class Game extends Model
                      'e.master_event_id',
                      'em.market_event_identifier',
                      'em.master_event_market_id',
-                     'em.event_id'
+                     'em.event_id',
+                     'p.alias'
                  ])
                  ->distinct()->get();
     }

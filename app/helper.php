@@ -464,8 +464,9 @@ if (!function_exists('eventTransformation')) {
                     $data[$transformed->master_event_unique_id]['market_odds']['main'][$transformed->type][$transformed->market_flag]['odds'] < (double) $transformed->odds)
             ) {
                 $data[$transformed->master_event_unique_id]['market_odds']['main'][$transformed->type][$transformed->market_flag] = [
-                    'odds'      => (double) $transformed->odds,
-                    'market_id' => $transformed->master_event_market_unique_id
+                    'odds'           => (double) $transformed->odds,
+                    'market_id'      => $transformed->master_event_market_unique_id,
+                    'provider_alias' => $transformed->alias
                 ];
             }
 
