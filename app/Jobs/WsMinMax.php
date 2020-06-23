@@ -62,7 +62,7 @@ class WsMinMax implements ShouldQueue
 
                     $debug = env('DEBUG_SEND', false);
                     if($debug) {
-                        SendLogData::MinMax('requestminmax', $minMaxRequestsPayload);
+                        SendLogData::MinMax('requestminmax', json_encode($minMaxRequestsPayload));
                     }
 
                     PrometheusMatric::MakeMatrix('swoole_table_total', 'Swoole minMaxRequestsTable total ', 'minMaxRequestsTable');

@@ -36,7 +36,7 @@
                                                 <span>{{game.sport}}</span>
                                             </div>
                                             <div class="text-center">
-                                                <span v-for="(provider, index) in game.with_providers" class="font-bold px-2 rounded-lg provider" :class="[`${provider.provider.toLowerCase()}`]" :key="index">{{provider.provider}}</span>
+                                                <span v-for="(provider, index) in game.with_providers" class="font-bold px-2 mr-1 rounded-lg provider" :class="[`${provider.provider.toLowerCase()}`]" :key="index">{{provider.provider}}</span>
                                             </div>
                                         </div>
                                         <div class="w-1/12 flex flex-col items-center">
