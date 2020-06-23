@@ -93,8 +93,9 @@ class WsWatchlist implements ShouldQueue
 
             if (empty($data[$transformed->master_event_unique_id]['market_odds'][$mainOrOther][$transformed->type][$transformed->market_flag])) {
                 $data[$transformed->master_event_unique_id]['market_odds'][$mainOrOther][$transformed->type][$transformed->market_flag] = [
-                    'odds'      => (double)$transformed->odds,
-                    'market_id' => $transformed->master_event_market_unique_id
+                    'odds'           => (double)$transformed->odds,
+                    'market_id'      => $transformed->master_event_market_unique_id,
+                    'provider_alias' => $transformed->alias
                 ];
                 if (!empty($transformed->odd_label)) {
                     $data[$transformed->master_event_unique_id]['market_odds'][$mainOrOther][$transformed->type][$transformed->market_flag]['points'] = $transformed->odd_label;
