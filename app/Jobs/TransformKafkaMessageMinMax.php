@@ -2,6 +2,7 @@
 
 namespace App\Jobs;
 
+use Carbon\Carbon;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Support\Facades\Log;
@@ -24,16 +25,17 @@ class TransformKafkaMessageMinMax implements ShouldQueue
         Log::info('Task: MinMax handle');
         $swoole = app('swoole');
 
-        $topics                  = $swoole->topicTable;
-        $minMaxRequests          = $swoole->minMaxRequestsTable;
-        $wsTable                 = $swoole->wsTable;
-        $provTable               = $swoole->providersTable;
-        $usersTable              = $swoole->usersTable;
-        $currenciesTable         = $swoole->currenciesTable;
-        $exchangeRatesTable      = $swoole->exchangeRatesTable;
-        $minmaxMarketTable       = $swoole->minmaxMarketTable;
-        $minMaxCachesTable       = $swoole->minMaxCachesTable;
-        $userProviderConfigTable = $swoole->userProviderConfigTable;
+        $topics                     = $swoole->topicTable;
+        $minMaxRequests             = $swoole->minMaxRequestsTable;
+        $wsTable                    = $swoole->wsTable;
+        $provTable                  = $swoole->providersTable;
+        $usersTable                 = $swoole->usersTable;
+        $currenciesTable            = $swoole->currenciesTable;
+        $exchangeRatesTable         = $swoole->exchangeRatesTable;
+        $minmaxMarketTable          = $swoole->minmaxMarketTable;
+        $minMaxCachesTable          = $swoole->minMaxCachesTable;
+        $userProviderConfigTable    = $swoole->userProviderConfigTable;
+        $minmaxOnqueueRequestsTable = $swoole->minmaxOnqueueRequestsTable;
 
         try {
             $minmaxMarketTable->set('minmax-market:' . $this->data->data->market_id, [
@@ -43,12 +45,12 @@ class TransformKafkaMessageMinMax implements ShouldQueue
                 $data = $this->data->data;
 
                 if ($row['market_id'] == $data->market_id) {
-                    $memUID        = $row['memUID'];
+                    $memUID = $row['memUID'];
 
                     foreach ($topics as $_key => $_row) {
                         if (strpos($_row['topic_name'], 'min-max-' . $data->market_id) === 0) {
-                            $userId = explode(':', $_key)[1];
-                            $fd     = $wsTable->get('uid:' . $userId);
+                            $userId        = explode(':', $_key)[1];
+                            $fd            = $wsTable->get('uid:' . $userId);
                             $providerSwtId = "providerAlias:" . $data->provider;
                             if (!empty($this->data->message) && $this->data->message != 'onqueue') {
                                 $swoole->push($fd['value'], json_encode([
@@ -63,15 +65,19 @@ class TransformKafkaMessageMinMax implements ShouldQueue
 
                                 Log::info("MIN MAX Transformation - Message Found");
                             } else if ($this->data->message == 'onqueue') {
-                                $swoole->push($fd['value'], json_encode([
-                                    'getMinMax' => [
-                                        'market_id'   => $memUID,
-                                        'provider_id' => $provTable->get($providerSwtId)['id'],
-                                        'message'     => $this->data->message
-                                    ]
-                                ]));
+                                $doesExist = false;
+                                foreach ($minmaxOnqueueRequestsTable as $key => $row) {
+                                    if (strpos($key, 'min-max-' . $data->market_id) === 0) {
+                                        $doesExist = true;
+                                        break;
+                                    }
+                                }
+                                if (!$doesExist) {
+                                    $minmaxOnqueueRequestsTable->set('min-max-' . $data->market_id, ['onqueue' => true]);
+                                }
                                 continue;
                             } else {
+                                $minmaxOnqueueRequestsTable->del('min-max-' . $data->market_id);
                                 $userCurrency = [
                                     'id'   => 1,
                                     'code' => "CNY",
@@ -95,7 +101,7 @@ class TransformKafkaMessageMinMax implements ShouldQueue
                                     $userCurrency['id'] = $usersTable->get($userSwtId)['currency_id'];
                                 }
 
-                                $doesExist     = false;
+                                $doesExist = false;
                                 foreach ($provTable as $k => $v) {
                                     if ($k == $providerSwtId) {
                                         $doesExist = true;
@@ -174,7 +180,7 @@ class TransformKafkaMessageMinMax implements ShouldQueue
 
                                 Log::info('Task: MinMax emitWS');
 
-                                $minMaxCachesTable->set('memUID:' . $memUID, ['value' => json_encode($transformed)]);
+                                $minMaxCachesTable->set('marketId:' . $data->market_id, ['value' => json_encode($transformed)]);
 
                                 $swoole->push($fd['value'], json_encode([
                                     'getMinMax' => $transformed
