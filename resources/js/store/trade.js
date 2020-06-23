@@ -56,6 +56,13 @@ const mutations = {
             state.leagues[data.schedule] = state.leagues[data.schedule].filter(league => league.name != data.league)
         }
     },
+    INCREASE_LEAGUE_MATCH_COUNT: (state, data) => {
+        state.leagues[data.schedule].map(league => {
+            if(league.name == data.league) {
+                Vue.set(league, 'match_count', league.match_count + 1)
+            }
+        })
+    },
     SET_SPORTS: (state, sports) => {
         state.sports = sports
     },
