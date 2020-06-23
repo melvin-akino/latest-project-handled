@@ -164,7 +164,7 @@ export default {
         return {
             market_details: {},
             formattedRefSchedule: [],
-            inputPrice: null,
+            inputPrice: null || this.odd_details.odds,
             points: null,
             selectedPoint: {},
             market_id: this.odd_details.market_id,
@@ -417,15 +417,19 @@ export default {
                         if(minmax.message == 'onqueue') {
                             this.isEventNotAvailable = false
                             this.updateMinMaxData(minmax, false, true)
-                            setTimeout(() => {
-                                this.updateMinMaxData(minmax, false, false)
-                            }, 3000)
                         } else {
                             this.isEventNotAvailable = true
                             this.updateMinMaxData(minmax, false, false)
                         }
                     }
                     this.retrievedMarketData = true
+
+                    if(process.env.NODE_ENV == 'development') {
+                        axios.post(`${process.env.MIX_DEBUGGING_URL}minmaxlog`, { key: 'receiveminmax', payload: response.data })
+                        .catch(err => {
+                            console.log(err)
+                        })
+                    }
                 }
             })
         },
