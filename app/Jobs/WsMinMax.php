@@ -9,7 +9,7 @@ use App\Models\EventMarket;
 use Exception;
 use Illuminate\Support\Str;
 use PrometheusMatric;
-use App\DebugTool\SendLogData;
+use SendLogData;
 
 class WsMinMax implements ShouldQueue
 {
