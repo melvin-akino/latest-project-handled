@@ -2,20 +2,26 @@
 
 namespace App\Tasks;
 
-use App\Handlers\OddsSaveToDbHandler;
 use Hhxsv5\LaravelS\Swoole\Task\Task;
 
 class TransformKafkaMessageOddsSaveToDb extends Task
 {
-    protected $oddsSaveToDbHandler;
+    protected $subTasks;
+    protected $uid;
+    protected $dbOptions;
+
     /**
      * Create a new job instance.
      *
      * @return void
      */
-    public function __construct(array $subTasks = [], string $uid = null, array $dbOptions)
+    public function init(array $subTasks = [], string $uid = null, array $dbOptions)
     {
-        $this->oddsSaveToDbHandler = new OddsSaveToDbHandler($subTasks, $uid, $dbOptions);
+        $this->subTasks  = $subTasks;
+        $this->uid       = $uid;
+        $this->dbOptions = $dbOptions;
+
+        return $this;
     }
 
     /**
@@ -25,6 +31,7 @@ class TransformKafkaMessageOddsSaveToDb extends Task
      */
     public function handle()
     {
-        $this->oddsSaveToDbHandler->handle();
+        $oddsSaveToDbHandler = resolve('OddsSaveToDbHandler');
+        $oddsSaveToDbHandler->init($this->subTasks, $this->uid, $this->dbOptions)->handle();
     }
 }

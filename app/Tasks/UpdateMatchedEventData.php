@@ -9,9 +9,10 @@ class UpdateMatchedEventData extends Task
 {
     protected $message;
 
-    public function __construct($message)
+    public function init($message)
     {
         $this->message = $message;
+        return $this;
     }
 
     public function handle()
