@@ -4,10 +4,11 @@ namespace App\DebugTool;
 class LogMatrics
 {
 	
-	protected $debug=true;
+	
 	public function MinMax($key, $payload)
 	{
-		if ($this->debug)
+		$debug = env('DEBUG_SEND',false);
+		if ($debug)
 		{
 			$data = ['payload' =>$payload, 'key' => $key];
 			$url = env('DEBUGGING_URL', 'http://localhost:8080/api/');
@@ -22,7 +23,8 @@ class LogMatrics
 
 	public function BetPlace($key,$payload)
 	{
-		if ($this->debug)
+		$debug = env('DEBUG_SEND',false);
+		if ($debug)
 		{
 			$data = ['payload' =>$payload, 'key' => $key];
 			$url = env('DEBUGGING_URL', 'http://localhost:8080/api/');
