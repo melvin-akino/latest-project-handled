@@ -402,6 +402,12 @@ return [
                 ['name' => 'time', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 50],
             ],
         ],
+        'minmaxOnqueueRequests'        => [ // KEY FORMAT: [min-max:$marketId]
+            'size'   => 10000,
+            'column' => [
+               ['name' => 'onqueue', 'type' => \Swoole\Table::TYPE_INT],
+            ],
+        ],
         'providerAccounts'    => [ // KEY FORMAT: [providerId:$providerId:unique:<uniqid()>]
             'size'   => 1000,
             'column' => [
@@ -414,7 +420,7 @@ return [
                 ['name' => 'credits', 'type' => \Swoole\Table::TYPE_FLOAT]
             ],
         ],
-        'minMaxCaches'        => [ // KEY FORMAT: [memUID:$memUID]
+        'minMaxCaches'        => [ // KEY FORMAT: [marketId:$marketId]
             'size'   => env('SWT_MAX_SIZE', 102400),
             'column' => [
                 ['name' => 'value', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 1000],

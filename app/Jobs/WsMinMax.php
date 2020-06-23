@@ -90,13 +90,13 @@ class WsMinMax implements ShouldQueue
 
                     $doesExist = false;
                     foreach ($minMaxCachesTable as $k => $v) {
-                        if ($k == 'memUID:' . $this->master_event_market_unique_id) {
+                        if ($k == 'marketId:' . $eventMarket->bet_identifier) {
                             $doesExist = true;
                             break;
                         }
                     }
                     if ($doesExist) {
-                        $minmaxCache = $minMaxCachesTable->get('memUID:' . $this->master_event_market_unique_id);
+                        $minmaxCache = $minMaxCachesTable->get('marketId:' . $eventMarket->bet_identifier);
                         $fd          = $wsTable->get('uid:' . $this->userId)['value'];
                         $swoole->push($fd, json_encode([
                             'getMinMax' => json_decode($minmaxCache['value'], true)
