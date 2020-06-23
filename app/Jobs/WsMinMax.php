@@ -9,6 +9,7 @@ use App\Models\EventMarket;
 use Exception;
 use Illuminate\Support\Str;
 use PrometheusMatric;
+use App\DebugTool\SendLogData;
 
 class WsMinMax implements ShouldQueue
 {
@@ -48,7 +49,7 @@ class WsMinMax implements ShouldQueue
                         ]);
                     }
 
-                    $minMaxRequestsTable->set('mId:' . $eventMarket->bet_identifier . ':memUID:' . $this->master_event_market_unique_id, [
+                    $minMaxRequestsPayload =  [
                         'provider'  => strtolower($eventMarket->alias),
                         'market_id' => $eventMarket->bet_identifier,
                         'sport'     => $eventMarket->sport_id,
@@ -56,7 +57,14 @@ class WsMinMax implements ShouldQueue
                         'event_id'  => $eventMarket->event_identifier,
                         'odds'      => $eventMarket->odds,
                         'memUID'    => $this->master_event_market_unique_id
-                    ]);
+                    ];
+                    $minMaxRequestsTable->set('mId:' . $eventMarket->bet_identifier . ':memUID:' . $this->master_event_market_unique_id, $minMaxRequestsPayload);
+
+                    $debug = env('DEBUG_SEND', false);
+                    if($debug) {
+                        SendLogData::MinMax('requestminmax', $minMaxRequestsPayload);
+                    }
+
                     PrometheusMatric::MakeMatrix('swoole_table_total', 'Swoole minMaxRequestsTable total ', 'minMaxRequestsTable');
 
                     $requestId = (string) Str::uuid();
