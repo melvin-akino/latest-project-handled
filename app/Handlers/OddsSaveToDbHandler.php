@@ -33,11 +33,12 @@ class OddsSaveToDbHandler
      *
      * @return void
      */
-    public function __construct(array $subTasks = [], string $uid = null, array $dbOptions)
+    public function init(array $subTasks = [], string $uid = null, array $dbOptions)
     {
         $this->subTasks  = $subTasks;
         $this->uid       = $uid;
         $this->dbOptions = $dbOptions;
+        return $this;
     }
 
     /**
