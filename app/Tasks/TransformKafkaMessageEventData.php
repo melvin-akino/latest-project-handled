@@ -3,6 +3,8 @@
 namespace App\Tasks;
 
 use App\Models\EventsData;
+use App\Models\League;
+use App\Models\Team;
 use Hhxsv5\LaravelS\Swoole\Task\Task;
 
 class TransformKafkaMessageEventData extends Task
@@ -44,5 +46,28 @@ class TransformKafkaMessageEventData extends Task
                 'is_matched'       => false
             ]);
         }
+
+        $leagueName = $this->message->data->leagueName;
+        $team1      = $this->message->data->homeTeam;
+        $team2      = $this->message->data->awayTeam;
+
+        League::withTrashed()->updateOrCreate([
+            'sport_id'    => $sportId,
+            'provider_id' => $providerId,
+            'name'        => $leagueName
+        ], []);
+
+        Team::withTrashed()->updateOrCreate([
+            'sport_id'    => $sportId,
+            'name'        => $team1,
+            'provider_id' => $providerId,
+        ], []);
+
+
+        Team::withTrashed()->updateOrCreate([
+            'sport_id'    => $sportId,
+            'name'        => $team2,
+            'provider_id' => $providerId
+        ], []);
     }
 }
