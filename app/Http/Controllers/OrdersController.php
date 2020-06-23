@@ -198,15 +198,19 @@ class OrdersController extends Controller
                 'game_schedule'   => $masterEvent->game_schedule
             ]);
 
-            $spreads = [];
+            $spreads          = [];
+            $duplicateHandler = [];
 
             foreach ($getOtherMarkets AS $row) {
-                $spreads[] = [
-                    'market_id' => $row->master_event_market_unique_id,
-                    'odds'      => $row->odds,
-                    'points'    => $row->odd_label,
-                    'is_main'   => $row->is_main
-                ];
+                if (!in_array($row->master_event_market_unique_id, $duplicateHandler)) {
+                    $duplicateHandler[] = $row->master_event_market_unique_id;
+                    $spreads[]          = [
+                        'market_id' => $row->master_event_market_unique_id,
+                        'odds'      => $row->odds,
+                        'points'    => $row->odd_label,
+                        'is_main'   => $row->is_main
+                    ];
+                }
             }
 
             $eventBets = Order::getOrdersByEvent($masterEvent->master_event_unique_id)->count();
