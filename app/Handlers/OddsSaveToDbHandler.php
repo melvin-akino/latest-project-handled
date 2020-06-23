@@ -65,7 +65,11 @@ class OddsSaveToDbHandler
                            ->delete();
             }
 
-            $masterEvent = MasterEvent::withTrashed()->where('master_event_unique_id', $this->eventData['MasterEvent']['data']['master_event_unique_id']);
+            $masterEvent = MasterEvent::withTrashed()
+                                      ->where('master_league_id', $this->eventData['MasterEvent']['data']['master_league_id'])
+                                      ->where('master_team_home_id', $this->eventData['MasterEvent']['data']['master_team_home_id'])
+                                      ->where('master_team_away_id', $this->eventData['MasterEvent']['data']['master_team_away_id'])
+                                      ->where('ref_schedule', $this->eventData['MasterEvent']['data']['ref_schedule']);
             if ($masterEvent->exists()) {
                 $masterEventData = $this->eventData['MasterEvent']['data'];
                 unset($masterEventData['master_league_id']);
