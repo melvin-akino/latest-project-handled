@@ -131,6 +131,7 @@ export default {
                                         this.$store.commit('trade/SET_EVENTS_LIST', receivedEvent)
                                         this.$store.commit('trade/SET_ALL_EVENTS_LIST', receivedEvent)
                                     }
+                                    this.$store.commit('trade/INCREASE_LEAGUE_MATCH_COUNT', { schedule: schedule, league: league })
                                 }
                             })
                         })
