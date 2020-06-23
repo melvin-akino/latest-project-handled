@@ -204,7 +204,7 @@ class OrdersController extends Controller
             foreach ($getOtherMarkets AS $row) {
                 if (!in_array($row->master_event_market_unique_id, $duplicateHandler)) {
                     $duplicateHandler[] = $row->master_event_market_unique_id;
-                    $spreads[]        = [
+                    $spreads[]          = [
                         'market_id' => $row->master_event_market_unique_id,
                         'odds'      => $row->odds,
                         'points'    => $row->odd_label,
