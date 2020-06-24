@@ -119,7 +119,6 @@ class WsSettledBets implements ShouldQueue
                 break;
         }
 
-        $balance                 *= $exchangeRate->exchange_rate;
         $sourceId                 = Source::where('source_name', 'LIKE', $sourceName)->first();
         $returnBetSourceId        = Source::where('source_name', 'LIKE', 'RETURN_STAKE')->first();
         $score                    = $this->data->score;
