@@ -9,7 +9,7 @@ use App\Models\UserWatchlist;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Exception;
-use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\{Log, DB};
 
 class TransformKafkaMessageEvents implements ShouldQueue
 {
