@@ -38,6 +38,7 @@ use App\Models\CRM\{
     OrderTransaction,
     WalletLedger
 };
+use Illuminate\Support\Facades\Log;
 
 /* Datatable for CRM admin */
 
@@ -526,5 +527,14 @@ if (!function_exists('eventTransformation')) {
         }
 
         return $newResult;
+    }
+}
+
+if (!function_exists('appLog')) {
+    function appLog($type, $payload)
+    {
+        if (env('APP_DEBUG')) {
+            Log::{$type}($payload);
+        }
     }
 }
