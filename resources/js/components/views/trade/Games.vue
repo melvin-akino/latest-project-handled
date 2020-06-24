@@ -48,7 +48,7 @@
                                         <div class="w-1/12 flex flex-col items-center" :class="column" v-for="(column, index) in oddsTypeBySport" :key="index">
                                             <p class="relative" :class="[{'order-1' : index=='HOME'}, {'order-2' : index=='AWAY'}, {'order-3': index=='DRAW'}]" v-for="(odd, index) in game.market_odds.main[column]" :key="odd.market_id" v-toggle-odds="odd.odds">
                                                 <span class="absolute text-gray-500 odds-label" :class="[odd.odds != '' ? 'left-label' : 'empty-left-label']">{{odd.points}}</span>
-                                                <a href="#" @click.prevent="openBetSlip(odd, game)" class="px-2 rounded-lg" :class="[{'bet-click' : odd.odds != ''}, `${odd.provider_alias.toLowerCase()}`]" v-adjust-odd-color="odd.odds">{{odd.odds | twoDecimalPlacesFormat}}</a>
+                                                <a href="#" @click.prevent="openBetSlip(odd, game)" class="px-2 rounded-lg" :class="[odd.odds ? 'bet-click' : '', odd.provider_alias ? `${odd.provider_alias.toLowerCase()}` : '']" v-adjust-odd-color="odd.odds">{{odd.odds | twoDecimalPlacesFormat}}</a>
                                             </p>
                                         </div>
                                         <div class="absolute eventStar" :class="[gameSchedType==='watchlist' ? 'in-watchlist-star' : 'text-white']" @click="gameSchedType==='watchlist' ? removeFromWatchlist('event', game.uid, game) : addToWatchlist('event', game.uid, game)">
@@ -68,7 +68,7 @@
                                             <div class="w-1/12 flex flex-col items-center" :class="column" v-for="(column, index) in oddsTypeBySport" :key="index">
                                                 <p class="relative" :class="[{'order-1' : index=='HOME'}, {'order-2' : index=='AWAY'}, {'order-3': index=='DRAW'}]" v-for="(odd, index) in otherMarket[column]" :key="odd.market_id" v-toggle-odds="odd.odds">
                                                     <span class="absolute text-gray-500 odds-label" :class="[odd.odds != '' ? 'left-label' : 'empty-left-label']">{{odd.points}}</span>
-                                                    <a href="#" @click.prevent="openBetSlip(odd, game)" class="px-2 rounded-lg" :class="[{'bet-click' : odd.odds != ''}, `${odd.provider_alias.toLowerCase()}`]" v-adjust-odd-color="odd.odds">{{odd.odds | twoDecimalPlacesFormat}}</a>
+                                                    <a href="#" @click.prevent="openBetSlip(odd, game)" class="px-2 rounded-lg" :class="[odd.odds ? 'bet-click' : '', odd.provider_alias ? `${odd.provider_alias.toLowerCase()}` : '']" v-adjust-odd-color="odd.odds">{{odd.odds | twoDecimalPlacesFormat}}</a>
                                                 </p>
                                             </div>
                                         </div>
@@ -98,7 +98,7 @@
                                         <div class="w-1/12 flex justify-between mr-10" :class="column" v-for="(column, index) in oddsTypeBySport" :key="index">
                                             <p class="relative" :class="[{'order-1' : index=='HOME'}, {'order-2' : index=='DRAW'}, {'order-3': index=='AWAY'}]" v-for="(odd, index) in game.market_odds.main[column]" :key="odd.market_id" v-toggle-odds="odd.odds">
                                                 <span class="absolute text-gray-500 odds-label" :class="[odd.odds != '' ? 'left-label' : 'empty-left-label']">{{odd.points}}</span>
-                                                <a href="#"  @click.prevent="openBetSlip(odd, game)" class="px-2 rounded-lg" :class="[{'bet-click' : odd.odds != ''}, `${odd.provider_alias.toLowerCase()}`]" v-adjust-odd-color="odd.odds">{{odd.odds | twoDecimalPlacesFormat}}</a>
+                                                <a href="#"  @click.prevent="openBetSlip(odd, game)" class="px-2 rounded-lg" :class="[odd.odds ? 'bet-click' : '', odd.provider_alias ? `${odd.provider_alias.toLowerCase()}` : '']" v-adjust-odd-color="odd.odds">{{odd.odds | twoDecimalPlacesFormat}}</a>
                                             </p>
                                         </div>
                                     </div>
@@ -108,7 +108,7 @@
                                             <div class="w-1/12 flex justify-between mr-10" :class="column" v-for="(column, index) in oddsTypeBySport" :key="index">
                                                 <p class="relative" :class="[{'order-1' : index=='HOME'}, {'order-2' : index=='DRAW'}, {'order-3': index=='AWAY'}]" v-for="(odd, index) in otherMarket[column]" :key="odd.market_id" v-toggle-odds="odd.odds">
                                                     <span class="absolute text-gray-500 odds-label" :class="[odd.odds != '' ? 'left-label' : 'empty-left-label']">{{odd.points}}</span>
-                                                    <a href="#"  @click.prevent="openBetSlip(odd, game)" class="px-2 rounded-lg" :class="[{'bet-click' : odd.odds != ''}, `${odd.provider_alias.toLowerCase()}`]" v-adjust-odd-color="odd.odds">{{odd.odds | twoDecimalPlacesFormat}}</a>
+                                                    <a href="#"  @click.prevent="openBetSlip(odd, game)" class="px-2 rounded-lg" :class="[odd.odds ? 'bet-click' : '', odd.provider_alias ? `${odd.provider_alias.toLowerCase()}` : '']" v-adjust-odd-color="odd.odds">{{odd.odds | twoDecimalPlacesFormat}}</a>
                                                 </p>
                                             </div>
                                         </div>
