@@ -31,14 +31,14 @@ class UserSelectedLeague extends Model
                     ->first();
     }
 
-    public static function getSelectedLeagueByUserId(int $userId, int $providerId)
+    public static function getSelectedLeagueByUserId(int $userId, array $providers)
     {
         return DB::table('user_selected_leagues as usl')
                 ->leftJoin('master_leagues as ml', 'ml.id', 'usl.master_league_id')
                 ->leftJoin('master_events as me', 'ml.id', 'me.master_league_id')
                 ->leftJoin('events as e', 'me.id', 'e.master_event_id')
                 ->where('user_id', $userId)
-                ->where('e.provider_id', $providerId)
+                ->whereIn('e.provider_id', $providers)
                 ->select('usl.game_schedule', 'ml.name as master_league_name')
                 ->distinct()
                 ->get();

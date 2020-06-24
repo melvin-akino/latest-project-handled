@@ -7,7 +7,7 @@ use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Support\Facades\DB;
 use App\Models\{
     UserSelectedLeague,
-    Provider
+    UserProviderConfiguration
 };
 
 class WsSelectedLeagues implements ShouldQueue
@@ -24,9 +24,9 @@ class WsSelectedLeagues implements ShouldQueue
     {
         $server = app('swoole');
         $fd = $server->wsTable->get('uid:' . $this->userId);
-        $providerId = Provider::getMostPriorityProvider($this->userId);
+        $providers = UserProviderConfiguration::getProviderIdList($this->userId);
         $leagues = [];
-        $userSelectedLeagues = UserSelectedLeague::getSelectedLeagueByUserId($this->userId, $providerId);
+        $userSelectedLeagues = UserSelectedLeague::getSelectedLeagueByUserId($this->userId, $providers);
         array_map(function($userSelectedLeague) use (&$leagues) {
             $leagues[$userSelectedLeague->game_schedule][] = $userSelectedLeague->master_league_name;
         }, $userSelectedLeagues->toArray());
