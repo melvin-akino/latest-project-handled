@@ -56,7 +56,7 @@ class OddsValidationHandler
             $teamsTable     = $swoole->teamsTable;
 
             if (!isset($this->message->data->events)) {
-                Log::info("Transformation ignored - No Event Found");
+                appLog('info', "Transformation ignored - No Event Found");
                 return;
             }
 
@@ -69,7 +69,7 @@ class OddsValidationHandler
                 }
             }
             if (!$doesExist) {
-                Log::info("Transformation ignored - Request UID is from ML");
+                appLog('info', "Transformation ignored - Request UID is from ML");
                 return;
             }
 
@@ -88,7 +88,7 @@ class OddsValidationHandler
                 $toHashMessage->running_time = null;
                 $toHashMessage->id           = null;
                 if ($hash == md5(json_encode((array) $toHashMessage))) {
-                    Log::info("Transformation ignored - No change");
+                    appLog('info', "Transformation ignored - No change");
                     return;
                 }
             } else {
@@ -100,7 +100,7 @@ class OddsValidationHandler
 
             foreach ($this->disregard as $disregard) {
                 if (strpos($this->message->data->leagueName, $disregard) !== false) {
-                    Log::info("Transformation ignored - Filtered League");
+                    appLog('info', "Transformation ignored - Filtered League");
                     return;
                 }
             }
@@ -119,7 +119,7 @@ class OddsValidationHandler
             if ($providersTable->exist($providerSwtId)) {
                 $providerId = $providersTable->get($providerSwtId)['id'];
             } else {
-                Log::info("Transformation ignored - Provider doesn't exist");
+                appLog('info', "Transformation ignored - Provider doesn't exist");
                 return;
             }
 
@@ -137,7 +137,7 @@ class OddsValidationHandler
             if ($sportsTable->exists($sportSwtId)) {
                 $sportId = $sportsTable->get($sportSwtId)['id'];
             } else {
-                Log::info("Transformation ignored - Sport doesn't exist");
+                appLog('info', "Transformation ignored - Sport doesn't exist");
                 return;
             }
 
@@ -156,7 +156,7 @@ class OddsValidationHandler
             }
 
             if (!$leagueExist) {
-                Log::info("Transformation ignored - League is not in the masterlist");
+                appLog('info', "Transformation ignored - League is not in the masterlist");
                 return;
             }
 
@@ -179,7 +179,7 @@ class OddsValidationHandler
                 }
 
                 if (!$teamExist) {
-                    Log::info("Transformation ignored - No Available Teams in the masterlist");
+                    appLog('info', "Transformation ignored - No Available Teams in the masterlist");
                     return;
                 }
             }
