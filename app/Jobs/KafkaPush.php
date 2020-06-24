@@ -53,7 +53,9 @@ class KafkaPush implements ShouldQueue
                 'code'  => $e->getCode()
             ]);
         } finally {
-            Log::channel('kafkaproducelog')->info(json_encode($this->message));
+            if (env('CONSUMER_PRODUCER_LOG')) {
+                Log::channel('kafkaproducelog')->info(json_encode($this->message));
+            }
         }
     }
 }

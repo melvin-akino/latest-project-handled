@@ -65,7 +65,9 @@ class AccountConsume implements CustomProcessInterface
                                 break;
                         }
                         $kafkaConsumer->commit($message);
-                        Log::channel('kafkalog')->info(json_encode($message));
+                        if (env('CONSUMER_PRODUCER_LOG')) {
+                            Log::channel('kafkalog')->info(json_encode($message));
+                        }
                         usleep(10000);
                         continue;
                     }

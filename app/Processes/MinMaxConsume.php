@@ -51,7 +51,9 @@ class MinMaxConsume implements CustomProcessInterface
                         ) {
                             Log::info("Min Max Transformation ignored - Same or Old Timestamp");
                             $kafkaConsumer->commit($message);
-                            Log::channel('kafkalog')->info(json_encode($message));
+                            if (env('CONSUMER_PRODUCER_LOG')) {
+                                Log::channel('kafkalog')->info(json_encode($message));
+                            }
                             continue;
                         }
 
@@ -71,7 +73,9 @@ class MinMaxConsume implements CustomProcessInterface
                         $swoole->priorityTriggerTable->del('priority');
 
                         $kafkaConsumer->commit($message);
-                        Log::channel('kafkalog')->info(json_encode($message));
+                        if (env('CONSUMER_PRODUCER_LOG')) {
+                            Log::channel('kafkalog')->info(json_encode($message));
+                        }
                         continue;
                     }
                     usleep(100000);
