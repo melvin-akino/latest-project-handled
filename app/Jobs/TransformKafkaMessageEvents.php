@@ -179,12 +179,21 @@ class TransformKafkaMessageEvents implements ShouldQueue
                         $event->missing_count += 1;
                         $event->save();
                         if ($event->missing_count >= $missingCountConfiguration->value) {
-                            $masterEvent = MasterEvent::find($event->master_event_id);
+                            $masterEvent = DB::table('master_events AS me')
+                                    ->leftJoin('master_leagues AS ml', 'me.master_league_id', '=', 'ml.id')
+                                    ->where('me.id', $event->master_event_id)
+                                    ->select('me.*', 'ml.name AS league_name')
+                                    ->first();
                             if ($masterEvent && $payloadProviderId == $providerId) {
                                 if ($masterEvent) {
                                     UserWatchlist::where('master_event_id', $event->master_event_id)->delete();
                                     MasterEvent::where('id', $event->master_event_id)->delete();
-                                    $data[] = $masterEvent->master_event_unique_id;
+
+                                    $data[] = [
+                                        'uid'           => $masterEvent->master_event_unique_id,
+                                        'league_name'   => $masterEvent->league_name,
+                                        'game_schedule' => $masterEvent->game_schedule,
+                                    ];
                                 }
                             }
 
