@@ -159,10 +159,9 @@ class ScrapeRequestCommand extends Command
                 'code' => $e->getCode()
             ]);
         } finally {
-            if (env('KAFKA_LOG', false)) {
-                Storage::append('producers-'. date('Y-m-d') . '.log', json_encode($message));
+            if (env('CONSUMER_PRODUCER_LOG', false)) {
+                Log::channel('kafkaproducelog')->info(json_encode($message));
             }
-            Log::channel('kafkaproducelog')->info(json_encode($message));
         }
     }
 }
