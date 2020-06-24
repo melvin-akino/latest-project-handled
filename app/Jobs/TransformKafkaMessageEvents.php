@@ -190,7 +190,7 @@ class TransformKafkaMessageEvents implements ShouldQueue
                                     MasterEvent::where('id', $event->master_event_id)->delete();
 
                                     $data[] = [
-                                        'me_uid'             => $masterEvent->master_event_unique_id,
+                                        'uid'                => $masterEvent->master_event_unique_id,
                                         'master_league_name' => $masterEvent->master_league_name,
                                         'game_schedule'      => $masterEvent->game_schedule,
                                     ];
