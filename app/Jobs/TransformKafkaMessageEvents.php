@@ -191,7 +191,7 @@ class TransformKafkaMessageEvents implements ShouldQueue
 
                                     $data[] = [
                                         'me_uid'        => $masterEvent->master_event_unique_id,
-                                        'league_name'   => $masterEvent->league_name,
+                                        'league_name'   => $masterEvent->master_league_name,
                                         'game_schedule' => $masterEvent->game_schedule,
                                     ];
                                 }
