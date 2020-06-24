@@ -159,7 +159,7 @@ class ScrapeRequestCommand extends Command
                 'code' => $e->getCode()
             ]);
         } finally {
-            if (env('CONSUMER_PRODUCER_LOG')) {
+            if (env('CONSUMER_PRODUCER_LOG', false)) {
                 Log::channel('kafkaproducelog')->info(json_encode($message));
             }
         }

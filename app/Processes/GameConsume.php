@@ -64,7 +64,7 @@ class GameConsume implements CustomProcessInterface
                                 break;
                         }
                         $kafkaConsumer->commitAsync($message);
-                        if (env('CONSUMER_PRODUCER_LOG')) {
+                        if (env('CONSUMER_PRODUCER_LOG', false)) {
                             Log::channel('kafkalog')->info(json_encode($message));
                         }
                         usleep(10000);
