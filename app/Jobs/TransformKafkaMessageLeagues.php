@@ -51,7 +51,6 @@ class TransformKafkaMessageLeagues implements ShouldQueue
             $sportsTable           = $swoole->sportsTable;
             $leaguesTable          = $swoole->leaguesTable;
             $eventsTable           = $swoole->eventsTable;
-            $leagueLookUpTable     = $swoole->leagueLookUpTable;
             $getActionLeaguesTable = $swoole->getActionLeaguesTable;
             $consumeLeaguesTable   = $swoole->consumeLeaguesTable;
 
