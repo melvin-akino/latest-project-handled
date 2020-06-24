@@ -2,6 +2,8 @@
 
 namespace App\Handlers;
 
+use App\Models\League;
+use App\Models\Team;
 use Illuminate\Support\Facades\Log;
 use Hhxsv5\LaravelS\Swoole\Task\Task;
 use Exception;
@@ -47,6 +49,7 @@ class OddsValidationHandler
         try {
             $swoole                             = app('swoole');
             $subTasks['remove-previous-market'] = [];
+            $parameters                         = [];
 
             /** DATABASE TABLES */
             /** LOOK-UP TABLES */
@@ -60,18 +63,17 @@ class OddsValidationHandler
                 return;
             }
 
-            $doesExist     = false;
-            $swtRequestUID = null;
-            foreach ($swoole->scraperRequestsTable as $key => $scraperRequestsTable) {
-                if ($key == 'type:odds:requestUID:' . $this->message->request_uid) {
-                    $swtRequestUID = $this->message->request_uid;
-                    $doesExist     = true;
-                }
-            }
-            if (!$doesExist) {
-                appLog('info', "Transformation ignored - Request UID is from ML");
-                return;
-            }
+//            $doesExist     = false;
+//            $swtRequestUID = null;
+//            foreach ($swoole->scraperRequestsTable as $key => $scraperRequestsTable) {
+//                if ($key == 'type:odds:requestUID:' . $this->message->request_uid) {
+//                    $doesExist = true;
+//                }
+//            }
+//            if (!$doesExist) {
+//                appLog('info', "Transformation ignored - Request UID is from ML");
+//                return;
+//            }
 
             $transformedTable = $swoole->transformedTable;
 
@@ -141,14 +143,10 @@ class OddsValidationHandler
                 return;
             }
 
-            $TransformKafkaMessageEventData = resolve('TransformKafkaMessageEventData');
-            Task::deliver($TransformKafkaMessageEventData->init($this->message, compact('providerId', 'sportId')));
             $leagueExist = false;
             foreach ($leaguesTable as $k => $v) {
                 if ($v['sport_id'] == $sportId && $v['provider_id'] == $providerId && $v['league_name'] == $this->message->data->leagueName) {
-                    $multiLeagueId    = $leaguesTable->get($k)['id'];
-                    $leagueId         = $leaguesTable->get($k)['raw_id'];
-                    $masterLeagueName = $leaguesTable->get($k)['master_league_name'];
+                    $parameters['master_league_id'] = $leaguesTable->get($k)['id'];
 
                     $leagueExist = true;
                     break;
@@ -157,10 +155,9 @@ class OddsValidationHandler
 
             if (!$leagueExist) {
                 appLog('info', "Transformation ignored - League is not in the masterlist");
-                return;
+                $parameters['master_league_id'] = null;
             }
 
-            $multiTeam   = [];
             $competitors = [
                 'home' => $this->message->data->homeTeam,
                 'away' => $this->message->data->awayTeam,
@@ -169,9 +166,7 @@ class OddsValidationHandler
                 $teamExist = false;
                 foreach ($teamsTable as $k => $v) {
                     if ($v['provider_id'] == $providerId && $v['team_name'] == $row) {
-                        $multiTeam[$key]['id']     = $teamsTable->get($k)['id'];
-                        $multiTeam[$key]['name']   = $teamsTable->get($k)['team_name'];
-                        $multiTeam[$key]['raw_id'] = $teamsTable->get($k)['raw_id'];
+                        $parameters['master_team_' . $key . '_id'] = $v['id'];
 
                         $teamExist = true;
                         break;
@@ -180,7 +175,7 @@ class OddsValidationHandler
 
                 if (!$teamExist) {
                     appLog('info', "Transformation ignored - No Available Teams in the masterlist");
-                    return;
+                    $parameters['master_team_' . $key . '_id'] = null;
                 }
             }
 
@@ -194,13 +189,11 @@ class OddsValidationHandler
 
             if ($isLeagueSelected) {
                 $oddsTransformationHandler = resolve('OddsTransformationHandler');
-                $oddsTransformationHandler->init($this->message, compact('providerId', 'sportId', 'multiLeagueId', 'masterLeagueName', 'multiTeam', 'leagueId'))->handle();
+                $oddsTransformationHandler->init($this->message, compact('providerId', 'sportId', 'parameters'))->handle();
             } else {
                 $transformKafkaMessageOdds = resolve('TransformKafkaMessageOdds');
-                Task::deliver($transformKafkaMessageOdds->init($this->message, compact('providerId', 'sportId', 'multiLeagueId', 'masterLeagueName', 'multiTeam', 'leagueId')));
+                Task::deliver($transformKafkaMessageOdds->init($this->message, compact('providerId', 'sportId', 'parameters')));
             }
-            $updateMatchedEventData = resolve('UpdateMatchedEventData');
-            Task::deliver($updateMatchedEventData->init($this->message));
         } catch (Exception $e) {
             Log::error($e->getMessage());
             Log::error($e->getLine());

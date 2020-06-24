@@ -2,10 +2,9 @@
 
 namespace App\Providers;
 
-use App\Tasks\{TransformKafkaMessageEventData,
+use App\Tasks\{
     TransformKafkaMessageOdds,
-    TransformKafkaMessageOddsSaveToDb,
-    UpdateMatchedEventData
+    TransformKafkaMessageOddsSaveToDb
 };
 use App\Handlers\{OddsSaveToDbHandler, OddsTransformationHandler, OddsValidationHandler};
 use Illuminate\Support\ServiceProvider;
@@ -27,16 +26,8 @@ class OddsHandlerProvider extends ServiceProvider
             return new OddsTransformationHandler();
         });
 
-        $this->app->singleton('TransformKafkaMessageEventData', function () {
-            return new TransformKafkaMessageEventData();
-        });
-
         $this->app->singleton('TransformKafkaMessageOdds', function () {
             return new TransformKafkaMessageOdds();
-        });
-
-        $this->app->singleton('UpdateMatchedEventData', function () {
-            return new UpdateMatchedEventData();
         });
 
         $this->app->singleton('TransformKafkaMessageOddsSaveToDb', function () {
