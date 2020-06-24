@@ -182,7 +182,7 @@ class TransformKafkaMessageEvents implements ShouldQueue
                             $masterEvent = DB::table('master_events AS me')
                                     ->leftJoin('master_leagues AS ml', 'me.master_league_id', '=', 'ml.id')
                                     ->where('me.id', $event->master_event_id)
-                                    ->select('me.*', 'ml.name AS league_name')
+                                    ->select('me.*', 'ml.name AS master_league_name')
                                     ->first();
                             if ($masterEvent && $payloadProviderId == $providerId) {
                                 if ($masterEvent) {
@@ -190,9 +190,9 @@ class TransformKafkaMessageEvents implements ShouldQueue
                                     MasterEvent::where('id', $event->master_event_id)->delete();
 
                                     $data[] = [
-                                        'me_uid'        => $masterEvent->master_event_unique_id,
-                                        'league_name'   => $masterEvent->master_league_name,
-                                        'game_schedule' => $masterEvent->game_schedule,
+                                        'me_uid'             => $masterEvent->master_event_unique_id,
+                                        'master_league_name' => $masterEvent->master_league_name,
+                                        'game_schedule'      => $masterEvent->game_schedule,
                                     ];
                                 }
                             }
