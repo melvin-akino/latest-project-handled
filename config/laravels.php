@@ -137,16 +137,22 @@ return [
                 ['name' => 'value', 'type' => \Swoole\Table::TYPE_INT],
             ],
         ],
-        'leagueLookUp'        => [// key format [leagueLookUpId:unique()] = [value = $leagueName]
+        'rawLeagues'        => [// key format [leagueId:$leagueId] = [name = $leagueName, ...]
             'size'   => 10000,// The max size
             'column' => [// Define the columns
-                ['name' => 'value', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 10000],
+                ['name' => 'id', 'type' => \Swoole\Table::TYPE_INT],
+                ['name' => 'sport_id', 'type' => \Swoole\Table::TYPE_INT],
+                ['name' => 'provider_id', 'type' => \Swoole\Table::TYPE_INT],
+                ['name' => 'name', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 10000],
             ],
         ],
-        'teamLookUp'          => [// key format [teamLookUpId:unique()] = [value = $teamName]
+        'rawTeams'          => [// key format [teamId:$teamId] = [name = $teamName, ...]
             'size'   => 20000,// The max size
             'column' => [// Define the columns
-                ['name' => 'value', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 10000],
+                ['name' => 'id', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 10000],
+                ['name' => 'sport_id', 'type' => \Swoole\Table::TYPE_INT],
+                ['name' => 'provider_id', 'type' => \Swoole\Table::TYPE_INT],
+                ['name' => 'name', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 10000],
             ],
         ],
         'userWatchlist'       => [// key format [userWatchlist:$userId:masterEventId:$masterEventId] = [value = true]
@@ -316,6 +322,7 @@ return [
                 ['name' => 'bet_identifier', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 30],
                 ['name' => 'is_main', 'type' => \Swoole\Table::TYPE_INT, 'size' => 1],
                 ['name' => 'market_flag', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 5],
+                ['name' => 'event_id', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 5],
             ],
         ],
         'transformed'         => [ //key format [eventIdentifier:$eventIdentifier] = [ts => $ts, ...]
