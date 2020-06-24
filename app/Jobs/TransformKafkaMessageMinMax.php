@@ -33,7 +33,6 @@ class TransformKafkaMessageMinMax implements ShouldQueue
         $currenciesTable            = $swoole->currenciesTable;
         $exchangeRatesTable         = $swoole->exchangeRatesTable;
         $minmaxMarketTable          = $swoole->minmaxMarketTable;
-        $minMaxCachesTable          = $swoole->minMaxCachesTable;
         $userProviderConfigTable    = $swoole->userProviderConfigTable;
         $minmaxOnqueueRequestsTable = $swoole->minmaxOnqueueRequestsTable;
 
@@ -179,8 +178,6 @@ class TransformKafkaMessageMinMax implements ShouldQueue
                                 }
 
                                 Log::info('Task: MinMax emitWS');
-
-                                $minMaxCachesTable->set('marketId:' . $data->market_id, ['value' => json_encode($transformed)]);
 
                                 $swoole->push($fd['value'], json_encode([
                                     'getMinMax' => $transformed

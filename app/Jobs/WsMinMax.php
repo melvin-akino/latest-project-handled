@@ -27,8 +27,6 @@ class WsMinMax implements ShouldQueue
             $swoole              = app('swoole');
             $topicTable          = $swoole->topicTable;
             $minMaxRequestsTable = $swoole->minMaxRequestsTable;
-            $minMaxCachesTable   = $swoole->minMaxCachesTable;
-            $wsTable             = $swoole->wsTable;
 
             $eventMarkets = EventMarket::getEventMarketByMemUID($this->master_event_market_unique_id);
 
@@ -87,21 +85,6 @@ class WsMinMax implements ShouldQueue
 
                     Log::info('Min Max Initial Request');
                     KafkaPush::dispatch(strtolower($eventMarket->alias) . '_minmax_req', $payload, $requestId);
-
-                    $doesExist = false;
-                    foreach ($minMaxCachesTable as $k => $v) {
-                        if ($k == 'marketId:' . $eventMarket->bet_identifier) {
-                            $doesExist = true;
-                            break;
-                        }
-                    }
-                    if ($doesExist) {
-                        $minmaxCache = $minMaxCachesTable->get('marketId:' . $eventMarket->bet_identifier);
-                        $fd          = $wsTable->get('uid:' . $this->userId)['value'];
-                        $swoole->push($fd, json_encode([
-                            'getMinMax' => json_decode($minmaxCache['value'], true)
-                        ]));
-                    }
                 }
             }
         } catch (Exception $e) {
