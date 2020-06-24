@@ -131,7 +131,7 @@ export default {
                                         this.$store.commit('trade/SET_EVENTS_LIST', receivedEvent)
                                         this.$store.commit('trade/SET_ALL_EVENTS_LIST', receivedEvent)
                                     }
-                                    this.$store.commit('trade/INCREASE_LEAGUE_MATCH_COUNT', { schedule: schedule, league: league })
+                                    this.$store.commit('trade/UPDATE_LEAGUE_MATCH_COUNT', { schedule: schedule, league: league })
                                 }
                             })
                         })
@@ -214,6 +214,7 @@ export default {
                             if(event.uid == removedEvent) {
                                 this.$store.commit('trade/REMOVE_FROM_EVENT_LIST', { type: 'uid', data: removedEvent, game_schedule: event.game_schedule })
                                 this.$store.commit('trade/REMOVE_FROM_ALL_EVENT_LIST', { type: 'uid', data: removedEvent, game_schedule: event.game_schedule })
+                                this.$store.commit('trade/UPDATE_LEAGUE_MATCH_COUNT', { schedule: event.game_schedule, league: event.league_name })
                                 if(this.tradePageSettings.sort_event == 1) {
                                     if(!_.isEmpty(this.events.watchlist) && event.league_name in this.events.watchlist) {
                                         this.$store.commit('trade/REMOVE_EVENT', { schedule: 'watchlist', removedLeague: event.league_name, removedEvent: removedEvent })
