@@ -18,11 +18,12 @@ class WsEvents implements ShouldQueue
 {
     use Dispatchable;
 
-    public function __construct($userId, $params)
+    public function __construct($userId, $params, $additional = false)
     {
         $this->userId             = $userId;
         $this->master_league_name = $params[1];
         $this->schedule           = $params[2];
+        $this->additional         = $additional;
     }
 
     public function handle()
@@ -50,8 +51,10 @@ class WsEvents implements ShouldQueue
             $data      = eventTransformation($gameDetails, $userConfig, $userTz, $userId, $userProviderIds, $topicTable, 'socket');
             $eventData = array_values($data);
             if (!empty($eventData)) {
+                $channelName = $this->additional ? "getAdditionalEvents" : "getEvents";
+
                 $server->push($fd['value'], json_encode([
-                    'getEvents' => $eventData
+                    $channelName => $eventData
                 ]));
             }
         } catch (Exception $e) {

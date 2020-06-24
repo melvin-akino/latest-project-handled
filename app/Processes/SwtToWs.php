@@ -69,7 +69,7 @@ class SwtToWs implements CustomProcessInterface
                 $sportId      = $additionalEvents->sport_id;
                 $gameSchedule = $additionalEvents->schedule;
                 $leagueName   = $additionalEvents->league_name;
-                
+
                 $userSelectedLeaguesTable = $swoole->userSelectedLeaguesTable;
                 foreach ($userSelectedLeaguesTable as $uslKey => $uslData) {
                     $userId       = $uslData['user_id'];
@@ -77,7 +77,7 @@ class SwtToWs implements CustomProcessInterface
                     if ((int) $defaultSport['default_sport'] == $sportId) {
                         if ($sportId == $uslData['sport_id'] && $gameSchedule == $uslData['schedule'] && $uslData['league_name'] == $leagueName
                         ) {
-                            WsEvents::dispatch($userId, [1 => $uslData['league_name'], 2 => $gameSchedule]);
+                            WsEvents::dispatch($userId, [1 => $uslData['league_name'], 2 => $gameSchedule], true);
                         }
                     }
                 }
