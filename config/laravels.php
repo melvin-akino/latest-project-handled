@@ -427,12 +427,6 @@ return [
                 ['name' => 'credits', 'type' => \Swoole\Table::TYPE_FLOAT]
             ],
         ],
-        'minMaxCaches'        => [ // KEY FORMAT: [marketId:$marketId]
-            'size'   => env('SWT_MAX_SIZE', 102400),
-            'column' => [
-                ['name' => 'value', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 1000],
-            ],
-        ],
         'mlBetId' => [ // KEY FORMAT: [mlBetId]
             'size'   => 128,
             'column' => [

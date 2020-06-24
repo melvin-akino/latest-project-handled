@@ -63,17 +63,17 @@ class OddsValidationHandler
                 return;
             }
 
-//            $doesExist     = false;
-//            $swtRequestUID = null;
-//            foreach ($swoole->scraperRequestsTable as $key => $scraperRequestsTable) {
-//                if ($key == 'type:odds:requestUID:' . $this->message->request_uid) {
-//                    $doesExist = true;
-//                }
-//            }
-//            if (!$doesExist) {
-//                appLog('info', "Transformation ignored - Request UID is from ML");
-//                return;
-//            }
+            $doesExist     = false;
+            $swtRequestUID = null;
+            foreach ($swoole->scraperRequestsTable as $key => $scraperRequestsTable) {
+                if ($key == 'type:odds:requestUID:' . $this->message->request_uid) {
+                    $doesExist = true;
+                }
+            }
+            if (!$doesExist) {
+                appLog('info', "Transformation ignored - Request UID is from ML");
+                return;
+            }
 
             $transformedTable = $swoole->transformedTable;
 
