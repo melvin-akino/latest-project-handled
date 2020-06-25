@@ -1,6 +1,6 @@
 import Vue from 'vue'
 import _ from 'lodash'
-import { sortByObjectKeys } from '../helpers/array'
+import { sortByObjectKeys, sortByObjectProperty } from '../helpers/array'
 import Cookies from 'js-cookie'
 const token = Cookies.get('mltoken')
 
@@ -289,6 +289,7 @@ const actions = {
                             sortedUserSelected[schedule] = {}
                         }
                         sortedUserSelected[schedule][league] = response.data.data.user_selected[schedule][league]
+                        sortedUserSelected[schedule][league] = sortByObjectProperty(sortedUserSelected[schedule][league], 'ref_schedule')
                         sortedUserSelected[schedule][league].map(event => {
                             if(event.sport_id == state.selectedSport) {
                                 commit('SET_EVENTS', { schedule: schedule, events: sortedUserSelected[schedule]})
@@ -306,6 +307,7 @@ const actions = {
                     sortedUserWatchlist[league] = {}
                 }
                 sortedUserWatchlist[league] = response.data.data.user_watchlist[league]
+                sortedUserWatchlist[league] = sortByObjectProperty(sortedUserWatchlist[league], 'ref_schedule')
                 sortedUserWatchlist[league].map(event => {
                     commit('SET_WATCHLIST', sortedUserWatchlist)
                     commit('SET_ALL_EVENTS_LIST', event)
