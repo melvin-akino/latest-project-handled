@@ -170,8 +170,9 @@ class TransformKafkaMessageEvents implements ShouldQueue
 
                 $eventsJson = $activeEventsTable->get($activeEventsSwtId);
                 $events     = json_decode($eventsJson['events'], true);
+                $activeEvents = $this->message->data->event_ids;
 
-                $inActiveEvents = array_diff($events, $this->message->data->event_ids);
+                $inActiveEvents = array_diff($events, $activeEvents);
 
                 $data = [];
                 foreach ($inActiveEvents as $eventIdentifier) {
@@ -179,6 +180,7 @@ class TransformKafkaMessageEvents implements ShouldQueue
                     if ($event) {
                         $event->missing_count += 1;
                         $event->save();
+
                         if ($event->missing_count >= $missingCountConfiguration->value) {
                             $masterEvent = DB::table('master_events AS me')
                                     ->leftJoin('master_leagues AS ml', 'me.master_league_id', '=', 'ml.id')
@@ -214,11 +216,13 @@ class TransformKafkaMessageEvents implements ShouldQueue
                             }
 
                             $event->delete();
+                        } else {
+                            $activeEvents[] = $eventIdentifier;
                         }
                     }
                 }
 
-                $activeEventsTable->set($activeEventsSwtId, ['events' => json_encode($this->message->data->event_ids)]);
+                $activeEventsTable->set($activeEventsSwtId, ['events' => json_encode($activeEvents)]);
 
                 foreach ($swoole->wsTable as $key => $row) {
                     if (strpos($key, 'uid:') === 0 && $swoole->isEstablished($row['value'])) {
