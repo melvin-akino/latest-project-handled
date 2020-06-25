@@ -93,6 +93,7 @@ class TransformKafkaMessageLeagues implements ShouldQueue
                 if ($key == 'type:leagues:requestUID:' . $this->message->request_uid) {
                     $swtRequestUID = $this->message->request_uid;
                     $doesExist     = true;
+                    break;
                 }
             }
             if (!$doesExist) {

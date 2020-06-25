@@ -35,6 +35,7 @@ class TransformKafkaMessageEvents implements ShouldQueue
                 if ($key == 'type:events:requestUID:' . $this->message->request_uid) {
                     $swtRequestUID = $this->message->request_uid;
                     $doesExist     = true;
+                    break;
                 }
             }
             if (!$doesExist) {
