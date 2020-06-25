@@ -98,24 +98,30 @@ class Game extends Model
 
     public static function getOtherMarketSpreadDetails(array $fields = [])
     {
-        return DB::table('event_markets AS em')
-                 ->leftJoin('master_event_markets AS mem', 'mem.id', 'em.master_event_market_id')
-                 ->leftJoin('master_events as me', 'me.id', 'mem.master_event_id')
-                 ->where('mem.master_event_id', $fields['master_event_id'])
-                 ->where('mem.odd_type_id', $fields['odd_type_id'])
-                 ->where('em.market_flag', $fields['market_flag'])
-                 ->whereIn('em.provider_id', $fields['providers'])
-                 ->where('me.game_schedule', $fields['game_schedule'])
-                 ->whereNull('em.deleted_at')
-                 ->distinct()
-                 ->get(
-                     [
-                         'mem.master_event_market_unique_id',
-                         'em.odds',
-                         'em.odd_label',
-                         'em.is_main'
-                     ]
-                 );
+        $maxMissingCount = SystemConfiguration::getSystemConfigurationValue('EVENT_VALID_MAX_MISSING_COUNT')->value;
+
+        return DB::table('master_events AS me')
+            ->leftJoin('events AS e', 'e.master_event_id', '=', 'me.id')
+            ->leftJoin('master_event_markets AS mem', 'mem.master_event_id', '=', 'me.id')
+            ->leftJoin('odd_types AS ot', 'mem.odd_type_id', '=', 'ot.id')
+            ->leftJoin('event_markets AS em', function ($join) {
+                $join->on('em.master_event_market_id', '=', 'mem.id');
+                $join->on('em.event_id', '=', 'e.id');
+            })
+            ->whereNull('me.deleted_at')
+            ->whereNull('em.deleted_at')
+            ->whereIn('em.provider_id', $fields['providers'])
+            ->where('em.market_flag', $fields['market_flag'])
+            ->where('mem.odd_type_id', $fields['odd_type_id'])
+            ->where('me.game_schedule', $fields['game_schedule'])
+            ->where('e.master_event_id', $fields['master_event_id'])
+            ->where('e.missing_count', '<=', $maxMissingCount)
+            ->get([
+                'mem.master_event_market_unique_id',
+                'em.odds',
+                'em.odd_label',
+                'em.is_main'
+            ]);
     }
 
     public static function getmasterEventByMarketId(string $marketId)
@@ -276,17 +282,17 @@ class Game extends Model
         $maxMissingCount = SystemConfiguration::getSystemConfigurationValue('EVENT_VALID_MAX_MISSING_COUNT')->value;
 
         return DB::table('master_events as me')
-                 ->leftJoin('events as e', 'e.master_event_id', 'me.id')
-                 ->leftJoin('master_teams as mth', 'mth.id', 'me.master_team_home_id')
-                 ->leftJoin('master_teams as mta', 'mta.id', 'me.master_team_away_id')
-                 ->leftJoin('sports as s', 's.id', 'me.sport_id')
-                 ->leftJoin('master_event_markets as mem', 'mem.master_event_id', 'me.id')
-                 ->leftJoin('event_markets as em', function ($join) {
+                 ->join('events as e', 'e.master_event_id', 'me.id')
+                 ->join('master_teams as mth', 'mth.id', 'me.master_team_home_id')
+                 ->join('master_teams as mta', 'mta.id', 'me.master_team_away_id')
+                 ->join('sports as s', 's.id', 'me.sport_id')
+                 ->join('master_event_markets as mem', 'mem.master_event_id', 'me.id')
+                 ->join('event_markets as em', function ($join) {
                      $join->on('em.master_event_market_id', '=', 'mem.id');
                      $join->on('em.event_id', '=', 'e.id');
                  })
-                 ->leftJoin('providers as p', 'p.id', 'em.provider_id')
-                 ->leftJoin('odd_types as ot', 'ot.id', 'mem.odd_type_id')
+                 ->join('providers as p', 'p.id', 'em.provider_id')
+                 ->join('odd_types as ot', 'ot.id', 'mem.odd_type_id')
                  ->whereNull('me.deleted_at')
                  ->where('mem.is_main', false)
                  ->where('me.master_event_unique_id', $meUID)
