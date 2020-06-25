@@ -68,6 +68,7 @@ class OddsValidationHandler
             foreach ($swoole->scraperRequestsTable as $key => $scraperRequestsTable) {
                 if ($key == 'type:odds:requestUID:' . $this->message->request_uid) {
                     $doesExist = true;
+                    break;
                 }
             }
             if (!$doesExist) {

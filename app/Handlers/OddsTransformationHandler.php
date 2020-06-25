@@ -113,6 +113,7 @@ class OddsTransformationHandler
                         $eventSwtId = $key;
                         $eventsData = $value;
                         $doesExist  = true;
+                        break;
                     }
                 }
             } else {
@@ -225,6 +226,7 @@ class OddsTransformationHandler
                         foreach ($oddTypesTable as $oddTypeKey => $oddType) {
                             if (strpos($oddTypeKey, $oddTypeSwtId) === 0) {
                                 $doesExist = true;
+                                break;
                             }
                         }
 
@@ -252,6 +254,7 @@ class OddsTransformationHandler
                         foreach ($sportOddTypesTable as $sportOddTypeKey => $sportOddType) {
                             if (strpos($sportOddTypeKey, $sportOddTypeSwtId) === 0) {
                                 $doesExist = true;
+                                break;
                             }
                         }
 
@@ -314,6 +317,7 @@ class OddsTransformationHandler
                             foreach ($eventMarketsTable as $eventMarketKey => $eventMarket) {
                                 if (strpos($eventMarketKey, $masterEventMarketSwtId) === 0) {
                                     $doesExist = true;
+                                    break;
                                 }
                             }
 
@@ -411,6 +415,7 @@ class OddsTransformationHandler
             ) {
                 $leagueId = $value['id'];
                 $doesExist = true;
+                break;
             }
         }
 
@@ -448,6 +453,7 @@ class OddsTransformationHandler
             ) {
                 $team['home']->id = $value['id'];
                 $doesExist = true;
+                break;
             }
         }
         if (!$doesExist) {
@@ -476,6 +482,7 @@ class OddsTransformationHandler
             ) {
                 $team['away']->id = $value['id'];
                 $doesExist = true;
+                break;
             }
         }
         if (!$doesExist) {
