@@ -102,7 +102,6 @@ class OddsSaveToDbHandler
                 $this->eventRawData['Event']['data']['master_event_id'] = $masterEventModel->id;
             }
 
-//            if ($masterEventModel) {
             $eventModel = Events::withTrashed()->updateOrCreate([
                 'event_identifier' => $this->eventRawData['Event']['data']['event_identifier']
             ], $this->eventRawData['Event']['data']);
@@ -146,10 +145,6 @@ class OddsSaveToDbHandler
                             }
                         }
 
-
-//                            if ($masterEventMarketModel) {
-
-
                         $eventMarket['EventMarket']['data']['event_id'] = $eventModel->id;
 
                         if ($this->dbOptions['in-masterlist'] && $masterEventMarketModel) {
@@ -157,7 +152,7 @@ class OddsSaveToDbHandler
                             $eventMarket['EventMarket']['data']['master_event_market_id'] = $masterEventMarketId;
                         }
 
-                        $eventMarketModel = EventMarket::where('bet_identifier', $eventMarket['EventMarket']['data']['bet_identifier'])->first();
+                        $eventMarketModel = EventMarket::withTrashed()->where('bet_identifier', $eventMarket['EventMarket']['data']['bet_identifier'])->first();
 
                         EventMarket::where('event_id', $eventMarket['EventMarket']['data']['event_id'])
                                    ->where('odd_label', $eventMarket['EventMarket']['data']['odd_label'])
@@ -198,7 +193,6 @@ class OddsSaveToDbHandler
                                 MasterEventMarketLog::create($eventMarket['MasterEventMarketLog']['data']);
                             }
                         }
-//                            }
                     }
 
                     if (!empty($this->updatedOddsData)) {
@@ -210,7 +204,6 @@ class OddsSaveToDbHandler
                     }
                 }
             }
-//            }
 
             DB::commit();
 
