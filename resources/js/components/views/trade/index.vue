@@ -113,7 +113,7 @@ export default {
                         })
                     }
                     let sortedWatchlistObject = {}
-                    let watchlistEvents = sortByObjectKeys(watchlistObject, sortedWatchlistObject)
+                    let watchlistEvents = sortByObjectKeys(watchlistObject, sortedWatchlistObject, 'ref_schedule')
                     this.$store.commit('trade/SET_WATCHLIST', watchlistEvents)
                 }
             })
@@ -174,7 +174,7 @@ export default {
                     })
                     let sortedEventObject = {}
                     Object.keys(eventObject).map(schedule => {
-                        let events = sortByObjectKeys(eventObject[schedule], sortedEventObject[schedule])
+                        let events = sortByObjectKeys(eventObject[schedule], sortedEventObject[schedule], 'ref_schedule')
                         this.$store.commit('trade/SET_EVENTS', { schedule: schedule, events: events })
                     })
                 }
