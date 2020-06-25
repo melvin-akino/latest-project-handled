@@ -56,7 +56,7 @@ export default {
         }
     },
     computed: {
-        ...mapState('trade', ['isBetBarOpen', 'selectedSport', 'selectedLeagues', 'oddsTypeBySport', 'columnsToDisplay', 'allEventsList', 'eventsList', 'events', 'openedBetSlips', 'tradePageSettings']),
+        ...mapState('trade', ['isBetBarOpen', 'selectedSport', 'leagues', 'selectedLeagues', 'oddsTypeBySport', 'columnsToDisplay', 'allEventsList', 'eventsList', 'events', 'openedBetSlips', 'tradePageSettings']),
         eventsListUID() {
             return this.eventsList.map(event => event.uid)
         },
@@ -249,7 +249,11 @@ export default {
                         })
 
                         if(!this.selectedLeagues[removedEvent.game_schedule].includes(removedEvent.league_name)) {
-                            this.$store.commit('trade/REMOVE_FROM_LEAGUE', { schedule:  removedEvent.game_schedule, league: removedEvent.league_name })
+                            this.$store.commit('trade/UPDATE_LEAGUE_MATCH_COUNT', { schedule: removedEvent.game_schedule, league: removedEvent.league_name })
+                            let leagueMatchCount = this.leagues[removedEvent.game_schedule].filter(league => league.name == removedEvent.league_name).map(league => league.match_count)[0]
+                            if(leagueMatchCount == 1) {
+                                this.$store.commit('trade/REMOVE_FROM_LEAGUE', { schedule:  removedEvent.game_schedule, league: removedEvent.league_name })
+                            }
                         }
                     })
                 }

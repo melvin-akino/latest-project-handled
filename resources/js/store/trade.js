@@ -59,8 +59,12 @@ const mutations = {
     UPDATE_LEAGUE_MATCH_COUNT: (state, data) => {
         state.leagues[data.schedule].map(league => {
             if(league.name == data.league) {
-                let noOfEvents = state.allEventsList.filter(event => event.game_schedule == data.schedule && event.league_name == data.league).length
-                Vue.set(league, 'match_count', noOfEvents)
+                let events = state.allEventsList.filter(event => event.game_schedule == data.schedule && event.league_name == data.league)
+                if(events.length > 0) {
+                    Vue.set(league, 'match_count', events.length)
+                } else {
+                    Vue.set(league, 'match_count', league.match_count - 1)
+                }
             }
         })
     },
