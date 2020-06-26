@@ -164,7 +164,7 @@ return [
             ],
         ],
         'rawEventMarkets' => [// key format [eventMarketId:$eventMarketId] = [id = $eventMarketId, ...]
-            'size'   => 20000,// The max size
+            'size'   => env('SWT_MAX_SIZE', 102400),// The max size
             'column' => [// Define the columns
                 ['name' => 'id', 'type' => \Swoole\Table::TYPE_INT],
                 ['name' => 'bet_identifier', 'type' => \Swoole\Table::TYPE_INT],
