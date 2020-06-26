@@ -210,11 +210,18 @@ export default {
                 if(getSocketKey(response.data) === 'getForRemovalEvents') {
                     let removedEvents = getSocketValue(response.data, 'getForRemovalEvents')
                     removedEvents.map(removedEvent => {
-                        if(!this.selectedLeagues[removedEvent.game_schedule].includes(removedEvent.league_name)) {
-                            this.$store.commit('trade/UPDATE_LEAGUE_MATCH_COUNT', { schedule: removedEvent.game_schedule, league: removedEvent.league_name })
+                        let checkIfEventsInTradeWindow = this.allEventsList.filter(event => event.league_name == removedEvent.league_name && event.game_schedule == removedEvent.game_schedule).length
+                        if(checkIfEventsInTradeWindow == 0) {
                             let leagueMatchCount = this.leagues[removedEvent.game_schedule].filter(league => league.name == removedEvent.league_name).map(league => league.match_count)[0]
                             if(leagueMatchCount == 1) {
                                 this.$store.commit('trade/REMOVE_FROM_LEAGUE', { schedule:  removedEvent.game_schedule, league: removedEvent.league_name })
+                            } else {
+                                let eventsRemaining = leagueMatchCount - removedEvents.length
+                                if(eventsRemaining > 0) {
+                                    this.$store.commit('trade/UPDATE_LEAGUE_MATCH_COUNT', { schedule: removedEvent.game_schedule, league: removedEvent.league_name, eventsRemaining: eventsRemaining  })
+                                } else {
+                                    this.$store.commit('trade/REMOVE_FROM_LEAGUE', { schedule:  removedEvent.game_schedule, league: removedEvent.league_name })
+                                }
                             }
                         } else {
                             this.allEventsList.map(event => {

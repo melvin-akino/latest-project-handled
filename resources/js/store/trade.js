@@ -44,7 +44,7 @@ const state = {
 }
 
 const getters = {
-    displayedLeagues(state) {
+    displayedLeagues: (state) => {
         return state.leagues[state.selectedLeagueSchedMode]
     }
 }
@@ -73,7 +73,7 @@ const mutations = {
                 if(events.length > 0) {
                     Vue.set(league, 'match_count', events.length)
                 } else {
-                    Vue.set(league, 'match_count', league.match_count - 1)
+                    Vue.set(league, 'match_count', data.eventsRemaining)
                 }
             }
         })
