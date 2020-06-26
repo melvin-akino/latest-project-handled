@@ -162,7 +162,7 @@ class WsSettledBets implements ShouldQueue
             $orderLogsId    = $orderLogs->id;
             $chargeType     = $charge;
             $receiver       = $orders->user_id;
-            $transferAmount = $transferAmount ?: ($orders->to_win - $stake) * $exchangeRate->exchange_rate;
+            $transferAmount = $transferAmount ?: ($orders->to_win - $stake);
             $currency       = $userWallet->currency_id;
             $source         = $sourceId->id;
             $ledger         = UserWallet::makeTransaction($receiver, $transferAmount, $currency, $source, $chargeType);
