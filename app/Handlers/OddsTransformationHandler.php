@@ -55,6 +55,7 @@ class OddsTransformationHandler
 
     public function handle()
     {
+        $start = microtime(true);
         try {
             $swoole                             = app('swoole');
             $toInsert                           = [];
@@ -396,6 +397,12 @@ class OddsTransformationHandler
                 $transformKafkaMessageOddsSaveToDb = resolve('TransformKafkaMessageOddsSaveToDb');
                 Task::deliver($transformKafkaMessageOddsSaveToDb->init($subTasks, $uid, $this->dbOptions));
             }
+
+            $end = microtime(true);
+            Log::debug('ODDS TRANSFORMATION START TIME -> ' . $start);
+            Log::debug('ODDS TRANSFORMATION END TIME -> ' . $end);
+            Log::debug('ODDS TRANSFORMATION RUN TIME -> ' . ($end - $start));
+
         } catch (Exception $e) {
             Log::error($e->getMessage());
             Log::error($e->getLine());

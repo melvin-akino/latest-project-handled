@@ -47,6 +47,7 @@ class OddsValidationHandler
     public function handle()
     {
         try {
+            $start = microtime(true);
             $swoole                             = app('swoole');
             $subTasks['remove-previous-market'] = [];
             $parameters                         = [];
@@ -195,6 +196,10 @@ class OddsValidationHandler
                 $transformKafkaMessageOdds = resolve('TransformKafkaMessageOdds');
                 Task::deliver($transformKafkaMessageOdds->init($this->message, compact('providerId', 'sportId', 'parameters')));
             }
+            $end = microtime(true);
+            Log::debug('ODDS VALIDATION START TIME -> ' . $start);
+            Log::debug('ODDS VALIDATION END TIME -> ' . $end);
+            Log::debug('ODDS VALIDATION RUN TIME -> ' . ($end - $start));
         } catch (Exception $e) {
             Log::error($e->getMessage());
             Log::error($e->getLine());

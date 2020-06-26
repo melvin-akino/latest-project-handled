@@ -56,6 +56,7 @@ class OddsSaveToDbHandler
         $this->removePreviousMarket = $this->subTasks['remove-previous-market'] ?? [];
 
         try {
+            $start = microtime(true);
             DB::beginTransaction();
 
             $event = Events::withTrashed()->where('event_identifier',
@@ -284,6 +285,10 @@ class OddsSaveToDbHandler
                     ['value' => json_encode(array_values($updatedPrice))]);
             }
             Log::info('Transformation - Processed completed');
+            $end = microtime(true);
+            Log::debug('ODDS SAVING START TIME -> ' . $start);
+            Log::debug('ODDS SAVING END TIME -> ' . $end);
+            Log::debug('ODDS SAVING RUN TIME -> ' . ($end - $start));
         } catch (Exception $e) {
             Log::error(json_encode(
                 [
