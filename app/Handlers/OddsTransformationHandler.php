@@ -315,32 +315,24 @@ class OddsTransformationHandler
 
                             $isMarketSame = true;
 
-//                            $doesExist = false;
-//                            foreach ($eventMarketsTable as $eventMarketKey => $eventMarket) {
-//                                if (strpos($eventMarketKey, $masterEventMarketSwtId) === 0) {
-//                                    $doesExist = true;
-//                                    break;
-//                                }
-//                            }
-
-                            $eventMarket = DB::table('event_markets as em')
-                                ->leftJoin('master_event_markets as mem', 'mem.id', 'em.id')
-                                ->leftJoin('master_events as me', 'me.id', 'mem.master_event_id')
-                                ->where('em.provider_id', $providerId)
-                                ->where('em.bet_identifier', $markets->market_id)
-                                ->where('me.master_event_unique_id', $uid)
-                                ->select('mem.master_event_market_unique_id', 'em.odds')
-                                ->first();
+                            $memUID = null;
+                            $odds = null;
+                            $doesExist = false;
+                            foreach ($eventMarketsTable as $eventMarketKey => $eventMarket) {
+                                if (strpos($eventMarketKey, $masterEventMarketSwtId) === 0) {
+                                    $memUID = $eventMarket['master_event_market_unique_id'];
+                                    $odds   = $eventMarket['odds'];
+                                    $doesExist = true;
+                                    break;
+                                }
+                            }
 
                             $end = microtime(true);
                             Log::debug('ODDS TRANSFORMATION START TIME -> ' . $start);
                             Log::debug('ODDS TRANSFORMATION END TIME -> ' . $end);
                             Log::debug('ODDS TRANSFORMATION RUN TIME -> ' . ($end - $start));
 
-                            if ($eventMarket) {
-                                $memUID = $eventMarket->master_event_market_unique_id;
-                                $odds   = $eventMarket->odds;
-
+                            if ($doesExist) {
                                 if ($odds != $marketOdds) {
                                     $eventMarketsTable[$masterEventMarketSwtId]['odds'] = $marketOdds;
                                     $this->updated                                      = true;
