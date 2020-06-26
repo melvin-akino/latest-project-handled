@@ -4,13 +4,10 @@ namespace App\Handlers;
 
 use App\Models\League;
 use App\Models\Team;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Hhxsv5\LaravelS\Swoole\Task\Task;
 use Exception;
-use stdClass;
-use Illuminate\Support\Facades\Redis;
 
 class OddsTransformationHandler
 {
@@ -453,7 +450,7 @@ class OddsTransformationHandler
 
     private function saveTeamsData($swoole, $providerId,  $sportId, $team1, $team2)
     {
-        $team = ['home' => new stdClass(), 'away' => new stdClass()];
+        $team = ['home' => (object) [], 'away' => (object) []];
         /**
          * Check if team exist in teams records
          */
