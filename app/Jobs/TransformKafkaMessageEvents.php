@@ -99,22 +99,6 @@ class TransformKafkaMessageEvents implements ShouldQueue
                 return;
             }
 
-            $providerPriority = 0;
-            $providerId       = 0;
-            foreach ($providersTable as $key => $provider) {
-                if (empty($providerId) || $providerPriority > $provider['priority']) {
-                    if ($provider['is_enabled']) {
-                        $providerId       = $provider['id'];
-                        $providerPriority = $provider['priority'];
-                    }
-                }
-            }
-
-            if (empty($providerId)) {
-                Log::info("For Removal Event - No Providers Found");
-                return;
-            }
-
             /**
              * SPORTS Swoole Table
              *
@@ -142,7 +126,7 @@ class TransformKafkaMessageEvents implements ShouldQueue
 
             $activeEventsSwtId = implode(':', [
                 'sId:' . $sportId,
-                'pId:' . $providerId,
+                'pId:' . $payloadProviderId,
                 'schedule:' . $this->message->data->schedule
             ]);
 
@@ -180,27 +164,25 @@ class TransformKafkaMessageEvents implements ShouldQueue
                     if ($event) {
                         $event->missing_count += 1;
                         $event->save();
-
                         if ($event->missing_count >= $missingCountConfiguration->value) {
                             $masterEvent = DB::table('master_events AS me')
                                     ->leftJoin('master_leagues AS ml', 'me.master_league_id', '=', 'ml.id')
                                     ->where('me.id', $event->master_event_id)
                                     ->select('me.*', 'ml.name AS league_name')
                                     ->first();
-                            if ($masterEvent && $payloadProviderId == $providerId) {
-                                if ($masterEvent) {
-                                    UserWatchlist::where('master_event_id', $event->master_event_id)->delete();
-                                    MasterEvent::where('id', $event->master_event_id)->delete();
 
-                                    $data[] = [
-                                        'uid'           => $masterEvent->master_event_unique_id,
-                                        'league_name'   => $masterEvent->league_name,
-                                        'game_schedule' => $masterEvent->game_schedule,
-                                    ];
-                                }
+                            if ($masterEvent) {
+                                UserWatchlist::where('master_event_id', $event->master_event_id)->delete();
+                                MasterEvent::where('id', $event->master_event_id)->delete();
+
+                                $data[] = [
+                                    'uid'           => $masterEvent->master_event_unique_id,
+                                    'league_name'   => $masterEvent->league_name,
+                                    'game_schedule' => $masterEvent->game_schedule,
+                                ];
                             }
 
-                            $eventTableKey = "sId:{$sportId}:pId:{$providerId}:eventIdentifier:{$event->id}";
+                            $eventTableKey = "sId:{$sportId}:pId:{$payloadProviderId}:eventIdentifier:{$event->id}";
                             $doesExist     = false;
                             foreach ($eventsTable as $k => $v) {
                                 if ($k == $eventTableKey) {
