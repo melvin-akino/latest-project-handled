@@ -47,6 +47,9 @@ class OddsSaveToDbHandler
      */
     public function handle()
     {
+        $start = microtime(true);
+        $debug[] = 'start handle -> ' . $start;
+
         $this->swoole               = app('swoole');
         $this->eventData            = $this->subTasks['event'];
         $this->eventRawData         = $this->subTasks['event-raw'];
@@ -59,6 +62,7 @@ class OddsSaveToDbHandler
             $start = microtime(true);
             DB::beginTransaction();
 
+            $debug[] = 'deleting existing event markets -> ' . (microtime(true) - $start);
             $event = Events::withTrashed()->where('event_identifier',
                 $this->eventRawData['Event']['data']['event_identifier'])->first();
             if ($event && $event->game_schedule != $this->eventData['MasterEvent']['data']['game_schedule'] || $this->dbOptions['event-only']) {
@@ -66,6 +70,7 @@ class OddsSaveToDbHandler
                            ->delete();
             }
 
+            $debug[] = 'deleting event specific market -> ' . (microtime(true) - $start);
             if (!empty($this->removeEventMarket)) { // Only specific market type has no data
                 foreach ($this->removeEventMarket as $removeEventMarket) {
                     EventMarket::where('market_event_identifier', $removeEventMarket['market_event_identifier'])
@@ -77,6 +82,7 @@ class OddsSaveToDbHandler
             }
 
             if ($this->dbOptions['in-masterlist']) {
+                $debug[] = 'search and update master event -> ' . (microtime(true) - $start);
                 $masterEvent = MasterEvent::withTrashed()
                                           ->where('master_league_id', $this->eventData['MasterEvent']['data']['master_league_id'])
                                           ->where('master_team_home_id', $this->eventData['MasterEvent']['data']['master_team_home_id'])
@@ -103,12 +109,14 @@ class OddsSaveToDbHandler
                 $this->eventRawData['Event']['data']['master_event_id'] = $masterEventModel->id;
             }
 
+            $debug[] = 'update or create events -> ' . (microtime(true) - $start);
             $eventModel = Events::withTrashed()->updateOrCreate([
                 'event_identifier' => $this->eventRawData['Event']['data']['event_identifier']
             ], $this->eventRawData['Event']['data']);
 
             if ($eventModel) {
                 if (!empty($this->eventMarketsData)) {
+                    $debug[] = 'looping event markets data -> ' . (microtime(true) - $start);
                     foreach ($this->eventMarketsData as $eventMarket) {
                         if (
                             in_array($eventMarket['EventMarket']['data']['odd_type_id'], [1, 10]) &&
@@ -124,7 +132,7 @@ class OddsSaveToDbHandler
 
                             if (empty($eventMarket['MasterEventMarket']['data']['master_event_market_unique_id'])) {
                                 $eventMarket['MasterEventMarket']['data']['master_event_market_unique_id'] = uniqid();
-
+                                $debug[] = 'search existing master_event_markets -> ' . (microtime(true) - $start);
                                 $existingMasterEventMarket = MasterEventMarket::getExistingMemUID($masterEventModel->id,
                                     $eventMarket['EventMarket']['data']['odd_type_id'],
                                     $eventMarket['EventMarket']['data']['odd_label'],
@@ -137,6 +145,7 @@ class OddsSaveToDbHandler
                                 }
                             }
 
+                            $debug[] = 'update or create master event market -> ' . (microtime(true) - $start);
                             if ($newMasterEvent) {
                                 $masterEventMarketModel = MasterEventMarket::updateOrCreate([
                                     'master_event_market_unique_id' => $eventMarket['MasterEventMarket']['data']['master_event_market_unique_id']
@@ -154,7 +163,7 @@ class OddsSaveToDbHandler
                         }
 
                         $eventMarketModel = EventMarket::withTrashed()->where('bet_identifier', $eventMarket['EventMarket']['data']['bet_identifier'])->first();
-
+                        $debug[] = 'deleting event market by parameters -> ' . (microtime(true) - $start);
                         EventMarket::where('event_id', $eventMarket['EventMarket']['data']['event_id'])
                                    ->where('odd_label', $eventMarket['EventMarket']['data']['odd_label'])
                                    ->where('odd_type_id', $eventMarket['EventMarket']['data']['odd_type_id'])
@@ -162,6 +171,7 @@ class OddsSaveToDbHandler
                                    ->where('provider_id', $eventMarket['EventMarket']['data']['provider_id'])
                                    ->delete();
 
+                        $debug[] = 'update or create event markets -> ' . (microtime(true) - $start);
                         if ($eventMarketModel) {
                             EventMarket::withTrashed()->updateOrCreate(
                                 [
@@ -180,6 +190,7 @@ class OddsSaveToDbHandler
                             );
                         }
 
+                        $debug[] = 'create master event market logs -> ' . (microtime(true) - $start);
                         if ($this->dbOptions['in-masterlist'] && !empty($eventMarket['MasterEventMarketLog'])) {
                             $eventMarket['MasterEventMarketLog']['data']['master_event_market_id'] = $masterEventMarketId;
 
@@ -196,6 +207,7 @@ class OddsSaveToDbHandler
                         }
                     }
 
+                    $debug[] = 'Saving update odds data -> ' . (microtime(true) - $start);
                     if (!empty($this->updatedOddsData)) {
                         $eventRawData = $this->eventRawData;
 
@@ -208,6 +220,7 @@ class OddsSaveToDbHandler
 
             DB::commit();
 
+            $debug[] = 'delete all event markets in SWT -> ' . (microtime(true) - $start);
             if ($event && $event->game_schedule != $this->eventData['MasterEvent']['data']['game_schedule'] || $this->dbOptions['event-only']) {
                 foreach ($this->swoole->eventMarketsTable as $emKey => $emRow) {
                     if ($eventModel->id == $emRow['event_id']) {
@@ -216,6 +229,7 @@ class OddsSaveToDbHandler
                 }
             }
 
+            $debug[] = 'update event markets SWT -> ' . (microtime(true) - $start);
             if (!empty($this->eventMarketsData)) {
                 foreach ($this->eventMarketsData as $eventMarket) {
                     if (!empty($this->removeEventMarket)) {
@@ -239,6 +253,7 @@ class OddsSaveToDbHandler
                 }
             }
 
+            $debug[] = 'update master event swt -> ' . (microtime(true) - $start);
             if ($this->dbOptions['in-masterlist'] && $masterEventModel && $eventModel) {
                 $masterEventData = [
                     'master_event_unique_id' => $masterEventModel->master_event_unique_id,
@@ -269,7 +284,7 @@ class OddsSaveToDbHandler
                     }
                 }
             }
-
+            $debug[] = 'updating odds data in SWT -> ' . (microtime(true) - $start);
             if ($this->dbOptions['in-masterlist'] && !empty($this->updatedOddsData)) {
                 $uid         = $this->uid;
                 $WSOddsSwtId = "updatedEvents:" . $uid;
@@ -286,11 +301,7 @@ class OddsSaveToDbHandler
                 $this->swoole->updatedEventPricesTable->set($WSOddsSwtId,
                     ['value' => json_encode(array_values($updatedPrice))]);
             }
-            Log::info('Transformation - Processed completed');
-            $end = microtime(true);
-            Log::debug('ODDS SAVING START TIME -> ' . $start);
-            Log::debug('ODDS SAVING END TIME -> ' . $end);
-            Log::debug('ODDS SAVING RUN TIME -> ' . ($end - $start));
+            Log::debug($debug);
         } catch (Exception $e) {
             Log::error(json_encode(
                 [
