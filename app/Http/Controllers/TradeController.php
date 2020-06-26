@@ -24,6 +24,8 @@ use Exception;
 use DateTime;
 use Carbon\Carbon;
 
+use App\Http\Requests\ToggleLeaguesRequest;
+
 class TradeController extends Controller
 {
     /**
@@ -243,14 +245,8 @@ class TradeController extends Controller
      * @param  $request \Illuminate\Http\Request
      * @return json
      */
-    public function postManageSidebarLeagues(Request $request)
+    public function postManageSidebarLeagues(ToggleLeaguesRequest $request)
     {
-        $request->validate([
-            'league_name' => 'required|exists:master_leagues,name',
-            'schedule'    => 'required',
-            'sport_id'    => 'required|exists:sports,id'
-        ]);
-
         try {
             $masterLeague = MasterLeague::where('name', $request->league_name)->first();
             $checkTable = UserSelectedLeague::where('user_id', auth()->user()->id)
