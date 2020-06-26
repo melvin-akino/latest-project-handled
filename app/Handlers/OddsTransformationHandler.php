@@ -56,7 +56,6 @@ class OddsTransformationHandler
 
     public function handle()
     {
-        $start = microtime(true);
         try {
             $swoole                             = app('swoole');
             $toInsert                           = [];
@@ -314,6 +313,8 @@ class OddsTransformationHandler
                             ]);
 
                             $isMarketSame = true;
+
+                            $start = microtime(true);
 
                             $memUID = null;
                             $odds = null;
