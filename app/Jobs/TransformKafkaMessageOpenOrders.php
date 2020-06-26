@@ -98,7 +98,7 @@ class TransformKafkaMessageOpenOrders implements ShouldQueue
 
                         $orderLogsId = $orderLogs->id;
                         $credit      = $orderData->stake;
-                        $balance     = $credit * $exchangeRate->exchange_rate;
+                        $balance     = $credit;
                         $newBalance  = $userWallet->balance + $balance;
 
                         ProviderAccountOrder::create([
@@ -178,7 +178,7 @@ class TransformKafkaMessageOpenOrders implements ShouldQueue
                                     'CANCELLED',
                                 ])) {
                                     $credit     = $orderData->stake;
-                                    $balance    = $credit * $exchangeRate->exchange_rate;
+                                    $balance    = $credit;
                                     $newBalance = $userWallet->balance + $balance;
 
                                     UserWallet::where('user_id', $orderData->user_id)
