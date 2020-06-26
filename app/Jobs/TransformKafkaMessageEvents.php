@@ -29,18 +29,20 @@ class TransformKafkaMessageEvents implements ShouldQueue
             $swoole             = app('swoole');
             $eventScrapingTable = $swoole->eventScrapingTable;
 
-            $doesExist     = false;
-            $swtRequestUID = null;
-            foreach ($swoole->scraperRequestsTable as $key => $scraperRequestsTable) {
-                if ($key == 'type:events:requestUID:' . $this->message->request_uid) {
-                    $swtRequestUID = $this->message->request_uid;
-                    $doesExist     = true;
-                    break;
+            if (env('APP_ENV') != "local") {
+                $doesExist     = false;
+                $swtRequestUID = null;
+                foreach ($swoole->scraperRequestsTable as $key => $scraperRequestsTable) {
+                    if ($key == 'type:events:requestUID:' . $this->message->request_uid) {
+                        $swtRequestUID = $this->message->request_uid;
+                        $doesExist     = true;
+                        break;
+                    }
                 }
-            }
-            if (!$doesExist) {
-                Log::info("Event Transformation ignored - Request UID is from ML");
-                return;
+                if (!$doesExist) {
+                    Log::info("Event Transformation ignored - Request UID is from ML");
+                    return;
+                }
             }
 
             $timestampSwtId = 'eventScraping:' . implode(':', [
