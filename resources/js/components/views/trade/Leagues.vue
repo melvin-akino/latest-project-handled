@@ -19,7 +19,7 @@
 </template>
 
 <script>
-import { mapState } from 'vuex'
+import { mapState, mapGetters  } from 'vuex'
 import Cookies from 'js-cookie'
 import _ from 'lodash'
 import { getSocketKey, getSocketValue } from '../../../helpers/socket'
@@ -28,12 +28,11 @@ export default {
     data() {
         return {
             leagueSchedModes: ['inplay', 'today', 'early'],
-            selectedLeagueSchedMode: null,
-            displayedLeagues: []
         }
     },
     computed: {
-        ...mapState('trade', ['selectedLeagues', 'selectedSport', 'events', 'leagues', 'isLoadingLeagues']),
+        ...mapState('trade', ['selectedLeagues', 'selectedLeagueSchedMode', 'selectedSport', 'events', 'leagues', 'isLoadingLeagues']),
+        ...mapGetters('trade', ['displayedLeagues']),
         checkIfLeaguesIsEmpty() {
             if(!_.isEmpty(this.leagues)) {
                 return _.isEmpty(this.leagues[this.selectedLeagueSchedMode])
@@ -43,20 +42,9 @@ export default {
     watch: {
         leagues() {
             this.modifyLeaguesFromSocket()
-            this.filterLeaguesBySched(this.selectedLeagueSchedMode)
         }
     },
-    mounted() {
-        this.selectedLeagueSchedMode = Cookies.get('leagueSchedMode') || 'today'
-    },
     methods: {
-        filterLeaguesBySched(schedMode) {
-            if(this.leagues != null) {
-                this.displayedLeagues = this.leagues[schedMode].map(league => {
-                    return league
-                })
-            }
-        },
         modifyLeaguesFromSocket() {
             this.$options.sockets.onmessage = (response) => {
                 if (getSocketKey(response.data) === 'getAdditionalLeagues') {
@@ -97,13 +85,11 @@ export default {
                         })
                     }
                 }
-                this.filterLeaguesBySched(this.selectedLeagueSchedMode)
             }
         },
         selectLeagueSchedMode(schedMode) {
             Cookies.set('leagueSchedMode', schedMode)
-            this.selectedLeagueSchedMode = schedMode
-            this.filterLeaguesBySched(schedMode)
+            this.$store.commit('trade/CHANGE_LEAGUE_SCHED_MODE', schedMode)
         },
         selectLeague(league) {
             let token = Cookies.get('mltoken')

@@ -6,6 +6,7 @@ const token = Cookies.get('mltoken')
 
 const state = {
     leagues: [],
+    selectedLeagueSchedMode: Cookies.get('leagueSchedMode') || 'today',
     sports: [],
     selectedSport: null,
     selectedLeagues: {
@@ -42,9 +43,18 @@ const state = {
     failedBetStatus: ['PENDING', 'FAILED', 'CANCELLED', 'REJECTED', 'VOID', 'ABNORMAL BET', 'REFUNDED']
 }
 
+const getters = {
+    displayedLeagues: (state) => {
+        return state.leagues[state.selectedLeagueSchedMode]
+    }
+}
+
 const mutations = {
     SET_LEAGUES: (state, leagues) => {
         state.leagues = leagues
+    },
+    CHANGE_LEAGUE_SCHED_MODE: (state, data) => {
+        state.selectedLeagueSchedMode = data
     },
     ADD_TO_LEAGUES: (state, data) => {
         if(state.leagues.hasOwnProperty(data.schedule)) {
@@ -63,7 +73,7 @@ const mutations = {
                 if(events.length > 0) {
                     Vue.set(league, 'match_count', events.length)
                 } else {
-                    Vue.set(league, 'match_count', league.match_count - 1)
+                    Vue.set(league, 'match_count', data.eventsRemaining)
                 }
             }
         })
@@ -448,5 +458,5 @@ const actions = {
 }
 
 export default {
-    state, mutations, actions, namespaced: true
+    state, getters, mutations, actions, namespaced: true
 }
