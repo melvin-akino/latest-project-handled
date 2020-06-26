@@ -94,10 +94,12 @@ class SwtToWs implements CustomProcessInterface
         foreach ($updatedEventsTable as $k => $r) {
             $updatedMarkets = json_decode($r['value']);
             if (!empty($updatedMarkets)) {
-                foreach ($topicTable as $topic) {
-                    if (strpos($topic['topic_name'], 'market-id-') === 0) {
-                        $fd = $wsTable->get('uid:' . $topic['user_id']);
-                        $swoole->push($fd['value'], json_encode(['getUpdatedOdds' => $updatedMarkets]));
+                foreach ($updatedMarkets as $updatedMarket) {
+                    foreach ($topicTable as $topic) {
+                        if (strpos($topic['topic_name'], 'market-id-' . $updatedMarket->market_id) === 0) {
+                            $fd = $wsTable->get('uid:' . $topic['user_id']);
+                            $swoole->push($fd['value'], json_encode(['getUpdatedOdds' => [$updatedMarket]]));
+                        }
                     }
                 }
                 $updatedEventsTable->del($k);
