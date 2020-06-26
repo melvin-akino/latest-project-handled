@@ -259,7 +259,7 @@ export default {
                 let prices = this.minMaxData.map(minmax => minmax.price)
                 let qualifiedPrices = []
                 prices.map(price => {
-                    if(price >= this.initialPrice) {
+                    if(Number(twoDecimalPlacesFormat(price)) >= this.initialPrice) {
                         qualifiedPrices.push(price)
                     }
                 })
