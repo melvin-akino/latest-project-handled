@@ -12,7 +12,7 @@ use App\Models\{EventMarket,
 };
 
 use Exception;
-use Illuminate\Support\Facades\{DB, Log};
+use Illuminate\Support\Facades\{DB, Log, Redis};
 
 class OddsSaveToDbHandler
 {
@@ -233,6 +233,8 @@ class OddsSaveToDbHandler
                         ];
 
                         $this->swoole->eventMarketsTable->set($eventMarket['MasterEventMarket']['swtKey'], $array);
+
+                        Redis::set($eventMarket['MasterEventMarket']['swtKey'], json_encode($array));
                     }
                 }
             }

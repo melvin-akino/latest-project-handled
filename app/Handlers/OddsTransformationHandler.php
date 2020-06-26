@@ -321,7 +321,7 @@ class OddsTransformationHandler
                             $odds = null;
                             $doesExist = false;
                             foreach ($eventMarketsTable as $eventMarketKey => $eventMarket) {
-                                if (strpos($eventMarketKey, $masterEventMarketSwtId) === 0) {
+                                if ($eventMarketKey == $masterEventMarketSwtId) {
                                     $memUID = $eventMarket['master_event_market_unique_id'];
                                     $odds   = $eventMarket['odds'];
                                     $doesExist = true;
