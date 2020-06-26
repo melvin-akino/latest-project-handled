@@ -234,7 +234,7 @@ class OddsSaveToDbHandler
 
                         $this->swoole->eventMarketsTable->set($eventMarket['MasterEventMarket']['swtKey'], $array);
 
-                        Redis::set($eventMarket['MasterEventMarket']['swtKey'], json_encode($array));
+//                        Redis::set($eventMarket['MasterEventMarket']['swtKey'], json_encode($array));
                     }
                 }
             }

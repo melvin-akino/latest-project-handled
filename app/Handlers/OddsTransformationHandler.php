@@ -317,17 +317,19 @@ class OddsTransformationHandler
 
                             $start = microtime(true);
 
-                            $memUID = null;
-                            $odds = null;
-                            $doesExist = false;
-                            foreach ($eventMarketsTable as $eventMarketKey => $eventMarket) {
-                                if ($eventMarketKey == $masterEventMarketSwtId) {
-                                    $memUID = $eventMarket['master_event_market_unique_id'];
-                                    $odds   = $eventMarket['odds'];
-                                    $doesExist = true;
-                                    break;
-                                }
-                            }
+                            $eventMarkets = $eventMarketsTable[$masterEventMarketSwtId];
+                            $memUID = $eventMarkets['master_event_market_unique_id'];
+                            $odds = $eventMarkets['odds'];
+//                            $odds = null;
+//                            $doesExist = false;
+//                            foreach ($eventMarketsTable as $eventMarketKey => $eventMarket) {
+//                                if ($eventMarketKey == $masterEventMarketSwtId) {
+//                                    $memUID = $eventMarket['master_event_market_unique_id'];
+//                                    $odds   = $eventMarket['odds'];
+//                                    $doesExist = true;
+//                                    break;
+//                                }
+//                            }
 
                             $end = microtime(true);
                             Log::debug('ODDS TRANSFORMATION START TIME -> ' . $start);
@@ -335,9 +337,9 @@ class OddsTransformationHandler
                             Log::debug('ODDS TRANSFORMATION RUN TIME -> ' . ($end - $start));
 
                             if (Redis::exists($masterEventMarketSwtId)) {
-                                $redis = json_decode(Redis::get($masterEventMarketSwtId), true);
-                                $memUID = $redis['master_event_market_unique_id'];
-                                $odds = $redis['odds'];
+//                                $redis = json_decode(Redis::get($masterEventMarketSwtId), true);
+//                                $memUID = $redis['master_event_market_unique_id'];
+//                                $odds = $redis['odds'];
 
                                 if ($odds != $marketOdds) {
                                     $eventMarketsTable[$masterEventMarketSwtId]['odds'] = $marketOdds;

@@ -239,22 +239,22 @@ class DataToSwt implements CustomProcessInterface
                     'market_flag'                   => $eventMarket->market_flag,
                 ]);
 
-            Redis::set(
-                'pId:' . $eventMarket->provider_id .
-                ':meUID:' . $eventMarket->master_event_unique_id .
-                ':bId:' . $eventMarket->bet_identifier,
-                json_encode([
-                    'id'                            => $eventMarket->id,
-                    'master_event_unique_id'        => $eventMarket->master_event_unique_id,
-                    'master_event_market_unique_id' => $eventMarket->master_event_market_unique_id,
-                    'odd_type_id'                   => $eventMarket->odd_type_id,
-                    'provider_id'                   => $eventMarket->provider_id,
-                    'odds'                          => $odds,
-                    'odd_label'                     => $eventMarket->odd_label,
-                    'bet_identifier'                => $eventMarket->bet_identifier,
-                    'is_main'                       => $eventMarket->is_main,
-                    'market_flag'                   => $eventMarket->market_flag,
-                ]));
+//            Redis::set(
+//                'pId:' . $eventMarket->provider_id .
+//                ':meUID:' . $eventMarket->master_event_unique_id .
+//                ':bId:' . $eventMarket->bet_identifier,
+//                json_encode([
+//                    'id'                            => $eventMarket->id,
+//                    'master_event_unique_id'        => $eventMarket->master_event_unique_id,
+//                    'master_event_market_unique_id' => $eventMarket->master_event_market_unique_id,
+//                    'odd_type_id'                   => $eventMarket->odd_type_id,
+//                    'provider_id'                   => $eventMarket->provider_id,
+//                    'odds'                          => $odds,
+//                    'odd_label'                     => $eventMarket->odd_label,
+//                    'bet_identifier'                => $eventMarket->bet_identifier,
+//                    'is_main'                       => $eventMarket->is_main,
+//                    'market_flag'                   => $eventMarket->market_flag,
+//                ]));
         }, $masterEventMarkets->toArray());
     }
 
