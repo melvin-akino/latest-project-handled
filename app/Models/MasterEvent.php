@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Eloquent\{Model, SoftDeletes};
 
 class MasterEvent extends Model
@@ -39,5 +40,15 @@ class MasterEvent extends Model
         }
 
         return $return;
+    }
+
+    public static function getByMasterParams($eventData)
+    {
+        return DB::table('master_events')
+                 ->where('master_league_id', $eventData['master_league_id'])
+                 ->where('master_team_home_id', $eventData['master_team_home_id'])
+                 ->where('master_team_away_id', $eventData['master_team_away_id'])
+                 ->where('ref_schedule', $eventData['ref_schedule'])
+                 ->whereNull('deleted_at');
     }
 }

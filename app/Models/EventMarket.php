@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\{Model, SoftDeletes};
 use Illuminate\Support\Facades\DB;
 
@@ -45,5 +46,22 @@ class EventMarket extends Model
                  ->where('mem.master_event_market_unique_id', $memUID)
                  ->distinct()
                  ->first();
+    }
+
+    public static function deleteByEventId($eventId)
+    {
+        return DB::table('event_markets')
+          ->where('event_id', $eventId)
+          ->update(['deleted_at' => Carbon::now()]);
+    }
+
+    public static function deleteByParameters($removeEventMarket)
+    {
+        return DB::table('event_markets')
+                 ->where('market_event_identifier', $removeEventMarket['market_event_identifier'])
+                 ->where('odd_type_id', $removeEventMarket['odd_type_id'])
+                 ->where('provider_id', $removeEventMarket['provider_id'])
+                 ->where('market_flag', $removeEventMarket['market_flag'])
+                 ->update(['deleted_at' => Carbon::now()]);
     }
 }

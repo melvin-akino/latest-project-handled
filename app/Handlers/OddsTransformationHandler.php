@@ -54,8 +54,6 @@ class OddsTransformationHandler
 
     public function handle()
     {
-        $start = microtime(true);
-        $debug[] = 'start handle -> ' . $start;
         try {
             $swoole                             = app('swoole');
             $toInsert                           = [];
@@ -81,12 +79,9 @@ class OddsTransformationHandler
                 'master_team_away_id'   => $multiTeam['away']['id']
                 ) = $parameters;
 
-            $debug[] = 'call saveLeaguesData -> ' . (microtime(true) - $start);
             $leagueId = $this->saveLeaguesData($swoole, $providerId,  $sportId, $this->message->data->leagueName);
-            $debug[] = 'call saveTeamsData -> ' . (microtime(true) - $start);
             $team = $this->saveTeamsData($swoole, $providerId,  $sportId, $this->message->data->homeTeam, $this->message->data->awayTeam);
 
-            $debug[] = 'search event swt if exists -> ' . (microtime(true) - $start);
             /**
              * EVENTS (MASTER) Swoole Table
              *
@@ -124,7 +119,6 @@ class OddsTransformationHandler
                 $this->dbOptions['in-masterlist'] = false;
             }
             if ($doesExist) {
-                $debug[] = 'fetch event and check if schedule changes -> ' . (microtime(true) - $start);
                 $eventId = $eventsData['id'];
                 $uid     = $eventsData['master_event_unique_id'];
 
@@ -145,6 +139,8 @@ class OddsTransformationHandler
                 }
 
                 if (($eventsData['game_schedule'] != "") && ($eventsData['game_schedule'] != $this->message->data->schedule)) {
+                    $subTasks['remove-previous-market'] = true;
+
                     $eventScheduleChangeTable->set('eventScheduleChange:' . $uid, [
                         'value' => json_encode([
                             'uid'           => $uid,
@@ -154,7 +150,6 @@ class OddsTransformationHandler
                     ]);
                 }
             } else {
-                $debug[] = 'generating new UID -> ' . (microtime(true) - $start);
                 $masterTeamHomeId = $multiTeam['home']['id'];
                 $masterTeamAwayId = $multiTeam['away']['id'];
 
@@ -171,7 +166,6 @@ class OddsTransformationHandler
 
             $updatedOdds = [];
 
-            $debug[] = 'generating event and master event to insert -> ' . (microtime(true) - $start);
             $toInsert['Event']['data'] = [
                 'sport_id'         => $sportId,
                 'provider_id'      => $providerId,
@@ -210,17 +204,14 @@ class OddsTransformationHandler
             ];
             $subTasks['event']                 = $toInsert;
 
-            $debug[] = 'looping the events array -> ' . (microtime(true) - $start);
             foreach ($arrayEvents as $keyEvent => $event) {
                 if (!empty($event)) {
-                    $debug[] = 'looping the market odds array -> ' . (microtime(true) - $start);
                     foreach ($event->market_odds as $columns) {
                         if (empty($columns->marketSelection)) {
                             $this->dbOptions['event-only'] = false;
                             break 2;
                         }
 
-                        $debug[] = 'searching odd type -> ' . (microtime(true) - $start);
                         /**
                          * ODD TYPES Swoole Table
                          *
@@ -246,7 +237,6 @@ class OddsTransformationHandler
                             throw new Exception("Odds Type doesn't exist");
                         }
 
-                        $debug[] = 'searching sports -> ' . (microtime(true) - $start);
                         /**
                          * SPORT ODD TYPES Swoole Table
                          *
@@ -273,7 +263,6 @@ class OddsTransformationHandler
                             throw new Exception("Sport Odds Type doesn't exist");
                         }
 
-                        $debug[] = 'looping the market selection array -> ' . (microtime(true) - $start);
                         /** loop each `marketSelection` from each `market_odds` */
                         foreach ($columns->marketSelection as $markets) {
                             /**
@@ -325,7 +314,6 @@ class OddsTransformationHandler
 
                             $isMarketSame = true;
 
-                            $debug[] = 'Event Market Index -> ' . (microtime(true) - $start);
                             $eventMarkets = $eventMarketsTable[$masterEventMarketSwtId];
 
                             if (!empty($eventMarkets)) {
@@ -351,7 +339,6 @@ class OddsTransformationHandler
                                 $isMarketSame = false;
                             }
 
-                            $debug[] = 'Generating event markets and master event markets to insert -> ' . (microtime(true) - $start);
                             /** TO INSERT */
                             $toInsert['MasterEventMarket']['swtKey'] = $masterEventMarketSwtId;
                             $toInsert['MasterEventMarket']['data']   = [
@@ -404,7 +391,6 @@ class OddsTransformationHandler
                 $transformKafkaMessageOddsSaveToDb = resolve('TransformKafkaMessageOddsSaveToDb');
                 Task::deliver($transformKafkaMessageOddsSaveToDb->init($subTasks, $uid, $this->dbOptions));
             }
-            Log::debug($debug);
         } catch (Exception $e) {
             Log::error($e->getMessage());
             Log::error($e->getLine());

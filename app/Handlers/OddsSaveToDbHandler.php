@@ -12,7 +12,8 @@ use App\Models\{EventMarket,
 };
 
 use Exception;
-use Illuminate\Support\Facades\{DB, Log, Redis};
+use Illuminate\Support\Facades\{DB, Log};
+use Carbon\Carbon;
 
 class OddsSaveToDbHandler
 {
@@ -47,7 +48,7 @@ class OddsSaveToDbHandler
      */
     public function handle()
     {
-        $start = microtime(true);
+        $start   = microtime(true);
         $debug[] = 'start handle -> ' . $start;
 
         $this->swoole               = app('swoole');
@@ -56,44 +57,40 @@ class OddsSaveToDbHandler
         $this->eventMarketsData     = $this->subTasks['event-market'] ?? [];
         $this->updatedOddsData      = $this->subTasks['updated-odds'] ?? [];
         $this->removeEventMarket    = $this->subTasks['remove-event-market'] ?? [];
-        $this->removePreviousMarket = $this->subTasks['remove-previous-market'] ?? [];
+        $this->removePreviousMarket = $this->subTasks['remove-previous-market'] ?? false;
 
         try {
             $start = microtime(true);
             DB::beginTransaction();
 
             $debug[] = 'deleting existing event markets -> ' . (microtime(true) - $start);
-            $event = Events::withTrashed()->where('event_identifier',
-                $this->eventRawData['Event']['data']['event_identifier'])->first();
-            if ($event && $event->game_schedule != $this->eventData['MasterEvent']['data']['game_schedule'] || $this->dbOptions['event-only']) {
-                EventMarket::where('event_id', $event->event_id)
-                           ->delete();
+            $event   = DB::table('events')
+                         ->where('event_identifier', $this->eventRawData['Event']['data']['event_identifier'])
+                         ->whereNull('deleted_at')
+                         ->first();
+
+            if ($event && $this->removePreviousMarket || $this->dbOptions['event-only']) {
+                EventMarket::deleteByEventId($event->event_id);
             }
 
             $debug[] = 'deleting event specific market -> ' . (microtime(true) - $start);
             if (!empty($this->removeEventMarket)) { // Only specific market type has no data
                 foreach ($this->removeEventMarket as $removeEventMarket) {
-                    EventMarket::where('market_event_identifier', $removeEventMarket['market_event_identifier'])
-                               ->where('odd_type_id', $removeEventMarket['odd_type_id'])
-                               ->where('provider_id', $removeEventMarket['provider_id'])
-                               ->where('market_flag', $removeEventMarket['market_flag'])
-                               ->delete();
+                    EventMarket::deleteByParameters($removeEventMarket);
                 }
             }
 
             if ($this->dbOptions['in-masterlist']) {
-                $debug[] = 'search and update master event -> ' . (microtime(true) - $start);
-                $masterEvent = MasterEvent::withTrashed()
-                                          ->where('master_league_id', $this->eventData['MasterEvent']['data']['master_league_id'])
-                                          ->where('master_team_home_id', $this->eventData['MasterEvent']['data']['master_team_home_id'])
-                                          ->where('master_team_away_id', $this->eventData['MasterEvent']['data']['master_team_away_id'])
-                                          ->where('ref_schedule', $this->eventData['MasterEvent']['data']['ref_schedule']);
+                $debug[]     = 'search and update master event -> ' . (microtime(true) - $start);
+                $masterEvent = MasterEvent::getByMasterParams($this->eventData['MasterEvent']['data']);
+
                 if ($masterEvent->exists()) {
                     $masterEventData = $this->eventData['MasterEvent']['data'];
                     unset($masterEventData['master_league_id']);
                     unset($masterEventData['master_team_home_id']);
                     unset($masterEventData['master_team_away_id']);
                     unset($masterEventData['master_event_unique_id']);
+
                     $masterEventModel = MasterEvent::withTrashed()->updateOrCreate([
                         'master_league_id'    => $this->eventData['MasterEvent']['data']['master_league_id'],
                         'master_team_home_id' => $this->eventData['MasterEvent']['data']['master_team_home_id'],
@@ -109,7 +106,7 @@ class OddsSaveToDbHandler
                 $this->eventRawData['Event']['data']['master_event_id'] = $masterEventModel->id;
             }
 
-            $debug[] = 'update or create events -> ' . (microtime(true) - $start);
+            $debug[]    = 'update or create events -> ' . (microtime(true) - $start);
             $eventModel = Events::withTrashed()->updateOrCreate([
                 'event_identifier' => $this->eventRawData['Event']['data']['event_identifier']
             ], $this->eventRawData['Event']['data']);
@@ -132,8 +129,8 @@ class OddsSaveToDbHandler
 
                             if (empty($eventMarket['MasterEventMarket']['data']['master_event_market_unique_id'])) {
                                 $eventMarket['MasterEventMarket']['data']['master_event_market_unique_id'] = uniqid();
-                                $debug[] = 'search existing master_event_markets -> ' . (microtime(true) - $start);
-                                $existingMasterEventMarket = MasterEventMarket::getExistingMemUID($masterEventModel->id,
+                                $debug[]                                                                   = 'search existing master_event_markets -> ' . (microtime(true) - $start);
+                                $existingMasterEventMarket                                                 = MasterEventMarket::getExistingMemUID($masterEventModel->id,
                                     $eventMarket['EventMarket']['data']['odd_type_id'],
                                     $eventMarket['EventMarket']['data']['odd_label'],
                                     $eventMarket['EventMarket']['data']['market_flag']
@@ -151,7 +148,9 @@ class OddsSaveToDbHandler
                                     'master_event_market_unique_id' => $eventMarket['MasterEventMarket']['data']['master_event_market_unique_id']
                                 ], $eventMarket['MasterEventMarket']['data']);
                             } else {
-                                $masterEventMarketModel = MasterEventMarket::where('master_event_market_unique_id', $eventMarket['MasterEventMarket']['data']['master_event_market_unique_id'])->first();
+                                $masterEventMarketModel = DB::table('master_event_markets')
+                                                            ->where('master_event_market_unique_id', $eventMarket['MasterEventMarket']['data']['master_event_market_unique_id'])
+                                                            ->first();
                             }
                         }
 
@@ -162,14 +161,18 @@ class OddsSaveToDbHandler
                             $eventMarket['EventMarket']['data']['master_event_market_id'] = $masterEventMarketId;
                         }
 
-                        $eventMarketModel = EventMarket::withTrashed()->where('bet_identifier', $eventMarket['EventMarket']['data']['bet_identifier'])->first();
-                        $debug[] = 'deleting event market by parameters -> ' . (microtime(true) - $start);
-                        EventMarket::where('event_id', $eventMarket['EventMarket']['data']['event_id'])
-                                   ->where('odd_label', $eventMarket['EventMarket']['data']['odd_label'])
-                                   ->where('odd_type_id', $eventMarket['EventMarket']['data']['odd_type_id'])
-                                   ->where('market_flag', $eventMarket['EventMarket']['data']['market_flag'])
-                                   ->where('provider_id', $eventMarket['EventMarket']['data']['provider_id'])
-                                   ->delete();
+                        $eventMarketModel = DB::table('event_markets')
+                                              ->where('bet_identifier', $eventMarket['EventMarket']['data']['bet_identifier'])
+                                              ->whereNull('deleted_at')
+                                              ->first();
+                        $debug[]          = 'deleting event market by parameters -> ' . (microtime(true) - $start);
+                        DB::table('event_markets')
+                          ->where('event_id', $eventMarket['EventMarket']['data']['event_id'])
+                          ->where('odd_label', $eventMarket['EventMarket']['data']['odd_label'])
+                          ->where('odd_type_id', $eventMarket['EventMarket']['data']['odd_type_id'])
+                          ->where('market_flag', $eventMarket['EventMarket']['data']['market_flag'])
+                          ->where('provider_id', $eventMarket['EventMarket']['data']['provider_id'])
+                          ->update(['deleted_at' => Carbon::now()]);
 
                         $debug[] = 'update or create event markets -> ' . (microtime(true) - $start);
                         if ($eventMarketModel) {
@@ -194,8 +197,9 @@ class OddsSaveToDbHandler
                         if ($this->dbOptions['in-masterlist'] && !empty($eventMarket['MasterEventMarketLog'])) {
                             $eventMarket['MasterEventMarketLog']['data']['master_event_market_id'] = $masterEventMarketId;
 
-                            $masterEventMarketLog = MasterEventMarketLog::where('master_event_market_id', $masterEventMarketId)
-                                                                        ->orderBy('created_at', 'DESC');
+                            $masterEventMarketLog = DB::table('master_event_market_logs')
+                                                      ->where('master_event_market_id', $masterEventMarketId)
+                                                      ->orderBy('created_at', 'DESC');
                             if ($masterEventMarketLog->count() > 0) {
                                 $masterEventMarketLogData = $masterEventMarketLog->first();
                                 if ($masterEventMarketLogData->odds != $eventMarket['MasterEventMarketLog']['data']['odds']) {
@@ -221,7 +225,7 @@ class OddsSaveToDbHandler
             DB::commit();
 
             $debug[] = 'delete all event markets in SWT -> ' . (microtime(true) - $start);
-            if ($event && $event->game_schedule != $this->eventData['MasterEvent']['data']['game_schedule'] || $this->dbOptions['event-only']) {
+            if ($event && $this->removePreviousMarket || $this->dbOptions['event-only']) {
                 foreach ($this->swoole->eventMarketsTable as $emKey => $emRow) {
                     if ($eventModel->id == $emRow['event_id']) {
                         $this->swoole->eventMarketsTable->del($emKey);
@@ -247,8 +251,6 @@ class OddsSaveToDbHandler
                         ];
 
                         $this->swoole->eventMarketsTable->set($eventMarket['MasterEventMarket']['swtKey'], $array);
-
-//                        Redis::set($eventMarket['MasterEventMarket']['swtKey'], json_encode($array));
                     }
                 }
             }
