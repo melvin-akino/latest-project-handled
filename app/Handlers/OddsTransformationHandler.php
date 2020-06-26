@@ -204,10 +204,6 @@ class OddsTransformationHandler
             ];
             $subTasks['event']                 = $toInsert;
 
-            $end = microtime(true);
-            Log::debug('ODDS TRANSFORMATION START TIME -> ' . $start);
-            Log::debug('ODDS TRANSFORMATION END TIME -> ' . $end);
-            Log::debug('ODDS TRANSFORMATION RUN TIME -> ' . ($end - $start));
             foreach ($arrayEvents as $keyEvent => $event) {
                 if (!empty($event)) {
                     foreach ($event->market_odds as $columns) {
@@ -317,6 +313,11 @@ class OddsTransformationHandler
                             ]);
 
                             $isMarketSame = true;
+
+                            $end = microtime(true);
+                            Log::debug('ODDS TRANSFORMATION START TIME -> ' . $start);
+                            Log::debug('ODDS TRANSFORMATION END TIME -> ' . $end);
+                            Log::debug('ODDS TRANSFORMATION RUN TIME -> ' . ($end - $start));
 
                             $doesExist = false;
                             foreach ($eventMarketsTable as $eventMarketKey => $eventMarket) {
