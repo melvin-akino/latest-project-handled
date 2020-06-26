@@ -10,6 +10,7 @@ use Illuminate\Support\Str;
 use Hhxsv5\LaravelS\Swoole\Task\Task;
 use Exception;
 use stdClass;
+use Illuminate\Support\Facades\Redis;
 
 class OddsTransformationHandler
 {
@@ -333,7 +334,11 @@ class OddsTransformationHandler
                             Log::debug('ODDS TRANSFORMATION END TIME -> ' . $end);
                             Log::debug('ODDS TRANSFORMATION RUN TIME -> ' . ($end - $start));
 
-                            if ($doesExist) {
+                            if (Redis::exists($masterEventMarketSwtId)) {
+                                $redis = json_decode(Redis::get($masterEventMarketSwtId), true);
+                                $memUID = $redis['master_event_market_unique_id'];
+                                $odds = $redis['odds'];
+
                                 if ($odds != $marketOdds) {
                                     $eventMarketsTable[$masterEventMarketSwtId]['odds'] = $marketOdds;
                                     $this->updated                                      = true;
