@@ -30,45 +30,46 @@ class ScrapeProduce implements CustomProcessInterface
 
     public static function callback(Server $swoole, Process $process)
     {
-        $swoole            = app('swoole');
-        $kafkaProducer     = app('KafkaProducer');
-        $refreshDBInterval = config('scraping.refreshDBInterval');
+        if ($swoole->data2SwtTable->exist('data2Swt')) {
+            $kafkaProducer     = app('KafkaProducer');
+            $refreshDBInterval = config('scraping.refreshDBInterval');
 
-        self::$producerHandler      = new ProducerHandler($kafkaProducer);
-        self::$kafkaTopic           = env('KAFKA_SCRAPE_REQUEST_POSTFIX', '_req');
-        self::$providers            = DB::table('providers')->where('is_enabled', true)->get()->toArray();
-        self::$sports               = DB::table('sports')->where('is_enabled', true)->get()->toArray();
-        self::$systemConfiguration  = new SystemConfiguration();
-        self::$scheduleMapping      = config('scraping.scheduleMapping');
-        self::$scheduleMappingField = config('scraping.scheduleMappingField');
+            self::$producerHandler      = new ProducerHandler($kafkaProducer);
+            self::$kafkaTopic           = env('KAFKA_SCRAPE_REQUEST_POSTFIX', '_req');
+            self::$providers            = DB::table('providers')->where('is_enabled', true)->get()->toArray();
+            self::$sports               = DB::table('sports')->where('is_enabled', true)->get()->toArray();
+            self::$systemConfiguration  = new SystemConfiguration();
+            self::$scheduleMapping      = config('scraping.scheduleMapping');
+            self::$scheduleMappingField = config('scraping.scheduleMappingField');
 
-        $i = 0;
-        while (true) {
-            if ($i % $refreshDBInterval == 0) {
-                self::refresh_db_config();
-            }
+            $i = 0;
+            while (true) {
+                if ($i % $refreshDBInterval == 0) {
+                    self::refresh_db_config();
+                }
 
-            $request = [];
-            foreach (self::$scheduleMapping as $key => $scheduleType) {
-                foreach (self::$config as $conf) {
-                    if (in_array($conf['type'], $scheduleType)) {
-                        $request[$key][self::$scheduleMappingField[$conf['type']]] = $conf['value'];
+                $request = [];
+                foreach (self::$scheduleMapping as $key => $scheduleType) {
+                    foreach (self::$config as $conf) {
+                        if (in_array($conf['type'], $scheduleType)) {
+                            $request[$key][self::$scheduleMappingField[$conf['type']]] = $conf['value'];
+                        }
                     }
                 }
-            }
 
-            foreach ($request as $key => $req) {
-                self::$scheduleType = $key;
-                if ($i % $req['timer'] == 0) {
-                    for ($interval = 0; $interval < $req['requestNumber']; $interval++) {
-                        self::sendPayload($swoole);
-                        usleep($req['requestInterval'] * 1000);
+                foreach ($request as $key => $req) {
+                    self::$scheduleType = $key;
+                    if ($i % $req['timer'] == 0) {
+                        for ($interval = 0; $interval < $req['requestNumber']; $interval++) {
+                            self::sendPayload($swoole);
+                            usleep($req['requestInterval'] * 1000);
+                        }
                     }
                 }
-            }
 
-            $i++;
-            sleep(1);
+                $i++;
+                sleep(1);
+            }
         }
     }
 
