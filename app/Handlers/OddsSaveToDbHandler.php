@@ -183,7 +183,7 @@ class OddsSaveToDbHandler
                                        ->update($eventMarket['EventMarket']['data']);
                         } else {
                             $doesExist = false;
-                            foreach ($this->swoole->rawEventMarkets as $key => $value) {
+                            foreach ($this->swoole->rawEventMarketsTable as $key => $value) {
                                 if (
                                     $value['event_id'] == $eventMarket['EventMarket']['data']['event_id'] &&
                                     $value['odd_label'] == $eventMarket['EventMarket']['data']['odd_label'] &&
