@@ -156,7 +156,7 @@ return [
             ],
         ],
         'rawEvents'          => [// key format [eventId:$eventId] = [id = $eventId, ...]
-            'size'   => 20000,// The max size
+            'size'   => 50000,// The max size
             'column' => [// Define the columns
                 ['name' => 'id', 'type' => \Swoole\Table::TYPE_INT],
                 ['name' => 'event_identifier', 'type' => \Swoole\Table::TYPE_INT],
@@ -435,7 +435,7 @@ return [
             ],
         ],
         'providerAccounts'    => [ // KEY FORMAT: [providerId:$providerId:unique:<uniqid()>]
-            'size'   => 1000,
+            'size'   => 2000,
             'column' => [
                 ['name' => 'id', 'type' => \Swoole\Table::TYPE_INT],
                 ['name' => 'provider_id', 'type' => \Swoole\Table::TYPE_INT],
