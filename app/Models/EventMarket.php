@@ -62,6 +62,6 @@ class EventMarket extends Model
                  ->where('odd_type_id', $removeEventMarket['odd_type_id'])
                  ->where('provider_id', $removeEventMarket['provider_id'])
                  ->where('market_flag', $removeEventMarket['market_flag'])
-                 ->update(['deleted_at' => Carbon::now(), 'odds' => '']);
+                 ->update(['deleted_at' => Carbon::now(), 'odds' => 0]);
     }
 }
