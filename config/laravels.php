@@ -156,7 +156,7 @@ return [
             ],
         ],
         'rawEvents'          => [// key format [eventId:$eventId] = [id = $eventId, ...]
-            'size'   => 50000,// The max size
+            'size'   => env('SWT_MAX_SIZE', 102400),// The max size
             'column' => [// Define the columns
                 ['name' => 'id', 'type' => \Swoole\Table::TYPE_INT],
                 ['name' => 'event_identifier', 'type' => \Swoole\Table::TYPE_INT],
