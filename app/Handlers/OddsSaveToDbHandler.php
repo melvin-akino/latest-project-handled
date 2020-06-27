@@ -3,8 +3,6 @@
 namespace App\Handlers;
 
 use App\Models\{EventMarket,
-    Events,
-    MasterEvent,
     MasterEventMarket,
     MasterEventMarketLog,
     MasterLeague,
@@ -13,6 +11,8 @@ use App\Models\{EventMarket,
 
 use Exception;
 use Illuminate\Support\Facades\{DB, Log};
+use Carbon\Carbon;
+use App\Facades\SwooleHandler;
 
 class OddsSaveToDbHandler
 {
@@ -53,60 +53,74 @@ class OddsSaveToDbHandler
         $this->eventMarketsData     = $this->subTasks['event-market'] ?? [];
         $this->updatedOddsData      = $this->subTasks['updated-odds'] ?? [];
         $this->removeEventMarket    = $this->subTasks['remove-event-market'] ?? [];
-        $this->removePreviousMarket = $this->subTasks['remove-previous-market'] ?? [];
+        $this->removePreviousMarket = $this->subTasks['remove-previous-market'] ?? false;
 
         try {
+            $start = microtime(true);
             DB::beginTransaction();
 
-            $event = Events::withTrashed()->where('event_identifier',
-                $this->eventRawData['Event']['data']['event_identifier'])->first();
-            if ($event && $event->game_schedule != $this->eventData['MasterEvent']['data']['game_schedule'] || $this->dbOptions['event-only']) {
-                EventMarket::where('event_id', $event->event_id)
-                           ->delete();
+            $event   = DB::table('events')
+                         ->where('event_identifier', $this->eventRawData['Event']['data']['event_identifier'])
+                         ->whereNull('deleted_at')
+                         ->first();
+
+            if ($event && $this->removePreviousMarket || $this->dbOptions['event-only']) {
+                EventMarket::deleteByEventId($event->event_id);
             }
+
 
             if (!empty($this->removeEventMarket)) { // Only specific market type has no data
                 foreach ($this->removeEventMarket as $removeEventMarket) {
-                    EventMarket::where('market_event_identifier', $removeEventMarket['market_event_identifier'])
-                               ->where('odd_type_id', $removeEventMarket['odd_type_id'])
-                               ->where('provider_id', $removeEventMarket['provider_id'])
-                               ->where('market_flag', $removeEventMarket['market_flag'])
-                               ->delete();
+                    EventMarket::deleteByParameters($removeEventMarket);
                 }
             }
 
             if ($this->dbOptions['in-masterlist']) {
-                $masterEvent = MasterEvent::withTrashed()
-                                          ->where('master_league_id', $this->eventData['MasterEvent']['data']['master_league_id'])
-                                          ->where('master_team_home_id', $this->eventData['MasterEvent']['data']['master_team_home_id'])
-                                          ->where('master_team_away_id', $this->eventData['MasterEvent']['data']['master_team_away_id'])
-                                          ->where('ref_schedule', $this->eventData['MasterEvent']['data']['ref_schedule']);
-                if ($masterEvent->exists()) {
-                    $masterEventData = $this->eventData['MasterEvent']['data'];
+                $masterEventData = $this->eventData['MasterEvent']['data'];
+
+                $doesExist = false;
+                foreach ($this->swoole->eventsTable as $key => $event) {
+                    if (
+                        $event['master_league_id'] == $this->eventData['MasterEvent']['data']['master_league_id'] &&
+                        $event['master_team_home_id'] == $this->eventData['MasterEvent']['data']['master_team_home_id'] &&
+                        $event['master_team_away_id'] == $this->eventData['MasterEvent']['data']['master_team_away_id'] &&
+                        $event['ref_schedule'] == $this->eventData['MasterEvent']['data']['ref_schedule']
+                    ) {
+                        $masterEventId       = $event['id'];
+                        $masterEventUniqueId = $event['master_event_unique_id'];
+                        $doesExist           = true;
+                        break;
+                    }
+                }
+
+                if ($doesExist) {
                     unset($masterEventData['master_league_id']);
                     unset($masterEventData['master_team_home_id']);
                     unset($masterEventData['master_team_away_id']);
                     unset($masterEventData['master_event_unique_id']);
-                    $masterEventModel = MasterEvent::withTrashed()->updateOrCreate([
-                        'master_league_id'    => $this->eventData['MasterEvent']['data']['master_league_id'],
-                        'master_team_home_id' => $this->eventData['MasterEvent']['data']['master_team_home_id'],
-                        'master_team_away_id' => $this->eventData['MasterEvent']['data']['master_team_away_id'],
-                        'ref_schedule'        => $this->eventData['MasterEvent']['data']['ref_schedule']
-                    ], $masterEventData);
+                    DB::table('master_events')
+                      ->where('master_league_id', $this->eventData['MasterEvent']['data']['master_league_id'])
+                      ->where('master_team_home_id', $this->eventData['MasterEvent']['data']['master_team_home_id'])
+                      ->where('master_team_away_id', $this->eventData['MasterEvent']['data']['master_team_away_id'])
+                      ->where('ref_schedule', $this->eventData['MasterEvent']['data']['ref_schedule'])
+                      ->update($masterEventData);
                 } else {
-                    $masterEventModel = MasterEvent::withTrashed()->updateOrCreate([
-                        'master_event_unique_id' => $this->eventData['MasterEvent']['data']['master_event_unique_id']
-                    ], $this->eventData['MasterEvent']['data']);
+                    $masterEventId       = DB::table('master_events')->insertGetId($masterEventData);
+                    $masterEventUniqueId = $this->eventData['MasterEvent']['data']['master_event_unique_id'];
                 }
 
-                $this->eventRawData['Event']['data']['master_event_id'] = $masterEventModel->id;
+                $this->eventRawData['Event']['data']['master_event_id'] = $masterEventId;
             }
 
-            $eventModel = Events::withTrashed()->updateOrCreate([
-                'event_identifier' => $this->eventRawData['Event']['data']['event_identifier']
-            ], $this->eventRawData['Event']['data']);
+            $doesExist = SwooleHandler::doesExistValue('eventsTable', 'event_identifier', $this->eventRawData['Event']['data']['event_identifier']);
+            if ($doesExist) {
+                $eventId = SwooleHandler::doesExistGetKeyValue('rawEventsTable', 'event_identifier', $this->eventRawData['Event']['data']['event_identifier'], 'id');
+                DB::table('events')->where('event_identifier', $this->eventRawData['Event']['data']['event_identifier'])->update($this->eventRawData['Event']['data']);
+            } else {
+                $eventId = DB::table('events')->insertGetId($this->eventRawData['Event']['data']);
+            }
 
-            if ($eventModel) {
+            if ($eventId) {
                 if (!empty($this->eventMarketsData)) {
                     foreach ($this->eventMarketsData as $eventMarket) {
                         if (
@@ -116,15 +130,14 @@ class OddsSaveToDbHandler
                             continue;
                         }
 
-                        if ($this->dbOptions['in-masterlist'] && $masterEventModel) {
-                            $eventMarket['MasterEventMarket']['data']['master_event_id'] = $masterEventModel->id;
+                        if ($this->dbOptions['in-masterlist'] && $masterEventId) {
+                            $eventMarket['MasterEventMarket']['data']['master_event_id'] = $masterEventId;
 
                             $newMasterEvent = true;
 
                             if (empty($eventMarket['MasterEventMarket']['data']['master_event_market_unique_id'])) {
                                 $eventMarket['MasterEventMarket']['data']['master_event_market_unique_id'] = uniqid();
-
-                                $existingMasterEventMarket = MasterEventMarket::getExistingMemUID($masterEventModel->id,
+                                $existingMasterEventMarket                                                 = MasterEventMarket::getExistingMemUID($masterEventId,
                                     $eventMarket['EventMarket']['data']['odd_type_id'],
                                     $eventMarket['EventMarket']['data']['odd_label'],
                                     $eventMarket['EventMarket']['data']['market_flag']
@@ -137,53 +150,71 @@ class OddsSaveToDbHandler
                             }
 
                             if ($newMasterEvent) {
-                                $masterEventMarketModel = MasterEventMarket::updateOrCreate([
-                                    'master_event_market_unique_id' => $eventMarket['MasterEventMarket']['data']['master_event_market_unique_id']
-                                ], $eventMarket['MasterEventMarket']['data']);
+                                $doesExist = SwooleHandler::doesExistValue('eventMarketsTable', 'master_event_market_unique_id', $eventMarket['MasterEventMarket']['data']['master_event_market_unique_id']);
+                                if ($doesExist) {
+                                    $masterEventMarketId = SwooleHandler::doesExistGetKeyValue('eventMarketsTable', 'master_event_market_unique_id', $eventMarket['MasterEventMarket']['data']['master_event_market_unique_id'], 'id');
+                                    DB::table('master_event_markets')->where('master_event_market_unique_id', $eventMarket['MasterEventMarket']['data']['master_event_market_unique_id'])->update($eventMarket['MasterEventMarket']['data']);
+                                } else {
+                                    $masterEventMarketId = DB::table('master_event_markets')->insertGetId($eventMarket['MasterEventMarket']['data']);
+                                }
                             } else {
-                                $masterEventMarketModel = MasterEventMarket::where('master_event_market_unique_id', $eventMarket['MasterEventMarket']['data']['master_event_market_unique_id'])->first();
+                                $masterEventMarketId = SwooleHandler::doesExistGetKeyValue('eventMarketsTable', 'master_event_market_unique_id', $eventMarket['MasterEventMarket']['data']['master_event_market_unique_id'], 'id');
                             }
                         }
 
-                        $eventMarket['EventMarket']['data']['event_id'] = $eventModel->id;
+                        $eventMarket['EventMarket']['data']['event_id'] = $eventId;
 
-                        if ($this->dbOptions['in-masterlist'] && $masterEventMarketModel) {
-                            $masterEventMarketId                                          = $masterEventMarketModel->id;
+                        if ($this->dbOptions['in-masterlist'] && $masterEventMarketId) {
                             $eventMarket['EventMarket']['data']['master_event_market_id'] = $masterEventMarketId;
                         }
 
-                        $eventMarketModel = EventMarket::withTrashed()->where('bet_identifier', $eventMarket['EventMarket']['data']['bet_identifier'])->first();
+                        $doesExist = SwooleHandler::doesExistValue('rawEventMarketsTable', 'bet_identifier', $eventMarket['EventMarket']['data']['bet_identifier']);
 
-                        EventMarket::where('event_id', $eventMarket['EventMarket']['data']['event_id'])
-                                   ->where('odd_label', $eventMarket['EventMarket']['data']['odd_label'])
-                                   ->where('odd_type_id', $eventMarket['EventMarket']['data']['odd_type_id'])
-                                   ->where('market_flag', $eventMarket['EventMarket']['data']['market_flag'])
-                                   ->where('provider_id', $eventMarket['EventMarket']['data']['provider_id'])
-                                   ->delete();
+                        DB::table('event_markets')
+                          ->where('event_id', $eventMarket['EventMarket']['data']['event_id'])
+                          ->where('odd_label', $eventMarket['EventMarket']['data']['odd_label'])
+                          ->where('odd_type_id', $eventMarket['EventMarket']['data']['odd_type_id'])
+                          ->where('market_flag', $eventMarket['EventMarket']['data']['market_flag'])
+                          ->where('provider_id', $eventMarket['EventMarket']['data']['provider_id'])
+                          ->update(['deleted_at' => Carbon::now()]);
 
-                        if ($eventMarketModel) {
-                            EventMarket::withTrashed()->updateOrCreate(
-                                [
-                                    'bet_identifier' => $eventMarket['EventMarket']['data']['bet_identifier'],
-                                ], $eventMarket['EventMarket']['data']
-                            );
+                        if ($doesExist) {
+                            EventMarket::withTrashed()
+                                       ->where('bet_identifier', $eventMarket['EventMarket']['data']['bet_identifier'])
+                                       ->update($eventMarket['EventMarket']['data']);
                         } else {
-                            EventMarket::withTrashed()->updateOrCreate(
-                                [
-                                    'event_id'    => $eventMarket['EventMarket']['data']['event_id'],
-                                    'odd_label'   => $eventMarket['EventMarket']['data']['odd_label'],
-                                    'odd_type_id' => $eventMarket['EventMarket']['data']['odd_type_id'],
-                                    'market_flag' => $eventMarket['EventMarket']['data']['market_flag'],
-                                    'provider_id' => $eventMarket['EventMarket']['data']['provider_id']
-                                ], $eventMarket['EventMarket']['data']
-                            );
+                            $doesExist = false;
+                            foreach ($this->swoole->rawEventMarkets as $key => $value) {
+                                if (
+                                    $value['event_id'] == $eventMarket['EventMarket']['data']['event_id'] &&
+                                    $value['odd_label'] == $eventMarket['EventMarket']['data']['odd_label'] &&
+                                    $value['odd_type_id'] == $eventMarket['EventMarket']['data']['odd_type_id'] &&
+                                    $value['market_flag'] == $eventMarket['EventMarket']['data']['market_flag'] &&
+                                    $value['provider_id'] == $eventMarket['EventMarket']['data']['provider_id']
+                                ) {
+                                    $doesExist = true;
+                                    break;
+                                }
+                            }
+                            if ($doesExist) {
+                                EventMarket::withTrashed()
+                                           ->where('event_id', $eventMarket['EventMarket']['data']['event_id'])
+                                           ->where('odd_label', $eventMarket['EventMarket']['data']['odd_label'])
+                                           ->where('odd_type_id', $eventMarket['EventMarket']['data']['odd_type_id'])
+                                           ->where('market_flag', $eventMarket['EventMarket']['data']['market_flag'])
+                                           ->where('provider_id', $eventMarket['EventMarket']['data']['provider_id'])
+                                           ->update($eventMarket['EventMarket']['data']);
+                            } else {
+                                DB::table('event_markets')->insert($eventMarket['EventMarket']['data']);
+                            }
                         }
 
                         if ($this->dbOptions['in-masterlist'] && !empty($eventMarket['MasterEventMarketLog'])) {
                             $eventMarket['MasterEventMarketLog']['data']['master_event_market_id'] = $masterEventMarketId;
 
-                            $masterEventMarketLog = MasterEventMarketLog::where('master_event_market_id', $masterEventMarketId)
-                                                                        ->orderBy('created_at', 'DESC');
+                            $masterEventMarketLog = DB::table('master_event_market_logs')
+                                                      ->where('master_event_market_id', $masterEventMarketId)
+                                                      ->orderBy('created_at', 'DESC');
                             if ($masterEventMarketLog->count() > 0) {
                                 $masterEventMarketLogData = $masterEventMarketLog->first();
                                 if ($masterEventMarketLogData->odds != $eventMarket['MasterEventMarketLog']['data']['odds']) {
@@ -197,7 +228,6 @@ class OddsSaveToDbHandler
 
                     if (!empty($this->updatedOddsData)) {
                         $eventRawData = $this->eventRawData;
-
                         array_map(function ($marketOdds) use ($eventRawData) {
                             Game::updateOddsData($marketOdds, $eventRawData['Event']['data']['provider_id']);
                         }, $this->updatedOddsData);
@@ -207,13 +237,14 @@ class OddsSaveToDbHandler
 
             DB::commit();
 
-            if ($event && $event->game_schedule != $this->eventData['MasterEvent']['data']['game_schedule'] || $this->dbOptions['event-only']) {
+            if ($event && $this->removePreviousMarket || $this->dbOptions['event-only']) {
                 foreach ($this->swoole->eventMarketsTable as $emKey => $emRow) {
-                    if ($eventModel->id == $emRow['event_id']) {
+                    if ($eventId == $emRow['event_id']) {
                         $this->swoole->eventMarketsTable->del($emKey);
                     }
                 }
             }
+
 
             if (!empty($this->eventMarketsData)) {
                 foreach ($this->eventMarketsData as $eventMarket) {
@@ -228,7 +259,7 @@ class OddsSaveToDbHandler
                             'bet_identifier'                => $eventMarket['EventMarket']['data']['bet_identifier'],
                             'is_main'                       => $eventMarket['MasterEventMarket']['data']['is_main'],
                             'market_flag'                   => $eventMarket['MasterEventMarket']['data']['market_flag'],
-                            'event_id'                      => $eventModel->id
+                            'event_id'                      => $eventId
                         ];
 
                         $this->swoole->eventMarketsTable->set($eventMarket['MasterEventMarket']['swtKey'], $array);
@@ -236,9 +267,9 @@ class OddsSaveToDbHandler
                 }
             }
 
-            if ($this->dbOptions['in-masterlist'] && $masterEventModel && $eventModel) {
+            if ($this->dbOptions['in-masterlist'] && $masterEventId && $eventId) {
                 $masterEventData = [
-                    'master_event_unique_id' => $masterEventModel->master_event_unique_id,
+                    'master_event_unique_id' => $masterEventUniqueId,
                     'master_league_id'       => $this->eventData['MasterEvent']['data']['master_league_id'],
                     'master_team_home_id'    => $this->eventData['MasterEvent']['data']['master_team_home_id'],
                     'master_team_away_id'    => $this->eventData['MasterEvent']['data']['master_team_away_id'],
@@ -283,7 +314,8 @@ class OddsSaveToDbHandler
                 $this->swoole->updatedEventPricesTable->set($WSOddsSwtId,
                     ['value' => json_encode(array_values($updatedPrice))]);
             }
-            Log::info('Transformation - Processed completed');
+
+            Log::info("Transformation - process completed");
         } catch (Exception $e) {
             Log::error(json_encode(
                 [

@@ -8,7 +8,6 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Hhxsv5\LaravelS\Swoole\Task\Task;
 use Exception;
-use stdClass;
 
 class OddsTransformationHandler
 {
@@ -140,6 +139,8 @@ class OddsTransformationHandler
                 }
 
                 if (($eventsData['game_schedule'] != "") && ($eventsData['game_schedule'] != $this->message->data->schedule)) {
+                    $subTasks['remove-previous-market'] = true;
+
                     $eventScheduleChangeTable->set('eventScheduleChange:' . $uid, [
                         'value' => json_encode([
                             'uid'           => $uid,
@@ -313,17 +314,11 @@ class OddsTransformationHandler
 
                             $isMarketSame = true;
 
-                            $doesExist = false;
-                            foreach ($eventMarketsTable as $eventMarketKey => $eventMarket) {
-                                if (strpos($eventMarketKey, $masterEventMarketSwtId) === 0) {
-                                    $doesExist = true;
-                                    break;
-                                }
-                            }
+                            $eventMarkets = $eventMarketsTable[$masterEventMarketSwtId];
 
-                            if ($doesExist) {
-                                $memUID = $eventMarketsTable->get($masterEventMarketSwtId)['master_event_market_unique_id'];
-                                $odds   = $eventMarketsTable->get($masterEventMarketSwtId)['odds'];
+                            if (!empty($eventMarkets)) {
+                                $memUID = $eventMarkets['master_event_market_unique_id'];
+                                $odds = $eventMarkets['odds'];
 
                                 if ($odds != $marketOdds) {
                                     $eventMarketsTable[$masterEventMarketSwtId]['odds'] = $marketOdds;
@@ -441,7 +436,7 @@ class OddsTransformationHandler
 
     private function saveTeamsData($swoole, $providerId,  $sportId, $team1, $team2)
     {
-        $team = ['home' => new stdClass(), 'away' => new stdClass()];
+        $team = ['home' => (object) [], 'away' => (object) []];
         /**
          * Check if team exist in teams records
          */

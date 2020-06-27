@@ -87,18 +87,20 @@ class TransformKafkaMessageLeagues implements ShouldQueue
                 return;
             }
 
-            $doesExist     = false;
-            $swtRequestUID = null;
-            foreach ($swoole->scraperRequestsTable as $key => $scraperRequestsTable) {
-                if ($key == 'type:leagues:requestUID:' . $this->message->request_uid) {
-                    $swtRequestUID = $this->message->request_uid;
-                    $doesExist     = true;
-                    break;
+            if (env('APP_ENV') != "local") {
+                $doesExist     = false;
+                $swtRequestUID = null;
+                foreach ($swoole->scraperRequestsTable as $key => $scraperRequestsTable) {
+                    if ($key == 'type:leagues:requestUID:' . $this->message->request_uid) {
+                        $swtRequestUID = $this->message->request_uid;
+                        $doesExist     = true;
+                        break;
+                    }
                 }
-            }
-            if (!$doesExist) {
-                Log::info("League Transformation ignored - Request UID is from ML");
-                return;
+                if (!$doesExist) {
+                    Log::info("League Transformation ignored - Request UID is from ML");
+                    return;
+                }
             }
 
             $consumeLeaguesTablewtId = implode(':', [

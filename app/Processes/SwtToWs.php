@@ -3,6 +3,7 @@
 namespace App\Processes;
 
 use App\Jobs\WsEvents;
+use App\Models\UserProviderConfiguration;
 use Hhxsv5\LaravelS\Swoole\Process\CustomProcessInterface;
 use Hhxsv5\LaravelS\Swoole\Task\Task;
 use Illuminate\Support\Facades\Log;
@@ -91,13 +92,22 @@ class SwtToWs implements CustomProcessInterface
         $updatedEventsTable = $swoole->updatedEventsTable;
         $wsTable            = $swoole->wsTable;
         $topicTable         = $swoole->topicTable;
+        $userEnabledProviders = [];
         foreach ($updatedEventsTable as $k => $r) {
             $updatedMarkets = json_decode($r['value']);
             if (!empty($updatedMarkets)) {
-                foreach ($topicTable as $topic) {
-                    if (strpos($topic['topic_name'], 'market-id-') === 0) {
-                        $fd = $wsTable->get('uid:' . $topic['user_id']);
-                        $swoole->push($fd['value'], json_encode(['getUpdatedOdds' => $updatedMarkets]));
+                foreach ($updatedMarkets as $updatedMarket) {
+                    foreach ($topicTable as $topic) {
+                        if (strpos($topic['topic_name'], 'market-id-' . $updatedMarket->market_id) === 0) {
+                            if (!array_key_exists($topic['user_id'], $userEnabledProviders)) {
+                                $userProviderIds = UserProviderConfiguration::getProviderIdList($topic['user_id']);
+                                $userEnabledProviders[$topic['user_id']] = $userProviderIds;
+                            }
+                            if (in_array($updatedMarket->provider_id, $userEnabledProviders[$topic['user_id']])) {
+                                $fd = $wsTable->get('uid:' . $topic['user_id']);
+                                $swoole->push($fd['value'], json_encode(['getUpdatedOdds' => [$updatedMarket]]));
+                            }
+                        }
                     }
                 }
                 $updatedEventsTable->del($k);
