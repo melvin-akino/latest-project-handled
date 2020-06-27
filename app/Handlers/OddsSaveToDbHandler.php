@@ -56,7 +56,6 @@ class OddsSaveToDbHandler
         $this->removePreviousMarket = $this->subTasks['remove-previous-market'] ?? false;
 
         try {
-            $start = microtime(true);
             DB::beginTransaction();
 
             $event   = DB::table('events')

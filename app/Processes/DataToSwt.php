@@ -531,7 +531,7 @@ class DataToSwt implements CustomProcessInterface
                 'id'             => $eventMarket->id,
                 'bet_identifier' => $eventMarket->bet_identifier,
                 'provider_id'    => $eventMarket->provider_id,
-                'odd_label'    => $eventMarket->odd_label,
+                'odd_label'      => $eventMarket->odd_label,
                 'odd_type_id'    => $eventMarket->odd_type_id,
                 'market_flag'    => $eventMarket->market_flag,
             ]);
