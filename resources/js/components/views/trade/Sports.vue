@@ -28,7 +28,8 @@
 import { mapState } from 'vuex'
 import Cookies from 'js-cookie'
 import Leagues from './Leagues'
-import { getSocketKey, getSocketValue } from '../../../helpers/socket.js'
+import { getSocketKey, getSocketValue } from '../../../helpers/socket'
+import { moveToFirstElement } from '../../../helpers/array'
 import _ from 'lodash'
 
 export default {
@@ -45,10 +46,7 @@ export default {
         ...mapState('trade', ['sports', 'selectedSport', 'selectedLeagues']),
         sportsList() {
             if(this.isSportsListOpen) {
-                let sports = this.sports.filter(sport => sport.id != this.selectedSport)
-                let selectedSport = this.sports.filter(sport => sport.id == this.selectedSport)[0]
-                sports.unshift(selectedSport)
-                return sports
+                return moveToFirstElement(this.sports, 'id', this.selectedSport)
             } else {
                 return this.sports.filter(sport => sport.id == this.selectedSport)
             }
