@@ -165,7 +165,7 @@ export default {
         return {
             market_details: {},
             formattedRefSchedule: [],
-            inputPrice: null || this.odd_details.odds,
+            inputPrice: null || twoDecimalPlacesFormat(this.odd_details.odds),
             points: null,
             selectedPoint: {},
             market_id: this.odd_details.market_id,
@@ -249,7 +249,7 @@ export default {
             return Number(this.inputPrice)
         },
         towin() {
-            if(this.inputPrice) {
+            if(this.inputPrice && !_.isEmpty(this.minMaxData)) {
                 return Math.floor(this.orderForm.stake * this.initialPrice * 100) / 100
             } else {
                 return 0
@@ -281,18 +281,18 @@ export default {
             deep: true,
             handler(value) {
                 this.minMaxUpdateCounter = this.minMaxUpdateCounter + 1
-                if(this.minMaxUpdateCounter > 1) {
-                    if(this.minMaxUpdateCounter <= (this.market_details.providers.length + 1)) {
-                        let minMaxPrices = value.filter(minmax => minmax.price != null).map(minmax => minmax.price)
+                if(this.minMaxUpdateCounter <= (this.market_details.providers.length + 1)) {
+                    let minMaxPrices = value.filter(minmax => minmax.price != null).map(minmax => minmax.price)
+                    if(minMaxPrices.length > 0) {
                         this.inputPrice = twoDecimalPlacesFormat(Math.max(...minMaxPrices))
                         this.minMaxData = value.filter(minmax => minmax.price == Math.max(...minMaxPrices))
                         this.selectedProviders = this.minMaxData.map(minmax => minmax.provider_id)
                     }
+                }
 
-                    if(!_.isEmpty(this.minMaxData)) {
-                        let selectedMinmaxDataPrices = this.minMaxData.map(minmax => minmax.price)
-                        this.inputPrice = twoDecimalPlacesFormat(Math.min(...selectedMinmaxDataPrices))
-                    }
+                if(!_.isEmpty(this.minMaxData)) {
+                    let selectedMinmaxDataPrices = this.minMaxData.map(minmax => minmax.price)
+                    this.inputPrice = twoDecimalPlacesFormat(Math.min(...selectedMinmaxDataPrices))
                 }
             }
         }
@@ -338,11 +338,12 @@ export default {
             this.emptyMinMax(this.market_id)
             this.points = points
             this.market_id = market_id
-            this.inputPrice = odds
+            this.inputPrice = twoDecimalPlacesFormat(Number(odds))
             this.setActiveBetSlip(market_id)
             this.minmax(market_id)
             this.showBetMatrix = false
             this.minMaxUpdateCounter = 0
+            this.isEventNotAvailable = false
             this.clearOrderMessage()
         },
         previousPoint() {
@@ -419,6 +420,7 @@ export default {
                             this.isEventNotAvailable = false
                             this.updateMinMaxData(minmax, false, true)
                         } else {
+                            this.inputPrice = null
                             this.isEventNotAvailable = true
                             this.updateMinMaxData(minmax, false, false)
                         }
