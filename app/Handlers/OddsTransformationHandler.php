@@ -8,7 +8,6 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Hhxsv5\LaravelS\Swoole\Task\Task;
 use Exception;
-use stdClass;
 
 class OddsTransformationHandler
 {
@@ -17,9 +16,9 @@ class OddsTransformationHandler
     protected $updated   = false;
     protected $uid       = null;
     protected $dbOptions = [
-        'event-only'       => false,
-        'is-event-new'     => true,
-        'in-masterlist'    => true
+        'event-only'    => false,
+        'is-event-new'  => true,
+        'in-masterlist' => true
     ];
 
     protected $disregard = [
@@ -56,8 +55,8 @@ class OddsTransformationHandler
     public function handle()
     {
         try {
-            $swoole                             = app('swoole');
-            $toInsert                           = [];
+            $swoole   = app('swoole');
+            $toInsert = [];
             $subTasks = [];
 
             /** DATABASE TABLES */
@@ -70,18 +69,18 @@ class OddsTransformationHandler
 
             list(
                 'providerId' => $providerId,
-                'sportId'    => $sportId,
+                'sportId' => $sportId,
                 'parameters' => $parameters
                 ) = $this->internalParameters;
 
             list(
-                'master_league_id'      => $masterLeagueId,
-                'master_team_home_id'   => $multiTeam['home']['id'],
-                'master_team_away_id'   => $multiTeam['away']['id']
+                'master_league_id' => $masterLeagueId,
+                'master_team_home_id' => $multiTeam['home']['id'],
+                'master_team_away_id' => $multiTeam['away']['id']
                 ) = $parameters;
 
-            $leagueId = $this->saveLeaguesData($swoole, $providerId,  $sportId, $this->message->data->leagueName);
-            $team = $this->saveTeamsData($swoole, $providerId,  $sportId, $this->message->data->homeTeam, $this->message->data->awayTeam);
+            $leagueId = $this->saveLeaguesData($swoole, $providerId, $sportId, $this->message->data->leagueName);
+            $team     = $this->saveTeamsData($swoole, $providerId, $sportId, $this->message->data->homeTeam, $this->message->data->awayTeam);
 
             /**
              * EVENTS (MASTER) Swoole Table
@@ -140,6 +139,8 @@ class OddsTransformationHandler
                 }
 
                 if (($eventsData['game_schedule'] != "") && ($eventsData['game_schedule'] != $this->message->data->schedule)) {
+                    $subTasks['remove-previous-market'] = true;
+
                     $eventScheduleChangeTable->set('eventScheduleChange:' . $uid, [
                         'value' => json_encode([
                             'uid'           => $uid,
@@ -296,10 +297,10 @@ class OddsTransformationHandler
 
                             if ($markets->market_id == "") {
                                 $subTasks['remove-event-market'][] = [
-                                    'odd_type_id'      => $oddTypeId,
-                                    'provider_id'      => $providerId,
+                                    'odd_type_id'             => $oddTypeId,
+                                    'provider_id'             => $providerId,
                                     'market_event_identifier' => $event->eventId,
-                                    'market_flag'      => strtoupper($markets->indicator),
+                                    'market_flag'             => strtoupper($markets->indicator),
                                 ];
 
                                 continue;
@@ -313,17 +314,11 @@ class OddsTransformationHandler
 
                             $isMarketSame = true;
 
-                            $doesExist = false;
-                            foreach ($eventMarketsTable as $eventMarketKey => $eventMarket) {
-                                if (strpos($eventMarketKey, $masterEventMarketSwtId) === 0) {
-                                    $doesExist = true;
-                                    break;
-                                }
-                            }
+                            $eventMarkets = $eventMarketsTable[$masterEventMarketSwtId];
 
-                            if ($doesExist) {
-                                $memUID = $eventMarketsTable->get($masterEventMarketSwtId)['master_event_market_unique_id'];
-                                $odds   = $eventMarketsTable->get($masterEventMarketSwtId)['odds'];
+                            if (!empty($eventMarkets)) {
+                                $memUID = $eventMarkets['master_event_market_unique_id'];
+                                $odds   = $eventMarkets['odds'];
 
                                 if ($odds != $marketOdds) {
                                     $eventMarketsTable[$masterEventMarketSwtId]['odds'] = $marketOdds;
@@ -413,7 +408,7 @@ class OddsTransformationHandler
                 $providerId == $value['provider_id'] &&
                 $leagueName == $value['name']
             ) {
-                $leagueId = $value['id'];
+                $leagueId  = $value['id'];
                 $doesExist = true;
                 break;
             }
@@ -429,19 +424,19 @@ class OddsTransformationHandler
             $leagueId = $league->id;
 
             $swoole->rawLeaguesTable->set('leagueId:' . $league->id, [
-                'id' => $league->id,
+                'id'          => $league->id,
                 'sport_id'    => $sportId,
                 'provider_id' => $providerId,
-                'name' => $league->name
+                'name'        => $league->name
             ]);
         }
 
         return $leagueId;
     }
 
-    private function saveTeamsData($swoole, $providerId,  $sportId, $team1, $team2)
+    private function saveTeamsData($swoole, $providerId, $sportId, $team1, $team2)
     {
-        $team = ['home' => new stdClass(), 'away' => new stdClass()];
+        $team = ['home' => (object) [], 'away' => (object) []];
         /**
          * Check if team exist in teams records
          */
@@ -452,7 +447,7 @@ class OddsTransformationHandler
                 $team1 == $value['name']
             ) {
                 $team['home']->id = $value['id'];
-                $doesExist = true;
+                $doesExist        = true;
                 break;
             }
         }
@@ -481,7 +476,7 @@ class OddsTransformationHandler
                 $team2 == $value['name']
             ) {
                 $team['away']->id = $value['id'];
-                $doesExist = true;
+                $doesExist        = true;
                 break;
             }
         }

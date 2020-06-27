@@ -149,10 +149,29 @@ return [
         'rawTeams'          => [// key format [teamId:$teamId] = [name = $teamName, ...]
             'size'   => 20000,// The max size
             'column' => [// Define the columns
-                ['name' => 'id', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 10000],
+                ['name' => 'id', 'type' => \Swoole\Table::TYPE_INT],
                 ['name' => 'sport_id', 'type' => \Swoole\Table::TYPE_INT],
                 ['name' => 'provider_id', 'type' => \Swoole\Table::TYPE_INT],
                 ['name' => 'name', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 10000],
+            ],
+        ],
+        'rawEvents'          => [// key format [eventId:$eventId] = [id = $eventId, ...]
+            'size'   => 20000,// The max size
+            'column' => [// Define the columns
+                ['name' => 'id', 'type' => \Swoole\Table::TYPE_INT],
+                ['name' => 'event_identifier', 'type' => \Swoole\Table::TYPE_INT],
+                ['name' => 'provider_id', 'type' => \Swoole\Table::TYPE_INT],
+            ],
+        ],
+        'rawEventMarkets' => [// key format [eventMarketId:$eventMarketId] = [id = $eventMarketId, ...]
+            'size'   => env('SWT_MAX_SIZE', 102400),// The max size
+            'column' => [// Define the columns
+                ['name' => 'id', 'type' => \Swoole\Table::TYPE_INT],
+                ['name' => 'bet_identifier', 'type' => \Swoole\Table::TYPE_INT],
+                ['name' => 'provider_id', 'type' => \Swoole\Table::TYPE_INT],
+                ['name' => 'odd_label', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 20],
+                ['name' => 'odd_type_id', 'type' => \Swoole\Table::TYPE_INT],
+                ['name' => 'market_flag', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 20],
             ],
         ],
         'userWatchlist'       => [// key format [userWatchlist:$userId:masterEventId:$masterEventId] = [value = true]

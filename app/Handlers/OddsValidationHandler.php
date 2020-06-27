@@ -197,6 +197,7 @@ class OddsValidationHandler
                 $transformKafkaMessageOdds = resolve('TransformKafkaMessageOdds');
                 Task::deliver($transformKafkaMessageOdds->init($this->message, compact('providerId', 'sportId', 'parameters')));
             }
+            Log::info("Transformation - validation completed");
         } catch (Exception $e) {
             Log::error($e->getMessage());
             Log::error($e->getLine());

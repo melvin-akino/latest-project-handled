@@ -39,6 +39,8 @@ class DataToSwt implements CustomProcessInterface
             'UserInfo',
             'ProviderAccounts',
             'MLBetId',
+            'RawEvents',
+            'RawEventMarkets'
         ];
 
         $maxMissingCount = SystemConfiguration::getSystemConfigurationValue('EVENT_VALID_MAX_MISSING_COUNT')->value;
@@ -213,7 +215,7 @@ class DataToSwt implements CustomProcessInterface
                                      ->join('event_markets as em', 'em.master_event_market_id', 'mem.id')
                                      ->join('odd_types as ot', 'ot.id', 'mem.odd_type_id')
                                      ->whereNull('em.deleted_at')
-                                     ->select('em.id', 'mem.master_event_id', 'mem.master_event_market_unique_id', 'me.master_event_unique_id',
+                                     ->select('mem.id', 'mem.master_event_id', 'mem.master_event_market_unique_id', 'me.master_event_unique_id',
                                          'em.odd_type_id', 'em.provider_id', 'em.odds', 'em.odd_label',
                                          'em.bet_identifier', 'em.is_main', 'em.market_flag')
                                      ->get();
@@ -491,5 +493,48 @@ class DataToSwt implements CustomProcessInterface
         $swTable->set('mlBetId', [
             'ml_bet_id' => $betId,
         ]);
+    }
+
+    private static function db2SwtRawEvents(Server $swoole)
+    {
+        $events = DB::table('events')
+                    ->select('id', 'event_identifier', 'provider_id')
+                    ->whereNull('deleted_at')
+                    ->get();
+
+        $rawEventsTable = $swoole->rawEventsTable;
+
+        array_map(function ($event) use ($rawEventsTable) {
+            $swtId = "eventId:" . $event->id;
+
+            $rawEventsTable->set($swtId, [
+                'id'               => $event->id,
+                'event_identifier' => $event->event_identifier,
+                'provider_id'      => $event->provider_id
+            ]);
+        }, $events->toArray());
+    }
+
+    private static function db2SwtRawEventMarkets(Server $swoole)
+    {
+        $eventMarkets = DB::table('event_markets')
+                          ->select('id', 'bet_identifier', 'provider_id', 'odd_label', 'odd_type_id', 'market_flag')
+                          ->whereNull('deleted_at')
+                          ->get();
+
+        $rawEventMarketsTable = $swoole->rawEventMarketsTable;
+
+        array_map(function ($eventMarket) use ($rawEventMarketsTable) {
+            $swtId = "eventMarketId:" . $eventMarket->id;
+
+            $rawEventMarketsTable->set($swtId, [
+                'id'             => $eventMarket->id,
+                'bet_identifier' => $eventMarket->bet_identifier,
+                'provider_id'    => $eventMarket->provider_id,
+                'odd_label'      => $eventMarket->odd_label,
+                'odd_type_id'    => $eventMarket->odd_type_id,
+                'market_flag'    => $eventMarket->market_flag,
+            ]);
+        }, $eventMarkets->toArray());
     }
 }

@@ -3,6 +3,7 @@
 namespace App\Processes;
 
 use App\Jobs\WsEvents;
+use App\Models\UserProviderConfiguration;
 use Hhxsv5\LaravelS\Swoole\Process\CustomProcessInterface;
 use Hhxsv5\LaravelS\Swoole\Task\Task;
 use Illuminate\Support\Facades\Log;
@@ -88,16 +89,25 @@ class SwtToWs implements CustomProcessInterface
 
     private static function getUpdatedOdds($swoole)
     {
-        $updatedEventsTable = $swoole->updatedEventsTable;
-        $wsTable            = $swoole->wsTable;
-        $topicTable         = $swoole->topicTable;
+        $updatedEventsTable   = $swoole->updatedEventsTable;
+        $wsTable              = $swoole->wsTable;
+        $topicTable           = $swoole->topicTable;
+        $userEnabledProviders = [];
         foreach ($updatedEventsTable as $k => $r) {
             $updatedMarkets = json_decode($r['value']);
             if (!empty($updatedMarkets)) {
-                foreach ($topicTable as $topic) {
-                    if (strpos($topic['topic_name'], 'market-id-') === 0) {
-                        $fd = $wsTable->get('uid:' . $topic['user_id']);
-                        $swoole->push($fd['value'], json_encode(['getUpdatedOdds' => $updatedMarkets]));
+                foreach ($updatedMarkets as $updatedMarket) {
+                    foreach ($topicTable as $topic) {
+                        if (strpos($topic['topic_name'], 'market-id-' . $updatedMarket->market_id) === 0) {
+                            if (!array_key_exists($topic['user_id'], $userEnabledProviders)) {
+                                $userProviderIds                         = UserProviderConfiguration::getProviderIdList($topic['user_id']);
+                                $userEnabledProviders[$topic['user_id']] = $userProviderIds;
+                            }
+                            if (in_array($updatedMarket->provider_id, $userEnabledProviders[$topic['user_id']])) {
+                                $fd = $wsTable->get('uid:' . $topic['user_id']);
+                                $swoole->push($fd['value'], json_encode(['getUpdatedOdds' => [$updatedMarket]]));
+                            }
+                        }
                     }
                 }
                 $updatedEventsTable->del($k);
@@ -114,7 +124,7 @@ class SwtToWs implements CustomProcessInterface
         foreach ($updatedEventsTable as $k => $r) {
             $updatedMarkets = json_decode($r['value']);
             if (!empty($updatedMarkets)) {
-                foreach ($topicTable AS $topic => $_row) {
+                foreach ($topicTable as $topic => $_row) {
                     if (strpos($_row['topic_name'], 'min-max-') === 0) {
                         $userId = $_row['user_id'];
                         $fd     = $wsTable->get('uid:' . $userId);
@@ -137,7 +147,7 @@ class SwtToWs implements CustomProcessInterface
         $getActionLeaguesTable = $swoole->getActionLeaguesTable;
         $wsTable               = $swoole->wsTable;
 
-        foreach ($getActionLeaguesTable AS $_key => $_row) {
+        foreach ($getActionLeaguesTable as $_key => $_row) {
             if (strpos($_key, $swtKey) > -1) {
                 $data = json_decode($_row['value']);
                 if (!empty($data)) {
@@ -163,7 +173,7 @@ class SwtToWs implements CustomProcessInterface
         $getActionLeaguesTable = $swoole->getActionLeaguesTable;
         $wsTable               = $swoole->wsTable;
 
-        foreach ($getActionLeaguesTable AS $_key => $_row) {
+        foreach ($getActionLeaguesTable as $_key => $_row) {
             if (strpos($_key, $swtKey) === 0) {
                 $data = json_decode($_row['value']);
                 if (!empty($data)) {
@@ -172,8 +182,8 @@ class SwtToWs implements CustomProcessInterface
                             $fd = $wsTable->get('uid:' . $row['value']);
                             $swoole->push($fd['value'], json_encode([$topic => $data->{$abbr}]));
 
-                            foreach ($slTable AS $slKey => $slRow) {
-                                foreach ($data->{$abbr} AS $_abbr) {
+                            foreach ($slTable as $slKey => $slRow) {
+                                foreach ($data->{$abbr} as $_abbr) {
                                     if ((strpos($slKey, 'userId:' . $row['value']) > -1) &&
                                         (strpos($slKey, ':schedule:' . $_abbr->schedule . ':uniqueId:') > -1)) {
                                         if ($slTable[$slKey]['league_name'] == $_abbr->name) {
