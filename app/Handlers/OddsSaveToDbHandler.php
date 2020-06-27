@@ -208,7 +208,7 @@ class OddsSaveToDbHandler
                             }
                         }
 
-                        if ($this->dbOptions['in-masterlist'] && !empty($eventMarket['MasterEventMarketLog'])) {
+                        if ($this->dbOptions['in-masterlist'] && !empty($eventMarket['MasterEventMarketLog']) && $masterEventMarketId) {
                             $eventMarket['MasterEventMarketLog']['data']['master_event_market_id'] = $masterEventMarketId;
 
                             $masterEventMarketLog = DB::table('master_event_market_logs')

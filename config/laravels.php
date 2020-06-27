@@ -172,6 +172,7 @@ return [
                 ['name' => 'odd_label', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 20],
                 ['name' => 'odd_type_id', 'type' => \Swoole\Table::TYPE_INT],
                 ['name' => 'market_flag', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 20],
+                ['name' => 'event_id', 'type' => \Swoole\Table::TYPE_INT],
             ],
         ],
         'userWatchlist'       => [// key format [userWatchlist:$userId:masterEventId:$masterEventId] = [value = true]
