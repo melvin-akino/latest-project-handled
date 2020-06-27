@@ -15,7 +15,15 @@ const sortByObjectProperty = (array, property) => {
     return array.sort((a, b) => (a[property] > b[property]) ? 1 : -1)
 }
 
+const moveToFirstElement = (array, property, itemToCheck) => {
+    let newArray = array.filter(item => item[property] != itemToCheck)
+    let elementToGoFirst = array.filter(item => item[property] == itemToCheck)[0]
+    newArray.unshift(elementToGoFirst)
+    return newArray
+}
+
 module.exports = {
     sortByObjectKeys,
-    sortByObjectProperty
+    sortByObjectProperty,
+    moveToFirstElement
 }
