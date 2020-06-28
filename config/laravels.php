@@ -167,7 +167,7 @@ return [
             'size'   => env('SWT_MAX_SIZE', 102400),// The max size
             'column' => [// Define the columns
                 ['name' => 'id', 'type' => \Swoole\Table::TYPE_INT],
-                ['name' => 'bet_identifier', 'type' => \Swoole\Table::TYPE_INT],
+                ['name' => 'bet_identifier', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 30],
                 ['name' => 'provider_id', 'type' => \Swoole\Table::TYPE_INT],
                 ['name' => 'odd_label', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 20],
                 ['name' => 'odd_type_id', 'type' => \Swoole\Table::TYPE_INT],
@@ -343,6 +343,8 @@ return [
                 ['name' => 'is_main', 'type' => \Swoole\Table::TYPE_INT, 'size' => 1],
                 ['name' => 'market_flag', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 5],
                 ['name' => 'event_id', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 5],
+                ['name' => 'market_event_identifier', 'type' => \Swoole\Table::TYPE_INT],
+                ['name' => 'event_market_id', 'type' => \Swoole\Table::TYPE_INT],
             ],
         ],
         'transformed'         => [ //key format [eventIdentifier:$eventIdentifier] = [ts => $ts, ...]
