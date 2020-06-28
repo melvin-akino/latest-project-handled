@@ -345,7 +345,21 @@ return [
                 ['name' => 'event_id', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 5],
                 ['name' => 'market_event_identifier', 'type' => \Swoole\Table::TYPE_INT],
                 ['name' => 'event_market_id', 'type' => \Swoole\Table::TYPE_INT],
+                ['name' => 'master_event_id', 'type' => \Swoole\Table::TYPE_INT],
+                ['name' => 'master_event_market_id', 'type' => \Swoole\Table::TYPE_INT],
             ],
+        ],
+        'eventMarketLogs'        => [ //key format [memUID:$memUID] = [master_event_market_id = $masterEventMarketId, ...]
+               'size'   => env('SWT_MAX_SIZE', 102400),
+               'column' => [
+                   ['name' => 'master_event_market_id', 'type' => \Swoole\Table::TYPE_INT],
+                   ['name' => 'odd_type_id', 'type' => \Swoole\Table::TYPE_INT],
+                   ['name' => 'provider_id', 'type' => \Swoole\Table::TYPE_INT],
+                   ['name' => 'odds', 'type' => \Swoole\Table::TYPE_FLOAT],
+                   ['name' => 'odd_label', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 10],
+                   ['name' => 'is_main', 'type' => \Swoole\Table::TYPE_INT, 'size' => 1],
+                   ['name' => 'market_flag', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 5]
+               ],
         ],
         'transformed'         => [ //key format [eventIdentifier:$eventIdentifier] = [ts => $ts, ...]
             'size'   => env('SWT_MAX_SIZE', 102400),

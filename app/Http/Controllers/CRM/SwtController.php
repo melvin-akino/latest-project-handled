@@ -127,6 +127,10 @@ class SwtController extends Controller
                 'name'  => 'Event Markets',
                 'count' => $swoole->eventMarketsTable->count()
             ],
+            'eventMarketLogs'       => [
+                'name'  => 'Event Market Logs',
+                'count' => $swoole->eventMarketLogsTable->count()
+            ],
             'transformed'           => [
                 'name'  => 'Transformed',
                 'count' => $swoole->transformedTable->count()
