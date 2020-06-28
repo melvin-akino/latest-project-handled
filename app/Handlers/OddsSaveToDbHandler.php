@@ -258,6 +258,12 @@ class OddsSaveToDbHandler
 
             if (!empty($eventMarketsData)) {
                 foreach ($eventMarketsData as $eventMarket) {
+                    if (
+                        in_array($eventMarket['EventMarket']['data']['odd_type_id'], [1, 10]) &&
+                        $eventMarket['EventMarket']['data']['is_main'] == false
+                    ) {
+                        continue;
+                    }
                     SwooleHandler::setValue('rawEventMarketsTable', 'eventMarketId:' . $eventMarket['EventMarket']['data']['event_market_id'], [
                         'id'             => $eventMarket['EventMarket']['data']['event_market_id'],
                         'bet_identifier' => $eventMarket['EventMarket']['data']['bet_identifier'],
