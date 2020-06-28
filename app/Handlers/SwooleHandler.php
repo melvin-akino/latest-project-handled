@@ -43,4 +43,9 @@ class SwooleHandler
     {
         return self::$swoole->{$swooleTable}[$key];
     }
+
+    public static function setValue($swooleTable, $key, $payload)
+    {
+        return self::$swoole->{$swooleTable}->set($key, $payload);
+    }
 }
