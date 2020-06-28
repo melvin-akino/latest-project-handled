@@ -2,8 +2,8 @@
 
 namespace App\Jobs;
 
+use App\User;
 use App\Models\{
-    Currency,
     Order,
     OrderLogs,
     UserWallet,
@@ -58,9 +58,9 @@ class WsSettledBets implements ShouldQueue
 
         $orders       = Order::where('bet_id', $this->data->bet_id)->first();
         $userWallet   = UserWallet::where('user_id', $orders->user_id)->first();
-        $baseCurrency = Currency::where('code', 'CNY')->first();
+        $userCurrency = User::where('id', $orders->user_id)->first();
         $exchangeRate = ExchangeRate::where('from_currency_id', $this->providerCurrency)
-            ->where('to_currency_id', $baseCurrency->id)
+            ->where('to_currency_id', $userCurrency->currency_id)
             ->first();
 
         switch ($status) {
@@ -92,7 +92,7 @@ class WsSettledBets implements ShouldQueue
                 $sourceName          = "BET_HALF_WIN";
                 $stakeReturnToLedger = true;
                 $charge              = 'Credit';
-                $transferAmount      = ($orders->to_win / 2) - $orders->stake;
+                $transferAmount      = ($orders->to_win - $orders->stake) / 2;
 
                 break;
             case 'HALF LOSE':
@@ -101,7 +101,7 @@ class WsSettledBets implements ShouldQueue
                 $credit         = $balance;
                 $sourceName     = "BET_HALF_LOSE";
                 $charge         = 'Debit';
-                $transferAmount = ($orders->to_win / 2) - $orders->stake;
+                $transferAmount = ($orders->to_win - $orders->stake) / 2;
 
                 break;
             case 'PUSH':
@@ -119,6 +119,7 @@ class WsSettledBets implements ShouldQueue
                 break;
         }
 
+        $balance                 *= $exchangeRate->exchange_rate;
         $sourceId                 = Source::where('source_name', 'LIKE', $sourceName)->first();
         $returnBetSourceId        = Source::where('source_name', 'LIKE', 'RETURN_STAKE')->first();
         $score                    = $this->data->score;
