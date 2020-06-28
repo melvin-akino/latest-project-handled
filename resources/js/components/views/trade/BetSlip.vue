@@ -31,7 +31,7 @@
                 </div>
                 <div class="flex w-full">
                     <div class="flex flex-col mt-4 mr-3 w-3/5 h-full">
-                        <div class="flex flex-col items-center bg-white shadow shadow-xl mb-2" v-if="oddTypesWithSpreads.includes(market_details.odd_type)">
+                        <div class="flex flex-col items-center bg-white shadow-xl mb-2" v-if="oddTypesWithSpreads.includes(market_details.odd_type)">
                             <div class="text-white uppercase font-bold p-2 bg-orange-500 w-full text-center">{{market_details.odd_type}}</div>
                             <div class="relative flex justify-center items-center p-2">
                                 <a href="#" class="previousPoint absolute m-1 w-12 text-center text-gray-800" @click="previousPoint" v-show="points != spreads[0].points && spreads.length > 2"><i class="fas fa-chevron-left"></i></a>
@@ -39,7 +39,7 @@
                                 <a href="#" class="nextPoint absolute m-1 w-12 text-center text-gray-800" @click="nextPoint" v-show="points != spreads[spreads.length - 1].points && spreads.length > 2"><i class="fas fa-chevron-right"></i></a>
                             </div>
                         </div>
-                        <div class="flex flex-col bg-white shadow shadow-xl">
+                        <div class="flex flex-col bg-white shadow-xl">
                             <div class="flex justify-between items-center py-2 bg-orange-500 text-white">
                                 <span class="w-1/5"></span>
                                 <span class="w-1/5 text-sm font-bold text-center">Min</span>
@@ -65,7 +65,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="flex flex-col mt-4 p-2 shadow shadow-xl bg-white w-2/5 h-full">
+                    <div class="flex flex-col mt-4 p-2 shadow-xl bg-white w-2/5 h-full">
                         <div class="advanceBetSlipInfo" :class="{'hidden': betSlipSettings.adv_betslip_info == 0, 'block': betSlipSettings.adv_betslip_info == 1}">
                             <div class="flex justify-between items-center py-2">
                                 <span class="text-sm">Min Stake</span>
@@ -113,7 +113,7 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="flex justify-between items-center py-2 hidden" :class="{'hidden': betSlipSettings.adv_placement_opt == 0, 'block': betSlipSettings.adv_placement_opt == 1}">
+                        <div class="justify-between items-center py-2 hidden" :class="{'hidden': betSlipSettings.adv_placement_opt == 0, 'flex': betSlipSettings.adv_placement_opt == 1}">
                             <label class="text-sm flex items-center">
                                 <span class="mr-4">Fast Bet</span>
                                 <input class="outline-none rounded text-sm py-1 px-3 text-gray-700 leading-tight focus:outline-none" type="radio" value="FAST_BET" v-model="orderForm.betType" @change="clearOrderMessage">
@@ -310,8 +310,10 @@ export default {
                 this.market_details = response.data.data
                 this.formattedRefSchedule = response.data.data.ref_schedule.split(' ')
                 this.points = this.odd_details.points || null
-                this.spreads = moveToFirstElement(response.data.data.spreads, 'market_id', this.market_id)
-                this.displaySpreadsByFive()
+                if(response.data.data.spreads.length != 0) {
+                    this.spreads = moveToFirstElement(response.data.data.spreads, 'market_id', this.market_id)
+                    this.displaySpreadsByFive()
+                }
                 this.setMinMaxProviders()
                 this.$store.commit('trade/SHOW_BET_MATRIX_IN_BETSLIP', { market_id: this.odd_details.market_id, has_bet: response.data.data.has_bets })
             })
