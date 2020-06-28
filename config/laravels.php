@@ -415,6 +415,7 @@ return [
         'exchangeRates'       => [
             'size'   => 100,
             'column' => [ // KEY FORMAT: [from:$from_currency_code:to:$to_currency_code]
+                ['name' => 'id', 'type' => \Swoole\Table::TYPE_INT],
                 ['name' => 'default_amount', 'type' => \Swoole\Table::TYPE_FLOAT],
                 ['name' => 'exchange_rate', 'type' => \Swoole\Table::TYPE_FLOAT],
             ],
