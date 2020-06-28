@@ -159,7 +159,6 @@ class OddsValidationHandler
             if (!$leagueExist) {
                 appLog('info', "Transformation ignored - League is not in the masterlist");
                 $parameters['master_league_id'] = null;
-                return;
             }
 
             $competitors = [
@@ -180,7 +179,6 @@ class OddsValidationHandler
                 if (!$teamExist) {
                     appLog('info', "Transformation ignored - No Available Teams in the masterlist");
                     $parameters['master_team_' . $key . '_id'] = null;
-                    return;
                 }
             }
 

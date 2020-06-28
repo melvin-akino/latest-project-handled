@@ -2,12 +2,7 @@
 
 namespace App\Handlers;
 
-use App\Models\{EventMarket,
-    MasterEventMarket,
-    MasterEventMarketLog,
-    MasterLeague,
-    Game
-};
+use App\Models\{EventMarket, MasterEvent, MasterEventMarket, MasterEventMarketLog, MasterLeague, Game};
 
 use Exception;
 use Illuminate\Support\Facades\{DB, Log};
@@ -163,7 +158,7 @@ class OddsSaveToDbHandler
 
                         $eventMarket['EventMarket']['data']['event_id'] = $eventId;
 
-                        if ($this->dbOptions['in-masterlist'] && $masterEventMarketId) {
+                        if ($this->dbOptions['in-masterlist'] && !empty($masterEventMarketId)) {
                             $eventMarket['EventMarket']['data']['master_event_market_id'] = $masterEventMarketId;
                         }
 
@@ -208,7 +203,7 @@ class OddsSaveToDbHandler
                             }
                         }
 
-                        if ($this->dbOptions['in-masterlist'] && !empty($eventMarket['MasterEventMarketLog']) && $masterEventMarketId) {
+                        if ($this->dbOptions['in-masterlist'] && !empty($eventMarket['MasterEventMarketLog']) && !empty($masterEventMarketId)) {
                             $eventMarket['MasterEventMarketLog']['data']['master_event_market_id'] = $masterEventMarketId;
 
                             $masterEventMarketLog = DB::table('master_event_market_logs')
@@ -268,17 +263,23 @@ class OddsSaveToDbHandler
 
             if ($this->dbOptions['in-masterlist'] && $masterEventId && $eventId) {
                 $masterEventData = [
+                    'id' => $masterEventId,
+                    'event_identifier' => $this->eventData['Event']['data']['event_identifier'],
+
                     'master_event_unique_id' => $masterEventUniqueId,
                     'master_league_id'       => $this->eventData['MasterEvent']['data']['master_league_id'],
                     'master_team_home_id'    => $this->eventData['MasterEvent']['data']['master_team_home_id'],
                     'master_team_away_id'    => $this->eventData['MasterEvent']['data']['master_team_away_id'],
+                    'ref_schedule'           => $this->eventData['MasterEvent']['data']['ref_schedule'],
                     'team_home_id'           => $this->eventData['Event']['data']['team_home_id'],
                     'team_away_id'           => $this->eventData['Event']['data']['team_away_id'],
                     'game_schedule'          => $this->eventData['MasterEvent']['data']['game_schedule'],
                     'home_penalty'           => $this->eventData['MasterEvent']['data']['home_penalty'],
                     'away_penalty'           => $this->eventData['MasterEvent']['data']['away_penalty'],
                     'sport_id'               => $this->eventData['MasterEvent']['data']['sport_id'],
+                    'provider_id'               => $this->eventData['Event']['data']['provider_id'],
                 ];
+
                 $this->swoole->eventsTable->set($this->eventData['MasterEvent']['swtKey'], $masterEventData);
 
                 if ($this->dbOptions['is-event-new']) {
