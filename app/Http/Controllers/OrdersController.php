@@ -189,7 +189,7 @@ class OrdersController extends Controller
             }
 
             $masterEvent = $masterEvent->first();
-            
+
             $getOtherMarkets = Game::getOtherMarketSpreadDetails([
                 'odd_type_id'     => $masterEventMarket->odd_type_id,
                 'master_event_id' => $masterEventMarket->master_event_id,
@@ -313,41 +313,134 @@ class OrdersController extends Controller
         DB::beginTransaction();
 
         try {
-            $swt          = app('swoole');
-            $topics       = $swt->topicTable;
-            $payloadsSwt  = $swt->orderPayloadsTable;
-            $ordersTable  = $swt->ordersTable;
+            /**
+             * Initiate Swoole Instance.
+             *
+             * \Swoole\Http\Server $swoole
+             */
+            $swoole = app('swoole');
+
+            /**
+             * Define Swoole Tables.
+             *
+             * Memory Cache Data Storage
+             */
+            $currenciesSWT         = $swoole->currenciesTable;
+            $exchangeRatesSWT      = $swoole->exchangeRatesTable;
+            $orderPayloadsSWT      = $swoole->orderPayloadsTable;
+            $ordersSWT             = $swoole->ordersTable;
+            $providersSWT          = $swoole->providersTable;
+            $topicSWT              = $swoole->topicTable;
+            $userProviderConfigSWT = $swoole->userProviderConfigTable;
+
+            /**
+             * Initial Variable Declarations
+             *
+             * @type {String}
+             */
             $betType      = "";
             $return       = "";
             $returnCode   = 200;
             $prevStake    = 0;
-            $baseCurrency = Currency::where('code', 'CNY')->first();
             $userCurrency = auth()->user()->currency_id;
             $isUserVIP    = auth()->user()->is_vip;
             $orderIds     = [];
             $incrementIds = [];
 
             foreach ($request->markets AS $row) {
-                $betType         = $request->betType;
-                $percentage      = 0;
-                $alias           = "";
-                $mlBetId         = generateMLBetIdentifier();
-                $exchangeRate    = ExchangeRate::where('from_currency_id', $baseCurrency->id)
-                    ->where('to_currency_id', $baseCurrency->id)
-                    ->first();
-                $revExchangeRate = ExchangeRate::where('to_currency_id', $baseCurrency->id)
-                    ->where('from_currency_id', $baseCurrency->id)
-                    ->first();
+                $betType    = $request->betType;
+                $percentage = 0;
+                $mlBetId    = generateMLBetIdentifier();
+                $alias      = "";
 
-                if ($baseCurrency->id != $userCurrency) {
-                    $exchangeRate = ExchangeRate::where('from_currency_id', $baseCurrency->id)
-                        ->where('to_currency_id', $userCurrency)
-                        ->first();
+                /**
+                 * Fetch `userProviderConfig` Swoole Table
+                 *
+                 * @var  $userProviderConfigSWT  "userId:$userId:pId:$providerId"
+                 *                               ['user_id', 'provider_id', 'active', 'punter_percentage']
+                 */
+                $userProviderPercentage = -1;
+                $userProviderConfigKey  = implode(':', [
+                    "userId:" . auth()->user()->id,
+                    "pId:" . $row['provider_id'],
+                ]);
 
-                    $revExchangeRate = ExchangeRate::where('to_currency_id', $baseCurrency->id)
-                        ->where('from_currency_id', $userCurrency)
-                        ->first();
+                if ($userProviderConfigSWT->exists($userProviderConfigKey)) {
+                    if (!$userProviderConfigSWT[$userProviderConfigKey]['active']) {
+                        continue;
+                    } else {
+                        $userProviderPercentage = $userProviderConfigSWT[$userProviderConfigKey]['punter_percentage'];
+                    }
                 }
+
+                /**
+                 * Set Provider details from `providers` Swoole Table
+                 *
+                 * @var  $providersSWT  "providerAlias:strtolower($providerAlias)"
+                 */
+                $providerKey = "providerAlias:" . strtolower($row['provider']);
+                $providerInfo = [
+                    'alias'             => $providersSWT[$providerKey]['alias'],
+                    'currency_id'       => $providersSWT[$providerKey]['currency_id'],
+                    'is_enabled'        => $providersSWT[$providerKey]['is_enabled'],
+                    'punter_percentage' => $providersSWT[$providerKey]['punter_percentage'],
+                ];
+
+                /**
+                 * Browse `currencies` Swoole Table
+                 *
+                 * @var  $currenciesSWT  "currencyId:$id:currencyCode:$code"
+                 */
+                $userCurrencyInfo = [];
+
+                foreach ($currenciesSWT AS $_key => $_row) {
+                    if (strpos($_key, 'currencyId:' . auth()->user()->currency_id) !== false) {
+                        $userCurrencyInfo = [
+                            'id'   => auth()->user()->currency_id,
+                            'code' => $currenciesSWT[$_key]['code'],
+                        ];
+
+                        break;
+                    }
+                }
+
+                /**
+                 * Browse `currencies` Swoole Table
+                 *
+                 * @var  $currenciesSWT  "currencyId:$id:currencyCode:$code"
+                 */
+                $providerCurrencyInfo = [];
+
+                foreach ($currenciesSWT AS $_key => $_row) {
+                    if (strpos($_key, 'currencyId:' . $providerInfo['currency_id']) !== false) {
+                        $providerCurrencyInfo = [
+                            'id'   => $providerInfo['currency_id'],
+                            'code' => $currenciesSWT[$_key]['code']
+                        ];
+
+                        break;
+                    }
+                }
+
+                $exchangeRatesKey = implode(":", [
+                    "from:" . $userCurrencyInfo['code'],
+                    "to:" . $providerCurrencyInfo['code'],
+                ]);
+
+                $exchangeRate = [
+                    'id'            => $exchangeRatesSWT[$exchangeRatesKey]['id'],
+                    'exchange_rate' => $exchangeRatesSWT[$exchangeRatesKey]['exchange_rate'],
+                ];
+
+                $percentage = $userProviderPercentage >= 0 ? $userProviderPercentage : $providerInfo['punter_percentage'];
+
+                if ($prevStake == 0) {
+                    $payloadStake = $request->stake < $row['max'] ? $request->stake : $row['max'];
+                } else {
+                    $payloadStake = $prevStake < $row['max'] ? $prevStake : $row['max'];
+                }
+
+                $payloadStake *= $exchangeRate['exchange_rate'];
 
                 /** TO DO: Wallet Balance Sufficiency Check */
                 $userWallet = UserWallet::where('user_id', auth()->user()->id);
@@ -360,77 +453,14 @@ class OrdersController extends Controller
                     ], 404);
                 }
 
-                $userBalance = $userWallet->first()->balance * $exchangeRate->exchange_rate;
+                $userBalance = $userWallet->first()->balance * $exchangeRate['exchange_rate'];
 
-                if ($userBalance < ($request->stake * $exchangeRate->exchange_rate)) {
+                if ($userBalance < $payloadStake) {
                     return response()->json([
                         'status'      => false,
                         'status_code' => 400,
                         'message'     => trans('generic.bad-request') . ": Insufficient Wallet Balance"
                     ], 400);
-                }
-
-                $userProvider = UserProviderConfiguration::where('user_id', auth()->user()->id);
-
-                if ($userProvider->count() > 0) {
-                    $userProvider = $userProvider->where('provider_id', $row['provider_id'])
-                        ->first();
-
-                    if ($userProvider->active) {
-                        $userProvider = Provider::find($row['provider_id']);
-
-                        if ($userProvider->is_enabled) {
-                            $providerCurrency = $userProvider->currency_id;
-                            $percentage       = $userProvider->punter_percentage;
-                            $alias            = $userProvider->alias;
-                            $userProvider     = $userProvider->provider_id;
-                        } else {
-                            if ($betType == "BEST_PRICE") {
-                                return response()->json([
-                                    'status'      => false,
-                                    'status_code' => 400,
-                                    'message'     => trans('generic.bad-request')
-                                ], 400);
-                            }
-
-                            if ($betType == "FAST_BET") {
-                                continue;
-                            }
-                        }
-                    } else {
-                        if ($betType == "BEST_PRICE") {
-                            return response()->json([
-                                'status'      => false,
-                                'status_code' => 400,
-                                'message'     => trans('generic.bad-request')
-                            ], 400);
-                        }
-
-                        if ($betType == "FAST_BET") {
-                            continue;
-                        }
-                    }
-                } else {
-                    $userProvider = Provider::find($row['provider_id']);
-
-                    if ($userProvider->is_enabled) {
-                        $providerCurrency = $userProvider->currency_id;
-                        $percentage       = $userProvider->punter_percentage;
-                        $alias            = $userProvider->alias;
-                        $userProvider     = $userProvider->id;
-                    } else {
-                        if ($betType == "BEST_PRICE") {
-                            return response()->json([
-                                'status'      => false,
-                                'status_code' => 400,
-                                'message'     => trans('generic.bad-request')
-                            ], 400);
-                        }
-
-                        if ($betType == "FAST_BET") {
-                            continue;
-                        }
-                    }
                 }
 
                 $query = Game::getmasterEventByMarketId($request->market_id);
@@ -443,19 +473,13 @@ class OrdersController extends Controller
                     ], 404);
                 }
 
-                if ($prevStake == 0) {
-                    $payloadStake = $request->stake < $row['max'] ? $request->stake : $row['max'];
-                } else {
-                    $payloadStake = $prevStake < $row['max'] ? $prevStake : $row['max'];
-                }
-
                 $actualStake = $payloadStake / ($percentage / 100);
 
                 if ($request->betType == "BEST_PRICE") {
                     $prevStake = $request->stake - $row['max'];
                 }
 
-                if ($payloadStake < $row['min']) {
+                if (($payloadStake / $exchangeRate['exchange_rate']) < $row['min']) {
                     return response()->json([
                         'status'      => false,
                         'status_code' => 400,
@@ -463,19 +487,8 @@ class OrdersController extends Controller
                     ], 400);
                 }
 
-                $orderId = uniqid();
-
-                if ($providerCurrency == $baseCurrency->id) {
-                    if ($userCurrency != $providerCurrency) {
-                        $payloadStake *= $revExchangeRate->exchange_rate;
-                        $actualStake  *= $revExchangeRate->exchange_rate;
-                    }
-                } else {
-                    if ($userCurrency != $providerCurrency) {
-                        $payloadStake *= $exchangeRate->exchange_rate;
-                        $actualStake  *= $exchangeRate->exchange_rate;
-                    }
-                }
+                $orderId     = uniqid();
+                $actualStake *= $exchangeRate['exchange_rate'];
 
                 /** ROUNDING UP TO NEAREST 50 */
                 $ceil  = ceil($actualStake);
@@ -493,8 +506,8 @@ class OrdersController extends Controller
                 $payload['user_id']          = auth()->user()->id;
                 $payload['provider_id']      = strtolower($alias);
                 $payload['odds']             = $row['price'];
-                $payload['stake']            = ($payloadStake * $exchangeRate->exchange_rate);
-                $payload['to_win']           = (($payloadStake * $row['price']) * $exchangeRate->exchange_rate);
+                $payload['stake']            = $payloadStake;
+                $payload['to_win']           = $payloadStake * $row['price'];
                 $payload['actual_stake']     = $actualStake;
                 $payload['actual_to_win']    = $actualStake * $row['price'];
                 $payload['market_id']        = $query->bet_identifier;
@@ -503,8 +516,8 @@ class OrdersController extends Controller
                 $payload['orderExpiry']      = $request->orderExpiry;
                 $payload['order_id']         = $orderId;
                 $payload['sport_id']         = $query->sport_id;
-                $payload['exchange_rate_id'] = $exchangeRate->id;
-                $payload['exchange_rate']    = $exchangeRate->exchange_rate;
+                $payload['exchange_rate_id'] = $exchangeRate['id'];
+                $payload['exchange_rate']    = $exchangeRate['exchange_rate'];
                 $incrementIds['payload'][]   = $payload;
 
                 $teamname = $query->market_flag == "HOME" ? $query->master_home_team_name : $query->master_away_team_name;
@@ -542,15 +555,15 @@ class OrdersController extends Controller
                 ];
 
                 $_exchangeRate = [
-                    'id'            => $exchangeRate->id,
-                    'exchange_rate' => $exchangeRate->exchange_rate
+                    'id'            => $exchangeRate['id'],
+                    'exchange_rate' => $exchangeRate['exchange_rate'],
                 ];
 
                 $orderCreation  = ordersCreation(auth()->user()->id, $query->sport_id, $row['provider_id'], $providerAccountId, $_orderData, $_exchangeRate, $mlBetId);
                 $orderIncrement = $orderCreation['orders'];
                 $orderLogsId    = $orderCreation['order_logs']->id;
 
-                userWalletTransaction(auth()->user()->id, 'PLACE_BET', ($payloadStake * $exchangeRate->exchange_rate), $orderLogsId);
+                userWalletTransaction(auth()->user()->id, 'PLACE_BET', ($payloadStake), $orderLogsId);
 
                 $updateProvider             = ProviderAccount::find($providerAccountId);
                 $updateProvider->updated_at = Carbon::now();
@@ -568,13 +581,13 @@ class OrdersController extends Controller
                     }
                 }
 
-                $topicsId = implode(':', [
+                $topicKey = implode(':', [
                     "userId:" . auth()->user()->id,
                     "unique:" . $orderId,
                 ]);
 
-                if (!$topics->exists($topicsId)) {
-                    $topics->set($topicsId, [
+                if (!$topicSWT->exists($topicKey)) {
+                    $topicSWT->set($topicKey, [
                         'user_id'    => auth()->user()->id,
                         'topic_name' => "order-" . $orderIncrement->id
                     ]);
@@ -620,30 +633,31 @@ class OrdersController extends Controller
                     'exchange_rate'    => $incrementIds['payload'][$i]['exchange_rate'],
                 ];
 
-                $payloadsSwtId = implode(':', [
+                $orderPayloadsKey = implode(':', [
                     "place-bet-" . $incrementIds['id'][$i],
                     "uId:" . $incrementIds['payload'][$i]['user_id'],
                     "mId:" . $incrementIds['payload'][$i]['market_id']
                 ]);
 
-                if (!$payloadsSwt->exists($payloadsSwtId)) {
-                    $payloadsSwt->set($payloadsSwtId, [
+                if (!$orderPayloadsSWT->exists($orderPayloadsKey)) {
+                    $orderPayloadsSWT->set($orderPayloadsKey, [
                         'payload' => json_encode($payload),
                     ]);
                 }
 
                 unset($payload['data']['exchange_rate_id']);
                 unset($payload['data']['exchange_rate']);
+
                 KafkaPush::dispatch(
                     $incrementIds['payload'][$i]['provider_id'] . env('KAFKA_SCRAPE_ORDER_REQUEST_POSTFIX', '_bet_req'),
                     $payload,
                     $requestId
                 );
 
-                $ordersTable['orderId:' . $incrementIds['id'][$i]]['username']    = $payload['data']['username'];
-                $ordersTable['orderId:' . $incrementIds['id'][$i]]['orderExpiry'] = $payload['data']['orderExpiry'];
-                $ordersTable['orderId:' . $incrementIds['id'][$i]]['created_at']  = $incrementIds['created_at'][$i];
-                $ordersTable['orderId:' . $incrementIds['id'][$i]]['status']      = 'PENDING';
+                $ordersSWT['orderId:' . $incrementIds['id'][$i]]['username']    = $payload['data']['username'];
+                $ordersSWT['orderId:' . $incrementIds['id'][$i]]['orderExpiry'] = $payload['data']['orderExpiry'];
+                $ordersSWT['orderId:' . $incrementIds['id'][$i]]['created_at']  = $incrementIds['created_at'][$i];
+                $ordersSWT['orderId:' . $incrementIds['id'][$i]]['status']      = 'PENDING';
             }
 
             return response()->json([

@@ -396,6 +396,7 @@ class DataToSwt implements CustomProcessInterface
                            ->join('currency AS cf', 'er.from_currency_id', '=', 'cf.id')
                            ->join('currency AS ct', 'er.to_currency_id', '=', 'ct.id')
                            ->get([
+                               'er.id',
                                'cf.code AS from_code',
                                'ct.code AS to_code',
                                'er.default_amount',
@@ -409,6 +410,7 @@ class DataToSwt implements CustomProcessInterface
             ]);
 
             $swTable->set($erSwtId, [
+                'id'             => $exchangeRates->id,
                 'default_amount' => $exchangeRates->default_amount,
                 'exchange_rate'  => $exchangeRates->exchange_rate,
             ]);
