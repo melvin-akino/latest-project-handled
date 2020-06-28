@@ -134,6 +134,7 @@ class OddsSaveToDbHandler
 
                             if (empty($eventMarket['MasterEventMarket']['data']['master_event_market_unique_id'])) {
                                 $eventMarket['MasterEventMarket']['data']['master_event_market_unique_id'] = uniqid();
+                                $eventMarketsData[$eventMarketKey]['MasterEventMarket']['data']['master_event_market_unique_id'] = $eventMarket['MasterEventMarket']['data']['master_event_market_unique_id'];
 
                                 foreach ($this->swoole->eventMarketsTable as $eventMarketData) {
                                     if (
@@ -212,7 +213,7 @@ class OddsSaveToDbHandler
 
                         if ($this->dbOptions['in-masterlist'] && !empty($eventMarket['MasterEventMarketLog']) && !empty($masterEventMarketId)) {
                             $eventMarket['MasterEventMarketLog']['data']['master_event_market_id']                       = $masterEventMarketId;
-                            $eventMarketsData[$eventMarketKey]['MasterEventMarketLog']['data']['master_event_market_id'] = $eventMarketId;
+                            $eventMarketsData[$eventMarketKey]['EventMarket']['data']['master_event_market_id'] = $masterEventMarketId;
 
                             $masterEventMarketLogOdds = SwooleHandler::doesExistGetKeyValue('eventMarketLogsTable', 'master_event_market_id', $masterEventMarketId, 'odds');
 
@@ -299,9 +300,9 @@ class OddsSaveToDbHandler
                         ];
                         SwooleHandler::setValue('eventMarketsTable', $eventMarket['MasterEventMarket']['swtKey'], $array);
 
-                        if (!empty($eventMarket['MasterEventMarketLog']) && !empty($eventMarket['MasterEventMarketLog']['data']['master_event_market_id'])) {
-                            SwooleHandler::setValue('eventMarketLogsTable', 'memUID:' . $eventMarket['MasterEventMarketLog']['data']['master_event_market_id'], [
-                                'master_event_market_id' => $eventMarket['MasterEventMarketLog']['data']['master_event_market_id'],
+                        if (!empty($eventMarket['MasterEventMarketLog']) && !empty($eventMarket['EventMarket']['data']['master_event_market_id'])) {
+                            SwooleHandler::setValue('eventMarketLogsTable', 'memUID:' . $eventMarket['EventMarket']['data']['master_event_market_id'], [
+                                'master_event_market_id' => $eventMarket['EventMarket']['data']['master_event_market_id'],
                                 'odd_type_id'            => $eventMarket['MasterEventMarket']['data']['odd_type_id'],
                                 'provider_id'            => $eventMarket['EventMarket']['data']['provider_id'],
                                 'odds'                   => $eventMarket['EventMarket']['data']['odds'],
