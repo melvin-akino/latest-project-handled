@@ -93,6 +93,10 @@ class Game extends Model
                      'ot.type', 'em.odds', 'em.odd_label', 'em.provider_id', 'em.bet_identifier', 'e.master_event_id', 'p.alias')
                  ->where('uw.user_id', $userId)
                  ->where('mem.is_main', true)
+                 ->whereNull('me.deleted_at')
+                 ->whereNull('e.deleted_at')
+                 ->whereNull('em.deleted_at')
+                 ->whereNull('ml.deleted_at')
                  ->where('e.missing_count', '<=', $maxMissingCount)
                  ->distinct()->get();
     }
@@ -198,6 +202,7 @@ class Game extends Model
                  ->where('mem.is_main', true)
                  ->whereNull('me.deleted_at')
                  ->whereNull('e.deleted_at')
+                 ->whereNull('em.deleted_at')
                  ->whereNull('ml.deleted_at')
                  ->where('e.missing_count', '<=', $maxMissingCount)
                  ->select([
@@ -248,6 +253,8 @@ class Game extends Model
                  ->leftJoin('user_watchlist AS uw', 'me.id', 'uw.master_event_id')
                  ->where('uw.user_id', $userId)
                  ->whereNull('me.deleted_at')
+                 ->whereNull('e.deleted_at')
+                 ->whereNull('em.deleted_at')
                  ->whereNull('ml.deleted_at')
                  ->where('mem.is_main', true)
                  ->where('e.missing_count', '<=', $maxMissingCount)
