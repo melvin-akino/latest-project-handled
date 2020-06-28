@@ -21,7 +21,7 @@ class OddsSaveToDbHandler
         'is-market-different' => true
     ];
 
-    const ONEBYTWO = 1;
+    const ONEBYTWO   = 1;
     const HTONEBYTWO = 10;
 
     /**
@@ -44,7 +44,7 @@ class OddsSaveToDbHandler
      */
     public function handle()
     {
-        $runtime['start'] = microtime(true);
+        $runtime['start']           = microtime(true);
         $this->swoole               = app('swoole');
         $this->eventData            = $this->subTasks['event'];
         $this->eventRawData         = $this->subTasks['event-raw'];
@@ -167,7 +167,7 @@ class OddsSaveToDbHandler
                                   ->update($eventMarket['MasterEventMarket']['data']);
                             }
 
-                            $eventMarket['EventMarket']['data']['master_event_market_id'] = !empty($masterEventMarketId) ? $masterEventMarketId : null;
+                            $eventMarket['EventMarket']['data']['master_event_market_id']                       = !empty($masterEventMarketId) ? $masterEventMarketId : null;
                             $eventMarketsData[$eventMarketKey]['EventMarket']['data']['master_event_market_id'] = !empty($masterEventMarketId) ? $masterEventMarketId : null;
                         }
 
@@ -211,7 +211,7 @@ class OddsSaveToDbHandler
                         }
 
                         if ($this->dbOptions['in-masterlist'] && !empty($eventMarket['MasterEventMarketLog']) && !empty($masterEventMarketId)) {
-                            $eventMarket['MasterEventMarketLog']['data']['master_event_market_id'] = $masterEventMarketId;
+                            $eventMarket['MasterEventMarketLog']['data']['master_event_market_id']                       = $masterEventMarketId;
                             $eventMarketsData[$eventMarketKey]['MasterEventMarketLog']['data']['master_event_market_id'] = $eventMarketId;
 
                             $masterEventMarketLogOdds = SwooleHandler::doesExistGetKeyValue('eventMarketLogsTable', 'master_event_market_id', $masterEventMarketId, 'odds');
@@ -302,12 +302,12 @@ class OddsSaveToDbHandler
                         if (!empty($eventMarket['MasterEventMarketLog']) && !empty($eventMarket['MasterEventMarketLog']['data']['master_event_market_id'])) {
                             SwooleHandler::setValue('eventMarketLogsTable', 'memUID:' . $eventMarket['MasterEventMarketLog']['data']['master_event_market_id'], [
                                 'master_event_market_id' => $eventMarket['MasterEventMarketLog']['data']['master_event_market_id'],
-                                'odd_type_id' => $eventMarket['MasterEventMarket']['data']['odd_type_id'],
-                                'provider_id' => $eventMarket['EventMarket']['data']['provider_id'],
-                                'odds' => $eventMarket['EventMarket']['data']['odds'],
-                                'odd_label' => $eventMarket['EventMarket']['data']['odd_label'],
-                                'is_main' => $eventMarket['MasterEventMarket']['data']['is_main'],
-                                'market_flag' => $eventMarket['MasterEventMarket']['data']['market_flag'],
+                                'odd_type_id'            => $eventMarket['MasterEventMarket']['data']['odd_type_id'],
+                                'provider_id'            => $eventMarket['EventMarket']['data']['provider_id'],
+                                'odds'                   => $eventMarket['EventMarket']['data']['odds'],
+                                'odd_label'              => $eventMarket['EventMarket']['data']['odd_label'],
+                                'is_main'                => $eventMarket['MasterEventMarket']['data']['is_main'],
+                                'market_flag'            => $eventMarket['MasterEventMarket']['data']['market_flag'],
                             ]);
                         }
                     }
@@ -376,7 +376,7 @@ class OddsSaveToDbHandler
             }
 
             Log::info("Transformation - process completed");
-            $runtime['end'] = microtime(true);
+            $runtime['end']   = microtime(true);
             $runtime['total'] = $runtime['end'] - $runtime['start'];
             Log::debug($runtime);
         } catch (Exception $e) {
