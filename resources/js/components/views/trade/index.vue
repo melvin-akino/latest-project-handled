@@ -185,20 +185,22 @@ export default {
                 if(getSocketKey(response.data) === 'getAdditionalEvents') {
                     let additionalEvents = getSocketValue(response.data, 'getAdditionalEvents')
                     additionalEvents.map(event => {
-                        this.$store.commit('trade/SET_EVENTS_LIST', event)
-                        this.$store.commit('trade/SET_ALL_EVENTS_LIST', event)
-                        if(this.tradePageSettings.sort_event == 1) {
-                            if(!_.isEmpty(this.events.watchlist) && event.league_name in this.events.watchlist) {
-                                this.$store.commit('trade/ADD_TO_EVENTS', { schedule: 'watchlist', league: event.league_name, event: event })
-                            } else {
-                                this.$store.commit('trade/ADD_TO_EVENTS', { schedule: event.game_schedule, league: event.league_name, event: event })
-                            }
-                        } else if(this.tradePageSettings.sort_event == 2) {
-                            let eventStartTime = `[${event.ref_schedule.split(' ')[1]}] ${event.league_name}`
-                            if(!_.isEmpty(this.events.watchlist) && eventStartTime in this.events.watchlist) {
-                                this.$store.commit('trade/ADD_TO_EVENTS', { schedule: 'watchlist', league: eventStartTime, event: event })
-                            } else {
-                                this.$store.commit('trade/ADD_TO_EVENTS', { schedule: event.game_schedule, league: eventStartTime, event: event })
+                        if(!this.eventsListUID.includes(event.uid) && !this.allEventsListUID.includes(event.uid)) {
+                            this.$store.commit('trade/SET_EVENTS_LIST', event)
+                            this.$store.commit('trade/SET_ALL_EVENTS_LIST', event)
+                            if(this.tradePageSettings.sort_event == 1) {
+                                if(!_.isEmpty(this.events.watchlist) && event.league_name in this.events.watchlist) {
+                                    this.$store.commit('trade/ADD_TO_EVENTS', { schedule: 'watchlist', league: event.league_name, event: event })
+                                } else {
+                                    this.$store.commit('trade/ADD_TO_EVENTS', { schedule: event.game_schedule, league: event.league_name, event: event })
+                                }
+                            } else if(this.tradePageSettings.sort_event == 2) {
+                                let eventStartTime = `[${event.ref_schedule.split(' ')[1]}] ${event.league_name}`
+                                if(!_.isEmpty(this.events.watchlist) && eventStartTime in this.events.watchlist) {
+                                    this.$store.commit('trade/ADD_TO_EVENTS', { schedule: 'watchlist', league: eventStartTime, event: event })
+                                } else {
+                                    this.$store.commit('trade/ADD_TO_EVENTS', { schedule: event.game_schedule, league: eventStartTime, event: event })
+                                }
                             }
                         }
                     })
