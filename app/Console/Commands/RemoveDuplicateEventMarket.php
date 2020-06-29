@@ -42,15 +42,21 @@ class RemoveDuplicateEventMarket extends Command
     {
         DB::beginTransaction();
 
-        try {
-            $this->line('Cleaning Event Market Database Tables...');
+        $this->line('Cleaning Event Market Database Tables...');
 
+        try {
             $memIdOrders = DB::table('orders')
                 ->pluck('master_event_market_id')
                 ->toArray();
 
+            $memLogsDeleteNotIn = DB::table('master_event_market_logs')
+                ->whereNotIn('master_event_market_id', $memIdOrders);
+
             $memDeleteNotIn = DB::table('master_event_markets')
-                ->whereNotIn('id', $memIDs);
+                ->whereNotIn('id', $memIdOrders);
+
+            $memIDs = $memDeleteNotIn->pluck('id')
+                ->toArray();
 
             $emDeleteInMEM = DB::table('event_markets')
                 ->whereIn('master_event_market_id', $memIDs);
@@ -64,16 +70,18 @@ class RemoveDuplicateEventMarket extends Command
                 ->havingRaw('COUNT(*) > 1')
                 ->update([ 'deleted_at' => Carbon::now() ]);
 
-            $memDeleteNotIn->delete();
+            $memLogsDeleteNotIn->delete();
             $emDeleteInMEM->delete();
             $emDeleteNull->delete();
+            $memDeleteNotIn->delete();
 
-        DB::commit();
+            DB::commit();
 
-        $this->info('Done!');
-    } catch (Exception $e) {
-        DB::rollback();
+            $this->info('Done!');
+        } catch (Exception $e) {
+            DB::rollback();
 
-        $this->error($e->getMessage());
+            $this->line($e->getMessage());
+        }
     }
 }
