@@ -40,31 +40,40 @@ class RemoveDuplicateEventMarket extends Command
      */
     public function handle()
     {
-        $this->line('Cleaning Event Market Database Tables...');
+        DB::beginTransaction();
 
-        $memIdOrders = DB::table('orders')
-            ->pluck('master_event_market_id')
-            ->toArray();
+        try {
+            $this->line('Cleaning Event Market Database Tables...');
 
-        $memDeleteNotIn = DB::table('master_event_markets')
-            ->whereNotIn('id', $memIDs);
+            $memIdOrders = DB::table('orders')
+                ->pluck('master_event_market_id')
+                ->toArray();
 
-        $emDeleteInMEM = DB::table('event_markets')
-            ->whereIn('master_event_market_id', $memIDs);
+            $memDeleteNotIn = DB::table('master_event_markets')
+                ->whereNotIn('id', $memIDs);
 
-        $emDeleteNull = DB::table('event_markets')
-            ->whereNull('master_event_market_id');
+            $emDeleteInMEM = DB::table('event_markets')
+                ->whereIn('master_event_market_id', $memIDs);
 
-        $emDeleteDuplicate = DB::table('event_markets')
-            ->select('master_event_market_id')
-            ->groupBy('master_event_market_id')
-            ->havingRaw('COUNT(*) > 1')
-            ->update([ 'deleted_at' => Carbon::now() ]);
+            $emDeleteNull = DB::table('event_markets')
+                ->whereNull('master_event_market_id');
 
-        $memDeleteNotIn->delete();
-        $emDeleteInMEM->delete();
-        $emDeleteNull->delete();
+            $emDeleteDuplicate = DB::table('event_markets')
+                ->select('master_event_market_id')
+                ->groupBy('master_event_market_id')
+                ->havingRaw('COUNT(*) > 1')
+                ->update([ 'deleted_at' => Carbon::now() ]);
+
+            $memDeleteNotIn->delete();
+            $emDeleteInMEM->delete();
+            $emDeleteNull->delete();
+
+        DB::commit();
 
         $this->info('Done!');
+    } catch (Exception $e) {
+        DB::rollback();
+
+        $this->error($e->getMessage());
     }
 }
