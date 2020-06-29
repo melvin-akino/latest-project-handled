@@ -40,7 +40,9 @@ class DataToSwt implements CustomProcessInterface
             'ProviderAccounts',
             'MLBetId',
             'RawEvents',
-            'RawEventMarkets'
+            'RawEventMarkets',
+            'RawLeagues',
+            'RawTeams'
         ];
 
         $maxMissingCount = SystemConfiguration::getSystemConfigurationValue('EVENT_VALID_MAX_MISSING_COUNT')->value;
@@ -302,8 +304,8 @@ class DataToSwt implements CustomProcessInterface
                     'schedule:' . $userSelectedLeague->game_schedule,
                     'id:' . $userSelectedLeague->id
                 ]), [
-                'userId'      => $userSelectedLeague->user_id,
-                'sId'         => $userSelectedLeague->sport_id,
+                'user_id'     => $userSelectedLeague->user_id,
+                'sport_id'    => $userSelectedLeague->sport_id,
                 'schedule'    => $userSelectedLeague->game_schedule,
                 'league_name' => $userSelectedLeague->master_league_name
             ]);
@@ -538,5 +540,47 @@ class DataToSwt implements CustomProcessInterface
                 'market_flag'    => $eventMarket->market_flag,
             ]);
         }, $eventMarkets->toArray());
+    }
+
+    private static function db2SwtRawLeagues(Server $swoole)
+    {
+        $rawLeagues = DB::table('leagues')
+                        ->select('id', 'sport_id', 'provider_id', 'name')
+                        ->whereNull('deleted_at')
+                        ->get();
+
+        $rawLeaguesTable = $swoole->rawLeaguesTable;
+
+        array_map(function ($league) use ($rawLeaguesTable) {
+            $swtId = "leagueId:" . $league->id;
+
+            $rawLeaguesTable->set($swtId, [
+                'id'          => $league->id,
+                'sport_id'    => $league->sport_id,
+                'provider_id' => $league->provider_id,
+                'name'        => $league->name
+            ]);
+        }, $rawLeagues->toArray());
+    }
+
+    private static function db2SwtRawTeams(Server $swoole)
+    {
+        $rawTeams = DB::table('teams')
+                      ->select('id', 'sport_id', 'provider_id', 'name')
+                      ->whereNull('deleted_at')
+                      ->get();
+
+        $rawTeamsTable = $swoole->rawTeamsTable;
+
+        array_map(function ($teams) use ($rawTeamsTable) {
+            $swtId = "teamId:" . $teams->id;
+
+            $rawTeamsTable->set($swtId, [
+                'id'          => $teams->id,
+                'sport_id'    => $teams->sport_id,
+                'provider_id' => $teams->provider_id,
+                'name'        => $teams->name
+            ]);
+        }, $rawTeams->toArray());
     }
 }

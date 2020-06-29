@@ -5,7 +5,6 @@ namespace App\Processes;
 use App\Jobs\WsEvents;
 use App\Models\UserProviderConfiguration;
 use Hhxsv5\LaravelS\Swoole\Process\CustomProcessInterface;
-use Hhxsv5\LaravelS\Swoole\Task\Task;
 use Illuminate\Support\Facades\Log;
 use Swoole\Http\Server;
 use Swoole\Process;
@@ -29,7 +28,7 @@ class SwtToWs implements CustomProcessInterface
                     self::getUpdatedPrice($swoole);
                     self::getAdditionalLeagues($swoole);
                     self::getForRemovallLeagues($swoole);
-                    usleep(1000);
+                    usleep(1000000);
                 }
             }
         } catch (Exception $e) {
@@ -63,7 +62,6 @@ class SwtToWs implements CustomProcessInterface
     public static function getAdditionalEvents($swoole)
     {
         $additionalEventsTable = $swoole->additionalEventsTable;
-        $wsTable               = $swoole->wsTable;
         foreach ($additionalEventsTable as $k => $r) {
             $additionalEvents = json_decode($r['value']);
             if (!empty($additionalEvents)) {
@@ -76,7 +74,7 @@ class SwtToWs implements CustomProcessInterface
                     $userId       = $uslData['user_id'];
                     $defaultSport = getUserDefault($userId, 'sport');
                     if ((int) $defaultSport['default_sport'] == $sportId) {
-                        if ($sportId == $uslData['sport_id'] && $gameSchedule == $uslData['schedule'] && $uslData['league_name'] == $leagueName
+                        if ($sportId == $defaultSport['default_sport'] && $gameSchedule == $uslData['schedule'] && $uslData['league_name'] == $leagueName
                         ) {
                             WsEvents::dispatch($userId, [1 => $uslData['league_name'], 2 => $gameSchedule], true);
                         }
