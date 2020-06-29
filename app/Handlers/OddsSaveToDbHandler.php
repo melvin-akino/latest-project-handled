@@ -2,7 +2,7 @@
 
 namespace App\Handlers;
 
-use App\Models\{EventMarket, MasterEventMarket, MasterEventMarketLog, MasterLeague, Game};
+use App\Models\{EventMarket, MasterEventMarketLog, MasterLeague, Game};
 
 use Exception;
 use Illuminate\Support\Facades\{DB, Log};
@@ -56,7 +56,7 @@ class OddsSaveToDbHandler
         try {
             DB::beginTransaction();
 
-            $rawEventId = SwooleHandler::doesExistGetKeyValue('rawEventsTable', 'event_identifier', $this->eventRawData['Event']['data']['event_identifier'], 'id');
+            $rawEventId = SwooleHandler::getValueFromKey('rawEventsTable', 'event_identifier', $this->eventRawData['Event']['data']['event_identifier'], 'id');
 
             if ($rawEventId && $this->removePreviousMarket || $this->dbOptions['event-only']) {
                 EventMarket::deleteByEventId($rawEventId);
@@ -154,7 +154,7 @@ class OddsSaveToDbHandler
                             if ($newMasterEvent) {
                                 $doesExist = SwooleHandler::doesExistValue('eventMarketsTable', 'master_event_market_unique_id', $eventMarket['MasterEventMarket']['data']['master_event_market_unique_id']);
                                 if ($doesExist) {
-                                    $masterEventMarketId = SwooleHandler::doesExistGetKeyValue('eventMarketsTable', 'master_event_market_unique_id', $eventMarket['MasterEventMarket']['data']['master_event_market_unique_id'], 'id');
+                                    $masterEventMarketId = SwooleHandler::getValueFromKey('eventMarketsTable', 'master_event_market_unique_id', $eventMarket['MasterEventMarket']['data']['master_event_market_unique_id'], 'id');
                                     DB::table('master_event_markets')
                                       ->where('master_event_market_unique_id', $eventMarket['MasterEventMarket']['data']['master_event_market_unique_id'])
                                       ->update($eventMarket['MasterEventMarket']['data']);
@@ -162,7 +162,7 @@ class OddsSaveToDbHandler
                                     $masterEventMarketId = DB::table('master_event_markets')->insertGetId($eventMarket['MasterEventMarket']['data']);
                                 }
                             } else {
-                                $masterEventMarketId = SwooleHandler::doesExistGetKeyValue('eventMarketsTable', 'master_event_market_unique_id', $eventMarket['MasterEventMarket']['data']['master_event_market_unique_id'], 'id');
+                                $masterEventMarketId = SwooleHandler::getValueFromKey('eventMarketsTable', 'master_event_market_unique_id', $eventMarket['MasterEventMarket']['data']['master_event_market_unique_id'], 'id');
                                 DB::table('master_event_markets')
                                   ->where('master_event_market_unique_id', $eventMarket['MasterEventMarket']['data']['master_event_market_unique_id'])
                                   ->update($eventMarket['MasterEventMarket']['data']);
@@ -174,7 +174,7 @@ class OddsSaveToDbHandler
 
                         $eventMarket['EventMarket']['data']['event_id'] = $eventId;
 
-                        $eventMarketId = SwooleHandler::doesExistGetKeyValue('rawEventMarketsTable', 'bet_identifier', $eventMarket['EventMarket']['data']['bet_identifier'], 'id');
+                        $eventMarketId = SwooleHandler::getValueFromKey('rawEventMarketsTable', 'bet_identifier', $eventMarket['EventMarket']['data']['bet_identifier'], 'id');
 
                         if (!empty($eventMarketId)) {
                             $eventMarketsData[$eventMarketKey]['EventMarket']['data']['event_market_id'] = $eventMarketId;
@@ -215,7 +215,7 @@ class OddsSaveToDbHandler
                             $eventMarket['MasterEventMarketLog']['data']['master_event_market_id']                       = $masterEventMarketId;
                             $eventMarketsData[$eventMarketKey]['EventMarket']['data']['master_event_market_id'] = $masterEventMarketId;
 
-                            $masterEventMarketLogOdds = SwooleHandler::doesExistGetKeyValue('eventMarketLogsTable', 'master_event_market_id', $masterEventMarketId, 'odds');
+                            $masterEventMarketLogOdds = SwooleHandler::getValueFromKey('eventMarketLogsTable', 'master_event_market_id', $masterEventMarketId, 'odds');
 
                             if (!empty($masterEventMarketLogOdds)) {
                                 if ($masterEventMarketLogOdds != $eventMarket['MasterEventMarketLog']['data']['odds']) {
@@ -343,16 +343,19 @@ class OddsSaveToDbHandler
 
                 $this->swoole->eventsTable->set($this->eventData['MasterEvent']['swtKey'], $masterEventData);
 
-                if ($this->dbOptions['is-event-new']) {
-
-                    $masterLeague = MasterLeague::find($this->eventData['MasterEvent']['data']['master_league_id']);
-                    if ($masterLeague) {
+                if ($this->dbOptions['is-event-new'] && $this->dbOptions['in-masterlist']) {
+                    $league = SwooleHandler::getValue('leaguesTable', implode(':', [
+                        'sId:' . $this->eventData['MasterEvent']['data']['sport_id'],
+                        'pId:' . $this->eventData['Event']['data']['provider_id'],
+                        'id:' . $this->eventData['MasterEvent']['data']['master_league_id']
+                    ]));
+                    if ($league) {
                         $additionalEventsSwtId = "additionalEvents:" . $this->eventData['MasterEvent']['data']['master_event_unique_id'];
                         $this->swoole->additionalEventsTable->set($additionalEventsSwtId, [
                             'value' => json_encode([
                                 'sport_id'    => $this->eventRawData['Event']['data']['sport_id'],
                                 'schedule'    => $this->eventData['MasterEvent']['data']['game_schedule'],
-                                'league_name' => $masterLeague->name
+                                'league_name' => $league['league_name']
                             ])
                         ]);
                     }

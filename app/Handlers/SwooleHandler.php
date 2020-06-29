@@ -26,7 +26,7 @@ class SwooleHandler
         return $doesExist;
     }
 
-    public static function doesExistGetKeyValue($swooleTable, $valueKey, $value, $returnKeyValue)
+    public static function getValueFromKey($swooleTable, $valueKey, $value, $returnKeyValue)
     {
         $keyValue = null;
         foreach (self::$swoole->{$swooleTable} as $key => $row) {

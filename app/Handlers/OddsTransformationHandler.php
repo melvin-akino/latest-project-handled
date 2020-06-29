@@ -2,9 +2,8 @@
 
 namespace App\Handlers;
 
-use App\Models\League;
-use App\Models\Team;
-use Illuminate\Support\Facades\Log;
+use App\Models\{League, Team};
+use Illuminate\Support\Facades\{DB, Log};
 use Illuminate\Support\Str;
 use Hhxsv5\LaravelS\Swoole\Task\Task;
 use Exception;
@@ -79,8 +78,13 @@ class OddsTransformationHandler
                 'master_team_away_id' => $multiTeam['away']['id']
                 ) = $parameters;
 
+
+            DB::beginTransaction();
+
             $leagueId = $this->saveLeaguesData($swoole, $providerId, $sportId, $this->message->data->leagueName);
             $team     = $this->saveTeamsData($swoole, $providerId, $sportId, $this->message->data->homeTeam, $this->message->data->awayTeam);
+
+            DB::commit();
 
             /**
              * EVENTS (MASTER) Swoole Table
@@ -392,8 +396,14 @@ class OddsTransformationHandler
                 Task::deliver($transformKafkaMessageOddsSaveToDb->init($subTasks, $uid, $this->dbOptions));
             }
         } catch (Exception $e) {
-            Log::error($e->getMessage());
-            Log::error($e->getLine());
+            DB::rollBack();
+            Log::error(json_encode(
+                [
+                    'message' => $e->getMessage(),
+                    'line'    => $e->getLine(),
+                    'file'    => $e->getFile(),
+                ]
+            ));
         }
     }
 
@@ -415,11 +425,11 @@ class OddsTransformationHandler
         }
 
         if (!$doesExist) {
-            $league = League::withTrashed()->updateOrCreate([
+            $league = League::create([
                 'sport_id'    => $sportId,
                 'provider_id' => $providerId,
                 'name'        => $leagueName
-            ], []);
+            ]);
 
             $leagueId = $league->id;
 
@@ -452,11 +462,11 @@ class OddsTransformationHandler
             }
         }
         if (!$doesExist) {
-            $team['home'] = Team::withTrashed()->updateOrCreate([
+            $team['home'] = Team::create([
                 'sport_id'    => $sportId,
                 'name'        => $team1,
                 'provider_id' => $providerId,
-            ], []);
+            ]);
 
             $swoole->rawTeamsTable->set('teamId:' . $team['home']->id, [
                 'id'          => $team['home']->id,
@@ -481,11 +491,11 @@ class OddsTransformationHandler
             }
         }
         if (!$doesExist) {
-            $team['away'] = Team::withTrashed()->updateOrCreate([
+            $team['away'] = Team::create([
                 'sport_id'    => $sportId,
                 'name'        => $team2,
                 'provider_id' => $providerId
-            ], []);
+            ]);
 
             $swoole->rawTeamsTable->set('teamId:' . $team['away']->id, [
                 'id'          => $team['away']->id,
