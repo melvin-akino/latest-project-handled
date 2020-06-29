@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\{
     Log
 };
 use Exception;
-
+use Carbon\Carbon;
 class DeleteDuplicateEvents extends Command
 {
     /**
@@ -59,12 +59,12 @@ class DeleteDuplicateEvents extends Command
 
             $masterEventIds = $eventMasterEventIds->union($memMasterEventIds)->union($uwMasterEventIds)->pluck('master_event_id');
 
-            $duplicatedMasterEvents = DB::table('master_events')
+            $masterEventsNotInOtherTables = DB::table('master_events')
                 ->whereNotIn('id', $masterEventIds)
                 ->select('master_event_unique_id', 'sport_id','master_league_id', 'master_team_home_id', 'master_team_away_id')
                 ->groupBy('master_event_unique_id', 'sport_id','master_league_id', 'master_team_home_id', 'master_team_away_id');
 
-            $duplicatedMasterEvents->delete();
+            $masterEventsNotInOtherTables->delete();
 
             $eventMarketsEventIds = DB::table('event_markets')
                 ->whereNotNull('event_id')
@@ -72,13 +72,26 @@ class DeleteDuplicateEvents extends Command
                 ->distinct()
                 ->pluck('event_id');
 
-
-            $duplicatedEvents = DB::table('events')
+            $eventsNotInOtherTables = DB::table('events')
                 ->whereNotIn('id', $eventMarketsEventIds)
                 ->select('event_identifier', 'sport_id', 'provider_id', 'league_id', 'team_home_id', 'team_away_id')
                 ->groupBy('event_identifier', 'sport_id', 'provider_id', 'league_id', 'team_home_id', 'team_away_id');
 
-            $duplicatedEvents->delete();
+            $eventsWithDuplicates = DB::table('events')
+                ->select('event_identifier', 'sport_id', 'provider_id', 'league_id', 'team_home_id', 'team_away_id')
+                ->groupBy('event_identifier', 'sport_id', 'provider_id', 'league_id', 'team_home_id', 'team_away_id')
+                ->havingRaw('COUNT(*) > ?', [1])
+                ->get();
+
+            foreach($eventsWithDuplicates as $event) {
+                $oldestEvent = DB::table('events')->where('event_identifier', $event->event_identifier)->orderBy('id', 'asc')->limit(1);
+                $oldestEvent->update([
+                    'deleted_at' => Carbon::now()
+                ]);
+            }
+
+            $eventsNotInOtherTables->delete();
+
             DB::commit();
             $this->info('Deleted duplicate records in events and master_events table!');
         } catch(Exception $e) {
