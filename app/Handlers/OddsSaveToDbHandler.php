@@ -2,7 +2,7 @@
 
 namespace App\Handlers;
 
-use App\Models\{EventMarket, MasterEventMarketLog, MasterLeague, Game};
+use App\Models\{EventMarket, MasterEventMarketLog, Game};
 
 use Exception;
 use Illuminate\Support\Facades\{DB, Log};

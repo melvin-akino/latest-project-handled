@@ -2,8 +2,6 @@
 
 namespace App\Handlers;
 
-use Illuminate\Support\Facades\Log;
-
 class SwooleHandler
 {
 

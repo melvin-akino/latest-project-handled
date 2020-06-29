@@ -5,7 +5,6 @@ namespace App\Processes;
 use App\Jobs\WsEvents;
 use App\Models\UserProviderConfiguration;
 use Hhxsv5\LaravelS\Swoole\Process\CustomProcessInterface;
-use Hhxsv5\LaravelS\Swoole\Task\Task;
 use Illuminate\Support\Facades\Log;
 use Swoole\Http\Server;
 use Swoole\Process;
