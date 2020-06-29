@@ -64,7 +64,14 @@ class RemoveDuplicateEventMarket extends Command
             $emDeleteNull = DB::table('event_markets')
                 ->whereNull('master_event_market_id');
 
-            $emDeleteDuplicate = DB::table('event_markets')
+            $emDeleteDuplicateBetID = DB::table('event_markets')
+                ->whereNotIn('master_event_market_id', $memIDs)
+                ->select('bet_identifier', 'master_event_market_id')
+                ->groupBy('bet_identifier', 'master_event_market_id')
+                ->havingRaw('COUNT(*) > 1')
+                ->update([ 'deleted_at' => Carbon::now() ]);
+
+            $emDeleteDuplicateMEMID = DB::table('event_markets')
                 ->whereNotIn('master_event_market_id', $memIDs)
                 ->select('master_event_market_id')
                 ->groupBy('master_event_market_id')
