@@ -65,6 +65,7 @@ class RemoveDuplicateEventMarket extends Command
                 ->whereNull('master_event_market_id');
 
             $emDeleteDuplicate = DB::table('event_markets')
+                ->whereNotIn('master_event_market_id', $memIDs)
                 ->select('master_event_market_id')
                 ->groupBy('master_event_market_id')
                 ->havingRaw('COUNT(*) > 1')
