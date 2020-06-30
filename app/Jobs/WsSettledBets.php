@@ -115,7 +115,7 @@ class WsSettledBets implements ShouldQueue
                 $debit   = 0;
                 $credit  = $balance;
                 $charge  = 'Credit';
-
+                $transferAmount = $orders->stake;
                 break;
         }
 
