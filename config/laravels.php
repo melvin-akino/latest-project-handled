@@ -293,7 +293,6 @@ return [
                 ['name' => 'provider_id', 'type' => \Swoole\Table::TYPE_INT],
                 ['name' => 'sport_id', 'type' => \Swoole\Table::TYPE_INT],
                 ['name' => 'master_league_name', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 100],
-                ['name' => 'league_id', 'type' => \Swoole\Table::TYPE_INT],
                 ['name' => 'league_name', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 100],
                 ['name' => 'raw_id', 'type' => \Swoole\Table::TYPE_INT],
             ],

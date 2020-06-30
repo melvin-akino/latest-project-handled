@@ -111,7 +111,7 @@ class WsSettledBets implements ShouldQueue
             case 'REJECTED':
             case 'ABNORMAL BET':
             case 'REFUNDED':
-                $balance = $orders->stake;
+                $balance = 0;
                 $debit   = 0;
                 $credit  = $balance;
                 $charge  = 'Credit';
@@ -119,7 +119,7 @@ class WsSettledBets implements ShouldQueue
                 break;
         }
 
-        $balance                 *= $exchangeRate->exchange_rate;
+        $balance                  = !empty($balance) ? $balance * $exchangeRate->exchange_rate : 0;
         $sourceId                 = Source::where('source_name', 'LIKE', $sourceName)->first();
         $returnBetSourceId        = Source::where('source_name', 'LIKE', 'RETURN_STAKE')->first();
         $score                    = $this->data->score;
