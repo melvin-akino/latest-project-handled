@@ -99,6 +99,7 @@ class DeleteDuplicateEvents extends Command
             $eventMarketsEventIds->chunk(10000, function ($ids) {
                 $eventsNotInOtherTables = DB::table('events')
                     ->whereNotIn('id', $ids->pluck('event_id'))
+                    ->orWhereNull('master_event_id')
                     ->select('event_identifier', 'sport_id', 'provider_id', 'league_id', 'team_home_id', 'team_away_id')
                     ->groupBy('event_identifier', 'sport_id', 'provider_id', 'league_id', 'team_home_id', 'team_away_id');
 
