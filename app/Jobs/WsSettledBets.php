@@ -60,8 +60,8 @@ class WsSettledBets implements ShouldQueue
         $userWallet   = UserWallet::where('user_id', $orders->user_id)->first();
         $userCurrency = User::where('id', $orders->user_id)->first();
         $exchangeRate = ExchangeRate::where('from_currency_id', $this->providerCurrency)
-            ->where('to_currency_id', $userCurrency->currency_id)
-            ->first();
+                                    ->where('to_currency_id', $userCurrency->currency_id)
+                                    ->first();
 
         switch ($status) {
             case 'WIN':
@@ -111,15 +111,15 @@ class WsSettledBets implements ShouldQueue
             case 'REJECTED':
             case 'ABNORMAL BET':
             case 'REFUNDED':
-                $balance = $orders->stake;
-                $debit   = 0;
-                $credit  = $balance;
-                $charge  = 'Credit';
+                $balance        = 0;
+                $debit          = 0;
+                $credit         = $balance;
+                $charge         = 'Credit';
                 $transferAmount = $orders->stake;
                 break;
         }
 
-        $balance                 *= $exchangeRate->exchange_rate;
+        $balance                  = !empty($balance) ? $balance * $exchangeRate->exchange_rate : 0;
         $sourceId                 = Source::where('source_name', 'LIKE', $sourceName)->first();
         $returnBetSourceId        = Source::where('source_name', 'LIKE', 'RETURN_STAKE')->first();
         $score                    = $this->data->score;
@@ -136,14 +136,14 @@ class WsSettledBets implements ShouldQueue
 
         try {
             Order::where('bet_id', $this->data->bet_id)
-                ->update([
-                    'bet_selection' => $updatedBetSelection,
-                    'status'        => strtoupper($this->data->status),
-                    'profit_loss'   => $balance,
-                    'reason'        => $this->data->reason,
-                    'settled_date'  => Carbon::now(),
-                    'updated_at'    => Carbon::now(),
-                ]);
+                 ->update([
+                     'bet_selection' => $updatedBetSelection,
+                     'status'        => strtoupper($this->data->status),
+                     'profit_loss'   => $balance,
+                     'reason'        => $this->data->reason,
+                     'settled_date'  => Carbon::now(),
+                     'updated_at'    => Carbon::now(),
+                 ]);
 
             $orderLogs = OrderLogs::create([
                 'provider_id'   => $this->providerId,
