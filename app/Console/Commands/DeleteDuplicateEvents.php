@@ -57,40 +57,53 @@ class DeleteDuplicateEvents extends Command
                 ->whereNotNull('master_event_id')
                 ->select('master_event_id');
 
-            $masterEventIds = $eventMasterEventIds->union($memMasterEventIds)->union($uwMasterEventIds)->pluck('master_event_id');
+            $masterEventIds = $eventMasterEventIds
+                ->union($memMasterEventIds)
+                ->union($uwMasterEventIds)
+                ->orderBy('master_event_id', 'ASC');
 
-            $masterEventsNotInOtherTables = DB::table('master_events')
-                ->whereNotIn('id', $masterEventIds)
-                ->select('master_event_unique_id', 'sport_id','master_league_id', 'master_team_home_id', 'master_team_away_id')
-                ->groupBy('master_event_unique_id', 'sport_id','master_league_id', 'master_team_home_id', 'master_team_away_id');
+            $masterEventIds->chunk(10000, function ($ids) {
+                $masterEventsNotInOtherTables = DB::table('master_events')
+                    ->whereNotIn('id', $ids->pluck('master_event_id'))
+                    ->select('master_event_unique_id', 'sport_id','master_league_id', 'master_team_home_id', 'master_team_away_id')
+                    ->groupBy('master_event_unique_id', 'sport_id','master_league_id', 'master_team_home_id', 'master_team_away_id');
 
-            $masterEventsNotInOtherTables->delete();
-
-            $eventMarketsEventIds = DB::table('event_markets')
-                ->whereNotNull('event_id')
-                ->select('event_id')
-                ->distinct()
-                ->pluck('event_id');
-
-            $eventsNotInOtherTables = DB::table('events')
-                ->whereNotIn('id', $eventMarketsEventIds)
-                ->select('event_identifier', 'sport_id', 'provider_id', 'league_id', 'team_home_id', 'team_away_id')
-                ->groupBy('event_identifier', 'sport_id', 'provider_id', 'league_id', 'team_home_id', 'team_away_id');
+                $masterEventsNotInOtherTables->delete();
+            });
 
             $eventsWithDuplicates = DB::table('events')
                 ->select('event_identifier', 'sport_id', 'provider_id', 'league_id', 'team_home_id', 'team_away_id')
                 ->groupBy('event_identifier', 'sport_id', 'provider_id', 'league_id', 'team_home_id', 'team_away_id')
                 ->havingRaw('COUNT(*) > ?', [1])
-                ->get();
+                ->orderBy('event_identifier', 'ASC');
 
-            foreach($eventsWithDuplicates as $event) {
-                $oldestEvent = DB::table('events')->where('event_identifier', $event->event_identifier)->orderBy('id', 'asc')->limit(1);
-                $oldestEvent->update([
-                    'deleted_at' => Carbon::now()
-                ]);
-            }
+            $eventsWithDuplicates->chunk(10000, function($events) {
+                foreach($events as $event) {
+                    $oldestEvent = DB::table('events')
+                        ->where('event_identifier', $event->event_identifier)
+                        ->orderBy('id', 'ASC')
+                        ->limit(1);
 
-            $eventsNotInOtherTables->delete();
+                    $oldestEvent->update([
+                        'deleted_at' => Carbon::now()
+                    ]);
+                }
+            });
+
+            $eventMarketsEventIds = DB::table('event_markets')
+                ->whereNotNull('event_id')
+                ->select('event_id')
+                ->distinct()
+                ->orderBy('event_id', 'ASC');
+
+            $eventMarketsEventIds->chunk(10000, function ($ids) {
+                $eventsNotInOtherTables = DB::table('events')
+                    ->whereNotIn('id', $ids->pluck('event_id'))
+                    ->select('event_identifier', 'sport_id', 'provider_id', 'league_id', 'team_home_id', 'team_away_id')
+                    ->groupBy('event_identifier', 'sport_id', 'provider_id', 'league_id', 'team_home_id', 'team_away_id');
+
+                $eventsNotInOtherTables->delete();
+            });
 
             DB::commit();
             $this->info('Deleted duplicate records in events and master_events table!');
