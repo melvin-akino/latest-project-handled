@@ -493,9 +493,9 @@ class OddsTransformationHandler
                 $providerId == $value['provider_id'] &&
                 $team1 == $value['name']
             ) {
-                $team['home']->id = $value['id'];
+                $team['home']->id   = $value['id'];
                 $team['home']->name = $value['name'];
-                $doesExist        = true;
+                $doesExist          = true;
 
                 Team::where('id', $value['id'])->update(['master_team_id' => $multiTeam['home']['id']]);
                 break;
@@ -546,9 +546,9 @@ class OddsTransformationHandler
                 $providerId == $value['provider_id'] &&
                 $team2 == $value['name']
             ) {
-                $team['away']->id = $value['id'];
+                $team['away']->id   = $value['id'];
                 $team['away']->name = $value['name'];
-                $doesExist        = true;
+                $doesExist          = true;
 
                 Team::where('id', $value['id'])->update(['master_team_id' => $multiTeam['away']['id']]);
                 break;
