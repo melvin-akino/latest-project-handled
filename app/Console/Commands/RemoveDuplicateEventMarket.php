@@ -40,48 +40,88 @@ class RemoveDuplicateEventMarket extends Command
      */
     public function handle()
     {
+        $chunkValue = 10000;
+
         DB::beginTransaction();
 
         $this->line('Cleaning Event Market Database Tables...');
 
         try {
-            $memIdOrders = DB::table('orders')
-                ->pluck('master_event_market_id')
-                ->toArray();
-
-            $memLogsDeleteNotIn = DB::table('master_event_market_logs')
-                ->whereNotIn('master_event_market_id', $memIdOrders);
-
-            $memDeleteNotIn = DB::table('master_event_markets')
-                ->whereNotIn('id', $memIdOrders);
-
-            $memIDs = $memDeleteNotIn->pluck('id')
-                ->toArray();
-
-            $emDeleteInMEM = DB::table('event_markets')
-                ->whereIn('master_event_market_id', $memIDs);
+            $memIdOrders        = DB::table('orders')->pluck('master_event_market_id')->toArray();
+            $memDeleteNotIn     = DB::table('master_event_markets')->whereNotIn('id', $memIdOrders)->orderBy('id', 'ASC');
+            $memLogsDeleteNotIn = DB::table('master_event_market_logs')->whereNotIn('master_event_market_id', $memIdOrders)->orderBy('master_event_market_id', 'ASC');
+            $memIDs             = $memDeleteNotIn->pluck('id')->toArray();
+            $emDeleteInMEM      = DB::table('event_markets')->whereIn('master_event_market_id', $memIDs)->orderBy('master_event_market_id', 'ASC');
 
             $emDeleteNull = DB::table('event_markets')
-                ->whereNull('master_event_market_id');
+                ->whereNull('master_event_market_id')
+                ->orderBy('master_event_market_id', 'ASC');
 
             $emDeleteDuplicateBetID = DB::table('event_markets')
                 ->whereNotIn('master_event_market_id', $memIDs)
                 ->select('bet_identifier', 'master_event_market_id')
                 ->groupBy('bet_identifier', 'master_event_market_id')
                 ->havingRaw('COUNT(*) > 1')
-                ->update([ 'deleted_at' => Carbon::now() ]);
+                ->orderBy('bet_identifier', 'ASC');
+
+            $emDeleteDuplicateBetID->chunk($chunkValue, function ($eventMarkets) {
+                $softDel = $eventMarkets->pluck('bet_identifier')->toArray();
+
+                DB::table('event_markets')
+                    ->whereIn('bet_identifier', $softDel)
+                    ->update([
+                        'deleted_at' => Carbon::now()
+                    ]);
+            });
 
             $emDeleteDuplicateMEMID = DB::table('event_markets')
                 ->whereNotIn('master_event_market_id', $memIDs)
                 ->select('master_event_market_id')
                 ->groupBy('master_event_market_id')
                 ->havingRaw('COUNT(*) > 1')
-                ->update([ 'deleted_at' => Carbon::now() ]);
+                ->orderBy('master_event_market_id', 'ASC');
 
-            $memLogsDeleteNotIn->delete();
-            $emDeleteInMEM->delete();
-            $emDeleteNull->delete();
-            $memDeleteNotIn->delete();
+            $emDeleteDuplicateMEMID->chunk($chunkValue, function ($eventMarkets) {
+                $softDel = $eventMarkets->pluck('master_event_market_id')->toArray();
+
+                DB::table('event_markets')
+                    ->whereIn('master_event_market_id', $softDel)
+                    ->update([
+                        'deleted_at' => Carbon::now()
+                    ]);
+            });
+
+            $memLogsDeleteNotIn->chunk($chunkValue, function ($eventMarkets) {
+                $softDel = $eventMarkets->pluck('id')->toArray();
+
+                DB::table('master_event_market_logs')
+                    ->whereIn('id', $softDel)
+                    ->delete();
+            });
+
+            $emDeleteInMEM->chunk($chunkValue, function ($eventMarkets) {
+                $softDel = $eventMarkets->pluck('id')->toArray();
+
+                DB::table('event_markets')
+                    ->whereIn('id', $softDel)
+                    ->delete();
+            });
+
+            $emDeleteNull->chunk($chunkValue, function ($eventMarkets) {
+                $softDel = $eventMarkets->pluck('id')->toArray();
+
+                DB::table('event_markets')
+                    ->whereIn('id', $softDel)
+                    ->delete();
+            });
+
+            $memDeleteNotIn->chunk($chunkValue, function ($eventMarkets) {
+                $softDel = $eventMarkets->pluck('id')->toArray();
+
+                DB::table('master_event_markets')
+                    ->whereIn('id', $softDel)
+                    ->delete();
+            });
 
             DB::commit();
 
