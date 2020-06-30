@@ -312,8 +312,10 @@ export default {
                 this.points = this.odd_details.points || null
                 if(response.data.data.spreads.length != 0) {
                     this.spreads = moveToFirstElement(response.data.data.spreads, 'market_id', this.market_id)
-                    this.displaySpreadsByFive()
+                } else {
+                    this.spreads.push({ market_id, odds, points } = this.odd_details)
                 }
+                this.displaySpreadsByFive()
                 this.setMinMaxProviders()
                 this.$store.commit('trade/SHOW_BET_MATRIX_IN_BETSLIP', { market_id: this.odd_details.market_id, has_bet: response.data.data.has_bets })
             })
