@@ -40,19 +40,17 @@ class RemoveDuplicateEventMarket extends Command
      */
     public function handle()
     {
-        $chunkValue = 10000;
-
         DB::beginTransaction();
 
         $this->line('Cleaning Event Market Database Tables...');
 
         try {
-            DB::table('orders')->orderBy('master_event_market_id', 'ASC')->chunk($chunkValue, function ($ids) use ($chunkValue) {
+            DB::table('orders')->orderBy('master_event_market_id', 'ASC')->chunk(10000, function ($ids) {
                 $memOrderIds        = $ids->pluck('master_event_market_id')->toArray();
                 $memLogsDeleteNotIn = DB::table('master_event_market_logs')->whereNotIn('master_event_market_id', $memOrderIds)->orderBy('master_event_market_id', 'ASC');
                 $memDeleteNotIn     = DB::table('master_event_markets')->whereNotIn('id', $memOrderIds)->orderBy('id', 'ASC');
 
-                $memLogsDeleteNotIn->chunk($chunkValue, function ($eventMarkets) {
+                $memLogsDeleteNotIn->chunk(10000, function ($eventMarkets) {
                     $softDel = $eventMarkets->pluck('id')->toArray();
 
                     DB::table('master_event_market_logs')
@@ -60,7 +58,7 @@ class RemoveDuplicateEventMarket extends Command
                         ->delete();
                 });
 
-                $memDeleteNotIn->chunk($chunkValue, function ($memID) use ($chunkValue) {
+                $memDeleteNotIn->chunk(10000, function ($memID) {
                     $memIDs                 = $memID->pluck('id')->toArray();
                     $emDeleteInMEM          = DB::table('event_markets')->whereIn('master_event_market_id', $memIDs)->orderBy('master_event_market_id', 'ASC');
                     $emDeleteDuplicateBetID = DB::table('event_markets')
@@ -70,7 +68,7 @@ class RemoveDuplicateEventMarket extends Command
                         ->havingRaw('COUNT(*) > 1')
                         ->orderBy('bet_identifier', 'ASC');
 
-                    $emDeleteDuplicateBetID->chunk($chunkValue, function ($eventMarkets) {
+                    $emDeleteDuplicateBetID->chunk(10000, function ($eventMarkets) {
                         $softDel = $eventMarkets->pluck('bet_identifier')->toArray();
 
                         DB::table('event_markets')
@@ -87,7 +85,7 @@ class RemoveDuplicateEventMarket extends Command
                         ->havingRaw('COUNT(*) > 1')
                         ->orderBy('master_event_market_id', 'ASC');
 
-                    $emDeleteDuplicateMEMID->chunk($chunkValue, function ($eventMarkets) {
+                    $emDeleteDuplicateMEMID->chunk(10000, function ($eventMarkets) {
                         $softDel = $eventMarkets->pluck('master_event_market_id')->toArray();
 
                         DB::table('event_markets')
@@ -97,7 +95,7 @@ class RemoveDuplicateEventMarket extends Command
                             ]);
                     });
 
-                    $emDeleteInMEM->chunk($chunkValue, function ($eventMarkets) {
+                    $emDeleteInMEM->chunk(10000, function ($eventMarkets) {
                         $softDel = $eventMarkets->pluck('id')->toArray();
 
                         DB::table('event_markets')
@@ -110,7 +108,7 @@ class RemoveDuplicateEventMarket extends Command
                     ->whereNull('master_event_market_id')
                     ->orderBy('master_event_market_id', 'ASC');
 
-                $emDeleteNull->chunk($chunkValue, function ($eventMarkets) {
+                $emDeleteNull->chunk(10000, function ($eventMarkets) {
                     $softDel = $eventMarkets->pluck('id')->toArray();
 
                     DB::table('event_markets')
@@ -118,7 +116,7 @@ class RemoveDuplicateEventMarket extends Command
                         ->delete();
                 });
 
-                $memDeleteNotIn->chunk($chunkValue, function ($eventMarkets) {
+                $memDeleteNotIn->chunk(10000, function ($eventMarkets) {
                     $softDel = $eventMarkets->pluck('id')->toArray();
 
                     DB::table('master_event_markets')
