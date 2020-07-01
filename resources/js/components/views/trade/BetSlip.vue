@@ -310,10 +310,15 @@ export default {
                 this.market_details = response.data.data
                 this.formattedRefSchedule = response.data.data.ref_schedule.split(' ')
                 this.points = this.odd_details.points || null
+                let spreadsMemUID = response.data.data.spreads.map(spread => spread.market_id)
                 if(response.data.data.spreads.length != 0) {
-                    this.spreads = moveToFirstElement(response.data.data.spreads, 'market_id', this.market_id)
+                    if(spreadsMemUID.includes(this.market_id)) {
+                        this.spreads = moveToFirstElement(response.data.data.spreads, 'market_id', this.market_id)
+                    } else {
+                        this.spreads.push(this.odd_details)
+                    }
                 } else {
-                    this.spreads.push({ market_id, odds, points } = this.odd_details)
+                    this.spreads.push(this.odd_details)
                 }
                 this.displaySpreadsByFive()
                 this.setMinMaxProviders()
