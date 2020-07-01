@@ -342,6 +342,13 @@ return [
                 ['name' => 'provider_id', 'type' => \Swoole\Table::TYPE_INT],
             ],
         ],
+        'masterEvents' => [ //key format [meUID:$meUID] = [id = $id, ...]
+            'size'   => 10000,
+            'column' => [
+                ['name' => 'id', 'type' => \Swoole\Table::TYPE_INT],
+                ['name' => 'master_event_unique_id', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 50],
+            ],
+        ],
         'eventMarkets'        => [ //key format [pId:$providerId:meUID:$meUID:betIdentifier:$betIdentifier] = [id = $id, ...]
             'size'   => env('SWT_MAX_SIZE', 102400),
             'column' => [
