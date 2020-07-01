@@ -297,6 +297,13 @@ return [
                 ['name' => 'raw_id', 'type' => \Swoole\Table::TYPE_INT],
             ],
         ],
+        'masterLeagues'             => [ // key format [id:$id] = [id = $id, ...]
+           'size'   => 5000,
+           'column' => [
+               ['name' => 'id', 'type' => \Swoole\Table::TYPE_INT],
+               ['name' => 'name', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 100]
+           ],
+        ],
         'teams'               => [ //key format ['pId:$providerId:id:$id] = [id = $teamId, team_name = $teamName]
             'size'   => 20000,
             'column' => [
@@ -306,6 +313,13 @@ return [
                 ['name' => 'provider_id', 'type' => \Swoole\Table::TYPE_INT],
                 ['name' => 'raw_id', 'type' => \Swoole\Table::TYPE_INT],
             ],
+        ],
+        'masterTeams'             => [ // key format [id:$id] = [id = $id, ...]
+             'size'   => 5000,
+             'column' => [
+                 ['name' => 'id', 'type' => \Swoole\Table::TYPE_INT],
+                 ['name' => 'name', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 100]
+             ],
         ],
         'events'              => [ //key format [sId:$sportId:pId:$providerId:eventIdentifier:$eventIdentifier] = [id = $id, ...]
             'size'   => env('SWT_MAX_SIZE', 102400),

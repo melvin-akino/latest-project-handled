@@ -23,7 +23,9 @@ class DataToSwt implements CustomProcessInterface
             'Sports',
             'OddTypes',
             'Providers',
+            'Leagues',
             'MasterLeagues',
+            'Teams',
             'MasterTeams',
             'SportOddTypes',
             'MasterEvents',
@@ -110,7 +112,7 @@ class DataToSwt implements CustomProcessInterface
         }, $providers->toArray());
     }
 
-    private static function db2SwtMasterLeagues(Server $swoole)
+    private static function db2SwtLeagues(Server $swoole)
     {
         $leagues      = DB::table('master_leagues as ml')
                           ->join('leagues as l', 'ml.id', 'l.master_league_id')
@@ -132,7 +134,23 @@ class DataToSwt implements CustomProcessInterface
         }, $leagues->toArray());
     }
 
-    private static function db2SwtMasterTeams(Server $swoole)
+    private static function db2SwtMasterLeagues(Server $swoole)
+    {
+        $masterLeagues      = DB::table('master_leagues')
+                          ->select('id', 'name')
+                          ->get();
+        $masterLeaguesTable = $swoole->masterLeaguesTable;
+        array_map(function ($masterLeague) use ($masterLeaguesTable) {
+            $masterLeaguesTable->set('id:' . $masterLeague->id,
+                [
+                    'id'                 => $masterLeague->id,
+                    'name'        => $masterLeague->name,
+                ]
+            );
+        }, $masterLeagues->toArray());
+    }
+
+    private static function db2SwtTeams(Server $swoole)
     {
         $teams      = DB::table('master_teams as mt')
                         ->join('teams as t', 't.master_team_id', 'mt.id')
@@ -149,6 +167,21 @@ class DataToSwt implements CustomProcessInterface
                     'raw_id'           => $team->raw_id
                 ]);
         }, $teams->toArray());
+    }
+
+    private static function db2SwtMasterTeams(Server $swoole)
+    {
+        $masterTeams      = DB::table('master_teams')
+                        ->select('id', 'name')
+                        ->get();
+        $masterTeamsTable = $swoole->masterTeamsTable;
+        array_map(function ($masterTeam) use ($masterTeamsTable) {
+            $masterTeamsTable->set('id:' . $masterTeam->id,
+                [
+                    'id'               => $masterTeam->id,
+                    'name'        => $masterTeam->name,
+                ]);
+        }, $masterTeams->toArray());
     }
 
     private static function db2SwtSportOddTypes(Server $swoole)
