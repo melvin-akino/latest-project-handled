@@ -13,6 +13,9 @@ use App\Models\{
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Support\Facades\Log;
+use Hhxsv5\LaravelS\Swoole\Task\Task;
+use App\Tasks\WsEventsTransformation;
+use Illuminate\Support\Facades\Redis;
 
 class WsEvents implements ShouldQueue
 {
@@ -21,7 +24,8 @@ class WsEvents implements ShouldQueue
     public function __construct($userId, $params, $additional = false)
     {
         $this->userId             = $userId;
-        $this->master_league_name = $params[1];
+        $this->params             = $params;
+        $this->masterLeagueName   = $params[1];
         $this->schedule           = $params[2];
         $this->additional         = $additional;
     }
@@ -32,24 +36,33 @@ class WsEvents implements ShouldQueue
             $server = app('swoole');
             $fd     = $server->wsTable->get('uid:' . $this->userId);
 
-            $topicTable = $server->topicTable;
+            Task::deliver(new WsEventsTransformation($this->userId, $this->params, $this->additional));
 
-            $userProviderIds = UserProviderConfiguration::getProviderIdList($this->userId);
-            $masterLeague    = MasterLeague::where('name', $this->master_league_name)->first();
-            $gameDetails     = Game::getGameDetails($masterLeague->id, $this->schedule);
-            $userConfig      = getUserDefault($this->userId, 'sort-event')['default_sort'];
+            if (Redis::get($this->schedule . '_' . $this->masterLeagueName)) {
+                $data = json_decode(Redis::get($this->schedule . '_' . $this->masterLeagueName), false);
+            } else {
+                $topicTable = $server->topicTable;
 
-            $userId        = $this->userId;
-            $userTz        = "Etc/UTC";
-            $getUserConfig = UserConfiguration::getUserConfig($userId)
-                                              ->where('type', 'timezone')
-                                              ->first();
+                $userProviderIds = UserProviderConfiguration::getProviderIdList($this->userId);
+                $masterLeague    = MasterLeague::where('name', $this->masterLeagueName)->first();
+                $gameDetails     = Game::getGameDetails($masterLeague->id, $this->schedule);
+                $userConfig      = getUserDefault($this->userId, 'sort-event')['default_sort'];
 
-            if ($getUserConfig) {
-                $userTz = Timezones::find($getUserConfig->value)->name;
+                $userId        = $this->userId;
+                $userTz        = "Etc/UTC";
+                $getUserConfig = UserConfiguration::getUserConfig($userId)
+                                                  ->where('type', 'timezone')
+                                                  ->first();
+
+                if ($getUserConfig) {
+                    $userTz = Timezones::find($getUserConfig->value)->name;
+                }
+                
+                $data = eventTransformation($gameDetails, $userConfig, $userTz, $userId, $userProviderIds, $topicTable, 'socket');
             }
-            $data      = eventTransformation($gameDetails, $userConfig, $userTz, $userId, $userProviderIds, $topicTable, 'socket');
-            $eventData = array_values($data);
+
+            $gameData = is_array($data) ? $data : [];
+            $eventData = array_values($gameData);
             if (!empty($eventData)) {
                 $channelName = $this->additional ? "getAdditionalEvents" : "getEvents";
 
