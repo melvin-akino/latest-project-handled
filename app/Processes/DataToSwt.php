@@ -28,6 +28,7 @@ class DataToSwt implements CustomProcessInterface
             'Teams',
             'MasterTeams',
             'SportOddTypes',
+            'Events',
             'MasterEvents',
             'MasterEventMarkets',
             'UserWatchlist',
@@ -50,7 +51,7 @@ class DataToSwt implements CustomProcessInterface
         $maxMissingCount = SystemConfiguration::getSystemConfigurationValue('EVENT_VALID_MAX_MISSING_COUNT')->value;
 
         $eventsRelated = [
-            'MasterEvents',
+            'Events',
             'ActiveEvents',
         ];
 
@@ -137,14 +138,14 @@ class DataToSwt implements CustomProcessInterface
     private static function db2SwtMasterLeagues(Server $swoole)
     {
         $masterLeagues      = DB::table('master_leagues')
-                          ->select('id', 'name')
-                          ->get();
+                                ->select('id', 'name')
+                                ->get();
         $masterLeaguesTable = $swoole->masterLeaguesTable;
         array_map(function ($masterLeague) use ($masterLeaguesTable) {
             $masterLeaguesTable->set('id:' . $masterLeague->id,
                 [
-                    'id'                 => $masterLeague->id,
-                    'name'        => $masterLeague->name,
+                    'id'   => $masterLeague->id,
+                    'name' => $masterLeague->name,
                 ]
             );
         }, $masterLeagues->toArray());
@@ -172,14 +173,14 @@ class DataToSwt implements CustomProcessInterface
     private static function db2SwtMasterTeams(Server $swoole)
     {
         $masterTeams      = DB::table('master_teams')
-                        ->select('id', 'name')
-                        ->get();
+                              ->select('id', 'name')
+                              ->get();
         $masterTeamsTable = $swoole->masterTeamsTable;
         array_map(function ($masterTeam) use ($masterTeamsTable) {
             $masterTeamsTable->set('id:' . $masterTeam->id,
                 [
-                    'id'               => $masterTeam->id,
-                    'name'        => $masterTeam->name,
+                    'id'   => $masterTeam->id,
+                    'name' => $masterTeam->name,
                 ]);
         }, $masterTeams->toArray());
     }
@@ -204,7 +205,7 @@ class DataToSwt implements CustomProcessInterface
         }, $sportOddTypes->toArray());
     }
 
-    private static function db2SwtMasterEvents(Server $swoole, $maxMissingCount)
+    private static function db2SwtEvents(Server $swoole, $maxMissingCount)
     {
         $masterEvents      = DB::table('master_events as me')
                                ->join('sports as s', 's.id', 'me.sport_id')
@@ -239,6 +240,21 @@ class DataToSwt implements CustomProcessInterface
                     'running_time'           => $event->running_time,
                     'home_penalty'           => $event->home_penalty,
                     'away_penalty'           => $event->away_penalty,
+                ]);
+        }, $masterEvents->toArray());
+    }
+
+    private static function db2SwtMasterEvents(Server $swoole)
+    {
+        $masterEvents      = DB::table('master_events')
+                               ->select('id', 'master_event_unique_id')
+                               ->get();
+        $masterEventsTable = $swoole->masterEventsTable;
+        array_map(function ($event) use ($masterEventsTable) {
+            $masterEventsTable->set('meUID:' . $event->master_event_unique_id,
+                [
+                    'id'                     => $event->id,
+                    'master_event_unique_id' => $event->master_event_unique_id,
                 ]);
         }, $masterEvents->toArray());
     }

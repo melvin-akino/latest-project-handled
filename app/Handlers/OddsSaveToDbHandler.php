@@ -99,7 +99,12 @@ class OddsSaveToDbHandler
                       ->where('ref_schedule', $this->eventData['MasterEvent']['data']['ref_schedule'])
                       ->update($masterEventData);
                 } else {
-                    $masterEventId       = DB::table('master_events')->insertGetId($masterEventData);
+                    $mId = SwooleHandler::getValueFromKey('masterEventsTable', 'master_event_unique_id', $this->eventData['MasterEvent']['data']['master_event_unique_id'], 'id');
+                    if (empty($mId)) {
+                        $masterEventId = DB::table('master_events')->insertGetId($masterEventData);
+                    } else {
+                        $masterEventId = $mId;
+                    }
                     $masterEventUniqueId = $this->eventData['MasterEvent']['data']['master_event_unique_id'];
                 }
 
@@ -133,7 +138,7 @@ class OddsSaveToDbHandler
                             $newMasterEvent = true;
 
                             if (empty($eventMarket['MasterEventMarket']['data']['master_event_market_unique_id'])) {
-                                $eventMarket['MasterEventMarket']['data']['master_event_market_unique_id'] = uniqid();
+                                $eventMarket['MasterEventMarket']['data']['master_event_market_unique_id']                       = uniqid();
                                 $eventMarketsData[$eventMarketKey]['MasterEventMarket']['data']['master_event_market_unique_id'] = $eventMarket['MasterEventMarket']['data']['master_event_market_unique_id'];
 
                                 foreach ($this->swoole->eventMarketsTable as $eventMarketData) {
@@ -212,7 +217,7 @@ class OddsSaveToDbHandler
                         }
 
                         if ($this->dbOptions['in-masterlist'] && !empty($eventMarket['MasterEventMarketLog']) && !empty($masterEventMarketId)) {
-                            $eventMarket['MasterEventMarketLog']['data']['master_event_market_id']                       = $masterEventMarketId;
+                            $eventMarket['MasterEventMarketLog']['data']['master_event_market_id']              = $masterEventMarketId;
                             $eventMarketsData[$eventMarketKey]['EventMarket']['data']['master_event_market_id'] = $masterEventMarketId;
 
                             $masterEventMarketLogOdds = SwooleHandler::getValueFromKey('eventMarketLogsTable', 'master_event_market_id', $masterEventMarketId, 'odds');
