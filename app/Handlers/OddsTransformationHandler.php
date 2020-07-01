@@ -413,10 +413,16 @@ class OddsTransformationHandler
     private function saveLeaguesData($swoole, $providerId, $sportId, $leagueName, $masterLeagueId)
     {
         if (empty($masterLeagueId) && $providerId == self::HG) {
-            $masterLeagueId = DB::table('master_leagues')->insertGetId([
-                'sport_id' => $sportId,
-                'name'     => $leagueName
-            ]);
+            $mId = SwooleHandler::getValueFromKey('masterLeaguesTable', 'name', $leagueName, 'id');
+            if (empty($mId)) {
+                Log::debug($leagueName);
+                $masterLeagueId = DB::table('master_leagues')->insertGetId([
+                    'sport_id' => $sportId,
+                    'name'     => $leagueName
+                ]);
+            } else {
+                $masterLeagueId = $mId;
+            }
         }
 
         /**
@@ -478,10 +484,15 @@ class OddsTransformationHandler
         $team = ['home' => (object) [], 'away' => (object) []];
 
         if (empty($multiTeam['home']['id']) && $providerId == self::HG) {
-            $multiTeam['home']['id'] = DB::table('master_teams')->insertGetId([
-                'sport_id' => $sportId,
-                'name'     => $team1
-            ]);
+            $tId = SwooleHandler::getValueFromKey('masterTeamsTable', 'name', $team1, 'id');
+            if (empty($tId)) {
+                $multiTeam['home']['id'] = DB::table('master_teams')->insertGetId([
+                    'sport_id' => $sportId,
+                    'name'     => $team1
+                ]);
+            } else {
+                $multiTeam['home']['id'] = $tId;
+            }
         }
 
         /**
@@ -531,10 +542,15 @@ class OddsTransformationHandler
         }
 
         if (empty($multiTeam['away']['id']) && $providerId == self::HG) {
-            $multiTeam['away']['id'] = DB::table('master_teams')->insertGetId([
-                'sport_id' => $sportId,
-                'name'     => $team2
-            ]);
+            $tId = SwooleHandler::getValueFromKey('masterTeamsTable', 'name', $team1, 'id');
+            if (empty($tId)) {
+                $multiTeam['away']['id'] = DB::table('master_teams')->insertGetId([
+                    'sport_id' => $sportId,
+                    'name'     => $team2
+                ]);
+            } else {
+                $multiTeam['away']['id'] = $tId;
+            }
         }
 
         /**
