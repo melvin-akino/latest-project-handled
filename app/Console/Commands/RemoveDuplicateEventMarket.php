@@ -45,22 +45,36 @@ class RemoveDuplicateEventMarket extends Command
         $this->line('Cleaning Event Market Database Tables...');
 
         try {
-            DB::table('orders')->orderBy('master_event_market_id', 'ASC')->chunk(10000, function ($ids) {
-                $memOrderIds        = $ids->pluck('master_event_market_id')->toArray();
-                $memLogsDeleteNotIn = DB::table('master_event_market_logs')->whereNotIn('master_event_market_id', $memOrderIds)->orderBy('master_event_market_id', 'ASC');
-                $memDeleteNotIn     = DB::table('master_event_markets')->whereNotIn('id', $memOrderIds)->orderBy('id', 'ASC');
+            DB::table('orders')->groupBy('master_event_market_id')->select('master_event_market_id')->orderBy('master_event_market_id', 'ASC')->chunk(10000, function ($ids) {
+                $memOrderIds = $ids->pluck('master_event_market_id')->toArray();
+
+                $memLogsDeleteNotIn = DB::table('master_event_market_logs')
+                    ->select('master_event_market_id')
+                    ->groupBy('master_event_market_id')
+                    ->whereNotIn('master_event_market_id', $memOrderIds)
+                    ->orderBy('master_event_market_id', 'ASC');
 
                 $memLogsDeleteNotIn->chunk(10000, function ($eventMarkets) {
-                    $softDel = $eventMarkets->pluck('id')->toArray();
+                    $softDel = $eventMarkets->pluck('master_event_market_id')->toArray();
 
                     DB::table('master_event_market_logs')
-                        ->whereIn('id', $softDel)
+                        ->whereIn('master_event_market_id', $softDel)
                         ->delete();
                 });
 
+                $memDeleteNotIn = DB::table('master_event_markets')
+                    ->whereNotIn('id', $memOrderIds)
+                    ->orderBy('id', 'ASC');
+
                 $memDeleteNotIn->chunk(10000, function ($memID) {
-                    $memIDs                 = $memID->pluck('id')->toArray();
-                    $emDeleteInMEM          = DB::table('event_markets')->whereIn('master_event_market_id', $memIDs)->orderBy('master_event_market_id', 'ASC');
+                    $memIDs = $memID->pluck('id')->toArray();
+
+                    $emDeleteInMEM = DB::table('event_markets')
+                        ->groupBy('master_event_market_id')
+                        ->select('master_event_market_id')
+                        ->whereIn('master_event_market_id', $memIDs)
+                        ->orderBy('master_event_market_id', 'ASC');
+
                     $emDeleteDuplicateBetID = DB::table('event_markets')
                         ->whereNotIn('master_event_market_id', $memIDs)
                         ->select('bet_identifier', 'master_event_market_id')
@@ -96,10 +110,10 @@ class RemoveDuplicateEventMarket extends Command
                     });
 
                     $emDeleteInMEM->chunk(10000, function ($eventMarkets) {
-                        $softDel = $eventMarkets->pluck('id')->toArray();
+                        $softDel = $eventMarkets->pluck('master_event_market_id')->toArray();
 
                         DB::table('event_markets')
-                            ->whereIn('id', $softDel)
+                            ->whereIn('master_event_market_id', $softDel)
                             ->delete();
                     });
                 });
