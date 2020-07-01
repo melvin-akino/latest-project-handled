@@ -67,19 +67,10 @@ export default {
     mounted() {
         this.$store.dispatch('trade/getTradeWindowData')
         this.$store.dispatch('trade/getTradePageSettings')
-        this.getWatchlist()
-        this.getEvents()
-        this.getUpdatedEventsSchedule()
-    },
-    watch: {
-        allEventsList() {
-            this.getAdditionalEvents()
-            this.getForRemovalEvents()
-            this.getUpdatedOdds()
-        }
+        this.modifyEventsFromSocket()
     },
     methods: {
-        getWatchlist() {
+        modifyEventsFromSocket() {
             this.$options.sockets.onmessage = (response => {
                 if(getSocketKey(response.data) ===  'getWatchlist') {
                     let watchlist = getSocketValue(response.data, 'getWatchlist')
@@ -115,13 +106,11 @@ export default {
                     let sortedWatchlistObject = {}
                     let watchlistEvents = sortByObjectKeys(watchlistObject, sortedWatchlistObject, 'ref_schedule')
                     this.$store.commit('trade/SET_WATCHLIST', watchlistEvents)
-                }
-            })
-        },
-        getEvents() {
-            this.$options.sockets.onmessage = (response => {
-                if(getSocketKey(response.data) === 'getEvents') {
+                } else if(getSocketKey(response.data) === 'getEvents') {
                     let receivedEvents = getSocketValue(response.data, 'getEvents')
+                    let league_name = _.uniq(receivedEvents.map(event => event.league_name))[0]
+                    let game_schedule = _.uniq(receivedEvents.map(event => event.game_schedule))[0]
+                    this.$store.dispatch('trade/toggleLeague', { league_name: league_name, sport_id: this.selectedSport, schedule: game_schedule  })
                     Object.keys(this.selectedLeagues).map(schedule => {
                         this.selectedLeagues[schedule].map(league => {
                             receivedEvents.map(receivedEvent => {
@@ -177,12 +166,7 @@ export default {
                         let events = sortByObjectKeys(eventObject[schedule], sortedEventObject[schedule], 'ref_schedule')
                         this.$store.commit('trade/SET_EVENTS', { schedule: schedule, events: events })
                     })
-                }
-            })
-        },
-        getAdditionalEvents() {
-            this.$options.sockets.onmessage = (response => {
-                if(getSocketKey(response.data) === 'getAdditionalEvents') {
+                } else if(getSocketKey(response.data) === 'getAdditionalEvents') {
                     let additionalEvents = getSocketValue(response.data, 'getAdditionalEvents')
                     additionalEvents.map(event => {
                         if(!this.eventsListUID.includes(event.uid) && !this.allEventsListUID.includes(event.uid)) {
@@ -204,12 +188,7 @@ export default {
                             }
                         }
                     })
-                }
-            })
-        },
-        getForRemovalEvents() {
-            this.$options.sockets.onmessage = (response => {
-                if(getSocketKey(response.data) === 'getForRemovalEvents') {
+                } else if(getSocketKey(response.data) === 'getForRemovalEvents') {
                     let removedEvents = getSocketValue(response.data, 'getForRemovalEvents')
                     removedEvents.map(removedEvent => {
                         let checkIfEventsInTradeWindow = this.allEventsList.filter(event => event.league_name == removedEvent.league_name && event.game_schedule == removedEvent.game_schedule).length
@@ -265,12 +244,7 @@ export default {
                             })
                         }
                     })
-                }
-            })
-        },
-        getUpdatedEventsSchedule() {
-            this.$options.sockets.onmessage = (response => {
-                if(getSocketKey(response.data) === 'getUpdatedEventsSchedule') {
+                } else if(getSocketKey(response.data) === 'getUpdatedEventsSchedule') {
                     let updatedEventSchedule = getSocketValue(response.data, 'getUpdatedEventsSchedule')
                     this.allEventsList.map(event => {
                         if(event.uid === updatedEventSchedule.uid && event.game_schedule != updatedEventSchedule.game_schedule) {
@@ -294,12 +268,7 @@ export default {
                             }
                         }
                     })
-                }
-            })
-        },
-        getUpdatedOdds() {
-            this.$options.sockets.onmessage = (response => {
-                if(getSocketKey(response.data) === 'getUpdatedOdds') {
+                } else if(getSocketKey(response.data) === 'getUpdatedOdds') {
                     let updatedOdds = getSocketValue(response.data, 'getUpdatedOdds')
                     let schedule = ['inplay', 'today', 'early', 'watchlist']
                     let team = ['HOME', 'AWAY', 'DRAW']

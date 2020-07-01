@@ -234,12 +234,15 @@ export default {
             axios.post('v1/trade/watchlist/remove', { type: type, data: data }, { headers: { 'Authorization': `Bearer ${token}` }})
             .then(response => {
                 if(type==='league') {
+                    let league_name = _.uniq(payload.map(event => event.league_name))[0]
+                    let game_schedule = _.uniq(payload.map(event => event.game_schedule))
+                    game_schedule.map(schedule => {
+                        this.$store.dispatch('trade/toggleLeague', { league_name: league_name, sport_id: this.selectedSport, schedule: schedule  })
+                        this.$store.commit('trade/ADD_TO_SELECTED_LEAGUE', { schedule: schedule, league: league_name })
+                    })
                     this.$store.commit('trade/REMOVE_FROM_EVENTS', { schedule: 'watchlist', removedLeague: data })
                     payload.map(event => {
-                        this.$store.dispatch('trade/toggleLeague', { league_name: event.league_name, sport_id: this.selectedSport, schedule: event.game_schedule  })
-                        this.$store.commit('trade/ADD_TO_SELECTED_LEAGUE', { schedule: event.game_schedule, league: event.league_name })
                         this.$store.commit('trade/SET_EVENTS_LIST', event)
-
                         if(this.tradePageSettings.sort_event == 1) {
                             this.$store.dispatch('trade/transformEvents', { schedule: event.game_schedule, league: event.league_name, payload: event })
                         } else if(this.tradePageSettings.sort_event == 2) {
