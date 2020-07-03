@@ -90,15 +90,14 @@ class DeleteDuplicateEvents extends Command
                 }
             });
 
-            $eventMarketsWithNullMasterEventIds = DB::table('event_markets')
-                ->whereIn('event_id', function($query) {
-                    $query->from('events')->whereNull('master_event_id')->select('id')->pluck('id');
-                })
+            $eventsWithNullMasterEventIds = DB::table('events')
+                ->whereNull('master_event_id')
+                ->select('id')
                 ->orderBy('id', 'ASC');
 
-            $eventMarketsWithNullMasterEventIds->chunk(10000, function ($eventMarkets) {
+            $eventsWithNullMasterEventIds->chunk(10000, function ($ids) {
                 DB::table('event_markets')
-                    ->whereIn('id', $eventMarkets->pluck('id'))
+                    ->whereIn('event_id', $ids->pluck('id'))
                     ->delete();
             });
 
