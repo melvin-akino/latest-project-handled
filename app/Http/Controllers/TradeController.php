@@ -298,6 +298,7 @@ class TradeController extends Controller
                     $topicTable        = app('swoole')->topicTable;
                     $eventsTable       = app('swoole')->eventsTable;
                     $eventMarketsTable = app('swoole')->eventMarketsTable;
+                    $userEvents        = app('swoole')->userEventsTable;
 
                     foreach ($eventsTable as $eKey => $event) {
                         if ($event['master_league_id'] == $masterLeague->id && $event['game_schedule'] == $request->schedule) {
@@ -321,6 +322,14 @@ class TradeController extends Controller
                                 $userSelectedLeagueTable->del($key);
 
                                 break;
+                            }
+                        }
+                    }
+
+                    foreach ($userEvents as $key => $row) {
+                        if (strpos($key, 'selected:userId:' . $userId . ':league:' . $masterLeague->id . ':schedule:' . $request->schedule) === 0) {
+                            if ($row['master_league_name'] == $request->league_name && $row['game_schedule'] == $request->schedule) {
+                                $userEvents->del($key);
                             }
                         }
                     }
@@ -374,7 +383,7 @@ class TradeController extends Controller
                         if (!checkIfInSWTKey($userEvents, 'selected:userId:' . $userId)) {
                             $transformed = Game::getSelectedLeagueEvents($userId);
                             foreach($transformed as $data) {
-                                $swtKey = 'selected:userId:' . $userId . ':meId:' . $data->master_event_id . ':otId:' . $data->odd_type_id . ':team:' . $data->market_flag;
+                                $swtKey = 'selected:userId:' . $userId . ':league:' . $data->league_id . ':schedule:' . $data->game_schedule .  ':otId:' . $data->odd_type_id . ':team:' . $data->market_flag;
                                 foreach($data as $key => $value) {
                                     $userEvents->set($swtKey, [$key => $value]);
                                 }
