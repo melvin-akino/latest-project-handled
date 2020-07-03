@@ -90,6 +90,17 @@ class DeleteDuplicateEvents extends Command
                 }
             });
 
+            $eventsWithNullMasterEventIds = DB::table('events')
+                ->whereNull('master_event_id')
+                ->select('id')
+                ->orderBy('id', 'ASC');
+
+            $eventsWithNullMasterEventIds->chunk(10000, function ($ids) {
+                DB::table('event_markets')
+                    ->whereIn('event_id', $ids->pluck('id'))
+                    ->delete();
+            });
+
             $eventMarketsEventIds = DB::table('event_markets')
                 ->whereNotNull('event_id')
                 ->select('event_id')
@@ -111,6 +122,7 @@ class DeleteDuplicateEvents extends Command
         } catch(Exception $e) {
             Log::error($e->getMessage());
             DB::rollback();
+            $this->error($e->getMessage());
             $this->error('Something went wrong in deleting the records.');
         }
     }
