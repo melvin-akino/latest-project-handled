@@ -497,6 +497,34 @@ return [
                [ 'name' => 'request_ts', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 255 ],
            ],
         ],
+        'userEvents' => [
+            'size'   => env('SWT_MAX_SIZE', 102400),
+            'column' => [
+                [ 'name' => 'sport_id', 'type' => \Swoole\Table::TYPE_INT ],
+                [ 'name' => 'master_league_name', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 100 ],
+                [ 'name' => 'sport', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 20 ],
+                [ 'name' => 'master_event_id', 'type' => \Swoole\Table::TYPE_INT ],
+                [ 'name' => 'master_event_unique_id', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 30 ],
+                [ 'name' => 'master_home_team_name', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 100 ],
+                [ 'name' => 'master_away_team_name', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 100 ],
+                [ 'name' => 'ref_schedule', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 30 ],
+                [ 'name' => 'game_schedule', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 20 ],
+                [ 'name' => 'score', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 10 ],
+                [ 'name' => 'running_time', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 10 ],
+                [ 'name' => 'home_penalty', 'type' => \Swoole\Table::TYPE_INT ],
+                [ 'name' => 'away_penalty', 'type' => \Swoole\Table::TYPE_INT ],
+                [ 'name' => 'odd_type_id', 'type' => \Swoole\Table::TYPE_INT ],
+                [ 'name' => 'master_event_market_unique_id', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 30 ],
+                [ 'name' => 'is_main', 'type' => \Swoole\Table::TYPE_INT, 'size' => 1 ],
+                [ 'name' => 'market_flag', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 5 ],
+                [ 'name' => 'type', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 30 ],
+                [ 'name' => 'odds', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 10 ],
+                [ 'name' => 'odd_label', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 10 ],
+                [ 'name' => 'provider_id', 'type' => \Swoole\Table::TYPE_INT ],
+                [ 'name' => 'bet_identifier', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 20 ],
+                [ 'name' => 'alias', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 10 ]
+            ]
+        ]
     ],
     'register_providers'       => [
         \Laravel\Passport\PassportServiceProvider::class

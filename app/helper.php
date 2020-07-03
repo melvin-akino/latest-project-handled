@@ -407,7 +407,7 @@ if (!function_exists('eventTransformation')) {
         $result   = [];
         $userBets = Order::getOrdersByUserId($userId);
 
-        array_map(function ($transformed) use (&$data, &$result, $userConfig, $userTz, $userId, $userProviderIds, $topicTable, $userBets, $type) {
+        foreach($transformed as $transformed) {
             if (!in_array($transformed->provider_id, $userProviderIds)) {
                 return $transformed;
             }
@@ -499,8 +499,7 @@ if (!function_exists('eventTransformation')) {
             } else {
                 $result = $data;
             }
-
-        }, $transformed->toArray());
+        }
 
         $newResult = [];
 
@@ -527,6 +526,31 @@ if (!function_exists('eventTransformation')) {
         }
 
         return $newResult;
+    }
+}
+
+if (!function_exists('checkIfInSWTKey')) {
+    function checkIfInSWTKey($swt, $toCheck) {
+        $inSWT = false;
+        foreach($swt as $key => $row) {
+            if(strpos($key, $toCheck) === 0) {
+                $inSWT = true;
+            }
+        }
+        return $inSWT;
+    }
+}
+
+if (!function_exists('getFromSWT')) {
+    function getFromSWT($swt, $toCheck) {
+        $data = [];
+        foreach ($swt as $key => $row) {
+            if (strpos($key, $toCheck) === 0) {
+                $data[] = $row;
+            }
+        }
+        $data = json_decode(json_encode($data));
+        return $data;
     }
 }
 

@@ -354,14 +354,34 @@ class TradeController extends Controller
                 'user_selected',
             ];
             $userId           = auth()->user()->id;
-
             $providerId = Provider::getMostPriorityProvider(auth()->user()->id);
+            $userEvents = app('swoole')->userEventsTable;
             if ($providerId) {
                 foreach ($type as $row) {
                     if ($row == 'user_watchlist') {
-                        $transformed = Game::getWatchlistEvents($userId);
+                        if (!checkIfInSWTKey($userEvents, 'watchlist:userId:' . $userId)) {
+                            $transformed = Game::getWatchlistEvents($userId);
+                            foreach($transformed as $data) {
+                                $swtKey = 'watchlist:userId:' . $userId . ':meId:' . $data->master_event_id . ':otId:' . $data->odd_type_id . ':team:' . $data->market_flag;
+                                foreach($data as $key => $value) {
+                                    $userEvents->set($swtKey, [$key => $value]);
+                                }
+                            }
+                        } else {
+                            $transformed = getFromSWT($userEvents, 'watchlist:userId:' . $userId);
+                        }
                     } else {
-                        $transformed = Game::getSelectedLeagueEvents($userId);
+                        if (!checkIfInSWTKey($userEvents, 'selected:userId:' . $userId)) {
+                            $transformed = Game::getSelectedLeagueEvents($userId);
+                            foreach($transformed as $data) {
+                                $swtKey = 'selected:userId:' . $userId . ':meId:' . $data->master_event_id . ':otId:' . $data->odd_type_id . ':team:' . $data->market_flag;
+                                foreach($data as $key => $value) {
+                                    $userEvents->set($swtKey, [$key => $value]);
+                                }
+                            }
+                        } else {
+                            $transformed = getFromSWT($userEvents, 'selected:userId:' . $userId);
+                        }
                     }
 
                     /** TO DO: Adjust getUserDefault */
