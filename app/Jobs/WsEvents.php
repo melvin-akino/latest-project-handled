@@ -39,7 +39,7 @@ class WsEvents implements ShouldQueue
             // if (Redis::get($this->schedule . '_' . $this->masterLeagueName)) {
             //     $data = json_decode(Redis::get($this->schedule . '_' . $this->masterLeagueName), false);
             // } else {
-                $userId = $this->userId;
+                $userId     = $this->userId;
                 $topicTable = $server->topicTable;
                 $userEvents = $server->userEventsTable;
 
@@ -47,8 +47,8 @@ class WsEvents implements ShouldQueue
                 $userProviderIds = UserProviderConfiguration::getProviderIdList($this->userId);
                 $userConfig      = getUserDefault($this->userId, 'sort-event')['default_sort'];
                 $masterLeague    = MasterLeague::where('name', $this->masterLeagueName)->first();
-                $userTz        = "Etc/UTC";
-                $getUserConfig = UserConfiguration::getUserConfig($userId)
+                $userTz          = "Etc/UTC";
+                $getUserConfig   = UserConfiguration::getUserConfig($userId)
                                                     ->where('type', 'timezone')
                                                     ->first();
 

@@ -52,7 +52,7 @@ class WsWatchlist implements ShouldQueue
             }
         }
 
-        $userId = $this->userId;
+        $userId    = $this->userId;
         $topicTable = $server->topicTable;
         $userEvents = $server->userEventsTable;
 
