@@ -533,7 +533,7 @@ if (!function_exists('checkIfInSWTKey')) {
     function checkIfInSWTKey($swt, $toCheck) {
         $inSWT = false;
         foreach($swt as $key => $row) {
-            if(strpos($key, $toCheck) === 0) {
+            if(strpos($key, $toCheck) !== false) {
                 $inSWT = true;
             }
         }
@@ -545,7 +545,7 @@ if (!function_exists('getFromSWT')) {
     function getFromSWT($swt, $toCheck) {
         $data = [];
         foreach ($swt as $key => $row) {
-            if (strpos($key, $toCheck) === 0) {
+            if (strpos($key, $toCheck) !== false) {
                 $data[] = $row;
             }
         }

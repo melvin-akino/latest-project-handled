@@ -344,4 +344,36 @@ class Game extends Model
         return DB::table('search_suggestions')
                  ->where('label', 'ILIKE', '%' . trim($key) . '%');
     }
+
+    public static function getGameDetailsByMeId(int $masterEventId)
+    {
+        $maxMissingCount = SystemConfiguration::getSystemConfigurationValue('EVENT_VALID_MAX_MISSING_COUNT')->value;
+
+        return DB::table('master_leagues as ml')
+                 ->leftJoin('sports as s', 's.id', 'ml.sport_id')
+                 ->leftJoin('master_events as me', 'me.master_league_id', 'ml.id')
+                 ->join('events as e', 'e.master_event_id', 'me.id')
+                 ->leftJoin('master_teams as mth', 'mth.id', 'me.master_team_home_id')
+                 ->leftJoin('master_teams as mta', 'mta.id', 'me.master_team_away_id')
+                 ->leftJoin('master_event_markets as mem', 'mem.master_event_id', 'me.id')
+                 ->leftJoin('odd_types as ot', 'ot.id', 'mem.odd_type_id')
+                 ->join('event_markets as em', function ($join) {
+                     $join->on('em.master_event_market_id', '=', 'mem.id');
+                     $join->on('em.event_id', '=', 'e.id');
+                 })
+                 ->leftJoin('providers as p', 'p.id', 'em.provider_id')
+                 ->select('ml.sport_id', 'ml.name as master_league_name', 'ml.id as league_id', 's.sport', 'e.master_event_id',
+                     'me.master_event_unique_id', 'mth.name as master_home_team_name', 'mta.name as master_away_team_name',
+                     'me.ref_schedule', 'me.game_schedule', 'me.score', 'me.running_time',
+                     'me.home_penalty', 'me.away_penalty', 'mem.odd_type_id', 'mem.master_event_market_unique_id', 'mem.is_main', 'mem.market_flag',
+                     'ot.type', 'em.odds', 'em.odd_label', 'em.provider_id', 'em.bet_identifier', 'p.alias')
+                 ->where('me.id', $masterEventId)
+                 ->where('mem.is_main', true)
+                 ->whereNull('me.deleted_at')
+                 ->whereNull('e.deleted_at')
+                 ->whereNull('em.deleted_at')
+                 ->whereNull('ml.deleted_at')
+                 ->where('e.missing_count', '<=', $maxMissingCount)
+                 ->get();
+    }
 }

@@ -35,47 +35,40 @@ class WsEvents implements ShouldQueue
         try {
             $server = app('swoole');
             $fd     = $server->wsTable->get('uid:' . $this->userId);
-
             // Task::deliver(new WsEventsTransformation($this->userId, $this->params, $this->additional));
-
             // if (Redis::get($this->schedule . '_' . $this->masterLeagueName)) {
             //     $data = json_decode(Redis::get($this->schedule . '_' . $this->masterLeagueName), false);
-            //     Log::info($data);
             // } else {
+                $userId = $this->userId;
                 $topicTable = $server->topicTable;
                 $userEvents = $server->userEventsTable;
 
-                $userProviderIds = UserProviderConfiguration::getProviderIdList($this->userId);
-                $masterLeague    = MasterLeague::where('name', $this->masterLeagueName)->first();
-                $userConfig      = getUserDefault($this->userId, 'sort-event')['default_sort'];
 
-                $userId        = $this->userId;
+                $userProviderIds = UserProviderConfiguration::getProviderIdList($this->userId);
+                $userConfig      = getUserDefault($this->userId, 'sort-event')['default_sort'];
+                $masterLeague    = MasterLeague::where('name', $this->masterLeagueName)->first();
                 $userTz        = "Etc/UTC";
                 $getUserConfig = UserConfiguration::getUserConfig($userId)
-                                                  ->where('type', 'timezone')
-                                                  ->first();
+                                                    ->where('type', 'timezone')
+                                                    ->first();
 
                 if ($getUserConfig) {
                     $userTz = Timezones::find($getUserConfig->value)->name;
                 }
 
-                if (!checkIfInSWTKey($userEvents, 'selected:userId:' . $userId . ':league:' . $masterLeague->id . ':schedule:' . $this->schedule)) {
-                    $gameDetails = Game::getGameDetails($masterLeague->id, $this->schedule);
-                    foreach($gameDetails as $data) {
-                        $swtKey = 'selected:userId:' . $userId . ':league:' . $data->league_id . ':schedule:' . $data->game_schedule .  ':otId:' . $data->odd_type_id . ':team:' . $data->market_flag;
-                        foreach($data as $key => $value) {
-                            $userEvents->set($swtKey, [$key => $value]);
-                        }
+                $gameDetails = Game::getGameDetails($masterLeague->id, $this->schedule);
+                foreach($gameDetails as $data) {
+                    $swtKey = 'selected:u:' . $userId . ':l:' . $data->league_id . ':s:' . $data->game_schedule . ':e:' . $data->master_event_id  .  ':o:' . $data->odd_type_id . ':t:' . $data->market_flag;
+                    foreach($data as $key => $value) {
+                        $userEvents->set($swtKey, [$key => $value]);
                     }
-                } else {
-                    $gameDetails = getFromSWT($userEvents, 'selected:userId:' . $userId . ':league:' . $masterLeague->id . ':schedule:' . $this->schedule);
                 }
 
                 $data = eventTransformation($gameDetails, $userConfig, $userTz, $userId, $userProviderIds, $topicTable, 'socket');
             // }
-
             $gameData = is_array($data) ? $data : [];
             $eventData = array_values($gameData);
+
             if (!empty($eventData)) {
                 $channelName = $this->additional ? "getAdditionalEvents" : "getEvents";
 

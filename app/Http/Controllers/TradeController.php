@@ -162,12 +162,28 @@ class TradeController extends Controller
 
             if ($action == "remove") {
                 $lang = "removed";
+                $userEvents = app('swoole')->userEventsTable;
 
                 foreach ($masterEventUniqueIds as $row) {
                     UserWatchlist::where('user_id', auth()->user()->id)
                                  ->where('master_event_id', $row['id'])
                                  ->delete();
                     app('swoole')->userWatchlistTable->del('userWatchlist:' . auth()->user()->id . ':masterEventUniqueId:' . $row['master_event_unique_id']);
+
+                    foreach ($userEvents as $key => $data) {
+                        if (strpos($key, 'watchlist:u:' . auth()->user()->id . ':e:' . $row['id']) !== false) {
+                            $userEvents->del($key);
+                        }
+                    }
+
+                    $gameDetails = Game::getGameDetailsByMeId($row['id']);
+
+                    foreach($gameDetails as $data) {
+                        $swtKey = 'selected:u:' . auth()->user()->id . ':l:' . $data->league_id . ':s:' . $data->game_schedule . ':e:' . $data->master_event_id  .  ':o:' . $data->odd_type_id . ':t:' . $data->market_flag;
+                        foreach($data as $key => $value) {
+                            $userEvents->set($swtKey, [$key => $value]);
+                        }
+                    }
                 }
             }
 
@@ -327,7 +343,7 @@ class TradeController extends Controller
                     }
 
                     foreach ($userEvents as $key => $row) {
-                        if (strpos($key, 'selected:userId:' . $userId . ':league:' . $masterLeague->id . ':schedule:' . $request->schedule) === 0) {
+                        if (strpos($key, 'selected:u:' . $userId . ':l:' . $masterLeague->id . ':s:' . $request->schedule) !== false) {
                             if ($row['master_league_name'] == $request->league_name && $row['game_schedule'] == $request->schedule) {
                                 $userEvents->del($key);
                             }
@@ -368,28 +384,32 @@ class TradeController extends Controller
             if ($providerId) {
                 foreach ($type as $row) {
                     if ($row == 'user_watchlist') {
-                        if (!checkIfInSWTKey($userEvents, 'watchlist:userId:' . $userId)) {
+                        if (!checkIfInSWTKey($userEvents, 'watchlist:u:' . $userId)) {
                             $transformed = Game::getWatchlistEvents($userId);
                             foreach($transformed as $data) {
-                                $swtKey = 'watchlist:userId:' . $userId . ':meId:' . $data->master_event_id . ':otId:' . $data->odd_type_id . ':team:' . $data->market_flag;
+                                $swtKey = 'watchlist:u:' . $userId . ':e:' . $data->master_event_id . ':o:' . $data->odd_type_id . ':t:' . $data->market_flag;
                                 foreach($data as $key => $value) {
                                     $userEvents->set($swtKey, [$key => $value]);
                                 }
                             }
+                            Log::info('Watchlist events from query');
                         } else {
-                            $transformed = getFromSWT($userEvents, 'watchlist:userId:' . $userId);
+                            $transformed = getFromSWT($userEvents, 'watchlist:u:' . $userId);
+                            Log::info('Watchlist events from SWT');
                         }
                     } else {
-                        if (!checkIfInSWTKey($userEvents, 'selected:userId:' . $userId)) {
+                        if (!checkIfInSWTKey($userEvents, 'selected:u:' . $userId)) {
                             $transformed = Game::getSelectedLeagueEvents($userId);
                             foreach($transformed as $data) {
-                                $swtKey = 'selected:userId:' . $userId . ':league:' . $data->league_id . ':schedule:' . $data->game_schedule .  ':otId:' . $data->odd_type_id . ':team:' . $data->market_flag;
+                                $swtKey = 'selected:u:' . $userId . ':l:' . $data->league_id . ':s:' . $data->game_schedule . ':e:' . $data->master_event_id  .  ':o:' . $data->odd_type_id . ':t:' . $data->market_flag;
                                 foreach($data as $key => $value) {
                                     $userEvents->set($swtKey, [$key => $value]);
                                 }
                             }
+                            Log::info('Selected events from query');
                         } else {
-                            $transformed = getFromSWT($userEvents, 'selected:userId:' . $userId);
+                            $transformed = getFromSWT($userEvents, 'selected:u:' . $userId);
+                            Log::info('Selected events from SWT');
                         }
                     }
 
