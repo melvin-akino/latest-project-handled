@@ -75,6 +75,8 @@ class SettlementProduce implements CustomProcessInterface
                                             $payload,
                                             $requestId
                                         );
+                                        // add sleep to prevent detecting as bot
+                                        sleep(random_int(60, 300));
 
                                         $startTime = $newTime;
                                     }
