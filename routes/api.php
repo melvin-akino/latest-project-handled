@@ -109,7 +109,7 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
                 /** League List Route Endpoints for Initial Page Load */
                 Route::prefix('leagues')->group(function () {
                     Route::get('/', 'TradeController@getInitialLeagues');
-                    Route::post('toggle', 'TradeController@postManageSidebarLeagues');
+                    Route::post('toggle/{action}', 'TradeController@postManageSidebarLeagues');
                 });
 
                 Route::get('events', 'TradeController@getUserEvents');
