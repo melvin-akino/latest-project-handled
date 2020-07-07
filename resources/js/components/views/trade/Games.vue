@@ -206,7 +206,7 @@ export default {
             this.$store.commit('trade/REMOVE_FROM_EVENTS', { schedule: this.gameSchedType, removedLeague: league })
             this.$store.commit('trade/REMOVE_FROM_EVENT_LIST', { type: 'league_name', data: league, game_schedule: this.gameSchedType })
             this.$store.commit('trade/REMOVE_FROM_ALL_EVENT_LIST', { type: 'league_name', data: league, game_schedule: this.gameSchedType })
-            this.$store.dispatch('trade/toggleLeague', { league_name: league, sport_id: this.selectedSport, schedule: this.gameSchedType })
+            this.$store.dispatch('trade/toggleLeague', { action: 'remove', league_name: league, sport_id: this.selectedSport, schedule: this.gameSchedType })
         },
         addToWatchlist(type, data, payload) {
             let token = Cookies.get('mltoken')
@@ -237,7 +237,7 @@ export default {
                     let league_name = _.uniq(payload.map(event => event.league_name))[0]
                     let game_schedule = _.uniq(payload.map(event => event.game_schedule))
                     game_schedule.map(schedule => {
-                        this.$store.dispatch('trade/toggleLeague', { league_name: league_name, sport_id: this.selectedSport, schedule: schedule  })
+                        this.$store.dispatch('trade/toggleLeague', { action: 'add', league_name: league_name, sport_id: this.selectedSport, schedule: schedule  })
                         this.$store.commit('trade/ADD_TO_SELECTED_LEAGUE', { schedule: schedule, league: league_name })
                     })
                     this.$store.commit('trade/REMOVE_FROM_EVENTS', { schedule: 'watchlist', removedLeague: data })
@@ -264,7 +264,7 @@ export default {
                     if(this.leaguesLength == 0) {
                         this.$store.commit('trade/REMOVE_FROM_EVENTS', { schedule: 'watchlist', removedLeague: payload.league_name })
                     }
-                    this.$store.dispatch('trade/toggleLeague', { league_name: payload.league_name, sport_id: this.selectedSport, schedule: payload.game_schedule  })
+                    this.$store.dispatch('trade/toggleLeague', { action: 'add', league_name: payload.league_name, sport_id: this.selectedSport, schedule: payload.game_schedule  })
                     this.$store.commit('trade/ADD_TO_SELECTED_LEAGUE', { schedule: payload.game_schedule, league: payload.league_name })
                     let eventsListCheckUID = this.eventsList.findIndex(event => event.uid === payload.uid)
                     if(eventsListCheckUID === -1) {

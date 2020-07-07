@@ -173,6 +173,8 @@ class TradeController extends Controller
                     foreach ($userEvents as $key => $data) {
                         if (strpos($key, 'watchlist:u:' . auth()->user()->id . ':e:' . $row['id']) !== false) {
                             $userEvents->del($key);
+                        } else {
+                            continue;
                         }
                     }
 
@@ -261,7 +263,7 @@ class TradeController extends Controller
      * @param  $request \Illuminate\Http\Request
      * @return json
      */
-    public function postManageSidebarLeagues(ToggleLeaguesRequest $request)
+    public function postManageSidebarLeagues($action, ToggleLeaguesRequest $request)
     {
         try {
             $masterLeague = MasterLeague::where('name', $request->league_name)->first();
@@ -275,7 +277,7 @@ class TradeController extends Controller
             $userId = auth()->user()->id;
             $swtKey = 'userId:' . $userId . ':sId:' . $request->sport_id . ':schedule:' . $request->schedule . ':uniqueId:' . uniqid();
 
-            if ($checkTable->count() == 0) {
+            if ($action == 'add' && $checkTable->count() == 0) {
                 UserSelectedLeague::create(
                     [
                         'user_id'          => $userId,
@@ -307,7 +309,7 @@ class TradeController extends Controller
                         ]);
                     }
                 }
-            } else {
+            } else if($action == 'remove' && $checkTable->count() > 0) {
                 $checkTable->delete();
 
                 if (empty($_SERVER['_PHPUNIT'])) {
@@ -347,6 +349,8 @@ class TradeController extends Controller
                             if ($row['master_league_name'] == $request->league_name && $row['game_schedule'] == $request->schedule) {
                                 $userEvents->del($key);
                             }
+                        } else {
+                            continue;
                         }
                     }
                 }

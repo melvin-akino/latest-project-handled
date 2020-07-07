@@ -378,7 +378,7 @@ const actions = {
         commit('SET_BET_SLIP_SETTINGS', betSlipSettings)
     },
     toggleLeague({dispatch}, data) {
-        axios.post('v1/trade/leagues/toggle', { league_name: data.league_name, sport_id: data.sport_id, schedule: data.schedule}, { headers: { 'Authorization': `Bearer ${token}` } })
+        axios.post(`v1/trade/leagues/toggle/${data.action}`, { league_name: data.league_name, sport_id: data.sport_id, schedule: data.schedule}, { headers: { 'Authorization': `Bearer ${token}` } })
         .catch(err => {
             dispatch('auth/checkIfTokenIsValid', err.response.data.status_code, { root: true })
         })
@@ -387,7 +387,7 @@ const actions = {
         let schedule = ['inplay', 'today', 'early']
         schedule.map(schedule => {
             if(state.selectedLeagues[schedule].length != 0 && state.selectedLeagues[schedule].includes(data.league_name)) {
-                dispatch('toggleLeague', { league_name: data.league_name, sport_id: data.sport_id, schedule: schedule })
+                dispatch('toggleLeague', { action: data.action, league_name: data.league_name, sport_id: data.sport_id, schedule: schedule })
             }
         })
     },
@@ -395,7 +395,7 @@ const actions = {
         axios.post('v1/trade/watchlist/add', { type: data.type, data: data.data }, { headers: { 'Authorization': `Bearer ${token}` }})
         .then(response => {
             if(data.type=='league') {
-                dispatch('toggleLeagueByName', { league_name: data.data, sport_id: state.selectedSport })
+                dispatch('toggleLeagueByName', { action: 'remove', league_name: data.data, sport_id: state.selectedSport })
                 commit('REMOVE_SELECTED_LEAGUE_BY_NAME', data.data)
                 commit('REMOVE_FROM_EVENTS_BY_LEAGUE', data.data)
                 commit('REMOVE_FROM_EVENT_LIST', { type: 'league_name', data: data.data, game_schedule: data.game_schedule })
@@ -412,7 +412,7 @@ const actions = {
                     }
 
                     if(leaguesLength == 0) {
-                        dispatch('toggleLeague', { league_name: data.payload.league_name,  schedule: data.payload.game_schedule, sport_id: state.selectedSport })
+                        dispatch('toggleLeague', { action: 'remove', league_name: data.payload.league_name,  schedule: data.payload.game_schedule, sport_id: state.selectedSport })
                         commit('REMOVE_SELECTED_LEAGUE', {schedule: data.payload.game_schedule, league: data.payload.league_name })
                         commit('REMOVE_FROM_EVENTS', { schedule: data.payload.game_schedule, removedLeague: data.payload.league_name })
                     }
@@ -431,6 +431,9 @@ const actions = {
                 let checkEventUID = state.events[data.schedule][league].findIndex(event => event.uid === data.payload.uid)
                 if(data.league == league && checkEventUID === -1) {
                     state.events[data.schedule][league].push(data.payload)
+                    let sortedEventObject = {}
+                    let sortedEvents = sortByObjectKeys(state.events[data.schedule], sortedEventObject[data.schedule], 'ref_schedule')
+                    commit('SET_EVENTS', { schedule: data.schedule, events: sortedEvents })
                 }
             })
         } else {
@@ -439,7 +442,7 @@ const actions = {
             }
             state.events[data.schedule][data.league].push(data.payload)
             let sortedEventObject = {}
-            let sortedEvents = sortByObjectKeys(state.events[data.schedule], sortedEventObject[data.schedule])
+            let sortedEvents = sortByObjectKeys(state.events[data.schedule], sortedEventObject[data.schedule], 'ref_schedule')
             commit('SET_EVENTS', { schedule: data.schedule, events: sortedEvents })
         }
     },

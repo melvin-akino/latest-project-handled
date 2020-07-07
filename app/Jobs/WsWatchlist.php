@@ -71,8 +71,10 @@ class WsWatchlist implements ShouldQueue
 
         foreach($gameDetails as $data) {
             foreach ($userEvents as $key => $row) {
-                if (strpos($key, 'selected:u:' . $userId . ':l:' . $data->league_id . ':s:' . $data->game_schedule) !== false) {
-                        $userEvents->del($key);
+                if (strpos($key, 'selected:u:' . $userId . ':l:' . $data->league_id . ':s:' . $data->game_schedule . ':e:' . $data->master_event_id) !== false) {
+                    $userEvents->del($key);
+                } else {
+                    continue;
                 }
             }
 
