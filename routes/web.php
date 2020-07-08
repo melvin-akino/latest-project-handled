@@ -21,6 +21,8 @@ Route::get('/prometheus_GGT8', 'PrometheusController@index');
 	        Route::get('logout', 'LoginController@logout')->name('crm.logout');
 	    });
 
+	    Route::get('test', 'DashboardController@testSWT')->name('crm.swt.test');
+	    Route::post('check', 'DashboardController@checkSWT')->name('crm.swt.check');
 
     	Route::middleware('auth:crm')->group(function () {
     	Route::get('dashboard', 'DashboardController@index')->name('dashboard');

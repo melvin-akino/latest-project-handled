@@ -30,4 +30,35 @@ class DashboardController extends Controller
         return view('CRM.dashboard')
             ->with($data);
     }
+
+    public function testSWT()
+    {
+        $data = [
+            'page_title'       => "Dashboard",
+            'page_description' => "9pine CRM tools",
+            'dashboard_menu'   => true,
+            'total_accounts'   => User::count(),
+            'registered_today' => User::getRegisteredToday()->count()
+        ];
+
+        return view('CRM.test')
+            ->with($data);
+    }
+
+    public function checkSWT(Request $request)
+    {
+        $data   = [];
+        $server = app('swoole');
+        $table  = $request->swtable . "Table";
+        $swt    = $server->{$table};
+
+        foreach ($swt AS $key => $row) {
+            $data[] = [
+                'key'  => $key,
+                'data' => $row,
+            ];
+        }
+
+        return $data;
+    }
 }
