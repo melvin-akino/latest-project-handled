@@ -24,76 +24,56 @@ class WsWatchlist implements ShouldQueue
 
     public function handle()
     {
-        $server = app('swoole');
-        $fd     = $server->wsTable->get('uid:' . $this->userId);
+        try {
+            $server = app('swoole');
+            $fd     = $server->wsTable->get('uid:' . $this->userId);
 
-        $watchlist = [];
+            $userId    = $this->userId;
+            $topicTable = $server->topicTable;
+            $userEvents = $server->userEventsTable;
 
-        $providerPriority = 0;
-        $providerId       = 0;
+            $userProviderIds = UserProviderConfiguration::getProviderIdList($this->userId);
+            $userConfig      = getUserDefault($this->userId, 'sort-event')['default_sort'];
+            $userTz          = "Etc/UTC";
+            $getUserConfig   = UserConfiguration::getUserConfig($userId)
+                                            ->where('type', 'timezone')
+                                            ->first();
 
-        $providersTable = $server->providersTable;
-        foreach ($providersTable as $key => $provider) {
-            if (empty($providerPriority) || $providerPriority > $provider['priority']) {
-                $providerPriority = $provider['priority'];
-                $providerId       = $provider['id'];
+            if ($getUserConfig) {
+                $userTz = Timezones::find($getUserConfig->value)->name;
             }
-        }
 
-        $transformed = $server->transformedTable;
-        // Id format for watchlistTable = 'userWatchlist:' . $userId . ':league:' . $league
-        $userWatchlistTable = $server->userWatchlistTable;
-        foreach ($userWatchlistTable as $key => $row) {
-            $uid = substr($key, strlen('userWatchlist:' . $this->userId . ':masterEventUniqueId:'));
+            $gameDetails = Game::getWatchlistGameDetails($this->userId);
 
-            if ($transformed->exist('uid:' . $uid . ":pId:" . $providerId)) {
-                $watchlist[] = json_decode($transformed->get('uid:' . $uid . ":pId:" . $providerId)['value'],
-                    true);;
-            }
-        }
+            foreach($gameDetails as $data) {
+                foreach ($userEvents as $key => $row) {
+                    $swtKeyArray = explode(':o', $key);
+                    if ($swtKeyArray[0] == 'selected:u:' . $userId . ':l:' . $data->league_id . ':s:' . $data->game_schedule . ':e:' . $data->master_event_id) {
+                        $userEvents->del($key);
+                    } else {
+                        continue;
+                    }
+                }
 
-        $userId    = $this->userId;
-        $topicTable = $server->topicTable;
-        $userEvents = $server->userEventsTable;
-
-        $userProviderIds = UserProviderConfiguration::getProviderIdList($this->userId);
-        $userConfig      = getUserDefault($this->userId, 'sort-event')['default_sort'];
-        $userTz          = "Etc/UTC";
-        $getUserConfig   = UserConfiguration::getUserConfig($userId)
-                                          ->where('type', 'timezone')
-                                          ->first();
-
-        if ($getUserConfig) {
-            $userTz = Timezones::find($getUserConfig->value)->name;
-        }
-
-        $gameDetails = Game::getWatchlistGameDetails($this->userId);
-
-        foreach($gameDetails as $data) {
-            foreach ($userEvents as $key => $row) {
-                if (strpos($key, 'selected:u:' . $userId . ':l:' . $data->league_id . ':s:' . $data->game_schedule . ':e:' . $data->master_event_id) !== false) {
-                    $userEvents->del($key);
-                } else {
-                    continue;
+                $swtKey = 'watchlist:u:' . $userId . ':e:' . $data->master_event_id  .  ':o:' . $data->odd_type_id . ':t:' . $data->market_flag;
+                foreach($data as $key => $value) {
+                    $userEvents->set($swtKey, [$key => $value]);
                 }
             }
 
-            $swtKey = 'watchlist:u:' . $userId . ':e:' . $data->master_event_id  .  ':o:' . $data->odd_type_id . ':t:' . $data->market_flag;
-            foreach($data as $key => $value) {
-                $userEvents->set($swtKey, [$key => $value]);
+
+            $data = eventTransformation($gameDetails, $userConfig, $userTz, $userId, $userProviderIds, $topicTable, 'socket');
+
+            $watchlist = is_array($data) ? $data : [];
+            $eventData = array_values($watchlist);
+
+            if (!empty($eventData)) {
+                $server->push($fd['value'], json_encode([
+                    'getWatchlist' => $eventData
+                ]));
             }
-        }
-
-
-        $data = eventTransformation($gameDetails, $userConfig, $userTz, $userId, $userProviderIds, $topicTable, 'socket');
-
-        $watchlist = is_array($data) ? $data : [];
-        $eventData = array_values($watchlist);
-
-        if (!empty($eventData)) {
-            $server->push($fd['value'], json_encode([
-                'getWatchlist' => $eventData
-            ]));
+        } catch (Exception $e) {
+            Log::error($e->getMessage());
         }
     }
 }
