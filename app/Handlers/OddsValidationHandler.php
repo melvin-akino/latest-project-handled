@@ -2,6 +2,7 @@
 
 namespace App\Handlers;
 
+use App\Facades\SwooleHandler;
 use App\Models\League;
 use App\Models\Team;
 use Illuminate\Support\Facades\Log;
@@ -78,28 +79,31 @@ class OddsValidationHandler
                 }
             }
 
-            $transformedTable = $swoole->transformedTable;
-
+            /**
+             * Checks if hash is the same as old hash
+             */
             $transformedSwtId = 'eventIdentifier:' . $this->message->data->events[0]->eventId;
-            if ($transformedTable->exists($transformedSwtId)) {
-                $ts   = $transformedTable->get($transformedSwtId)['ts'];
-                $hash = $transformedTable->get($transformedSwtId)['hash'];
+            $toHashMessage              = $this->message->data;
+            $toHashMessage->runningtime = null;
+            $toHashMessage->id          = null;
+
+            $payloadHash = SwooleHandler::getValue('transformedTable', $transformedSwtId);
+            if ($payloadHash) {
+                $ts          = $payloadHash['ts'];
+                $hash        = $payloadHash['hash'];
                 if ($ts > $this->message->request_ts) {
-                    Log::info("Transformation ignored - Old Timestamp");
+                    appLog('info', "Transformation ignored - Old Timestamp");
                     return;
                 }
 
-                $toHashMessage               = $this->message->data;
-                $toHashMessage->running_time = null;
-                $toHashMessage->id           = null;
                 if ($hash == md5(json_encode((array) $toHashMessage))) {
                     appLog('info', "Transformation ignored - No change");
                     return;
                 }
             } else {
-                $transformedTable->set($transformedSwtId, [
+                SwooleHandler::setValue('transformedTable', $transformedSwtId, [
                     'ts'   => $this->message->request_ts,
-                    'hash' => md5(json_encode((array) $this->message->data))
+                    'hash' => md5(json_encode((array) $toHashMessage))
                 ]);
             }
 
