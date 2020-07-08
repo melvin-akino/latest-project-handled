@@ -39,11 +39,16 @@ class SwooleHandler
 
     public static function getValue($swooleTable, $key)
     {
-        return self::$swoole->{$swooleTable}[$key];
+        return self::$swoole->{$swooleTable}->get($key);
     }
 
     public static function setValue($swooleTable, $key, $payload)
     {
         return self::$swoole->{$swooleTable}->set($key, $payload);
+    }
+
+    public static function setColumnValue($swooleTable, $key, $column, $value)
+    {
+        return self::$swoole->{$swooleTable}[$key][$column] = $value;
     }
 }
