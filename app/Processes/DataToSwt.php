@@ -35,6 +35,7 @@ class DataToSwt implements CustomProcessInterface
             'UserProviderConfig',
             'ActiveEvents',
             'UserSelectedLeagues',
+            'UserSelectedLeaguesWithRaw',
             'Orders',
             'OrderPayloads',
             'ExchangeRates',
@@ -357,6 +358,30 @@ class DataToSwt implements CustomProcessInterface
                 'sport_id'    => $userSelectedLeague->sport_id,
                 'schedule'    => $userSelectedLeague->game_schedule,
                 'league_name' => $userSelectedLeague->master_league_name
+            ]);
+        }, $userSelectedLeagues->toArray());
+    }
+
+    private static function db2SwtUserSelectedLeaguesWithRaw(Server $swoole)
+    {
+        $userSelectedLeagues      = DB::table('user_selected_leagues as usl')
+                                      ->join('master_leagues as ml', 'ml.id', 'usl.master_league_id')
+                                      ->join('leagues as l', 'l.master_league_id', 'ml.id')
+                                      ->select('usl.user_id', 'usl.id', 'usl.sport_id', 'usl.game_schedule', 'l.name as raw_league_name')
+                                      ->get();
+        $userSelectedLeaguesTable = $swoole->userSelectedLeaguesWithRawTable;
+        array_map(function ($userSelectedLeague) use ($userSelectedLeaguesTable) {
+            $userSelectedLeaguesTable->set(
+                implode(':', [
+                    'userId:' . $userSelectedLeague->user_id,
+                    'sId:' . $userSelectedLeague->sport_id,
+                    'schedule:' . $userSelectedLeague->game_schedule,
+                    'id:' . $userSelectedLeague->id
+                ]), [
+                'user_id'     => $userSelectedLeague->user_id,
+                'sport_id'    => $userSelectedLeague->sport_id,
+                'schedule'    => $userSelectedLeague->game_schedule,
+                'raw_league_name' => $userSelectedLeague->raw_league_name
             ]);
         }, $userSelectedLeagues->toArray());
     }

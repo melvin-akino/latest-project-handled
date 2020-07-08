@@ -152,7 +152,6 @@ class OddsValidationHandler
             foreach ($leaguesTable as $k => $v) {
                 if ($v['sport_id'] == $sportId && $v['provider_id'] == $providerId && $v['league_name'] == $this->message->data->leagueName) {
                     $parameters['master_league_id'] = $leaguesTable->get($k)['id'];
-
                     $leagueExist = true;
                     break;
                 }
@@ -160,7 +159,7 @@ class OddsValidationHandler
 
             if (!$leagueExist) {
                 appLog('info', "Transformation ignored - League is not in the masterlist");
-                $parameters['master_league_id'] = null;
+                return;
             }
 
             $competitors = [
@@ -172,7 +171,6 @@ class OddsValidationHandler
                 foreach ($teamsTable as $k => $v) {
                     if ($v['provider_id'] == $providerId && $v['team_name'] == $row) {
                         $parameters['master_team_' . $key . '_id'] = $v['id'];
-
                         $teamExist = true;
                         break;
                     }
@@ -180,13 +178,17 @@ class OddsValidationHandler
 
                 if (!$teamExist) {
                     appLog('info', "Transformation ignored - No Available Teams in the masterlist");
-                    $parameters['master_team_' . $key . '_id'] = null;
+                    return;
                 }
             }
 
             $isLeagueSelected = false;
-            foreach ($swoole->userSelectedLeaguesTable as $key => $value) {
-                if ($value['league_name'] == $this->message->data->leagueName) {
+            foreach ($swoole->userSelectedLeaguesWithRawTable as $key => $value) {
+                if (
+                    $value['raw_league_name'] == $this->message->data->leagueName &&
+                    $value['sport_id']        == $sportId &&
+                    $value['schedule']        == $this->message->data->schedule
+                ) {
                     $isLeagueSelected = true;
                     break;
                 }
