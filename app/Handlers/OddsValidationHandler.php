@@ -3,8 +3,6 @@
 namespace App\Handlers;
 
 use App\Facades\SwooleHandler;
-use App\Models\League;
-use App\Models\Team;
 use Illuminate\Support\Facades\Log;
 use Hhxsv5\LaravelS\Swoole\Task\Task;
 use Exception;
@@ -195,13 +193,14 @@ class OddsValidationHandler
             }
 
             if ($isLeagueSelected) {
-                $oddsTransformationHandler = resolve('OddsTransformationHandler');
-                $oddsTransformationHandler->init($this->message, compact('providerId', 'sportId', 'parameters'))->handle();
-            } else {
                 $transformKafkaMessageOdds = resolve('TransformKafkaMessageOdds');
                 Task::deliver($transformKafkaMessageOdds->init($this->message, compact('providerId', 'sportId', 'parameters')));
+                Log::info("Transformation - validation completed");
+            } else {
+                Log::info("Transformation ignored - No User has actively selected this league");
+                return;
             }
-            Log::info("Transformation - validation completed");
+
         } catch (Exception $e) {
             Log::error($e->getMessage());
             Log::error($e->getLine());
