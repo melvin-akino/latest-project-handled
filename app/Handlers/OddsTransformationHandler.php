@@ -71,12 +71,12 @@ class OddsTransformationHandler
 
             list(
                 'providerId' => $providerId,
-                'sportId' => $sportId,
+                'sportId'    => $sportId,
                 'parameters' => $parameters
                 ) = $this->internalParameters;
 
             list(
-                'master_league_id' => $masterLeagueId,
+                'master_league_id'    => $masterLeagueId,
                 'master_team_home_id' => $multiTeam['home']['id'],
                 'master_team_away_id' => $multiTeam['away']['id']
                 ) = $parameters;
@@ -117,6 +117,7 @@ class OddsTransformationHandler
             } else {
                 $this->dbOptions['in-masterlist'] = false;
             }
+
             if ($doesExist) {
                 $eventId = $eventsData['id'];
                 $uid     = $eventsData['master_event_unique_id'];
@@ -128,11 +129,41 @@ class OddsTransformationHandler
                 $teamAwayId = $eventsData['team_away_id'];
 
                 if ($this->message->data->schedule == 'early' && $eventsData['game_schedule'] == 'today') {
+                    foreach ($swoole->wsTable as $key => $row) {
+                        if (strpos($key, 'uid:') === 0 && $swoole->isEstablished($row['value'])) {
+                            if (!empty($data)) {
+                                $swoole->push($row['value'], json_encode(
+                                    [
+                                        'getForRemovalEvents' => [
+                                            'uid'           => $uid,
+                                            'league_name'   => $swoole->leaguesTable['sId:' . $sportId . ':pId:' . $providerId . ':id:' . $masterLeagueId]['master_league_name'],
+                                            'game_schedule' => $this->message->data->schedule,
+                                        ],
+                                    ]
+                                ));
+                            }
+                        }
+                    }
                     Log::info("Transformation ignored - event is already in today");
                     return;
                 }
 
                 if ($this->message->data->schedule == 'today' && $eventsData['game_schedule'] == 'inplay') {
+                    foreach ($swoole->wsTable as $key => $row) {
+                        if (strpos($key, 'uid:') === 0 && $swoole->isEstablished($row['value'])) {
+                            if (!empty($data)) {
+                                $swoole->push($row['value'], json_encode(
+                                    [
+                                        'getForRemovalEvents' => [
+                                            'uid'           => $uid,
+                                            'league_name'   => $swoole->leaguesTable['sId:' . $sportId . ':pId:' . $providerId . ':id:' . $masterLeagueId]['master_league_name'],
+                                            'game_schedule' => $this->message->data->schedule,
+                                        ],
+                                    ]
+                                ));
+                            }
+                        }
+                    }
                     Log::info("Transformation ignored - event is already in play");
                     return;
                 }
@@ -149,11 +180,8 @@ class OddsTransformationHandler
                     ]);
                 }
             } else {
-                $masterTeamHomeId = $multiTeam['home']['id'];
-                $masterTeamAwayId = $multiTeam['away']['id'];
-
-                $teamHomeId = $team['home']->id;
-                $teamAwayId = $team['away']->id;
+                $masterTeamHomeId = $teamHomeId = $multiTeam['home']['id'];
+                $masterTeamAwayId = $teamAwayId = $multiTeam['away']['id'];
 
                 $uid = implode('-', [
                     date("Ymd", strtotime($this->message->data->referenceSchedule)),
@@ -169,7 +197,7 @@ class OddsTransformationHandler
                 'sport_id'         => $sportId,
                 'provider_id'      => $providerId,
                 'event_identifier' => $this->message->data->events[0]->eventId,
-                'league_id'        => $leagueId,
+                'league_id'        => $masterLeagueId,
                 'team_home_id'     => $teamHomeId,
                 'team_away_id'     => $teamAwayId,
                 'ref_schedule'     => date("Y-m-d H:i:s", strtotime($this->message->data->referenceSchedule)),
@@ -296,7 +324,6 @@ class OddsTransformationHandler
                             ]);
 
                             $isMarketSame = true;
-
                             $eventMarkets = $eventMarketsTable[$masterEventMarketSwtId];
 
                             if (!empty($eventMarkets)) {
