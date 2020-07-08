@@ -228,18 +228,9 @@ class OddsTransformationHandler
                          *      $oddTypeSwtId   swoole_table_key    "oddType:<$events[]->market_odds[]->oddsType>"
                          *      $oddTypeId      swoole_table_value  int
                          */
-                        $oddTypeSwtId = "oddType:" . $columns->oddsType;
-
-                        $doesExist = false;
-                        foreach ($oddTypesTable as $oddTypeKey => $oddType) {
-                            if (strpos($oddTypeKey, $oddTypeSwtId) === 0) {
-                                $doesExist = true;
-                                break;
-                            }
-                        }
-
-                        if ($doesExist) {
-                            $oddTypeId = $oddTypesTable->get($oddTypeSwtId)['id'];
+                        $oddTypesData = SwooleHandler::getValue('oddTypesTable', "oddType:" . $columns->oddsType);
+                        if ($oddTypesData) {
+                            $oddTypeId = $oddTypesData['id'];
                         } else {
                             throw new Exception("Odds Type doesn't exist");
                         }
@@ -258,15 +249,8 @@ class OddsTransformationHandler
                             "oddType:" . Str::slug($columns->oddsType)
                         ]);
 
-                        $doesExist = false;
-                        foreach ($sportOddTypesTable as $sportOddTypeKey => $sportOddType) {
-                            if (strpos($sportOddTypeKey, $sportOddTypeSwtId) === 0) {
-                                $doesExist = true;
-                                break;
-                            }
-                        }
-
-                        if (!$doesExist) {
+                        $sportsOddsTypeData = SwooleHandler::getValue('sportOddTypesTable', $sportOddTypeSwtId);
+                        if (!$sportsOddsTypeData) {
                             throw new Exception("Sport Odds Type doesn't exist");
                         }
 
@@ -508,24 +492,29 @@ class OddsTransformationHandler
                 $team['home']->name = $value['name'];
                 $doesExist          = true;
 
-                Team::where('id', $value['id'])->update(['master_team_id' => $multiTeam['home']['id']]);
+                if (!empty($multiTeam['home']['id']) && empty($value['master_team_id'])) {
+                    // Team::where('id', $value['id'])->update(['master_team_id' => $multiTeam['home']['id']]);
+                    SwooleHandler::setColumnValue('rawTeamsTable', 'teamId:' . $value['id'], 'master_team_id', $multiTeam['home']['id']);
+                }
                 break;
             }
         }
         if (!$doesExist) {
-            $team['home'] = Team::create([
-                'sport_id'       => $sportId,
-                'name'           => $team1,
-                'provider_id'    => $providerId,
-                'master_team_id' => $multiTeam['home']['id']
-            ]);
+            // $team['home'] = Team::create([
+            //     'sport_id'       => $sportId,
+            //     'name'           => $team1,
+            //     'provider_id'    => $providerId,
+            //     'master_team_id' => $multiTeam['home']['id']
+            // ]);
 
-            SwooleHandler::setValue('rawTeamsTable', 'teamId:' . $team['home']->id, [
-                'id'          => $team['home']->id,
-                'sport_id'    => $sportId,
-                'provider_id' => $providerId,
-                'name'        => $team['home']->name
-            ]);
+            if (!empty($multiTeam['home']['id'])) {
+                SwooleHandler::setValue('rawTeamsTable', 'teamId:' . $team['home']->id, [
+                    'id'          => $team['home']->id,
+                    'sport_id'    => $sportId,
+                    'provider_id' => $providerId,
+                    'name'        => $team['home']->name
+                ]);
+            }
         }
 
         if ($providerId == self::HG) {
@@ -544,7 +533,12 @@ class OddsTransformationHandler
         if (empty($multiTeam['away']['id']) && $providerId == self::HG) {
             $tId = SwooleHandler::getValueFromKey('masterTeamsTable', 'name', $team1, 'id');
             if (empty($tId)) {
-                $multiTeam['away']['id'] = DB::table('master_teams')->insertGetId([
+                // $multiTeam['away']['id'] = DB::table('master_teams')->insertGetId([
+                //     'sport_id' => $sportId,
+                //     'name'     => $team2
+                // ]);
+                SwooleHandler::setValue('masterTeamsTable', 'id:' . $multiTeam['away']['id'], [
+                    'id'       => $multiTeam['away']['id'],
                     'sport_id' => $sportId,
                     'name'     => $team2
                 ]);
@@ -578,12 +572,14 @@ class OddsTransformationHandler
                 'master_team_id' => $multiTeam['away']['id']
             ]);
 
-            SwooleHandler::setValue('rawTeamsTable', 'teamId:' . $team['away']->id, [
-                'id'          => $team['away']->id,
-                'sport_id'    => $sportId,
-                'provider_id' => $providerId,
-                'name'        => $team['away']->name
-            ]);
+            if (!empty($multiTeam['away']['id']) && empty($value['master_team_id'])) {
+                SwooleHandler::setValue('rawTeamsTable', 'teamId:' . $team['away']->id, [
+                    'id'          => $team['away']->id,
+                    'sport_id'    => $sportId,
+                    'provider_id' => $providerId,
+                    'name'        => $team['away']->name
+                ]);
+            }
         }
 
         if ($providerId == self::HG) {
