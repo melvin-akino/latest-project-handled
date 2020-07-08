@@ -246,6 +246,15 @@ return [
                 ['name' => 'user_id', 'type' => \Swoole\Table::TYPE_INT],
             ],
         ],
+        'userSelectedLeaguesWithRaw' => [// key format [userId:1:sId:$sportId:schedule:early:id:$id] => [raw_league_name = $rawLeagueName, ...]
+            'size'   => 10000,// The max size
+            'column' => [// Define the columns
+                ['name' => 'raw_league_name', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 100],
+                ['name' => 'sport_id', 'type' => \Swoole\Table::TYPE_INT],
+                ['name' => 'schedule', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 6],
+                ['name' => 'user_id', 'type' => \Swoole\Table::TYPE_INT],
+            ],
+        ],
         'deletedLeagues'      => [// key format [sportId:1:league:multileaguename] => [value = multileaguename]
             'size'   => 10000,// The max size
             'column' => [// Define the columns
