@@ -171,7 +171,8 @@ class TradeController extends Controller
                     app('swoole')->userWatchlistTable->del('userWatchlist:' . auth()->user()->id . ':masterEventUniqueId:' . $row['master_event_unique_id']);
 
                     foreach ($userEvents as $key => $data) {
-                        if (strpos($key, 'watchlist:u:' . auth()->user()->id . ':e:' . $row['id']) !== false) {
+                        $swtKeyArray = explode(':o', $key);
+                        if ($swtKeyArray[0] == 'watchlist:u:' . auth()->user()->id . ':e:' . $row['id']) {
                             $userEvents->del($key);
                         } else {
                             continue;
