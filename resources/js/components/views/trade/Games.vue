@@ -6,7 +6,8 @@
             <span v-show="!isGameSchedTypeOpen"><i class="fas fa-chevron-right"></i></span>
         </div>
         <div class="games" :class="{'hidden': !isGameSchedTypeOpen}">
-            <p v-if="isLoadingEvents" class="text-sm text-gray-500 text-center pt-2 noeventspanel">Loading events <i class="fas fa-circle-notch fa-spin"></i></p>
+            <p v-if="isLoadingEvents" class="text-sm text-gray-500 text-center pt-2 noeventspanel">Loading events <span v-show="isLoadingEvents"><i class="fas fa-circle-notch fa-spin"></i></span></p>
+            <p v-else-if="eventsError" class="text-sm text-gray-500 text-center pt-2 noeventspanel">There was an error loading events.</p>
             <div v-else class="events">
                 <p class="text-sm text-gray-500 text-center pt-2 noeventspanel" v-if="checkIfGamesIsEmpty">No competitions watched in this market.</p>
                 <div class="eventGroup" v-else>
@@ -140,7 +141,7 @@ export default {
         }
     },
     computed: {
-        ...mapState('trade', ['selectedSport', 'selectedLeagues', 'tradeLayout', 'oddsTypeBySport', 'events', 'eventsList', 'watchlist', 'openedBetSlips', 'tradePageSettings', 'isLoadingEvents']),
+        ...mapState('trade', ['selectedSport', 'selectedLeagues', 'tradeLayout', 'oddsTypeBySport', 'events', 'eventsList', 'watchlist', 'openedBetSlips', 'tradePageSettings', 'isLoadingEvents', 'eventsError']),
         ...mapState('settings', ['disabledBetColumns']),
         checkIfGamesIsEmpty() {
             return _.isEmpty(this.games)

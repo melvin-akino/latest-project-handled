@@ -40,7 +40,8 @@ const state = {
     wallet: {},
     isLoadingLeagues: true,
     isLoadingEvents: true,
-    failedBetStatus: ['PENDING', 'FAILED', 'CANCELLED', 'REJECTED', 'VOID', 'ABNORMAL BET', 'REFUNDED']
+    failedBetStatus: ['PENDING', 'FAILED', 'CANCELLED', 'REJECTED', 'VOID', 'ABNORMAL BET', 'REFUNDED'],
+    eventsError: false
 }
 
 const getters = {
@@ -241,6 +242,9 @@ const mutations = {
     },
     SET_IS_LOADING_EVENTS: (state, data) => {
         state.isLoadingEvents = data
+    },
+    SET_EVENTS_ERROR: (state, data) => {
+        state.eventsError = data
     }
 }
 
@@ -330,7 +334,12 @@ const actions = {
             commit('SET_IS_LOADING_EVENTS', false)
         })
         .catch(err => {
-            dispatch('auth/checkIfTokenIsValid', err.response.data.status_code, { root: true })
+            if(err.response.data.status_code != 500) {
+                dispatch('auth/checkIfTokenIsValid', err.response.data.status_code, { root: true })
+            } else {
+                commit('SET_IS_LOADING_EVENTS', false)
+                commit('SET_EVENTS_ERROR', true)
+            }
         })
     },
     async getTradeWindowData({dispatch}) {
