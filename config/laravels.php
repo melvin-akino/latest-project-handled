@@ -523,7 +523,7 @@ return [
                 [ 'name' => 'home_penalty', 'type' => \Swoole\Table::TYPE_INT ],
                 [ 'name' => 'away_penalty', 'type' => \Swoole\Table::TYPE_INT ],
                 [ 'name' => 'odd_type_id', 'type' => \Swoole\Table::TYPE_INT ],
-                [ 'name' => 'master_event_market_unique_id', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 30 ],
+                [ 'name' => 'master_event_market_unique_id', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 64 ],
                 [ 'name' => 'is_main', 'type' => \Swoole\Table::TYPE_INT, 'size' => 1 ],
                 [ 'name' => 'market_flag', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 5 ],
                 [ 'name' => 'type', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 30 ],
