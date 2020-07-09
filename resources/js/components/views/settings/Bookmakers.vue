@@ -57,24 +57,31 @@ export default {
             })
         },
         saveChanges() {
-            let token = Cookies.get('mltoken')
-            let data = this.bookies.map(bookie => {
-                return {
-                    provider_id: bookie.id,
-                    active: this.disabledBookies.includes(bookie.id) ? false : true
-                }
-            })
-
-            axios.post('/v1/user/settings/bookies', data, { headers: { 'Authorization': `Bearer ${token}` } })
-            .then(response => {
+            if(this.bookies.length == this.disabledBookies.length) {
                 Swal.fire({
-                    icon: 'success',
-                    text: response.data.message
+                    icon: 'error',
+                    text: 'At least one bookmaker should be enabled.'
                 })
-            })
-            .catch(err => {
-                this.$store.dispatch('auth/checkIfTokenIsValid', err.response.data.status_code)
-            })
+            } else {
+                let token = Cookies.get('mltoken')
+                let data = this.bookies.map(bookie => {
+                    return {
+                        provider_id: bookie.id,
+                        active: this.disabledBookies.includes(bookie.id) ? false : true
+                    }
+                })
+
+                axios.post('/v1/user/settings/bookies', data, { headers: { 'Authorization': `Bearer ${token}` } })
+                .then(response => {
+                    Swal.fire({
+                        icon: 'success',
+                        text: response.data.message
+                    })
+                })
+                .catch(err => {
+                    this.$store.dispatch('auth/checkIfTokenIsValid', err.response.data.status_code)
+                })
+            }
         }
     }
 }
