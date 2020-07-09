@@ -71,23 +71,15 @@ class OddsTransformationHandler
 
             list(
                 'providerId' => $providerId,
-                'sportId' => $sportId,
+                'sportId'    => $sportId,
                 'parameters' => $parameters
                 ) = $this->internalParameters;
 
             list(
-                'master_league_id' => $masterLeagueId,
+                'master_league_id'    => $masterLeagueId,
                 'master_team_home_id' => $multiTeam['home']['id'],
                 'master_team_away_id' => $multiTeam['away']['id']
                 ) = $parameters;
-
-
-            DB::beginTransaction();
-
-            list($leagueId, $masterLeagueId) = $this->saveLeaguesData($swoole, $providerId, $sportId, $this->message->data->leagueName, $masterLeagueId);
-            list($team, $multiTeam) = $this->saveTeamsData($swoole, $providerId, $sportId, $this->message->data->homeTeam, $this->message->data->awayTeam, $multiTeam);
-
-            DB::commit();
 
             /**
              * EVENTS (MASTER) Swoole Table
@@ -125,6 +117,7 @@ class OddsTransformationHandler
             } else {
                 $this->dbOptions['in-masterlist'] = false;
             }
+
             if ($doesExist) {
                 $eventId = $eventsData['id'];
                 $uid     = $eventsData['master_event_unique_id'];
@@ -136,11 +129,41 @@ class OddsTransformationHandler
                 $teamAwayId = $eventsData['team_away_id'];
 
                 if ($this->message->data->schedule == 'early' && $eventsData['game_schedule'] == 'today') {
+                    foreach ($swoole->wsTable as $key => $row) {
+                        if (strpos($key, 'uid:') === 0 && $swoole->isEstablished($row['value'])) {
+                            if (!empty($data)) {
+                                $swoole->push($row['value'], json_encode(
+                                    [
+                                        'getForRemovalEvents' => [
+                                            'uid'           => $uid,
+                                            'league_name'   => $swoole->leaguesTable['sId:' . $sportId . ':pId:' . $providerId . ':id:' . $masterLeagueId]['master_league_name'],
+                                            'game_schedule' => $this->message->data->schedule,
+                                        ],
+                                    ]
+                                ));
+                            }
+                        }
+                    }
                     Log::info("Transformation ignored - event is already in today");
                     return;
                 }
 
                 if ($this->message->data->schedule == 'today' && $eventsData['game_schedule'] == 'inplay') {
+                    foreach ($swoole->wsTable as $key => $row) {
+                        if (strpos($key, 'uid:') === 0 && $swoole->isEstablished($row['value'])) {
+                            if (!empty($data)) {
+                                $swoole->push($row['value'], json_encode(
+                                    [
+                                        'getForRemovalEvents' => [
+                                            'uid'           => $uid,
+                                            'league_name'   => $swoole->leaguesTable['sId:' . $sportId . ':pId:' . $providerId . ':id:' . $masterLeagueId]['master_league_name'],
+                                            'game_schedule' => $this->message->data->schedule,
+                                        ],
+                                    ]
+                                ));
+                            }
+                        }
+                    }
                     Log::info("Transformation ignored - event is already in play");
                     return;
                 }
@@ -157,11 +180,8 @@ class OddsTransformationHandler
                     ]);
                 }
             } else {
-                $masterTeamHomeId = $multiTeam['home']['id'];
-                $masterTeamAwayId = $multiTeam['away']['id'];
-
-                $teamHomeId = $team['home']->id;
-                $teamAwayId = $team['away']->id;
+                $masterTeamHomeId = $teamHomeId = $multiTeam['home']['id'];
+                $masterTeamAwayId = $teamAwayId = $multiTeam['away']['id'];
 
                 $uid = implode('-', [
                     date("Ymd", strtotime($this->message->data->referenceSchedule)),
@@ -177,7 +197,7 @@ class OddsTransformationHandler
                 'sport_id'         => $sportId,
                 'provider_id'      => $providerId,
                 'event_identifier' => $this->message->data->events[0]->eventId,
-                'league_id'        => $leagueId,
+                'league_id'        => $masterLeagueId,
                 'team_home_id'     => $teamHomeId,
                 'team_away_id'     => $teamAwayId,
                 'ref_schedule'     => date("Y-m-d H:i:s", strtotime($this->message->data->referenceSchedule)),
@@ -228,18 +248,9 @@ class OddsTransformationHandler
                          *      $oddTypeSwtId   swoole_table_key    "oddType:<$events[]->market_odds[]->oddsType>"
                          *      $oddTypeId      swoole_table_value  int
                          */
-                        $oddTypeSwtId = "oddType:" . $columns->oddsType;
-
-                        $doesExist = false;
-                        foreach ($oddTypesTable as $oddTypeKey => $oddType) {
-                            if (strpos($oddTypeKey, $oddTypeSwtId) === 0) {
-                                $doesExist = true;
-                                break;
-                            }
-                        }
-
-                        if ($doesExist) {
-                            $oddTypeId = $oddTypesTable->get($oddTypeSwtId)['id'];
+                        $oddTypesData = SwooleHandler::getValue('oddTypesTable', "oddType:" . $columns->oddsType);
+                        if ($oddTypesData) {
+                            $oddTypeId = $oddTypesData['id'];
                         } else {
                             throw new Exception("Odds Type doesn't exist");
                         }
@@ -258,15 +269,8 @@ class OddsTransformationHandler
                             "oddType:" . Str::slug($columns->oddsType)
                         ]);
 
-                        $doesExist = false;
-                        foreach ($sportOddTypesTable as $sportOddTypeKey => $sportOddType) {
-                            if (strpos($sportOddTypeKey, $sportOddTypeSwtId) === 0) {
-                                $doesExist = true;
-                                break;
-                            }
-                        }
-
-                        if (!$doesExist) {
+                        $sportsOddsTypeData = SwooleHandler::getValue('sportOddTypesTable', $sportOddTypeSwtId);
+                        if (!$sportsOddsTypeData) {
                             throw new Exception("Sport Odds Type doesn't exist");
                         }
 
@@ -320,7 +324,6 @@ class OddsTransformationHandler
                             ]);
 
                             $isMarketSame = true;
-
                             $eventMarkets = $eventMarketsTable[$masterEventMarketSwtId];
 
                             if (!empty($eventMarkets)) {
@@ -408,197 +411,5 @@ class OddsTransformationHandler
                 ]
             ));
         }
-    }
-
-    private function saveLeaguesData($swoole, $providerId, $sportId, $leagueName, $masterLeagueId)
-    {
-        if (empty($masterLeagueId) && $providerId == self::HG) {
-            $mId = SwooleHandler::getValueFromKey('masterLeaguesTable', 'name', $leagueName, 'id');
-            if (empty($mId)) {
-                Log::debug($leagueName);
-                $masterLeagueId = DB::table('master_leagues')->insertGetId([
-                    'sport_id' => $sportId,
-                    'name'     => $leagueName
-                ]);
-            } else {
-                $masterLeagueId = $mId;
-            }
-        }
-
-        /**
-         * Check if league exist in leagues records
-         */
-        $doesExist = false;
-        foreach ($swoole->rawLeaguesTable as $key => $value) {
-            if ($sportId == $value['sport_id'] &&
-                $providerId == $value['provider_id'] &&
-                $leagueName == $value['name']
-            ) {
-                $leagueId  = $value['id'];
-                $doesExist = true;
-
-                League::where('id', $leagueId)->update(['master_league_id' => $masterLeagueId]);
-                break;
-            }
-        }
-
-        if (!$doesExist) {
-            $league = League::create([
-                'sport_id'         => $sportId,
-                'provider_id'      => $providerId,
-                'name'             => $leagueName,
-                'master_league_id' => $masterLeagueId
-            ]);
-
-            $leagueId = $league->id;
-
-            SwooleHandler::setValue('rawLeaguesTable', 'leagueId:' . $league->id, [
-                'id'          => $league->id,
-                'sport_id'    => $sportId,
-                'provider_id' => $providerId,
-                'name'        => $league->name
-            ]);
-
-        }
-
-        if ($providerId == self::HG) {
-            SwooleHandler::setValue('leaguesTable', implode(':', [
-                'sId:' . $sportId,
-                'pId:' . $providerId,
-                'id:' . $masterLeagueId
-            ]), [
-                'id'                 => $masterLeagueId,
-                'provider_id'        => $providerId,
-                'sport_id'           => $sportId,
-                'master_league_name' => $leagueName,
-                'league_name'        => $leagueName,
-                'raw_id'             => $leagueId,
-            ]);
-        }
-
-        return [$leagueId, $masterLeagueId];
-    }
-
-    private function saveTeamsData($swoole, $providerId, $sportId, $team1, $team2, $multiTeam)
-    {
-        $team = ['home' => (object) [], 'away' => (object) []];
-
-        if (empty($multiTeam['home']['id']) && $providerId == self::HG) {
-            $tId = SwooleHandler::getValueFromKey('masterTeamsTable', 'name', $team1, 'id');
-            if (empty($tId)) {
-                $multiTeam['home']['id'] = DB::table('master_teams')->insertGetId([
-                    'sport_id' => $sportId,
-                    'name'     => $team1
-                ]);
-            } else {
-                $multiTeam['home']['id'] = $tId;
-            }
-        }
-
-        /**
-         * Check if team exist in teams records
-         */
-        $doesExist = false;
-        foreach ($swoole->rawTeamsTable as $key => $value) {
-            if ($sportId == $value['sport_id'] &&
-                $providerId == $value['provider_id'] &&
-                $team1 == $value['name']
-            ) {
-                $team['home']->id   = $value['id'];
-                $team['home']->name = $value['name'];
-                $doesExist          = true;
-
-                Team::where('id', $value['id'])->update(['master_team_id' => $multiTeam['home']['id']]);
-                break;
-            }
-        }
-        if (!$doesExist) {
-            $team['home'] = Team::create([
-                'sport_id'       => $sportId,
-                'name'           => $team1,
-                'provider_id'    => $providerId,
-                'master_team_id' => $multiTeam['home']['id']
-            ]);
-
-            SwooleHandler::setValue('rawTeamsTable', 'teamId:' . $team['home']->id, [
-                'id'          => $team['home']->id,
-                'sport_id'    => $sportId,
-                'provider_id' => $providerId,
-                'name'        => $team['home']->name
-            ]);
-        }
-
-        if ($providerId == self::HG) {
-            SwooleHandler::setValue('teamsTable', implode(':', [
-                'pId:' . $providerId,
-                'id:' . $multiTeam['home']['id']
-            ]), [
-                'id'               => $multiTeam['home']['id'],
-                'team_name'        => $team['home']->name,
-                'master_team_name' => $team['home']->name,
-                'provider_id'      => $providerId,
-                'raw_id'           => $team['home']->id
-            ]);
-        }
-
-        if (empty($multiTeam['away']['id']) && $providerId == self::HG) {
-            $tId = SwooleHandler::getValueFromKey('masterTeamsTable', 'name', $team1, 'id');
-            if (empty($tId)) {
-                $multiTeam['away']['id'] = DB::table('master_teams')->insertGetId([
-                    'sport_id' => $sportId,
-                    'name'     => $team2
-                ]);
-            } else {
-                $multiTeam['away']['id'] = $tId;
-            }
-        }
-
-        /**
-         * Check if team exist in teams records
-         */
-        $doesExist = false;
-        foreach ($swoole->rawTeamsTable as $key => $value) {
-            if ($sportId == $value['sport_id'] &&
-                $providerId == $value['provider_id'] &&
-                $team2 == $value['name']
-            ) {
-                $team['away']->id   = $value['id'];
-                $team['away']->name = $value['name'];
-                $doesExist          = true;
-
-                Team::where('id', $value['id'])->update(['master_team_id' => $multiTeam['away']['id']]);
-                break;
-            }
-        }
-        if (!$doesExist) {
-            $team['away'] = Team::create([
-                'sport_id'       => $sportId,
-                'name'           => $team2,
-                'provider_id'    => $providerId,
-                'master_team_id' => $multiTeam['away']['id']
-            ]);
-
-            SwooleHandler::setValue('rawTeamsTable', 'teamId:' . $team['away']->id, [
-                'id'          => $team['away']->id,
-                'sport_id'    => $sportId,
-                'provider_id' => $providerId,
-                'name'        => $team['away']->name
-            ]);
-        }
-
-        if ($providerId == self::HG) {
-            SwooleHandler::setValue('teamsTable', implode(':', [
-                'pId:' . $providerId,
-                'id:' . $multiTeam['away']['id']
-            ]), [
-                'id'               => $multiTeam['away']['id'],
-                'team_name'        => $team['away']->name,
-                'master_team_name' => $team['away']->name,
-                'provider_id'      => $providerId,
-                'raw_id'           => $team['away']->id
-            ]);
-        }
-
-        return [$team, $multiTeam];
     }
 }

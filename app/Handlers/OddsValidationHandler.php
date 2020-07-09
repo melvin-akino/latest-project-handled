@@ -3,8 +3,6 @@
 namespace App\Handlers;
 
 use App\Facades\SwooleHandler;
-use App\Models\League;
-use App\Models\Team;
 use Illuminate\Support\Facades\Log;
 use Hhxsv5\LaravelS\Swoole\Task\Task;
 use Exception;
@@ -82,15 +80,16 @@ class OddsValidationHandler
             /**
              * Checks if hash is the same as old hash
              */
-            $transformedSwtId = 'eventIdentifier:' . $this->message->data->events[0]->eventId;
+            $transformedSwtId           = 'eventIdentifier:' . $this->message->data->events[0]->eventId;
             $toHashMessage              = $this->message->data;
             $toHashMessage->runningtime = null;
             $toHashMessage->id          = null;
 
             $payloadHash = SwooleHandler::getValue('transformedTable', $transformedSwtId);
             if ($payloadHash) {
-                $ts          = $payloadHash['ts'];
-                $hash        = $payloadHash['hash'];
+                $ts   = $payloadHash['ts'];
+                $hash = $payloadHash['hash'];
+
                 if ($ts > $this->message->request_ts) {
                     appLog('info', "Transformation ignored - Old Timestamp");
                     return;
@@ -154,15 +153,14 @@ class OddsValidationHandler
             foreach ($leaguesTable as $k => $v) {
                 if ($v['sport_id'] == $sportId && $v['provider_id'] == $providerId && $v['league_name'] == $this->message->data->leagueName) {
                     $parameters['master_league_id'] = $leaguesTable->get($k)['id'];
-
-                    $leagueExist = true;
+                    $leagueExist                    = true;
                     break;
                 }
             }
 
             if (!$leagueExist) {
                 appLog('info', "Transformation ignored - League is not in the masterlist");
-                $parameters['master_league_id'] = null;
+                return;
             }
 
             $competitors = [
@@ -171,37 +169,42 @@ class OddsValidationHandler
             ];
             foreach ($competitors as $key => $row) {
                 $teamExist = false;
+
                 foreach ($teamsTable as $k => $v) {
                     if ($v['provider_id'] == $providerId && $v['team_name'] == $row) {
                         $parameters['master_team_' . $key . '_id'] = $v['id'];
-
-                        $teamExist = true;
+                        $teamExist                                 = true;
                         break;
                     }
                 }
 
                 if (!$teamExist) {
                     appLog('info', "Transformation ignored - No Available Teams in the masterlist");
-                    $parameters['master_team_' . $key . '_id'] = null;
+                    return;
                 }
             }
 
             $isLeagueSelected = false;
-            foreach ($swoole->userSelectedLeaguesTable as $key => $value) {
-                if ($value['league_name'] == $this->message->data->leagueName) {
+            foreach ($swoole->userSelectedLeaguesWithRawTable as $key => $value) {
+                if (
+                    $value['raw_league_name'] == $this->message->data->leagueName &&
+                    $value['sport_id']        == $sportId &&
+                    $value['schedule']        == $this->message->data->schedule
+                ) {
                     $isLeagueSelected = true;
                     break;
                 }
             }
 
-            if ($isLeagueSelected) {
-                $oddsTransformationHandler = resolve('OddsTransformationHandler');
-                $oddsTransformationHandler->init($this->message, compact('providerId', 'sportId', 'parameters'))->handle();
-            } else {
+            // if ($isLeagueSelected) {
                 $transformKafkaMessageOdds = resolve('TransformKafkaMessageOdds');
                 Task::deliver($transformKafkaMessageOdds->init($this->message, compact('providerId', 'sportId', 'parameters')));
-            }
-            Log::info("Transformation - validation completed");
+                Log::info("Transformation - validation completed");
+            // } else {
+            //     Log::info("Transformation ignored - No User has actively selected this league");
+            //     return;
+            // }
+
         } catch (Exception $e) {
             Log::error($e->getMessage());
             Log::error($e->getLine());
