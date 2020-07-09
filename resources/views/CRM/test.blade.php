@@ -2,7 +2,7 @@
 
 @section('styles')
     <!-- DataTables -->
-    <link rel="stylesheet" href="{{ asset("CRM/AdminLTE-2.4.2/bower_components/datatables.net-bs/css/dataTables.bootstrap.min.css") }}">
+    <link rel="stylesheet" href="{{ asset("CRM/AdminLTE-2.4.2/bower_components/datatables.net-bs/css/dataTables.bootstrap.min.css", env('IS_HTTPS', false)) }}">
 @endsection
 
 @section('breadcrumb')
@@ -28,8 +28,8 @@
 
 @section('scripts')
     <!-- DataTables -->
-    <script src="{{ asset("CRM/AdminLTE-2.4.2/bower_components/datatables.net/js/jquery.dataTables.min.js") }}"></script>
-    <script src="{{ asset("CRM/AdminLTE-2.4.2/bower_components/datatables.net-bs/js/dataTables.bootstrap.min.js") }}"></script>
+    <script src="{{ asset("CRM/AdminLTE-2.4.2/bower_components/datatables.net/js/jquery.dataTables.min.js", env('IS_HTTPS', false)) }}"></script>
+    <script src="{{ asset("CRM/AdminLTE-2.4.2/bower_components/datatables.net-bs/js/dataTables.bootstrap.min.js", env('IS_HTTPS', false)) }}"></script>
     <script src="https://cdn.datatables.net/plug-ins/1.10.19/dataRender/ellipsis.js"></script>
 
     <script type="text/javascript">
