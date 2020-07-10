@@ -68,6 +68,8 @@ class OddsTransformationHandler
             $sportOddTypesTable       = $swoole->sportOddTypesTable;
             $eventMarketsTable        = $swoole->eventMarketsTable;
             $eventScheduleChangeTable = $swoole->eventScheduleChangeTable;
+            $updatedEventsTable       = $swoole->updatedEventsTable;
+            $updatedEventPricesTable  = $swoole->updatedEventPricesTable;
 
             list(
                 'providerId' => $providerId,
@@ -394,6 +396,22 @@ class OddsTransformationHandler
             $subTasks['updated-odds'] = [];
             if ($this->updated) {
                 $subTasks['updated-odds'] = $updatedOdds;
+            }
+
+            if ($this->dbOptions['in-masterlist'] && !empty($updatedOdds)) {
+                $WSOddsSwtId = "updatedEvents:" . $uid;
+                $updatedEventsTable->set($WSOddsSwtId, ['value' => json_encode($updatedOdds)]);
+
+                $updatedPrice = [];
+                array_map(function ($updatedPriceValue) use ($updatedPrice) {
+                    $eventIdentifier = $updatedPriceValue['event_identifier'];
+                    unset($updatedPriceValue['event_identifier']);
+                    $updatedPrice[$eventIdentifier][] = $updatedPriceValue;
+                }, $updatedOdds);
+
+                $WSOddsSwtId = "updatedEventPrices:" . $uid;
+                $updatedEventPricesTable->set($WSOddsSwtId,
+                    ['value' => json_encode(array_values($updatedPrice))]);
             }
 
             if (!empty($subTasks['event'])) {
