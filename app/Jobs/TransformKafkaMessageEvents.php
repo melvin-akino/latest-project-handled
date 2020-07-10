@@ -74,6 +74,7 @@ class TransformKafkaMessageEvents implements ShouldQueue
             $activeEventsTable = $swoole->activeEventsTable;
             $eventsTable       = $swoole->eventsTable;
             $sportsTable       = $swoole->sportsTable;
+            $userEvents        = $swoole->userEventsTable;
 
             /**
              * PROVIDERS Swoole Table
@@ -208,6 +209,18 @@ class TransformKafkaMessageEvents implements ShouldQueue
 
                 $activeEventsTable->set($activeEventsSwtId, ['events' => json_encode($activeEvents)]);
 
+                if (!empty($data)) {
+                    foreach($userEvents as $key => $row) {
+                        foreach($data as $event) {
+                            if($row['master_event_unique_id'] == $event['uid']) {
+                                $userEvents->del($key);
+                            } else {
+                                continue;
+                            }
+                        }
+                    }
+                }
+                
                 foreach ($swoole->wsTable as $key => $row) {
                     if (strpos($key, 'uid:') === 0 && $swoole->isEstablished($row['value'])) {
                         if (!empty($data)) {
