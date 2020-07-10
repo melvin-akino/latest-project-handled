@@ -438,7 +438,7 @@ return [
                 ['name' => 'schedule', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 10],
                 ['name' => 'event_id', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 30],
                 ['name' => 'odds', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 20],
-                ['name' => 'memUID', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 30],
+                ['name' => 'memUID', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 100],
             ],
         ],
         'exchangeRates'       => [
