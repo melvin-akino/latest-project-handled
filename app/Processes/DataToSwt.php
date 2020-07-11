@@ -46,7 +46,8 @@ class DataToSwt implements CustomProcessInterface
             'RawEvents',
             'RawEventMarkets',
             'RawLeagues',
-            'RawTeams'
+            'RawTeams',
+            'mlLeagueEvents',
         ];
 
         $maxMissingCount = SystemConfiguration::getSystemConfigurationValue('EVENT_VALID_MAX_MISSING_COUNT')->value;
@@ -656,5 +657,33 @@ class DataToSwt implements CustomProcessInterface
                 'name'        => $teams->name
             ]);
         }, $rawTeams->toArray());
+    }
+
+    private static function db2SwtmlLeagueEvents(Server $swoole)
+    {
+        $arraySWT     = [];
+        $leagueEvents = $swoole->mlLeagueEventsTable;
+        $query        = DB::table('master_events')
+            ->whereNull('deleted_at')
+            ->orderBy('sport_id', 'ASC')
+            ->orderBy('game_schedule', 'ASC')
+            ->orderBy('master_league_id', 'ASC')
+            ->get();
+
+        foreach ($query AS $row) {
+            $swtKey = implode(':', [
+                $row->master_league_id,
+                $row->game_schedule,
+                $row->sport_id
+            ]);
+
+            $arraySWT[$swtKey][] = $row->master_event_unique_id;
+        }
+
+        foreach ($arraySWT AS $key => $row) {
+            $leagueEvents->set($key, [
+                'data' => json_encode($row)
+            ]);
+        }
     }
 }
