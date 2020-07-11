@@ -39,6 +39,7 @@ use App\Models\CRM\{
     WalletLedger
 };
 use Illuminate\Support\Facades\Log;
+use App\Facades\SwooleHandler;
 
 /* Datatable for CRM admin */
 
@@ -499,6 +500,10 @@ if (!function_exists('eventTransformation')) {
             } else {
                 $result = $data;
             }
+        }
+
+        foreach($data as $key => $row) {
+            SwooleHandler::setValue('mlEventsTable', $key, [ 'data' => json_encode($row) ]);
         }
 
         $newResult = [];

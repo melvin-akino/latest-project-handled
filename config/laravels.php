@@ -533,6 +533,25 @@ return [
                 [ 'name' => 'bet_identifier', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 20 ],
                 [ 'name' => 'alias', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 10 ]
             ]
+        ],
+        'mlEvents' => [ // key format: [$uid]
+            'size'   => env('SWT_MAX_SIZE', 102400),
+            'column' => [
+                [ 'name' => 'data', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 2600 ] // json encoded transformed data
+            ]
+        ],
+        'mlLeagueEvents' => [ // key format: [$masterLeagueId:$schedule:$sportId]
+            'size'   => env('SWT_MAX_SIZE', 102400),
+            'column' => [
+                [ 'name' => 'data', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 1000 ] // json encoded array of uids
+            ]
+        ],
+        'wsTopic' => [ // key format: [$userId:league-$masterLeagueId:$schedule:$sportId]
+            'size'   => env('SWT_MAX_SIZE', 102400),
+            'column' => [
+                [ 'user_id' => 'data', 'type' => \Swoole\Table::TYPE_INT ],
+                [ 'topic_name' => 'data', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 100 ]
+            ]
         ]
     ],
     'register_providers'       => [
