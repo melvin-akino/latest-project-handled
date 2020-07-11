@@ -31,18 +31,6 @@ class WsWatchlist implements ShouldQueue
             $userId    = $this->userId;
             $topicTable = $server->topicTable;
             $userEvents = $server->userEventsTable;
-
-            $userProviderIds = UserProviderConfiguration::getProviderIdList($this->userId);
-            $userConfig      = getUserDefault($this->userId, 'sort-event')['default_sort'];
-            $userTz          = "Etc/UTC";
-            $getUserConfig   = UserConfiguration::getUserConfig($userId)
-                                            ->where('type', 'timezone')
-                                            ->first();
-
-            if ($getUserConfig) {
-                $userTz = Timezones::find($getUserConfig->value)->name;
-            }
-
             $gameDetails = Game::getWatchlistGameDetails($this->userId);
 
             foreach($gameDetails as $data) {
@@ -61,7 +49,7 @@ class WsWatchlist implements ShouldQueue
             }
 
 
-            $data = eventTransformation($gameDetails, $userConfig, $userTz, $userId, $userProviderIds, $topicTable, 'socket');
+            $data = eventTransformation($gameDetails, $userId,  $topicTable, 'socket');
 
             $watchlist = is_array($data) ? $data : [];
             $eventData = array_values($watchlist);

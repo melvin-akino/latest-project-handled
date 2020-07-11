@@ -2,7 +2,7 @@
 
 namespace App\Processes;
 
-use App\Models\{Order, Sport, SystemConfiguration};
+use App\Models\{Order, Sport, SystemConfiguration, Game};
 use Hhxsv5\LaravelS\Swoole\Process\CustomProcessInterface;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -46,7 +46,9 @@ class DataToSwt implements CustomProcessInterface
             'RawEvents',
             'RawEventMarkets',
             'RawLeagues',
-            'RawTeams'
+            'RawTeams',
+            'WatchlistEvents',
+            'SelectedLeaguesEvents'
         ];
 
         $maxMissingCount = SystemConfiguration::getSystemConfigurationValue('EVENT_VALID_MAX_MISSING_COUNT')->value;
@@ -656,5 +658,17 @@ class DataToSwt implements CustomProcessInterface
                 'name'        => $teams->name
             ]);
         }, $rawTeams->toArray());
+    }
+
+    private static function db2SwtWatchlistEvents(Server $swoole)
+    {
+        $watchlistEvents = Game::getWatchlistEvents();
+
+    }
+
+    private static function db2SwtSelectedLeagueEvents(Server $swoole)
+    {
+        $userSelectedEvents = Game::getSelectedLeagueEvents();
+        
     }
 }

@@ -179,7 +179,7 @@ class Game extends Model
                  ->get();
     }
 
-    public static function getSelectedLeagueEvents(int $userId)
+    public static function getSelectedLeagueEvents(int $userId = null)
     {
         $maxMissingCount = SystemConfiguration::getSystemConfigurationValue('EVENT_VALID_MAX_MISSING_COUNT')->value;
 
@@ -198,7 +198,9 @@ class Game extends Model
                  ->leftJoin('odd_types as ot', 'ot.id', 'mem.odd_type_id')
                  ->leftJoin('user_selected_leagues AS sl', 'ml.id', 'sl.master_league_id')
                  ->where('sl.game_schedule', DB::raw('me.game_schedule'))
-                 ->where('sl.user_id', $userId)
+                 ->when($userId, function($query, $userId) {
+                    return $query->where('sl.user_id', $userId);
+                })
                  ->where('mem.is_main', true)
                  ->whereNull('me.deleted_at')
                  ->whereNull('e.deleted_at')
@@ -234,7 +236,7 @@ class Game extends Model
                  ->get();
     }
 
-    public static function getWatchlistEvents(int $userId)
+    public static function getWatchlistEvents(int $userId = null)
     {
         $maxMissingCount = SystemConfiguration::getSystemConfigurationValue('EVENT_VALID_MAX_MISSING_COUNT')->value;
 
@@ -252,7 +254,9 @@ class Game extends Model
                  ->leftJoin('providers as p', 'p.id', 'em.provider_id')
                  ->leftJoin('odd_types as ot', 'ot.id', 'mem.odd_type_id')
                  ->leftJoin('user_watchlist AS uw', 'me.id', 'uw.master_event_id')
-                 ->where('uw.user_id', $userId)
+                 ->when($userId, function($query, $userId) {
+                     return $query->where('uw.user_id', $userId);
+                 })
                  ->whereNull('me.deleted_at')
                  ->whereNull('e.deleted_at')
                  ->whereNull('em.deleted_at')

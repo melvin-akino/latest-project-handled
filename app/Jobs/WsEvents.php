@@ -43,18 +43,7 @@ class WsEvents implements ShouldQueue
                 $topicTable = $server->topicTable;
                 $userEvents = $server->userEventsTable;
 
-
-                $userProviderIds = UserProviderConfiguration::getProviderIdList($this->userId);
-                $userConfig      = getUserDefault($this->userId, 'sort-event')['default_sort'];
                 $masterLeague    = MasterLeague::where('name', $this->masterLeagueName)->first();
-                $userTz          = "Etc/UTC";
-                $getUserConfig   = UserConfiguration::getUserConfig($userId)
-                                                    ->where('type', 'timezone')
-                                                    ->first();
-
-                if ($getUserConfig) {
-                    $userTz = Timezones::find($getUserConfig->value)->name;
-                }
 
                 $gameDetails = Game::getGameDetails($masterLeague->id, $this->schedule);
                 foreach($gameDetails as $data) {
@@ -64,7 +53,7 @@ class WsEvents implements ShouldQueue
                     }
                 }
 
-                $data = eventTransformation($gameDetails, $userConfig, $userTz, $userId, $userProviderIds, $topicTable, 'socket');
+                $data = eventTransformation($gameDetails, $userId, $topicTable, 'socket');
             // }
             $gameData = is_array($data) ? $data : [];
             $eventData = array_values($gameData);

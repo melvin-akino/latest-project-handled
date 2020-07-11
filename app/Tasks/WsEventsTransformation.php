@@ -38,24 +38,11 @@ class WsEventsTransformation extends Task
             $server = app('swoole');
 
             $topicTable = $server->topicTable;
-
-            $userProviderIds = UserProviderConfiguration::getProviderIdList($this->userId);
-            $masterLeague    = MasterLeague::where('name', $this->masterLeagueName)->first();
-            $gameDetails     = Game::getGameDetails($masterLeague->id, $this->schedule);
-            $userConfig      = getUserDefault($this->userId, 'sort-event')['default_sort'];
-
+            $masterLeague  = MasterLeague::where('name', $this->masterLeagueName)->first();
+            $gameDetails   = Game::getGameDetails($masterLeague->id, $this->schedule);
             $userId        = $this->userId;
-            $userTz        = "Etc/UTC";
-            $getUserConfig = UserConfiguration::getUserConfig($userId)
-                                              ->where('type', 'timezone')
-                                              ->first();
 
-            if ($getUserConfig) {
-                $userTz = Timezones::find($getUserConfig->value)->name;
-            }
-
-                
-            $data      = eventTransformation($gameDetails, $userConfig, $userTz, $userId, $userProviderIds, $topicTable, 'socket');
+            $data      = eventTransformation($gameDetails, $userId, $topicTable, 'socket');
             $eventData = array_values($data);
             if (!empty($eventData)) {
                 Redis::set($this->schedule . '_' . $this->masterLeagueName, json_encode($eventData));

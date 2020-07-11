@@ -384,17 +384,6 @@ class TradeController extends Controller
             ];
 
             $userId        = auth()->user()->id;
-            $userConfig    = getUserDefault($userId, 'sort-event')['default_sort'];
-            $userTz        = "Etc/UTC";
-            $getUserConfig = UserConfiguration::getUserConfig($userId)
-                                              ->where('type', 'timezone')
-                                              ->first();
-
-            if ($getUserConfig) {
-                $userTz = Timezones::find($getUserConfig->value)->name;
-            }
-
-            $userProviderIds = UserProviderConfiguration::getProviderIdList($userId);
             $topicTable      = app('swoole')->topicTable;
             $userEvents      = app('swoole')->userEventsTable;
 
@@ -430,14 +419,14 @@ class TradeController extends Controller
                 }
 
                 if ($row == 'user_watchlist') {
-                    $watchlist = eventTransformation($transformed, $userConfig, $userTz, $userId, $userProviderIds, $topicTable, 'watchlist');
+                    $watchlist = eventTransformation($transformed, $userId, $topicTable, 'watchlist');
                     if(is_array($watchlist)) {
                         foreach ($watchlist as $key => $league) {
                             $watchlistData[$key] = array_values($watchlist[$key]);
                         }
                     }
                 } else {
-                    $userSelected = eventTransformation($transformed, $userConfig, $userTz, $userId, $userProviderIds, $topicTable, 'selected');
+                    $userSelected = eventTransformation($transformed, $userId, $topicTable, 'selected');
                     if(is_array($userSelected)) {
                         foreach ($userSelected as $key => $schedule) {
                             foreach ($schedule as $k => $league) {
