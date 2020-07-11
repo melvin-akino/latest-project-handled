@@ -68,6 +68,9 @@ class OddsTransformationHandler
             $sportOddTypesTable       = $swoole->sportOddTypesTable;
             $eventMarketsTable        = $swoole->eventMarketsTable;
             $eventScheduleChangeTable = $swoole->eventScheduleChangeTable;
+            $updatedEventsTable       = $swoole->updatedEventsTable;
+            $updatedEventPricesTable  = $swoole->updatedEventPricesTable;
+            $additionalEventsTable    = $swoole->additionalEventsTable;
 
             list(
                 'providerId' => $providerId,
@@ -391,15 +394,50 @@ class OddsTransformationHandler
                 $counter++;
             }
 
+            if ($this->dbOptions['is-event-new'] && $this->dbOptions['in-masterlist']) {
+                $league = SwooleHandler::getValue('leaguesTable', implode(':', [
+                    'sId:' . $subTasks['event']['MasterEvent']['data']['sport_id'],
+                    'pId:' . $subTasks['event']['Event']['data']['provider_id'],
+                    'id:' . $subTasks['event']['MasterEvent']['data']['master_league_id']
+                ]));
+
+                if ($league) {
+                    $additionalEventsSwtId = "additionalEvents:" . $subTasks['event']['MasterEvent']['data']['master_event_unique_id'];
+                    $additionalEventsTable->set($additionalEventsSwtId, [
+                        'value' => json_encode([
+                            'sport_id'    => $subTasks['event-raw']['Event']['data']['sport_id'],
+                            'schedule'    => $subTasks['event']['MasterEvent']['data']['game_schedule'],
+                            'league_name' => $league['league_name']
+                        ])
+                    ]);
+                }
+            }
+
             $subTasks['updated-odds'] = [];
             if ($this->updated) {
                 $subTasks['updated-odds'] = $updatedOdds;
             }
 
+            if ($this->dbOptions['in-masterlist'] && !empty($updatedOdds)) {
+                $WSOddsSwtId = "updatedEvents:" . $uid;
+                $updatedEventsTable->set($WSOddsSwtId, ['value' => json_encode($updatedOdds)]);
+
+                $updatedPrice = [];
+                array_map(function ($updatedPriceValue) use ($updatedPrice) {
+                    $eventIdentifier = $updatedPriceValue['event_identifier'];
+                    unset($updatedPriceValue['event_identifier']);
+                    $updatedPrice[$eventIdentifier][] = $updatedPriceValue;
+                }, $updatedOdds);
+
+                $WSOddsSwtId = "updatedEventPrices:" . $uid;
+                $updatedEventPricesTable->set($WSOddsSwtId,
+                    ['value' => json_encode(array_values($updatedPrice))]);
+            }
+
             if (!empty($subTasks['event'])) {
                 Log::info('Transformation - finished, continue to saving');
-                $transformKafkaMessageOddsSaveToDb = resolve('TransformKafkaMessageOddsSaveToDb');
-                Task::deliver($transformKafkaMessageOddsSaveToDb->init($subTasks, $uid, $this->dbOptions));
+                // $transformKafkaMessageOddsSaveToDb = resolve('TransformKafkaMessageOddsSaveToDb');
+                // Task::deliver($transformKafkaMessageOddsSaveToDb->init($subTasks, $uid, $this->dbOptions));
             }
         } catch (Exception $e) {
             DB::rollBack();
