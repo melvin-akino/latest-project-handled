@@ -503,7 +503,9 @@ if (!function_exists('eventTransformation')) {
         }
 
         foreach($data as $key => $row) {
-            SwooleHandler::setValue('mlEventsTable', $key, [ 'data' => json_encode($row) ]);
+            if(!SwooleHandler::getValue('mlEventsTable', $key)) {
+                SwooleHandler::setValue('mlEventsTable', $key, [ 'data' => json_encode($row) ]);
+            }
         }
 
         $newResult = [];
