@@ -549,10 +549,17 @@ return [
         'wsTopic' => [ // key format: [$userId:league-$masterLeagueId:$schedule:$sportId]
             'size'   => env('SWT_MAX_SIZE', 102400),
             'column' => [
-                [ 'user_id' => 'data', 'type' => \Swoole\Table::TYPE_INT ],
-                [ 'topic_name' => 'data', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 100 ]
+                [ 'name' => 'user_id', 'type' => \Swoole\Table::TYPE_INT ],
+                [ 'name' => 'topic_name', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 100 ]
             ]
-        ]
+        ],
+        'mlOddsTable' => [ // key format: [$memUID]
+            'size'   => env('SWT_MAX_SIZE', 102400),
+            'column' => [
+                [ 'name' => 'odds', 'type' => \Swoole\Table::TYPE_FLOAT ],
+                [ 'name' => 'provider_id', 'type' => \Swoole\Table::TYPE_INT ],
+            ],
+        ],
     ],
     'register_providers'       => [
         \Laravel\Passport\PassportServiceProvider::class
