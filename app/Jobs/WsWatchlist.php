@@ -31,37 +31,9 @@ class WsWatchlist implements ShouldQueue
             $userId    = $this->userId;
             $topicTable = $server->topicTable;
             $userEvents = $server->userEventsTable;
+            $gameDetails = Game::getWatchlistGameDetails($userId);
 
-            $userProviderIds = UserProviderConfiguration::getProviderIdList($this->userId);
-            $userConfig      = getUserDefault($this->userId, 'sort-event')['default_sort'];
-            $userTz          = "Etc/UTC";
-            $getUserConfig   = UserConfiguration::getUserConfig($userId)
-                                            ->where('type', 'timezone')
-                                            ->first();
-
-            if ($getUserConfig) {
-                $userTz = Timezones::find($getUserConfig->value)->name;
-            }
-
-            $gameDetails = Game::getWatchlistGameDetails($this->userId);
-
-            foreach($gameDetails as $data) {
-                foreach ($userEvents as $key => $row) {
-                    if (strpos($key, 'selected:u:' . $userId . ':l:' . $data->league_id . ':s:' . $data->game_schedule . ':e:' . $data->master_event_id . ':') !== false) {
-                        $userEvents->del($key);
-                    } else {
-                        continue;
-                    }
-                }
-
-                $swtKey = 'watchlist:u:' . $userId . ':e:' . $data->master_event_id  .  ':o:' . $data->odd_type_id . ':t:' . $data->market_flag;
-                foreach($data as $key => $value) {
-                    $userEvents->set($swtKey, [$key => $value]);
-                }
-            }
-
-
-            $data = eventTransformation($gameDetails, $userConfig, $userTz, $userId, $userProviderIds, $topicTable, 'socket');
+            $data = eventTransformation($gameDetails, $userId,  $topicTable, 'socket');
 
             $watchlist = is_array($data) ? $data : [];
             $eventData = array_values($watchlist);

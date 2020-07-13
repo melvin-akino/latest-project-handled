@@ -32,7 +32,9 @@ use App\Models\{
     Order,
     OrderLogs,
     ProviderAccountOrder,
-    Game
+    Game,
+    Timezones,
+    UserProviderConfiguration
 };
 use App\Models\CRM\{
     OrderTransaction,
@@ -401,11 +403,23 @@ if (!function_exists('ordersCreation')) {
 }
 
 if (!function_exists('eventTransformation')) {
-    function eventTransformation($transformed, $userConfig, $userTz, $userId, $userProviderIds, $topicTable, $type = 'selected')
+    function eventTransformation($transformed, $userId, $topicTable, $type = 'selected')
     {
         $data     = [];
         $result   = [];
         $userBets = Order::getOrdersByUserId($userId);
+
+        $userConfig    = getUserDefault($userId, 'sort-event')['default_sort'];
+        $userTz        = "Etc/UTC";
+        $getUserConfig = UserConfiguration::getUserConfig($userId)
+                                            ->where('type', 'timezone')
+                                            ->first();
+
+        if ($getUserConfig) {
+            $userTz = Timezones::find($getUserConfig->value)->name;
+        }
+
+        $userProviderIds = UserProviderConfiguration::getProviderIdList($userId);
 
         foreach($transformed as $transformed) {
             if (!in_array($transformed->provider_id, $userProviderIds)) {
