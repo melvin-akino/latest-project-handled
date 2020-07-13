@@ -29,33 +29,9 @@ class SwtController extends Controller
                 'name'  => 'Priority Trigger',
                 'count' => $swoole->priorityTriggerTable->count()
             ],
-            'rawLeagues'          => [
-                'name'  => 'Raw Leagues',
-                'count' => $swoole->rawLeaguesTable->count()
-            ],
-            'rawTeams'            => [
-                'name'  => 'Raw Teams',
-                'count' => $swoole->rawTeamsTable->count()
-            ],
-            'rawEvents'           => [
-                'name'  => 'Raw Events',
-                'count' => $swoole->rawEventsTable->count()
-            ],
-            'rawEventMarkets'     => [
-                'name'  => 'Raw Event Markets',
-                'count' => $swoole->rawEventMarketsTable->count()
-            ],
             'userWatchlist'       => [
                 'name'  => 'User Watchlist',
                 'count' => $swoole->userWatchlistTable->count()
-            ],
-            'eventScheduleChange' => [
-                'name'  => 'Event Schedule Change',
-                'count' => $swoole->eventScheduleChangeTable->count()
-            ],
-            'additionalEvents'    => [
-                'name'  => 'Additional Events',
-                'count' => $swoole->additionalEventsTable->count()
             ],
             'updatedEvents'       => [
                 'name'  => 'Updated Events',
@@ -77,10 +53,6 @@ class SwtController extends Controller
                 'name'  => 'Min Max Payload',
                 'count' => $swoole->minmaxPayloadTable->count()
             ],
-            'updatedEventPrices'  => [
-                'name'  => 'Updated Event Prices',
-                'count' => $swoole->updatedEventPricesTable->count()
-            ],
             'eventScraping'       => [
                 'name'  => 'Event Scraping',
                 'count' => $swoole->eventScrapingTable->count()
@@ -90,10 +62,6 @@ class SwtController extends Controller
             'userSelectedLeagues'   => [
                 'name'  => 'User Selected Leagues',
                 'count' => $swoole->userSelectedLeaguesTable->count()
-            ],
-            'deletedLeagues'        => [
-                'name'  => 'Deleted Leagues',
-                'count' => $swoole->deletedLeaguesTable->count()
             ],
             'oddTypes'              => [
                 'name'  => 'Odd Types',
@@ -115,10 +83,6 @@ class SwtController extends Controller
                 'name'  => 'Leagues',
                 'count' => $swoole->leaguesTable->count()
             ],
-            'masterLeagues'         => [
-                'name'  => 'Master Leagues',
-                'count' => $swoole->masterLeaguesTable->count()
-            ],
             'teams'                 => [
                 'name'  => 'Teams',
                 'count' => $swoole->teamsTable->count()
@@ -131,17 +95,9 @@ class SwtController extends Controller
                 'name'  => 'Events',
                 'count' => $swoole->eventsTable->count()
             ],
-            'masterEvents'          => [
-                'name'  => 'Master Events',
-                'count' => $swoole->masterEventsTable->count()
-            ],
             'eventMarkets'          => [
                 'name'  => 'Event Markets',
                 'count' => $swoole->eventMarketsTable->count()
-            ],
-            'eventMarketLogs'       => [
-                'name'  => 'Event Market Logs',
-                'count' => $swoole->eventMarketLogsTable->count()
             ],
             'transformed'           => [
                 'name'  => 'Transformed',
