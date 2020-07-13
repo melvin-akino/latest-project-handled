@@ -2,6 +2,9 @@
 
 namespace App\Processes;
 
+use App\Facades\SwooleHandler;
+use Carbon\Carbon;
+use Illuminate\Support\Facades\Log;
 use App\Models\{Order, Sport, SystemConfiguration};
 use Hhxsv5\LaravelS\Swoole\Process\CustomProcessInterface;
 use Illuminate\Support\Facades\DB;
@@ -29,6 +32,7 @@ class DataToSwt implements CustomProcessInterface
             'MasterTeams',
             'SportOddTypes',
             'Events',
+            'EventRecords',
             'MasterEvents',
             'MasterEventMarkets',
             'UserWatchlist',
@@ -245,10 +249,183 @@ class DataToSwt implements CustomProcessInterface
         }, $masterEvents->toArray());
     }
 
+    private static function db2SwtEventRecords(Server $swoole)
+    {
+        $eventRecords      = DB::table('master_leagues as ml')
+                               ->leftJoin('sports as s', 's.id', 'ml.sport_id')
+                               ->leftJoin('master_events as me', 'me.master_league_id', 'ml.id')
+                               ->join('events as e', 'e.master_event_id', 'me.id')
+                               ->leftJoin('master_teams as mth', 'mth.id', 'me.master_team_home_id')
+                               ->leftJoin('master_teams as mta', 'mta.id', 'me.master_team_away_id')
+                               ->leftJoin('master_event_markets as mem', 'mem.master_event_id', 'me.id')
+                               ->join('event_markets as em', function ($join) {
+                                   $join->on('em.master_event_market_id', '=', 'mem.id');
+                                   $join->on('em.event_id', '=', 'e.id');
+                               })
+                               ->leftJoin('providers as p', 'p.id', 'em.provider_id')
+                               ->leftJoin('odd_types as ot', 'ot.id', 'mem.odd_type_id')
+                               ->whereNull('me.deleted_at')
+                               ->whereNull('e.deleted_at')
+                               ->whereNull('em.deleted_at')
+                               ->whereNull('ml.deleted_at')
+//                                ->where('e.event_identifier', 1000000)
+//                               ->where('e.missing_count', '<=', $maxMissingCount)
+                               ->select([
+                                   'ml.sport_id',
+                                   'ml.name as master_league_name',
+                                   'ml.id as master_league_id',
+                                   's.sport',
+                                   'e.master_event_id',
+                                   'me.master_event_unique_id',
+                                   'mth.name as master_team_home_name',
+                                   'mta.name as master_team_away_name',
+                                   'me.ref_schedule',
+                                   'me.game_schedule',
+                                   'me.score',
+                                   'me.running_time',
+                                   'me.home_penalty',
+                                   'me.away_penalty',
+                                   'mem.odd_type_id',
+                                   'mem.master_event_market_unique_id',
+                                   'mem.is_main',
+                                   'mem.market_flag',
+                                   'ot.type',
+                                   'em.odds',
+                                   'em.odd_label',
+                                   'e.provider_id',
+                                   'e.team_home_id',
+                                   'e.team_away_id',
+                                   'e.league_id',
+                                   'em.bet_identifier',
+                                   'p.alias',
+                                   'e.event_identifier',
+                                   'em.market_event_identifier',
+                               ])
+                                ->orderBy('ml.sport_id')
+                                ->orderBy('e.provider_id')
+                                ->orderBy('e.event_identifier')
+                               ->get();
+
+        $events = [];
+        foreach ($eventRecords as $eventRecord) {
+            $scores                                                                                   = explode('-', $eventRecord->score);
+            if (empty($events[$eventRecord->sport_id][$eventRecord->provider_id][$eventRecord->event_identifier])) {
+                $events[$eventRecord->sport_id][$eventRecord->provider_id][$eventRecord->event_identifier] = [
+                    'league_id'         => $eventRecord->league_id,
+                    'team_home_id'      => $eventRecord->team_home_id,
+                    'team_away_id'      => $eventRecord->team_away_id,
+                    'provider'          => strtolower($eventRecord->alias),
+                    'sport'             => $eventRecord->sport_id,
+                    'id'                => null,
+                    'home_score'        => (int) trim($scores[0]),
+                    'away_score'        => (int) trim($scores[1]),
+                    'home_redcard'      => $eventRecord->home_penalty,
+                    'away_redcard'      => $eventRecord->away_penalty,
+                    'schedule'          => $eventRecord->game_schedule,
+                    'leagueName'        => $eventRecord->master_league_name,
+                    'homeTeam'          => $eventRecord->master_team_home_name,
+                    'awayTeam'          => $eventRecord->master_team_away_name,
+                    'referenceSchedule' => Carbon::createFromFormat("Y-m-d H:i:s", $eventRecord->ref_schedule)->format("Y-m-d\TH:i:s.v"),
+                    'runningtime'       => null
+                ];
+            }
+
+            $eventIndex = $eventRecord->is_main ? 0 : $eventRecord->market_event_identifier;
+            $events[$eventRecord->sport_id][$eventRecord->provider_id][$eventRecord->event_identifier]['events'][$eventIndex]['eventId'] = (string) $eventRecord->market_event_identifier;
+            $events[$eventRecord->sport_id][$eventRecord->provider_id][$eventRecord->event_identifier]['events'][$eventIndex]['market_type'] = $eventRecord->is_main ? 1 : 2;
+            $events[$eventRecord->sport_id][$eventRecord->provider_id][$eventRecord->event_identifier]['events'][$eventIndex]['market_odds'][$eventRecord->odd_type_id]['oddsType'] = $eventRecord->type;
+
+            $marketSelection = [
+                'market_id' => $eventRecord->bet_identifier,
+                'indicator' => ucfirst(strtolower($eventRecord->market_flag)),
+                'odds'      => $eventRecord->odds
+            ];
+
+
+            if (!empty($eventRecord->odd_label)) {
+                $marketSelection['points'] = $eventRecord->odd_label;
+            }
+
+            SwooleHandler::setValue('oddRecordsTable', 'sId:' . $eventRecord->sport_id . ':pId:' . $eventRecord->provider_id . ':marketId:' . $eventRecord->bet_identifier, [
+                'market_id'   => $eventRecord->bet_identifier,
+                'sport_id'    => $eventRecord->sport_id,
+                'provider_id' => $eventRecord->provider_id,
+                'odds'        => $eventRecord->odds,
+                'memUID'      => $eventRecord->master_event_market_unique_id
+            ]);
+
+            $events[$eventRecord->sport_id][$eventRecord->provider_id][$eventRecord->event_identifier]['events'][$eventIndex]['market_odds'][$eventRecord->odd_type_id]['marketSelection'][] = $marketSelection;
+        }
+
+        $eventData = [];
+        foreach ($events as $sKey => $sports) {
+            foreach ($sports as $pKey => $providers) {
+                foreach ($providers as $eKey => $eventIdentifier) {
+                    $eventArray = [];
+                    foreach ($eventIdentifier['events'] as $eventKey => $event) {
+
+                        $marketOddsArray = [];
+                        foreach ($event['market_odds'] as $marketOdds) {
+                            $marketOddsArray[] = $marketOdds;
+                        }
+
+                        if ($event['market_type'] == 2) {
+                            $marketeSelectionEmpty = [
+                                [
+                                    'market_id' => '',
+                                    'indicator' => 'Home',
+                                    'odds' => ''
+                                ], [
+                                    'market_id' => '',
+                                    'indicator' => 'Away',
+                                    'odds' => ''
+                                ], [
+                                    'market_id' => '',
+                                    'indicator' => 'Draw',
+                                    'odds' => ''
+                                ]
+                            ];
+                            $marketOddsArray[] = [
+                                'oddsType' => '1X2',
+                                'marketSelection' => $marketeSelectionEmpty
+                            ];
+                            $marketOddsArray[] = [
+                                'oddsType' => 'HT 1X2',
+                                'marketSelection' => $marketeSelectionEmpty
+                            ];
+                        }
+                        $event['market_odds'] = $marketOddsArray;
+                        $eventArray[] = $event;
+                    }
+                    $eventIdentifier['events'] = $eventArray;
+//                    $eventData[] = $eventIdentifier;
+
+                    $eventSwtId = implode(':', [
+                        "sId:" . $sKey,
+                        "pId:" . $pKey,
+                        "eventIdentifier:" . $eventIdentifier['events'][0]['eventId']
+                    ]);
+
+                    $data = $eventIdentifier;
+                    unset($data['league_id'], $data['team_home_id'], $data['team_away_id']);
+                    SwooleHandler::setValue('eventRecordsTable', $eventSwtId, [
+                        'event_identifier' => $eventIdentifier['events'][0]['eventId'],
+                        'sport_id'         => $sKey,
+                        'league_id'        => $eventIdentifier['league_id'],
+                        'team_home_id'     => $eventIdentifier['team_home_id'],
+                        'team_away_id'     => $eventIdentifier['team_away_id'],
+                        'ref_schedule'     => date("Y-m-d H:i:s", strtotime($eventIdentifier['referenceSchedule'])),
+                        'provider_id'      => $pKey,
+                        'raw_data'         => json_encode($data)
+                    ]);
+                }
+            }
+        }
+    }
+
     private static function db2SwtMasterEvents(Server $swoole)
     {
         $masterEvents      = DB::table('master_events')
-                               ->select('id', 'master_event_unique_id')
                                ->get();
         $masterEventsTable = $swoole->masterEventsTable;
         array_map(function ($event) use ($masterEventsTable) {
@@ -257,6 +434,15 @@ class DataToSwt implements CustomProcessInterface
                     'id'                     => $event->id,
                     'master_event_unique_id' => $event->master_event_unique_id,
                 ]);
+//
+//
+//            $mlLeagueEvents = SwooleHandler::getValue('mlLeagueEventsTable', $masterEventsTable->id . $masterEventsTable->game_schedule . $masterEventsTable->sport_id);
+//            if ($mlLeagueEvents) {
+//                $mlLeagueEvents[$masterEventsTable->id . $masterEventsTable->game_schedule . $masterEventsTable->sport_id] = json_decode($mlLeagueEvents['data'], true);
+//            }
+//
+//            $mlLeagueEvents[$masterEventsTable->id . $masterEventsTable->game_schedule . $masterEventsTable->sport_id][] = $masterEventsTable->master_event_unique_id;
+//            SwooleHandler::setValue('$mlLeagueEvents', $masterEventsTable->id . $masterEventsTable->game_schedule . $masterEventsTable->sport_id, ['data' => json_encode($mlLeagueEvents[$masterEventsTable->id . $masterEventsTable->game_schedule . $masterEventsTable->sport_id])]);
         }, $masterEvents->toArray());
     }
 
@@ -343,10 +529,11 @@ class DataToSwt implements CustomProcessInterface
     {
         $userSelectedLeagues      = DB::table('user_selected_leagues as usl')
                                       ->join('master_leagues as ml', 'ml.id', 'usl.master_league_id')
-                                      ->select('usl.user_id', 'usl.id', 'usl.sport_id', 'usl.game_schedule', 'ml.name as master_league_name')
+                                      ->select('usl.user_id', 'usl.id', 'usl.sport_id', 'usl.game_schedule', 'ml.name as master_league_name', 'usl.master_league_id')
                                       ->get();
         $userSelectedLeaguesTable = $swoole->userSelectedLeaguesTable;
-        array_map(function ($userSelectedLeague) use ($userSelectedLeaguesTable) {
+        $mlLeagueEvents = [];
+        array_map(function ($userSelectedLeague) use ($userSelectedLeaguesTable, &$mlLeagueEvents) {
             $userSelectedLeaguesTable->set(
                 implode(':', [
                     'userId:' . $userSelectedLeague->user_id,
@@ -367,21 +554,18 @@ class DataToSwt implements CustomProcessInterface
         $userSelectedLeagues      = DB::table('user_selected_leagues as usl')
                                       ->join('master_leagues as ml', 'ml.id', 'usl.master_league_id')
                                       ->join('leagues as l', 'l.master_league_id', 'ml.id')
-                                      ->select('usl.user_id', 'usl.id', 'usl.sport_id', 'usl.game_schedule', 'l.name as raw_league_name')
+                                      ->select('ml.id as master_league_id', 'usl.sport_id', 'usl.game_schedule')
+                                      ->distinct()
                                       ->get();
         $userSelectedLeaguesTable = $swoole->userSelectedLeaguesWithRawTable;
         array_map(function ($userSelectedLeague) use ($userSelectedLeaguesTable) {
             $userSelectedLeaguesTable->set(
                 implode(':', [
-                    'userId:' . $userSelectedLeague->user_id,
                     'sId:' . $userSelectedLeague->sport_id,
                     'schedule:' . $userSelectedLeague->game_schedule,
-                    'id:' . $userSelectedLeague->id
+                    'mlId:' . $userSelectedLeague->master_league_id
                 ]), [
-                'user_id'         => $userSelectedLeague->user_id,
-                'sport_id'        => $userSelectedLeague->sport_id,
-                'schedule'        => $userSelectedLeague->game_schedule,
-                'raw_league_name' => $userSelectedLeague->raw_league_name
+                'selected'         => 1
             ]);
         }, $userSelectedLeagues->toArray());
     }
