@@ -29,7 +29,7 @@ return [
             'class'    => \App\Processes\ScrapeProduce::class,
             'redirect' => false,
             'pipe'     => 0,
-            'enable'   => true
+            'enable'   => env('LARAVELS_KAFKA_PRODUCE', true)
         ],
         'data_to_swt'   => [
             'class'    => \App\Processes\DataToSwt::class,
@@ -246,13 +246,16 @@ return [
                 ['name' => 'user_id', 'type' => \Swoole\Table::TYPE_INT],
             ],
         ],
-        'userSelectedLeaguesWithRaw' => [// key format [userId:1:sId:$sportId:schedule:early:id:$id] => [raw_league_name = $rawLeagueName, ...]
-            'size'   => 10000,// The max size
+        'userSelectedLeaguesWithRaw' => [// key format [sId:$sportId:schedule:early:mlId:$masterLeagueId] => [selected = 1]
+            'size'   => 5000,// The max size
             'column' => [// Define the columns
-                ['name' => 'raw_league_name', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 100],
-                ['name' => 'sport_id', 'type' => \Swoole\Table::TYPE_INT],
-                ['name' => 'schedule', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 6],
-                ['name' => 'user_id', 'type' => \Swoole\Table::TYPE_INT],
+                       ['name' => 'selected', 'type' => \Swoole\Table::TYPE_INT]
+            ],
+        ],
+        'mlLeagueEvents' => [// key format [$masterLeagueId:$schedule:$sportId] => [raw_league_name = $rawLeagueName, ...]
+            'size'   => 5000,// The max size
+            'column' => [// Define the columns
+                ['name' => 'data', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 1000]
             ],
         ],
         'deletedLeagues'      => [// key format [sportId:1:league:multileaguename] => [value = multileaguename]
@@ -349,6 +352,35 @@ return [
                 ['name' => 'home_penalty', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 30],
                 ['name' => 'away_penalty', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 30],
                 ['name' => 'provider_id', 'type' => \Swoole\Table::TYPE_INT],
+            ],
+        ],
+        'eventRecords'              => [ //key format [sId:$sportId:pId:$providerId:eventIdentifier:$eventIdentifier] = [event_identifier = $eventIdentifier, ...]
+            'size'   => 10000,
+            'column' => [
+                ['name' => 'event_identifier', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 30],
+                ['name' => 'sport_id', 'type' => \Swoole\Table::TYPE_INT],
+                ['name' => 'league_id', 'type' => \Swoole\Table::TYPE_INT],
+                ['name' => 'team_home_id', 'type' => \Swoole\Table::TYPE_INT],
+                ['name' => 'team_away_id', 'type' => \Swoole\Table::TYPE_INT],
+                ['name' => 'ref_schedule', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 30],
+                ['name' => 'provider_id', 'type' => \Swoole\Table::TYPE_INT],
+                ['name' => 'raw_data', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 10000]
+            ],
+        ],
+        'oddRecords' => [ //key format [sId:$sportId:pId:$providerId:marketId:$marketId] = [event_identifier = $eventIdentifier, ...]
+            'size'   => env('SWT_MAX_SIZE', 102400),
+            'column' => [
+                ['name' => 'market_id', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 30],
+                ['name' => 'sport_id', 'type' => \Swoole\Table::TYPE_INT],
+                ['name' => 'provider_id', 'type' => \Swoole\Table::TYPE_INT],
+                ['name' => 'odds', 'type' => \Swoole\Table::TYPE_FLOAT],
+                ['name' => 'memUID', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 100]
+            ],
+        ],
+        'mlEvents'              => [ //key format [$sportId:$masterLeagueId:$mthId:$mtaId:$refSchedule] = [master_event_unique_id = $masterEventUniqueId]
+            'size'   => 10000,
+            'column' => [
+                ['name' => 'master_event_unique_id', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 30]
             ],
         ],
         'masterEvents' => [ //key format [meUID:$meUID] = [id = $id, ...]

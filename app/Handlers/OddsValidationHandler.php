@@ -152,8 +152,10 @@ class OddsValidationHandler
             $leagueExist = false;
             foreach ($leaguesTable as $k => $v) {
                 if ($v['sport_id'] == $sportId && $v['provider_id'] == $providerId && $v['league_name'] == $this->message->data->leagueName) {
-                    $parameters['master_league_id'] = $leaguesTable->get($k)['id'];
-                    $leagueExist                    = true;
+                    $parameters['master_league_id']   = $leaguesTable->get($k)['id'];
+                    $parameters['league_id']          = $leaguesTable->get($k)['raw_id'];
+                    $parameters['master_league_name'] = $leaguesTable->get($k)['master_league_name'];
+                    $leagueExist                      = true;
                     break;
                 }
             }
@@ -172,8 +174,10 @@ class OddsValidationHandler
 
                 foreach ($teamsTable as $k => $v) {
                     if ($v['provider_id'] == $providerId && $v['team_name'] == $row) {
-                        $parameters['master_team_' . $key . '_id'] = $v['id'];
-                        $teamExist                                 = true;
+                        $parameters['master_team_' . $key . '_id']   = $v['id'];
+                        $parameters['team_' . $key . '_id']          = $v['raw_id'];
+                        $parameters['master_team_' . $key . '_name'] = $v['master_team_name'];
+                        $teamExist                                   = true;
                         break;
                     }
                 }
@@ -184,26 +188,20 @@ class OddsValidationHandler
                 }
             }
 
-            $isLeagueSelected = false;
-            foreach ($swoole->userSelectedLeaguesWithRawTable as $key => $value) {
-                if (
-                    $value['raw_league_name'] == $this->message->data->leagueName &&
-                    $value['sport_id']        == $sportId &&
-                    $value['schedule']        == $this->message->data->schedule
-                ) {
-                    $isLeagueSelected = true;
-                    break;
-                }
-            }
+            $isLeagueSelected = SwooleHandler::getValue('userSelectedLeaguesWithRawTable', implode(':', [
+                'sId:' . $sportId,
+                'schedule:' . $this->message->data->schedule,
+                'mlId:' . $parameters['master_league_id']
+            ]));
 
-            // if ($isLeagueSelected) {
+            if ($isLeagueSelected) {
                 $transformKafkaMessageOdds = resolve('TransformKafkaMessageOdds');
                 Task::deliver($transformKafkaMessageOdds->init($this->message, compact('providerId', 'sportId', 'parameters')));
                 Log::info("Transformation - validation completed");
-            // } else {
-            //     Log::info("Transformation ignored - No User has actively selected this league");
-            //     return;
-            // }
+            } else {
+                Log::info("Transformation ignored - No User has actively selected this league");
+                return;
+            }
 
         } catch (Exception $e) {
             Log::error($e->getMessage());
