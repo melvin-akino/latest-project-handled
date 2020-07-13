@@ -3,10 +3,7 @@
 namespace App\Jobs;
 
 use App\Facades\SwooleHandler;
-use App\Models\Events;
-use App\Models\MasterEvent;
-use App\Models\SystemConfiguration;
-use App\Models\UserWatchlist;
+use App\Models\{Events, MasterEvent, SystemConfiguration, UserWatchlist};
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Exception;
@@ -73,7 +70,6 @@ class TransformKafkaMessageEvents implements ShouldQueue
             /** LOOK-UP TABLES */
             $providersTable    = $swoole->providersTable;
             $activeEventsTable = $swoole->activeEventsTable;
-            $eventRecordsTable       = $swoole->eventRecordsTable;
             $sportsTable       = $swoole->sportsTable;
             $userEvents        = $swoole->userEventsTable;
 
@@ -157,8 +153,8 @@ class TransformKafkaMessageEvents implements ShouldQueue
                         break;
                 }
 
-                $eventsJson = $activeEventsTable->get($activeEventsSwtId);
-                $events     = json_decode($eventsJson['events'], true);
+                $eventsJson   = $activeEventsTable->get($activeEventsSwtId);
+                $events       = json_decode($eventsJson['events'], true);
                 $activeEvents = $this->message->data->event_ids;
 
                 $inActiveEvents = array_diff($events, $activeEvents);
@@ -171,10 +167,10 @@ class TransformKafkaMessageEvents implements ShouldQueue
                         $event->save();
                         if ($event->missing_count >= $missingCountConfiguration->value) {
                             $masterEvent = DB::table('master_events AS me')
-                                    ->leftJoin('master_leagues AS ml', 'me.master_league_id', '=', 'ml.id')
-                                    ->where('me.id', $event->master_event_id)
-                                    ->select('me.*', 'ml.name AS league_name')
-                                    ->first();
+                                             ->leftJoin('master_leagues AS ml', 'me.master_league_id', '=', 'ml.id')
+                                             ->where('me.id', $event->master_event_id)
+                                             ->select('me.*', 'ml.name AS league_name')
+                                             ->first();
 
                             if ($masterEvent) {
                                 UserWatchlist::where('master_event_id', $event->master_event_id)->delete();
@@ -188,7 +184,7 @@ class TransformKafkaMessageEvents implements ShouldQueue
                             }
 
                             $eventTableKey = "sId:{$sportId}:pId:{$payloadProviderId}:eventIdentifier:{$eventIdentifier}";
-                            $doesExist = SwooleHandler::exists('eventRecordsTable', $eventTableKey);
+                            $doesExist     = SwooleHandler::exists('eventRecordsTable', $eventTableKey);
                             if ($doesExist) {
                                 SwooleHandler::remove('eventRecordsTable', $eventTableKey);
                                 if (($key = array_search($eventIdentifier, $this->message->data->event_ids)) !== false) {
@@ -206,9 +202,9 @@ class TransformKafkaMessageEvents implements ShouldQueue
                 $activeEventsTable->set($activeEventsSwtId, ['events' => json_encode($activeEvents)]);
 
                 if (!empty($data)) {
-                    foreach($userEvents as $key => $row) {
-                        foreach($data as $event) {
-                            if($row['master_event_unique_id'] == $event['uid']) {
+                    foreach ($userEvents as $key => $row) {
+                        foreach ($data as $event) {
+                            if ($row['master_event_unique_id'] == $event['uid']) {
                                 $userEvents->del($key);
                             } else {
                                 continue;
