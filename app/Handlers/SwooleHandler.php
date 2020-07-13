@@ -11,6 +11,11 @@ class SwooleHandler
         self::$swoole = $swoole;
     }
 
+    public static function exists($swooleTable, $valueKey)
+    {
+        return self::$swoole->{$swooleTable}->exists($valueKey);
+    }
+
     public static function doesExistValue($swooleTable, $valueKey, $value)
     {
         $doesExist = false;
@@ -45,6 +50,11 @@ class SwooleHandler
     public static function setValue($swooleTable, $key, $payload)
     {
         return self::$swoole->{$swooleTable}->set($key, $payload);
+    }
+
+    public static function remove($swooleTable, $key)
+    {
+        return self::$swoole->{$swooleTable}->del($key);
     }
 
     public static function setColumnValue($swooleTable, $key, $column, $value)

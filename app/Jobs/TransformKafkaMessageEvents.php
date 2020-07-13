@@ -2,6 +2,7 @@
 
 namespace App\Jobs;
 
+use App\Facades\SwooleHandler;
 use App\Models\Events;
 use App\Models\MasterEvent;
 use App\Models\SystemConfiguration;
@@ -72,7 +73,7 @@ class TransformKafkaMessageEvents implements ShouldQueue
             /** LOOK-UP TABLES */
             $providersTable    = $swoole->providersTable;
             $activeEventsTable = $swoole->activeEventsTable;
-            $eventsTable       = $swoole->eventsTable;
+            $eventRecordsTable       = $swoole->eventRecordsTable;
             $sportsTable       = $swoole->sportsTable;
             $userEvents        = $swoole->userEventsTable;
 
@@ -142,6 +143,7 @@ class TransformKafkaMessageEvents implements ShouldQueue
             }
 
             if ($doesExist) {
+
                 switch ($this->message->data->schedule) {
                     case 'inplay':
                         $missingCountConfiguration = SystemConfiguration::where('type', 'INPLAY_MISSING_MAX_COUNT_FOR_DELETION')->first();
@@ -185,16 +187,10 @@ class TransformKafkaMessageEvents implements ShouldQueue
                                 ];
                             }
 
-                            $eventTableKey = "sId:{$sportId}:pId:{$payloadProviderId}:eventIdentifier:{$event->id}";
-                            $doesExist     = false;
-                            foreach ($eventsTable as $k => $v) {
-                                if ($k == $eventTableKey) {
-                                    $doesExist = true;
-                                    break;
-                                }
-                            }
+                            $eventTableKey = "sId:{$sportId}:pId:{$payloadProviderId}:eventIdentifier:{$eventIdentifier}";
+                            $doesExist = SwooleHandler::exists('eventRecordsTable', $eventTableKey);
                             if ($doesExist) {
-                                $eventsTable->del($eventTableKey);
+                                SwooleHandler::remove('eventRecordsTable', $eventTableKey);
                                 if (($key = array_search($eventIdentifier, $this->message->data->event_ids)) !== false) {
                                     unset($this->message->data->event_ids[$key]);
                                 }
@@ -220,7 +216,7 @@ class TransformKafkaMessageEvents implements ShouldQueue
                         }
                     }
                 }
-                
+
                 foreach ($swoole->wsTable as $key => $row) {
                     if (strpos($key, 'uid:') === 0 && $swoole->isEstablished($row['value'])) {
                         if (!empty($data)) {
