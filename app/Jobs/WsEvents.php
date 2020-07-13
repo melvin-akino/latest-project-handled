@@ -33,39 +33,20 @@ class WsEvents implements ShouldQueue
     public function handle()
     {
         try {
+            $userId = $this->userId;
             $server = app('swoole');
-            $fd     = $server->wsTable->get('uid:' . $this->userId);
-            // Task::deliver(new WsEventsTransformation($this->userId, $this->params, $this->additional));
-            // if (Redis::get($this->schedule . '_' . $this->masterLeagueName)) {
-            //     $data = json_decode(Redis::get($this->schedule . '_' . $this->masterLeagueName), false);
-            // } else {
-                $userId     = $this->userId;
-                $topicTable = $server->topicTable;
-                $userEvents = $server->userEventsTable;
-
-
-                $userProviderIds = UserProviderConfiguration::getProviderIdList($this->userId);
-                $userConfig      = getUserDefault($this->userId, 'sort-event')['default_sort'];
-                $masterLeague    = MasterLeague::where('name', $this->masterLeagueName)->first();
-                $userTz          = "Etc/UTC";
-                $getUserConfig   = UserConfiguration::getUserConfig($userId)
-                                                    ->where('type', 'timezone')
-                                                    ->first();
-
-                if ($getUserConfig) {
-                    $userTz = Timezones::find($getUserConfig->value)->name;
-                }
+            $fd     = $server->wsTable->get('uid:' . $userId);
+            Task::deliver(new WsEventsTransformation($userId, $this->params, $this->additional));
+            if (Redis::get($this->schedule . '_' . $this->masterLeagueName)) {
+                $data = json_decode(Redis::get($this->schedule . '_' . $this->masterLeagueName), false);
+            } else {
+                $topicTable   = $server->topicTable;
+                $masterLeague = MasterLeague::where('name', $this->masterLeagueName)->first();
 
                 $gameDetails = Game::getGameDetails($masterLeague->id, $this->schedule);
-                foreach($gameDetails as $data) {
-                    $swtKey = 'selected:u:' . $userId . ':l:' . $data->league_id . ':s:' . $data->game_schedule . ':e:' . $data->master_event_id  .  ':o:' . $data->odd_type_id . ':t:' . $data->market_flag;
-                    foreach($data as $key => $value) {
-                        $userEvents->set($swtKey, [$key => $value]);
-                    }
-                }
+                $data        = eventTransformation($gameDetails, $userId, $topicTable, 'socket');
+            }
 
-                $data = eventTransformation($gameDetails, $userConfig, $userTz, $userId, $userProviderIds, $topicTable, 'socket');
-            // }
             $gameData = is_array($data) ? $data : [];
             $eventData = array_values($gameData);
 

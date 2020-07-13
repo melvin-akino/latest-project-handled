@@ -183,6 +183,8 @@ class Game extends Model
     {
         $maxMissingCount = SystemConfiguration::getSystemConfigurationValue('EVENT_VALID_MAX_MISSING_COUNT')->value;
 
+        $eventsInWatchlist = DB::table('user_watchlist')->where('user_id', $userId)->select('master_event_id')->pluck('master_event_id');
+
         return DB::table('master_leagues as ml')
                  ->leftJoin('sports as s', 's.id', 'ml.sport_id')
                  ->leftJoin('master_events as me', 'me.master_league_id', 'ml.id')
@@ -205,6 +207,7 @@ class Game extends Model
                  ->whereNull('em.deleted_at')
                  ->whereNull('ml.deleted_at')
                  ->where('e.missing_count', '<=', $maxMissingCount)
+                 ->whereNotIn('me.id', $eventsInWatchlist)
                  ->select([
                      'ml.sport_id',
                      'ml.name as master_league_name',
