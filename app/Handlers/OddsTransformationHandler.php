@@ -261,7 +261,6 @@ class OddsTransformationHandler
                 }
             }
             if (!empty($updatedOdds)) {
-
                 $swoole->updatedEventsTable->set("updatedEvents:" . $uid, ['value' => json_encode($updatedOdds)]);
             }
         } catch (Exception $e) {

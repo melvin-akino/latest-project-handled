@@ -29,13 +29,5 @@ class OddsHandlerProvider extends ServiceProvider
         $this->app->singleton('TransformKafkaMessageOdds', function () {
             return new TransformKafkaMessageOdds();
         });
-
-        $this->app->singleton('TransformKafkaMessageOddsSaveToDb', function () {
-            return new TransformKafkaMessageOddsSaveToDb();
-        });
-
-        $this->app->singleton('OddsSaveToDbHandler', function () {
-            return new OddsSaveToDbHandler();
-        });
     }
 }

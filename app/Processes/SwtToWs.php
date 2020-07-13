@@ -22,8 +22,6 @@ class SwtToWs implements CustomProcessInterface
         try {
             if ($swoole->data2SwtTable->exist('data2Swt')) {
                 while (!self::$quit) {
-                    self::getAdditionalEvents($swoole);
-                    self::getUpdatedEventsSchedule($swoole);
                     self::getUpdatedOdds($swoole);
                     self::getUpdatedPrice($swoole);
                     self::getAdditionalLeagues($swoole);
@@ -41,48 +39,6 @@ class SwtToWs implements CustomProcessInterface
     public static function onReload(Server $swoole, Process $process)
     {
         self::$quit = true;
-    }
-
-    public static function getUpdatedEventsSchedule($swoole)
-    {
-        $eventScheduleChangeTable = $swoole->eventScheduleChangeTable;
-        $wsTable                  = $swoole->wsTable;
-        foreach ($eventScheduleChangeTable as $k => $r) {
-            $updatedEventSchedule = json_decode($r['value']);
-            foreach ($wsTable as $key => $row) {
-                if (strpos($key, 'fd:') === 0) {
-                    $fd = $wsTable->get('uid:' . $row['value']);
-                    $swoole->push($fd['value'], json_encode(['getUpdatedEventsSchedule' => $updatedEventSchedule]));
-                }
-            }
-            $eventScheduleChangeTable->del($k);
-        }
-    }
-
-    public static function getAdditionalEvents($swoole)
-    {
-        $additionalEventsTable = $swoole->additionalEventsTable;
-        foreach ($additionalEventsTable as $k => $r) {
-            $additionalEvents = json_decode($r['value']);
-            if (!empty($additionalEvents)) {
-                $sportId      = $additionalEvents->sport_id;
-                $gameSchedule = $additionalEvents->schedule;
-                $leagueName   = $additionalEvents->league_name;
-
-                $userSelectedLeaguesTable = $swoole->userSelectedLeaguesTable;
-                foreach ($userSelectedLeaguesTable as $uslKey => $uslData) {
-                    $userId       = $uslData['user_id'];
-                    $defaultSport = getUserDefault($userId, 'sport');
-                    if ((int) $defaultSport['default_sport'] == $sportId) {
-                        if ($sportId == $defaultSport['default_sport'] && $gameSchedule == $uslData['schedule'] && $uslData['league_name'] == $leagueName
-                        ) {
-                            WsEvents::dispatch($userId, [1 => $uslData['league_name'], 2 => $gameSchedule], true);
-                        }
-                    }
-                }
-                $additionalEventsTable->del($k);
-            }
-        }
     }
 
     private static function getUpdatedOdds($swoole)

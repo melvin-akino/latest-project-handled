@@ -27,13 +27,10 @@ class DataToSwt implements CustomProcessInterface
             'OddTypes',
             'Providers',
             'Leagues',
-            'MasterLeagues',
             'Teams',
-            'MasterTeams',
             'SportOddTypes',
             'Events',
             'EventRecords',
-            'MasterEvents',
             'MasterEventMarkets',
             'UserWatchlist',
             'UserProviderConfig',
@@ -46,11 +43,7 @@ class DataToSwt implements CustomProcessInterface
             'Currencies',
             'UserInfo',
             'ProviderAccounts',
-            'MLBetId',
-            'RawEvents',
-            'RawEventMarkets',
-            'RawLeagues',
-            'RawTeams'
+            'MLBetId'
         ];
 
         $maxMissingCount = SystemConfiguration::getSystemConfigurationValue('EVENT_VALID_MAX_MISSING_COUNT')->value;
@@ -140,22 +133,6 @@ class DataToSwt implements CustomProcessInterface
         }, $leagues->toArray());
     }
 
-    private static function db2SwtMasterLeagues(Server $swoole)
-    {
-        $masterLeagues      = DB::table('master_leagues')
-                                ->select('id', 'name')
-                                ->get();
-        $masterLeaguesTable = $swoole->masterLeaguesTable;
-        array_map(function ($masterLeague) use ($masterLeaguesTable) {
-            $masterLeaguesTable->set('id:' . $masterLeague->id,
-                [
-                    'id'   => $masterLeague->id,
-                    'name' => $masterLeague->name,
-                ]
-            );
-        }, $masterLeagues->toArray());
-    }
-
     private static function db2SwtTeams(Server $swoole)
     {
         $teams      = DB::table('master_teams as mt')
@@ -173,21 +150,6 @@ class DataToSwt implements CustomProcessInterface
                     'raw_id'           => $team->raw_id
                 ]);
         }, $teams->toArray());
-    }
-
-    private static function db2SwtMasterTeams(Server $swoole)
-    {
-        $masterTeams      = DB::table('master_teams')
-                              ->select('id', 'name')
-                              ->get();
-        $masterTeamsTable = $swoole->masterTeamsTable;
-        array_map(function ($masterTeam) use ($masterTeamsTable) {
-            $masterTeamsTable->set('id:' . $masterTeam->id,
-                [
-                    'id'   => $masterTeam->id,
-                    'name' => $masterTeam->name,
-                ]);
-        }, $masterTeams->toArray());
     }
 
     private static function db2SwtSportOddTypes(Server $swoole)
@@ -423,29 +385,6 @@ class DataToSwt implements CustomProcessInterface
         }
     }
 
-    private static function db2SwtMasterEvents(Server $swoole)
-    {
-        $masterEvents      = DB::table('master_events')
-                               ->get();
-        $masterEventsTable = $swoole->masterEventsTable;
-        array_map(function ($event) use ($masterEventsTable) {
-            $masterEventsTable->set('meUID:' . $event->master_event_unique_id,
-                [
-                    'id'                     => $event->id,
-                    'master_event_unique_id' => $event->master_event_unique_id,
-                ]);
-//
-//
-//            $mlLeagueEvents = SwooleHandler::getValue('mlLeagueEventsTable', $masterEventsTable->id . $masterEventsTable->game_schedule . $masterEventsTable->sport_id);
-//            if ($mlLeagueEvents) {
-//                $mlLeagueEvents[$masterEventsTable->id . $masterEventsTable->game_schedule . $masterEventsTable->sport_id] = json_decode($mlLeagueEvents['data'], true);
-//            }
-//
-//            $mlLeagueEvents[$masterEventsTable->id . $masterEventsTable->game_schedule . $masterEventsTable->sport_id][] = $masterEventsTable->master_event_unique_id;
-//            SwooleHandler::setValue('$mlLeagueEvents', $masterEventsTable->id . $masterEventsTable->game_schedule . $masterEventsTable->sport_id, ['data' => json_encode($mlLeagueEvents[$masterEventsTable->id . $masterEventsTable->game_schedule . $masterEventsTable->sport_id])]);
-        }, $masterEvents->toArray());
-    }
-
     private static function db2SwtMasterEventMarkets(Server $swoole)
     {
         $masterEventMarkets      = DB::table('master_event_markets as mem')
@@ -532,8 +471,7 @@ class DataToSwt implements CustomProcessInterface
                                       ->select('usl.user_id', 'usl.id', 'usl.sport_id', 'usl.game_schedule', 'ml.name as master_league_name', 'usl.master_league_id')
                                       ->get();
         $userSelectedLeaguesTable = $swoole->userSelectedLeaguesTable;
-        $mlLeagueEvents = [];
-        array_map(function ($userSelectedLeague) use ($userSelectedLeaguesTable, &$mlLeagueEvents) {
+        array_map(function ($userSelectedLeague) use ($userSelectedLeaguesTable) {
             $userSelectedLeaguesTable->set(
                 implode(':', [
                     'userId:' . $userSelectedLeague->user_id,
@@ -755,90 +693,5 @@ class DataToSwt implements CustomProcessInterface
         $swTable->set('mlBetId', [
             'ml_bet_id' => $betId,
         ]);
-    }
-
-    private static function db2SwtRawEvents(Server $swoole)
-    {
-        $events = DB::table('events')
-                    ->select('id', 'event_identifier', 'provider_id')
-                    ->whereNull('deleted_at')
-                    ->get();
-
-        $rawEventsTable = $swoole->rawEventsTable;
-
-        array_map(function ($event) use ($rawEventsTable) {
-            $swtId = "eventId:" . $event->id;
-
-            $rawEventsTable->set($swtId, [
-                'id'               => $event->id,
-                'event_identifier' => $event->event_identifier,
-                'provider_id'      => $event->provider_id
-            ]);
-        }, $events->toArray());
-    }
-
-    private static function db2SwtRawEventMarkets(Server $swoole)
-    {
-        $eventMarkets = DB::table('event_markets')
-                          ->select('id', 'bet_identifier', 'provider_id', 'odd_label', 'odd_type_id', 'market_flag')
-                          ->whereNull('deleted_at')
-                          ->get();
-
-        $rawEventMarketsTable = $swoole->rawEventMarketsTable;
-
-        array_map(function ($eventMarket) use ($rawEventMarketsTable) {
-            $swtId = "eventMarketId:" . $eventMarket->id;
-
-            $rawEventMarketsTable->set($swtId, [
-                'id'             => $eventMarket->id,
-                'bet_identifier' => $eventMarket->bet_identifier,
-                'provider_id'    => $eventMarket->provider_id,
-                'odd_label'      => $eventMarket->odd_label,
-                'odd_type_id'    => $eventMarket->odd_type_id,
-                'market_flag'    => $eventMarket->market_flag,
-            ]);
-        }, $eventMarkets->toArray());
-    }
-
-    private static function db2SwtRawLeagues(Server $swoole)
-    {
-        $rawLeagues = DB::table('leagues')
-                        ->select('id', 'sport_id', 'provider_id', 'name')
-                        ->whereNull('deleted_at')
-                        ->get();
-
-        $rawLeaguesTable = $swoole->rawLeaguesTable;
-
-        array_map(function ($league) use ($rawLeaguesTable) {
-            $swtId = "leagueId:" . $league->id;
-
-            $rawLeaguesTable->set($swtId, [
-                'id'          => $league->id,
-                'sport_id'    => $league->sport_id,
-                'provider_id' => $league->provider_id,
-                'name'        => $league->name
-            ]);
-        }, $rawLeagues->toArray());
-    }
-
-    private static function db2SwtRawTeams(Server $swoole)
-    {
-        $rawTeams = DB::table('teams')
-                      ->select('id', 'sport_id', 'provider_id', 'name')
-                      ->whereNull('deleted_at')
-                      ->get();
-
-        $rawTeamsTable = $swoole->rawTeamsTable;
-
-        array_map(function ($teams) use ($rawTeamsTable) {
-            $swtId = "teamId:" . $teams->id;
-
-            $rawTeamsTable->set($swtId, [
-                'id'          => $teams->id,
-                'sport_id'    => $teams->sport_id,
-                'provider_id' => $teams->provider_id,
-                'name'        => $teams->name
-            ]);
-        }, $rawTeams->toArray());
     }
 }

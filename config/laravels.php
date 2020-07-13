@@ -137,58 +137,8 @@ return [
                 ['name' => 'value', 'type' => \Swoole\Table::TYPE_INT],
             ],
         ],
-        'rawLeagues'        => [// key format [leagueId:$leagueId] = [name = $leagueName, ...]
-            'size'   => 10000,// The max size
-            'column' => [// Define the columns
-                ['name' => 'id', 'type' => \Swoole\Table::TYPE_INT],
-                ['name' => 'sport_id', 'type' => \Swoole\Table::TYPE_INT],
-                ['name' => 'provider_id', 'type' => \Swoole\Table::TYPE_INT],
-                ['name' => 'name', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 10000],
-            ],
-        ],
-        'rawTeams'          => [// key format [teamId:$teamId] = [name = $teamName, ...]
-            'size'   => 20000,// The max size
-            'column' => [// Define the columns
-                ['name' => 'id', 'type' => \Swoole\Table::TYPE_INT],
-                ['name' => 'sport_id', 'type' => \Swoole\Table::TYPE_INT],
-                ['name' => 'provider_id', 'type' => \Swoole\Table::TYPE_INT],
-                ['name' => 'name', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 10000],
-            ],
-        ],
-        'rawEvents'          => [// key format [eventId:$eventId] = [id = $eventId, ...]
-            'size'   => env('SWT_MAX_SIZE', 102400),// The max size
-            'column' => [// Define the columns
-                ['name' => 'id', 'type' => \Swoole\Table::TYPE_INT],
-                ['name' => 'event_identifier', 'type' => \Swoole\Table::TYPE_INT],
-                ['name' => 'provider_id', 'type' => \Swoole\Table::TYPE_INT],
-            ],
-        ],
-        'rawEventMarkets' => [// key format [eventMarketId:$eventMarketId] = [id = $eventMarketId, ...]
-            'size'   => env('SWT_MAX_SIZE', 102400),// The max size
-            'column' => [// Define the columns
-                ['name' => 'id', 'type' => \Swoole\Table::TYPE_INT],
-                ['name' => 'bet_identifier', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 30],
-                ['name' => 'provider_id', 'type' => \Swoole\Table::TYPE_INT],
-                ['name' => 'odd_label', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 20],
-                ['name' => 'odd_type_id', 'type' => \Swoole\Table::TYPE_INT],
-                ['name' => 'market_flag', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 20],
-                ['name' => 'event_id', 'type' => \Swoole\Table::TYPE_INT],
-            ],
-        ],
         'userWatchlist'       => [// key format [userWatchlist:$userId:masterEventId:$masterEventId] = [value = true]
             'size'   => 10000,// The max size
-            'column' => [// Define the columns
-                ['name' => 'value', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 10000],
-            ],
-        ],
-        'eventScheduleChange' => [// key format [eventScheduleChange:$uid] = [value = true]
-            'size'   => 1000,// The max size
-            'column' => [// Define the columns
-                ['name' => 'value', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 10000],
-            ],
-        ],
-        'additionalEvents'    => [// key format [additionalEvents:$uid] = [value = true]
-            'size'   => 1000,// The max size
             'column' => [// Define the columns
                 ['name' => 'value', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 10000],
             ],
@@ -225,12 +175,6 @@ return [
                 ['name' => 'value', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 10000],
             ],
         ],
-        'updatedEventPrices'  => [
-            'size'   => env('SWT_MAX_SIZE', 102400),// The max size
-            'column' => [// Define the columns
-                ['name' => 'value', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 10000],
-            ],
-        ],
         'eventScraping'       => [
             'size'   => env('SWT_MAX_SIZE', 102400),// The max size
             'column' => [// Define the columns
@@ -250,18 +194,6 @@ return [
             'size'   => 5000,// The max size
             'column' => [// Define the columns
                        ['name' => 'selected', 'type' => \Swoole\Table::TYPE_INT]
-            ],
-        ],
-        'mlLeagueEvents' => [// key format [$masterLeagueId:$schedule:$sportId] => [raw_league_name = $rawLeagueName, ...]
-            'size'   => 5000,// The max size
-            'column' => [// Define the columns
-                ['name' => 'data', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 1000]
-            ],
-        ],
-        'deletedLeagues'      => [// key format [sportId:1:league:multileaguename] => [value = multileaguename]
-            'size'   => 10000,// The max size
-            'column' => [// Define the columns
-                ['name' => 'value', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 100],
             ],
         ],
         'oddTypes'            => [ // key format [oddType:$oddType] => [id = $id, type = $oddType]
@@ -309,13 +241,6 @@ return [
                 ['name' => 'raw_id', 'type' => \Swoole\Table::TYPE_INT],
             ],
         ],
-        'masterLeagues'             => [ // key format [id:$id] = [id = $id, ...]
-           'size'   => 5000,
-           'column' => [
-               ['name' => 'id', 'type' => \Swoole\Table::TYPE_INT],
-               ['name' => 'name', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 100]
-           ],
-        ],
         'teams'               => [ //key format ['pId:$providerId:id:$id] = [id = $teamId, team_name = $teamName]
             'size'   => 20000,
             'column' => [
@@ -325,13 +250,6 @@ return [
                 ['name' => 'provider_id', 'type' => \Swoole\Table::TYPE_INT],
                 ['name' => 'raw_id', 'type' => \Swoole\Table::TYPE_INT],
             ],
-        ],
-        'masterTeams'             => [ // key format [id:$id] = [id = $id, ...]
-             'size'   => 5000,
-             'column' => [
-                 ['name' => 'id', 'type' => \Swoole\Table::TYPE_INT],
-                 ['name' => 'name', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 100]
-             ],
         ],
         'events'              => [ //key format [sId:$sportId:pId:$providerId:eventIdentifier:$eventIdentifier] = [id = $id, ...]
             'size'   => env('SWT_MAX_SIZE', 102400),
@@ -383,13 +301,6 @@ return [
                 ['name' => 'master_event_unique_id', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 30]
             ],
         ],
-        'masterEvents' => [ //key format [meUID:$meUID] = [id = $id, ...]
-            'size'   => 10000,
-            'column' => [
-                ['name' => 'id', 'type' => \Swoole\Table::TYPE_INT],
-                ['name' => 'master_event_unique_id', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 50],
-            ],
-        ],
         'eventMarkets'        => [ //key format [pId:$providerId:meUID:$meUID:betIdentifier:$betIdentifier] = [id = $id, ...]
             'size'   => env('SWT_MAX_SIZE', 102400),
             'column' => [
@@ -409,18 +320,6 @@ return [
                 ['name' => 'master_event_id', 'type' => \Swoole\Table::TYPE_INT],
                 ['name' => 'master_event_market_id', 'type' => \Swoole\Table::TYPE_INT],
             ],
-        ],
-        'eventMarketLogs'        => [ //key format [memUID:$memUID] = [master_event_market_id = $masterEventMarketId, ...]
-               'size'   => env('SWT_MAX_SIZE', 102400),
-               'column' => [
-                   ['name' => 'master_event_market_id', 'type' => \Swoole\Table::TYPE_INT],
-                   ['name' => 'odd_type_id', 'type' => \Swoole\Table::TYPE_INT],
-                   ['name' => 'provider_id', 'type' => \Swoole\Table::TYPE_INT],
-                   ['name' => 'odds', 'type' => \Swoole\Table::TYPE_FLOAT],
-                   ['name' => 'odd_label', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 10],
-                   ['name' => 'is_main', 'type' => \Swoole\Table::TYPE_INT, 'size' => 1],
-                   ['name' => 'market_flag', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 5]
-               ],
         ],
         'transformed'         => [ //key format [eventIdentifier:$eventIdentifier] = [ts => $ts, ...]
             'size'   => env('SWT_MAX_SIZE', 102400),
