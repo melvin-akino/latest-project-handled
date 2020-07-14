@@ -30,7 +30,6 @@ class WsWatchlist implements ShouldQueue
 
             $userId    = $this->userId;
             $topicTable = $server->topicTable;
-            $userEvents = $server->userEventsTable;
             $gameDetails = Game::getWatchlistGameDetails($userId);
 
             $data = eventTransformation($gameDetails, $userId,  $topicTable, 'socket');

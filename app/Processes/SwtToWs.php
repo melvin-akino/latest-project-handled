@@ -46,7 +46,6 @@ class SwtToWs implements CustomProcessInterface
         $updatedEventsTable   = $swoole->updatedEventsTable;
         $wsTable              = $swoole->wsTable;
         $topicTable           = $swoole->topicTable;
-        $userEvents           = $swoole->userEventsTable;
         $userEnabledProviders = [];
         foreach ($updatedEventsTable as $k => $r) {
             $updatedMarkets = json_decode($r['value']);
@@ -61,12 +60,6 @@ class SwtToWs implements CustomProcessInterface
                             if (in_array($updatedMarket->provider_id, $userEnabledProviders[$topic['user_id']])) {
                                 $fd = $wsTable->get('uid:' . $topic['user_id']);
                                 $swoole->push($fd['value'], json_encode(['getUpdatedOdds' => [$updatedMarket]]));
-                                foreach($userEvents as $key => $row) {
-                                    if($row['master_event_market_unique_id'] == $updatedMarket->market_id) {
-                                        $userEvents[$key]['odds'] = $updatedMarket->odds;
-                                        break;
-                                    }
-                                }
                             }
                         }
                     }
