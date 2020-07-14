@@ -155,7 +155,7 @@ class OddsTransformationHandler
                     $uid = $mlEventRecord['master_event_unique_id'];
                 } else {
                     $uid = implode('-', [
-                        date("Y-m-d H:i:s", strtotime($this->message->data->referenceSchedule)),
+                        date("Ymd", strtotime($this->message->data->referenceSchedule)),
                         $sportId,
                         $masterLeagueId,
                         $this->message->data->events[0]->eventId
