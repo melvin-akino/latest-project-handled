@@ -361,15 +361,19 @@ class TradeController extends Controller
                 if ($row == 'user_watchlist') {
                     $transformed = Game::getWatchlistEvents($userId);
                     $watchlist = eventTransformation($transformed, $userId, $topicTable, 'watchlist');
-                    foreach ($watchlist as $key => $league) {
-                        $watchlistData[$key] = array_values($watchlist[$key]);
+                    if (!empty($watchlist)) {
+                        foreach ($watchlist as $key => $league) {
+                            $watchlistData[$key] = array_values($watchlist[$key]);
+                        }
                     }
                 } else {
                     $transformed = Game::getSelectedLeagueEvents($userId);
                     $userSelected = eventTransformation($transformed, $userId, $topicTable, 'selected');
-                    foreach ($userSelected as $key => $schedule) {
-                        foreach ($schedule as $k => $league) {
-                            $userSelectedData[$key][$k] = array_values($userSelected[$key][$k]);
+                    if (!empty($userSelected)) {
+                        foreach ($userSelected as $key => $schedule) {
+                            foreach ($schedule as $k => $league) {
+                                $userSelectedData[$key][$k] = array_values($userSelected[$key][$k]);
+                            }
                         }
                     }
                 }
