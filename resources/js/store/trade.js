@@ -165,6 +165,7 @@ const mutations = {
             state.events[data.schedule][data.league] = []
         }
         state.events[data.schedule][data.league].push(data.event)
+        state.events[data.schedule][data.league] = sortByObjectProperty(state.events[data.schedule][data.league], 'ref_schedule')
     },
     REMOVE_FROM_EVENTS: (state, data) => {
         if(state.tradePageSettings.sort_event == 1) {
