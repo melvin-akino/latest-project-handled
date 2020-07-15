@@ -423,7 +423,7 @@ if (!function_exists('eventTransformation')) {
 
         foreach($transformed as $transformed) {
             if (!in_array($transformed->provider_id, $userProviderIds)) {
-                return $transformed;
+                continue;
             }
 
             $hasBet = false;
