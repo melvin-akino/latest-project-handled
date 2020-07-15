@@ -14,7 +14,6 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Support\Facades\Log;
 use Hhxsv5\LaravelS\Swoole\Task\Task;
-use App\Tasks\WsEventsTransformation;
 use Illuminate\Support\Facades\Redis;
 
 class WsEvents implements ShouldQueue
@@ -36,16 +35,11 @@ class WsEvents implements ShouldQueue
             $userId = $this->userId;
             $server = app('swoole');
             $fd     = $server->wsTable->get('uid:' . $userId);
-            Task::deliver(new WsEventsTransformation($userId, $this->params, $this->additional));
-            if (Redis::get($this->schedule . '_' . $this->masterLeagueName)) {
-                $data = json_decode(Redis::get($this->schedule . '_' . $this->masterLeagueName), false);
-            } else {
-                $topicTable   = $server->topicTable;
-                $masterLeague = MasterLeague::where('name', $this->masterLeagueName)->first();
+            $topicTable   = $server->topicTable;
+            $masterLeague = MasterLeague::where('name', $this->masterLeagueName)->first();
 
-                $gameDetails = Game::getGameDetails($masterLeague->id, $this->schedule);
-                $data        = eventTransformation($gameDetails, $userId, $topicTable, 'socket');
-            }
+            $gameDetails = Game::getGameDetails($masterLeague->id, $this->schedule);
+            $data        = eventTransformation($gameDetails, $userId, $topicTable, 'socket');
 
             $gameData = is_array($data) ? $data : [];
             $eventData = array_values($gameData);
