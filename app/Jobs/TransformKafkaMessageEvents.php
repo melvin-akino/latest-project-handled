@@ -3,7 +3,7 @@
 namespace App\Jobs;
 
 use App\Facades\SwooleHandler;
-use App\Models\{Events, MasterEvent, SystemConfiguration, UserWatchlist};
+use App\Models\{Events, SystemConfiguration};
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Exception;
@@ -163,7 +163,6 @@ class TransformKafkaMessageEvents implements ShouldQueue
                     $event = Events::where('event_identifier', $eventIdentifier)->first();
                     if ($event) {
                         $event->missing_count += 1;
-                        $event->save();
                         if ($event->missing_count >= $missingCountConfiguration->value) {
                             $masterEvent = DB::table('master_events AS me')
                                              ->leftJoin('master_leagues AS ml', 'me.master_league_id', '=', 'ml.id')
@@ -172,9 +171,6 @@ class TransformKafkaMessageEvents implements ShouldQueue
                                              ->first();
 
                             if ($masterEvent) {
-                                UserWatchlist::where('master_event_id', $event->master_event_id)->delete();
-                                MasterEvent::where('id', $event->master_event_id)->delete();
-
                                 $data[] = [
                                     'uid'           => $masterEvent->master_event_unique_id,
                                     'league_name'   => $masterEvent->league_name,
@@ -190,8 +186,6 @@ class TransformKafkaMessageEvents implements ShouldQueue
                                     unset($this->message->data->event_ids[$key]);
                                 }
                             }
-
-                            $event->delete();
                         } else {
                             $activeEvents[] = $eventIdentifier;
                         }
