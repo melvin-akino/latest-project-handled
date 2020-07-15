@@ -342,16 +342,13 @@ class OrdersController extends Controller
             $return       = "";
             $returnCode   = 200;
             $prevStake    = 0;
-            $userCurrency = auth()->user()->currency_id;
             $isUserVIP    = auth()->user()->is_vip;
             $orderIds     = [];
             $incrementIds = [];
 
             foreach ($request->markets AS $row) {
                 $betType    = $request->betType;
-                $percentage = 0;
                 $mlBetId    = generateMLBetIdentifier();
-                $alias      = "";
 
                 /**
                  * Fetch `userProviderConfig` Swoole Table
@@ -504,7 +501,7 @@ class OrdersController extends Controller
                 }
 
                 $payload['user_id']          = auth()->user()->id;
-                $payload['provider_id']      = strtolower($alias);
+                $payload['provider_id']      = strtolower($row['provider']);
                 $payload['odds']             = $row['price'];
                 $payload['stake']            = $payloadStake;
                 $payload['to_win']           = $payloadStake * $row['price'];
