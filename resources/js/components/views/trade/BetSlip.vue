@@ -436,7 +436,7 @@ export default {
                     }
                     this.retrievedMarketData = true
 
-                    if(process.env.NODE_ENV == 'development') {
+                    if(process.env.MIX_DEBUG_SEND) {
                         axios.post(`${process.env.MIX_DEBUGGING_URL}minmaxlog`, { key: 'receiveminmax', payload: response.data })
                         .catch(err => {
                             console.log(err)

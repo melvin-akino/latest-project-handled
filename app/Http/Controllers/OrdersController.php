@@ -531,7 +531,7 @@ class OrdersController extends Controller
                     return response()->json([
                         'status'      => false,
                         'status_code' => 404,
-                        'message'     => trans('generic.not-found') . ": No Provider Account Available"
+                        'message'     => "Bookmaker not found"
                     ], 404);
                 }
 
