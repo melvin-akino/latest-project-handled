@@ -10,6 +10,11 @@ return [
             'continue' => "You still have remaining stakes from your previous Order.",
             'success'  => "Order Successfully Placed!",
         ],
+        'errors'     => [
+            'wallet_not_found' => "User wallet not found",
+            'insufficient'     => "Insufficient wallet balance",
+            'no_bookmaker'     => "Bookmaker not found"
+        ]
     ],
     'bet_slip_logs' => [
         'order_placed' => "Order Placed",

@@ -446,7 +446,7 @@ class OrdersController extends Controller
                     return response()->json([
                         'status'      => false,
                         'status_code' => 404,
-                        'message'     => trans('generic.not-found') . ": User Wallet Not Found"
+                        'message'     => trans('game.bet.errors.wallet_not_found')
                     ], 404);
                 }
 
@@ -456,7 +456,7 @@ class OrdersController extends Controller
                     return response()->json([
                         'status'      => false,
                         'status_code' => 400,
-                        'message'     => trans('generic.bad-request') . ": Insufficient Wallet Balance"
+                        'message'     => trans('game.bet.errors.insufficient')
                     ], 400);
                 }
 
@@ -531,7 +531,7 @@ class OrdersController extends Controller
                     return response()->json([
                         'status'      => false,
                         'status_code' => 404,
-                        'message'     => trans('generic.not-found') . ": No Provider Account Available"
+                        'message'     => trans('game.bet.errors.no_bookmaker')
                     ], 404);
                 }
 
