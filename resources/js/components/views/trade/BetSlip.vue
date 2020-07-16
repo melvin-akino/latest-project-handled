@@ -402,9 +402,9 @@ export default {
                     if(minMaxProviderIds.includes(minmax.provider_id)) {
                         this.minMaxProviders.map(provider => {
                             if(provider.provider_id == minmax.provider_id) {
-                                provider.min = Number(minmax.min) || null
-                                provider.max = Number(minmax.max) || null
-                                provider.price = Number(minmax.price) || null
+                                provider.min = Number(twoDecimalPlacesFormat(minmax.min)) || null
+                                provider.max = Number(twoDecimalPlacesFormat(minmax.max)) || null
+                                provider.price = Number(twoDecimalPlacesFormat(minmax.price)) || null
                                 provider.priority = Number(minmax.priority) || provider.priority
                                 provider.age = minmax.age || null
                                 provider.hasMarketData = hasMarketData

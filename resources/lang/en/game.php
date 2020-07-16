@@ -3,11 +3,11 @@
 return [
     'bet'       => [
         'best-price' => [
-            'continue' => "You still have remaining stakes from your previous Order. Do you want to continue betting on this event?",
+            'continue' => "You still have remaining stakes from your previous Order.",
             'success'  => "Order Successfully Placed!",
         ],
         'fast-bet'   => [
-            'continue' => "You still have remaining stakes from your previous Order. Do you want to split your stakes to each available bookies on this event?",
+            'continue' => "You still have remaining stakes from your previous Order.",
             'success'  => "Order Successfully Placed!",
         ],
     ],
