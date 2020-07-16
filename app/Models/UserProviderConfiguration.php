@@ -95,9 +95,11 @@ class UserProviderConfiguration extends Model
 
     public static function getInactiveProviders()
     {
-        return self::where('active', false)
-            ->where('user_id', auth()->user()->id)
-            ->orderBy('provider_id', 'asc');
+        return self::join('providers', 'user_provider_configurations.provider_id', '=', 'providers.id')
+            ->where('providers.is_enabled', true)
+            ->where('user_provider_configurations.active', false)
+            ->where('user_provider_configurations.user_id', auth()->user()->id)
+            ->orderBy('user_provider_configurations.provider_id', 'asc');
     }
 
     public static function getProviderIdList(int $userId)
