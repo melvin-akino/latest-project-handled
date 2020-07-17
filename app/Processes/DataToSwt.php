@@ -539,6 +539,13 @@ class DataToSwt implements CustomProcessInterface
                 'topic_name' => "order-" . $order->id
             ]);
 
+            if ($order->created_at >= Carbon::now()->subSeconds(30)) {
+                SwooleHandler::setValue('pendingOrdersWithin30Table', 'orderId:' . $order->id, [
+                    'user_id'    => $order->user_id,
+                    'id'         => $order->id,
+                    'created_at' => $order->created_at
+                ]);
+            }
         }, $orders->toArray());
     }
 
