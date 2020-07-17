@@ -476,13 +476,13 @@ class DataToSwt implements CustomProcessInterface
                 implode(':', [
                     'userId:' . $userSelectedLeague->user_id,
                     'sId:' . $userSelectedLeague->sport_id,
-                    'schedule:' . $userSelectedLeague->game_schedule,
-                    'id:' . $userSelectedLeague->id
+                    'lId:' . $userSelectedLeague->master_league_id,
+                    'schedule:' . $userSelectedLeague->game_schedule
                 ]), [
                 'user_id'     => $userSelectedLeague->user_id,
                 'sport_id'    => $userSelectedLeague->sport_id,
-                'schedule'    => $userSelectedLeague->game_schedule,
-                'league_name' => $userSelectedLeague->master_league_name
+                'league_name' => $userSelectedLeague->master_league_name,
+                'schedule'    => $userSelectedLeague->game_schedule
             ]);
         }, $userSelectedLeagues->toArray());
     }
