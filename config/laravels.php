@@ -99,6 +99,13 @@ return [
             'enable'   => env('LARAVELS_KAFKA_PRODUCE', true)
 
         ],
+        'bet_bar_behaviour' => [
+            'class'    => \App\Processes\BetBarBehaviour::class,
+            'redirect' => false,
+            'pipe'     => 0,
+            'enable'   => true
+
+        ],
     ],
     'timer'                    => [
         'enable'        => env('LARAVELS_TIMER', false),
@@ -436,6 +443,14 @@ return [
                [ 'name' => 'request_uid', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 255 ],
                [ 'name' => 'request_ts', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 255 ],
            ],
+        ],
+        'pendingOrdersWithin30' => [ // KEY FORMAT: [orderId:$orderId]
+            'size'   => 500,
+            'column' => [
+               [ 'name' => 'user_id', 'type' => \Swoole\Table::TYPE_INT ],
+               [ 'name' => 'id', 'type' => \Swoole\Table::TYPE_INT ],
+               [ 'name' => 'created_at', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 30 ],
+            ],
         ]
     ],
     'register_providers'       => [

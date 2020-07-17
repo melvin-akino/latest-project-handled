@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Facades\SwooleHandler;
 use App\Jobs\KafkaPush;
 
 use App\Models\{
@@ -655,6 +656,12 @@ class OrdersController extends Controller
                 $ordersSWT['orderId:' . $incrementIds['id'][$i]]['orderExpiry'] = $payload['data']['orderExpiry'];
                 $ordersSWT['orderId:' . $incrementIds['id'][$i]]['created_at']  = $incrementIds['created_at'][$i];
                 $ordersSWT['orderId:' . $incrementIds['id'][$i]]['status']      = 'PENDING';
+
+                SwooleHandler::setValue('pendingOrdersWithin30Table', 'orderId:' . $incrementIds['id'][$i], [
+                    'user_id'    => $incrementIds['payload'][$i]['user_id'],
+                    'id'         => $incrementIds['id'][$i],
+                    'created_at' => $incrementIds['created_at'][$i]
+                ]);
             }
 
             return response()->json([
