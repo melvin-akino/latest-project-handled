@@ -293,8 +293,8 @@ class BetProduce implements CustomProcessInterface
 
                                         $fd = $swoole->wsTable->get('uid:' . $orderUser->id);
                                         WSForBetBarRemoval::dispatch($fd['value'], $orderId);
-                                        SwooleHandler::remove('pendingOrdersWithin30Table', 'orderId:' . $orderId);
-                                        SwooleHandler::setValue('pendingOrdersWithin30Table', 'orderId:' . $duplicateOrder->id, [
+                                        SwooleHandler::remove('pendingOrdersWithinExpiryTable', 'orderId:' . $orderId);
+                                        SwooleHandler::setValue('pendingOrdersWithinExpiryTable', 'orderId:' . $duplicateOrder->id, [
                                             'user_id'      => $orderUser->id,
                                             'id'           => $duplicateOrder->id,
                                             'created_at'   => $duplicateOrder->created_at,

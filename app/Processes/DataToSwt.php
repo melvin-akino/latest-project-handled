@@ -540,7 +540,7 @@ class DataToSwt implements CustomProcessInterface
             ]);
 
             if ($order->created_at >= Carbon::now()->subSeconds((int) $order->order_expiry)) {
-                SwooleHandler::setValue('pendingOrdersWithin30Table', 'orderId:' . $order->id, [
+                SwooleHandler::setValue('pendingOrdersWithinExpiryTable', 'orderId:' . $order->id, [
                     'user_id'      => $order->user_id,
                     'id'           => $order->id,
                     'created_at'   => $order->created_at,

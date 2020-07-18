@@ -444,7 +444,7 @@ return [
                [ 'name' => 'request_ts', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 255 ],
            ],
         ],
-        'pendingOrdersWithin30' => [ // KEY FORMAT: [orderId:$orderId]
+        'pendingOrdersWithinExpiry' => [ // KEY FORMAT: [orderId:$orderId]
             'size'   => 500,
             'column' => [
                [ 'name' => 'user_id', 'type' => \Swoole\Table::TYPE_INT ],
