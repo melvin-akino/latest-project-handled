@@ -32,7 +32,6 @@ class WsEvents implements ShouldQueue
     public function handle()
     {
         try {
-            $before = microtime(true);
             $userId = $this->userId;
             $server = app('swoole');
             $fd     = $server->wsTable->get('uid:' . $userId);
@@ -52,9 +51,6 @@ class WsEvents implements ShouldQueue
                     $channelName => $eventData
                 ]));
             }
-            $after = microtime(true);
-            Log::info('getEvents speed');
-            Log::info(number_format(( $after - $before), 4) . "seconds");
         } catch (Exception $e) {
             Log::error($e->getMessage());
         }
