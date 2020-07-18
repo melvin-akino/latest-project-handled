@@ -257,6 +257,7 @@ class TradeController extends Controller
             $swtKey = 'userId:' . $userId . ':sId:' . $request->sport_id . ':lId:' . $masterLeague->id . ':schedule:' . $request->schedule;
 
             if ($action == 'add' && $checkTable->count() == 0) {
+                $before = microtime(true);
                 UserSelectedLeague::create(
                     [
                         'user_id'          => $userId,
@@ -276,7 +277,11 @@ class TradeController extends Controller
                         ]);
                     }
                 }
+                $after = microtime(true);
+                Log::info('add to selected speed');
+                Log::info(number_format(( $after - $before), 4) . "seconds");
             } else if($action == 'remove' && $checkTable->count() > 0) {
+                $before = microtime(true);
                 $checkTable->delete();
 
                 if (empty($_SERVER['_PHPUNIT'])) {
@@ -303,6 +308,8 @@ class TradeController extends Controller
                             }
                         }
                     }
+                    Log::info('remove from selected speed');
+                    Log::info(number_format(( $after - $before), 4) . "seconds");
                 }
             }
 
@@ -335,7 +342,7 @@ class TradeController extends Controller
 
             $userId        = auth()->user()->id;
             $topicTable    = app('swoole')->topicTable;
-
+            $before = microtime(true);
             foreach ($type as $row) {
                 if ($row == 'user_watchlist') {
                     $transformed = Game::getWatchlistEvents($userId);
@@ -366,6 +373,8 @@ class TradeController extends Controller
                     'user_selected'  => $userSelectedData
                 ]
             ], 200);
+            Log::info('events api speed');
+            Log::info(number_format(( $after - $before), 4) . "seconds");
         } catch (Exception $e) {
             Log::error($e->getMessage());
             return response()->json([
