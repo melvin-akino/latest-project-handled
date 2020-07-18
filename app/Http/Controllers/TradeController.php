@@ -308,6 +308,7 @@ class TradeController extends Controller
                             }
                         }
                     }
+                    $after = microtime(true);
                     Log::info('remove from selected speed');
                     Log::info(number_format(( $after - $before), 4) . "seconds");
                 }
