@@ -2,8 +2,9 @@
 
 namespace App\Processes;
 
+use App\Facades\SwooleHandler;
 use App\Handlers\ProducerHandler;
-use App\Jobs\KafkaPush;
+use App\Jobs\{KafkaPush, WSForBetBarRemoval};
 use Illuminate\Support\Facades\Log;
 use Hhxsv5\LaravelS\Swoole\Process\CustomProcessInterface;
 use Illuminate\Support\Str;
@@ -159,6 +160,7 @@ class BetProduce implements CustomProcessInterface
 
 
                                     //created new order record and order logs record
+                                    $duplicateOrder->created_at = $order->created_at;
                                     $duplicateOrder->save();
                                     $duplicateOrderLog->order_id = $duplicateOrder->id;
                                     $duplicateOrderLog->user_id  = $duplicateOrder->user_id;
@@ -288,6 +290,16 @@ class BetProduce implements CustomProcessInterface
                                                 'topic_name' => "order-" . $duplicateOrder->id
                                             ]);
                                         }
+
+                                        $fd = $swoole->wsTable->get('uid:' . $orderUser->id);
+                                        WSForBetBarRemoval::dispatch($fd['value'], $orderId);
+                                        SwooleHandler::remove('pendingOrdersWithinExpiryTable', 'orderId:' . $orderId);
+                                        SwooleHandler::setValue('pendingOrdersWithinExpiryTable', 'orderId:' . $duplicateOrder->id, [
+                                            'user_id'      => $orderUser->id,
+                                            'id'           => $duplicateOrder->id,
+                                            'created_at'   => $duplicateOrder->created_at,
+                                            'order_expiry' => $duplicateOrder->order_expiry
+                                        ]);
                                     }
 
                                     KafkaPush::dispatch(

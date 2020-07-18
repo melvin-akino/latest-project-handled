@@ -444,12 +444,13 @@ return [
                [ 'name' => 'request_ts', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 255 ],
            ],
         ],
-        'pendingOrdersWithin30' => [ // KEY FORMAT: [orderId:$orderId]
+        'pendingOrdersWithinExpiry' => [ // KEY FORMAT: [orderId:$orderId]
             'size'   => 500,
             'column' => [
                [ 'name' => 'user_id', 'type' => \Swoole\Table::TYPE_INT ],
                [ 'name' => 'id', 'type' => \Swoole\Table::TYPE_INT ],
                [ 'name' => 'created_at', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 30 ],
+               [ 'name' => 'order_expiry', 'type' => \Swoole\Table::TYPE_INT, 'size' => 10 ],
             ],
         ]
     ],
