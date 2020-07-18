@@ -436,7 +436,8 @@ export default {
                     }
                     this.retrievedMarketData = true
 
-                    axios.post('v1/orders/minmaxlog', { payload: response.data })
+                    let token = Cookies.get('mltoken')
+                    axios.post('v1/orders/minmaxlog', { payload: response.data }, { headers: { 'Authorization': `Bearer ${token}` }})
                     .catch(err => {
                         console.log(err)
                     })
