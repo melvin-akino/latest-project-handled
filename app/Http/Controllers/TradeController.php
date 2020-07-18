@@ -248,12 +248,14 @@ class TradeController extends Controller
     public function postManageSidebarLeagues($action, ToggleLeaguesRequest $request)
     {
         try {
-            $masterLeague = DB::table('master_leagues')->where('name', $request->league_name)->first();
-            $checkTable   = DB::table('user_selected_leagues')->where('user_id', auth()->user()->id)
-                                            ->where('master_league_id', $masterLeague->id)
-                                            ->where('game_schedule', $request->schedule)
-                                            ->where('sport_id', $request->sport_id);
             $userId = auth()->user()->id;
+            $masterLeague = MasterLeague::getLeagueDetailsByName($request->league_name);
+            $checkTable   = UserSelectedLeague::getUserSelectedLeague($userId, [
+                'league_id' => $masterLeague->id,
+                'schedule'  => $request->schedule,
+                'sport_id'  => $request->sport_id
+            ]);
+
             $swtKey = 'userId:' . $userId . ':sId:' . $request->sport_id . ':lId:' . $masterLeague->id . ':schedule:' . $request->schedule;
 
             if ($action == 'add' && $checkTable->count() == 0) {

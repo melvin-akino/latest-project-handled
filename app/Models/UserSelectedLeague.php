@@ -43,4 +43,12 @@ class UserSelectedLeague extends Model
                 ->distinct()
                 ->get();
     }
+
+    public static function getUserSelectedLeague(int $userId, array $filters = [])
+    {
+        return DB::table('user_selected_leagues')->where('user_id', $userId)
+            ->where('master_league_id', $filters['league_id'])
+            ->where('game_schedule', $filters['schedule'])
+            ->where('sport_id', $filters['sport_id']);
+    }
 }
