@@ -450,6 +450,7 @@ return [
                [ 'name' => 'user_id', 'type' => \Swoole\Table::TYPE_INT ],
                [ 'name' => 'id', 'type' => \Swoole\Table::TYPE_INT ],
                [ 'name' => 'created_at', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 30 ],
+               [ 'name' => 'order_expiry', 'type' => \Swoole\Table::TYPE_INT, 'size' => 10 ],
             ],
         ]
     ],

@@ -658,9 +658,10 @@ class OrdersController extends Controller
                 $ordersSWT['orderId:' . $incrementIds['id'][$i]]['status']      = 'PENDING';
 
                 SwooleHandler::setValue('pendingOrdersWithin30Table', 'orderId:' . $incrementIds['id'][$i], [
-                    'user_id'    => $incrementIds['payload'][$i]['user_id'],
-                    'id'         => $incrementIds['id'][$i],
-                    'created_at' => $incrementIds['created_at'][$i]
+                    'user_id'      => $incrementIds['payload'][$i]['user_id'],
+                    'id'           => $incrementIds['id'][$i],
+                    'created_at'   => $incrementIds['created_at'][$i],
+                    'order_expiry' => (int) $incrementIds['payload'][$i]['orderExpiry']
                 ]);
             }
 

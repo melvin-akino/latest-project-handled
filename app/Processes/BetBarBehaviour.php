@@ -30,7 +30,7 @@ class BetBarBehaviour implements CustomProcessInterface
                     if ($newTime->diffInSeconds(Carbon::parse($initialTime)) >= 30) {
                         foreach ($swoole->pendingOrdersWithin30Table as $key => $pendingOrder) {
                             $fd = $swoole->wsTable->get('uid:' . $pendingOrder['user_id']);
-                            if ($pendingOrder['created_at'] < Carbon::now()->subSeconds(30)) {
+                            if ($pendingOrder['created_at'] < Carbon::now()->subSeconds($pendingOrder['order_expiry'])) {
                                 SwooleHandler::remove('pendingOrdersWithin30Table', $key);
                                 WSForBetBarRemoval::dispatch($fd['value'], $pendingOrder['id']);
                             }
