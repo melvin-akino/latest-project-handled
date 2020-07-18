@@ -4,9 +4,7 @@ namespace App\Processes;
 
 use App\Facades\SwooleHandler;
 use App\Handlers\ProducerHandler;
-use App\Jobs\KafkaPush;
-use App\Jobs\WSForBetBarRemoval;
-use App\Jobs\WsOrder;
+use App\Jobs\{KafkaPush, WSForBetBarRemoval};
 use Illuminate\Support\Facades\Log;
 use Hhxsv5\LaravelS\Swoole\Process\CustomProcessInterface;
 use Illuminate\Support\Str;
