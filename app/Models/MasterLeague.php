@@ -53,4 +53,9 @@ class MasterLeague extends Model
                     GROUP BY master_league_name");
 
     }
+
+    public static function getLeagueDetailsByName(string $league)
+    {
+        return DB::table('master_leagues')->where('name', $league)->first();
+    }
 }

@@ -23,7 +23,7 @@ use Illuminate\Http\Request;
 use Exception;
 use DateTime;
 use Carbon\Carbon;
-
+use App\Facades\SwooleHandler;
 use App\Http\Requests\ToggleLeaguesRequest;
 
 class TradeController extends Controller
@@ -248,46 +248,33 @@ class TradeController extends Controller
     public function postManageSidebarLeagues($action, ToggleLeaguesRequest $request)
     {
         try {
-            $masterLeague = MasterLeague::where('name', $request->league_name)->first();
-            $checkTable = UserSelectedLeague::where('user_id', auth()->user()->id)
-                                            ->where('master_league_id', $masterLeague->id)
-                                            ->where('game_schedule', $request->schedule)
-                                            ->where('sport_id', $request->sport_id);
-
-            $userSelectedLeagueTable = app('swoole')->userSelectedLeaguesTable;
-
             $userId = auth()->user()->id;
-            $swtKey = 'userId:' . $userId . ':sId:' . $request->sport_id . ':schedule:' . $request->schedule . ':uniqueId:' . uniqid();
+            $masterLeague = MasterLeague::getLeagueDetailsByName($request->league_name);
+            $checkTable   = UserSelectedLeague::getUserSelectedLeague($userId, [
+                'league_id' => $masterLeague->id,
+                'schedule'  => $request->schedule,
+                'sport_id'  => $request->sport_id
+            ]);
+
+            $swtKey = 'userId:' . $userId . ':sId:' . $request->sport_id . ':lId:' . $masterLeague->id . ':schedule:' . $request->schedule;
 
             if ($action == 'add' && $checkTable->count() == 0) {
                 UserSelectedLeague::create(
                     [
                         'user_id'          => $userId,
+                        'sport_id'         => $request->sport_id,
                         'master_league_id' => $masterLeague->id,
-                        'game_schedule'    => $request->schedule,
-                        'sport_id'         => $request->sport_id
+                        'game_schedule'    => $request->schedule
                     ]
                 );
 
                 if (empty($_SERVER['_PHPUNIT'])) {
-                    $isSelectedLeagueFoundInSWT = false;
-
-                    foreach ($userSelectedLeagueTable as $key => $row) {
-                        if (strpos($key, 'userId:' . $userId . ':sId:' . $request->sport_id . ':schedule:' . $request->schedule) === 0) {
-                            if ($row['league_name'] == $request->league_name && $row['schedule'] == $request->schedule && $row['sport_id'] == $request->sport_id) {
-                                $isSelectedLeagueFoundInSWT = true;
-
-                                break;
-                            }
-                        }
-                    }
-
-                    if (!$isSelectedLeagueFoundInSWT) {
-                        $userSelectedLeagueTable->set($swtKey, [
+                    if(!SwooleHandler::exists('userSelectedLeaguesTable', $swtKey)) {
+                        SwooleHandler::setValue('userSelectedLeaguesTable', $swtKey, [
                             'user_id'     => $userId,
-                            'schedule'    => $request->schedule,
+                            'sport_id'    => $request->sport_id,
                             'league_name' => $request->league_name,
-                            'sport_id'    => $request->sport_id
+                            'schedule'    => $request->schedule
                         ]);
                     }
                 }
@@ -295,6 +282,10 @@ class TradeController extends Controller
                 $checkTable->delete();
 
                 if (empty($_SERVER['_PHPUNIT'])) {
+                    if(SwooleHandler::exists('userSelectedLeaguesTable', $swtKey)) {
+                        SwooleHandler::remove('userSelectedLeaguesTable', $swtKey);
+                    }
+
                     $topicTable        = app('swoole')->topicTable;
                     $eventsTable       = app('swoole')->eventsTable;
                     $eventMarketsTable = app('swoole')->eventMarketsTable;
@@ -311,16 +302,6 @@ class TradeController extends Controller
                                         }
                                     }
                                 }
-                            }
-                        }
-                    }
-
-                    foreach ($userSelectedLeagueTable as $key => $row) {
-                        if (strpos($key, 'userId:' . $userId . ':sId:' . $request->sport_id . ':schedule:' . $request->schedule) === 0) {
-                            if ($row['league_name'] == $request->league_name && $row['schedule'] == $request->schedule && $row['sport_id'] == $request->sport_id) {
-                                $userSelectedLeagueTable->del($key);
-
-                                break;
                             }
                         }
                     }
@@ -356,7 +337,6 @@ class TradeController extends Controller
 
             $userId        = auth()->user()->id;
             $topicTable    = app('swoole')->topicTable;
-
             foreach ($type as $row) {
                 if ($row == 'user_watchlist') {
                     $transformed = Game::getWatchlistEvents($userId);
