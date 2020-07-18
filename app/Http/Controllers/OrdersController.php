@@ -33,6 +33,7 @@ use Illuminate\Support\{
 };
 use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
+use SendLogData;
 
 class OrdersController extends Controller
 {
@@ -766,6 +767,11 @@ class OrdersController extends Controller
                 'message'     => trans('generic.internal-server-error')
             ], 500);
         }
+    }
+
+    public function receiveMinMaxLog(Request $request)
+    {
+        SendLogData::MinMax('receiveminmax', $request->payload);
     }
 
     private static function milliseconds()

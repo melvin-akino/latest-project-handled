@@ -58,10 +58,7 @@ class WsMinMax implements ShouldQueue
                     ];
                     $minMaxRequestsTable->set('mId:' . $eventMarket->bet_identifier . ':memUID:' . $this->master_event_market_unique_id, $minMaxRequestsPayload);
 
-                    $debug = env('DEBUG_SEND', false);
-                    if($debug) {
-                        SendLogData::MinMax('requestminmax', json_encode($minMaxRequestsPayload));
-                    }
+                    SendLogData::MinMax('requestminmax', json_encode($minMaxRequestsPayload));
 
                     PrometheusMatric::MakeMatrix('swoole_table_total', 'Swoole minMaxRequestsTable total ', 'minMaxRequestsTable');
 

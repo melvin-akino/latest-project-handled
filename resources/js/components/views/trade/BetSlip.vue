@@ -436,12 +436,11 @@ export default {
                     }
                     this.retrievedMarketData = true
 
-                    if(process.env.MIX_DEBUG_SEND) {
-                        axios.post(`${process.env.MIX_DEBUGGING_URL}minmaxlog`, { key: 'receiveminmax', payload: response.data })
-                        .catch(err => {
-                            console.log(err)
-                        })
-                    }
+                    let token = Cookies.get('mltoken')
+                    axios.post('v1/orders/minmaxlog', { payload: response.data }, { headers: { 'Authorization': `Bearer ${token}` }})
+                    .catch(err => {
+                        console.log(err)
+                    })
                 }
             })
         },
