@@ -10,6 +10,7 @@ use Exception;
 class OddsValidationHandler
 {
     protected $message;
+    protected $offset;
     protected $updated = false;
     protected $uid     = null;
 
@@ -37,9 +38,10 @@ class OddsValidationHandler
         'TEST'
     ];
 
-    public function init($message)
+    public function init($message, $offset)
     {
         $this->message = $message;
+        $this->offset  = $offset;
         return $this;
     }
 
@@ -195,8 +197,9 @@ class OddsValidationHandler
             ]));
 
             if ($isLeagueSelected) {
+                SwooleHandler::setValue('oddsKafkaPayloadsTable', $this->offset, ['message' => json_encode($this->message)]);
                 $transformKafkaMessageOdds = resolve('TransformKafkaMessageOdds');
-                Task::deliver($transformKafkaMessageOdds->init($this->message, compact('providerId', 'sportId', 'parameters')));
+                Task::deliver($transformKafkaMessageOdds->init($this->offset, compact('providerId', 'sportId', 'parameters')));
                 Log::info("Transformation - validation completed");
             } else {
                 Log::info("Transformation ignored - No User has actively selected this league");

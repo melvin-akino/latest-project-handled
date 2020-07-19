@@ -12,10 +12,15 @@ class OddsTransformationHandler
     protected $internalParameters;
     protected $uid       = null;
 
-    public function init($message, $internalParameters)
+    public function init($offset, $internalParameters)
     {
-        $this->message            = $message;
+        $message = SwooleHandler::getValue('oddsKafkaPayloadsTable', $offset);
+        $this->message            = json_decode($message['message']);
+        $this->offset             = $offset;
         $this->internalParameters = $internalParameters;
+
+        SwooleHandler::remove('oddsKafkaPayloadsTable', $offset);
+
         return $this;
     }
 
