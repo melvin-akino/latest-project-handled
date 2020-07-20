@@ -156,7 +156,7 @@ class TransformKafkaMessageEvents implements ShouldQueue
                 $events       = json_decode($eventsJson['events'], true);
                 $activeEvents = $this->message->data->event_ids;
 
-                if (is_null($events)) {
+                if (is_null($events) || !is_array($events)) {
                     $events = [];
                 }
                 $inActiveEvents = array_diff($events, $activeEvents);
