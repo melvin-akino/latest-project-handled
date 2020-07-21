@@ -276,6 +276,12 @@ class TradeController extends Controller
                             'league_name' => $request->league_name,
                             'schedule'    => $request->schedule
                         ]);
+
+                        SwooleHandler::setValue('userSelectedLeaguesWithRawTable', implode(':', [
+                            'sId:' . $request->sport_id,
+                            'schedule:' . $request->schedule,
+                            'mlId:' . $masterLeague->id
+                        ]), ['selected' => 1]);
                     }
                 }
             } else if($action == 'remove' && $checkTable->count() > 0) {
@@ -284,6 +290,11 @@ class TradeController extends Controller
                 if (empty($_SERVER['_PHPUNIT'])) {
                     if(SwooleHandler::exists('userSelectedLeaguesTable', $swtKey)) {
                         SwooleHandler::remove('userSelectedLeaguesTable', $swtKey);
+                        SwooleHandler::remove('userSelectedLeaguesWithRawTable', implode(':', [
+                            'sId:' . $request->sport_id,
+                            'schedule:' . $request->schedule,
+                            'mlId:' . $masterLeague->id
+                        ]));
                     }
 
                     $topicTable        = app('swoole')->topicTable;

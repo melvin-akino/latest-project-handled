@@ -165,8 +165,8 @@ class TransformKafkaMessageEvents implements ShouldQueue
                 foreach ($inActiveEvents as $eventIdentifier) {
                     $event = Events::where('event_identifier', $eventIdentifier)->first();
                     if ($event) {
-                        $event->missing_count += 1;
-                        if ($event->missing_count >= $missingCountConfiguration->value) {
+                        $missingCount = (int) $event->missing_count;
+                        if (++$missingCount >= $missingCountConfiguration->value) {
                             $masterEvent = DB::table('master_events AS me')
                                              ->leftJoin('master_leagues AS ml', 'me.master_league_id', '=', 'ml.id')
                                              ->where('me.id', $event->master_event_id)
