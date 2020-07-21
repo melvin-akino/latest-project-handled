@@ -172,7 +172,7 @@ class TransformKafkaMessageOpenOrders implements ShouldQueue
                         ]);
                     }
                 } else if (time() - strtotime($orderTable['created_at']) > $expiry && $status == 'PENDING' && empty($orderData->bet_id)) {
-                    $orderAliasStake = Order::getProviderAlias($orderId);
+                    $orderAliasStake = Order::getOrderProviderAlias($orderId);
                     $providerCurrency = $providers->get('providerAlias:' . strtolower($orderAliasStake->alias))['currency_id'];
                     $exchangeRate     = ExchangeRate::where('from_currency_id', $providerCurrency)->where('to_currency_id', 1)->first();
 

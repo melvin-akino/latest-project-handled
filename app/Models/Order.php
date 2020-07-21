@@ -141,7 +141,7 @@ class Order extends Model
                 ->get();
     }
 
-    public static function getProviderAlias($orderId)
+    public static function getOrderProviderAlias($orderId)
     {
         return DB::table('orders as o')
                 ->join('providers as p', 'p.id', 'o.provider_id')
