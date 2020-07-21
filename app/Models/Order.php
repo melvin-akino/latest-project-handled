@@ -140,4 +140,13 @@ class Order extends Model
                 ->orderBy('o.created_at', 'desc')
                 ->get();
     }
+
+    public static function getProviderAlias($orderId)
+    {
+        return DB::table('orders as o')
+                ->join('providers as p', 'p.id', 'o.provider_id')
+                ->where('o.id', $orderId)
+                ->select('p.alias')
+                ->first();
+    }
 }

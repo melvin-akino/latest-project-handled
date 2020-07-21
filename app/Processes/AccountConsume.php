@@ -37,6 +37,12 @@ class AccountConsume implements CustomProcessInterface
                     if ($message->err == RD_KAFKA_RESP_ERR_NO_ERROR) {
                         $payload = json_decode($message->payload);
 
+                        if (!isset($payload->command)) {
+                            Log::info('Error in GAME CONSUME payload');
+                            Log::info($message->payload);
+                            continue;
+                        }
+
                         switch ($payload->command) {
                             case 'balance':
                                 if (empty($payload->data->provider) || empty($payload->data->username) || empty($payload->data->available_balance) || empty($payload->data->currency)) {
@@ -46,11 +52,6 @@ class AccountConsume implements CustomProcessInterface
                                 TransformKafkaMessageBalance::dispatch($payload);
                                 break;
                             case 'orders':
-                                if (empty($payload->data)) {
-                                    Log::info("Open Order Transformation ignored - No Data Found");
-                                    break;
-                                }
-
                                 TransformKafkaMessageOpenOrders::dispatch($payload);
                                 break;
                             case 'settlement':
