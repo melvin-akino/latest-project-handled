@@ -254,9 +254,20 @@ class OddsTransformationHandler
                     ) {
                         $userId = $userSelectedLeague['user_id'];
                         $fd     = SwooleHandler::getValue('wsTable', 'uid:' . $userId);
-                        $swoole->push($fd['value'], json_encode([
-                            'getAdditionalEvents' => [$getEvents]
-                        ]));
+                        if (!empty($getEvents['market_odds'])) {
+                            $swoole->push($fd['value'], json_encode([
+                                'getAdditionalEvents' => [$getEvents]
+                            ]));
+                        } else {
+                            SwooleHandler::remove('eventRecordsTable', $eventSwtId);
+                            SwooleHandler::remove('mlEventsTable', implode(':', [
+                                $sportId,
+                                $masterLeagueId,
+                                $multiTeam['home']['id'],
+                                $multiTeam['away']['id'],
+                                date("Y-m-d H:i:s", strtotime($this->message->data->referenceSchedule))
+                            ]));
+                        }
                     }
                 }
             }
