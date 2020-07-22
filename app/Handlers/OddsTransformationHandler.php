@@ -254,9 +254,11 @@ class OddsTransformationHandler
                     ) {
                         $userId = $userSelectedLeague['user_id'];
                         $fd     = SwooleHandler::getValue('wsTable', 'uid:' . $userId);
-                        $swoole->push($fd['value'], json_encode([
-                            'getAdditionalEvents' => [$getEvents]
-                        ]));
+                        if (!empty($getEvents['market_odds'])) {
+                            $swoole->push($fd['value'], json_encode([
+                                'getAdditionalEvents' => [$getEvents]
+                            ]));
+                        }
                     }
                 }
             }
