@@ -511,7 +511,7 @@ export default {
         },
         placeOrder() {
             this.isDoneBetting = true
-            if(this.orderForm.stake == '' || this.inputPrice == '') {
+            if(!Number(this.orderForm.stake) || !this.inputPrice || this.inputPrice == 0) {
                 this.orderMessage = 'Please input stake and price.'
                 this.isBetSuccessful = false
             } else if(this.numberOfQualifiedProviders == 0) {
