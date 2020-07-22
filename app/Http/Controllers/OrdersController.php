@@ -653,12 +653,13 @@ class OrdersController extends Controller
                     $requestId
                 );
 
-                $ordersSWT['orderId:' . $incrementIds['id'][$i]]['username']    = $payload['data']['username'];
-                $ordersSWT['orderId:' . $incrementIds['id'][$i]]['orderExpiry'] = $payload['data']['orderExpiry'];
-                $ordersSWT['orderId:' . $incrementIds['id'][$i]]['created_at']  = $incrementIds['created_at'][$i];
-                $ordersSWT['orderId:' . $incrementIds['id'][$i]]['status']      = 'PENDING';
+                $orderSWTKey                            = 'orderId:' . $incrementIds['id'][$i];
+                $ordersSWT[$orderSWTKey]['username']    = $payload['data']['username'];
+                $ordersSWT[$orderSWTKey]['orderExpiry'] = $payload['data']['orderExpiry'];
+                $ordersSWT[$orderSWTKey]['created_at']  = $incrementIds['created_at'][$i];
+                $ordersSWT[$orderSWTKey]['status']      = 'PENDING';
 
-                SwooleHandler::setValue('pendingOrdersWithinExpiryTable', 'orderId:' . $incrementIds['id'][$i], [
+                SwooleHandler::setValue('pendingOrdersWithinExpiryTable', $orderSWTKey, [
                     'user_id'      => $incrementIds['payload'][$i]['user_id'],
                     'id'           => $incrementIds['id'][$i],
                     'created_at'   => $incrementIds['created_at'][$i],

@@ -46,11 +46,6 @@ class AccountConsume implements CustomProcessInterface
                                 TransformKafkaMessageBalance::dispatch($payload);
                                 break;
                             case 'orders':
-                                if (empty($payload->data)) {
-                                    Log::info("Open Order Transformation ignored - No Data Found");
-                                    break;
-                                }
-
                                 TransformKafkaMessageOpenOrders::dispatch($payload);
                                 break;
                             case 'settlement':
