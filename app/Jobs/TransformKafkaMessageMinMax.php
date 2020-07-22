@@ -129,8 +129,8 @@ class TransformKafkaMessageMinMax implements ShouldQueue
                                     $punterPercentage = $userProviderConfigTable->get($userProviderSwtId)['punter_percentage'];
                                 }
 
-                                $minimum = ($data->minimum) * ($punterPercentage / 100);
-                                $maximum = ($data->maximum) * ($punterPercentage / 100);
+                                $minimum = ceil((($data->minimum) * ($punterPercentage / 100)) * 100 ) / 100;
+                                $maximum = floor((($data->maximum) * ($punterPercentage / 100)) * 100 ) / 100;
                                 $timeDiff    = time() - (int) $data->timestamp;
                                 $age         = ($timeDiff > 60) ? floor($timeDiff / 60) . 'm' : $timeDiff . 's';
                                 $transformed = [
@@ -174,8 +174,8 @@ class TransformKafkaMessageMinMax implements ShouldQueue
                                         $exchangeRate = $exchangeRatesTable->get($erSwtId)['exchange_rate'];
                                     }
 
-                                    $transformed['min'] = ($data->minimum * $exchangeRate) * ($punterPercentage / 100);
-                                    $transformed['max'] = ($data->maximum * $exchangeRate) * ($punterPercentage / 100);
+                                    $transformed['min'] = ceil((($data->minimum * $exchangeRate) * ($punterPercentage / 100)) * 100 ) / 100;
+                                    $transformed['max'] = floor((($data->maximum * $exchangeRate) * ($punterPercentage / 100)) * 100) / 100;
                                 }
 
                                 Log::info('Task: MinMax emitWS');
