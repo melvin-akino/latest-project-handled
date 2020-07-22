@@ -98,7 +98,7 @@ class ProviderAccountSeeder extends Seeder
             'deleted_at'        => null,
         ], [
             'provider_id'       => 1,
-            'type'              => "BET_NORMAL",
+            'type'              => "BET_VIP",
             'username'          => "ioagent10",
             'password'          => "pass8888",
             'punter_percentage' => 45,
@@ -108,7 +108,7 @@ class ProviderAccountSeeder extends Seeder
             'deleted_at'        => null,
         ], [
             'provider_id'       => 1,
-            'type'              => "BET_NORMAL",
+            'type'              => "BET_VIP",
             'username'          => "ioagent13",
             'password'          => "pass8888",
             'punter_percentage' => 45,
@@ -118,7 +118,7 @@ class ProviderAccountSeeder extends Seeder
             'deleted_at'        => null,
         ], [
             'provider_id'       => 1,
-            'type'              => "BET_NORMAL",
+            'type'              => "BET_VIP",
             'username'          => "ioagent14",
             'password'          => "pass8888",
             'punter_percentage' => 45,
@@ -128,7 +128,7 @@ class ProviderAccountSeeder extends Seeder
             'deleted_at'        => null,
         ], [
             'provider_id'       => 1,
-            'type'              => "BET_NORMAL",
+            'type'              => "BET_VIP",
             'username'          => "ioagent15",
             'password'          => "pass8888",
             'punter_percentage' => 45,
