@@ -60,6 +60,7 @@ const mutations = {
     ADD_TO_LEAGUES: (state, data) => {
         if(state.leagues.hasOwnProperty(data.schedule)) {
             state.leagues[data.schedule].push(data.league)
+            state.leagues[data.schedule] = sortByObjectProperty(state.leagues[data.schedule], 'name')
         }
     },
     REMOVE_FROM_LEAGUE: (state, data) => {
@@ -67,12 +68,23 @@ const mutations = {
             state.leagues[data.schedule] = state.leagues[data.schedule].filter(league => league.name != data.league)
         }
     },
+    REMOVE_FROM_LEAGUE_BY_NAME: (state, data) => {
+        Object.keys(state.leagues).map(schedule => {
+            state.leagues[schedule] = state.leagues[schedule].filter(league => league.name != data.league)
+        })
+    },
     UPDATE_LEAGUE_MATCH_COUNT: (state, data) => {
         state.leagues[data.schedule].map(league => {
             if(league.name == data.league) {
-                let events = state.allEventsList.filter(event => event.game_schedule == data.schedule && event.league_name == data.league)
+                let events = state.eventsList.filter(event => event.game_schedule == data.schedule && event.league_name == data.league)
                 if(events.length > 0) {
-                    Vue.set(league, 'match_count', events.length)
+                    if(data.watchlist == 'add') {
+                        Vue.set(league, 'match_count', events.length - 1)
+                    } else if(data.watchlist == 'remove') {
+                        Vue.set(league, 'match_count', events.length + 1)
+                    } else {
+                        Vue.set(league, 'match_count', events.length)
+                    }
                 } else {
                     Vue.set(league, 'match_count', data.eventsRemaining)
                 }
@@ -401,11 +413,11 @@ const actions = {
             }
         })
     },
-    addToWatchlist({dispatch, state, commit}, data) {
-        axios.post('v1/trade/watchlist/add', { type: data.type, data: data.data }, { headers: { 'Authorization': `Bearer ${token}` }})
-        .then(response => {
+    async addToWatchlist({dispatch, state, commit}, data) {
+        try {
             if(data.type=='league') {
-                dispatch('toggleLeagueByName', { action: 'remove', league_name: data.data, sport_id: state.selectedSport })
+                await dispatch('toggleLeagueByName', { action: 'remove', league_name: data.data, sport_id: state.selectedSport })
+                commit('REMOVE_FROM_LEAGUE_BY_NAME', { league: data.data })
                 commit('REMOVE_SELECTED_LEAGUE_BY_NAME', data.data)
                 commit('REMOVE_FROM_EVENTS_BY_LEAGUE', data.data)
                 commit('REMOVE_FROM_EVENT_LIST', { type: 'league_name', data: data.data, game_schedule: data.game_schedule })
@@ -422,18 +434,21 @@ const actions = {
                     }
 
                     if(leaguesLength == 0) {
-                        dispatch('toggleLeague', { action: 'remove', league_name: data.payload.league_name,  schedule: data.payload.game_schedule, sport_id: state.selectedSport })
+                        await dispatch('toggleLeague', { action: 'remove', league_name: data.payload.league_name,  schedule: data.payload.game_schedule, sport_id: state.selectedSport })
                         commit('REMOVE_SELECTED_LEAGUE', {schedule: data.payload.game_schedule, league: data.payload.league_name })
+                        commit('REMOVE_FROM_LEAGUE', {schedule: data.payload.game_schedule, league: data.payload.league_name })
                         commit('REMOVE_FROM_EVENTS', { schedule: data.payload.game_schedule, removedLeague: data.payload.league_name })
+                    } else {
+                        commit('UPDATE_LEAGUE_MATCH_COUNT', { schedule: data.payload.game_schedule, league: data.payload.league_name, eventsRemaining: leaguesLength, watchlist: 'add' })
                     }
                     commit('REMOVE_FROM_EVENT_LIST', { type: 'uid', data: data.payload.uid, game_schedule: data.payload.game_schedule })
                 }
             }
+            await axios.post('v1/trade/watchlist/add', { type: data.type, data: data.data }, { headers: { 'Authorization': `Bearer ${token}` }})
             Vue.prototype.$socket.send('getWatchlist')
-        })
-        .catch(err => {
+        } catch(err) {
             dispatch('auth/checkIfTokenIsValid', err.response.data.status_code, { root: true })
-        })
+        }
     },
     transformEvents({commit, state}, data) {
         if(data.league in state.events[data.schedule]) {

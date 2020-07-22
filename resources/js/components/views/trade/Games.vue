@@ -141,7 +141,7 @@ export default {
         }
     },
     computed: {
-        ...mapState('trade', ['selectedSport', 'selectedLeagues', 'tradeLayout', 'oddsTypeBySport', 'events', 'eventsList', 'watchlist', 'openedBetSlips', 'tradePageSettings', 'isLoadingEvents', 'eventsError']),
+        ...mapState('trade', ['leagues', 'selectedSport', 'selectedLeagues', 'tradeLayout', 'oddsTypeBySport', 'events', 'eventsList', 'watchlist', 'openedBetSlips', 'tradePageSettings', 'isLoadingEvents', 'eventsError']),
         ...mapState('settings', ['disabledBetColumns']),
         checkIfGamesIsEmpty() {
             return _.isEmpty(this.games)
@@ -250,6 +250,12 @@ export default {
                             let eventStartTime = `[${event.ref_schedule.split(' ')[1]}] ${event.league_name}`
                             this.$store.dispatch('trade/transformEvents', { schedule: event.game_schedule, league: eventStartTime, payload: event })
                         }
+                        let leagueNames = this.leagues[event.game_schedule].map(league => league.name)
+                        if(leagueNames.includes(event.league_name)) {
+                            this.$store.commit('trade/UPDATE_LEAGUE_MATCH_COUNT', { schedule: event.game_schedule, league: event.league_name })
+                        } else {
+                            this.$store.commit('trade/ADD_TO_LEAGUES', { schedule: event.game_schedule, league: { name: event.league_name, match_count: payload.length } })
+                        }
                     })
                 } else if(type==='event') {
                     if(this.tradePageSettings.sort_event == 1) {
@@ -267,6 +273,12 @@ export default {
                     }
                     this.$store.dispatch('trade/toggleLeague', { action: 'add', league_name: payload.league_name, sport_id: this.selectedSport, schedule: payload.game_schedule  })
                     this.$store.commit('trade/ADD_TO_SELECTED_LEAGUE', { schedule: payload.game_schedule, league: payload.league_name })
+                    let leagueNames = this.leagues[payload.game_schedule].map(league => league.name)
+                    if(leagueNames.includes(payload.league_name)) {
+                        this.$store.commit('trade/UPDATE_LEAGUE_MATCH_COUNT', { schedule: payload.game_schedule, league: payload.league_name, watchlist: 'remove' })
+                    } else {
+                        this.$store.commit('trade/ADD_TO_LEAGUES', { schedule: payload.game_schedule, league: { name: payload.league_name, match_count: 1 } })
+                    }
                     let eventsListCheckUID = this.eventsList.findIndex(event => event.uid === payload.uid)
                     if(eventsListCheckUID === -1) {
                         this.$store.commit('trade/SET_EVENTS_LIST', payload)
