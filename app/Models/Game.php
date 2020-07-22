@@ -25,12 +25,12 @@ class Game extends Model
         return DB::table('master_leagues as ml')
                  ->leftJoin('sports as s', 's.id', 'ml.sport_id')
                  ->leftJoin('master_events as me', 'me.master_league_id', 'ml.id')
-                 ->join('events as e', 'e.master_event_id', 'me.id')
+                 ->leftJoin('events as e', 'e.master_event_id', 'me.id')
                  ->leftJoin('master_teams as mth', 'mth.id', 'me.master_team_home_id')
                  ->leftJoin('master_teams as mta', 'mta.id', 'me.master_team_away_id')
                  ->leftJoin('master_event_markets as mem', 'mem.master_event_id', 'me.id')
                  ->leftJoin('odd_types as ot', 'ot.id', 'mem.odd_type_id')
-                 ->join('event_markets as em', function ($join) {
+                 ->leftJoin('event_markets as em', function ($join) {
                      $join->on('em.master_event_market_id', '=', 'mem.id');
                      $join->on('em.event_id', '=', 'e.id');
                  })
@@ -62,6 +62,7 @@ class Game extends Model
                  ->whereNull('me.deleted_at')
                  ->whereNull('e.deleted_at')
                  ->where('e.missing_count', '<=', $maxMissingCount)
+                 ->where('p.is_enabled', true)
                  ->whereIn('p.id', $userProviderIds)
                  ->select('p.id', 'p.alias as provider')
                  ->distinct();

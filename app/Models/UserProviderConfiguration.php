@@ -105,9 +105,9 @@ class UserProviderConfiguration extends Model
     public static function getProviderIdList(int $userId)
     {
         $userProvider = self::where('user_id', $userId)
-                         ->join('providers', 'provider_id', 'providers.id');
+                         ->join('providers as p', 'provider_id', 'p.id');
         if ($userProvider->exists()) {
-            $userProvider = $userProvider->where('active', true)->orderBy('priority', 'ASC')->pluck('provider_id')->toArray();
+            $userProvider = $userProvider->where('active', true)->where('p.is_enabled', true)->orderBy('priority', 'ASC')->pluck('provider_id')->toArray();
         } else {
             $userProvider = Provider::where('is_enabled', true)->orderBy('priority', 'ASC')->pluck('id')->toArray();
         }
