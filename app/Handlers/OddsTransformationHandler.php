@@ -258,6 +258,15 @@ class OddsTransformationHandler
                             $swoole->push($fd['value'], json_encode([
                                 'getAdditionalEvents' => [$getEvents]
                             ]));
+                        } else {
+                            SwooleHandler::remove('eventRecordsTable', $eventSwtId);
+                            SwooleHandler::remove('mlEventsTable', implode(':', [
+                                $sportId,
+                                $masterLeagueId,
+                                $multiTeam['home']['id'],
+                                $multiTeam['away']['id'],
+                                date("Y-m-d H:i:s", strtotime($this->message->data->referenceSchedule))
+                            ]));
                         }
                     }
                 }
