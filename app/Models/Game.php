@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class Game extends Model
 {
@@ -183,16 +184,14 @@ class Game extends Model
     {
         $maxMissingCount = SystemConfiguration::getSystemConfigurationValue('EVENT_VALID_MAX_MISSING_COUNT')->value;
 
-        $eventsInWatchlist = DB::table('user_watchlist')->where('user_id', $userId)->select('master_event_id')->pluck('master_event_id');
-
         return DB::table('master_leagues as ml')
                  ->leftJoin('sports as s', 's.id', 'ml.sport_id')
                  ->leftJoin('master_events as me', 'me.master_league_id', 'ml.id')
-                 ->leftJoin('events as e', 'e.master_event_id', 'me.id')
+                 ->join('events as e', 'e.master_event_id', 'me.id')
                  ->leftJoin('master_teams as mth', 'mth.id', 'me.master_team_home_id')
                  ->leftJoin('master_teams as mta', 'mta.id', 'me.master_team_away_id')
                  ->leftJoin('master_event_markets as mem', 'mem.master_event_id', 'me.id')
-                 ->leftJoin('event_markets as em', function ($join) {
+                 ->join('event_markets as em', function ($join) {
                      $join->on('em.master_event_market_id', '=', 'mem.id');
                      $join->on('em.event_id', '=', 'e.id');
                  })
@@ -207,7 +206,9 @@ class Game extends Model
                  ->whereNull('em.deleted_at')
                  ->whereNull('ml.deleted_at')
                  ->where('e.missing_count', '<=', $maxMissingCount)
-                 ->whereNotIn('me.id', $eventsInWatchlist)
+                 ->whereNotIn('me.id', function($query) use ($userId) {
+                     $query->select('master_event_id')->from('user_watchlist')->where('user_id', $userId);
+                 })
                  ->select([
                      'ml.sport_id',
                      'ml.name as master_league_name',
