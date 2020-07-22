@@ -439,8 +439,6 @@ class OrdersController extends Controller
                     $payloadStake = $prevStake < $row['max'] ? $prevStake : $row['max'];
                 }
 
-                $payloadStake *= $exchangeRate['exchange_rate'];
-
                 /** TO DO: Wallet Balance Sufficiency Check */
                 $userWallet = UserWallet::where('user_id', auth()->user()->id);
 
@@ -472,13 +470,12 @@ class OrdersController extends Controller
                     ], 404);
                 }
 
-                $actualStake = $payloadStake / ($percentage / 100);
-
+                $actualStake = ($payloadStake * $exchangeRate['exchange_rate']) / ($percentage / 100);
                 if ($request->betType == "BEST_PRICE") {
                     $prevStake = $request->stake - $row['max'];
                 }
 
-                if (($payloadStake / $exchangeRate['exchange_rate']) < $row['min']) {
+                if ($payloadStake < $row['min']) {
                     return response()->json([
                         'status'      => false,
                         'status_code' => 400,
@@ -487,8 +484,6 @@ class OrdersController extends Controller
                 }
 
                 $orderId     = uniqid();
-                $actualStake *= $exchangeRate['exchange_rate'];
-
                 /** ROUNDING UP TO NEAREST 50 */
                 $ceil  = ceil($actualStake);
                 $last2 = substr($ceil, -2);
