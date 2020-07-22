@@ -72,16 +72,15 @@ class WsSettledBets implements ShouldQueue
                 $sourceName          = "BET_WIN";
                 $stakeReturnToLedger = true;
                 $charge              = 'Credit';
-                $transferAmount      = $orders->to_win - $orders->stake;
+                $transferAmount      = $orders->to_win;
 
                 break;
             case 'LOSE':
-                $balance        = $orders->stake * -1;
-                $debit          = $balance;
-                $credit         = 0;
-                $sourceName     = "BET_LOSE";
-                $charge         = 'Debit';
-                $transferAmount = 0;
+                $balance    = $orders->stake * -1;
+                $debit      = $balance;
+                $credit     = 0;
+                $sourceName = "BET_LOSE";
+                $charge     = 'Debit';
 
                 break;
             case 'HALF WIN':
@@ -92,7 +91,7 @@ class WsSettledBets implements ShouldQueue
                 $sourceName          = "BET_HALF_WIN";
                 $stakeReturnToLedger = true;
                 $charge              = 'Credit';
-                $transferAmount      = ($orders->to_win - $orders->stake) / 2;
+                $transferAmount      = $orders->to_win / 2;
 
                 break;
             case 'HALF LOSE':
@@ -101,7 +100,7 @@ class WsSettledBets implements ShouldQueue
                 $credit         = $balance;
                 $sourceName     = "BET_HALF_LOSE";
                 $charge         = 'Debit';
-                $transferAmount = ($orders->to_win - $orders->stake) / 2;
+                $transferAmount = $orders->to_win / 2;
 
                 break;
             case 'PUSH':
@@ -119,7 +118,7 @@ class WsSettledBets implements ShouldQueue
                 break;
         }
 
-        $balance                  = !empty($balance) ? $balance * $exchangeRate->exchange_rate : 0;
+        $balance                  = $balance != 0 ? $balance * $exchangeRate->exchange_rate : 0;
         $sourceId                 = Source::where('source_name', 'LIKE', $sourceName)->first();
         $returnBetSourceId        = Source::where('source_name', 'LIKE', 'RETURN_STAKE')->first();
         $score                    = $this->data->score;
@@ -163,7 +162,7 @@ class WsSettledBets implements ShouldQueue
             $orderLogsId    = $orderLogs->id;
             $chargeType     = $charge;
             $receiver       = $orders->user_id;
-            $transferAmount = $transferAmount ?: ($orders->to_win - $stake);
+            $transferAmount = $transferAmount == 0 ? 0 : $transferAmount;
             $currency       = $userWallet->currency_id;
             $source         = $sourceId->id;
             $ledger         = UserWallet::makeTransaction($receiver, $transferAmount, $currency, $source, $chargeType);
