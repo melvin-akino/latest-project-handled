@@ -29,7 +29,7 @@ class TransformKafkaMessageBalance implements ShouldQueue
             $providerId = $swoole->providersTable->get('providerAlias:' . strtolower($this->message->data->provider))['id'];
             ProviderAccount::where('username', $this->message->data->username)
                 ->where('provider_id', $providerId)
-                ->update(['credits' => $this->message->data->available_balance, 'updated_at' => Carbon::now()]);
+                ->update(['credits' => $this->message->data->available_balance);
 
             Log::info('Balance Transformation - Updated');
         } catch (Exception $e) {

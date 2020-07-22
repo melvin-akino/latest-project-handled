@@ -9,6 +9,7 @@ use App\Models\ProviderBetRules;
 class ProviderAccount extends Model
 {
     use SoftDeletes;
+    public $timestamps = false;
 
     protected $table = "provider_accounts";
 
