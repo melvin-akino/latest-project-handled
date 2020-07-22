@@ -39,18 +39,34 @@ class MasterLeague extends Model
     {
         $maxMissingCount = SystemConfiguration::getSystemConfigurationValue('EVENT_VALID_MAX_MISSING_COUNT')->value;
 
-        return DB::SELECT("SELECT  ml.name as master_league_name, count(distinct me.id) as match_count  FROM master_leagues ml
-                    LEFT JOIN sports s on (s.id=ml.sport_id)
-                    LEFT JOIN master_events me on (me.master_league_id=ml.id)
-                    LEFT JOIN events e on (e.master_event_id=me.id)
-                    WHERE s.id = {$sportId}
-                    AND me.deleted_at is null
-                    AND e.deleted_at is null
-                    AND ml.deleted_at is null
-                    AND e.missing_count <= $maxMissingCount
-                    AND me.game_schedule = '{$gameSchedule}'
-                    AND e.provider_id IN (" . implode(',', $userProviderIds) . ")
-                    GROUP BY master_league_name");
+        $subquery = DB::table('master_leagues as ml')
+            ->leftJoin('sports as s', 's.id', 'ml.sport_id')
+            ->leftJoin('master_events as me', 'ml.id', 'me.master_league_id')
+            ->leftJoin('events as e', 'me.id', 'e.master_event_id')
+            ->leftJoin('master_event_markets as mem', 'me.id', 'mem.master_event_id')
+            ->leftJoin('event_markets AS em', function ($join) {
+                $join->on('mem.id', 'em.master_event_market_id');
+                $join->on('e.id', 'em.event_id');
+            })
+            ->where('s.id', $sportId)
+            ->whereNull('me.deleted_at')
+            ->whereNull('e.deleted_at')
+            ->whereNull('ml.deleted_at')
+            ->whereNull('em.deleted_at')
+            ->where('e.missing_count', '<=', $maxMissingCount)
+            ->where('me.game_schedule', $gameSchedule)
+            ->whereIn('e.provider_id', $userProviderIds)
+            ->whereIn('em.provider_id', $userProviderIds)
+            ->where('mem.is_main', true)
+            ->select('ml.name as master_league_name', 'me.id')
+            ->groupBy('ml.name', 'me.id');
+
+        return DB::table(DB::raw("({$subquery->toSql()}) AS leagues_list"))
+            ->mergeBindings($subquery)
+            ->select('master_league_name', DB::raw('COUNT(master_league_name) AS match_count'))
+            ->groupBy('master_league_name')
+            ->get();
+
 
     }
 
