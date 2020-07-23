@@ -33,9 +33,9 @@ commonUnittest_pipeline: &commonUnittest_pipeline
     - pecl install rdkafka
     - echo "extension=swoole.so" > /usr/local/etc/php/conf.d/docker-php-swoole.ini
     - echo "extension=rdkafka.so" > /usr/local/etc/php/conf.d/docker-php-rdkafka.ini
-     - curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+    - curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
     - docker-php-ext-install pdo pdo_pgsql pcntl
-    - psql -U "postgres" -h "localhost"  -p 5432 -c "CREATE DATABASE test_crm"
+    - composer config -g github-oauth.github.com 5b8e5c78c1de03fc833d8a86a15bc9b6c3a3fea1
     - composer install 
     - cp .env.pipeline .env
     - php artisan key:generate
