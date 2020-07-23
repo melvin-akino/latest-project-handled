@@ -63,7 +63,7 @@ pipelines:
     
     - step:
         name: Unit test
-        <<: *commonUnittest_pipeline
+        <<: *commonUnittest
     # - step:
     #     name: Deploy to AWS
     #     script:
