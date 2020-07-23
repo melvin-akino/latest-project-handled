@@ -54,24 +54,20 @@ commonUnittest: &commonUnittest
 image: php:7.3-fpm
 pipelines:
   branches:
-    develop: 
-    - step:
-        name: Develop
-        caches:
-          - composer
-        <<: *commonBuild
+    pipeline-move-to-production-branch: 
+    
     - step:
         name: Unit test
         <<: *commonUnittest
-    - step:
-        name: Deploy to AWS
-        script:
-          - apt-get update && apt-get install -y openssh-client
-          - mkdir -p ~/.ssh
-          - cat .uat_host >> ~/.ssh/known_hosts
-          - (umask  077 ; echo $awskey | base64 --decode > ~/.ssh/id_rsa)
+    # - step:
+    #     name: Deploy to AWS
+    #     script:
+    #       - apt-get update && apt-get install -y openssh-client
+    #       - mkdir -p ~/.ssh
+    #       - cat .uat_host >> ~/.ssh/known_hosts
+    #       - (umask  077 ; echo $awskey | base64 --decode > ~/.ssh/id_rsa)
           
-          - ssh $awsuser@9pineuat.com 'bash -i  "compile.sh"'      
+    #       - ssh $awsuser@9pineuat.com 'bash -i  "compile.sh"'      
 
     develop-local: 
     - step:
