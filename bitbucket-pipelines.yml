@@ -28,7 +28,8 @@ commonBuild: &commonBuild
 
 commonUnittest_pipeline: &commonUnittest_pipeline
   script:
-    - apt-get update && apt-get install -y libmcrypt-dev   libpq-dev postgresql-client librdkafka-dev libpq-dev git
+    - apt-get update && apt-get install -y libmcrypt-dev   libpq-dev postgresql-client librdkafka-dev libpq-dev git 
+    - apt-get install -y git 
     - pecl install swoole
     - pecl install rdkafka
     - echo "extension=swoole.so" > /usr/local/etc/php/conf.d/docker-php-swoole.ini
