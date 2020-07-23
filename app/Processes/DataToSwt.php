@@ -65,8 +65,17 @@ class DataToSwt implements CustomProcessInterface
 
         $swoole->data2SwtTable->set('data2Swt', ['value' => 1]);
 
+        $processCount = 0;
         while (!self::$quit) {
-            usleep(100000);
+            usleep(1000000);
+
+            if ($processCount % (60) == 0) {
+                self::db2SwtLeagues($swoole);
+                self::db2SwtTeams($swoole);
+                self::db2SwtEventRecords($swoole);
+            }
+
+            $processCount++;
         }
     }
 
@@ -230,8 +239,6 @@ class DataToSwt implements CustomProcessInterface
                                ->whereNull('e.deleted_at')
                                ->whereNull('em.deleted_at')
                                ->whereNull('ml.deleted_at')
-//                                ->where('e.event_identifier', 1000000)
-//                               ->where('e.missing_count', '<=', $maxMissingCount)
                                ->select([
                                    'ml.sport_id',
                                    'ml.name as master_league_name',
