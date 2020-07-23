@@ -59,7 +59,7 @@ commonUnittest: &commonUnittest
 image: php:7.3-fpm
 pipelines:
   branches:
-    pipeline-move-to-production-branch: 
+    production: 
     
     - step:
         name: Unit test
