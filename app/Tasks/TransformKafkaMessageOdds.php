@@ -6,12 +6,12 @@ use Hhxsv5\LaravelS\Swoole\Task\Task;
 
 class TransformKafkaMessageOdds extends Task
 {
-    protected $message;
+    protected $offset;
     protected $internalParameters;
 
-    public function init($message, $internalParameters)
+    public function init($offset, $internalParameters)
     {
-        $this->message            = $message;
+        $this->offset            = $offset;
         $this->internalParameters = $internalParameters;
         return $this;
     }
@@ -19,6 +19,6 @@ class TransformKafkaMessageOdds extends Task
     public function handle()
     {
         $oddsTransformationHandler = resolve('OddsTransformationHandler');
-        $oddsTransformationHandler->init($this->message, $this->internalParameters)->handle();
+        $oddsTransformationHandler->init($this->offset, $this->internalParameters)->handle();
     }
 }
