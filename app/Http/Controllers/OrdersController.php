@@ -27,10 +27,7 @@ use App\Models\CRM\{
     ProviderAccount
 };
 use Illuminate\Http\Request;
-use Illuminate\Support\{
-    Facades\DB,
-    Str
-};
+use Illuminate\Support\{Facades\DB, Facades\Redis, Str};
 use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
 use SendLogData;
@@ -254,7 +251,6 @@ class OrdersController extends Controller
             ], 500);
         }
     }
-
     /**
      * Get Event Market Logs to keep track on every updates
      * the market offers
@@ -461,6 +457,17 @@ class OrdersController extends Controller
                 }
 
                 $query = Game::getmasterEventByMarketId($request->market_id);
+
+                // Checks if odd type of market is not 1x2 or HT 1x2
+                if (!in_array($query->odd_type_id, [1, 10])) {
+                    if ($query->odd_label != Redis::get('marketPoints:' . $query->bet_identifier)) {
+                        return response()->json([
+                            'status'      => false,
+                            'status_code' => 400,
+                            'message'     => trans('game.bet.errors.type_has_been_changed', ['type' => $query->column_type])
+                        ], 400);
+                    }
+                }
 
                 if (!$query) {
                     return response()->json([

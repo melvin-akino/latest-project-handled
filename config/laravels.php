@@ -452,7 +452,13 @@ return [
                [ 'name' => 'created_at', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 30 ],
                [ 'name' => 'order_expiry', 'type' => \Swoole\Table::TYPE_INT, 'size' => 10 ],
             ],
-        ]
+        ],
+        'oddsKafkaPayloads' => [ // KEY FORMAT: [$offset]
+            'size'   => env('SWT_MAX_SIZE', 10000),
+            'column' => [
+                [ 'name' => 'message', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 25000 ],
+            ],
+        ],
     ],
     'register_providers'       => [
         \Laravel\Passport\PassportServiceProvider::class
