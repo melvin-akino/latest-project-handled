@@ -464,9 +464,7 @@ class OrdersController extends Controller
                         return response()->json([
                             'status'      => false,
                             'status_code' => 400,
-                            'message'     => trans('game.bet.errors.type_has_been_changed', [
-                                'type' => $query->column_type
-                            ])
+                            'message'     => trans('game.bet.errors.type_has_been_changed', ['type' => $query->column_type])
                         ], 400);
                     }
                 }
