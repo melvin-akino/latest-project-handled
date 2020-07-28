@@ -199,7 +199,7 @@ export default {
             countries: [],
             currencies: [
                 { id: 1, currency: 'CNY' },
-                { id: 2, currency: 'USD' }
+                // { id: 2, currency: 'USD' }
             ],
             isRegistering: false,
             isRegisterSuccessful: false
