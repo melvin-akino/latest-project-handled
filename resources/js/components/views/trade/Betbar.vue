@@ -71,9 +71,7 @@ export default {
         forBetBarRemoval() {
             this.$options.sockets.onmessage = (response => {
                 if(getSocketKey(response.data) === 'forBetBarRemoval') {
-                    let forBetBarRemoval = getSocketValue(response.data, 'forBetBarRemoval')
-                    let remainingBets = this.bets.filter(bet => bet.order_id != forBetBarRemoval.order_id)
-                    this.$store.commit('trade/SET_BETS', remainingBets)
+                    this.$store.dispatch('trade/getBetbarData')
                 }
             })
         }
