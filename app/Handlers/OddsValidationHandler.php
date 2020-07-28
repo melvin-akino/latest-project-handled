@@ -41,7 +41,7 @@ class OddsValidationHandler
     public function init($message, $offset)
     {
         $this->message = $message;
-        $this->offset = $offset;
+        $this->offset  = $offset;
         return $this;
     }
 
@@ -190,21 +190,10 @@ class OddsValidationHandler
                 }
             }
 
-            $isLeagueSelected = SwooleHandler::getValue('userSelectedLeaguesWithRawTable', implode(':', [
-                'sId:' . $sportId,
-                'schedule:' . $this->message->data->schedule,
-                'mlId:' . $parameters['master_league_id']
-            ]));
-
-            if ($isLeagueSelected) {
-                SwooleHandler::setValue('oddsKafkaPayloadsTable', $this->offset, ['message' => json_encode($this->message)]);
-                $transformKafkaMessageOdds = resolve('TransformKafkaMessageOdds');
-                Task::deliver($transformKafkaMessageOdds->init($this->offset, compact('providerId', 'sportId', 'parameters')));
-                Log::info("Transformation - validation completed");
-            } else {
-                Log::info("Transformation ignored - No User has actively selected this league");
-                return;
-            }
+            SwooleHandler::setValue('oddsKafkaPayloadsTable', $this->offset, ['message' => json_encode($this->message)]);
+            $transformKafkaMessageOdds = resolve('TransformKafkaMessageOdds');
+            Task::deliver($transformKafkaMessageOdds->init($this->offset, compact('providerId', 'sportId', 'parameters')));
+            Log::info("Transformation - validation completed");
 
         } catch (Exception $e) {
             Log::error($e->getMessage());

@@ -197,12 +197,6 @@ return [
                 ['name' => 'user_id', 'type' => \Swoole\Table::TYPE_INT],
             ],
         ],
-        'userSelectedLeaguesWithRaw' => [// key format [sId:$sportId:schedule:early:mlId:$masterLeagueId] => [selected = 1]
-            'size'   => 5000,// The max size
-            'column' => [// Define the columns
-                       ['name' => 'selected', 'type' => \Swoole\Table::TYPE_INT]
-            ],
-        ],
         'oddTypes'            => [ // key format [oddType:$oddType] => [id = $id, type = $oddType]
             'size'   => 1000,
             'column' => [
@@ -289,6 +283,7 @@ return [
                 ['name' => 'team_away_id', 'type' => \Swoole\Table::TYPE_INT],
                 ['name' => 'ref_schedule', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 30],
                 ['name' => 'provider_id', 'type' => \Swoole\Table::TYPE_INT],
+                ['name' => 'missing_count', 'type' => \Swoole\Table::TYPE_INT],
                 ['name' => 'raw_data', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 10000]
             ],
         ],
@@ -305,7 +300,8 @@ return [
         'mlEvents'              => [ //key format [$sportId:$masterLeagueId:$mthId:$mtaId:$refSchedule] = [master_event_unique_id = $masterEventUniqueId]
             'size'   => 10000,
             'column' => [
-                ['name' => 'master_event_unique_id', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 30]
+                ['name' => 'master_event_unique_id', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 30],
+//                ['name' => 'game_schedule', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 30],
             ],
         ],
         'eventMarkets'        => [ //key format [pId:$providerId:meUID:$meUID:betIdentifier:$betIdentifier] = [id = $id, ...]

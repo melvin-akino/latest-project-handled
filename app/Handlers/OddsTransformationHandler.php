@@ -2,6 +2,7 @@
 
 namespace App\Handlers;
 
+use App\Models\{SystemConfiguration, UserProviderConfiguration, UserSelectedLeague};
 use Illuminate\Support\Facades\{DB, Log, Redis};
 use Exception;
 use App\Facades\SwooleHandler;
@@ -63,6 +64,28 @@ class OddsTransformationHandler
 
             $eventRecord = SwooleHandler::getValue('eventRecordsTable', $eventSwtId);
 
+            $missingCount = $eventRecord['missing_count'];
+            $getEvents = [
+                'game_schedule'  => $this->message->data->schedule,
+                'has_bet'        => false,
+                'home'           => [
+                    'name'    => $multiTeam['home']['name'],
+                    'redcard' => $this->message->data->home_redcard,
+                    'score'   => $this->message->data->home_score
+                ],
+                'away'           => [
+                    'name'    => $multiTeam['away']['name'],
+                    'redcard' => $this->message->data->away_redcard,
+                    'score'   => $this->message->data->away_score
+                ],
+                'league_name'    => $masterLeagueName,
+                'with_providers' => [['id' => $providerId, 'provider' => strtoupper($this->message->data->provider)]],
+                'ref_schedule'   => date("Y-m-d H:i:s", strtotime($this->message->data->referenceSchedule)),
+                'running_time'   => $this->message->data->runningtime,
+                'sport'          => SwooleHandler::getValue('sportsTable', 'sId:' . $sportId)['sport'],
+                'sport_id'       => $sportId
+            ];
+
             if ($eventRecord) {
                 $eventsData = json_decode($eventRecord['raw_data'], true);
 
@@ -85,6 +108,8 @@ class OddsTransformationHandler
                     ]);
                 }
 
+                $getEvents['uid'] = $uid;
+
                 if ($this->message->data->schedule == 'early' && $eventsData['schedule'] == 'today') {
                     Log::info("Transformation ignored - event is already in today");
 
@@ -102,7 +127,7 @@ class OddsTransformationHandler
                 $this->saveEventRecords($eventSwtId, $sportId, $leagueId, $teamHomeId, $teamAwayId, $providerId);
 
                 $arrayEvents = $this->message->data->events;
-                foreach ($arrayEvents as $event) {
+                foreach ($arrayEvents as $eventKey => $event) {
                     foreach ($event->market_odds as $marketOdd) {
                         if (empty($marketOdd->marketSelection)) {
                             break 2;
@@ -111,6 +136,15 @@ class OddsTransformationHandler
                             if (empty($marketSelection->market_id)) {
                                 break 3;
                             }
+                            $indicator = strtoupper($marketSelection->indicator);
+                            if (in_array($indicator, ['OVER', 'UNDER'])) {
+                                if ($indicator == 'OVER') {
+                                    $indicator = 'HOME';
+                                } else {
+                                    $indicator = 'AWAY';
+                                }
+                            }
+
                             $odds   = $marketSelection->odds;
                             $points = "";
 
@@ -126,12 +160,23 @@ class OddsTransformationHandler
                             }
 
                             $odds = trim($odds) == '' ? 0 : (float) $odds;
+                            if ($eventKey == 0) {
+                                $getEvents['market_odds']['main'][$marketOdd->oddsType][$indicator]['odds'] = $odds;
+                            }
 
                             if (array_key_exists('points', $marketSelection)) {
                                 $points = $marketSelection->points;
+                                if ($eventKey == 0) {
+                                    $getEvents['market_odds']['main'][$marketOdd->oddsType][$indicator]['points'] = $points;
+                                }
                             }
 
                             $oddRecord = SwooleHandler::getValue('oddRecordsTable', 'sId:' . $sportId . ':pId:' . $providerId . ':marketId:' . $marketSelection->market_id);
+
+                            if ($eventKey == 0) {
+                                $getEvents['market_odds']['main'][$marketOdd->oddsType][$indicator]['market_id']      = $oddRecord['memUID'];
+                                $getEvents['market_odds']['main'][$marketOdd->oddsType][$indicator]['provider_alias'] = strtoupper($this->message->data->provider);
+                            }
 
                             $marketPointsRedis       = 'marketPoints:' . $marketSelection->market_id;
                             $marketPointsOffsetRedis = 'offsetMarketPoints:' . $marketSelection->market_id;
@@ -155,6 +200,32 @@ class OddsTransformationHandler
                                     }
                                     $updatedOdds[] = $oddsUpdated;
                                 }
+                            }
+                        }
+                    }
+                }
+
+                foreach ($swoole->wsTable as $key => $row) {
+                    if (strpos($key, 'uid:') === 0 && $swoole->isEstablished($row['value'])) {
+                        $maxMissingCount = SystemConfiguration::getSystemConfigurationValue('EVENT_VALID_MAX_MISSING_COUNT')->value;
+                        if ($missingCount > $maxMissingCount) {
+                            $userId = substr($key, strlen('uid:'));
+
+                            $userSelectedLeagues = UserSelectedLeague::getUserSelectedLeague($userId, [
+                                'league_id' => $masterLeagueId,
+                                'schedule'  => $this->message->data->schedule,
+                                'sport_id'  => $sportId
+                            ]);
+
+                            if ($userSelectedLeagues->exists()) {
+                                foreach ($userSelectedLeagues->get() as $userSelectedLeague) {
+                                    $swtKey = 'userId:' . $userSelectedLeague->user_id . ':sId:' . $sportId . ':lId:' . $masterLeagueId . ':schedule:' . $this->message->data->schedule;
+
+                                    if (SwooleHandler::exists('userSelectedLeaguesTable', $swtKey)) {
+                                        SwooleHandler::remove('userSelectedLeaguesTable', $swtKey);
+                                    }
+                                }
+                                $userSelectedLeagues->delete();
                             }
                         }
                     }
@@ -185,33 +256,13 @@ class OddsTransformationHandler
                         $multiTeam['away']['id'],
                         date("Y-m-d H:i:s", strtotime($this->message->data->referenceSchedule))
                     ]), [
-                        'master_event_unique_id' => $uid
+                        'master_event_unique_id' => $uid,
                     ]);
                 }
 
                 $this->saveEventRecords($eventSwtId, $sportId, $leagueId, $teamHomeId, $teamAwayId, $providerId);
 
-                $getEvents = [
-                    'uid'            => $uid,
-                    'game_schedule'  => $this->message->data->schedule,
-                    'has_bet'        => false,
-                    'home'           => [
-                        'name'    => $multiTeam['home']['name'],
-                        'redcard' => $this->message->data->home_redcard,
-                        'score'   => $this->message->data->home_score
-                    ],
-                    'away'           => [
-                        'name'    => $multiTeam['away']['name'],
-                        'redcard' => $this->message->data->away_redcard,
-                        'score'   => $this->message->data->away_score
-                    ],
-                    'league_name'    => $masterLeagueName,
-                    'with_providers' => [['id' => $providerId, 'provider' => strtoupper($this->message->data->provider)]],
-                    'ref_schedule'   => date("Y-m-d H:i:s", strtotime($this->message->data->referenceSchedule)),
-                    'running_time'   => $this->message->data->runningtime,
-                    'sport'          => SwooleHandler::getValue('sportsTable', 'sId:' . $sportId)['sport'],
-                    'sport_id'       => $sportId
-                ];
+                $getEvents['uid'] = $uid;
 
                 $mainMarkets = $this->message->data->events[0];
                 foreach ($mainMarkets->market_odds as $marketOdds) {
@@ -273,27 +324,26 @@ class OddsTransformationHandler
                         ]);
                     }
                 }
-                foreach ($swoole->userSelectedLeaguesTable as $userSelectedLeague) {
-                    if (
-                        $userSelectedLeague['league_name'] == $masterLeagueName &&
-                        $userSelectedLeague['sport_id'] == $sportId &&
-                        $userSelectedLeague['schedule'] == $this->message->data->schedule
-                    ) {
-                        $userId = $userSelectedLeague['user_id'];
-                        $fd     = SwooleHandler::getValue('wsTable', 'uid:' . $userId);
-                        if (!empty($getEvents['market_odds'])) {
-                            $swoole->push($fd['value'], json_encode([
-                                'getAdditionalEvents' => [$getEvents]
-                            ]));
-                        } else {
-                            SwooleHandler::remove('eventRecordsTable', $eventSwtId);
-                            SwooleHandler::remove('mlEventsTable', implode(':', [
-                                $sportId,
-                                $masterLeagueId,
-                                $multiTeam['home']['id'],
-                                $multiTeam['away']['id'],
-                                date("Y-m-d H:i:s", strtotime($this->message->data->referenceSchedule))
-                            ]));
+                foreach ($swoole->wsTable as $key => $row) {
+                    if (strpos($key, 'uid:') === 0 && $swoole->isEstablished($row['value'])) {
+                        $userId = substr($key, strlen('uid:'));
+                        $userProviderIds = UserProviderConfiguration::getProviderIdList($userId);
+                        if (in_array($providerId, $userProviderIds)) {
+                            $fd     = SwooleHandler::getValue('wsTable', 'uid:' . $userId);
+                            if (!empty($getEvents['market_odds'])) {
+                                $swoole->push($fd['value'], json_encode([
+                                    'getAdditionalEvents' => [$getEvents]
+                                ]));
+                            } else {
+                                SwooleHandler::remove('eventRecordsTable', $eventSwtId);
+                                SwooleHandler::remove('mlEventsTable', implode(':', [
+                                    $sportId,
+                                    $masterLeagueId,
+                                    $multiTeam['home']['id'],
+                                    $multiTeam['away']['id'],
+                                    date("Y-m-d H:i:s", strtotime($this->message->data->referenceSchedule))
+                                ]));
+                            }
                         }
                     }
                 }
@@ -325,7 +375,25 @@ class OddsTransformationHandler
             'team_away_id'     => $teamAwayId,
             'ref_schedule'     => date("Y-m-d H:i:s", strtotime($this->message->data->referenceSchedule)),
             'provider_id'      => $providerId,
+            'missing_count'    => 0,
             'raw_data'         => json_encode($this->message->data)
         ]);
+
+        $activeEventsSwtId = implode(':', [
+            'sId:' . $sportId,
+            'pId:' . $providerId,
+            'schedule:' . $this->message->data->schedule
+        ]);
+        $activeEvents = SwooleHandler::getValue('activeEventsTable', $activeEventsSwtId);
+        if ($activeEvents) {
+            $activeEvents = json_decode($activeEvents['events'], true);
+            if (is_null($activeEvents)) {
+                $activeEvents = [];
+            }
+            if (!in_array($this->message->data->events[0]->eventId, $activeEvents)) {
+                $activeEvents[] = $this->message->data->events[0]->eventId;
+                SwooleHandler::setColumnValue('activeEventsTable', $activeEventsSwtId, 'events', json_encode($activeEvents));
+            }
+        }
     }
 }
