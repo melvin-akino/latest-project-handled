@@ -9,13 +9,16 @@ use App\Facades\SwooleHandler;
 class OddsTransformationHandler
 {
     protected $message;
+    protected $offset;
     protected $internalParameters;
     protected $uid       = null;
 
-    public function init($message, $internalParameters)
+    public function init($offset, $internalParameters)
     {
-        $this->message            = $message;
+        $message                  = SwooleHandler::getValue('oddsKafkaPayloadsTable', $offset);
+        $this->message            = json_decode($message['message']);
         $this->internalParameters = $internalParameters;
+        $this->offset             = $offset;
         return $this;
     }
 
@@ -124,7 +127,21 @@ class OddsTransformationHandler
 
                             $odds = trim($odds) == '' ? 0 : (float) $odds;
 
+                            if (array_key_exists('points', $marketSelection)) {
+                                $points = $marketSelection->points;
+                            }
+
                             $oddRecord = SwooleHandler::getValue('oddRecordsTable', 'sId:' . $sportId . ':pId:' . $providerId . ':marketId:' . $marketSelection->market_id);
+
+                            $marketPointsRedis       = 'marketPoints:' . $marketSelection->market_id;
+                            $marketPointsOffsetRedis = 'offsetMarketPoints:' . $marketSelection->market_id;
+                            if (
+                                !Redis::exists($marketPointsOffsetRedis) ||
+                                (int) Redis::get($marketPointsOffsetRedis) < (int) $this->offset
+                            ) {
+                                Redis::set($marketPointsOffsetRedis, $this->offset);
+                                Redis::set($marketPointsRedis, $points);
+                            }
 
                             if ($oddRecord) {
                                 if ($oddRecord['odds'] != $odds) {
@@ -232,6 +249,16 @@ class OddsTransformationHandler
                             Redis::set($marketSelection->market_id, $memUID);
                         } else {
                             $memUID = Redis::get($marketSelection->market_id);
+                        }
+
+                        $marketPointsRedis       = 'marketPoints:' . $marketSelection->market_id;
+                        $marketPointsOffsetRedis = 'offsetMarketPoints:' . $marketSelection->market_id;
+                        if (
+                            !Redis::exists($marketPointsOffsetRedis) ||
+                            (int) Redis::get($marketPointsOffsetRedis) < (int) $this->offset
+                        ) {
+                            Redis::set($marketPointsOffsetRedis, $this->offset);
+                            Redis::set($marketPointsRedis, $points);
                         }
 
                         $getEvents['market_odds']['main'][$marketOdds->oddsType][$indicator]['market_id']      = $memUID;

@@ -58,7 +58,7 @@ class GameConsume implements CustomProcessInterface
                                 TransformKafkaMessageEvents::dispatch($payload);
                                 break;
                             case 'odd':
-                                $oddsValidationHandler->init($payload)->handle();
+                                $oddsValidationHandler->init($payload, $message->offset)->handle();
                                 break;
                             default:
                                 break;

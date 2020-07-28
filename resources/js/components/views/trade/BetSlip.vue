@@ -31,6 +31,7 @@
                 </div>
                 <div class="flex w-full">
                     <div class="flex flex-col mt-4 mr-3 w-3/5 h-full">
+                        <span class="spread-refresh"><a href="#" @click="reloadSpread()"><i class="fas fa-retweet"></i></a></span>
                         <div class="flex flex-col items-center bg-white shadow-xl mb-2" v-if="oddTypesWithSpreads.includes(market_details.odd_type)">
                             <div class="text-white uppercase font-bold p-2 bg-orange-500 w-full text-center">{{market_details.odd_type}}</div>
                             <div class="relative flex justify-center items-center p-2">
@@ -298,11 +299,16 @@ export default {
         }
     },
     mounted() {
-        this.getMarketDetails()
+        this.getMarketDetails(true)
         this.$store.dispatch('trade/getBetSlipSettings')
     },
     methods: {
-        getMarketDetails() {
+        reloadSpread() {
+            this.isLoadingMarketDetailsAndProviders = true;
+            this.clearOrderMessage();
+            this.getMarketDetails(false)
+        },
+        getMarketDetails(setMinMaxProviders) {
             let token = Cookies.get('mltoken')
 
             axios.get(`v1/orders/${this.odd_details.market_id}`, { headers: { 'Authorization': `Bearer ${token}` }})
@@ -321,7 +327,11 @@ export default {
                     this.spreads.push(this.odd_details)
                 }
                 this.displaySpreadsByFive()
-                this.setMinMaxProviders()
+                if (setMinMaxProviders) {
+                    this.setMinMaxProviders()
+                } else {
+                    this.isLoadingMarketDetailsAndProviders = false;
+                }
                 this.$store.commit('trade/SHOW_BET_MATRIX_IN_BETSLIP', { market_id: this.odd_details.market_id, has_bet: response.data.data.has_bets })
             })
             .catch(err => {
@@ -687,5 +697,19 @@ export default {
 
     .nextPoint {
         right: -30px;
+    }
+
+    .spread-refresh {
+        position: absolute;
+        text-align: right;
+        margin: 5px 0;
+        width: 57%;
+        color: #FFF;
+    }
+
+    .spread-refresh a {
+        padding: 0 5px;
+        background-color: #ce6a17;
+        font-size: 20px;
     }
 </style>

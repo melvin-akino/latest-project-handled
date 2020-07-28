@@ -11,10 +11,11 @@ return [
             'success'  => "Order Successfully Placed!",
         ],
         'errors'     => [
-            'wallet_not_found' => "User wallet not found",
-            'insufficient'     => "Insufficient wallet balance",
-            'no_bookmaker'     => "Bookmaker not found"
-        ]
+            'wallet_not_found'      => "User wallet not found",
+            'insufficient'          => "Insufficient wallet balance",
+            'no_bookmaker'          => "Bookmaker not found",
+            'type_has_been_changed' => ":type has been changed. Please refresh the bet slip"
+        ],
     ],
     'bet_slip_logs' => [
         'order_placed' => "Order Placed",
