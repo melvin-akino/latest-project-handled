@@ -101,7 +101,7 @@
                             <span v-if="$v.registerForm.step2.postcode.$dirty && !$v.registerForm.step2.postcode.maxLength" class="text-red-600 text-sm">Postcode must have a maximum of 6 digits.</span>
                         </div>
                         <div class="mb-2 w-full">
-                            <label class="inline-block text-gray-700 text-sm font-bold mb-2 uppercase" for="phone">Phone</label>
+                            <label class="block text-gray-700 text-sm font-bold mb-2 uppercase" for="phone">Phone</label>
                             <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none" :class="{'border-red-600': $v.registerForm.step2.phone.$error}" id="phone" type="text" placeholder="Phone" v-model="$v.registerForm.step2.phone.$model">
                             <span v-if="$v.registerForm.step2.phone.$dirty && !$v.registerForm.step2.phone.required" class="text-red-600 text-sm">Phone number is required.</span>
                             <span v-if="$v.registerForm.step2.phone.$dirty && !$v.registerForm.step2.phone.numeric" class="text-red-600 text-sm">Phone number should be numeric.</span>
