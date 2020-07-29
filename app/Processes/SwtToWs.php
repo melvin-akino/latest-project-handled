@@ -72,7 +72,10 @@ class SwtToWs implements CustomProcessInterface
                 foreach ($userEnabledProviders as $userId => $userEnabledProvider) {
                     $fd = $wsTable->get('uid:' . $userId);
                     if ($swoole->isEstablished($fd['value'])) {
-                        $swoole->push($fd['value'], json_encode(['getEventHasOtherMarket' => ['uid' => $uid, 'has_other_market' => Game::checkIfHasOtherMarkets($uid, $userEnabledProvider)]]));
+                        $swoole->push($fd['value'], json_encode(['getEventHasOtherMarket' => [
+                            'uid'              => $uid,
+                            'has_other_market' => Game::checkIfHasOtherMarkets($uid, $userEnabledProvider)
+                        ]]));
                     }
                 }
                 $updatedEventsTable->del($k);
