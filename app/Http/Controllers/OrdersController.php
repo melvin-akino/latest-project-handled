@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Exceptions\BadRequestException;
+use App\Exceptions\NotFoundException;
 use App\Facades\SwooleHandler;
 use App\Jobs\KafkaPush;
 
@@ -308,9 +310,9 @@ class OrdersController extends Controller
 
     public function postPlaceBet(Request $request)
     {
-        DB::beginTransaction();
-
         try {
+            DB::beginTransaction();
+
             /**
              * Initiate Swoole Instance.
              *
@@ -439,21 +441,13 @@ class OrdersController extends Controller
                 $userWallet = UserWallet::where('user_id', auth()->user()->id);
 
                 if (!$userWallet->exists()) {
-                    return response()->json([
-                        'status'      => false,
-                        'status_code' => 404,
-                        'message'     => trans('game.bet.errors.wallet_not_found')
-                    ], 404);
+                    throw new NotFoundException(trans('game.bet.errors.wallet_not_found'));
                 }
 
                 $userBalance = $userWallet->first()->balance * $exchangeRate['exchange_rate'];
 
                 if ($userBalance < $payloadStake) {
-                    return response()->json([
-                        'status'      => false,
-                        'status_code' => 400,
-                        'message'     => trans('game.bet.errors.insufficient')
-                    ], 400);
+                    throw new BadRequestException(trans('game.bet.errors.insufficient'));
                 }
 
                 $query = Game::getmasterEventByMarketId($request->market_id);
@@ -461,20 +455,12 @@ class OrdersController extends Controller
                 // Checks if odd type of market is not 1x2 or HT 1x2
                 if (!in_array($query->odd_type_id, [1, 10])) {
                     if ($query->odd_label != Redis::get('marketPoints:' . $query->bet_identifier)) {
-                        return response()->json([
-                            'status'      => false,
-                            'status_code' => 400,
-                            'message'     => trans('game.bet.errors.type_has_been_changed', ['type' => $query->column_type])
-                        ], 400);
+                        throw new BadRequestException(trans('game.bet.errors.type_has_been_changed', ['type' => $query->column_type]));
                     }
                 }
 
                 if (!$query) {
-                    return response()->json([
-                        'status'      => false,
-                        'status_code' => 404,
-                        'message'     => trans('generic.not-found')
-                    ], 404);
+                    throw new NotFoundException(trans('generic.not-found'));
                 }
 
                 $actualStake = ($payloadStake * $exchangeRate['exchange_rate']) / ($percentage / 100);
@@ -483,11 +469,7 @@ class OrdersController extends Controller
                 }
 
                 if ($payloadStake < $row['min']) {
-                    return response()->json([
-                        'status'      => false,
-                        'status_code' => 400,
-                        'message'     => trans('generic.bad-request')
-                    ], 400);
+                    throw new BadRequestException(trans('generic.bad-request'));
                 }
 
                 $orderId     = uniqid();
@@ -532,11 +514,7 @@ class OrdersController extends Controller
                 $providerAccount = ProviderAccount::getBettingAccount($row['provider_id'], $actualStake, $isUserVIP, $payload['event_id'], $query->odd_type_id, $query->market_flag);
 
                 if (!$providerAccount) {
-                    return response()->json([
-                        'status'      => false,
-                        'status_code' => 404,
-                        'message'     => trans('game.bet.errors.no_bookmaker')
-                    ], 404);
+                    throw new NotFoundException(trans('game.bet.errors.no_bookmaker'));
                 }
 
                 $providerAccountUserName = $providerAccount->username;
@@ -676,6 +654,20 @@ class OrdersController extends Controller
                 'order_id'    => $orderIds,
                 'created_at'  => Carbon::parse($orderIncrement->created_at)->toDateTimeString()
             ], $returnCode);
+        } catch (BadRequestException $e) {
+            DB::rollback();
+            return response()->json([
+                'status'      => false,
+                'status_code' => 400,
+                'message'     => $e->getMessage()
+            ], 400);
+        } catch (NotFoundException $e) {
+            DB::rollback();
+            return response()->json([
+                'status'      => false,
+                'status_code' => 404,
+                'message'     => $e->getMessage()
+            ], 404);
         } catch (Exception $e) {
             DB::rollback();
             Log::error($e->getMessage());
