@@ -76,11 +76,10 @@ class OrdersController extends Controller
 
             //Pagination part
             $page        = $request->has('page') ? $request->get('page') : 1;
-            $limit       = $request->has('limit') ? $request->get('limit') : 25;
             $myAllOrders = Order::countAllOrders();
 
             if (!empty($myAllOrders)) {
-                $myOrders = Order::getAllOrders($conditions, $page, $limit);
+                $myOrders = Order::getAllOrders($conditions, $page);
 
                 foreach ($myOrders as $myOrder) {
                     $score  = explode(' - ', $myOrder->score);

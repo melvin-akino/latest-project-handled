@@ -2,6 +2,7 @@
 
 namespace App\Jobs;
 
+use App\Facades\SwooleHandler;
 use App\Jobs\WSOrderStatus;
 
 use App\Models\{
@@ -67,7 +68,7 @@ class TransformKafkaMessageBet implements ShouldQueue
                         $orderId         = substr($row['topic_name'], strlen('order-'));
                         $orderData       = Order::where('id', $messageOrderId);
 
-                        if ($orderData->count()) {
+                        if ($orderData->count() && $orderId == $messageOrderId) {
                             $status = strtoupper($this->message->data->status);
                             $order  = Order::updateOrCreate([
                                 'id' => $messageOrderId
@@ -85,6 +86,9 @@ class TransformKafkaMessageBet implements ShouldQueue
                             ]);
 
                             if ($status != "FAILED") {
+                                if (!SwooleHandler::exists('orderPayloadsTable', $payloadsSwtId)) {
+                                    continue;
+                                }
                                 ProviderAccount::find($order->provider_account_id)->update([
                                     'updated_at' => Carbon::now()
                                 ]);
@@ -156,6 +160,9 @@ class TransformKafkaMessageBet implements ShouldQueue
                                 );
                             }
 
+                            if ($status == 'SUCCESS') {
+                                SwooleHandler::remove('pendingOrdersWithinExpiryTable', 'orderId:' . $orderId);
+                            }
                             WSOrderStatus::dispatch(
                                 $row['user_id'],
                                 $orderId,
@@ -177,7 +184,6 @@ class TransformKafkaMessageBet implements ShouldQueue
                                 $payloadsTable->del($payloadsSwtId);
                             }
                         }
-                        break;
                     }
                 }
             }
