@@ -78,7 +78,7 @@ class OddsTransformationHandler
                     $uid = $mlEventRecord['master_event_unique_id'];
                 } else {
                     $uid = implode('-', [
-                        date("Y-m-d H:i:s", strtotime($this->message->data->referenceSchedule)),
+                        date("Ymd", strtotime($this->message->data->referenceSchedule)),
                         $sportId,
                         $masterLeagueId,
                         $this->message->data->events[0]->eventId
@@ -282,9 +282,11 @@ class OddsTransformationHandler
                         $userId = $userSelectedLeague['user_id'];
                         $fd     = SwooleHandler::getValue('wsTable', 'uid:' . $userId);
                         if (!empty($getEvents['market_odds'])) {
-                            $swoole->push($fd['value'], json_encode([
-                                'getAdditionalEvents' => [$getEvents]
-                            ]));
+                            if ($swoole->isEstablished($fd['value'])) {
+                                $swoole->push($fd['value'], json_encode([
+                                    'getAdditionalEvents' => [$getEvents]
+                                ]));
+                            }
                         } else {
                             SwooleHandler::remove('eventRecordsTable', $eventSwtId);
                             SwooleHandler::remove('mlEventsTable', implode(':', [

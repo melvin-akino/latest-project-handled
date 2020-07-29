@@ -176,6 +176,22 @@ export default {
                         })
                     }
                 } else {
+                    if(this.tradePageSettings.sort_event == 1) {
+                        this.events[this.gameSchedType][game.league_name].map(event => {
+                            if(game.uid == event.uid) {
+                                this.$delete(event.market_odds, 'other')
+                            }
+                        })
+                    } else if(this.tradePageSettings.sort_event == 2) {
+                        let eventStartTime = `[${game.ref_schedule.split(' ')[1]}] ${game.league_name}`
+                        this.events[this.gameSchedType][eventStartTime].map(event => {
+                            if(game.uid == event.uid) {
+                                this.$delete(event.market_odds, 'other')
+                            }
+                        })
+                    }
+
+                    game.has_other_markets = false
                     Swal.fire({
                         icon: 'warning',
                         text: 'No other markets available for that event.'

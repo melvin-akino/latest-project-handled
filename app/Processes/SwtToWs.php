@@ -3,6 +3,7 @@
 namespace App\Processes;
 
 use App\Jobs\WsEvents;
+use App\Models\Game;
 use App\Models\UserProviderConfiguration;
 use Hhxsv5\LaravelS\Swoole\Process\CustomProcessInterface;
 use Illuminate\Support\Facades\Log;
@@ -49,6 +50,9 @@ class SwtToWs implements CustomProcessInterface
         $userEnabledProviders = [];
         foreach ($updatedEventsTable as $k => $r) {
             $updatedMarkets = json_decode($r['value']);
+
+            $uid = substr($k, strlen('updatedEvents:'));
+
             if (!empty($updatedMarkets)) {
                 foreach ($updatedMarkets as $updatedMarket) {
                     foreach ($topicTable as $topic) {
@@ -57,16 +61,25 @@ class SwtToWs implements CustomProcessInterface
                                 $userProviderIds                         = UserProviderConfiguration::getProviderIdList($topic['user_id']);
                                 $userEnabledProviders[$topic['user_id']] = $userProviderIds;
                             }
-                            if (in_array($updatedMarket->provider_id, $userEnabledProviders[$topic['user_id']])) {
-                                $fd = $wsTable->get('uid:' . $topic['user_id']);
+                            $fd = $wsTable->get('uid:' . $topic['user_id']);
+                            if (in_array($updatedMarket->provider_id, $userEnabledProviders[$topic['user_id']]) && $swoole->isEstablished($fd['value'])) {
                                 $swoole->push($fd['value'], json_encode(['getUpdatedOdds' => [$updatedMarket]]));
                             }
+
                         }
+                    }
+                }
+                foreach ($userEnabledProviders as $userId => $userEnabledProvider) {
+                    $fd = $wsTable->get('uid:' . $userId);
+                    if ($swoole->isEstablished($fd['value'])) {
+                        $swoole->push($fd['value'], json_encode(['getEventHasOtherMarket' => Game::checkIfHasOtherMarkets($uid, $userEnabledProvider)]));
                     }
                 }
                 $updatedEventsTable->del($k);
             }
         }
+
+
     }
 
     private static function getUpdatedPrice($swoole)
