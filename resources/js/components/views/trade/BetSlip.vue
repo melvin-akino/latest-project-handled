@@ -128,9 +128,9 @@
                         <div v-if="!isPlacingOrder && isDoneBetting" class="orderMessage relative flex justify-center items-center text-white py-1 px-2 mt-2 w-full rounded" :class="{'failed': !isBetSuccessful, 'success': isBetSuccessful}">
                             <span class="text-xs mr-1" v-show="!isBetSuccessful"><i class="fas fa-exclamation-triangle"></i></span>
                             <span class="text-xs mr-1" v-show="isBetSuccessful"><i class="fas fa-check"></i></span>
-                            <span class="px-2" v-if="(!$v.orderForm.stake.required || !$v.inputPrice.required) && !isBetSuccessful">Please input stake and price.</span>
-                            <span class="px-2" v-else-if="(!$v.orderForm.stake.decimal || !$v.inputPrice.decimal)  && !isBetSuccessful">Stake and price should have a numeric value.</span>
-                            <span class="px-2" v-else-if="(!$v.orderForm.stake.minValue || !$v.inputPrice.minValue)  && !isBetSuccessful">Input a valid stake and price. Stake Min: 1, Price Min: 0</span>
+                            <span class="px-2" v-if="(!$v.orderForm.stake.required || !$v.inputPrice.required) && !isBetSuccessful && hasErrorOnInput">Please input stake and price.</span>
+                            <span class="px-2" v-else-if="(!$v.orderForm.stake.decimal || !$v.inputPrice.decimal)  && !isBetSuccessful && hasErrorOnInput">Stake and price should have a numeric value.</span>
+                            <span class="px-2" v-else-if="(!$v.orderForm.stake.minValue || !$v.inputPrice.minValue)  && !isBetSuccessful && hasErrorOnInput">Input a valid stake and price. Stake Min: 1, Price Min: 0</span>
                             <span class="px-2" v-else>{{orderMessage}}</span>
                             <span class="absolute clearOrderMessage float-right cursor-pointer text-xs" @click="isDoneBetting = false"><i class="fas fa-times-circle"></i></span>
                         </div>
@@ -193,6 +193,7 @@ export default {
             isDoneBetting: false,
             isLoadingMarketDetailsAndProviders: true,
             isBetSuccessful: null,
+            hasErrorOnInput: false,
             showOddsHistory: false,
             showBetMatrix: false,
             disabledBookies: [],
@@ -291,7 +292,6 @@ export default {
         minMaxProviders: {
             deep: true,
             handler(value) {
-                this.isDoneBetting = false
                 this.minMaxUpdateCounter = this.minMaxUpdateCounter + 1
                 if(this.minMaxUpdateCounter <= (this.market_details.providers.length + 1)) {
                     let minMaxPrices = value.filter(minmax => minmax.price != null).map(minmax => minmax.price)
@@ -534,11 +534,14 @@ export default {
             this.isDoneBetting = true
             if(this.$v.$invalid) {
                 this.isBetSuccessful = false
+                this.hasErrorOnInput = true
             } else if(this.numberOfQualifiedProviders == 0) {
                 this.orderMessage = 'Available markets are too low.'
                 this.isBetSuccessful = false
+                this.hasErrorOnInput = false
             } else {
                 this.isPlacingOrder = true
+                this.hasErrorOnInput = false
                 let data = {
                     betType: this.orderForm.betType,
                     stake: this.orderForm.stake,
