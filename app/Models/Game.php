@@ -384,4 +384,22 @@ class Game extends Model
                  ->where('e.missing_count', '<=', $maxMissingCount)
                  ->get();
     }
+
+    public static function checkIfHasOtherMarkets(string $uid, array $userProviderIds)
+    {
+        $maxMissingCount = SystemConfiguration::getSystemConfigurationValue('EVENT_VALID_MAX_MISSING_COUNT')->value;
+        return DB::table('master_events as me')
+            ->join('events as e', 'e.master_event_id', 'me.id')
+            ->leftJoin('master_event_markets as mem', 'mem.master_event_id', 'me.id')
+            ->join('event_markets as em', 'em.master_event_market_id', 'mem.id')
+            ->where('me.master_event_unique_id', $uid)
+            ->where('mem.is_main', false)
+            ->where('em.is_main', false)
+            ->whereIn('em.provider_id', $userProviderIds)
+            ->whereNull('e.deleted_at')
+            ->whereNull('em.deleted_at')
+            ->whereNull('me.deleted_at')
+            ->where('e.missing_count', '<=', $maxMissingCount)
+            ->exists();
+    }
 }

@@ -55,7 +55,7 @@
                                         <div class="absolute eventStar" :class="[gameSchedType==='watchlist' ? 'in-watchlist-star' : 'text-white']" @click="gameSchedType==='watchlist' ? removeFromWatchlist('event', game.uid, game) : addToWatchlist('event', game.uid, game)">
                                             <span><i class="fas fa-star"></i></span>
                                         </div>
-                                        <button class="otherMarketsBtn absolute text-orange-500 hover:text-orange-600 focus:outline-none" @click="toggleOtherMarkets(game)" title="View other markets.">
+                                        <button v-if="game.has_other_markets" class="otherMarketsBtn absolute text-orange-500 hover:text-orange-600 focus:outline-none" @click="toggleOtherMarkets(game)" title="View other markets.">
                                             <span v-show="game.market_odds.hasOwnProperty('other')"><i class="fas fa-minus-square"></i></span>
                                             <span v-show="!game.market_odds.hasOwnProperty('other')"><i class="fas fa-plus-square"></i></span>
                                         </button>
@@ -176,6 +176,22 @@ export default {
                         })
                     }
                 } else {
+                    if(this.tradePageSettings.sort_event == 1) {
+                        this.events[this.gameSchedType][game.league_name].map(event => {
+                            if(game.uid == event.uid) {
+                                this.$delete(event.market_odds, 'other')
+                            }
+                        })
+                    } else if(this.tradePageSettings.sort_event == 2) {
+                        let eventStartTime = `[${game.ref_schedule.split(' ')[1]}] ${game.league_name}`
+                        this.events[this.gameSchedType][eventStartTime].map(event => {
+                            if(game.uid == event.uid) {
+                                this.$delete(event.market_odds, 'other')
+                            }
+                        })
+                    }
+
+                    game.has_other_markets = false
                     Swal.fire({
                         icon: 'warning',
                         text: 'No other markets available for that event.'
