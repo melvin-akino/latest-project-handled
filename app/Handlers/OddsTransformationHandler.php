@@ -13,6 +13,8 @@ class OddsTransformationHandler
     protected $internalParameters;
     protected $uid       = null;
 
+    const REDIS_TTL = 60 * 60 * 24;
+
     public function init($offset, $internalParameters)
     {
         $message                  = SwooleHandler::getValue('oddsKafkaPayloadsTable', $offset);
@@ -141,6 +143,9 @@ class OddsTransformationHandler
                             ) {
                                 Redis::set($marketPointsOffsetRedis, $this->offset);
                                 Redis::set($marketPointsRedis, $points);
+
+                                Redis::expire($marketPointsOffsetRedis, self::REDIS_TTL);
+                                Redis::expire($marketPointsRedis, self::REDIS_TTL);
                             }
 
                             if ($oddRecord) {
@@ -247,6 +252,8 @@ class OddsTransformationHandler
                         if (!Redis::exists($marketSelection->market_id)) {
                             $memUID = md5($this->offset . uniqid(rand(10000, 99999), true) . $indicator . $marketSelection->market_id, '');
                             Redis::set($marketSelection->market_id, $memUID);
+
+                            Redis::expire($marketSelection->market_id, self::REDIS_TTL);
                         } else {
                             $memUID = Redis::get($marketSelection->market_id);
                         }
@@ -259,6 +266,9 @@ class OddsTransformationHandler
                         ) {
                             Redis::set($marketPointsOffsetRedis, $this->offset);
                             Redis::set($marketPointsRedis, $points);
+
+                            Redis::expire($marketPointsOffsetRedis, self::REDIS_TTL);
+                            Redis::expire($marketPointsRedis, self::REDIS_TTL);
                         }
 
                         $getEvents['market_odds']['main'][$marketOdds->oddsType][$indicator]['market_id']      = $memUID;
