@@ -95,7 +95,7 @@ class WsSettledBets implements ShouldQueue
 
                 break;
             case 'HALF LOSE':
-                $balance        = $orders->stake / 2;
+                $balance        = ($orders->stake / 2) * -1;
                 $debit          = 0;
                 $credit         = $balance;
                 $sourceName     = "BET_HALF_LOSE";
