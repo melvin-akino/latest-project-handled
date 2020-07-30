@@ -7,6 +7,7 @@ use App\Http\Requests\CRM\ProviderAccountRequest;
 use App\Models\{ProviderAccount, SystemConfiguration};
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Carbon\Carbon;
 
 class ProviderAccountsController extends Controller
 {
@@ -48,9 +49,10 @@ class ProviderAccountsController extends Controller
                 !empty($request->credits) ? $data['credits'] = $request->credits : 0;
                 !empty($request->pa_is_enabled) ? $data['is_enabled'] = true : $data['is_enabled'] = false;
                 !empty($request->is_idle) ? $data['is_idle'] = true : $data['is_idle'] = false;
+                $data['updated_at'] = Carbon::now();
 
                 //Record is on update process
-                if (!empty($request->providerAccountId)) {
+                if (!empty($request->providerAccountId))  {
                     $providerAccount = ProviderAccount::where('id', $request->providerAccountId)->first();
                 }
                 else {
@@ -72,8 +74,11 @@ class ProviderAccountsController extends Controller
                     }
                     
                 }
-                else if (ProviderAccount::create($data)) {
-                        $message = 'success';    
+                else
+                {    
+                    if (ProviderAccount::create($data)) {
+                        $message = 'success';
+                    }        
                 }
                                    
                 DB::commit();
