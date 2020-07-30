@@ -318,9 +318,11 @@ export default {
                 } else if(getSocketKey(response.data) === 'getEventHasOtherMarket') {
                     let eventHasOtherMarket = getSocketValue(response.data, 'getEventHasOtherMarket')
                     this.allEventsList.map(event => {
-                        event.has_other_markets = eventHasOtherMarket.has_other_market
-                        if(event.uid == eventHasOtherMarket.uid && !eventHasOtherMarket.has_other_market) {
-                            this.$delete(event.market_odds, 'other')
+                        if(event.uid == eventHasOtherMarket.uid) {
+                            event.has_other_markets = eventHasOtherMarket.has_other_markets
+                            if(!eventHasOtherMarket.has_other_markets) {
+                                this.$delete(event.market_odds, 'other')
+                            }
                         }
                     })
                 }
