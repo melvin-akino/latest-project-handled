@@ -74,7 +74,7 @@ class SwtToWs implements CustomProcessInterface
                     if ($swoole->isEstablished($fd['value'])) {
                         $swoole->push($fd['value'], json_encode(['getEventHasOtherMarket' => [
                             'uid'              => $uid,
-                            'has_other_market' => Game::checkIfHasOtherMarkets($uid, $userEnabledProvider)
+                            'has_other_markets' => Game::checkIfHasOtherMarkets($uid, $userEnabledProvider)
                         ]]));
                     }
                 }
