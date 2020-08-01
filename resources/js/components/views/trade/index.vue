@@ -28,6 +28,7 @@
 import { mapState } from 'vuex'
 import _ from 'lodash'
 import Cookies from 'js-cookie'
+import Swal from 'sweetalert2'
 import Sports from './Sports'
 import Wallet from './Wallet'
 import Watchlist from './Watchlist'
@@ -325,6 +326,22 @@ export default {
                             }
                         }
                     })
+                } else if(getSocketKey(response.data) === 'getMaintenance') {
+                    let maintenance = getSocketValue(response.data, 'getMaintenance')
+                    if(maintenance.under_maintenance) {
+                        Swal.fire({
+                            icon: 'warning',
+                            text: 'No Available Bookmaker.'
+                        })
+                        this.$store.commit('trade/CLEAR_LEAGUES')
+                        this.$store.commit('trade/CLEAR_EVENTS')
+                        this.$store.commit('trade/CLEAR_EVENTS_LIST')
+                        this.$store.commit('trade/CLEAR_ALL_EVENTS_LIST')
+                        this.$store.commit('trade/ADD_TO_UNDER_MAINTENANCE_PROVIDERS', maintenance.provider)
+                    } else {
+                        this.$store.dispatch('trade/getTradeWindowData')
+                        this.$store.commit('trade/REMOVE_FROM_UNDER_MAINTENANCE_PROVIDERS', maintenance.provider)
+                    }
                 }
             })
         }

@@ -41,7 +41,8 @@ const state = {
     isLoadingLeagues: true,
     isLoadingEvents: true,
     failedBetStatus: ['PENDING', 'FAILED', 'CANCELLED', 'REJECTED', 'VOID', 'ABNORMAL BET', 'REFUNDED'],
-    eventsError: false
+    eventsError: false,
+    underMaintenanceProviders: []
 }
 
 const getters = {
@@ -89,6 +90,11 @@ const mutations = {
                     Vue.set(league, 'match_count', data.eventsRemaining)
                 }
             }
+        })
+    },
+    CLEAR_LEAGUES: (state) => {
+        Object.keys(state.leagues).map(schedule => {
+            state.leagues[schedule] = []
         })
     },
     SET_SPORTS: (state, sports) => {
@@ -258,6 +264,16 @@ const mutations = {
     },
     SET_EVENTS_ERROR: (state, data) => {
         state.eventsError = data
+    },
+    ADD_TO_UNDER_MAINTENANCE_PROVIDERS: (state, provider) => {
+        if(!state.underMaintenanceProviders.includes(provider)) {
+            state.underMaintenanceProviders.push(provider)
+        }
+    },
+    REMOVE_FROM_UNDER_MAINTENANCE_PROVIDERS: (state, provider) => {
+        if(state.underMaintenanceProviders.includes(provider)) {
+            state.underMaintenanceProviders = state.underMaintenanceProviders.filter(underMaintenanceProvider => underMaintenanceProvider != provider)
+        }
     }
 }
 
