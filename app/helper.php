@@ -444,6 +444,7 @@ if (!function_exists('eventTransformation')) {
 
             if (empty($data[$transformed->master_event_unique_id])) {
                 $providersOfEvents = Game::providersOfEvents($transformed->master_event_id, $userProviderIds)->get();
+                $eventHasOtherMarkets = Game::checkIfHasOtherMarkets($transformed->master_event_unique_id, $userProviderIds);
 
                 $data[$transformed->master_event_unique_id] = [
                     "uid"           => $transformed->master_event_unique_id,
@@ -455,7 +456,8 @@ if (!function_exists('eventTransformation')) {
                     'running_time'  => $transformed->running_time,
                     'ref_schedule'  => Carbon::createFromFormat("Y-m-d H:i:s", $transformed->ref_schedule, 'Etc/UTC')->setTimezone($userTz)->format("Y-m-d H:i:s"),
                     'has_bet'       => $hasBet,
-                    'with_providers' => $providersOfEvents
+                    'with_providers' => $providersOfEvents,
+                    'has_other_markets' => $eventHasOtherMarkets
                 ];
             }
             if (empty($data[$transformed->master_event_unique_id]['home'])) {

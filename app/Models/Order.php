@@ -38,7 +38,7 @@ class Order extends Model
         return $this->belongsTo(App/Models/UserWallet::class, 'user_id','user_id');
     }
 
-    public static function getAllOrders($whereClause, $page, $limit)
+    public static function getAllOrders($whereClause, $page)
     {
         $whereClause[] = ['user_id', auth()->user()->id];
 
@@ -71,7 +71,6 @@ class Order extends Model
             )
             ->where($whereClause)
             ->orderBy('orders.created_at', 'desc')
-            ->limit($limit)->offset(($page - 1) * $limit)
             ->get()
             ->toArray();
     }

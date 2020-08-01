@@ -322,6 +322,16 @@ export default {
                             })
                         })
                     })
+                } else if(getSocketKey(response.data) === 'getEventHasOtherMarket') {
+                    let eventHasOtherMarket = getSocketValue(response.data, 'getEventHasOtherMarket')
+                    this.allEventsList.map(event => {
+                        if(event.uid == eventHasOtherMarket.uid) {
+                            event.has_other_markets = eventHasOtherMarket.has_other_markets
+                            if(!eventHasOtherMarket.has_other_markets) {
+                                this.$delete(event.market_odds, 'other')
+                            }
+                        }
+                    })
                 }
             })
         }

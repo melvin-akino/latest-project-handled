@@ -2,41 +2,41 @@
 
 return [
     'price-format'               => [
-        [
-            'id'    => 1,
-            'value' => 'Decimal',
-            'alias' => 'Dec'
-        ],
+//        [
+//            'id'    => 1,
+//            'value' => 'Decimal',
+//            'alias' => 'Dec'
+//        ],
         [
             'id'    => 2,
             'value' => 'HongKong',
             'alias' => 'HK'
         ],
-        [
-            'id'    => 3,
-            'value' => 'United States',
-            'alias' => 'US'
-        ],
-        [
-            'id'    => 4,
-            'value' => 'Indo Odds',
-            'alias' => 'Indo'
-        ],
-        [
-            'id'    => 5,
-            'value' => 'Malay',
-            'alias' => 'Malay'
-        ]
+//        [
+//            'id'    => 3,
+//            'value' => 'United States',
+//            'alias' => 'US'
+//        ],
+//        [
+//            'id'    => 4,
+//            'value' => 'Indo Odds',
+//            'alias' => 'Indo'
+//        ],
+//        [
+//            'id'    => 5,
+//            'value' => 'Malay',
+//            'alias' => 'Malay'
+//        ]
     ],
     'trade-layout'               => [
         [
             'id'    => 1,
             'value' => 'Asian',
         ],
-        [
-            'id'    => 2,
-            'value' => 'European',
-        ],
+//        [
+//            'id'    => 2,
+//            'value' => 'European',
+//        ],
     ],
     'sort-event'                 => [
         [
@@ -68,10 +68,10 @@ return [
             'key'   => "en",
             'value' => "English",
         ],
-        [
-            'id'    => 2,
-            'key'   => "es",
-            'value' => "Spanish",
-        ],
+//        [
+//            'id'    => 2,
+//            'key'   => "es",
+//            'value' => "Spanish",
+//        ],
     ],
 ];

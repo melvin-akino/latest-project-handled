@@ -321,9 +321,7 @@ class TradeController extends Controller
     {
         try {
             $watchlistData    = [];
-            $watchlist        = [];
             $userSelectedData = [];
-            $userSelected     = [];
             $type             = [
                 'user_watchlist',
                 'user_selected',
