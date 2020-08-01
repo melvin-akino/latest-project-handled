@@ -5,7 +5,7 @@ namespace App\Processes;
 use App\Facades\SwooleHandler;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
-use App\Models\{Order, Sport, SystemConfiguration};
+use App\Models\{Order, Sport, Provider, SystemConfiguration};
 use Hhxsv5\LaravelS\Swoole\Process\CustomProcessInterface;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -43,7 +43,8 @@ class DataToSwt implements CustomProcessInterface
             'Currencies',
             'UserInfo',
             'ProviderAccounts',
-            'MLBetId'
+            'MLBetId',
+            'Maintenance',
         ];
 
         $maxMissingCount = SystemConfiguration::getSystemConfigurationValue('EVENT_VALID_MAX_MISSING_COUNT')->value;
@@ -701,5 +702,17 @@ class DataToSwt implements CustomProcessInterface
         $swTable->set('mlBetId', [
             'ml_bet_id' => $betId,
         ]);
+    }
+
+    private static function db2SwtMaintenance(Server $swoole)
+    {
+        $providers   = Provider::all();
+        $maintenance = $swoole->maintenanceTable;
+
+        array_map(function ($providers) use ($maintenance) {
+            $maintenance->set('maintenance:' . strtolower($providers['alias']), [
+                'under_maintenance' => false,
+            ]);
+        }, $providers->toArray());
     }
 }
