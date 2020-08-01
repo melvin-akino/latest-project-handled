@@ -9,7 +9,8 @@ use Exception;
 
 class OddsValidationHandler
 {
-    protected $message;
+    public $message;
+
     protected $offset;
     protected $updated = false;
     protected $uid     = null;
@@ -83,7 +84,8 @@ class OddsValidationHandler
              * Checks if hash is the same as old hash
              */
             $transformedSwtId           = 'eventIdentifier:' . $this->message->data->events[0]->eventId;
-            $toHashMessage              = $this->message->data;
+            $oddsValidationObject       = unserialize(serialize($this));
+            $toHashMessage              = $oddsValidationObject->message->data;
             $toHashMessage->runningtime = null;
             $toHashMessage->id          = null;
 
