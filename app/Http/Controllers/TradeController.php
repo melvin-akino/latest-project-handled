@@ -288,11 +288,12 @@ class TradeController extends Controller
                         if ($event['master_league_id'] == $masterLeague->id && $event['game_schedule'] == $request->schedule) {
                             foreach ($eventMarketsTable as $eMKey => $eventMarket) {
                                 if ($eventMarket['master_event_unique_id'] == $event['master_event_unique_id']) {
-                                    foreach ($topicTable as $k => $topic) {
-                                        if ($topic['user_id'] == auth()->user()->id && $topic['topic_name'] == 'market-id-' . $eventMarket['master_event_market_unique_id']) {
-                                            $topicTable->del($k);
-
-                                            break;
+                                    if (!SwooleHandler::exists('userWatchlistTable', 'userWatchlist:' . $userId . ':masterEventUniqueId:' . $eventMarket['master_event_unique_id'])) {
+                                        foreach ($topicTable as $k => $topic) {
+                                            if ($topic['user_id'] == auth()->user()->id && $topic['topic_name'] == 'market-id-' . $eventMarket['master_event_market_unique_id']) {
+                                                $topicTable->del($k);
+                                                break;
+                                            }
                                         }
                                     }
                                 }
