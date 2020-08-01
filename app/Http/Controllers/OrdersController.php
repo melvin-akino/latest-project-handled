@@ -727,11 +727,11 @@ class OrdersController extends Controller
             foreach($orders as $order) {
                 $type = '';
                 if ($order->odd_type_id == 3 || $order->odd_type_id == 11) {
-                    $type = $order->sport_odd_type_name;
+                    $type = 'HDP';
                     $points = $order->points;
                 } else if ($order->odd_type_id == 4 || $order->odd_type_id == 12) {
                     $ouOddLabel = explode(' ', $order->points);
-                    $type = $order->sport_odd_type_name;
+                    $type = $ouOddLabel[0];
                     $points = $ouOddLabel[1];
                 }
                 $current_score = explode(' - ', $order->score_on_bet);
@@ -741,6 +741,7 @@ class OrdersController extends Controller
                     'points'            => $points,
                     'odds'              => $order->odds,
                     'type'              => $type,
+                    'odd_type_name'     => $order->sport_odd_type_name,
                     'bet_team'          => $order->market_flag,
                     'team_name'         => $order->market_flag == 'HOME' ? $order->home_team_name : $order->away_team_name,
                     'home_score_on_bet' => $current_score[0],
