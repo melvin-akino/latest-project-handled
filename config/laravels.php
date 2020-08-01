@@ -144,6 +144,12 @@ return [
                 ['name' => 'value', 'type' => \Swoole\Table::TYPE_INT],
             ],
         ],
+        'newLeague'            => [
+            'size'   => 1,// The max size
+            'column' => [// Define the columns
+                 ['name' => 'value', 'type' => \Swoole\Table::TYPE_INT],
+            ],
+        ],
         'userWatchlist'       => [// key format [userWatchlist:$userId:masterEventId:$masterEventId] = [value = true]
             'size'   => 10000,// The max size
             'column' => [// Define the columns
@@ -300,8 +306,7 @@ return [
         'mlEvents'              => [ //key format [$sportId:$masterLeagueId:$mthId:$mtaId:$refSchedule] = [master_event_unique_id = $masterEventUniqueId]
             'size'   => 10000,
             'column' => [
-                ['name' => 'master_event_unique_id', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 30],
-//                ['name' => 'game_schedule', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 30],
+                ['name' => 'master_event_unique_id', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 30]
             ],
         ],
         'eventMarkets'        => [ //key format [pId:$providerId:meUID:$meUID:betIdentifier:$betIdentifier] = [id = $id, ...]
