@@ -741,6 +741,7 @@ class OrdersController extends Controller
                     'points'            => $points,
                     'odds'              => $order->odds,
                     'type'              => $type,
+                    'odd_type_name'     => $order->sport_odd_type_name,
                     'bet_team'          => $order->market_flag,
                     'team_name'         => $order->market_flag == 'HOME' ? $order->home_team_name : $order->away_team_name,
                     'home_score_on_bet' => $current_score[0],

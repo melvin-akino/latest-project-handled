@@ -85,6 +85,11 @@ class Order extends Model
         return DB::table('orders')
         ->leftJoin('master_event_markets AS mem', 'mem.id', 'orders.master_event_market_id')
         ->leftJoin('master_events AS me', 'me.id', 'mem.master_event_id')
+        ->leftJoin('odd_types as ot', 'ot.id', 'mem.odd_type_id')
+        ->leftJoin('sport_odd_type as sot', function ($join) {
+            $join->on('sot.odd_type_id', '=', 'ot.id');
+            $join->on('sot.sport_id', '=', 'me.sport_id');
+        })
         ->leftJoin('master_teams as ht', 'ht.id', 'me.master_team_home_id')
         ->leftJoin('master_teams as at', 'at.id', 'me.master_team_away_id')
         ->where('user_id', auth()->user()->id)
@@ -93,7 +98,7 @@ class Order extends Model
         ->whereIn('mem.odd_type_id', function($query) {
             $query->select('id')->from('odd_types')->whereIn('type', ['HDP', 'HT HDP', 'OU', 'HT OU']);
         })
-        ->select('orders.id', 'stake', 'odds', 'odd_label AS points', 'mem.odd_type_id', 'mem.market_flag', 'ht.name as home_team_name', 'at.name as away_team_name', 'orders.created_at', 'score_on_bet');
+        ->select('orders.id', 'stake', 'odds', 'odd_label AS points', 'mem.odd_type_id', 'mem.market_flag', 'ht.name as home_team_name', 'at.name as away_team_name', 'orders.created_at', 'score_on_bet', 'sot.name as sport_odd_type_name');
     }
 
     public static function getOrdersByUserId(int $userId)
