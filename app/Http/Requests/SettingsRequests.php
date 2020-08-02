@@ -47,7 +47,7 @@ class SettingsRequests extends FormRequest
                 'country_id'                => 'required|numeric|exists:countries,id',
                 'state'                     => 'required|max:100',
                 'city'                      => 'required|max:100',
-                'phone'                     => 'required|string|regex:/^[0-9]{1,32}$/',
+                'phone'                     => 'required|string|regex:/^[0-9]{1,32}$/|min:7',
             ];
         } else if ($type == 'change-password') {
             return [
@@ -153,6 +153,7 @@ class SettingsRequests extends FormRequest
             'password.max'                 => trans('validation.custom.password.max', ['count' => 32]),
             'password_confirmation.max'    => trans('validation.custom.password_confirmation.max', ['count' => 32]),
             'password_confirmation.same'   => trans('validation.custom.password_confirmation.new-same'),
+            'phone.min'                    => trans('validation.custom.phone.min', ['min' => 7])
         ];
     }
 
