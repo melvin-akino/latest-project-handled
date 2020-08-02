@@ -6,7 +6,7 @@
                     <h3 class="block text-gray-700 text-lg mb-2 font-bold uppercase">Register - Step 1 of 3</h3>
                     <div class="mb-2">
                         <label class="block text-gray-700 text-sm mb-2 font-bold uppercase" for="name">Display Name</label>
-                        <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none" :class="{'border-red-600': $v.registerForm.step1.name.$error || registerErrors.hasOwnProperty('name')}" id="name" type="text" placeholder="e.g. iampogi" v-model="$v.registerForm.step1.name.$model" @keypress="removeError('name')">
+                        <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none" :class="{'border-red-600': $v.registerForm.step1.name.$error || registerErrors.hasOwnProperty('name')}" id="name" type="text" placeholder="e.g. iampogi" v-model.trim="$v.registerForm.step1.name.$model" @keypress="removeError('name')">
                         <span v-if="$v.registerForm.step1.name.$dirty && !$v.registerForm.step1.name.required" class="text-red-600 text-sm">Please type a display name.</span>
                         <span v-if="$v.registerForm.step1.name.$dirty && !$v.registerForm.step1.name.alphaNum" class="text-red-600 text-sm">Username should only contain alphanumeric characters.</span>
                         <span v-if="$v.registerForm.step1.name.$dirty && !$v.registerForm.step1.name.minLength" class="text-red-600 text-sm">Username must have a minimum of 6 characters.</span>
@@ -16,20 +16,20 @@
                     <div class="flex justify-evenly">
                         <div class="mb-2 mr-3 w-1/2">
                             <label class="block text-gray-700 text-sm mb-2 font-bold uppercase" for="firstname">First Name</label>
-                            <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none" :class="{'border-red-600': $v.registerForm.step1.firstname.$error}" id="firstname" type="text" placeholder="e.g. Tony, Steve" v-model="$v.registerForm.step1.firstname.$model">
+                            <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none" :class="{'border-red-600': $v.registerForm.step1.firstname.$error}" id="firstname" type="text" placeholder="e.g. Tony, Steve" v-model.trim="$v.registerForm.step1.firstname.$model">
                             <span v-if="$v.registerForm.step1.firstname.$dirty && !$v.registerForm.step1.firstname.required" class="text-red-600 text-sm">Please type your first name.</span>
                             <span v-if="$v.registerForm.step1.firstname.$dirty && !$v.registerForm.step1.firstname.maxLength" class="text-red-600 text-sm">First name must have a maximum of 32 characters.</span>
                         </div>
                         <div class="mb-2 w-1/2">
                             <label class="block text-gray-700 text-sm mb-2 font-bold uppercase" for="lastname">Last Name</label>
-                            <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none" :class="{'border-red-600': $v.registerForm.step1.lastname.$error}" id="lastname" type="text" placeholder="e.g. Stark, Rogers" v-model="$v.registerForm.step1.lastname.$model">
+                            <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none" :class="{'border-red-600': $v.registerForm.step1.lastname.$error}" id="lastname" type="text" placeholder="e.g. Stark, Rogers" v-model.trim="$v.registerForm.step1.lastname.$model">
                             <span v-if="$v.registerForm.step1.lastname.$dirty && !$v.registerForm.step1.lastname.required" class="text-red-600 text-sm">Please type your last name.</span>
                             <span v-if="$v.registerForm.step1.firstname.$dirty && !$v.registerForm.step1.lastname.maxLength" class="text-red-600 text-sm">Last name must have a maximum of 32 characters.</span>
                         </div>
                     </div>
                     <div class="mb-2">
                         <label class="block text-gray-700 text-sm mb-2 font-bold uppercase" for="email">Email</label>
-                        <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none" :class="{'border-red-600': $v.registerForm.step1.email.$error || registerErrors.hasOwnProperty('email')}" id="email" type="text" placeholder="e.g. iampogi@pogi.com" v-model="$v.registerForm.step1.email.$model" @keypress="removeError('email')">
+                        <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none" :class="{'border-red-600': $v.registerForm.step1.email.$error || registerErrors.hasOwnProperty('email')}" id="email" type="text" placeholder="e.g. iampogi@pogi.com" v-model.trim="$v.registerForm.step1.email.$model" @keypress="removeError('email')">
                         <span v-if="$v.registerForm.step1.email.$dirty && !$v.registerForm.step1.email.required" class="text-red-600 text-sm">Please type an email.</span>
                         <span v-if="$v.registerForm.step1.email.$dirty && !$v.registerForm.step1.email.email" class="text-red-600 text-sm">Please type a valid email.</span>
                         <span v-if="$v.registerForm.step1.email.$dirty && !$v.registerForm.step1.email.maxLength" class="text-red-600 text-sm">Email must have a maximum of 100 chracters.</span>
@@ -59,7 +59,7 @@
                     <h3 class="block text-gray-700 text-lg mb-2 font-bold uppercase">Register - Step 2 of 3</h3>
                     <div class="mb-2">
                         <label class="block text-gray-700 text-sm mb-2 font-bold uppercase" for="address">Address</label>
-                        <textarea class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none" :class="{'border-red-600': $v.registerForm.step2.address.$error}" id="address" v-model="$v.registerForm.step2.address.$model"></textarea>
+                        <textarea class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none" :class="{'border-red-600': $v.registerForm.step2.address.$error}" id="address" v-model.trim="$v.registerForm.step2.address.$model"></textarea>
                         <span v-if="$v.registerForm.step2.address.$dirty && !$v.registerForm.step2.address.required" class="text-red-600 text-sm">Address is required.</span>
                     </div>
                     <div class="mb-2">
@@ -80,13 +80,13 @@
                     <div class="flex justify-evenly">
                         <div class="mb-2 mr-3 w-full">
                             <label class="block text-gray-700 text-sm mb-2 font-bold uppercase" for="state">State</label>
-                            <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none" :class="{'border-red-600': $v.registerForm.step2.state.$error}" id="state" type="text" placeholder="State" v-model="$v.registerForm.step2.state.$model">
+                            <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none" :class="{'border-red-600': $v.registerForm.step2.state.$error}" id="state" type="text" placeholder="State" v-model.trim="$v.registerForm.step2.state.$model">
                             <span v-if="$v.registerForm.step2.state.$dirty && !$v.registerForm.step2.state.required" class="text-red-600 text-sm">State is required.</span>
                             <span v-if="$v.registerForm.step2.state.$dirty && !$v.registerForm.step2.state.maxLength" class="text-red-600 text-sm">State must have a maximum of 100 characters.</span>
                         </div>
                         <div class="mb-2 w-full">
                             <label class="block text-gray-700 text-sm mb-2 font-bold uppercase" for="city">City</label>
-                            <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none" :class="{'border-red-600': $v.registerForm.step2.city.$error}" id="city" type="text" placeholder="City" v-model="$v.registerForm.step2.city.$model">
+                            <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none" :class="{'border-red-600': $v.registerForm.step2.city.$error}" id="city" type="text" placeholder="City" v-model.trim="$v.registerForm.step2.city.$model">
                             <span v-if="$v.registerForm.step2.city.$dirty && !$v.registerForm.step2.city.required" class="text-red-600 text-sm">City is required.</span>
                             <span v-if="$v.registerForm.step2.city.$dirty && !$v.registerForm.step2.city.maxLength" class="text-red-600 text-sm">City must have a maximum of 100 characters.</span>
                         </div>
@@ -94,7 +94,7 @@
                     <div class="flex justify-evenly">
                         <div class="mb-2 mr-3 w-full">
                             <label class="block text-gray-700 text-sm font-bold mb-2 uppercase" for="postcode">Post Code</label>
-                            <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none" :class="{'border-red-600': $v.registerForm.step2.postcode.$error}" id="postcode" type="text" placeholder="Post Code" v-model="$v.registerForm.step2.postcode.$model">
+                            <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none" :class="{'border-red-600': $v.registerForm.step2.postcode.$error}" id="postcode" type="text" placeholder="Post Code" v-model.trim="$v.registerForm.step2.postcode.$model">
                             <span v-if="$v.registerForm.step2.postcode.$dirty && !$v.registerForm.step2.postcode.required" class="text-red-600 text-sm">Postcode is required.</span>
                             <span v-if="$v.registerForm.step2.postcode.$dirty && !$v.registerForm.step2.postcode.numeric" class="text-red-600 text-sm">Postcode should be numeric.</span>
                             <span v-if="$v.registerForm.step2.postcode.$dirty && !$v.registerForm.step2.postcode.minLength" class="text-red-600 text-sm">Postcode must have a minimum of 3 digits.</span>
@@ -102,7 +102,7 @@
                         </div>
                         <div class="mb-2 w-full">
                             <label class="block text-gray-700 text-sm font-bold mb-2 uppercase" for="phone">Phone</label>
-                            <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none" :class="{'border-red-600': $v.registerForm.step2.phone.$error}" id="phone" type="text" placeholder="Phone" v-model="$v.registerForm.step2.phone.$model">
+                            <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none" :class="{'border-red-600': $v.registerForm.step2.phone.$error}" id="phone" type="text" placeholder="Phone" v-model.trim="$v.registerForm.step2.phone.$model">
                             <span v-if="$v.registerForm.step2.phone.$dirty && !$v.registerForm.step2.phone.required" class="text-red-600 text-sm">Phone number is required.</span>
                             <span v-if="$v.registerForm.step2.phone.$dirty && !$v.registerForm.step2.phone.numeric" class="text-red-600 text-sm">Phone number should be numeric.</span>
                             <span v-if="$v.registerForm.step2.phone.$dirty && !$v.registerForm.step2.phone.maxLength" class="text-red-600 text-sm">Phone number must have a maximum length of 32 digits.</span>
