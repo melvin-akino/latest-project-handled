@@ -415,6 +415,9 @@ const actions = {
     },
     async addToWatchlist({dispatch, state, commit}, data) {
         try {
+
+            await axios.post('v1/trade/watchlist/add', { type: data.type, data: data.data }, { headers: { 'Authorization': `Bearer ${token}` }})
+            Vue.prototype.$socket.send('getWatchlist')
             if(data.type=='league') {
                 await dispatch('toggleLeagueByName', { action: 'remove', league_name: data.data, sport_id: state.selectedSport })
                 commit('REMOVE_FROM_LEAGUE_BY_NAME', { league: data.data })
@@ -444,8 +447,6 @@ const actions = {
                     commit('REMOVE_FROM_EVENT_LIST', { type: 'uid', data: data.payload.uid, game_schedule: data.payload.game_schedule })
                 }
             }
-            await axios.post('v1/trade/watchlist/add', { type: data.type, data: data.data }, { headers: { 'Authorization': `Bearer ${token}` }})
-            Vue.prototype.$socket.send('getWatchlist')
         } catch(err) {
             dispatch('auth/checkIfTokenIsValid', err.response.data.status_code, { root: true })
         }

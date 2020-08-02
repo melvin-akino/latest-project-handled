@@ -4,7 +4,6 @@ namespace App\Processes;
 
 use App\Facades\SwooleHandler;
 use Carbon\Carbon;
-use Illuminate\Support\Facades\Log;
 use App\Models\{Order, Sport, SystemConfiguration};
 use Hhxsv5\LaravelS\Swoole\Process\CustomProcessInterface;
 use Illuminate\Support\Facades\DB;
@@ -36,7 +35,6 @@ class DataToSwt implements CustomProcessInterface
             'UserProviderConfig',
             'ActiveEvents',
             'UserSelectedLeagues',
-            'UserSelectedLeaguesWithRaw',
             'Orders',
             'OrderPayloads',
             'ExchangeRates',
@@ -65,8 +63,17 @@ class DataToSwt implements CustomProcessInterface
 
         $swoole->data2SwtTable->set('data2Swt', ['value' => 1]);
 
+        $processCount = 0;
         while (!self::$quit) {
-            usleep(100000);
+            usleep(1000000);
+
+            if ($processCount % (60) == 0) {
+                self::db2SwtLeagues($swoole);
+                self::db2SwtTeams($swoole);
+                self::db2SwtEventRecords($swoole);
+            }
+
+            $processCount++;
         }
     }
 
@@ -230,8 +237,6 @@ class DataToSwt implements CustomProcessInterface
                                ->whereNull('e.deleted_at')
                                ->whereNull('em.deleted_at')
                                ->whereNull('ml.deleted_at')
-//                                ->where('e.event_identifier', 1000000)
-//                               ->where('e.missing_count', '<=', $maxMissingCount)
                                ->select([
                                    'ml.sport_id',
                                    'ml.name as master_league_name',
@@ -262,6 +267,7 @@ class DataToSwt implements CustomProcessInterface
                                    'p.alias',
                                    'e.event_identifier',
                                    'em.market_event_identifier',
+                                   'e.missing_count'
                                ])
                                 ->orderBy('ml.sport_id')
                                 ->orderBy('e.provider_id')
@@ -378,6 +384,7 @@ class DataToSwt implements CustomProcessInterface
                         'team_away_id'     => $eventIdentifier['team_away_id'],
                         'ref_schedule'     => date("Y-m-d H:i:s", strtotime($eventIdentifier['referenceSchedule'])),
                         'provider_id'      => $pKey,
+                        'missing_count'     => $eventRecord->missing_count,
                         'raw_data'         => json_encode($data)
                     ]);
                 }
@@ -483,27 +490,6 @@ class DataToSwt implements CustomProcessInterface
                 'sport_id'    => $userSelectedLeague->sport_id,
                 'league_name' => $userSelectedLeague->master_league_name,
                 'schedule'    => $userSelectedLeague->game_schedule
-            ]);
-        }, $userSelectedLeagues->toArray());
-    }
-
-    private static function db2SwtUserSelectedLeaguesWithRaw(Server $swoole)
-    {
-        $userSelectedLeagues      = DB::table('user_selected_leagues as usl')
-                                      ->join('master_leagues as ml', 'ml.id', 'usl.master_league_id')
-                                      ->join('leagues as l', 'l.master_league_id', 'ml.id')
-                                      ->select('ml.id as master_league_id', 'usl.sport_id', 'usl.game_schedule')
-                                      ->distinct()
-                                      ->get();
-        $userSelectedLeaguesTable = $swoole->userSelectedLeaguesWithRawTable;
-        array_map(function ($userSelectedLeague) use ($userSelectedLeaguesTable) {
-            $userSelectedLeaguesTable->set(
-                implode(':', [
-                    'sId:' . $userSelectedLeague->sport_id,
-                    'schedule:' . $userSelectedLeague->game_schedule,
-                    'mlId:' . $userSelectedLeague->master_league_id
-                ]), [
-                'selected'         => 1
             ]);
         }, $userSelectedLeagues->toArray());
     }

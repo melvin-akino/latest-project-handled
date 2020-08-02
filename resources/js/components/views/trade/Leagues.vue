@@ -48,16 +48,7 @@ export default {
         modifyLeaguesFromSocket() {
             this.$options.sockets.onmessage = (response) => {
                 if (getSocketKey(response.data) === 'getAdditionalLeagues') {
-                    if(getSocketValue(response.data, 'getAdditionalLeagues') != '') {
-                        let additionalLeagues = getSocketValue(response.data, 'getAdditionalLeagues')
-                        this.leagueSchedModes.map(sched => {
-                            additionalLeagues.map(additionalLeague => {
-                                if(sched == additionalLeague.schedule) {
-                                    this.$store.commit('trade/ADD_TO_LEAGUES', { schedule: sched, league: additionalLeague })
-                                }
-                            })
-                        })
-                    }
+                    this.$store.dispatch('trade/getInitialLeagues')
                 } else if (getSocketKey(response.data) === 'getSelectedLeagues') {
                     if(getSocketValue(response.data, 'getSelectedLeagues') != '') {
                         let selectedLeagues = getSocketValue(response.data, 'getSelectedLeagues')

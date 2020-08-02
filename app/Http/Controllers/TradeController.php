@@ -7,21 +7,15 @@ use App\Models\{
     Order,
     MasterEvent,
     MasterLeague,
-    Sport,
     UserSelectedLeague,
     UserWatchlist,
     UserConfiguration,
     Timezones,
-    Provider,
     UserProviderConfiguration
 };
-use Illuminate\Support\Facades\{
-    DB,
-    Log
-};
+use Illuminate\Support\Facades\Log;
 use Illuminate\Http\Request;
 use Exception;
-use DateTime;
 use Carbon\Carbon;
 use App\Facades\SwooleHandler;
 use App\Http\Requests\ToggleLeaguesRequest;
@@ -276,12 +270,6 @@ class TradeController extends Controller
                             'league_name' => $request->league_name,
                             'schedule'    => $request->schedule
                         ]);
-
-                        SwooleHandler::setValue('userSelectedLeaguesWithRawTable', implode(':', [
-                            'sId:' . $request->sport_id,
-                            'schedule:' . $request->schedule,
-                            'mlId:' . $masterLeague->id
-                        ]), ['selected' => 1]);
                     }
                 }
             } else if($action == 'remove' && $checkTable->count() > 0) {
@@ -290,11 +278,6 @@ class TradeController extends Controller
                 if (empty($_SERVER['_PHPUNIT'])) {
                     if(SwooleHandler::exists('userSelectedLeaguesTable', $swtKey)) {
                         SwooleHandler::remove('userSelectedLeaguesTable', $swtKey);
-                        SwooleHandler::remove('userSelectedLeaguesWithRawTable', implode(':', [
-                            'sId:' . $request->sport_id,
-                            'schedule:' . $request->schedule,
-                            'mlId:' . $masterLeague->id
-                        ]));
                     }
 
                     $topicTable        = app('swoole')->topicTable;
@@ -305,11 +288,12 @@ class TradeController extends Controller
                         if ($event['master_league_id'] == $masterLeague->id && $event['game_schedule'] == $request->schedule) {
                             foreach ($eventMarketsTable as $eMKey => $eventMarket) {
                                 if ($eventMarket['master_event_unique_id'] == $event['master_event_unique_id']) {
-                                    foreach ($topicTable as $k => $topic) {
-                                        if ($topic['user_id'] == auth()->user()->id && $topic['topic_name'] == 'market-id-' . $eventMarket['master_event_market_unique_id']) {
-                                            $topicTable->del($k);
-
-                                            break;
+                                    if (!SwooleHandler::exists('userWatchlistTable', 'userWatchlist:' . $userId . ':masterEventUniqueId:' . $eventMarket['master_event_unique_id'])) {
+                                        foreach ($topicTable as $k => $topic) {
+                                            if ($topic['user_id'] == auth()->user()->id && $topic['topic_name'] == 'market-id-' . $eventMarket['master_event_market_unique_id']) {
+                                                $topicTable->del($k);
+                                                break;
+                                            }
                                         }
                                     }
                                 }
