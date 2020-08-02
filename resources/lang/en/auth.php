@@ -32,6 +32,7 @@ return [
             '404'       => "Invalid Password Reset Token",
         ],
         'success'       => "Password Reset Successful",
+        'must_not_same' => "New Password must not be the same as Current Password"
     ],
     'register'          => [
         'success'       => "User Successfully Registered",

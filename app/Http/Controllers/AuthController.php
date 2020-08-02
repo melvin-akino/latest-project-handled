@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\User;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use App\Models\{
     Source,
@@ -329,6 +330,14 @@ class AuthController extends Controller
                     'status_code' => 451,
                     'message'     => trans('auth.login.451')
                 ], 451);
+            }
+
+            if (Hash::check($request->password, $user->password)) {
+                return response()->json([
+                    'status'      => false,
+                    'status_code' => 405,
+                    'message'     => trans('auth.password_reset.must_not_same')
+                ], 405);
             }
 
             $user->password = bcrypt($request->password);
