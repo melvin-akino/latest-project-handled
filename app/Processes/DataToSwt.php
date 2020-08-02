@@ -711,7 +711,8 @@ class DataToSwt implements CustomProcessInterface
 
         array_map(function ($providers) use ($maintenance) {
             $maintenance->set('maintenance:' . strtolower($providers['alias']), [
-                'under_maintenance' => false,
+                'provider'          => strtoupper($providers['alias']),
+                'under_maintenance' => "false",
             ]);
         }, $providers->toArray());
     }

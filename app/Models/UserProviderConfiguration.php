@@ -102,15 +102,21 @@ class UserProviderConfiguration extends Model
             ->orderBy('user_provider_configurations.provider_id', 'asc');
     }
 
-    public static function getProviderIdList(int $userId)
+    public static function getProviderIdList(int $userId, array $provMaintenance = [])
     {
         $userProvider = self::where('user_id', $userId)
-                         ->join('providers as p', 'provider_id', 'p.id');
-        if ($userProvider->exists()) {
-            $userProvider = $userProvider->where('active', true)->where('p.is_enabled', true)->orderBy('priority', 'ASC')->pluck('provider_id')->toArray();
-        } else {
-            $userProvider = Provider::where('is_enabled', true)->orderBy('priority', 'ASC')->pluck('id')->toArray();
+            ->join('providers as p', 'provider_id', 'p.id');
+
+        if (!empty($provMaintenance)) {
+            $userProvider = $userProvider->whereNotIn('p.alias', $provMaintenance);
         }
-        return $userProvider;
+
+        if ($userProvider->exists()) {
+            $userProvider = $userProvider->where('active', true)->where('p.is_enabled', true)->orderBy('priority', 'ASC')->pluck('provider_id');
+        } else {
+            $userProvider = Provider::where('is_enabled', true)->orderBy('priority', 'ASC')->pluck('id');
+        }
+
+        return $userProvider->toArray();
     }
 }

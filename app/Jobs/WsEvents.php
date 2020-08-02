@@ -38,11 +38,20 @@ class WsEvents implements ShouldQueue
             $topicTable   = $server->topicTable;
             $masterLeague = MasterLeague::where('name', $this->masterLeagueName)->first();
 
-            $gameDetails = Game::getGameDetails($masterLeague->id, $this->schedule, $userId);
-            $data        = eventTransformation($gameDetails, $userId, $topicTable, 'socket');
+            // Get Providers under Maintenance
+            $provMaintenance = [];
+            $maintenance     = $server->maintenanceTable;
 
-            $gameData = is_array($data) ? $data : [];
-            $eventData = array_values($gameData);
+            foreach ($maintenance AS $key => $row) {
+                if ($row['under_maintenance'] == 'true') {
+                    $provMaintenance[] = strtoupper($row['provider']);
+                }
+            }
+
+            $gameDetails = Game::getGameDetails($masterLeague->id, $this->schedule, $userId, $provMaintenance);
+            $data        = eventTransformation($gameDetails, $userId, $topicTable, 'socket');
+            $gameData    = is_array($data) ? $data : [];
+            $eventData   = array_values($gameData);
 
             if (!empty($eventData)) {
                 $channelName = $this->additional ? "getAdditionalEvents" : "getEvents";

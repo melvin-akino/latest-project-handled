@@ -195,13 +195,22 @@ class TradeController extends Controller
     {
         try {
             /** Get Authenticated User's Default Initial Sport : Last Sport visited */
-            $data         = getUserDefault(auth()->user()->id, 'sport');
-            $dataSchedule = [
+            $provMaintenance = [];
+            $swoole          = app('swoole');
+            $data            = getUserDefault(auth()->user()->id, 'sport');
+            $dataSchedule    = [
                 'inplay' => [],
                 'today'  => [],
                 'early'  => []
             ];
-            $userProviderIds = UserProviderConfiguration::getProviderIdList(auth()->user()->id);
+
+            foreach ($swoole->maintenanceTable AS $key => $row) {
+                if ($row['under_maintenance'] == 'true') {
+                    $provMaintenance[] = strtoupper($row['provider']);
+                }
+            }
+
+            $userProviderIds = UserProviderConfiguration::getProviderIdList(auth()->user()->id, $provMaintenance);
 
             foreach ($dataSchedule as $key => $sched) {
                 $leaguesQuery = MasterLeague::getLeaguesBySportAndGameShedule($data['default_sport'], auth()->user()->id, $userProviderIds, $key);

@@ -45,9 +45,9 @@ class MaintenanceConsume implements CustomProcessInterface
                         continue;
                     } else {
                         Log::info('Maintenance calling Task Worker');
-                        TransformKafkaMessageMaintenance::dispatch($payload);
+                        TransformKafkaMessageMaintenance::dispatchNow($payload);
                     }
-                    
+
                     $kafkaConsumer->commit($message);
                     continue;
                 }

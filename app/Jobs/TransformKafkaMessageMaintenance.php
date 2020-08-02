@@ -40,24 +40,28 @@ class TransformKafkaMessageMaintenance implements ShouldQueue
                 Log::error('MAINTENANCE -- Invalid Payload Command');
             }
 
-            if ($maintenance['maintenance:' . strtolower($this->data->data->provider)]['under_maintenance'] == $this->data->data->under_maintenance) {
+            $payloadMaintenance = $this->data->data->under_maintenance == true ? "true" : "false";
+
+            if ($maintenance['maintenance:' . strtolower($this->data->data->provider)]['under_maintenance'] == $payloadMaintenance) {
                 Log::info('MAINTENANCE: Skip -- No Changes');
 
                 return true;
             }
 
-            $fd = $ws['uid:1']['value'];
-
             $maintenance->set('maintenance:' . strtolower($this->data->data->provider), [
-                'under_maintenance' => $this->data->data->under_maintenance ? "true" : "false",
+                'under_maintenance' => $this->data->data->under_maintenance == true ? "true" : "false",
             ]);
 
-            $swoole->push($fd, json_encode([
-                'getMaintenance' => [
-                    'provider'          => $this->data->data->provider,
-                    'under_maintenance' => $this->data->data->under_maintenance,
-                ]
-            ]));
+            foreach ($ws AS $key => $row) {
+                if (strpos($key, 'uid:') !== false) {
+                    $swoole->push($ws->get($key)['value'], json_encode([
+                        'getMaintenance' => [
+                            'provider'          => strtoupper($this->data->data->provider),
+                            'under_maintenance' => $this->data->data->under_maintenance == true ? "true" : "false",
+                        ]
+                    ]));
+                }
+            }
         } catch (Exception $e) {
             Log::error($e->getMessage());
         }
