@@ -9,7 +9,6 @@ class AppController extends Controller
 {
     public function index()
     {
-        $swoole      = app('swoole');
         $defaultData = [
             'price-format'               => config('constants.price-format'),
             'trade-layout'               => config('constants.trade-layout'),
