@@ -3,6 +3,7 @@ import _ from 'lodash'
 import { sortByObjectKeys, sortByObjectProperty } from '../helpers/array'
 import Cookies from 'js-cookie'
 const token = Cookies.get('mltoken')
+import Swal from 'sweetalert2'
 
 const state = {
     leagues: [],
@@ -379,6 +380,25 @@ const actions = {
         dispatch('getInitialEvents')
         await dispatch('getBetbarData')
         dispatch('getOrders')
+    },
+    async loadTradeWindow({dispatch, commit}) {
+        if(Cookies.get('under_maintenance')) {
+            Swal.fire({
+                icon: 'warning',
+                text: 'No Available Bookmaker.',
+                allowOutsideClick: false,
+                allowEscapeKey: false,
+                allowEnterKey: false,
+                showConfirmButton: false
+            })
+            await dispatch('getSports')
+            await dispatch('getBetColumns', state.selectedSport)
+            commit('SET_IS_LOADING_LEAGUES', false)
+            commit('SET_IS_LOADING_EVENTS', false)
+            commit('SET_LEAGUES', { inplay: [], today: [], early: [] })
+        } else {
+            dispatch('getTradeWindowData')
+        }
     },
     getBetbarData({commit, state, dispatch}) {
         return axios.get('v1/trade/betbar', { headers: { 'Authorization': `Bearer ${token}` }})
