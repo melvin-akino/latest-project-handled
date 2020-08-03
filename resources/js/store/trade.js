@@ -3,6 +3,7 @@ import _ from 'lodash'
 import { sortByObjectKeys, sortByObjectProperty } from '../helpers/array'
 import Cookies from 'js-cookie'
 const token = Cookies.get('mltoken')
+import Swal from 'sweetalert2'
 
 const state = {
     leagues: [],
@@ -41,7 +42,8 @@ const state = {
     isLoadingLeagues: true,
     isLoadingEvents: true,
     failedBetStatus: ['PENDING', 'FAILED', 'CANCELLED', 'REJECTED', 'VOID', 'ABNORMAL BET', 'REFUNDED'],
-    eventsError: false
+    eventsError: false,
+    underMaintenanceProviders: []
 }
 
 const getters = {
@@ -89,6 +91,11 @@ const mutations = {
                     Vue.set(league, 'match_count', data.eventsRemaining)
                 }
             }
+        })
+    },
+    CLEAR_LEAGUES: (state) => {
+        Object.keys(state.leagues).map(schedule => {
+            state.leagues[schedule] = []
         })
     },
     SET_SPORTS: (state, sports) => {
@@ -258,6 +265,16 @@ const mutations = {
     },
     SET_EVENTS_ERROR: (state, data) => {
         state.eventsError = data
+    },
+    ADD_TO_UNDER_MAINTENANCE_PROVIDERS: (state, provider) => {
+        if(!state.underMaintenanceProviders.includes(provider)) {
+            state.underMaintenanceProviders.push(provider)
+        }
+    },
+    REMOVE_FROM_UNDER_MAINTENANCE_PROVIDERS: (state, provider) => {
+        if(state.underMaintenanceProviders.includes(provider)) {
+            state.underMaintenanceProviders = state.underMaintenanceProviders.filter(underMaintenanceProvider => underMaintenanceProvider != provider)
+        }
     }
 }
 
@@ -363,6 +380,25 @@ const actions = {
         dispatch('getInitialEvents')
         await dispatch('getBetbarData')
         dispatch('getOrders')
+    },
+    async loadTradeWindow({dispatch, commit}) {
+        if(Cookies.get('under_maintenance')) {
+            Swal.fire({
+                icon: 'warning',
+                text: 'No Available Bookmaker.',
+                allowOutsideClick: false,
+                allowEscapeKey: false,
+                allowEnterKey: false,
+                showConfirmButton: false
+            })
+            await dispatch('getSports')
+            await dispatch('getBetColumns', state.selectedSport)
+            commit('SET_IS_LOADING_LEAGUES', false)
+            commit('SET_IS_LOADING_EVENTS', false)
+            commit('SET_LEAGUES', { inplay: [], today: [], early: [] })
+        } else {
+            dispatch('getTradeWindowData')
+        }
     },
     getBetbarData({commit, state, dispatch}) {
         return axios.get('v1/trade/betbar', { headers: { 'Authorization': `Bearer ${token}` }})
