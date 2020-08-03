@@ -95,12 +95,12 @@ class WsSettledBets implements ShouldQueue
 
                 break;
             case 'HALF LOSE':
-                $balance        = $orders->stake / 2;
+                $balance        = ($orders->stake / 2) * -1;
                 $debit          = 0;
                 $credit         = $balance;
                 $sourceName     = "BET_HALF_LOSE";
-                $charge         = 'Debit';
-                $transferAmount = $orders->to_win / 2;
+                $charge         = 'Credit';
+                $transferAmount = $orders->stake / 2;
 
                 break;
             case 'PUSH':
@@ -135,14 +135,14 @@ class WsSettledBets implements ShouldQueue
 
         try {
             Order::where('bet_id', $this->data->bet_id)
-                 ->update([
-                     'bet_selection' => $updatedBetSelection,
-                     'status'        => strtoupper($this->data->status),
-                     'profit_loss'   => $balance,
-                     'reason'        => $this->data->reason,
-                     'settled_date'  => Carbon::now(),
-                     'updated_at'    => Carbon::now(),
-                 ]);
+                ->update([
+                    'bet_selection' => $updatedBetSelection,
+                    'status'        => strtoupper($this->data->status),
+                    'profit_loss'   => $balance,
+                    'reason'        => $this->data->reason,
+                    'settled_date'  => Carbon::now(),
+                    'updated_at'    => Carbon::now(),
+                ]);
 
             $orderLogs = OrderLogs::create([
                 'provider_id'   => $this->providerId,
