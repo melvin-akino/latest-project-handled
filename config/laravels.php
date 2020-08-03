@@ -157,6 +157,12 @@ return [
                 ['name' => 'value', 'type' => \Swoole\Table::TYPE_INT],
             ],
         ],
+        'newLeague'            => [
+            'size'   => 1,// The max size
+            'column' => [// Define the columns
+                 ['name' => 'value', 'type' => \Swoole\Table::TYPE_INT],
+            ],
+        ],
         'userWatchlist'       => [// key format [userWatchlist:$userId:masterEventId:$masterEventId] = [value = true]
             'size'   => 10000,// The max size
             'column' => [// Define the columns
@@ -208,12 +214,6 @@ return [
                 ['name' => 'sport_id', 'type' => \Swoole\Table::TYPE_INT],
                 ['name' => 'schedule', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 6],
                 ['name' => 'user_id', 'type' => \Swoole\Table::TYPE_INT],
-            ],
-        ],
-        'userSelectedLeaguesWithRaw' => [// key format [sId:$sportId:schedule:early:mlId:$masterLeagueId] => [selected = 1]
-            'size'   => 5000,// The max size
-            'column' => [// Define the columns
-                       ['name' => 'selected', 'type' => \Swoole\Table::TYPE_INT]
             ],
         ],
         'oddTypes'            => [ // key format [oddType:$oddType] => [id = $id, type = $oddType]
@@ -302,6 +302,7 @@ return [
                 ['name' => 'team_away_id', 'type' => \Swoole\Table::TYPE_INT],
                 ['name' => 'ref_schedule', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 30],
                 ['name' => 'provider_id', 'type' => \Swoole\Table::TYPE_INT],
+                ['name' => 'missing_count', 'type' => \Swoole\Table::TYPE_INT],
                 ['name' => 'raw_data', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 10000]
             ],
         ],

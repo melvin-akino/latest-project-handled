@@ -4,24 +4,19 @@ namespace App\Http\Controllers;
 
 use App\Models\{
     Game,
+    MasterEventMarket,
     Order,
     MasterEvent,
     MasterLeague,
-    Sport,
     UserSelectedLeague,
     UserWatchlist,
     UserConfiguration,
     Timezones,
-    Provider,
     UserProviderConfiguration
 };
-use Illuminate\Support\Facades\{
-    DB,
-    Log
-};
+use Illuminate\Support\Facades\Log;
 use Illuminate\Http\Request;
 use Exception;
-use DateTime;
 use Carbon\Carbon;
 use App\Facades\SwooleHandler;
 use App\Http\Requests\ToggleLeaguesRequest;
@@ -285,12 +280,6 @@ class TradeController extends Controller
                             'league_name' => $request->league_name,
                             'schedule'    => $request->schedule
                         ]);
-
-                        SwooleHandler::setValue('userSelectedLeaguesWithRawTable', implode(':', [
-                            'sId:' . $request->sport_id,
-                            'schedule:' . $request->schedule,
-                            'mlId:' . $masterLeague->id
-                        ]), ['selected' => 1]);
                     }
                 }
             } else if($action == 'remove' && $checkTable->count() > 0) {
@@ -299,28 +288,17 @@ class TradeController extends Controller
                 if (empty($_SERVER['_PHPUNIT'])) {
                     if(SwooleHandler::exists('userSelectedLeaguesTable', $swtKey)) {
                         SwooleHandler::remove('userSelectedLeaguesTable', $swtKey);
-                        SwooleHandler::remove('userSelectedLeaguesWithRawTable', implode(':', [
-                            'sId:' . $request->sport_id,
-                            'schedule:' . $request->schedule,
-                            'mlId:' . $masterLeague->id
-                        ]));
                     }
 
-                    $topicTable        = app('swoole')->topicTable;
-                    $eventsTable       = app('swoole')->eventsTable;
-                    $eventMarketsTable = app('swoole')->eventMarketsTable;
+                    $marketsFromSelectedLeagues = MasterEventMarket::getSelectedMarkets($masterLeague->id, $request->schedule, $request->sport_id);
+                    $topicTable                 = app('swoole')->topicTable;
 
-                    foreach ($eventsTable as $eKey => $event) {
-                        if ($event['master_league_id'] == $masterLeague->id && $event['game_schedule'] == $request->schedule) {
-                            foreach ($eventMarketsTable as $eMKey => $eventMarket) {
-                                if ($eventMarket['master_event_unique_id'] == $event['master_event_unique_id']) {
-                                    foreach ($topicTable as $k => $topic) {
-                                        if ($topic['user_id'] == auth()->user()->id && $topic['topic_name'] == 'market-id-' . $eventMarket['master_event_market_unique_id']) {
-                                            $topicTable->del($k);
-
-                                            break;
-                                        }
-                                    }
+                    foreach ($marketsFromSelectedLeagues as $masterEventMarketUniqueId => $masterEventUniqueId) {
+                        if (!SwooleHandler::exists('userWatchlistTable', 'userWatchlist:' . $userId . ':masterEventUniqueId:' . $masterEventUniqueId)) {
+                            foreach ($topicTable as $k => $topic) {
+                                if ($topic['user_id'] == $userId && $topic['topic_name'] == 'market-id-' . $masterEventMarketUniqueId) {
+                                    $topicTable->del($k);
+                                    break;
                                 }
                             }
                         }

@@ -51,4 +51,12 @@ class UserSelectedLeague extends Model
             ->where('game_schedule', $filters['schedule'])
             ->where('sport_id', $filters['sport_id']);
     }
+
+    public static function getSelectedLeagueByAllUsers(array $filters = [])
+    {
+        return DB::table('user_selected_leagues')
+                 ->where('master_league_id', $filters['league_id'])
+                 ->where('game_schedule', $filters['schedule'])
+                 ->where('sport_id', $filters['sport_id']);
+    }
 }

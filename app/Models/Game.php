@@ -149,6 +149,10 @@ class Game extends Model
                  ->leftJoin('master_event_markets AS mem', 'me.id', 'mem.master_event_id')
                  ->leftJoin('event_markets AS em', 'em.master_event_market_id', 'mem.id')
                  ->leftJoin('odd_types AS ot', 'ot.id', 'mem.odd_type_id')
+                 ->leftJoin('sport_odd_type as sot', function ($join) {
+                    $join->on('sot.odd_type_id', '=', 'ot.id');
+                    $join->on('sot.sport_id', '=', 'me.sport_id');
+                 })
                  ->whereNull('me.deleted_at')
                  ->where('mem.master_event_market_unique_id', $marketId)
                  ->select([
@@ -168,7 +172,7 @@ class Game extends Model
                      'em.provider_id',
                      'em.odds',
                      'em.odd_label',
-                     'ot.type AS column_type',
+                     'sot.name AS column_type',
                  ])
                  ->first();
     }

@@ -2,10 +2,7 @@
 
 namespace App\Models;
 
-use App\Models\SystemConfiguration;
-
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\{Model, SoftDeletes};
 use Illuminate\Support\Facades\DB;
 
 class MasterLeague extends Model

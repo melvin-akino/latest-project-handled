@@ -41,6 +41,7 @@ use App\Models\CRM\{
     WalletLedger
 };
 use Illuminate\Support\Facades\Log;
+use App\Facades\SwooleHandler;
 
 /* Datatable for CRM admin */
 
@@ -459,6 +460,12 @@ if (!function_exists('eventTransformation')) {
                     'with_providers' => $providersOfEvents,
                     'has_other_markets' => $eventHasOtherMarkets
                 ];
+
+                if (in_array($type, ['socket-watchlist', 'watchlist'])) {
+                    SwooleHandler::setValue('userWatchlistTable', 'userWatchlist:' . $userId . ':masterEventUniqueId:' . $transformed->master_event_unique_id, [
+                        'value' => true
+                    ]);
+                }
             }
             if (empty($data[$transformed->master_event_unique_id]['home'])) {
                 $data[$transformed->master_event_unique_id]['home'] = [

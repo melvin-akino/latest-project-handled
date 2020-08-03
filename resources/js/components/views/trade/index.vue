@@ -172,10 +172,17 @@ export default {
                         if(!this.eventsListUID.includes(event.uid) && !this.allEventsListUID.includes(event.uid)) {
                             let existingleagueMatchCount = this.leagues[event.game_schedule].filter(league => league.name == event.league_name).map(league => league.match_count)[0]
                             let newleagueMatchCount = additionalEvents.filter(additionalEvent => event.league_name == additionalEvent.league_name).length
+                            if (typeof existingleagueMatchCount == 'undefined') {
+                                this.selectedLeagues[event.game_schedule] = [];
+                            }
                             if(this.selectedLeagues[event.game_schedule].includes(event.league_name)) {
-                                this.$store.commit('trade/SET_EVENTS_LIST', event)
-                                this.$store.commit('trade/SET_ALL_EVENTS_LIST', event)
-                                this.$store.commit('trade/UPDATE_LEAGUE_MATCH_COUNT', { schedule: event.game_schedule, league: event.league_name, eventsRemaining: existingleagueMatchCount + 1  })
+                                if (existingleagueMatchCount > 0) {
+                                    this.$store.commit('trade/SET_EVENTS_LIST', event)
+                                    this.$store.commit('trade/SET_ALL_EVENTS_LIST', event)
+                                    this.$store.commit('trade/UPDATE_LEAGUE_MATCH_COUNT', { schedule: event.game_schedule, league: event.league_name, eventsRemaining: existingleagueMatchCount + 1  })
+                                } else {
+                                    this.$store.commit('trade/ADD_TO_LEAGUES', { schedule: event.game_schedule, league: { name: event.league_name, match_count: newleagueMatchCount } })
+                                }
                                 if(this.tradePageSettings.sort_event == 1) {
                                     if(!_.isEmpty(this.events.watchlist) && event.league_name in this.events.watchlist) {
                                         this.$store.commit('trade/ADD_TO_EVENTS', { schedule: 'watchlist', league: event.league_name, event: event })
