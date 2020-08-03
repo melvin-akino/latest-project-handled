@@ -32,4 +32,19 @@ class MasterEventMarket extends Model
                  ->where('mem.master_event_id', $masterEventId)
                  ->first();
     }
+
+    public static function getSelectedMarkets(int $masterLeagueId, string $schedule, int $sportId)
+    {
+        return DB::table('master_event_markets as mem')
+                ->leftJoin('master_events as me', 'me.id', 'mem.master_event_id')
+                ->leftJoin('master_leagues as ml', 'ml.id', 'me.master_league_id')
+                ->whereNull('me.deleted_at')
+                ->whereNull('ml.deleted_at')
+                ->where('ml.id', $masterLeagueId)
+                ->where('me.game_schedule', $schedule)
+                ->where('me.sport_id', $sportId)
+                ->select('mem.master_event_market_unique_id', 'me.master_event_unique_id')
+                ->get()
+                ->pluck('master_event_unique_id', 'master_event_market_unique_id');
+    }
 }
