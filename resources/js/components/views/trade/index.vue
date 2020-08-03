@@ -344,15 +344,12 @@ export default {
                             allowEnterKey: false,
                             showConfirmButton: false
                         })
-                        this.$store.commit('trade/CLEAR_LEAGUES')
-                        this.$store.commit('trade/CLEAR_EVENTS')
-                        this.$store.commit('trade/CLEAR_EVENTS_LIST')
-                        this.$store.commit('trade/CLEAR_ALL_EVENTS_LIST')
                         this.$store.commit('trade/ADD_TO_UNDER_MAINTENANCE_PROVIDERS', maintenance.provider)
                         Cookies.set('under_maintenance', true)
                     } else {
                         Swal.close()
-                        this.$store.dispatch('trade/getTradeWindowData')
+                        if(Cookies.get('under_maintenance'))
+                            this.$store.dispatch('trade/getTradeWindowData')
                         this.$store.commit('trade/REMOVE_FROM_UNDER_MAINTENANCE_PROVIDERS', maintenance.provider)
                         Cookies.remove('under_maintenance')
                     }

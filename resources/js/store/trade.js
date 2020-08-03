@@ -391,14 +391,8 @@ const actions = {
                 allowEnterKey: false,
                 showConfirmButton: false
             })
-            await dispatch('getSports')
-            await dispatch('getBetColumns', state.selectedSport)
-            commit('SET_IS_LOADING_LEAGUES', false)
-            commit('SET_IS_LOADING_EVENTS', false)
-            commit('SET_LEAGUES', { inplay: [], today: [], early: [] })
-        } else {
-            dispatch('getTradeWindowData')
         }
+        dispatch('getTradeWindowData')
     },
     getBetbarData({commit, state, dispatch}) {
         return axios.get('v1/trade/betbar', { headers: { 'Authorization': `Bearer ${token}` }})
