@@ -55,6 +55,12 @@ return [
             'pipe'     => 0,
             'enable'   => env('LARAVELS_KAFKA_CONSUME', true)
         ],
+        'maintenance_consume' => [
+            'class'    => \App\Processes\MaintenanceConsume::class,
+            'redirect' => false,
+            'pipe'     => 0,
+            'enable'   => env('LARAVELS_KAFKA_CONSUME', true)
+        ],
         'placed_bet_consume' => [
             'class'    => \App\Processes\PlacedBetConsume::class,
             'redirect' => false,
@@ -136,6 +142,13 @@ return [
             'size'   => 5,// The max size
             'column' => [// Define the columns
                 ['name' => 'value', 'type' => \Swoole\Table::TYPE_INT],
+            ],
+        ],
+        'maintenance' => [ // key format [maintenance:strtolower($providerAlias)]
+            'size'   => 64,
+            'column' => [
+                [ 'name' => 'provider',          'type' => \Swoole\Table::TYPE_STRING, 'size' => 5 ],
+                [ 'name' => 'under_maintenance', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 5 ],
             ],
         ],
         'priorityTrigger'            => [
