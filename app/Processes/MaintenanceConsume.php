@@ -37,12 +37,8 @@ class MaintenanceConsume implements CustomProcessInterface
                     if (empty($payload->data)) {
                         Log::info("Maintenance Transformation ignored - No Data Found");
                     } else {
-                        if ($swoole->maintenanceTable['maintenance:' . strtolower($payload->data->provider)]['under_maintenance'] == $payloadMaintenance) {
-                            Log::info('MAINTENANCE: Skip -- No Changes');
-                        } else {
-                            Log::info('Maintenance calling Task Worker');
-                            TransformKafkaMessageMaintenance::dispatchNow($payload);
-                        }
+                        Log::info('Maintenance calling Task Worker');
+                        TransformKafkaMessageMaintenance::dispatchNow($payload);
                     }
 
                     $kafkaConsumer->commit($message);
