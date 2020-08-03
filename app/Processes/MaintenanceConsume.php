@@ -31,25 +31,21 @@ class MaintenanceConsume implements CustomProcessInterface
                 $message = $kafkaConsumer->consume(0);
 
                 if ($message->err == RD_KAFKA_RESP_ERR_NO_ERROR) {
-                    $payload = json_decode($message->payload);
+                    $payload            = json_decode($message->payload);
+                    $payloadMaintenance = $payload->data->under_maintenance == true ? "true" : "false";
 
                     if (empty($payload->data)) {
                         Log::info("Maintenance Transformation ignored - No Data Found");
-
-                        continue;
-                    }
-
-                    if ($swoole->maintenanceTable['maintenance:' . strtolower($payload->data->provider)]['under_maintenance'] == $payload->data->under_maintenance) {
-                        Log::info('MAINTENANCE: Skip -- No Changes');
-
-                        continue;
                     } else {
-                        Log::info('Maintenance calling Task Worker');
-                        TransformKafkaMessageMaintenance::dispatchNow($payload);
+                        if ($swoole->maintenanceTable['maintenance:' . strtolower($payload->data->provider)]['under_maintenance'] == $payloadMaintenance) {
+                            Log::info('MAINTENANCE: Skip -- No Changes');
+                        } else {
+                            Log::info('Maintenance calling Task Worker');
+                            TransformKafkaMessageMaintenance::dispatchNow($payload);
+                        }
                     }
 
                     $kafkaConsumer->commit($message);
-                    continue;
                 }
 
                 usleep(100000);

@@ -709,11 +709,11 @@ class DataToSwt implements CustomProcessInterface
         $providers   = Provider::all();
         $maintenance = $swoole->maintenanceTable;
 
-        array_map(function ($providers) use ($maintenance) {
-            $maintenance->set('maintenance:' . strtolower($providers['alias']), [
-                'provider'          => strtoupper($providers['alias']),
+        foreach ($providers AS $row) {
+            $maintenance->set('maintenance:' . strtolower($row->alias), [
+                'provider'          => strtoupper($row->alias),
                 'under_maintenance' => "false",
             ]);
-        }, $providers->toArray());
+        }
     }
 }
