@@ -512,10 +512,6 @@ class DataToSwt implements CustomProcessInterface
     {
         $orders      = DB::table('orders as o')
                          ->join('provider_accounts AS pa', 'o.provider_account_id', '=', 'pa.id')
-                         ->join('master_event_markets as mem', 'mem.id',
-                             'o.master_event_market_id')
-                         ->join('master_events as me', 'me.id', 'mem.master_event_id')
-                         ->whereNull('me.deleted_at')
                          ->select('o.id', 'o.status', 'o.created_at', 'o.bet_id', 'o.order_expiry', 'pa.username', 'o.user_id')
                          ->get();
         $ordersTable = $swoole->ordersTable;
