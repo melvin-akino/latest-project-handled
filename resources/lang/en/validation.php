@@ -165,7 +165,8 @@ return [
         'required'                  => "This field is required.",
         'string'                    => "Invalid input. Field must be a string.",
         'phone'                     => [
-            'regex'                 => "Invalid number format"
+            'regex'                 => "Invalid number format",
+            'min'                   => "The phone must be at least :min digits"
         ]
     ],
 
