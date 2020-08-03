@@ -52,8 +52,8 @@ class SettingsRequests extends FormRequest
         } else if ($type == 'change-password') {
             return [
                 'old_password'              => 'required|min:6|max:32',
-                'password'                  => 'required|confirmed|min:6|max:32',
-                'password_confirmation'     => 'required|same:password|min:6|max:32',
+                'password'                  => 'required|confirmed|min:6|max:32|alpha_num',
+                'password_confirmation'     => 'required|same:password|min:6|max:32|alpha_num',
             ];
         } else if ($type == 'trade-page') {
             $tradeLayouts = implode(',', array_column(config('constants.trade-layout'), 'id'));
