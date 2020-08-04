@@ -59,10 +59,11 @@
                                 <span class="w-1/5 text-sm text-center" v-if="minmax.hasMarketData">{{minmax.max | moneyFormat}}</span>
                                 <a href="#" @click.prevent="updatePrice(minmax.price)" class="w-1/5 text-sm font-bold underline text-center" v-if="minmax.hasMarketData">{{minmax.price | twoDecimalPlacesFormat}}</a>
                                 <span class="w-1/5 text-sm text-center" v-if="minmax.hasMarketData">{{minmax.age}}</span>
-                                <div class="text-sm text-center" v-if="!minmax.hasMarketData">
-                                    <div v-show="market_details.providers.includes(minmax.provider_id) && !isEventNotAvailable">{{ minmax.onqueue ? 'Provider on queue, will try again to fetch market data' : 'Retrieving Market' }} <span class="pl-1"><i class="fas fa-circle-notch fa-spin"></i></span></div>
+                                <div class="text-sm text-center" v-if="!minmax.hasMarketData && !underMaintenanceProviders.includes(minmax.provider.toLowerCase())">
+                                    <div v-show="market_details.providers.includes(minmax.provider_id) && !isEventNotAvailable">Retrieving Market<span class="pl-1"><i class="fas fa-circle-notch fa-spin"></i></span></div>
                                     <div v-show="!market_details.providers.includes(minmax.provider_id) || isEventNotAvailable">No Market Available</div>
                                 </div>
+                                <div class="text-sm text-center"  v-if="!minmax.hasMarketData && underMaintenanceProviders.includes(minmax.provider.toLowerCase())">Provider under maintenance</div>
                             </div>
                         </div>
                     </div>
@@ -213,7 +214,7 @@ export default {
         }
     },
     computed: {
-        ...mapState('trade', ['activeBetSlip', 'bookies', 'betSlipSettings', 'wallet']),
+        ...mapState('trade', ['activeBetSlip', 'bookies', 'betSlipSettings', 'wallet', 'underMaintenanceProviders']),
         ...mapState('settings', ['defaultPriceFormat']),
         activePointIndex() {
             if(!_.isEmpty(this.spreads)) {
@@ -357,7 +358,7 @@ export default {
             let settingsConfig = await this.$store.dispatch('settings/getUserSettingsConfig', 'bookies')
             this.disabledBookies = settingsConfig.disabled_bookies
             let enabledBookies = this.bookies.filter(bookie => !this.disabledBookies.includes(bookie.id))
-            enabledBookies.map(bookie => this.minMaxProviders.push({ provider_id: bookie.id, provider: bookie.alias, min: null, max: null, price: null, priority: bookie.priority, age: null, hasMarketData: false, onqueue: false }))
+            enabledBookies.map(bookie => this.minMaxProviders.push({ provider_id: bookie.id, provider: bookie.alias, min: null, max: null, price: null, priority: bookie.priority, age: null, hasMarketData: false }))
             this.isLoadingMarketDetailsAndProviders = false
             this.minmax(this.market_id)
         },
@@ -416,7 +417,7 @@ export default {
                 resolve()
             })
         },
-        updateMinMaxData(minmax, hasMarketData, onqueue) {
+        updateMinMaxData(minmax, hasMarketData) {
             if(minmax.market_id == this.market_id) {
                 if(!_.isEmpty(this.minMaxProviders)) {
                     let minMaxProviderIds = this.minMaxProviders.map(provider => provider.provider_id)
@@ -429,7 +430,6 @@ export default {
                                 provider.priority = Number(minmax.priority) || provider.priority
                                 provider.age = minmax.age || null
                                 provider.hasMarketData = hasMarketData
-                                provider.onqueue = onqueue
                             }
                         })
                     }
@@ -441,19 +441,14 @@ export default {
                 if(getSocketKey(response.data) === 'getMinMax') {
                     let minmax = getSocketValue(response.data, 'getMinMax')
                     if(minmax.message == '') {
-                        this.updateMinMaxData(minmax, true, false)
+                        this.updateMinMaxData(minmax, true)
                         this.isEventNotAvailable = false
                     } else {
                         this.minMaxData = this.minMaxData.filter(provider => provider.provider_id != minmax.provider_id)
                         this.selectedProviders = this.selectedProviders.filter(provider => provider != minmax.provider_id)
-                        if(minmax.message == 'onqueue') {
-                            this.isEventNotAvailable = false
-                            this.updateMinMaxData(minmax, false, true)
-                        } else {
-                            this.inputPrice = null
-                            this.isEventNotAvailable = true
-                            this.updateMinMaxData(minmax, false, false)
-                        }
+                        this.inputPrice = null
+                        this.isEventNotAvailable = true
+                        this.updateMinMaxData(minmax, false)
                     }
                     this.retrievedMarketData = true
 
