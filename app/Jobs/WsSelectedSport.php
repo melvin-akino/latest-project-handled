@@ -21,8 +21,10 @@ class WsSelectedSport implements ShouldQueue
         setUserDefault($this->userId, 'sport', ['sport_id' => $this->sportId]);
         $fd = $server->wsTable->get('uid:' . $this->userId);
 
-        $server->push($fd['value'], json_encode([
-            'getSelectedSport' => ['sport_id' => $this->sportId]
-        ]));
+        if ($server->isEstablished($fd['value'])) {
+            $server->push($fd['value'], json_encode([
+                'getSelectedSport' => ['sport_id' => $this->sportId]
+            ]));
+        }
     }
 }

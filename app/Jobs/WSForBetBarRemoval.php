@@ -29,8 +29,10 @@ class WSForBetBarRemoval implements ShouldQueue
     {
         $server = app('swoole');
 
-        $server->push($this->fd, json_encode([
-            'forBetBarRemoval' => ['order_id' => $this->orderId]
-        ]));
+        if ($server->isEstablished($this->fd)) {
+            $server->push($this->fd, json_encode([
+                'forBetBarRemoval' => ['order_id' => $this->orderId]
+            ]));
+        }
     }
 }

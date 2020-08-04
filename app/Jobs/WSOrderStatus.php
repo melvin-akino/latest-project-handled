@@ -33,13 +33,15 @@ class WSOrderStatus implements ShouldQueue
         if ($doesExist) {
             $fd = $swoole->wsTable->get('uid:' . $this->userId);
 
-            $swoole->push($fd['value'], json_encode([
-                'getOrderStatus' => [
-                    'order_id' => $this->orderId,
-                    'status'   => $this->status,
-                    'odds'     => $this->odds
-                ]
-            ]));
+            if ($swoole->isEstablished($fd['value'])) {
+                $swoole->push($fd['value'], json_encode([
+                    'getOrderStatus' => [
+                        'order_id' => $this->orderId,
+                        'status'   => $this->status,
+                        'odds'     => $this->odds
+                    ]
+                ]));
+            }
 
             $forBetBarRemoval = [
                 'FAILED',

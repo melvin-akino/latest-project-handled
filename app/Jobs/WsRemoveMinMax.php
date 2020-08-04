@@ -57,11 +57,13 @@ class WsRemoveMinMax implements ShouldQueue
                     }
                 }
                 $fd = $wsTable->get('uid:' . $this->userId);
-                $server->push($fd['value'], json_encode([
-                    'removeMinMax' => [
-                        'status' => true
-                    ]
-                ]));
+                if ($server->isEstablished($fd['value'])) {
+                    $server->push($fd['value'], json_encode([
+                        'removeMinMax' => [
+                            'status' => true
+                        ]
+                    ]));
+                }
             }
         } catch (Exception $e) {
             Log::error($e->getMessage());

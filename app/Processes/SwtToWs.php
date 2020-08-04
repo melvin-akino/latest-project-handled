@@ -98,8 +98,10 @@ class SwtToWs implements CustomProcessInterface
                     if (strpos($_row['topic_name'], 'min-max-') === 0) {
                         $userId = $_row['user_id'];
                         $fd     = $wsTable->get('uid:' . $userId);
-                        foreach ($updatedMarkets as $updatedMarket) {
-                            $swoole->push($fd['value'], json_encode(['getUpdatedPrice' => $updatedMarket]));
+                        if ($swoole->isEstablished($fd['value'])) {
+                            foreach ($updatedMarkets as $updatedMarket) {
+                                $swoole->push($fd['value'], json_encode(['getUpdatedPrice' => $updatedMarket]));
+                            }
                         }
                     }
                 }
@@ -124,7 +126,9 @@ class SwtToWs implements CustomProcessInterface
                     foreach ($wsTable as $key => $row) {
                         if (strpos($key, 'fd:') === 0) {
                             $fd = $wsTable->get('uid:' . $row['value']);
-                            $swoole->push($fd['value'], json_encode([$topic => $data->{$abbr}]));
+                            if ($swoole->isEstablished($fd['value'])) {
+                                $swoole->push($fd['value'], json_encode([$topic => $data->{$abbr}]));
+                            }
                         }
                     }
                 }
@@ -150,7 +154,9 @@ class SwtToWs implements CustomProcessInterface
                     foreach ($wsTable as $key => $row) {
                         if (strpos($key, 'fd:') === 0) {
                             $fd = $wsTable->get('uid:' . $row['value']);
-                            $swoole->push($fd['value'], json_encode([$topic => $data->{$abbr}]));
+                            if ($swoole->isEstablished($fd['value'])) {
+                                $swoole->push($fd['value'], json_encode([$topic => $data->{$abbr}]));
+                            }
 
                             foreach ($slTable as $slKey => $slRow) {
                                 foreach ($data->{$abbr} as $_abbr) {

@@ -31,8 +31,10 @@ class WsSelectedLeagues implements ShouldQueue
             $leagues[$userSelectedLeague->game_schedule][] = $userSelectedLeague->master_league_name;
         }, $userSelectedLeagues->toArray());
 
-        $server->push($fd['value'], json_encode([
-            'getSelectedLeagues' => $leagues
-        ]));
+        if ($server->isEstablished($fd['value'])) {
+            $server->push($fd['value'], json_encode([
+                'getSelectedLeagues' => $leagues
+            ]));
+        }
     }
 }

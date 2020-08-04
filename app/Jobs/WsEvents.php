@@ -47,9 +47,11 @@ class WsEvents implements ShouldQueue
             if (!empty($eventData)) {
                 $channelName = $this->additional ? "getAdditionalEvents" : "getEvents";
 
-                $server->push($fd['value'], json_encode([
-                    $channelName => $eventData
-                ]));
+                if ($server->isEstablished($fd['value'])) {
+                    $server->push($fd['value'], json_encode([
+                        $channelName => $eventData
+                    ]));
+                }
             }
         } catch (Exception $e) {
             Log::error($e->getMessage());
