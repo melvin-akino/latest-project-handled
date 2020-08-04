@@ -120,22 +120,24 @@ export default {
             .then(response => {
                 let orders = []
                 let formattedColumns = ['stake', 'towin', 'pl']
-                response.data.data.orders.map(order => {
-                    let orderObj = {}
-                    Object.keys(order).map(key => {
-                        if(formattedColumns.includes(key)) {
-                            this.$set(orderObj, key, moneyFormat(Number(order[key])))
-                        } else if(key=='odds') {
-                            this.$set(orderObj, key, twoDecimalPlacesFormat(Number(order[key])))
-                        } else {
-                            this.$set(orderObj, key, order[key])
-                        }
+                if (response.data.data != null) {
+                    response.data.data.orders.map(order => {
+                        let orderObj = {}
+                        Object.keys(order).map(key => {
+                            if(formattedColumns.includes(key)) {
+                                this.$set(orderObj, key, moneyFormat(Number(order[key])))
+                            } else if(key=='odds') {
+                                this.$set(orderObj, key, twoDecimalPlacesFormat(Number(order[key])))
+                            } else {
+                                this.$set(orderObj, key, order[key])
+                            }
+                        })
+                        orders.push(orderObj)
                     })
-                    orders.push(orderObj)
-                })
-                this.myorders = orders
-                let pls = this.myorders.map(order => Number(order.pl))
-                this.totalPL = pls.reduce((firstPL, secondPL) => firstPL + secondPL, 0)
+                    this.myorders = orders
+                    let pls = this.myorders.map(order => Number(order.pl))
+                    this.totalPL = pls.reduce((firstPL, secondPL) => firstPL + secondPL, 0)
+                }
             })
             .catch(err => {
                 this.$store.dispatch('auth/checkIfTokenIsValid', err.response.data.status_code)
