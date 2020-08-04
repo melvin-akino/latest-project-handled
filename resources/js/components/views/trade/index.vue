@@ -348,8 +348,9 @@ export default {
                         Cookies.set('under_maintenance', true)
                     } else {
                         Swal.close()
-                        if(Cookies.get('under_maintenance'))
+                        if(Cookies.get('under_maintenance')) {
                             this.$store.dispatch('trade/getTradeWindowData')
+                        }
                         this.$store.commit('trade/REMOVE_FROM_UNDER_MAINTENANCE_PROVIDERS', maintenance.provider)
                         Cookies.remove('under_maintenance')
                     }
