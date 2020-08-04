@@ -36,7 +36,7 @@ class WsWatchlist implements ShouldQueue
             $watchlist = is_array($data) ? $data : [];
             $eventData = array_values($watchlist);
 
-            if (!empty($eventData)) {
+            if (!empty($eventData) && $server->isEstablished($fd['value'])) {
                 $server->push($fd['value'], json_encode([
                     'getWatchlist' => $eventData
                 ]));

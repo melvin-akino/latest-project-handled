@@ -52,13 +52,15 @@ class TransformKafkaMessageMinMax implements ShouldQueue
                             $fd            = $wsTable->get('uid:' . $userId);
                             $providerSwtId = "providerAlias:" . $data->provider;
                             if (!empty($this->data->message) && $this->data->message != 'onqueue') {
-                                $swoole->push($fd['value'], json_encode([
-                                    'getMinMax' => [
-                                        'market_id'   => $memUID,
-                                        'provider_id' => $provTable->get($providerSwtId)['id'],
-                                        'message'     => $this->data->message
-                                    ]
-                                ]));
+                                if ($swoole->isEstablished($fd['value'])) {
+                                    $swoole->push($fd['value'], json_encode([
+                                        'getMinMax' => [
+                                            'market_id'   => $memUID,
+                                            'provider_id' => $provTable->get($providerSwtId)['id'],
+                                            'message'     => $this->data->message
+                                        ]
+                                    ]));
+                                }
 
                                 $minMaxRequests->del('mId:' . $data->market_id . ':memUID:' . $memUID);
 
@@ -179,9 +181,11 @@ class TransformKafkaMessageMinMax implements ShouldQueue
 
                                 Log::info('Task: MinMax emitWS');
 
-                                $swoole->push($fd['value'], json_encode([
-                                    'getMinMax' => $transformed
-                                ]));
+                                if ($swoole->isEstablished($fd['value'])) {
+                                    $swoole->push($fd['value'], json_encode([
+                                        'getMinMax' => $transformed
+                                    ]));
+                                }
 
                                 Log::info("MIN MAX Transformation - Transformed");
                             }
