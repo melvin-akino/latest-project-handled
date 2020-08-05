@@ -148,7 +148,7 @@ return [
             'size'   => 64,
             'column' => [
                 [ 'name' => 'provider',            'type' => \Swoole\Table::TYPE_STRING, 'size' => 5 ],
-                [ 'name' => 'is_undermaintenance', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 5 ],
+                [ 'name' => 'under_maintenance', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 5 ],
             ],
         ],
         'priorityTrigger'            => [

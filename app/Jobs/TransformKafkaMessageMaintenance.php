@@ -41,7 +41,7 @@ class TransformKafkaMessageMaintenance implements ShouldQueue
             }
 
             $maintenance->set('maintenance:' . strtolower($this->data->data->provider), [
-                'is_undermaintenance' => $this->data->data->is_undermaintenance,
+                'under_maintenance' => $this->data->data->is_undermaintenance,
             ]);
 
             foreach ($ws AS $key => $row) {
@@ -49,7 +49,7 @@ class TransformKafkaMessageMaintenance implements ShouldQueue
                     $swoole->push($ws->get($key)['value'], json_encode([
                         'getMaintenance' => [
                             'provider'          => strtoupper($this->data->data->provider),
-                            'is_undermaintenance' => $this->data->data->is_undermaintenance
+                            'under_maintenance' => $this->data->data->is_undermaintenance
                         ]
                     ]));
                 }

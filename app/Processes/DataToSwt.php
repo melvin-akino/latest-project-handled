@@ -621,7 +621,7 @@ class DataToSwt implements CustomProcessInterface
         foreach ($providers AS $row) {
             $maintenance->set('maintenance:' . strtolower($row->alias), [
                 'provider'          => strtoupper($row->alias),
-                'is_undermaintenance' => "false",
+                'under_maintenance' => "false",
             ]);
         }
     }
