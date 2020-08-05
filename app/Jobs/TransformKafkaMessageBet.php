@@ -46,23 +46,18 @@ class TransformKafkaMessageBet implements ShouldQueue
             $topics            = $swoole->topicTable;
             $ordersTable       = $swoole->ordersTable;
             $payloadsTable     = $swoole->orderPayloadsTable;
-            $orderRetriesTable = $swoole->orderRetriesTable;
 
             $requestUIDArray = explode('-', $this->message->request_uid);
             $messageOrderId  = end($requestUIDArray);
 
             if ($this->message->data->status == self::STATUS_RECEIVED) {
-                $doesExist = false;
-                foreach ($orderRetriesTable as $key => $row) {
-                    if (strpos($key, 'orderId:' . $messageOrderId) === 0) {
-                        $doesExist = true;
-                        break;
-                    }
-                }
-                if (!$doesExist) {
-                    $orderRetriesTable->set('orderId:' . $messageOrderId, ['time' => Carbon::createFromFormat('H:i:s', Carbon::now()->format('H:i:s'))]);
+                if (!SwooleHandler::exists('orderRetriesTable', 'orderId:' . $messageOrderId)) {
+                    SwooleHandler::setValue('orderRetriesTable', 'orderId:' . $messageOrderId, [
+                        'time' => Carbon::createFromFormat('H:i:s', Carbon::now()->format('H:i:s'))
+                    ]);
                 }
             } else {
+                SwooleHandler::remove('orderRetriesTable', 'orderId:' . $messageOrderId);
                 foreach ($topics AS $key => $row) {
                     if (strpos($row['topic_name'], 'order-') === 0) {
                         $orderId         = substr($row['topic_name'], strlen('order-'));

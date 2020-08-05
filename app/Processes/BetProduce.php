@@ -62,9 +62,11 @@ class BetProduce implements CustomProcessInterface
                             if ($newTime->diffInSeconds(Carbon::parse($row['time'])) >= 30) {
                                 $orderId = substr($key, strlen('orderId:'));
 
+                                $orderRetriesTable->del($key);
+
                                 $order = Order::find($orderId);
 
-                                if ($order->status == 'SUCCESS') {
+                                if (!empty($order->bet_id)) {
                                     continue;
                                 }
 
@@ -308,8 +310,6 @@ class BetProduce implements CustomProcessInterface
                                         $requestId
                                     );
                                 }
-
-                                $orderRetriesTable->del($key);
                             }
                         }
                         $initialTime = $newTime;
