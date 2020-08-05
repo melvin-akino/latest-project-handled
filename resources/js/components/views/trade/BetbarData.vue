@@ -8,7 +8,7 @@
             <span v-if="bet.bet_info[0]==='AWAY'">{{bet.away}}</span>
             <span v-if="bet.bet_info[0]==='DRAW'">Draw</span>
         </div>
-        <div class="w-4/12 py-1 px-3">{{bet.bet_info[1]}} {{defaultPriceFormat}} {{oddTypesWithBetMatrix.includes(bet.odd_type_id) ? bet.bet_info[4] : ''}} {{bet.game_schedule == 'inplay' ? `(${bet.score})` : ''}}</div>
+        <div class="w-4/12 py-1 px-3">{{bet.bet_info[1]}} {{defaultPriceFormat}} {{oddTypesWithBetMatrix.includes(bet.odd_type_id) ? bet.bet_info[4] : ''}} {{ `(${bet.score_on_bet})` }}</div>
         <div class="w-4/12 py-1 text-center" :class="{'success': bet.status==='SUCCESS', 'failed': bet.status==='FAILED', 'processing': bet.status==='PENDING'}">
             {{bet.provider_alias}} - {{Number(bet.bet_info[3]) | moneyFormat}}@{{Number(bet.bet_info[2]) | twoDecimalPlacesFormat}} - {{bet.status}}
         </div>

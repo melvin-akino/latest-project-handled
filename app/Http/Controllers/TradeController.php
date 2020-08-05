@@ -81,6 +81,7 @@ class TradeController extends Controller
                         'score'          => $betData->score,
                         'home_score'     => $score[0],
                         'away_score'     => $score[1],
+                        'score_on_bet'   => $betData->score_on_bet,
                         'status'         => $betData->status,
                         'created_at'     => Carbon::createFromFormat("Y-m-d H:i:s", $betData->created_at, 'Etc/UTC')->setTimezone($userTz)->format("Y-m-d H:i:s"),
                     ];

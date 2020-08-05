@@ -67,6 +67,7 @@ class Order extends Model
                     'ot.id AS odd_type_id',
                     'providers.alias',
                     'ml_bet_identifier',
+                    'orders.final_score'
                 ]
             )
             ->where($whereClause)
@@ -130,6 +131,7 @@ class Order extends Model
                     'mth.name as master_home_team_name',
                     'mta.name as master_away_team_name',
                     'me.score',
+                    'o.score_on_bet',
                     'me.game_schedule',
                     'mem.market_flag',
                     'ot.id AS odd_type_id',

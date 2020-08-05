@@ -103,7 +103,8 @@ class OrdersController extends Controller
                         'away_score'    => $score[1],
                         'odd_type_id'   => $myOrder->odd_type_id,
                         'points'        => $myOrder->odd_label,
-                        'reason'        => $myOrder->reason
+                        'reason'        => $myOrder->reason,
+                        'final_score'   => $myOrder->final_score
                     ];
                 }
 
