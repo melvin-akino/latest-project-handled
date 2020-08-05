@@ -530,6 +530,12 @@ class OrdersController extends Controller
                     'score'                  => $query->score,
                     'expiry'                 => $request->orderExpiry,
                     'bet_selection'          => $betSelection,
+                    'odd_type_id'            => $query->odd_type_id,
+                    'market_flag'            => $query->market_flag,
+                    'master_league_name'     => $query->master_league_name,
+                    'master_team_home_name'  => $query->master_home_team_name,
+                    'master_team_away_name'  => $query->master_away_team_name,
+
                 ];
 
                 $_exchangeRate = [
