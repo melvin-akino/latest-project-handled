@@ -188,13 +188,27 @@ export default {
                         var difference = 0
                         if(type == 'HDP') {
                             if(bet_team == 'HOME') {
-                                var score_on_bet = points < 0 ? home_score_on_bet * -1 : home_score_on_bet
-                                var hdp = points + score_on_bet;
-                                var difference = (hdp + (home_team_counter + home_score_on_bet)) - (away_team_counter + home_score_on_bet - away_score_on_bet)
+                                if(points == 0) {
+                                    var score_on_bet = points < 0 ? away_score_on_bet * -1 : away_score_on_bet
+                                    var hdp = points + score_on_bet;
+                                    var initialDifference = (hdp + (away_team_counter + away_score_on_bet)) - (home_team_counter + away_score_on_bet - home_score_on_bet)
+                                    var difference = initialDifference * -1
+                                } else {
+                                    var score_on_bet = points < 0 ? home_score_on_bet * -1 : home_score_on_bet
+                                    var hdp = points + score_on_bet;
+                                    var difference = (hdp + (home_team_counter + home_score_on_bet)) - (away_team_counter + home_score_on_bet - away_score_on_bet)
+                                }
                             } else {
-                                var score_on_bet = points < 0 ? away_score_on_bet * -1 : away_score_on_bet
-                                var hdp = points + score_on_bet;
-                                var difference = (hdp + (away_team_counter + away_score_on_bet)) - (home_team_counter + away_score_on_bet - home_score_on_bet)
+                                if(points == 0) {
+                                    var score_on_bet = points < 0 ? home_score_on_bet * -1 : home_score_on_bet
+                                    var hdp = points + score_on_bet;
+                                    var initialDifference = (hdp + (home_team_counter + home_score_on_bet)) - (away_team_counter + home_score_on_bet - away_score_on_bet)
+                                    var difference = initialDifference * -1
+                                } else {
+                                    var score_on_bet = points < 0 ? away_score_on_bet * -1 : away_score_on_bet
+                                    var hdp = points + score_on_bet;
+                                    var difference = (hdp + (away_team_counter + away_score_on_bet)) - (home_team_counter + away_score_on_bet - home_score_on_bet)
+                                }
                             }
 
                             if(difference > 0.25) {
