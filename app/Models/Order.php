@@ -30,12 +30,7 @@ class Order extends Model
         'order_expiry',
         'ml_bet_identifier',
         'score_on_bet',
-        'odd_type_id',
-        'market_flag',
-        'final_score',
-        'master_league_name',
-        'master_team_home_name',
-        'master_team_away_name',
+        'final_score'
     ];
 
     protected $hidden = [];
