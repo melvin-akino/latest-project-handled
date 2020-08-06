@@ -18,8 +18,8 @@ er <template>
                 <div slot="pl" slot-scope="props">
                     <span :class="{'greenPL': props.row.status == 'WIN' || props.row.status == 'HALF WIN', 'redPL': props.row.status == 'LOSE' || props.row.status == 'HALF LOSE'}" >{{props.row.pl | formatPL}}</span>
                 </div>
-                <div slot="final_score" slot-scope="props">
-                    <span class="text-sm">{{ props.row.settled != "" ? props.row.final_score : "-" }}</span>
+                <div slot="score" slot-scope="props">
+                    <span class="text-sm">{{ props.row.settled != "" ? props.row.score : "-" }}</span>
                 </div>
                 <div class="flex justify-start" slot="betData" slot-scope="props">
                     <a href="#" @click.prevent="openBetMatrix(props.row.order_id)" class="text-center py-1 w-1/2"><i class="fas fa-chart-area" title="Bet Matrix" v-if="oddTypesWithSpreads.includes(props.row.odd_type_id) && !failedBetStatus.includes(props.row.status)"></i></a>
@@ -48,7 +48,7 @@ export default {
         return {
             myorders: [],
             totalPL: '',
-            columns: ['bet_id', 'created', 'bet_selection', 'provider', 'odds', 'stake', 'towin', 'status', 'reason', 'final_score', 'pl', 'betData'],
+            columns: ['bet_id', 'created', 'bet_selection', 'provider', 'odds', 'stake', 'towin', 'status', 'reason', 'score', 'pl', 'betData'],
             options: {
                 headings: {
                     bet_id: 'Bet ID',
@@ -57,7 +57,7 @@ export default {
                     pl: 'Profit/Loss',
                     towin: 'To Win',
                     status: 'Status',
-                    final_score: 'Result',
+                    score: 'Result',
                     betData: ''
                 },
                 columnsClasses: {
@@ -66,7 +66,7 @@ export default {
                     stake: 'alignRight',
                     towin: 'towin',
                     pl: 'alignRight',
-                    final_score: 'alignRight'
+                    score: 'alignRight'
                 },
                 sortable: ['bet_id', 'created', 'provider', 'odds', 'stake', 'towin', 'status','pl']
             },
@@ -84,7 +84,7 @@ export default {
                 'To Win'                 : 'towin',
                 'Status'                 : 'status',
                 'Reason'                 : 'reason',
-                'Result'                 : 'final_score',
+                'Result'                 : 'score',
                 'Profit/Loss'            : 'pl'
             }
         }

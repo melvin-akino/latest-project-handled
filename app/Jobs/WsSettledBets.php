@@ -126,7 +126,6 @@ class WsSettledBets implements ShouldQueue
         try {
             Order::where('bet_id', $this->data->bet_id)
                 ->update([
-                    'final_score'   => $this->data->score,
                     'status'        => strtoupper($this->data->status),
                     'profit_loss'   => $balance,
                     'reason'        => $this->data->reason,
