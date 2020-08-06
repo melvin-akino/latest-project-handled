@@ -3,7 +3,6 @@
 namespace App\Jobs;
 
 use App\Facades\SwooleHandler;
-use App\Jobs\WSOrderStatus;
 
 use App\Models\{
     Order,
@@ -45,7 +44,7 @@ class TransformKafkaMessageBet implements ShouldQueue
             $swoole            = app('swoole');
             $topics            = $swoole->topicTable;
             $ordersTable       = $swoole->ordersTable;
-            $payloadsTable     = $swoole->orderPayloadsTable;
+//            $payloadsTable     = $swoole->orderPayloadsTable;
 
             $requestUIDArray = explode('-', $this->message->request_uid);
             $messageOrderId  = end($requestUIDArray);
@@ -64,6 +63,7 @@ class TransformKafkaMessageBet implements ShouldQueue
                         $orderData       = Order::where('id', $messageOrderId);
 
                         if ($orderData->count() && $orderId == $messageOrderId) {
+
                             $status = strtoupper($this->message->data->status);
                             $order  = Order::updateOrCreate([
                                 'id' => $messageOrderId
@@ -74,16 +74,17 @@ class TransformKafkaMessageBet implements ShouldQueue
                                 'odds'   => $this->message->data->odds
                             ]);
 
-                            $payloadsSwtId = implode(':', [
-                                "place-bet-" . $messageOrderId,
-                                "uId:" . $order->user_id,
-                                "mId:" . $order->market_id
-                            ]);
+//                            $payloadsSwtId = implode(':', [
+//                                "place-bet-" . $messageOrderId,
+//                                "uId:" . $order->user_id,
+//                                "mId:" . $order->market_id
+//                            ]);
 
+                            $orderData   = Order::find($messageOrderId);
                             if ($status != "FAILED") {
-                                if (!SwooleHandler::exists('orderPayloadsTable', $payloadsSwtId)) {
-                                    continue;
-                                }
+//                                if (!SwooleHandler::exists('orderPayloadsTable', $payloadsSwtId)) {
+//                                    continue;
+//                                }
                                 ProviderAccount::find($order->provider_account_id)->update([
                                     'updated_at' => Carbon::now()
                                 ]);
@@ -100,6 +101,14 @@ class TransformKafkaMessageBet implements ShouldQueue
                                 $order->to_win = $order->stake * $this->message->data->odds;
                                 $order->save();
 
+//                                $payload        = json_decode(SwooleHandler::getValue('orderPayloadsTable', $payloadsSwtId)['payload']);
+                                $orderLogData = OrderLogs::where('order_id', $orderData->id)->orderBy('id', 'desc')->first();
+                                $providerAccountOrder = ProviderAccountOrder::where('order_log_id', $orderLogData->id)->orderBy('id', 'desc')->first();
+                                
+                                $actualStake    = $providerAccountOrder->actual_stake;
+                                $exchangeRate   = $providerAccountOrder->exchange_rate;
+                                $exchangeRateId = $providerAccountOrder->exchange_rate_id;
+
                                 $orderLogs = OrderLogs::create([
                                     'provider_id'   => $order->provider_id,
                                     'sport_id'      => $order->sport_id,
@@ -112,11 +121,6 @@ class TransformKafkaMessageBet implements ShouldQueue
                                     'order_id'      => $order->id,
                                     'settled_date'  => null,
                                 ]);
-
-                                $payload        = json_decode($payloadsTable->get($payloadsSwtId)['payload']);
-                                $actualStake    = $payload->data->stake;
-                                $exchangeRate   = $payload->data->exchange_rate;
-                                $exchangeRateId = $payload->data->exchange_rate_id;
 
                                 ProviderAccountOrder::create([
                                     'order_log_id'       => $orderLogs->id,
@@ -163,8 +167,10 @@ class TransformKafkaMessageBet implements ShouldQueue
                                 $orderId,
                                 $status,
                                 $this->message->data->odds,
-                                $ordersTable['orderId:' . $messageOrderId]['orderExpiry'],
-                                $ordersTable['orderId:' . $messageOrderId]['created_at']
+                                $orderData->orderExpiry,
+                                $orderData->created_at
+//                                $ordersTable['orderId:' . $messageOrderId]['orderExpiry'],
+//                                $ordersTable['orderId:' . $messageOrderId]['created_at']
                             );
 
                             $topics->set('unique:' . uniqid(), [
@@ -172,12 +178,14 @@ class TransformKafkaMessageBet implements ShouldQueue
                                 'topic_name' => 'open-order-' . $this->message->data->bet_id
                             ]);
 
-                            $ordersTable['orderId:' . $messageOrderId]['bet_id'] = $this->message->data->bet_id;
-                            $ordersTable['orderId:' . $messageOrderId]['status'] = $status;
+                            SwooleHandler::setColumnValue('ordersTable', 'orderId:' . $messageOrderId, 'bet_id', $this->message->data->bet_id);
+                            SwooleHandler::setColumnValue('ordersTable', 'orderId:' . $messageOrderId, 'status', $status);
+//                            $ordersTable['orderId:' . $messageOrderId]['bet_id'] = $this->message->data->bet_id;
+//                            $ordersTable['orderId:' . $messageOrderId]['status'] = $status;
 
-                            if ($payloadsTable->exists($payloadsSwtId)) {
-                                $payloadsTable->del($payloadsSwtId);
-                            }
+//                            if ($payloadsTable->exists($payloadsSwtId)) {
+//                                $payloadsTable->del($payloadsSwtId);
+//                            }
                         }
                     }
                 }

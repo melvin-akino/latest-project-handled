@@ -36,7 +36,7 @@ class KafkaPush implements ShouldQueue
         $kafkaProducer   = app('KafkaProducer');
         $producerHandler = new ProducerHandler($kafkaProducer);
         try {
-            appLog('info', 'Sending to Kafka Topic: ' . $this->kafkaTopic);
+//            appLog('info', 'Sending to Kafka Topic: ' . $this->kafkaTopic);
             $producerHandler->setTopic($this->kafkaTopic)->send($this->message, $this->key);
             if (env('APP_ENV') != 'local') {
                 for ($flushRetries = 0; $flushRetries < 10; $flushRetries++) {
@@ -46,7 +46,7 @@ class KafkaPush implements ShouldQueue
                     }
                 }
             }
-            appLog('info', 'Sent to Kafka Topic: ' . $this->kafkaTopic);
+//            appLog('info', 'Sent to Kafka Topic: ' . $this->kafkaTopic);
         } catch (Exception $e) {
             Log::critical('Sending Kafka Message Failed', [
                 'error' => $e->getMessage(),

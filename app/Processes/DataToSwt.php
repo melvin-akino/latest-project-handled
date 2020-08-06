@@ -34,7 +34,7 @@ class DataToSwt implements CustomProcessInterface
             'ActiveEvents',
             'UserSelectedLeagues',
             'Orders',
-            'OrderPayloads',
+//            'OrderPayloads',
             'ExchangeRates',
             'Currencies',
             'UserInfo',
@@ -456,51 +456,51 @@ class DataToSwt implements CustomProcessInterface
         }, $orders->toArray());
     }
 
-    private static function db2SwtOrderPayloads(Server $swoole)
-    {
-
-        $orderPayloads = DB::table('orders as o')
-                           ->leftJoin('providers as p', 'p.id', 'o.provider_id')
-                           ->leftJoin('provider_accounts as pa', 'pa.id', 'o.provider_account_id')
-                           ->select('o.*', 'p.alias', 'pa.username')
-                           ->get();
-
-        $orderPayloadsTable = $swoole->orderPayloadsTable;
-        array_map(function ($order) use ($orderPayloadsTable) {
-
-            $eventAndMarket = DB::table('event_markets as em')
-                                ->leftJoin('events as e', 'e.id', 'em.event_id')
-                                ->where('em.bet_identifier', $order->market_id)
-                                ->first();
-
-            $orderLogs = DB::table('order_logs as ol')
-                           ->leftJoin('provider_account_orders as pao', 'pao.order_log_id', 'ol.id')
-                           ->select('ol.*', 'pao.actual_stake', 'pao.exchange_rate_id', 'pao.exchange_rate')
-                           ->orderBy('ol.created_at', 'desc')
-                           ->first();
-            if ($eventAndMarket && $orderLogs) {
-                $payloadsSwtId = implode(':', [
-                    "place-bet-" . $order->id,
-                    "uId:" . $order->user_id,
-                    "mId:" . $order->market_id
-                ]);
-
-                $payload['data'] = [
-                    'provider'         => strtolower($order->alias),
-                    'sport'            => $order->sport_id,
-                    'stake'            => $orderLogs->actual_stake,
-                    'odds'             => $order->odds,
-                    'market_id'        => $order->market_id,
-                    'event_id'         => $eventAndMarket->event_identifier,
-                    'score'            => $order->score_on_bet,
-                    'username'         => $order->username,
-                    'exchange_rate_id' => $orderLogs->exchange_rate_id,
-                    'exchange_rate'    => $orderLogs->exchange_rate
-                ];
-                $orderPayloadsTable->set($payloadsSwtId, ['payload' => json_encode($payload)]);
-            }
-        }, $orderPayloads->toArray());
-    }
+//    private static function db2SwtOrderPayloads(Server $swoole)
+//    {
+//
+//        $orderPayloads = DB::table('orders as o')
+//                           ->leftJoin('providers as p', 'p.id', 'o.provider_id')
+//                           ->leftJoin('provider_accounts as pa', 'pa.id', 'o.provider_account_id')
+//                           ->select('o.*', 'p.alias', 'pa.username')
+//                           ->get();
+//
+//        $orderPayloadsTable = $swoole->orderPayloadsTable;
+//        array_map(function ($order) use ($orderPayloadsTable) {
+//
+//            $eventAndMarket = DB::table('event_markets as em')
+//                                ->leftJoin('events as e', 'e.id', 'em.event_id')
+//                                ->where('em.bet_identifier', $order->market_id)
+//                                ->first();
+//
+//            $orderLogs = DB::table('order_logs as ol')
+//                           ->leftJoin('provider_account_orders as pao', 'pao.order_log_id', 'ol.id')
+//                           ->select('ol.*', 'pao.actual_stake', 'pao.exchange_rate_id', 'pao.exchange_rate')
+//                           ->orderBy('ol.created_at', 'desc')
+//                           ->first();
+//            if ($eventAndMarket && $orderLogs) {
+//                $payloadsSwtId = implode(':', [
+//                    "place-bet-" . $order->id,
+//                    "uId:" . $order->user_id,
+//                    "mId:" . $order->market_id
+//                ]);
+//
+//                $payload['data'] = [
+//                    'provider'         => strtolower($order->alias),
+//                    'sport'            => $order->sport_id,
+//                    'stake'            => $orderLogs->actual_stake,
+//                    'odds'             => $order->odds,
+//                    'market_id'        => $order->market_id,
+//                    'event_id'         => $eventAndMarket->event_identifier,
+//                    'score'            => $order->score_on_bet,
+//                    'username'         => $order->username,
+//                    'exchange_rate_id' => $orderLogs->exchange_rate_id,
+//                    'exchange_rate'    => $orderLogs->exchange_rate
+//                ];
+//                $orderPayloadsTable->set($payloadsSwtId, ['payload' => json_encode($payload)]);
+//            }
+//        }, $orderPayloads->toArray());
+//    }
 
     private static function db2SwtExchangeRates(Server $swoole)
     {
