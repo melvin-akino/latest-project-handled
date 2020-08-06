@@ -98,13 +98,12 @@ class OrdersController extends Controller
                         'settled'       => $myOrder->settled_date == "" ? "" : Carbon::createFromFormat("Y-m-d H:i:sO", $myOrder->settled_date, 'Etc/UTC')->setTimezone($userTz)->format("Y-m-d H:i:s"),
                         'pl'            => $myOrder->profit_loss,
                         'status'        => $myOrder->status,
-                        'score'         => $myOrder->score,
+                        'score'         => $myOrder->final_score == null ? $myOrder->score : $myOrder->final_score,
                         'home_score'    => $score[0],
                         'away_score'    => $score[1],
                         'odd_type_id'   => $myOrder->odd_type_id,
                         'points'        => $myOrder->odd_label,
-                        'reason'        => $myOrder->reason,
-                        'final_score'   => $myOrder->final_score
+                        'reason'        => $myOrder->reason
                     ];
                 }
 
@@ -530,13 +529,7 @@ class OrdersController extends Controller
                     'actual_stake'           => $actualStake,
                     'score'                  => $query->score,
                     'expiry'                 => $request->orderExpiry,
-                    'bet_selection'          => $betSelection,
-                    'odd_type_id'            => $query->odd_type_id,
-                    'market_flag'            => $query->market_flag,
-                    'master_league_name'     => $query->master_league_name,
-                    'master_team_home_name'  => $query->master_home_team_name,
-                    'master_team_away_name'  => $query->master_away_team_name,
-
+                    'bet_selection'          => $betSelection
                 ];
 
                 $_exchangeRate = [
