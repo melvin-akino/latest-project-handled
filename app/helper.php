@@ -372,7 +372,12 @@ if (!function_exists('ordersCreation')) {
             'provider_account_id'    => $providerAccountId,
             'ml_bet_identifier'      => $mlBetId,
             'score_on_bet'           => $orderData['score'],
-            'final_score'            => null
+            'odd_type_id'            => $orderData['odd_type_id'],
+            'market_flag'            => $orderData['market_flag'],
+            'final_score'            => null,
+            'master_league_name'     => $orderData['master_league_name'],
+            'master_team_home_name'  => $orderData['master_team_home_name'],
+            'master_team_away_name'  => $orderData['master_team_away_name']
         ]);
 
         $orderLogs = OrderLogs::create([
