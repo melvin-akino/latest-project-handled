@@ -142,6 +142,7 @@ class WsSettledBets implements ShouldQueue
                     'reason'        => $this->data->reason,
                     'settled_date'  => Carbon::now(),
                     'updated_at'    => Carbon::now(),
+                    'final_score'   => $this->data->score
                 ]);
 
             $orderLogs = OrderLogs::create([

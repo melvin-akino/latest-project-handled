@@ -104,7 +104,7 @@ class TransformKafkaMessageBet implements ShouldQueue
 //                                $payload        = json_decode(SwooleHandler::getValue('orderPayloadsTable', $payloadsSwtId)['payload']);
                                 $orderLogData = OrderLogs::where('order_id', $orderData->id)->orderBy('id', 'desc')->first();
                                 $providerAccountOrder = ProviderAccountOrder::where('order_log_id', $orderLogData->id)->orderBy('id', 'desc')->first();
-                                
+
                                 $actualStake    = $providerAccountOrder->actual_stake;
                                 $exchangeRate   = $providerAccountOrder->exchange_rate;
                                 $exchangeRateId = $providerAccountOrder->exchange_rate_id;

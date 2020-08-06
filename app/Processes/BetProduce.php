@@ -220,6 +220,12 @@ class BetProduce implements CustomProcessInterface
                                         'username'  => $providerAccount->username,
                                     ];
 
+                                    $orderSWTKey = 'orderId:' . $duplicateOrder->id;
+                                    SwooleHandler::setColumnValue('ordersTable', $orderSWTKey, 'username', $providerAccount->username);
+                                    SwooleHandler::setColumnValue('ordersTable', $orderSWTKey, 'orderExpiry', $duplicateOrder->order_expiry);
+                                    SwooleHandler::setColumnValue('ordersTable', $orderSWTKey, 'created_at', $duplicateOrder->created_at);
+                                    SwooleHandler::setColumnValue('ordersTable', $orderSWTKey, 'status', 'PENDING');
+
 //                                    $payloadsSwtId = implode(':', [
 //                                        "place-bet-" . $order->id,
 //                                        "uId:" . $orderUser->id,
