@@ -8,11 +8,13 @@ use Illuminate\Support\Facades\DB;
 class MarketScore extends Model
 {
     protected $table = "market_scores";
-
     protected $fillable = [
         'bet_identifier',
         'score'
     ];
+    protected $primaryKey   = null;
+    public    $incrementing = false;
+    public    $timestamps   = false;
 
     public static function fillDataFromOrders(array $marketIds = [])
     {

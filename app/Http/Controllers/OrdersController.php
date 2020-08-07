@@ -82,13 +82,12 @@ class OrdersController extends Controller
                 $myOrders = Order::getAllOrders($conditions, $page);
 
                 foreach ($myOrders as $myOrder) {
-                    $current_score = '';
-                    if(empty($betData->current_score)) {
-                        $current_score = "0 - 0";
+                    if(empty($myOrder->current_score)) {
+                        $currentScore = "0 - 0";
                     } else {
-                        $current_score = $betData->current_score;
+                        $currentScore = $myOrder->current_score;
                     }
-                    $score = explode(" - ", $current_score);
+                    $score = explode(" - ", $currentScore);
 
                     $data['orders'][] = [
                         'order_id'      => $myOrder->id,
@@ -104,7 +103,7 @@ class OrdersController extends Controller
                         'settled'       => empty($myOrder->settled_date) ? "" : Carbon::createFromFormat("Y-m-d H:i:sO", $myOrder->settled_date, 'Etc/UTC')->setTimezone($userTz)->format("Y-m-d H:i:s"),
                         'pl'            => empty($myOrder->settled_date) ? 0 : $myOrder->profit_loss,
                         'status'        => $myOrder->status,
-                        'score'         => empty($myOrder->settled_date) ? $current_score : $myOrder->final_score,
+                        'score'         => empty($myOrder->settled_date) ? $currentScore : $myOrder->final_score,
                         'home_score'    => $score[0],
                         'away_score'    => $score[1],
                         'odd_type_id'   => $myOrder->odd_type_id,

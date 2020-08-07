@@ -34,7 +34,8 @@ use App\Models\{
     ProviderAccountOrder,
     Game,
     Timezones,
-    UserProviderConfiguration
+    UserProviderConfiguration,
+    MarketScore
 };
 use App\Models\CRM\{
     OrderTransaction,
@@ -380,6 +381,12 @@ if (!function_exists('ordersCreation')) {
             'master_league_name'            => $orderData['master_league_name'],
             'master_team_home_name'         => $orderData['master_team_home_name'],
             'master_team_away_name'         => $orderData['master_team_away_name']
+        ]);
+
+        $marketScore = MarketScore::updateOrCreate([
+            'bet_identifier' => $orderData['market_id']
+        ], [
+            'score' => $orderData['score']
         ]);
 
         $orderLogs = OrderLogs::create([
