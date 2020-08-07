@@ -82,6 +82,7 @@ export default {
                 'Stake'                  : 'stake',
                 'To Win'                 : 'towin',
                 'Status'                 : 'status',
+                'Reason'                 : 'reason',
                 'Result'                 : 'score',
                 'Profit/Loss'            : 'pl'
             }

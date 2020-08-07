@@ -121,22 +121,11 @@ class WsSettledBets implements ShouldQueue
         $balance                  = $balance != 0 ? $balance * $exchangeRate->exchange_rate : 0;
         $sourceId                 = Source::where('source_name', 'LIKE', $sourceName)->first();
         $returnBetSourceId        = Source::where('source_name', 'LIKE', 'RETURN_STAKE')->first();
-        $score                    = $this->data->score;
-        $betSelectionArray        = explode("\n", $orders->bet_selection);
-        $betSelectionOddsAndScore = explode("(", $betSelectionArray[2]);
-        $updatedOddsAndScore      = $betSelectionOddsAndScore[0] . " (" . $score . ")";
-        $updatedBetSelection      = implode("\n", [
-            $betSelectionArray[0],
-            $betSelectionArray[1],
-            $updatedOddsAndScore
-        ]);
-
         DB::beginTransaction();
 
         try {
             Order::where('bet_id', $this->data->bet_id)
                 ->update([
-                    'bet_selection' => $updatedBetSelection,
                     'status'        => strtoupper($this->data->status),
                     'profit_loss'   => $balance,
                     'reason'        => $this->data->reason,
