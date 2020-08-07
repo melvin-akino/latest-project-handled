@@ -25,6 +25,8 @@ class AddColumnsToOrdersTable extends Migration
                 $table->integer('odd_type_id')->nullable();
                 $table->string('final_score', 10)->nullable();
                 $table->string('current_score', 10)->nullable();
+                $table->string('master_event_market_unique_id', 100)->nullable();
+                $table->string('master_event_unique_id', 100)->nullable();
 
                 $table->string('master_league_name', 100)->nullable();
                 $table->string('master_team_home_name', 100)->nullable();
@@ -55,6 +57,8 @@ class AddColumnsToOrdersTable extends Migration
                 $table->dropColumn('odd_type_id');
                 $table->dropColumn('final_score');
                 $table->dropColumn('current_score');
+                $table->dropColumn('master_event_market_unique_id');
+                $table->dropColumn('master_event_unique_id');
                 $table->dropColumn('master_league_name');
                 $table->dropColumn('master_team_home_name');
                 $table->dropColumn('master_team_away_name');
