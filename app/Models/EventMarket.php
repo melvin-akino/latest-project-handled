@@ -72,12 +72,14 @@ class EventMarket extends Model
                 em.market_flag,
                 em.odd_type_id,
                 me.score,
+                mem.master_event_market_unique_id,
+                me.master_event_unique_id,
                 ml.name as master_league_name,
                 mth.name as master_team_home_name,
                 mta.name as master_team_away_name
             FROM event_markets as em
-            JOIN events as e ON em.event_id = e.id
-            JOIN master_events as me ON e.master_event_id = me.id
+            JOIN master_event_markets as mem ON em.master_event_market_id = mem.id
+            JOIN master_events as me ON mem.master_event_id = me.id
             JOIN master_leagues as ml ON ml.id = me.master_league_id
             JOIN master_teams as mth ON mth.id = me.master_team_home_id
             JOIN master_teams as mta ON mta.id = me.master_team_away_id
@@ -91,6 +93,8 @@ class EventMarket extends Model
                 odd_type_id = marketTable.odd_type_id,
                 current_score = marketTable.score,
                 final_score = CASE WHEN settled_date is null THEN null ELSE marketTable.score END,
+                master_event_market_unique_id = marketTable.master_event_market_unique_id,
+                master_event_unique_id = marketTable.master_event_unique_id,
                 master_league_name = marketTable.master_league_name,
                 master_team_home_name = marketTable.master_team_home_name,
                 master_team_away_name = marketTable.master_team_away_name
