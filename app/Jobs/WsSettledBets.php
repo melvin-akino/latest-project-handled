@@ -56,7 +56,7 @@ class WsSettledBets implements ShouldQueue
             $status = "LOSE";
         }
 
-        $orders       = Order::where('bet_id', $this->data->bet_id)->first();
+        $orders       = Order::where('bet_id', $this->data->bet_id)->where('status', 'SUCCESS')->first();
         $userWallet   = UserWallet::where('user_id', $orders->user_id)->first();
         $userCurrency = User::where('id', $orders->user_id)->first();
         $exchangeRate = ExchangeRate::where('from_currency_id', $this->providerCurrency)
@@ -135,6 +135,7 @@ class WsSettledBets implements ShouldQueue
 
         try {
             Order::where('bet_id', $this->data->bet_id)
+                ->where('status', 'SUCCESS')
                 ->update([
                     'bet_selection' => $updatedBetSelection,
                     'status'        => strtoupper($this->data->status),
