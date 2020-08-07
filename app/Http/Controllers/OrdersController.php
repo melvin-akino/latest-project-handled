@@ -331,8 +331,6 @@ class OrdersController extends Controller
              */
             $currenciesSWT         = $swoole->currenciesTable;
             $exchangeRatesSWT      = $swoole->exchangeRatesTable;
-//            $orderPayloadsSWT      = $swoole->orderPayloadsTable;
-//            $ordersSWT             = $swoole->ordersTable;
             $providersSWT          = $swoole->providersTable;
             $topicSWT              = $swoole->topicTable;
             $userProviderConfigSWT = $swoole->userProviderConfigTable;
@@ -623,21 +621,6 @@ class OrdersController extends Controller
                     'exchange_rate'    => $incrementIds['payload'][$i]['exchange_rate'],
                 ];
 
-//                $orderPayloadsKey = implode(':', [
-//                    "place-bet-" . $incrementIds['id'][$i],
-//                    "uId:" . $incrementIds['payload'][$i]['user_id'],
-//                    "mId:" . $incrementIds['payload'][$i]['market_id']
-//                ]);
-
-//                if (!$orderPayloadsSWT->exists($orderPayloadsKey)) {
-//                    $orderPayloadsSWT->set($orderPayloadsKey, [
-//                        'payload' => json_encode($payload),
-//                    ]);
-//                }
-
-//                unset($payload['data']['exchange_rate_id']);
-//                unset($payload['data']['exchange_rate']);
-
                 KafkaPush::dispatch(
                     $incrementIds['payload'][$i]['provider_id'] . env('KAFKA_SCRAPE_ORDER_REQUEST_POSTFIX', '_bet_req'),
                     $payload,
@@ -649,11 +632,6 @@ class OrdersController extends Controller
                 SwooleHandler::setColumnValue('ordersTable', $orderSWTKey, 'orderExpiry', $payload['data']['orderExpiry']);
                 SwooleHandler::setColumnValue('ordersTable', $orderSWTKey, 'created_at', $incrementIds['created_at'][$i]);
                 SwooleHandler::setColumnValue('ordersTable', $orderSWTKey, 'status', 'PENDING');
-//
-//                $ordersSWT[$orderSWTKey]['username']    = $payload['data']['username'];
-//                $ordersSWT[$orderSWTKey]['orderExpiry'] = $payload['data']['orderExpiry'];
-//                $ordersSWT[$orderSWTKey]['created_at']  = $incrementIds['created_at'][$i];
-//                $ordersSWT[$orderSWTKey]['status']      = 'PENDING';
 
                 SwooleHandler::setValue('pendingOrdersWithinExpiryTable', $orderSWTKey, [
                     'user_id'      => $incrementIds['payload'][$i]['user_id'],

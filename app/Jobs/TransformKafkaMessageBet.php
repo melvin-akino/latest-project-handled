@@ -43,8 +43,6 @@ class TransformKafkaMessageBet implements ShouldQueue
 
             $swoole            = app('swoole');
             $topics            = $swoole->topicTable;
-            $ordersTable       = $swoole->ordersTable;
-//            $payloadsTable     = $swoole->orderPayloadsTable;
 
             $requestUIDArray = explode('-', $this->message->request_uid);
             $messageOrderId  = end($requestUIDArray);
@@ -74,17 +72,8 @@ class TransformKafkaMessageBet implements ShouldQueue
                                 'odds'   => $this->message->data->odds
                             ]);
 
-//                            $payloadsSwtId = implode(':', [
-//                                "place-bet-" . $messageOrderId,
-//                                "uId:" . $order->user_id,
-//                                "mId:" . $order->market_id
-//                            ]);
-
                             $orderData   = Order::find($messageOrderId);
                             if ($status != "FAILED") {
-//                                if (!SwooleHandler::exists('orderPayloadsTable', $payloadsSwtId)) {
-//                                    continue;
-//                                }
                                 ProviderAccount::find($order->provider_account_id)->update([
                                     'updated_at' => Carbon::now()
                                 ]);
@@ -101,7 +90,6 @@ class TransformKafkaMessageBet implements ShouldQueue
                                 $order->to_win = $order->stake * $this->message->data->odds;
                                 $order->save();
 
-//                                $payload        = json_decode(SwooleHandler::getValue('orderPayloadsTable', $payloadsSwtId)['payload']);
                                 $orderLogData = OrderLogs::where('order_id', $orderData->id)->orderBy('id', 'desc')->first();
                                 $providerAccountOrder = ProviderAccountOrder::where('order_log_id', $orderLogData->id)->orderBy('id', 'desc')->first();
 
@@ -169,8 +157,6 @@ class TransformKafkaMessageBet implements ShouldQueue
                                 $this->message->data->odds,
                                 $orderData->orderExpiry,
                                 $orderData->created_at
-//                                $ordersTable['orderId:' . $messageOrderId]['orderExpiry'],
-//                                $ordersTable['orderId:' . $messageOrderId]['created_at']
                             );
 
                             $topics->set('unique:' . uniqid(), [
@@ -180,12 +166,6 @@ class TransformKafkaMessageBet implements ShouldQueue
 
                             SwooleHandler::setColumnValue('ordersTable', 'orderId:' . $messageOrderId, 'bet_id', $this->message->data->bet_id);
                             SwooleHandler::setColumnValue('ordersTable', 'orderId:' . $messageOrderId, 'status', $status);
-//                            $ordersTable['orderId:' . $messageOrderId]['bet_id'] = $this->message->data->bet_id;
-//                            $ordersTable['orderId:' . $messageOrderId]['status'] = $status;
-
-//                            if ($payloadsTable->exists($payloadsSwtId)) {
-//                                $payloadsTable->del($payloadsSwtId);
-//                            }
                         }
                     }
                 }

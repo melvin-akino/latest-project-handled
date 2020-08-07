@@ -46,7 +46,6 @@ class BetProduce implements CustomProcessInterface
             self::$producerHandler = new ProducerHandler($kafkaProducer);
 
             if ($swoole->data2SwtTable->exist('data2Swt')) {
-//                $orderPayloadsTable = $swoole->orderPayloadsTable;
                 $orderRetriesTable  = $swoole->orderRetriesTable;
                 $providersTable     = $swoole->providersTable;
                 $topicsTable        = $swoole->topicTable;
@@ -226,48 +225,10 @@ class BetProduce implements CustomProcessInterface
                                     SwooleHandler::setColumnValue('ordersTable', $orderSWTKey, 'created_at', $duplicateOrder->created_at);
                                     SwooleHandler::setColumnValue('ordersTable', $orderSWTKey, 'status', 'PENDING');
 
-//                                    $payloadsSwtId = implode(':', [
-//                                        "place-bet-" . $order->id,
-//                                        "uId:" . $orderUser->id,
-//                                        "mId:" . $duplicateOrder->market_id
-//                                    ]);
-//                                    if ($orderPayloadsTable->exists($payloadsSwtId)) {
-//                                        $data = $orderPayloadsTable->get($payloadsSwtId);
-//                                        $orderPayloadsTable->del($payloadsSwtId);
-//
-//                                        $payloadsSwtId = implode(':', [
-//                                            "place-bet-" . $order->id,
-//                                            "uId:" . $order->user_id,
-//                                            "mId:" . $duplicateOrder->market_id
-//                                        ]);
-//
-//                                        $swtPayload = $payload;
-//                                        $swtPayload['data']['exchange_rate_id'] = $exchangeRate->id;
-//                                        $swtPayload['data']['exchange_rate'] = $exchangeRate->exchange_rate;
-//
-//                                        $orderPayloadsTable->set($payloadsSwtId, $data);
-//                                    }
-
-//                                    $payloadsSwtId = implode(':', [
-//                                        "place-bet-" . $duplicateOrder->id,
-//                                        "uId:" . $orderUser->id,
-//                                        "mId:" . $duplicateOrder->market_id
-//                                    ]);
-//                                    if (!$orderPayloadsTable->exists($payloadsSwtId)) {
-//                                        $swtPayload = $payload;
-//                                        $swtPayload['data']['exchange_rate_id'] = $exchangeRate->id;
-//                                        $swtPayload['data']['exchange_rate'] = $exchangeRate->exchange_rate;
-//
-//                                        $orderPayloadsTable->set($payloadsSwtId, [
-//                                            'payload' => json_encode($swtPayload),
-//                                        ]);
-//                                    }
-
                                     $doesExist = false;
                                     foreach ($topicsTable AS $tKey => $tRow) {
                                         if ($tRow['topic_name'] == 'order-' . $orderId) {
                                             SwooleHandler::remove('topicTable', $tKey);
-//                                            $topicsTable->del($tKey);
                                             $doesExist = true;
                                             break;
                                         }
