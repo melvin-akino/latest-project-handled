@@ -37,10 +37,6 @@ class SwtController extends Controller
                 'name'  => 'Updated Events',
                 'count' => $swoole->updatedEventsTable->count()
             ],
-            'getActionLeagues'    => [
-                'name'  => 'Get Action Leagues',
-                'count' => $swoole->getActionLeaguesTable->count()
-            ],
             'consumeLeagues'      => [
                 'name'  => 'Consume Leagues',
                 'count' => $swoole->consumeLeaguesTable->count()

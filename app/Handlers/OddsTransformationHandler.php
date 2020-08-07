@@ -363,13 +363,6 @@ class OddsTransformationHandler
             if (!empty($updatedOdds)) {
                 $swoole->updatedEventsTable->set("updatedEvents:" . $uid, ['value' => json_encode($updatedOdds)]);
             }
-
-            if (SwooleHandler::exists('newLeagueTable', 'newLeague')) {
-                wsEmit(['getAdditionalLeagues' => [
-                    'status' => true
-                ]]);
-                SwooleHandler::remove('newLeagueTable', 'newLeague');
-            }
         } catch (Exception $e) {
             DB::rollBack();
             Log::error(json_encode(

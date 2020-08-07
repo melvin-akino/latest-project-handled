@@ -166,8 +166,10 @@ class OddsValidationHandler
 
             if (!$leagueExist) {
                 appLog('info', "Transformation ignored - League is not in the masterlist");
-                SwooleHandler::setValue('newLeagueTable', 'newLeague', [
-                    'value' => 1
+                SwooleHandler::setValue('newLeaguesTable', 'unique:' . uniqid(), [
+                    'league_name' => $this->message->data->leagueName,
+                    'provider_id' => $providerId,
+                    'sport_id'    => $sportId
                 ]);
                 return;
             }
