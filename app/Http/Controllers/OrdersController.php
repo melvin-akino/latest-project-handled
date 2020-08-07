@@ -82,7 +82,13 @@ class OrdersController extends Controller
                 $myOrders = Order::getAllOrders($conditions, $page);
 
                 foreach ($myOrders as $myOrder) {
-                    $score  = explode(' - ', $myOrder->score);
+                    $current_score = '';
+                    if(empty($betData->current_score)) {
+                        $current_score = "0 - 0";
+                    } else {
+                        $current_score = $betData->current_score;
+                    }
+                    $score = explode(" - ", $current_score);
 
                     $data['orders'][] = [
                         'order_id'      => $myOrder->id,
@@ -98,7 +104,7 @@ class OrdersController extends Controller
                         'settled'       => empty($myOrder->settled_date) ? "" : Carbon::createFromFormat("Y-m-d H:i:sO", $myOrder->settled_date, 'Etc/UTC')->setTimezone($userTz)->format("Y-m-d H:i:s"),
                         'pl'            => empty($myOrder->settled_date) ? 0 : $myOrder->profit_loss,
                         'status'        => $myOrder->status,
-                        'score'         => empty($myOrder->settled_date) ? "" : $myOrder->score,
+                        'score'         => empty($myOrder->settled_date) ? $current_score : $myOrder->final_score,
                         'home_score'    => $score[0],
                         'away_score'    => $score[1],
                         'odd_type_id'   => $myOrder->odd_type_id,
@@ -521,20 +527,22 @@ class OrdersController extends Controller
                 $masterEventMarket       = MasterEventMarket::where('master_event_market_unique_id', $request->market_id)->first();
 
                 $_orderData = [
-                    'master_event_market_id' => $masterEventMarket->id,
-                    'market_id'              => $query->bet_identifier,
-                    'odds'                   => $row['price'],
-                    'odd_label'              => $query->odd_label,
-                    'stake'                  => $payloadStake,
-                    'actual_stake'           => $actualStake,
-                    'score'                  => $query->score,
-                    'expiry'                 => $request->orderExpiry,
-                    'bet_selection'          => $betSelection,
-                    'odd_type_id'            => $query->odd_type_id,
-                    'market_flag'            => $query->market_flag,
-                    'master_league_name'     => $query->master_league_name,
-                    'master_team_home_name'  => $query->master_home_team_name,
-                    'master_team_away_name'  => $query->master_away_team_name
+                    'master_event_market_id'        => $masterEventMarket->id,
+                    'master_event_unique_id'        => $query->master_event_unique_id,
+                    'master_event_market_unique_id' => $request->market_id,
+                    'market_id'                     => $query->bet_identifier,
+                    'odds'                          => $row['price'],
+                    'odd_label'                     => $query->odd_label,
+                    'stake'                         => $payloadStake,
+                    'actual_stake'                  => $actualStake,
+                    'score'                         => $query->score,
+                    'expiry'                        => $request->orderExpiry,
+                    'bet_selection'                 => $betSelection,
+                    'odd_type_id'                   => $query->odd_type_id,
+                    'market_flag'                   => $query->market_flag,
+                    'master_league_name'            => $query->master_league_name,
+                    'master_team_home_name'         => $query->master_home_team_name,
+                    'master_team_away_name'         => $query->master_away_team_name
                 ];
 
                 $_exchangeRate = [

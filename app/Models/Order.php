@@ -35,7 +35,9 @@ class Order extends Model
         'final_score',
         'master_league_name',
         'master_team_home_name',
-        'master_team_away_name'
+        'master_team_away_name',
+        'master_event_unique_id',
+        'master_event_market_unique_id'
     ];
 
     protected $hidden = [];
@@ -50,16 +52,14 @@ class Order extends Model
 
         return DB::table('orders')
             ->leftJoin('providers', 'providers.id', 'orders.provider_id')
-            ->leftJoin('master_event_markets AS mem', 'mem.id', 'orders.master_event_market_id')
-            ->leftJoin('master_events AS me', 'me.id', 'mem.master_event_id')
-            ->leftJoin('odd_types AS ot', 'ot.id', 'mem.odd_type_id')
+            ->leftJoin('odd_types AS ot', 'ot.id', 'orders.odd_type_id')
             ->select(
                 [
                     'orders.id',
                     'orders.bet_id',
                     'orders.bet_selection',
                     'orders.odds',
-                    'mem.master_event_market_unique_id',
+                    'orders.master_event_market_unique_id',
                     'orders.stake',
                     'orders.to_win',
                     'orders.created_at',
@@ -68,8 +68,8 @@ class Order extends Model
                     'orders.status',
                     'orders.odd_label',
                     'orders.reason',
-                    'me.master_event_unique_id',
-                    'me.score',
+                    'orders.master_event_unique_id',
+                    'orders.current_score',
                     'ot.id AS odd_type_id',
                     'providers.alias',
                     'ml_bet_identifier',
@@ -89,23 +89,29 @@ class Order extends Model
 
     public static function getOrdersByEvent($eventId)
     {
-        return DB::table('orders')
-        ->leftJoin('master_event_markets AS mem', 'mem.id', 'orders.master_event_market_id')
-        ->leftJoin('master_events AS me', 'me.id', 'mem.master_event_id')
-        ->leftJoin('odd_types as ot', 'ot.id', 'mem.odd_type_id')
-        ->leftJoin('sport_odd_type as sot', function ($join) {
-            $join->on('sot.odd_type_id', '=', 'ot.id');
-            $join->on('sot.sport_id', '=', 'me.sport_id');
-        })
-        ->leftJoin('master_teams as ht', 'ht.id', 'me.master_team_home_id')
-        ->leftJoin('master_teams as at', 'at.id', 'me.master_team_away_id')
+        return DB::table('orders as o')
+        ->leftJoin('odd_types AS ot', 'ot.id', 'o.odd_type_id')
+        ->leftJoin('sport_odd_type AS sot', 'sot.odd_type_id', 'ot.id')
+        ->where('sot.sport_id', DB::raw('o.sport_id'))
         ->where('user_id', auth()->user()->id)
-        ->where('me.master_event_unique_id', $eventId)
+        ->where('o.master_event_unique_id', $eventId)
         ->whereNotIn('status', ['PENDING', 'FAILED', 'CANCELLED', 'REJECTED', 'VOID', 'ABNORMAL BET', 'REFUNDED'])
-        ->whereIn('mem.odd_type_id', function($query) {
+        ->whereIn('o.odd_type_id', function($query) {
             $query->select('id')->from('odd_types')->whereIn('type', ['HDP', 'HT HDP', 'OU', 'HT OU']);
         })
-        ->select('orders.id', 'stake', 'odds', 'odd_label AS points', 'mem.odd_type_id', 'mem.market_flag', 'ht.name as home_team_name', 'at.name as away_team_name', 'orders.created_at', 'score_on_bet', 'sot.name as sport_odd_type_name');
+        ->select([
+            'o.id',
+            'stake',
+            'odds',
+            'odd_label AS points',
+            'o.odd_type_id',
+            'o.market_flag',
+            'o.master_team_home_name as home_team_name',
+            'o.master_team_away_name as away_team_name',
+            'o.created_at',
+            'score_on_bet',
+            'sot.name as sport_odd_type_name'
+        ]);
     }
 
     public static function getOrdersByUserId(int $userId)
@@ -117,12 +123,7 @@ class Order extends Model
     {
         return DB::table('orders AS o')
                 ->leftJoin('providers AS p', 'p.id', 'o.provider_id')
-                ->leftJoin('master_event_markets AS mem', 'mem.id', 'o.master_event_market_id')
-                ->leftJoin('master_events AS me', 'me.id', 'mem.master_event_id')
-                ->leftJoin('master_leagues as ml', 'ml.id', 'me.master_league_id')
-                ->leftJoin('master_teams as mth', 'mth.id', 'me.master_team_home_id')
-                ->leftJoin('master_teams as mta', 'mta.id', 'me.master_team_away_id')
-                ->leftJoin('odd_types AS ot', 'ot.id', 'mem.odd_type_id')
+                ->leftJoin('odd_types AS ot', 'ot.id', 'o.odd_type_id')
                 ->leftJoin('sport_odd_type AS sot', 'sot.odd_type_id', 'ot.id')
                 ->distinct()
                 ->where('sot.sport_id', DB::raw('o.sport_id'))
@@ -131,15 +132,14 @@ class Order extends Model
                 ->select([
                     'o.id AS order_id',
                     'p.alias',
-                    'mem.master_event_market_unique_id',
-                    'me.master_event_unique_id',
-                    'ml.name as master_league_name',
-                    'mth.name as master_home_team_name',
-                    'mta.name as master_away_team_name',
-                    'me.score',
+                    'o.master_event_unique_id',
+                    'o.master_event_market_unique_id',
+                    'o.market_flag',
+                    'o.master_league_name',
+                    'o.master_team_home_name',
+                    'o.master_team_away_name',
+                    'o.current_score',
                     'o.score_on_bet',
-                    'me.game_schedule',
-                    'mem.market_flag',
                     'ot.id AS odd_type_id',
                     'sot.name',
                     'o.odds',

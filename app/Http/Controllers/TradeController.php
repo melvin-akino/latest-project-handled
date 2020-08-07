@@ -58,8 +58,13 @@ class TradeController extends Controller
                 }
 
                 if ($proceed) {
-                    $score = explode(" - ", $betData->score);
-
+                    $current_score = '';
+                    if(empty($betData->current_score)) {
+                        $current_score = "0 - 0";
+                    } else {
+                        $current_score = $betData->current_score;
+                    }
+                    $score = explode(" - ", $current_score);
                     $data[] = [
                         'order_id'       => $betData->order_id,
                         'provider_alias' => $betData->alias,
@@ -67,18 +72,16 @@ class TradeController extends Controller
                         'market_id'      => $betData->master_event_market_unique_id,
                         'odd_type_id'    => $betData->odd_type_id,
                         'league_name'    => $betData->master_league_name,
-                        'game_schedule'  => $betData->game_schedule,
-                        'home'           => $betData->master_home_team_name,
-                        'away'           => $betData->master_away_team_name,
+                        'home'           => $betData->master_team_home_name,
+                        'away'           => $betData->master_team_away_name,
                         'bet_info'       => [
                             $betData->market_flag,
                             $betData->name,
                             $betData->odds,
                             $betData->stake,
                             $betData->odd_label,
-                            $betData->market_flag == 'HOME' ? $betData->master_home_team_name : $betData->master_away_team_name
+                            $betData->market_flag == 'HOME' ? $betData->master_team_home_name : $betData->master_team_away_name
                         ],
-                        'score'          => $betData->score,
                         'home_score'     => $score[0],
                         'away_score'     => $score[1],
                         'score_on_bet'   => $betData->score_on_bet,
