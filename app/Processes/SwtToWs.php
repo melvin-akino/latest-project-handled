@@ -2,8 +2,10 @@
 
 namespace App\Processes;
 
+use App\Facades\SwooleHandler;
 use App\Jobs\WsEvents;
 use App\Models\Game;
+use App\Models\League;
 use App\Models\UserProviderConfiguration;
 use Hhxsv5\LaravelS\Swoole\Process\CustomProcessInterface;
 use Illuminate\Support\Facades\Log;
@@ -22,12 +24,15 @@ class SwtToWs implements CustomProcessInterface
     {
         try {
             if ($swoole->data2SwtTable->exist('data2Swt')) {
+                $i = 0;
                 while (!self::$quit) {
                     self::getUpdatedOdds($swoole);
                     self::getUpdatedPrice($swoole);
-                    self::getAdditionalLeagues($swoole);
-                    self::getForRemovallLeagues($swoole);
+                    if ($i % 30 == 0) {
+                        self::getAdditionalLeagues($swoole);
+                    }
                     usleep(1000000);
+                    $i++;
                 }
             }
         } catch (Exception $e) {
@@ -112,67 +117,24 @@ class SwtToWs implements CustomProcessInterface
 
     private static function getAdditionalLeagues($swoole)
     {
-        $abbr                  = "add";
-        $part                  = strtolower('ADDITIONAL');
-        $swtKey                = "::LEAGUE_" . strtoupper($part);
-        $topic                 = "getAdditionalLeagues";
-        $getActionLeaguesTable = $swoole->getActionLeaguesTable;
-        $wsTable               = $swoole->wsTable;
-
-        foreach ($getActionLeaguesTable as $_key => $_row) {
-            if (strpos($_key, $swtKey) > -1) {
-                $data = json_decode($_row['value']);
-                if (!empty($data)) {
-                    foreach ($wsTable as $key => $row) {
-                        if (strpos($key, 'fd:') === 0) {
-                            $fd = $wsTable->get('uid:' . $row['value']);
-                            if ($swoole->isEstablished($fd['value'])) {
-                                $swoole->push($fd['value'], json_encode([$topic => $data->{$abbr}]));
-                            }
-                        }
-                    }
-                }
-                $getActionLeaguesTable->del($_key);
+        $newLeagues = $swoole->newLeaguesTable;
+        $doesExist = false;
+        foreach ($newLeagues as $key => $newLeague) {
+            if (
+                League::where('name', $newLeague['league_name'])
+                ->where('provider_id', $newLeague['provider_id'])
+                ->where('sport_id', $newLeague['sport_id'])
+                ->exists()
+            ) {
+                SwooleHandler::remove('newLeaguesTable', $key);
+                $doesExist = true;
             }
         }
-    }
 
-    private static function getForRemovallLeagues($swoole)
-    {
-        $abbr                  = "rmv";
-        $part                  = strtolower('removal');
-        $swtKey                = "::LEAGUE_" . strtoupper($part);
-        $topic                 = "getForRemovalLeagues";
-        $slTable               = $swoole->userSelectedLeaguesTable;
-        $getActionLeaguesTable = $swoole->getActionLeaguesTable;
-        $wsTable               = $swoole->wsTable;
-
-        foreach ($getActionLeaguesTable as $_key => $_row) {
-            if (strpos($_key, $swtKey) === 0) {
-                $data = json_decode($_row['value']);
-                if (!empty($data)) {
-                    foreach ($wsTable as $key => $row) {
-                        if (strpos($key, 'fd:') === 0) {
-                            $fd = $wsTable->get('uid:' . $row['value']);
-                            if ($swoole->isEstablished($fd['value'])) {
-                                $swoole->push($fd['value'], json_encode([$topic => $data->{$abbr}]));
-                            }
-
-                            foreach ($slTable as $slKey => $slRow) {
-                                foreach ($data->{$abbr} as $_abbr) {
-                                    if ((strpos($slKey, 'userId:' . $row['value']) > -1) &&
-                                        (strpos($slKey, ':schedule:' . $_abbr->schedule . ':uniqueId:') > -1)) {
-                                        if ($slTable[$slKey]['league_name'] == $_abbr->name) {
-                                            $slTable->del($slKey);
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-                $getActionLeaguesTable->del($_key);
-            }
+        if ($doesExist) {
+            wsEmit(['getAdditionalLeagues' => [
+                'status' => true
+            ]]);
         }
     }
 }
