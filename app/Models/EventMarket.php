@@ -91,7 +91,6 @@ class EventMarket extends Model
         $sql = "UPDATE orders SET
                 market_flag = marketTable.market_flag,
                 odd_type_id = marketTable.odd_type_id,
-                current_score = marketTable.score,
                 final_score = CASE WHEN settled_date is null THEN null ELSE marketTable.score END,
                 master_event_market_unique_id = marketTable.master_event_market_unique_id,
                 master_event_unique_id = marketTable.master_event_unique_id,
