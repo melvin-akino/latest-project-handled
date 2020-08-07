@@ -64,4 +64,41 @@ class EventMarket extends Model
                  ->where('market_flag', $removeEventMarket['market_flag'])
                  ->update(['deleted_at' => Carbon::now(), 'odds' => 0]);
     }
+
+    public static function getMarketDetailsByListOfMarketIds(array $marketIds = [])
+    {
+        $sqlTable = "SELECT
+                em.bet_identifier,
+                em.market_flag,
+                em.odd_type_id,
+                me.score,
+                ml.name as master_league_name,
+                mth.name as master_team_home_name,
+                mta.name as master_team_away_name
+            FROM event_markets as em
+            JOIN events as e ON em.event_id = e.id
+            JOIN master_events as me ON e.master_event_id = me.id
+            JOIN master_leagues as ml ON ml.id = me.master_league_id
+            JOIN master_teams as mth ON mth.id = me.master_team_home_id
+            JOIN master_teams as mta ON mta.id = me.master_team_away_id
+            WHERE
+                em.bet_identifier IN ('" . implode("', '", $marketIds) . "')
+
+        ";
+
+        $sql = "UPDATE orders SET
+                market_flag = marketTable.market_flag,
+                odd_type_id = marketTable.odd_type_id,
+                current_score = marketTable.score,
+                final_score = CASE WHEN settled_date is null THEN null ELSE marketTable.score END,
+                master_league_name = marketTable.master_league_name,
+                master_team_home_name = marketTable.master_team_home_name,
+                master_team_away_name = marketTable.master_team_away_name
+            FROM (" . $sqlTable . ") as marketTable
+            WHERE market_id = marketTable.bet_identifier
+        ";
+
+        DB::update($sql);
+
+    }
 }

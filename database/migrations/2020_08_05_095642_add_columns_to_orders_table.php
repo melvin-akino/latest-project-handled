@@ -2,7 +2,7 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\{Schema, Artisan};
 
 class AddColumnsToOrdersTable extends Migration
 {
@@ -24,6 +24,7 @@ class AddColumnsToOrdersTable extends Migration
                 ])->nullable();
                 $table->integer('odd_type_id')->nullable();
                 $table->string('final_score', 10)->nullable();
+                $table->string('current_score', 10)->nullable();
 
                 $table->string('master_league_name', 100)->nullable();
                 $table->string('master_team_home_name', 100)->nullable();
@@ -34,6 +35,10 @@ class AddColumnsToOrdersTable extends Migration
                       ->on('odd_types')
                       ->onUpdate('cascade');
             });
+
+            Artisan::call('db:seed', [
+                '--class' => OrderMissingDataFromEventsSeeder::class
+            ]);
         }
     }
 
@@ -49,6 +54,7 @@ class AddColumnsToOrdersTable extends Migration
                 $table->dropColumn('market_flag');
                 $table->dropColumn('odd_type_id');
                 $table->dropColumn('final_score');
+                $table->dropColumn('current_score');
                 $table->dropColumn('master_league_name');
                 $table->dropColumn('master_team_home_name');
                 $table->dropColumn('master_team_away_name');
