@@ -19,7 +19,7 @@ er <template>
                     <span :class="{'greenPL': props.row.status == 'WIN' || props.row.status == 'HALF WIN', 'redPL': props.row.status == 'LOSE' || props.row.status == 'HALF LOSE'}" >{{props.row.pl | formatPL}}</span>
                 </div>
                 <div slot="score" slot-scope="props">
-                    <span class="text-sm">{{ props.row.settled != "" ? props.row.score : "-" }}</span>
+                    <span class="text-sm">{{ props.row.settled != "" && props.row.score != "" ? props.row.score : "-" }}</span>
                 </div>
                 <div class="flex justify-start" slot="betData" slot-scope="props">
                     <a href="#" @click.prevent="openBetMatrix(props.row.order_id)" class="text-center py-1 w-1/2"><i class="fas fa-chart-area" title="Bet Matrix" v-if="oddTypesWithSpreads.includes(props.row.odd_type_id) && !failedBetStatus.includes(props.row.status)"></i></a>
