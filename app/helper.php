@@ -35,7 +35,7 @@ use App\Models\{
     Game,
     Timezones,
     UserProviderConfiguration,
-    MarketScore
+    EventScore
 };
 use App\Models\CRM\{
     OrderTransaction,
@@ -383,8 +383,8 @@ if (!function_exists('ordersCreation')) {
             'master_team_away_name'         => $orderData['master_team_away_name']
         ]);
 
-        $marketScore = MarketScore::updateOrCreate([
-            'bet_identifier' => $orderData['market_id']
+        EventScore::updateOrCreate([
+            'master_event_unique_id' => $orderData['master_event_unique_id']
         ], [
             'score' => $orderData['score']
         ]);

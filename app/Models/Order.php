@@ -53,7 +53,7 @@ class Order extends Model
         return DB::table('orders')
             ->leftJoin('providers', 'providers.id', 'orders.provider_id')
             ->leftJoin('odd_types AS ot', 'ot.id', 'orders.odd_type_id')
-            ->leftJoin('market_scores as ms', 'ms.bet_identifier', 'orders.market_id')
+            ->leftJoin('event_scores as es', 'es.master_event_unique_id', 'orders.master_event_unique_id')
             ->select(
                 [
                     'orders.id',
@@ -70,7 +70,7 @@ class Order extends Model
                     'orders.odd_label',
                     'orders.reason',
                     'orders.master_event_unique_id',
-                    'ms.score as current_score',
+                    'es.score as current_score',
                     'ot.id AS odd_type_id',
                     'providers.alias',
                     'ml_bet_identifier',
@@ -126,7 +126,7 @@ class Order extends Model
                 ->leftJoin('providers AS p', 'p.id', 'o.provider_id')
                 ->leftJoin('odd_types AS ot', 'ot.id', 'o.odd_type_id')
                 ->leftJoin('sport_odd_type AS sot', 'sot.odd_type_id', 'ot.id')
-                ->leftJoin('market_scores as ms', 'ms.bet_identifier', 'o.market_id')
+                ->leftJoin('event_scores as es', 'es.master_event_unique_id', 'o.master_event_unique_id')
                 ->distinct()
                 ->where('sot.sport_id', DB::raw('o.sport_id'))
                 ->where('o.user_id', $userId)
@@ -140,7 +140,7 @@ class Order extends Model
                     'o.master_league_name',
                     'o.master_team_home_name',
                     'o.master_team_away_name',
-                    'ms.score as current_score',
+                    'es.score as current_score',
                     'o.score_on_bet',
                     'ot.id AS odd_type_id',
                     'sot.name',

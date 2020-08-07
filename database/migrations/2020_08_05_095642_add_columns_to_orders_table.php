@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\{Schema, Artisan};
 class AddColumnsToOrdersTable extends Migration
 {
     protected $ordersTable = 'orders';
-    protected $marketScoreTable = 'market_scores';
+    protected $eventScoreTable = 'event_scores';
 
     /**
      * Run the migrations.
@@ -16,17 +16,6 @@ class AddColumnsToOrdersTable extends Migration
      */
     public function up()
     {
-
-        if (!Schema::hasTable($this->marketScoreTable)) {
-            Schema::create($this->marketScoreTable, function (Blueprint $table) {
-                $table->string('bet_identifier', 100)->unique()->index();
-                $table->string('score', 10)->nullable();
-            });
-
-            Artisan::call('db:seed', [
-                '--class' => MarketScoreSeeder::class
-            ]);
-        }
         if (Schema::hasTable($this->ordersTable)) {
             Schema::table($this->ordersTable, function (Blueprint $table) {
                 $table->enum('market_flag', [
@@ -52,6 +41,17 @@ class AddColumnsToOrdersTable extends Migration
                 '--class' => OrderMissingDataFromEventsSeeder::class
             ]);
         }
+
+        if (!Schema::hasTable($this->eventScoreTable)) {
+            Schema::create($this->eventScoreTable, function (Blueprint $table) {
+                $table->string('master_event_unique_id', 100)->unique()->index();
+                $table->string('score', 10)->nullable();
+            });
+
+            Artisan::call('db:seed', [
+                '--class' => EventScoreSeeder::class
+            ]);
+        }
     }
 
     /**
@@ -61,7 +61,7 @@ class AddColumnsToOrdersTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists($this->marketScoreTable);
+        Schema::dropIfExists($this->eventScoreTable);
 
         if (Schema::hasTable($this->ordersTable)) {
             Schema::table($this->ordersTable, function (Blueprint $table) {
