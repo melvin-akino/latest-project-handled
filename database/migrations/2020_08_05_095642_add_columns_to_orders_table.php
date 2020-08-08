@@ -26,7 +26,7 @@ class AddColumnsToOrdersTable extends Migration
                 $table->integer('odd_type_id')->nullable();
                 $table->string('final_score', 10)->nullable();
                 $table->string('master_event_market_unique_id', 100)->nullable();
-                $table->string('master_event_unique_id', 100)->nullable();
+                $table->string('master_event_unique_id', 30)->nullable();
                 $table->string('master_league_name', 100)->nullable();
                 $table->string('master_team_home_name', 100)->nullable();
                 $table->string('master_team_away_name', 100)->nullable();
