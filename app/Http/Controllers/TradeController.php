@@ -199,7 +199,7 @@ class TradeController extends Controller
             $userProviderIds = UserProviderConfiguration::getProviderIdList(auth()->user()->id);
 
             foreach ($dataSchedule as $key => $sched) {
-                $leaguesQuery = MasterLeague::getLeaguesBySportAndGameShedule($data['default_sport'], auth()->user()->id, $userProviderIds, $key);
+                $leaguesQuery = MasterLeague::getLeaguesBySportAndGameSchedule($data['default_sport'], auth()->user()->id, $userProviderIds, $key)->get();
 
                 foreach ($leaguesQuery as $league) {
                     $dataSchedule[$key][$league->master_league_name] = [
@@ -452,15 +452,23 @@ class TradeController extends Controller
             }
 
             $limit = 20;
-            $data  = Game::searchSuggestion($request->keyword);
-            $query = $data->limit($limit)
+
+            $data            = getUserDefault(auth()->user()->id, 'sport');
+            $userProviderIds = UserProviderConfiguration::getProviderIdList(auth()->user()->id);
+
+            $leagues = MasterLeague::getLeaguesBySportAndGameSchedule($data['default_sport'], auth()->user()->id, $userProviderIds, "", $request->keyword);
+            $events  = Game::getAvailableEvents(auth()->user()->id, $request->keyword);
+
+            $results = $leagues->union($events);
+
+            $query   = $results->limit($limit)
                           ->offset(($request->page - 1) * $limit);
 
             return response()->json([
                 'status'      => true,
                 'status_code' => 200,
                 'data'        => $request->keyword == "" ? [] : $query->get(),
-                'paginated'   => (($request->page * $limit) - $data->count()) >= 0 ? false : true
+                'paginated'   => (($request->page * $limit) - $results->count()) >= 0 ? false : true
             ], 200);
         } catch (Exception $e) {
             Log::error($e->getMessage());
