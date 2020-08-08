@@ -39,10 +39,8 @@ export default {
             }
         }
     },
-    watch: {
-        leagues() {
-            this.modifyLeaguesFromSocket()
-        }
+    mounted() {
+        this.modifyLeaguesFromSocket()
     },
     methods: {
         modifyLeaguesFromSocket() {

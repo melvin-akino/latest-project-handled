@@ -14,10 +14,9 @@ class WSForBetBarRemoval implements ShouldQueue
      *
      * @return void
      */
-    public function __construct($fd, $orderId)
+    public function __construct($fd)
     {
         $this->fd      = $fd;
-        $this->orderId = $orderId;
     }
 
     /**
@@ -31,7 +30,7 @@ class WSForBetBarRemoval implements ShouldQueue
 
         if ($server->isEstablished($this->fd)) {
             $server->push($this->fd, json_encode([
-                'forBetBarRemoval' => ['order_id' => $this->orderId]
+                'forBetBarRemoval' => ['status' => true]
             ]));
         }
     }

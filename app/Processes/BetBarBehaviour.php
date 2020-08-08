@@ -3,8 +3,6 @@
 namespace App\Processes;
 
 use App\Facades\SwooleHandler;
-use App\Jobs\WSForBetBarRemoval;
-use App\Models\Order;
 use Illuminate\Support\Facades\Log;
 use Hhxsv5\LaravelS\Swoole\Process\CustomProcessInterface;
 use Swoole\Http\Server;
@@ -29,10 +27,12 @@ class BetBarBehaviour implements CustomProcessInterface
                     $newTime = Carbon::createFromFormat('H:i:s', Carbon::now()->format('H:i:s'));
                     if ($newTime->diffInSeconds(Carbon::parse($initialTime)) >= 30) {
                         foreach ($swoole->pendingOrdersWithinExpiryTable as $key => $pendingOrder) {
-                            $fd = $swoole->wsTable->get('uid:' . $pendingOrder['user_id']);
                             if ($pendingOrder['created_at'] < Carbon::now()->subSeconds($pendingOrder['order_expiry'])) {
                                 SwooleHandler::remove('pendingOrdersWithinExpiryTable', $key);
-                                WSForBetBarRemoval::dispatch($fd['value'], $pendingOrder['id']);
+                                SwooleHandler::setValue('topicTable', 'userId:' . $pendingOrder['user_id'] . ':unique:' . uniqid(), [
+                                    'user_id' => $pendingOrder['user_id'],
+                                    'topic_name' => 'removal-bet-' . $pendingOrder['id']
+                                ]);
                             }
                         }
                         $initialTime = $newTime;

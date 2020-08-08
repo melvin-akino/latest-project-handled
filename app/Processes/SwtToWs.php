@@ -3,7 +3,6 @@
 namespace App\Processes;
 
 use App\Facades\SwooleHandler;
-use App\Jobs\WsEvents;
 use App\Models\Game;
 use App\Models\League;
 use App\Models\UserProviderConfiguration;
@@ -30,6 +29,10 @@ class SwtToWs implements CustomProcessInterface
                     self::getUpdatedPrice($swoole);
                     if ($i % 30 == 0) {
                         self::getAdditionalLeagues($swoole);
+                    }
+
+                    if ($i % 5 == 0) {
+                        self::getForBetBarRemoval($swoole);
                     }
                     usleep(1000000);
                     $i++;
@@ -135,6 +138,29 @@ class SwtToWs implements CustomProcessInterface
             wsEmit(['getAdditionalLeagues' => [
                 'status' => true
             ]]);
+        }
+    }
+
+    private static function getForBetBarRemoval($swoole)
+    {
+        $topicTable = $swoole->topicTable;
+        $userForRemovalBet = [];
+        foreach ($topicTable as $key => $topic) {
+            if (strpos($topic['topic_name'], 'removal-bet-') === 0) {
+                $userForRemovalBet[$topic['user_id']] = true;
+                SwooleHandler::remove('topicTable', $key);
+            }
+        }
+
+        if (!empty($userForRemovalBet)) {
+            foreach ($userForRemovalBet as $userId => $bet) {
+                $fd = $swoole->wsTable->get('uid:' . $userId);
+                if ($swoole->isEstablished($fd['value'])) {
+                    $swoole->push($fd['value'], json_encode([
+                        'forBetBarRemoval' => ['status' => true]
+                    ]));
+                }
+            }
         }
     }
 }

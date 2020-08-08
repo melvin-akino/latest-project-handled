@@ -2,6 +2,7 @@
 
 namespace App\Jobs;
 
+use App\Facades\SwooleHandler;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 
@@ -49,7 +50,10 @@ class WSOrderStatus implements ShouldQueue
             ];
             if (in_array(strtoupper($this->status), $forBetBarRemoval)) {
                 if (time() - strtotime($this->created_at) > $this->expiry) {
-                    WSForBetBarRemoval::dispatch($fd['value'], $this->orderId);
+                    SwooleHandler::setValue('topicTable', 'userId:' . $this->userId . ':unique:' . uniqid(), [
+                        'user_id' => $this->userId,
+                        'topic_name' => 'removal-bet-' . $this->orderId
+                    ]);
                 }
             }
         }
