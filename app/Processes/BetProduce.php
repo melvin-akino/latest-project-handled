@@ -4,7 +4,7 @@ namespace App\Processes;
 
 use App\Facades\SwooleHandler;
 use App\Handlers\ProducerHandler;
-use App\Jobs\{KafkaPush, WSForBetBarRemoval};
+use App\Jobs\KafkaPush;
 use Illuminate\Support\Facades\Log;
 use Hhxsv5\LaravelS\Swoole\Process\CustomProcessInterface;
 use Illuminate\Support\Str;
@@ -261,6 +261,11 @@ class BetProduce implements CustomProcessInterface
                                                 'topic_name' => "order-" . $duplicateOrder->id
                                             ]);
                                         }
+
+                                        SwooleHandler::setValue('topicTable', 'userId:' . $orderUser->id . ':unique:' . uniqid(), [
+                                            'user_id' => $orderUser->id,
+                                            'topic_name' => 'removal-bet-' . $orderId
+                                        ]);
 
                                         $fd = SwooleHandler::getValue('wsTable', 'uid:' . $orderUser->id);
                                         WSForBetBarRemoval::dispatch($fd['value'], $orderId);

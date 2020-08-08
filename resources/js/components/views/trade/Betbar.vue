@@ -31,20 +31,13 @@ export default {
         ...mapState('trade', ['isBetBarOpen', 'bets', 'failedBetStatus'])
     },
     mounted() {
-        this.getOrderStatus()
-        this.forBetBarRemoval()
-    },
-    watch: {
-        bets() {
-            this.getOrderStatus()
-            this.forBetBarRemoval()
-        }
+        this.modifyBetBarFromSocket()
     },
     methods: {
         toggleBetBar() {
             this.$store.commit('trade/TOGGLE_BETBAR', !this.isBetBarOpen)
         },
-        getOrderStatus() {
+        modifyBetBarFromSocket() {
             this.$options.sockets.onmessage = (response => {
                 if(getSocketKey(response.data) === 'getOrderStatus') {
                     let orderStatus = getSocketValue(response.data, 'getOrderStatus')
@@ -65,12 +58,7 @@ export default {
                             this.$store.dispatch('trade/getWalletData')
                         }
                     })
-                }
-            })
-        },
-        forBetBarRemoval() {
-            this.$options.sockets.onmessage = (response => {
-                if(getSocketKey(response.data) === 'forBetBarRemoval') {
+                } else if(getSocketKey(response.data) === 'forBetBarRemoval') {
                     this.$store.dispatch('trade/getBetbarData')
                 }
             })

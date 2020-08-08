@@ -32,9 +32,15 @@ class MasterLeague extends Model
         return $query->first()->id;
     }
 
-    public static function getLeaguesBySportAndGameShedule(int $sportId, int $userId, array $userProviderIds, string $gameSchedule)
+    public static function getLeaguesBySportAndGameSchedule(int $sportId, int $userId, array $userProviderIds, string $gameSchedule, string $keyword = null)
     {
         $maxMissingCount = SystemConfiguration::getSystemConfigurationValue('EVENT_VALID_MAX_MISSING_COUNT')->value;
+
+        if($keyword) {
+            $columns = [DB::raw("'league' as type"), 'master_league_name as data','master_league_name as label'];
+        } else {
+            $columns = ['master_league_name', DB::raw('COUNT(master_league_name) AS match_count')];
+        }
 
         $subquery = DB::table('master_leagues as ml')
             ->leftJoin('sports as s', 's.id', 'ml.sport_id')
@@ -51,7 +57,9 @@ class MasterLeague extends Model
             ->whereNull('ml.deleted_at')
             ->whereNull('em.deleted_at')
             ->where('e.missing_count', '<=', $maxMissingCount)
-            ->where('me.game_schedule', $gameSchedule)
+            ->when($gameSchedule, function($query, $gameSchedule) {
+                return $query->where('me.game_schedule', $gameSchedule);
+            })
             ->whereIn('e.provider_id', $userProviderIds)
             ->whereIn('em.provider_id', $userProviderIds)
             ->where('mem.is_main', true)
@@ -63,11 +71,11 @@ class MasterLeague extends Model
 
         return DB::table(DB::raw("({$subquery->toSql()}) AS leagues_list"))
             ->mergeBindings($subquery)
-            ->select('master_league_name', DB::raw('COUNT(master_league_name) AS match_count'))
-            ->groupBy('master_league_name')
-            ->get();
-
-
+            ->select($columns)
+            ->when($keyword, function($query, $keyword) {
+                return $query->where('master_league_name', 'ILIKE', '%' . $keyword . '%');
+            })
+            ->groupBy('master_league_name');
     }
 
     public static function getLeagueDetailsByName(string $league)
