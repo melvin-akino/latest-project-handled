@@ -58,13 +58,12 @@ class TradeController extends Controller
                 }
 
                 if ($proceed) {
-                    $current_score = '';
                     if(empty($betData->current_score)) {
-                        $current_score = "0 - 0";
+                        $currentScore = "0 - 0";
                     } else {
-                        $current_score = $betData->current_score;
+                        $currentScore = $betData->current_score;
                     }
-                    $score = explode(" - ", $current_score);
+                    $score = explode(" - ", $currentScore);
                     $data[] = [
                         'order_id'       => $betData->order_id,
                         'provider_alias' => $betData->alias,

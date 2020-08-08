@@ -729,7 +729,7 @@ class OrdersController extends Controller
                     $type = $ouOddLabel[0];
                     $points = $ouOddLabel[1];
                 }
-                $current_score = explode(' - ', $order->score_on_bet);
+                $scoreOnBet = explode(' - ', $order->score_on_bet);
                 $data[] = [
                     'order_id'          => $order->id,
                     'stake'             => $order->stake,
@@ -739,8 +739,8 @@ class OrdersController extends Controller
                     'odd_type_name'     => $order->sport_odd_type_name,
                     'bet_team'          => $order->market_flag,
                     'team_name'         => $order->market_flag == 'HOME' ? $order->home_team_name : $order->away_team_name,
-                    'home_score_on_bet' => $current_score[0],
-                    'away_score_on_bet' => $current_score[1],
+                    'home_score_on_bet' => $scoreOnBet[0],
+                    'away_score_on_bet' => $scoreOnBet[1],
                     'created_at'        => Carbon::createFromFormat("Y-m-d H:i:s", $order->created_at, 'Etc/UTC')->setTimezone($userTz)->format("Y-m-d H:i:s"),
                 ];
             }
