@@ -42,6 +42,7 @@
                             <span v-if="$v.registerForm.step1.password.$dirty && !$v.registerForm.step1.password.required" class="text-red-600 text-sm">Please type a password.</span>
                             <span v-if="$v.registerForm.step1.password.$dirty && !$v.registerForm.step1.password.minLength" class="text-red-600 text-sm">Password must have a minimum of 6 characters.</span>
                             <span v-if="$v.registerForm.step1.password.$dirty && !$v.registerForm.step1.password.maxLength" class="text-red-600 text-sm">Password must have a maximum of 32 characters.</span>
+                            <span v-if="$v.registerForm.step1.password.$dirty && !$v.registerForm.step1.password.alphaNum" class="text-red-600 text-sm">Password should only contain alphanumeric characters.</span>
                         </div>
                         <div class="mb-2 w-1/2">
                             <label class="block text-gray-700 text-sm font-bold mb-2 uppercase" for="password_confirmation">Confirm Password</label>
@@ -219,7 +220,7 @@ export default {
                 firstname: { required, maxLength:maxLength(32) },
                 lastname: { required, maxLength:maxLength(32) },
                 email: { required, email, maxLength:maxLength(100) },
-                password: { required, minLength: minLength(6), maxLength:maxLength(32) },
+                password: { required, minLength: minLength(6), maxLength:maxLength(32), alphaNum },
                 password_confirmation: { sameAs: sameAs('password') },
                 birthdate: {  }
             },
