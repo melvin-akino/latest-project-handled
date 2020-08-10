@@ -28,8 +28,8 @@ class ChangePasswordRequests extends FormRequest
         return [
             'email'                         => 'required|email|exists:users,email',
             'token'                         => 'required',
-            'password'                      => 'required|confirmed|min:6|max:32',
-            'password_confirmation'         => 'required|same:password|min:6|max:32',
+            'password'                      => 'required|confirmed|min:6|max:32|alpha_num',
+            'password_confirmation'         => 'required|same:password|min:6|max:32|alpha_num',
         ];
     }
 

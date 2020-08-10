@@ -16,6 +16,7 @@
                     <span v-if="$v.resetPasswordForm.password.$dirty && !$v.resetPasswordForm.password.required" class="text-red-600 text-sm">Please type a new password.</span>
                     <span v-if="$v.resetPasswordForm.password.$dirty && !$v.resetPasswordForm.password.minLength" class="text-red-600 text-sm">Password must have a minimum of 6 characters.</span>
                     <span v-if="$v.resetPasswordForm.password.$dirty && !$v.resetPasswordForm.password.maxLength" class="text-red-600 text-sm">Password must have a maximum of 32 characters.</span>
+                    <span v-if="$v.resetPasswordForm.password.$dirty && !$v.resetPasswordForm.password.alphaNum" class="text-red-600 text-sm">Password should only contain alphanumeric characters.</span>
                 </div>
 
                 <div class="mb-4">
@@ -41,7 +42,7 @@
 </template>
 
 <script>
-import {required, email, sameAs, minLength, maxLength} from 'vuelidate/lib/validators'
+import {required, email, sameAs, minLength, maxLength, alphaNum } from 'vuelidate/lib/validators'
 
 export default {
     name: 'ResetPassword',
@@ -67,7 +68,7 @@ export default {
     validations: {
         resetPasswordForm: {
             email: { required, email },
-            password: { required, minLength:minLength(6), maxLength:maxLength(32) },
+            password: { required, minLength:minLength(6), maxLength:maxLength(32), alphaNum },
             password_confirmation: { sameAs:sameAs('password') }
         }
     },
