@@ -377,6 +377,10 @@ class OrdersController extends Controller
                     }
                 }
 
+                if (empty($userProviderPercentage)) {
+                    throw new BadRequestException(trans('generic.bad-request'));
+                }
+
                 /**
                  * Set Provider details from `providers` Swoole Table
                  *
