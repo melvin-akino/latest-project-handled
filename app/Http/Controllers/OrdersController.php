@@ -88,10 +88,10 @@ class OrdersController extends Controller
                         $currentScore = $myOrder->current_score;
                     }
 
-                    if(empty($myOrder->settled_date)) {
-                        $score = explode(" - ", $currentScore);
-                    } else {
+                    if(!empty($myOrder->settled_date) && !empty($myOrder->final_score)) {
                         $score = explode(" - ", $myOrder->final_score);
+                    } else {
+                        $score = explode(" - ", $currentScore);
                     }
 
                     $data['orders'][] = [
