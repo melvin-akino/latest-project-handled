@@ -459,15 +459,15 @@ class OrdersController extends Controller
 
                 $query = Game::getmasterEventByMarketId($request->market_id);
 
+                if (!$query) {
+                    throw new NotFoundException(trans('generic.not-found'));
+                }
+
                 // Checks if odd type of market is not 1x2 or HT 1x2
                 if (!in_array($query->odd_type_id, [1, 10])) {
                     if ($query->odd_label != Redis::get('marketPoints:' . $query->bet_identifier)) {
                         throw new BadRequestException(trans('game.bet.errors.type_has_been_changed', ['type' => $query->column_type]));
                     }
-                }
-
-                if (!$query) {
-                    throw new NotFoundException(trans('generic.not-found'));
                 }
 
                 $actualStake = ($payloadStake * $exchangeRate['exchange_rate']) / ($percentage / 100);
