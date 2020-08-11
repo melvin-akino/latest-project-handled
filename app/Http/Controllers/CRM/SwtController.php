@@ -204,7 +204,7 @@ class SwtController extends Controller
             ],
             'mlBetId'               => [
                 'name'  => 'ML BET ID',
-                'max'   => env('SWT_MAX_SIZE', 102400),
+                'max'   => 10000,
                 'count' => $swoole->mlBetIdTable->count()
             ],
             'scraperRequests'       => [

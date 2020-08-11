@@ -448,7 +448,7 @@ return [
             ],
         ],
         'mlBetId' => [ // KEY FORMAT: [mlBetId]
-            'size'   => 128,
+            'size'   => 10000,
             'column' => [
                 [ 'name' => 'ml_bet_id', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 128 ],
             ],
