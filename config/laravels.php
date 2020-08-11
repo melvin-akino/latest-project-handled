@@ -219,14 +219,14 @@ return [
             ],
         ],
         'oddTypes'            => [ // key format [oddType:$oddType] => [id = $id, type = $oddType]
-            'size'   => 1000,
+            'size'   => 100,
             'column' => [
                 ['name' => 'id', 'type' => \Swoole\Table::TYPE_INT],
                 ['name' => 'type', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 20],
             ],
         ],
         'providers'           => [ // key format [providerAlias:strtolower($providerAlias)] => [id = $id, alias = $alias]
-            'size'   => 100,
+            'size'   => 10,
             'column' => [
                 ['name' => 'id', 'type' => \Swoole\Table::TYPE_INT],
                 ['name' => 'alias', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 10],
@@ -237,14 +237,14 @@ return [
             ],
         ],
         'sports'              => [ //key format [sId:$sportId] = [name = $sport]
-            'size'   => 100,
+            'size'   => 10,
             'column' => [
                 ['name' => 'sport', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 50],
                 ['name' => 'id', 'type' => \Swoole\Table::TYPE_INT],
             ],
         ],
         'sportOddTypes'       => [ // key format [sId:$sportId:oddType:slug($oddType)] = [id = $id, ...]
-            'size'   => 1000,
+            'size'   => 100,
             'column' => [
                 ['name' => 'id', 'type' => \Swoole\Table::TYPE_INT],
                 ['name' => 'sport_id', 'type' => \Swoole\Table::TYPE_INT],
