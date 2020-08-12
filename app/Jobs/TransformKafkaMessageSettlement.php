@@ -40,7 +40,16 @@ class TransformKafkaMessageSettlement implements ShouldQueue
             $providerCurrency = $providers->get('providerAlias:' . $report->provider)['currency_id'];
 
             foreach ($orders AS $key => $row) {
-                if ($row['bet_id'] == $report->bet_id) {
+                preg_match_all('!\d+!', $row['bet_id'], $mlBetIdArray);
+                preg_match_all('!\d+!', $report->bet_id, $providerBetIdArray);
+
+                $mlBetIdArrayIndex0 = $mlBetIdArray[0];
+                $mlBetId = end($mlBetIdArrayIndex0);
+
+                $providerBetIdArrayIndex0 = $providerBetIdArray[0];
+                $providerBetId = end($providerBetIdArrayIndex0);
+
+                if ($mlBetId == $providerBetId) {
                     if ($row['status'] == 'SUCCESS' || ($row['status'] == 'PENDING' && !empty($row['bet_id']))) {
                         WsSettledBets::dispatch($report, $providerId, $providerCurrency);
 

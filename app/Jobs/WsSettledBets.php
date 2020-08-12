@@ -48,6 +48,10 @@ class WsSettledBets implements ShouldQueue
         $stakeReturnToLedger = false;
         $transferAmount      = 0;
 
+        preg_match_all('!\d+!', $this->data->bet_id, $providerBetIdArray);
+        $providerBetIdArrayIndex0 = $providerBetIdArray[0];
+        $providerBetId = end($providerBetIdArrayIndex0);
+
         if ($status == "WON") {
             $status = "WIN";
         }
@@ -56,7 +60,7 @@ class WsSettledBets implements ShouldQueue
             $status = "LOSE";
         }
 
-        $orders       = Order::where('bet_id', $this->data->bet_id)->first();
+        $orders       = Order::where('bet_id', 'like', '%' . $providerBetId)->first();
         $userWallet   = UserWallet::where('user_id', $orders->user_id)->first();
         $userCurrency = User::where('id', $orders->user_id)->first();
         $exchangeRate = ExchangeRate::where('from_currency_id', $this->providerCurrency)
@@ -121,10 +125,11 @@ class WsSettledBets implements ShouldQueue
         $balance                  = $balance != 0 ? $balance * $exchangeRate->exchange_rate : 0;
         $sourceId                 = Source::where('source_name', 'LIKE', $sourceName)->first();
         $returnBetSourceId        = Source::where('source_name', 'LIKE', 'RETURN_STAKE')->first();
+
         DB::beginTransaction();
 
         try {
-            Order::where('bet_id', $this->data->bet_id)
+            Order::where('bet_id', 'like', '%' . $providerBetId)
                 ->update([
                     'status'        => strtoupper($this->data->status),
                     'profit_loss'   => $balance,
@@ -137,7 +142,7 @@ class WsSettledBets implements ShouldQueue
             $orderLogs = OrderLogs::create([
                 'provider_id'   => $this->providerId,
                 'sport_id'      => $this->data->sport,
-                'bet_id'        => $this->data->bet_id,
+                'bet_id'        => $orders->bet_id,
                 'bet_selection' => $orders->bet_selection,
                 'status'        => $status,
                 'user_id'       => $orders->user_id,
