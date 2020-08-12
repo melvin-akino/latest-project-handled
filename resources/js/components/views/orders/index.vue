@@ -22,8 +22,8 @@ er <template>
                     <span class="text-sm">{{ props.row.settled != "" && props.row.score != "" ? props.row.score : "-" }}</span>
                 </div>
                 <div class="flex justify-start" slot="betData" slot-scope="props">
-                    <a href="#" @click.prevent="openBetMatrix(props.row.order_id)" class="text-center py-1 w-1/2"><i class="fas fa-chart-area" title="Bet Matrix" v-if="oddTypesWithSpreads.includes(props.row.odd_type_id) && !failedBetStatus.includes(props.row.status)"></i></a>
-                    <a href="#" @click.prevent="openOddsHistory(props.row.order_id)" class="text-center py-1 w-1/2"><i class="fas fa-bars" title="Odds History"></i></a>
+                    <a href="#" @click.prevent="openBetMatrix(props.row.order_id)" class="text-center py-1 w-1/2" v-if="oddTypesWithSpreads.includes(props.row.odd_type_id) && !failedBetStatus.includes(props.row.status)"><i class="fas fa-chart-area" title="Bet Matrix"></i></a>
+                    <a href="#" @click.prevent="openOddsHistory(props.row.order_id)" class="text-center py-1 w-1/2" :class="{'ml-4': !oddTypesWithSpreads.includes(props.row.odd_type_id) || failedBetStatus.includes(props.row.status)}"><i class="fas fa-bars" title="Odds History"></i></a>
                 </div>
             </v-client-table>
             <order-data v-for="order in myorders" :key="order.order_id" :openedOddsHistory="openedOddsHistory" :openedBetMatrix="openedBetMatrix" @closeOddsHistory="closeOddsHistory" @closeBetMatrix="closeBetMatrix" :order="order"></order-data>
@@ -65,7 +65,8 @@ export default {
                     stake: 'alignRight',
                     towin: 'towin',
                     pl: 'alignRight',
-                    score: 'alignRight'
+                    score: 'alignRight',
+                    betData: 'betData'
                 },
                 sortable: ['bet_id', 'created', 'provider', 'odds', 'stake', 'towin', 'status','pl']
             },
@@ -223,5 +224,9 @@ export default {
 
     .betSelection {
         width: 208px;
+    }
+
+    .betData {
+        width: 48px;
     }
 </style>
