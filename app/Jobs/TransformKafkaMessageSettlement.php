@@ -41,7 +41,7 @@ class TransformKafkaMessageSettlement implements ShouldQueue
 
             foreach ($orders AS $key => $row) {
                 if ($row['bet_id'] == $report->bet_id) {
-                    if ($row['status'] == 'SUCCESS') {
+                    if ($row['status'] == 'SUCCESS' || ($row['status'] == 'PENDING' && !empty($row['bet_id']))) {
                         WsSettledBets::dispatch($report, $providerId, $providerCurrency);
 
                         $orders->del($key);
