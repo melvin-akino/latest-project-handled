@@ -14,17 +14,22 @@
                         <span class="text-sm pl-1" v-show="!isLoadingOrderLogs"><a href="#" class="text-sm underline" @click="getOrderLogs">Click here to try again</a></span>
                     </div>
                     <div v-else>
-                        <div class="flex px-3 my-1 text-gray-700" v-for="(log, index) in logs" :key="index">
-                            <div class="w-1/2">
-                                <div class="text-sm">{{index}}</div>
-                            </div>
-                            <div class="text-sm w-1/2">
-                                <div v-for="(logType, index) in log" :key="index">
-                                    <div v-for="(update, index) in logType" :key="index">
-                                        <span class="font-bold">{{index}}</span> - {{update.description}} to {{update.data}}
+                        <div v-if="logs.length != 0">
+                            <div class="flex px-3 my-1 text-gray-700" v-for="(log, index) in logs" :key="index">
+                                <div class="w-1/2">
+                                    <div class="text-sm">{{index}}</div>
+                                </div>
+                                <div class="text-sm w-1/2">
+                                    <div v-for="(logType, index) in log" :key="index">
+                                        <div v-for="(update, index) in logType" :key="index">
+                                            <span class="font-bold">{{index}}</span> - {{update.description}} to {{update.data}}
+                                        </div>
                                     </div>
                                 </div>
                             </div>
+                        </div>
+                        <div class="flex justify-center items-center p-2" v-else>
+                            <span class="text-sm">No market updates/order logs for this odds yet.</span>
                         </div>
                     </div>
                 </div>
