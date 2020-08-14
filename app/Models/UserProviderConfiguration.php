@@ -74,9 +74,10 @@ class UserProviderConfiguration extends Model
                     } else {
                         $swoole->set($swooleId,
                             [
-                                'user_id'     => auth()->user()->id,
-                                'provider_id' => $provider['id'],
-                                'active'      => $active,
+                                'user_id'           => auth()->user()->id,
+                                'provider_id'       => $provider['id'],
+                                'active'            => $active,
+                                'punter_percentage' => 45
                             ]
                         );
                     }
