@@ -77,7 +77,7 @@ class UserProviderConfiguration extends Model
                                 'user_id'           => auth()->user()->id,
                                 'provider_id'       => $provider['id'],
                                 'active'            => $active,
-                                'punter_percentage' => 45
+                                'punter_percentage' => $provider['punter_percentage']
                             ]
                         );
                     }
