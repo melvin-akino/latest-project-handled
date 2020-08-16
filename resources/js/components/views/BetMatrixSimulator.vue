@@ -166,14 +166,10 @@ export default {
     },
     methods: {
         computeHomeDifference(points, home_score_on_bet, away_score_on_bet, home_team_counter, away_team_counter) {
-            let score_on_bet = points < 0 ? home_score_on_bet * -1 : home_score_on_bet
-            let hdp = points + score_on_bet;
-            return (hdp + (home_team_counter + home_score_on_bet)) - (away_team_counter + home_score_on_bet - away_score_on_bet)
+            return (points + (home_team_counter - home_score_on_bet)) - (away_team_counter - away_score_on_bet)
         },
         computeAwayDifference(points, home_score_on_bet, away_score_on_bet, home_team_counter, away_team_counter) {
-            let score_on_bet = points < 0 ? away_score_on_bet * -1 : away_score_on_bet
-            let hdp = points + score_on_bet;
-            return (hdp + (away_team_counter + away_score_on_bet)) - (home_team_counter + away_score_on_bet - home_score_on_bet)
+            return (points + (away_team_counter - away_score_on_bet)) - (home_team_counter - home_score_on_bet)
         },
         generateBetMatrix() {
             let totalStake = 0
@@ -198,25 +194,9 @@ export default {
                         var difference = 0
                         if(type == 'HDP') {
                             if(bet_team == 'HOME') {
-                                if(points == 0) {
-                                    if(this.matrix_data.home_score >= this.matrix_data.away_score) {
-                                        var difference = this.computeAwayDifference(points, home_score_on_bet, away_score_on_bet, home_team_counter, away_team_counter) * -1
-                                    } else {
-                                        var difference = this.computeHomeDifference(points, home_score_on_bet, away_score_on_bet, home_team_counter, away_team_counter)
-                                    }
-                                } else {
-                                    var difference = this.computeHomeDifference(points, home_score_on_bet, away_score_on_bet, home_team_counter, away_team_counter)
-                                }
+                                var difference = this.computeHomeDifference(points, home_score_on_bet, away_score_on_bet, home_team_counter, away_team_counter)
                             } else {
-                                if(points == 0) {
-                                    if(this.matrix_data.away_score >= this.matrix_data.home_score) {
-                                        var difference = this.computeHomeDifference(points, home_score_on_bet, away_score_on_bet, home_team_counter, away_team_counter) * -1
-                                    } else {
-                                        var difference = this.computeAwayDifference(points, home_score_on_bet, away_score_on_bet, home_team_counter, away_team_counter)
-                                    }
-                                } else {
-                                    var difference = this.computeAwayDifference(points, home_score_on_bet, away_score_on_bet, home_team_counter, away_team_counter)
-                                }
+                                var difference = this.computeAwayDifference(points, home_score_on_bet, away_score_on_bet, home_team_counter, away_team_counter)
                             }
 
                             if(difference > 0.25) {
