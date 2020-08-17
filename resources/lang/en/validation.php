@@ -130,43 +130,43 @@ return [
     */
 
     'custom' => [
-        'attribute-name'            => [
-            'rule-name'             => 'custom-message',
+        'attribute-name'        => [
+            'rule-name'         => 'custom-message',
         ],
-        'date'                      => "Invalid input. Field must be a valid date format.",
-        'email'                     => [
-            'exists'                => ":attribute does not exists.",
-            'required'              => ":attribute is required.",
-            'unique'                => ":attribute already exists.",
-            'valid'                 => "Please input a valid :attribute format.",
+        'date'                  => "Invalid input. Field must be a valid date format.",
+        'email'                 => [
+            'exists'            => ":attribute does not exists.",
+            'required'          => ":attribute is required.",
+            'unique'            => ":attribute already exists.",
+            'valid'             => "Please input a valid :attribute format.",
         ],
-        'error'                     => "The given data is invalid.",
-        'exists'                    => "Invalid input. Entry does not exist from our records.",
-        'name'                      => [
-            'min'                   => ":attribute must be at least :count characters.",
-            'max'                   => ":attribute is only up to :count characters.",
-            'unique'                => ":attribute already exists.",
-            'alphanumeric'          => ":attribute only accepts alphanumeric characters (A-Z, a-z, 0-9).",
+        'error'                 => "The given data is invalid.",
+        'exists'                => "Invalid input. Entry does not exist from our records.",
+        'name'                  => [
+            'min'               => ":attribute must be at least :count characters.",
+            'max'               => ":attribute is only up to :count characters.",
+            'unique'            => ":attribute already exists.",
+            'alphanumeric'      => ":attribute only accepts alphanumeric characters (A-Z, a-z, 0-9).",
         ],
-        'numeric'                   => "Invalid input. Field must be a number.",
-        'password'                  => [
-            'min'                   => ":attribute must be at least :count characters.",
-            'max'                   => ":attribute is only up to :count characters.",
+        'numeric'               => "Invalid input. Field must be a number.",
+        'password'              => [
+            'min'               => ":attribute must be at least :count characters.",
+            'max'               => ":attribute is only up to :count characters.",
         ],
-        'password_confirmation'     => [
-            'min'                   => ":attribute must be at least :count characters.",
-            'max'                   => ":attribute is only up to :count characters.",
-            'same'                  => ":attribute must be the same with Password.",
-            'new-same'              => ":attribute must be the same as the New Password.",
+        'password_confirmation' => [
+            'min'               => ":attribute must be at least :count characters.",
+            'max'               => ":attribute is only up to :count characters.",
+            'same'              => ":attribute must be the same with Password.",
+            'new-same'          => ":attribute must be the same as the New Password.",
         ],
-        'remember_me'               => [
-            'boolean'               => "Invalid input.",
+        'remember_me'           => [
+            'boolean'           => "Invalid input.",
         ],
-        'required'                  => "This field is required.",
-        'string'                    => "Invalid input. Field must be a string.",
-        'phone'                     => [
-            'regex'                 => "Invalid number format",
-            'min'                   => "The phone must be at least :min digits"
+        'required'              => "This field is required.",
+        'string'                => "Invalid input. Field must be a string.",
+        'phone'                 => [
+            'regex'             => "Invalid number format",
+            'min'               => "The phone must be at least :min digits"
         ]
     ],
 
