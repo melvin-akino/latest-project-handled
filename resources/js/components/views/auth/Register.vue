@@ -106,6 +106,7 @@
                             <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none" :class="{'border-red-600': $v.registerForm.step2.phone.$error}" id="phone" type="text" placeholder="Phone" v-model.trim="$v.registerForm.step2.phone.$model">
                             <span v-if="$v.registerForm.step2.phone.$dirty && !$v.registerForm.step2.phone.required" class="text-red-600 text-sm">Phone number is required.</span>
                             <span v-if="$v.registerForm.step2.phone.$dirty && !$v.registerForm.step2.phone.numeric" class="text-red-600 text-sm">Phone number should be numeric.</span>
+                            <span v-if="$v.registerForm.step2.phone.$dirty && !$v.registerForm.step2.phone.minLength" class="text-red-600 text-sm">Phone number must have a minimum length of 6 digits.</span>
                             <span v-if="$v.registerForm.step2.phone.$dirty && !$v.registerForm.step2.phone.maxLength" class="text-red-600 text-sm">Phone number must have a maximum length of 32 digits.</span>
                         </div>
                     </div>
@@ -230,7 +231,7 @@ export default {
                 state:  { required, maxLength:maxLength(100) },
                 city: { required, maxLength:maxLength(100) },
                 postcode: { required, numeric, minLength:minLength(3), maxLength:maxLength(6) },
-                phone: { required, numeric, maxLength:maxLength(32) },
+                phone: { required, numeric, minLength:minLength(6), maxLength:maxLength(32) },
                 currency_id: { required, numeric }
             },
             step3: {
