@@ -18,7 +18,7 @@ class KafkaServiceProvider extends ServiceProvider
 
 
         $conf->set('metadata.broker.list', env('KAFKA_BROKERS', 'kafka:9092'));
-        $conf->set('group.id', 'ml');
+        $conf->set('group.id', 'ml-premis');
         $conf->set('auto.offset.reset', 'latest');
         $conf->set('enable.auto.commit', 'false');
         if (env('APP_ENV') != "local") {
@@ -26,7 +26,7 @@ class KafkaServiceProvider extends ServiceProvider
         }
 
         $alwaysLatestConf->set('metadata.broker.list', env('KAFKA_BROKERS', 'kafka:9092'));
-        $alwaysLatestConf->set('group.id', 'ml');
+        $alwaysLatestConf->set('group.id', 'ml-premis');
         $alwaysLatestConf->set('auto.offset.reset', 'latest');
         $alwaysLatestConf->set('enable.auto.commit', 'false');
         if (env('APP_ENV') != "local") {
