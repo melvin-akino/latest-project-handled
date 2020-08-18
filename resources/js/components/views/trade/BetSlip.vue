@@ -55,15 +55,15 @@
                                     </label>
                                     {{minmax.provider}}
                                 </span>
-                                <span class="w-1/5 text-sm text-center" v-if="minmax.hasMarketData">{{minmax.min | moneyFormat}}</span>
-                                <span class="w-1/5 text-sm text-center" v-if="minmax.hasMarketData">{{minmax.max | moneyFormat}}</span>
-                                <a href="#" @click.prevent="updatePrice(minmax.price)" class="w-1/5 text-sm font-bold underline text-center" v-if="minmax.hasMarketData">{{minmax.price | twoDecimalPlacesFormat}}</a>
-                                <span class="w-1/5 text-sm text-center" v-if="minmax.hasMarketData">{{minmax.age}}</span>
+                                <span class="w-1/5 text-sm text-center" v-if="minmax.hasMarketData && !underMaintenanceProviders.includes(minmax.provider.toLowerCase())">{{minmax.min | moneyFormat}}</span>
+                                <span class="w-1/5 text-sm text-center" v-if="minmax.hasMarketData && !underMaintenanceProviders.includes(minmax.provider.toLowerCase())">{{minmax.max | moneyFormat}}</span>
+                                <a href="#" @click.prevent="updatePrice(minmax.price)" class="w-1/5 text-sm font-bold underline text-center" v-if="minmax.hasMarketData && !underMaintenanceProviders.includes(minmax.provider.toLowerCase())">{{minmax.price | twoDecimalPlacesFormat}}</a>
+                                <span class="w-1/5 text-sm text-center" v-if="minmax.hasMarketData && !underMaintenanceProviders.includes(minmax.provider.toLowerCase())">{{minmax.age}}</span>
                                 <div class="text-sm text-center" v-if="!minmax.hasMarketData && !underMaintenanceProviders.includes(minmax.provider.toLowerCase())">
                                     <div v-show="market_details.providers.includes(minmax.provider_id) && !isEventNotAvailable">Retrieving Market<span class="pl-1"><i class="fas fa-circle-notch fa-spin"></i></span></div>
                                     <div v-show="!market_details.providers.includes(minmax.provider_id) || isEventNotAvailable">No Market Available</div>
                                 </div>
-                                <div class="text-sm text-center"  v-if="!minmax.hasMarketData && underMaintenanceProviders.includes(minmax.provider.toLowerCase())">Provider under maintenance</div>
+                                <div class="text-sm text-center" v-if="underMaintenanceProviders.includes(minmax.provider.toLowerCase())">Provider under maintenance</div>
                             </div>
                         </div>
                     </div>
