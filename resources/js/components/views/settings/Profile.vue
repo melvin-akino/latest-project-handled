@@ -14,18 +14,18 @@
             <div class="mb-6 flex">
                 <div class="w-1/2 mr-6">
                     <label class="block capitalize text-gray-700 text-sm">First Name</label>
-                    <input type="text" id="firstname" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 text-sm leading-tight focus:outline-none" :class="{'border-red-600': profileSettingsFormError.hasOwnProperty('firstname')}" v-model="profileSettingsForm.firstname">
+                    <input type="text" id="firstname" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 text-sm leading-tight focus:outline-none" :class="{'border-red-600': profileSettingsFormError.hasOwnProperty('firstname')}" v-model.trim="profileSettingsForm.firstname">
                     <span v-if="profileSettingsFormError.hasOwnProperty('firstname')" class="text-xs text-red-600">{{profileSettingsFormError.firstname[0]}}</span>
                 </div>
                 <div class="w-1/2 mr-6">
                     <label class="block capitalize text-gray-700 text-sm">Last Name</label>
-                    <input type="text" id="lastname" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 text-sm leading-tight focus:outline-none" :class="{'border-red-600': profileSettingsFormError.hasOwnProperty('lastname')}" v-model="profileSettingsForm.lastname">
+                    <input type="text" id="lastname" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 text-sm leading-tight focus:outline-none" :class="{'border-red-600': profileSettingsFormError.hasOwnProperty('lastname')}" v-model.trim="profileSettingsForm.lastname">
                     <span v-if="profileSettingsFormError.hasOwnProperty('lastname')" class="text-xs text-red-600">{{profileSettingsFormError.lastname[0]}}</span>
                 </div>
             </div>
             <div class="mb-6">
                 <label class="block capitalize text-gray-700 text-sm">Address</label>
-                <textarea class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 text-sm leading-tight focus:outline-none" :class="{'border-red-600': profileSettingsFormError.hasOwnProperty('address')}" id="address" v-model="profileSettingsForm.address"></textarea>
+                <textarea class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 text-sm leading-tight focus:outline-none" :class="{'border-red-600': profileSettingsFormError.hasOwnProperty('address')}" id="address" v-model.trim="profileSettingsForm.address"></textarea>
                 <span v-if="profileSettingsFormError.hasOwnProperty('address')" class="text-xs text-red-600">{{profileSettingsFormError.address[0]}}</span>
             </div>
             <div class="mb-6 flex">
@@ -43,25 +43,25 @@
                 </div>
                 <div class="w-1/3 mr-6">
                     <label class="block capitalize text-gray-700 text-sm">State</label>
-                    <input type="text" id="state" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 text-sm leading-tight focus:outline-none" :class="{'border-red-600': profileSettingsFormError.hasOwnProperty('state')}" v-model="profileSettingsForm.state
+                    <input type="text" id="state" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 text-sm leading-tight focus:outline-none" :class="{'border-red-600': profileSettingsFormError.hasOwnProperty('state')}" v-model.trim="profileSettingsForm.state
                     ">
                     <span v-if="profileSettingsFormError.hasOwnProperty('state')" class="text-xs text-red-600">{{profileSettingsFormError.state[0]}}</span>
                 </div>
                 <div class="w-1/3">
                     <label class="block capitalize text-gray-700 text-sm">City</label>
-                    <input type="text" id="city" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 text-sm leading-tight focus:outline-none" :class="{'border-red-600': profileSettingsFormError.hasOwnProperty('city')}" v-model="profileSettingsForm.city">
+                    <input type="text" id="city" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 text-sm leading-tight focus:outline-none" :class="{'border-red-600': profileSettingsFormError.hasOwnProperty('city')}" v-model.trim="profileSettingsForm.city">
                     <span v-if="profileSettingsFormError.hasOwnProperty('city')" class="text-xs text-red-600">{{profileSettingsFormError.city[0]}}</span>
                 </div>
             </div>
             <div class="mb-6 flex">
                 <div class="w-1/3 mr-6">
                     <label class="block capitalize text-gray-700 text-sm">Post Code</label>
-                    <input type="text" class="shadow appearance-none border w-full rounded py-2 px-3 text-gray-700 text-sm leading-tight focus:outline-none" :class="{'border-red-600': profileSettingsFormError.hasOwnProperty('postcode')}" id="postcode" v-model="profileSettingsForm.postcode">
+                    <input type="text" class="shadow appearance-none border w-full rounded py-2 px-3 text-gray-700 text-sm leading-tight focus:outline-none" :class="{'border-red-600': profileSettingsFormError.hasOwnProperty('postcode')}" id="postcode" v-model.trim="profileSettingsForm.postcode">
                     <span v-if="profileSettingsFormError.hasOwnProperty('postcode')" class="text-xs text-red-600">{{profileSettingsFormError.postcode[0]}}</span>
                 </div>
                 <div class="w-1/3 mr-6">
                     <label class="block capitalize text-gray-700 text-sm">Phone</label>
-                    <input type="text" class="shadow appearance-none border w-full rounded py-2 px-3 text-gray-700 text-sm leading-tight focus:outline-none" :class="{'border-red-600': profileSettingsFormError.hasOwnProperty('phone')}" id="phone" v-model="profileSettingsForm.phone">
+                    <input type="text" class="shadow appearance-none border w-full rounded py-2 px-3 text-gray-700 text-sm leading-tight focus:outline-none" :class="{'border-red-600': profileSettingsFormError.hasOwnProperty('phone')}" id="phone" v-model.trim="profileSettingsForm.phone">
                     <span v-if="profileSettingsFormError.hasOwnProperty('phone')" class="text-xs text-red-600">{{profileSettingsFormError.phone[0]}}</span>
                 </div>
                 <div class="w-1/3">
