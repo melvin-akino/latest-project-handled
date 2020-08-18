@@ -56,6 +56,11 @@ export default {
             }
         }
     },
+    data() {
+        return {
+            isMaintenance: false
+        }
+    },
     computed: {
         ...mapState('trade', ['isBetBarOpen', 'selectedSport', 'leagues', 'selectedLeagues', 'oddsTypeBySport', 'columnsToDisplay', 'allEventsList', 'eventsList', 'events', 'openedBetSlips', 'tradePageSettings']),
         eventsListUID() {
@@ -335,25 +340,28 @@ export default {
                     })
                 } else if(getSocketKey(response.data) === 'getMaintenance') {
                     let maintenance = getSocketValue(response.data, 'getMaintenance')
-                    if(maintenance.under_maintenance) {
-                        Swal.fire({
-                            icon: 'warning',
-                            text: 'No Available Bookmaker.',
-                            allowOutsideClick: false,
-                            allowEscapeKey: false,
-                            allowEnterKey: false,
-                            showConfirmButton: false
-                        })
-                        this.$store.commit('trade/ADD_TO_UNDER_MAINTENANCE_PROVIDERS', maintenance.provider)
-                        Cookies.set('under_maintenance', true)
-                    } else {
-                        Swal.close()
-                        if(Cookies.get('under_maintenance')) {
-                            this.$store.dispatch('trade/getTradeWindowData')
+                    if(this.isMaintenance != maintenance.under_maintenance) {
+                        if(maintenance.under_maintenance) {
+                            Swal.fire({
+                                icon: 'warning',
+                                text: 'No Available Bookmaker.',
+                                allowOutsideClick: false,
+                                allowEscapeKey: false,
+                                allowEnterKey: false,
+                                showConfirmButton: false
+                            })
+                            this.$store.commit('trade/ADD_TO_UNDER_MAINTENANCE_PROVIDERS', maintenance.provider)
+                            Cookies.set('under_maintenance', true)
+                        } else {
+                            Swal.close()
+                            if(Cookies.get('under_maintenance')) {
+                                this.$store.dispatch('trade/getTradeWindowData')
+                            }
+                            this.$store.commit('trade/REMOVE_FROM_UNDER_MAINTENANCE_PROVIDERS', maintenance.provider)
+                            Cookies.remove('under_maintenance')
                         }
-                        this.$store.commit('trade/REMOVE_FROM_UNDER_MAINTENANCE_PROVIDERS', maintenance.provider)
-                        Cookies.remove('under_maintenance')
                     }
+                    this.isMaintenance = maintenance.under_maintenance
                 }
             })
         }
