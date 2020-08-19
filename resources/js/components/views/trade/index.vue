@@ -58,7 +58,7 @@ export default {
     },
     data() {
         return {
-            isMaintenance: false
+            isMaintenance: Cookies.get('under_maintenance') || false
         }
     },
     computed: {
