@@ -137,19 +137,7 @@ class TransformKafkaMessageEvents implements ShouldQueue
             }
 
             if ($doesExist) {
-
-                switch ($this->message->data->schedule) {
-                    case 'inplay':
-                        $missingCountConfiguration = SystemConfiguration::where('type', 'INPLAY_MISSING_MAX_COUNT_FOR_DELETION')->first();
-                        break;
-                    case 'today':
-                        $missingCountConfiguration = SystemConfiguration::where('type', 'TODAY_MISSING_MAX_COUNT_FOR_DELETION')->first();
-                        break;
-                    case 'early':
-                    default:
-                        $missingCountConfiguration = SystemConfiguration::where('type', 'EARLY_MISSING_MAX_COUNT_FOR_DELETION')->first();
-                        break;
-                }
+                $missingCountConfiguration = SystemConfiguration::getSystemConfigurationValue('EVENT_VALID_MAX_MISSING_COUNT');
 
                 $eventsJson   = $activeEventsTable->get($activeEventsSwtId);
                 $events       = json_decode($eventsJson['events'], true);
@@ -167,7 +155,7 @@ class TransformKafkaMessageEvents implements ShouldQueue
                     if ($event) {
                         $missingCount = (int) $event['missing_count'] + 1;
                         SwooleHandler::setColumnValue('eventRecordsTable', $eventTableKey, 'missing_count', $missingCount);
-                        if ($missingCount >= $missingCountConfiguration->value) {
+                        if ($missingCount > $missingCountConfiguration->value) {
 
                             $masterEvent = DB::table('master_events AS me')
                                              ->join('master_leagues AS ml', 'me.master_league_id', '=', 'ml.id')
