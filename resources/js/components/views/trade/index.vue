@@ -178,9 +178,7 @@ export default {
                         if(!this.eventsListUID.includes(event.uid) && !this.allEventsListUID.includes(event.uid)) {
                             let existingleagueMatchCount = this.leagues[event.game_schedule].filter(league => league.name == event.league_name).map(league => league.match_count)[0]
                             let newleagueMatchCount = additionalEvents.filter(additionalEvent => event.league_name == additionalEvent.league_name).length
-                            if (typeof existingleagueMatchCount == 'undefined') {
-                                this.selectedLeagues[event.game_schedule] = [];
-                            }
+
                             if(this.selectedLeagues[event.game_schedule].includes(event.league_name)) {
                                 if (existingleagueMatchCount > 0) {
                                     this.$store.commit('trade/SET_EVENTS_LIST', event)
