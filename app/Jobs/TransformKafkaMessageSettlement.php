@@ -6,6 +6,7 @@ use App\Jobs\WsSettledBets;
 
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
+use Illuminate\Support\Facades\Log;
 
 class TransformKafkaMessageSettlement implements ShouldQueue
 {
@@ -58,5 +59,7 @@ class TransformKafkaMessageSettlement implements ShouldQueue
                 }
             }
         }
+
+        Log::info("Settlements - Processed");
     }
 }

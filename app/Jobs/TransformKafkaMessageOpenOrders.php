@@ -196,6 +196,8 @@ class TransformKafkaMessageOpenOrders implements ShouldQueue
                 }
             }
 
+            Log::info("Open Orders - Processed");
+
             DB::commit();
         } catch (Exception $e) {
             Log::error(json_encode([
