@@ -2,7 +2,7 @@
 
 namespace App\Providers;
 
-use RdKafka\{Conf, KafkaConsumer, Producer};
+use RdKafka\{Conf, Consumer, KafkaConsumer, Producer};
 use Illuminate\Support\ServiceProvider;
 
 class KafkaServiceProvider extends ServiceProvider
@@ -14,7 +14,7 @@ class KafkaServiceProvider extends ServiceProvider
      */
     public function boot()
     {
-        $conf = $alwaysLatestConf = new Conf();
+        $conf = $alwaysLatestConf = $lowConf = new Conf();
 
 
         $conf->set('metadata.broker.list', env('KAFKA_BROKERS', 'kafka:9092'));
@@ -32,6 +32,8 @@ class KafkaServiceProvider extends ServiceProvider
         if (env('APP_ENV') != "local") {
             $alwaysLatestConf->set('max.poll.interval.ms', 10000000);
         }
+
+        $lowConf->set('group.id', 'ml');
 
         if (env('KAFKA_DEBUG', false)) {
             $conf->set('log_level', LOG_DEBUG);
@@ -52,6 +54,13 @@ class KafkaServiceProvider extends ServiceProvider
 
         $this->app->bind('KafkaLatestConsumer', function () use ($alwaysLatestConf) {
             return new KafkaConsumer($alwaysLatestConf);
+
+        });
+
+        $this->app->bind('LowLevelConsumer', function () use ($lowConf) {
+            $lowLevelConsumer = new Consumer($lowConf);
+            $lowLevelConsumer->addBrokers(env('KAFKA_BROKERS', 'kafka:9092'));
+            return $lowLevelConsumer;
         });
     }
 }

@@ -2,6 +2,7 @@
 
 namespace App\Processes;
 
+use RdKafka\TopicConf;
 use App\Jobs\TransformKafkaMessageMinMax;
 use Hhxsv5\LaravelS\Swoole\Process\CustomProcessInterface;
 use Illuminate\Support\Facades\Log;
@@ -21,64 +22,75 @@ class MinMaxConsume implements CustomProcessInterface
     {
         try {
             if ($swoole->data2SwtTable->exist('data2Swt')) {
-                $kafkaConsumer = resolve('KafkaConsumer');
-                $kafkaConsumer->subscribe([
-                    env('KAFKA_SCRAPE_MINMAX_ODDS', 'MINMAX-ODDS')
-                ]);
-
                 Log::info("Min Max Consume Starts");
+
+                $kafkaConsumer = resolve('LowLevelConsumer');
+
+                $queue = $kafkaConsumer->newQueue();
+
+                $topicConf = new TopicConf();
+                $topicConf->set('enable.auto.commit', 'false');
+                $topicConf->set('auto.commit.interval.ms', 100);
+                $topicConf->set('offset.store.method', 'broker');
+                $topicConf->set('auto.offset.reset', 'latest');
+
+                $minmaxTopic = $kafkaConsumer->newTopic(env('KAFKA_SCRAPE_MINMAX_ODDS', 'MINMAX-ODDS'), $topicConf);
+                $minmaxTopic->consumeQueueStart(0, RD_KAFKA_OFFSET_END, $queue);
+
                 while (!self::$quit) {
-                    $message = $kafkaConsumer->consume(0);
-                    if ($message->err == RD_KAFKA_RESP_ERR_NO_ERROR) {
-                        $swoole->priorityTriggerTable->set('priority', ['value' => 1]);
-                        $payload = json_decode($message->payload);
+                    $message = $queue->consume(0);
+                    if (!is_null($message)) {
+                        if ($message->err == RD_KAFKA_RESP_ERR_NO_ERROR) {
+                            $swoole->priorityTriggerTable->set('priority', ['value' => 1]);
+                            $payload = json_decode($message->payload);
 
-                        if (empty($payload->data)) {
-                            Log::info("Min Max Transformation ignored - No Data Found");
-                            continue;
-                        }
-
-                        $doesMinMaxKeyExist = false;
-                        foreach ($swoole->minmaxMarketTable as $key => $minmaxValue) {
-                            if ($key == 'minmax-market:' . $payload->data->market_id) {
-                                $doesMinMaxKeyExist = true;
-                                break;
+                            if (empty($payload->data)) {
+                                Log::info("Min Max Transformation ignored - No Data Found");
+                                continue;
                             }
-                        }
 
-                        if (!empty($payload->data->timestamp) && $doesMinMaxKeyExist &&
-                            $swoole->minmaxMarketTable->get('minmax-market:' . $payload->data->market_id)['value'] >= $payload->data->timestamp
-                        ) {
-                            Log::info("Min Max Transformation ignored - Same or Old Timestamp");
-                            $kafkaConsumer->commit($message);
+                            $doesMinMaxKeyExist = false;
+                            foreach ($swoole->minmaxMarketTable as $key => $minmaxValue) {
+                                if ($key == 'minmax-market:' . $payload->data->market_id) {
+                                    $doesMinMaxKeyExist = true;
+                                    break;
+                                }
+                            }
+
+                            if (!empty($payload->data->timestamp) && $doesMinMaxKeyExist &&
+                                $swoole->minmaxMarketTable->get('minmax-market:' . $payload->data->market_id)['value'] >= $payload->data->timestamp
+                            ) {
+                                Log::info("Min Max Transformation ignored - Same or Old Timestamp");
+                                if (env('CONSUMER_PRODUCER_LOG', false)) {
+                                    Log::channel('kafkalog')->info(json_encode($message));
+                                }
+                                continue;
+                            }
+
+                            $swoole->minmaxPayloadTable->set('minmax-payload:' . $payload->data->market_id, [
+                                'value' => md5(json_encode([
+                                    'odds'    => $payload->data->odds,
+                                    'minimum' => $payload->data->minimum,
+                                    'maximum' => $payload->data->maximum
+                                ]))
+                            ]);
+
+                            PrometheusMatric::MakeMatrix('pull_market_id_total', 'Min-max  total number of  market id  received.',$payload->data->market_id);
+
+                            Log::info('Minmax calling Task Worker');
+                            TransformKafkaMessageMinMax::dispatch($payload);
+
+                            $swoole->priorityTriggerTable->del('priority');
+
                             if (env('CONSUMER_PRODUCER_LOG', false)) {
                                 Log::channel('kafkalog')->info(json_encode($message));
                             }
                             continue;
                         }
-
-                        $swoole->minmaxPayloadTable->set('minmax-payload:' . $payload->data->market_id, [
-                            'value' => md5(json_encode([
-                                'odds'    => $payload->data->odds,
-                                'minimum' => $payload->data->minimum,
-                                'maximum' => $payload->data->maximum
-                            ]))
-                        ]);
-
-                        PrometheusMatric::MakeMatrix('pull_market_id_total', 'Min-max  total number of  market id  received.',$payload->data->market_id);
-
-                        Log::info('Minmax calling Task Worker');
-                        TransformKafkaMessageMinMax::dispatch($payload);
-
-                        $swoole->priorityTriggerTable->del('priority');
-
-                        $kafkaConsumer->commit($message);
-                        if (env('CONSUMER_PRODUCER_LOG', false)) {
-                            Log::channel('kafkalog')->info(json_encode($message));
-                        }
-                        continue;
+                        usleep(100000);
+                    } else {
+                        usleep(10000);
                     }
-                    usleep(100000);
                 }
             }
         } catch (Exception $e) {
