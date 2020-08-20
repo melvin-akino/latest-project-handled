@@ -2,6 +2,7 @@
 
 namespace App\Processes;
 
+use RdKafka\TopicConf;
 use App\Jobs\{
     TransformKafkaMessageOpenOrders,
     TransformKafkaMessageSettlement,
@@ -24,49 +25,65 @@ class AccountConsume implements CustomProcessInterface
     {
         try {
             if ($swoole->data2SwtTable->exist('data2Swt')) {
-                $kafkaConsumer = resolve('KafkaConsumer');
-                $kafkaConsumer->subscribe([
-                    env('KAFKA_SCRAPE_OPEN_ORDERS', 'OPEN-ORDERS'),
-                    env('KAFKA_SCRAPE_BALANCE', 'BALANCE'),
-                    env('KAFKA_SCRAPE_SETTLEMENTS', 'SCRAPING-SETTLEMENTS'),
-                ]);
-
                 Log::info("Account Consume Starts");
+
+                $kafkaConsumer = resolve('LowLevelConsumer');
+
+                $queue = $kafkaConsumer->newQueue();
+
+                $topicConf = new TopicConf();
+                $topicConf->set('enable.auto.commit', 'false');
+                $topicConf->set('auto.commit.interval.ms', 100);
+                $topicConf->set('offset.store.method', 'broker');
+                $topicConf->set('auto.offset.reset', 'latest');
+
+                $openOrdersTopic = $kafkaConsumer->newTopic(env('KAFKA_SCRAPE_OPEN_ORDERS', 'OPEN-ORDERS'), $topicConf);
+                $openOrdersTopic->consumeQueueStart(0, RD_KAFKA_OFFSET_END, $queue);
+
+                $balanceTopic = $kafkaConsumer->newTopic(env('KAFKA_SCRAPE_BALANCE', 'BALANCE'), $topicConf);
+                $balanceTopic->consumeQueueStart(0, RD_KAFKA_OFFSET_END, $queue);
+
+                $settlementTopic = $kafkaConsumer->newTopic(env('KAFKA_SCRAPE_SETTLEMENTS', 'SCRAPING-SETTLEMENTS'), $topicConf);
+                $settlementTopic->consumeQueueStart(0, RD_KAFKA_OFFSET_END, $queue);
+
                 while (!self::$quit) {
-                    $message = $kafkaConsumer->consume(0);
-                    if ($message->err == RD_KAFKA_RESP_ERR_NO_ERROR) {
-                        $payload = json_decode($message->payload);
+                    $message = $queue->consume(0);
+                    if (!is_null($message)) {
+                        if ($message->err == RD_KAFKA_RESP_ERR_NO_ERROR) {
+                            $payload = json_decode($message->payload);
 
-                        switch ($payload->command) {
-                            case 'balance':
-                                if (empty($payload->data->provider) || empty($payload->data->username) || empty($payload->data->available_balance) || empty($payload->data->currency)) {
-                                    Log::info("Balance Transformation ignored - No Data Found");
+                            switch ($payload->command) {
+                                case 'balance':
+                                    if (empty($payload->data->provider) || empty($payload->data->username) || empty($payload->data->available_balance) || empty($payload->data->currency)) {
+                                        Log::info("Balance Transformation ignored - No Data Found");
+                                        break;
+                                    }
+                                    TransformKafkaMessageBalance::dispatch($payload);
                                     break;
-                                }
-                                TransformKafkaMessageBalance::dispatch($payload);
-                                break;
-                            case 'orders':
-                                TransformKafkaMessageOpenOrders::dispatch($payload);
-                                break;
-                            case 'settlement':
-                                if (empty($payload->data)) {
-                                    Log::info("Settlement Transformation ignored - No Data Found");
+                                case 'orders':
+                                    TransformKafkaMessageOpenOrders::dispatch($payload);
                                     break;
-                                }
+                                case 'settlement':
+                                    if (empty($payload->data)) {
+                                        Log::info("Settlement Transformation ignored - No Data Found");
+                                        break;
+                                    }
 
-                                TransformKafkaMessageSettlement::dispatch($payload);
-                                break;
-                            default:
-                                break;
+                                    TransformKafkaMessageSettlement::dispatch($payload);
+                                    break;
+                                default:
+                                    break;
+                            }
+                            if (env('CONSUMER_PRODUCER_LOG', false)) {
+                                Log::channel('kafkalog')->info(json_encode($message));
+                            }
+                            usleep(10000);
+                            continue;
                         }
-                        $kafkaConsumer->commit($message);
-                        if (env('CONSUMER_PRODUCER_LOG', false)) {
-                            Log::channel('kafkalog')->info(json_encode($message));
-                        }
+                        usleep(100000);
+                    } else {
                         usleep(10000);
-                        continue;
                     }
-                    usleep(100000);
                 }
             }
         } catch (Exception $e) {

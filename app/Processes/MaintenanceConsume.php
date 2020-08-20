@@ -2,8 +2,8 @@
 
 namespace App\Processes;
 
+use RdKafka\TopicConf;
 use App\Jobs\TransformKafkaMessageMaintenance;
-
 use Hhxsv5\LaravelS\Swoole\Process\CustomProcessInterface;
 use Illuminate\Support\Facades\Log;
 use Swoole\Http\Server;
@@ -21,30 +21,39 @@ class MaintenanceConsume implements CustomProcessInterface
     {
         try {
             if ($swoole->data2SwtTable->exist('data2Swt')) {
-                $kafkaConsumer = resolve('KafkaConsumer');
-                $kafkaConsumer->subscribe([
-                    env('KAFKA_SCRAPE_MAINTENANCE', 'PROVIDER-MAINTENANCE')
-                ]);
-
                 Log::info("Maintenance Consume Starts");
 
+                $kafkaConsumer = resolve('LowLevelConsumer');
+
+                $queue = $kafkaConsumer->newQueue();
+
+                $topicConf = new TopicConf();
+                $topicConf->set('enable.auto.commit', 'false');
+                $topicConf->set('auto.commit.interval.ms', 100);
+                $topicConf->set('offset.store.method', 'broker');
+                $topicConf->set('auto.offset.reset', 'latest');
+
+                $providerMaintenanceTopic = $kafkaConsumer->newTopic(env('KAFKA_SCRAPE_MAINTENANCE', 'PROVIDER-MAINTENANCE'), $topicConf);
+                $providerMaintenanceTopic->consumeQueueStart(0, RD_KAFKA_OFFSET_END, $queue);
+
                 while (!self::$quit) {
-                    $message = $kafkaConsumer->consume(0);
+                    $message = $queue->consume(0);
+                    if (!is_null($message)) {
+                        if ($message->err == RD_KAFKA_RESP_ERR_NO_ERROR) {
+                            $payload = json_decode($message->payload);
 
-                    if ($message->err == RD_KAFKA_RESP_ERR_NO_ERROR) {
-                        $payload = json_decode($message->payload);
-
-                        if (empty($payload->data)) {
-                            Log::info("Maintenance Transformation ignored - No Data Found");
-                        } else {
-                            Log::info('Maintenance calling Task Worker');
-                            TransformKafkaMessageMaintenance::dispatchNow($payload);
+                            if (empty($payload->data)) {
+                                Log::info("Maintenance Transformation ignored - No Data Found");
+                            } else {
+                                Log::info('Maintenance calling Task Worker');
+                                TransformKafkaMessageMaintenance::dispatchNow($payload);
+                            }
                         }
 
-                        $kafkaConsumer->commit($message);
+                        usleep(1000000);
+                    } else {
+                        usleep(10000);
                     }
-
-                    usleep(1000000);
                 }
             }
         } catch (Exception $e) {
