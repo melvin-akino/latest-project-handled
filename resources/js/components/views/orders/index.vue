@@ -137,6 +137,11 @@ export default {
                                 this.$set(orderObj, key, order[key])
                             }
                         })
+
+                        if(order.status == 'SUCCESS') {
+                            this.$set(orderObj, 'status', 'PLACED')
+                        }
+
                         orders.push(orderObj)
                     })
                     this.myorders = orders
