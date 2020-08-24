@@ -4,11 +4,11 @@ return [
     'bet'       => [
         'best-price' => [
             'continue' => "You still have remaining stakes from your previous Order.",
-            'success'  => "Order Successfully Placed!",
+            'success'  => "Order has been Requested!",
         ],
         'fast-bet'   => [
             'continue' => "You still have remaining stakes from your previous Order.",
-            'success'  => "Order Successfully Placed!",
+            'success'  => "Order has been Requested!",
         ],
         'errors'     => [
             'wallet_not_found'      => "User wallet not found",
