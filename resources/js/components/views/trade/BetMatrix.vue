@@ -296,4 +296,9 @@ export default {
     .result {
         width: 70px;
     }
+
+    .bets {
+        max-height:160px;
+        overflow-y: auto;
+    }
 </style>

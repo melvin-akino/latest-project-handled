@@ -18,7 +18,7 @@
                             <div class="flex px-3 my-1 text-gray-700" v-for="(log, index) in logs" :key="index">
                                 <div class="w-1/4">{{log.created_at}}</div>
                                 <div class="w-1/4"><span class="font-bold">{{log.odd_type_name}}</span> ({{log.bet_team}})</div>
-                                <div class="w-2/4">Order Placed to <span class="font-bold">{{log.provider}}</span>: {{log.odds}} - {{log.status}}</div>
+                                <div class="w-2/4">Order Placed to <span class="font-bold">{{log.provider}}</span>: {{log.odds}} - {{log.status == 'SUCCESS' ? 'PLACED' : log.status}}</div>
                             </div>
                         </div>
                         <div class="flex justify-center items-center p-2" v-else>
