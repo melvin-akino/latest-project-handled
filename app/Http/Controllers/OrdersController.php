@@ -48,8 +48,8 @@ class OrdersController extends Controller
             $conditions    = [];
             $userTz        = "Etc/UTC";
             $getUserConfig = UserConfiguration::getUserConfig(auth()->user()->id)
-                ->where('type', 'timezone')
-                ->first();
+                                              ->where('type', 'timezone')
+                                              ->first();
 
             if (!is_null($getUserConfig)) {
                 $userTz = Timezones::find($getUserConfig->value)->name;
@@ -82,13 +82,13 @@ class OrdersController extends Controller
                 $myOrders = Order::getAllOrders($conditions, $page);
 
                 foreach ($myOrders as $myOrder) {
-                    if(empty($myOrder->current_score)) {
+                    if (empty($myOrder->current_score)) {
                         $currentScore = "0 - 0";
                     } else {
                         $currentScore = $myOrder->current_score;
                     }
 
-                    if(!empty($myOrder->settled_date) && !empty($myOrder->final_score)) {
+                    if (!empty($myOrder->settled_date) && !empty($myOrder->final_score)) {
                         $score = explode(" - ", $myOrder->final_score);
                     } else {
                         $score = explode(" - ", $currentScore);
@@ -147,8 +147,8 @@ class OrdersController extends Controller
         try {
             $userTz        = "Etc/UTC";
             $getUserConfig = UserConfiguration::getUserConfig(auth()->user()->id)
-                ->where('type', 'timezone')
-                ->first();
+                                              ->where('type', 'timezone')
+                                              ->first();
 
             if (!is_null($getUserConfig)) {
                 $userTz = Timezones::find($getUserConfig->value)->name;
@@ -172,23 +172,23 @@ class OrdersController extends Controller
             ]);
 
             $masterEvent = DB::table('master_events as me')
-                ->where('me.id', $masterEventMarket->master_event_id)
-                ->join('master_leagues as ml', 'ml.id', 'me.master_league_id')
-                ->join('master_teams as ht', 'ht.id', 'me.master_team_home_id')
-                ->join('master_teams as at', 'at.id', 'me.master_team_away_id')
-                ->select([
-                    'ml.name as league_name',
-                    'ht.name as home_team_name',
-                    'at.name as away_team_name',
-                    'master_event_unique_id',
-                    'game_schedule',
-                    'ref_schedule',
-                    'running_time',
-                    'score',
-                    'home_penalty',
-                    'away_penalty',
-                    'me.sport_id'
-                ]);
+                             ->where('me.id', $masterEventMarket->master_event_id)
+                             ->join('master_leagues as ml', 'ml.id', 'me.master_league_id')
+                             ->join('master_teams as ht', 'ht.id', 'me.master_team_home_id')
+                             ->join('master_teams as at', 'at.id', 'me.master_team_away_id')
+                             ->select([
+                                 'ml.name as league_name',
+                                 'ht.name as home_team_name',
+                                 'at.name as away_team_name',
+                                 'master_event_unique_id',
+                                 'game_schedule',
+                                 'ref_schedule',
+                                 'running_time',
+                                 'score',
+                                 'home_penalty',
+                                 'away_penalty',
+                                 'me.sport_id'
+                             ]);
 
             if (!$masterEvent->exists()) {
                 return response()->json([
@@ -211,7 +211,7 @@ class OrdersController extends Controller
             $spreads          = [];
             $duplicateHandler = [];
 
-            foreach ($getOtherMarkets AS $row) {
+            foreach ($getOtherMarkets as $row) {
                 if (!in_array($row->odd_label, $duplicateHandler)) {
                     $duplicateHandler[] = $row->odd_label;
                     $spreads[]          = [
@@ -226,7 +226,7 @@ class OrdersController extends Controller
             $eventBets = Order::getOrdersByEvent($masterEvent->master_event_unique_id)->count();
 
             $hasBets = false;
-            if($eventBets > 0) {
+            if ($eventBets > 0) {
                 $hasBets = true;
             }
 
@@ -262,6 +262,7 @@ class OrdersController extends Controller
             ], 500);
         }
     }
+
     /**
      * Get Event Market Logs to keep track on every updates
      * the market offers
@@ -292,11 +293,11 @@ class OrdersController extends Controller
             $masterEventMarket = $masterEventMarket->first();
 
             $eventLogs = MasterEventMarketLog::where('master_event_market_id', $masterEventMarket->id)
-                ->orderBy('created_at', 'asc')
-                ->get()
-                ->toArray();
+                                             ->orderBy('created_at', 'asc')
+                                             ->get()
+                                             ->toArray();
 
-            foreach ($providers AS $provider) {
+            foreach ($providers as $provider) {
                 $data[$provider->alias] = array_filter($eventLogs, function ($row) use ($provider) {
                     return $row['provider_id'] == $provider->id;
                 });
@@ -353,14 +354,14 @@ class OrdersController extends Controller
             $orderIds     = [];
             $incrementIds = [];
 
-            foreach ($request->markets AS $row) {
-                $betType    = $request->betType;
-                $mlBetId    = generateMLBetIdentifier();
+            foreach ($request->markets as $row) {
+                $betType = $request->betType;
+                $mlBetId = generateMLBetIdentifier();
 
                 /**
                  * Fetch `userProviderConfig` Swoole Table
                  *
-                 * @var  $userProviderConfigSWT  "userId:$userId:pId:$providerId"
+                 * @var  $userProviderConfigSWT "userId:$userId:pId:$providerId"
                  *                               ['user_id', 'provider_id', 'active', 'punter_percentage']
                  */
                 $userProviderPercentage = -1;
@@ -384,9 +385,9 @@ class OrdersController extends Controller
                 /**
                  * Set Provider details from `providers` Swoole Table
                  *
-                 * @var  $providersSWT  "providerAlias:strtolower($providerAlias)"
+                 * @var  $providersSWT "providerAlias:strtolower($providerAlias)"
                  */
-                $providerKey = "providerAlias:" . strtolower($row['provider']);
+                $providerKey  = "providerAlias:" . strtolower($row['provider']);
                 $providerInfo = [
                     'alias'             => $providersSWT[$providerKey]['alias'],
                     'currency_id'       => $providersSWT[$providerKey]['currency_id'],
@@ -397,11 +398,11 @@ class OrdersController extends Controller
                 /**
                  * Browse `currencies` Swoole Table
                  *
-                 * @var  $currenciesSWT  "currencyId:$id:currencyCode:$code"
+                 * @var  $currenciesSWT "currencyId:$id:currencyCode:$code"
                  */
                 $userCurrencyInfo = [];
 
-                foreach ($currenciesSWT AS $_key => $_row) {
+                foreach ($currenciesSWT as $_key => $_row) {
                     if (strpos($_key, 'currencyId:' . auth()->user()->currency_id) !== false) {
                         $userCurrencyInfo = [
                             'id'   => auth()->user()->currency_id,
@@ -415,11 +416,11 @@ class OrdersController extends Controller
                 /**
                  * Browse `currencies` Swoole Table
                  *
-                 * @var  $currenciesSWT  "currencyId:$id:currencyCode:$code"
+                 * @var  $currenciesSWT "currencyId:$id:currencyCode:$code"
                  */
                 $providerCurrencyInfo = [];
 
-                foreach ($currenciesSWT AS $_key => $_row) {
+                foreach ($currenciesSWT as $_key => $_row) {
                     if (strpos($_key, 'currencyId:' . $providerInfo['currency_id']) !== false) {
                         $providerCurrencyInfo = [
                             'id'   => $providerInfo['currency_id'],
@@ -483,7 +484,7 @@ class OrdersController extends Controller
                     throw new BadRequestException(trans('generic.bad-request'));
                 }
 
-                $orderId     = uniqid();
+                $orderId = uniqid();
                 /** ROUNDING UP TO NEAREST 50 */
                 $ceil  = ceil($actualStake);
                 $last2 = substr($ceil, -2);
@@ -683,21 +684,29 @@ class OrdersController extends Controller
         }
     }
 
-    public function getBetSlipLogs(string $memUID)
+    public function getBetSlipLogs(string $uid)
     {
         try {
-            $data = [];
-
-            $view = Game::getBetSlipLogs(auth()->user()->id, $memUID);
-
-            foreach ($view AS $row) {
-                $data[$row->timestamp][$row->log_type][$row->provider] = [
-                    'description' => trans('game.bet_slip_logs.' . strtolower($row->log_type)),
-                    'message'     => $row->message,
-                    'data'        => $row->data
+            $userTz        = "Etc/UTC";
+            $getUserConfig = UserConfiguration::getUserConfig(auth()->user()->id)
+                                              ->where('type', 'timezone')
+                                              ->first();
+            if (!is_null($getUserConfig)) {
+                $userTz = Timezones::find($getUserConfig->value)->name;
+            }
+            $orders = Order::getOrdersByEvent($uid)->get();
+            $data   = [];
+            foreach ($orders as $order) {
+                $data[] = [
+                    'order_id'      => $order->id,
+                    'odds'          => $order->odds,
+                    'odd_type_name' => $order->sport_odd_type_name,
+                    'bet_team'      => $order->market_flag,
+                    'provider'      => $order->provider,
+                    'status'        => $order->status,
+                    'created_at'    => Carbon::createFromFormat("Y-m-d H:i:s", $order->created_at, 'Etc/UTC')->setTimezone($userTz)->format("Y-m-d H:i:s"),
                 ];
             }
-
             return response()->json([
                 'status'      => true,
                 'status_code' => 200,
@@ -715,31 +724,31 @@ class OrdersController extends Controller
 
     public function betMatrixOrders(string $uid)
     {
-        try  {
+        try {
             $userTz        = "Etc/UTC";
             $getUserConfig = UserConfiguration::getUserConfig(auth()->user()->id)
-                ->where('type', 'timezone')
-                ->first();
+                                              ->where('type', 'timezone')
+                                              ->first();
 
             if (!is_null($getUserConfig)) {
                 $userTz = Timezones::find($getUserConfig->value)->name;
             }
 
-            $orders = Order::getOrdersByEvent($uid)->get();
+            $orders = Order::getOrdersByEvent($uid, true)->get();
 
             $data = [];
-            foreach($orders as $order) {
+            foreach ($orders as $order) {
                 $type = '';
                 if ($order->odd_type_id == 3 || $order->odd_type_id == 11) {
-                    $type = 'HDP';
+                    $type   = 'HDP';
                     $points = $order->points;
                 } else if ($order->odd_type_id == 4 || $order->odd_type_id == 12) {
                     $ouOddLabel = explode(' ', $order->points);
-                    $type = $ouOddLabel[0];
-                    $points = $ouOddLabel[1];
+                    $type       = $ouOddLabel[0];
+                    $points     = $ouOddLabel[1];
                 }
                 $scoreOnBet = explode(' - ', $order->score_on_bet);
-                $data[] = [
+                $data[]     = [
                     'order_id'          => $order->id,
                     'stake'             => $order->stake,
                     'points'            => $points,

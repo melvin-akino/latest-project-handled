@@ -4,7 +4,7 @@
             <div class="flex flex-col">
                 <div class="bg-gray-800 w-full p-2">
                     <div class="container mx-auto">
-                        <p class="text-white">Order logs for Market: {{market_id}}</p>
+                        <p class="text-white">Order logs for Event: {{event_id}}</p>
                     </div>
                 </div>
                 <div class="flex flex-col orderLogs">
@@ -16,16 +16,9 @@
                     <div v-else>
                         <div v-if="logs.length != 0">
                             <div class="flex px-3 my-1 text-gray-700" v-for="(log, index) in logs" :key="index">
-                                <div class="w-1/2">
-                                    <div class="text-sm">{{index}}</div>
-                                </div>
-                                <div class="text-sm w-1/2">
-                                    <div v-for="(logType, index) in log" :key="index">
-                                        <div v-for="(update, index) in logType" :key="index">
-                                            <span class="font-bold">{{index}}</span> - {{update.description}} to {{update.data}}
-                                        </div>
-                                    </div>
-                                </div>
+                                <div class="w-1/4">{{log.created_at}}</div>
+                                <div class="w-1/4"><span class="font-bold">{{log.odd_type_name}}</span> ({{log.bet_team}})</div>
+                                <div class="w-2/4">Order Placed to <span class="font-bold">{{log.provider}}</span>: {{log.odds}} - {{log.status}}</div>
                             </div>
                         </div>
                         <div class="flex justify-center items-center p-2" v-else>
@@ -37,15 +30,13 @@
         </dialog-drag>
     </div>
 </template>
-
 <script>
 import { mapState } from 'vuex'
 import Cookies from 'js-cookie'
 import _ from 'lodash'
 import DialogDrag from 'vue-dialog-drag'
-
 export default {
-    props: ['market_id'],
+    props: ['market_id', 'event_id'],
     components: {
         DialogDrag
     },
@@ -64,19 +55,16 @@ export default {
     computed: {
         ...mapState('trade', ['activeBetSlip'])
     },
-    watch: {
-        market_id() {
-            this.setOrderLogs()
-        }
-    },
     mounted() {
-        this.setOrderLogs()
+        this.getOrderLogs()
     },
     methods: {
-        async setOrderLogs() {
+        async getOrderLogs() {
             try {
-                let orderLogs = await this.$store.dispatch('trade/getOrderLogs', this.market_id)
-                this.logs = orderLogs
+                this.isLoadingOrderLogs = true
+                this.orderLogsPrompt = 'Loading order logs'
+                let orderLogs = await this.$store.dispatch('trade/getOrderLogs', this.event_id)
+                this.logs = orderLogs.reverse()
                 this.isLoadingOrderLogs = false
                 this.retrievedOrderLogs = true
                 this.orderLogsPrompt = ''
@@ -88,11 +76,6 @@ export default {
                     this.orderLogsPrompt = 'There was an error.'
                 }
             }
-        },
-        getOrderLogs() {
-            this.isLoadingOrderLogs = true
-            this.orderLogsPrompt = 'Loading order logs'
-            this.setOrderLogs()
         }
     },
     directives: {
@@ -103,7 +86,6 @@ export default {
                 } else {
                     el.style.zIndex = '103'
                 }
-
                 let { $set, options } = vnode.context
                 $set(options, 'top', window.innerHeight / 2)
                 $set(options, 'left', window.innerWidth / 2)
@@ -114,7 +96,6 @@ export default {
                 } else {
                     el.style.zIndex = '103'
                 }
-
                 el.style.marginTop = 'calc(316px / 2 * -1)'
                 el.style.marginLeft = `calc(${el.offsetWidth}px / 2 * -1)`
             }
@@ -122,11 +103,10 @@ export default {
     }
 }
 </script>
-
 <style>
-    .orderLogs {
-        padding: 0;
-        max-height: 440px;
-        overflow-y: auto;
-    }
+.orderLogs {
+    padding: 0;
+    max-height: 440px;
+    overflow-y: auto;
+}
 </style>

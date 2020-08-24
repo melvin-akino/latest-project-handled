@@ -502,9 +502,9 @@ const actions = {
             commit('SET_EVENTS', { schedule: data.schedule, events: sortedEvents })
         }
     },
-    getOrderLogs({dispatch}, market_id) {
+    getOrderLogs({dispatch}, event_id) {
         return new Promise((resolve, reject) => {
-            axios.get(`v1/orders/logs/${market_id}`, { headers: { 'Authorization': `Bearer ${token}` }})
+            axios.get(`v1/orders/logs/${event_id}`, { headers: { 'Authorization': `Bearer ${token}` }})
             .then(response => {
                 resolve(response.data.data)
             })

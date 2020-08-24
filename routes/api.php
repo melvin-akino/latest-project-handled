@@ -92,7 +92,7 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
                 Route::get('all', 'OrdersController@myOrders');
                 Route::get('/{memUID}', 'OrdersController@getEventMarketsDetails');
                 Route::get('/{memUID}/logs', 'OrdersController@getEventMarketLogs');
-                Route::get('logs/{memUID}', 'OrdersController@getBetSlipLogs');
+                Route::get('logs/{uid}', 'OrdersController@getBetSlipLogs');
                 Route::get('bet-matrix/{uid}', 'OrdersController@betMatrixOrders');
 
                 Route::post('bet', 'OrdersController@postPlaceBet')->middleware(['prometheusopenbet','prometheusurlog']);

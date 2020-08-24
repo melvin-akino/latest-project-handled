@@ -16,7 +16,7 @@
             <a href="#" @click.prevent="showBetMatrix = true" class="text-center py-1 w-1/2" title="Bet Matrix" v-if="oddTypesWithBetMatrix.includes(bet.odd_type_id) && !failedBetStatus.includes(bet.status)"><i class="fas fa-chart-area"></i></a>
             <a href="#" @click.prevent="showOddsHistory = true" class="text-center py-1 w-1/2" :class="{'ml-5': !oddTypesWithBetMatrix.includes(bet.odd_type_id) || failedBetStatus.includes(bet.status)}" title="Odds History"><i class="fas fa-bars"></i></a>
         </div>
-        <odds-history v-if="showOddsHistory" @close="closeOddsHistory" :market_id="bet.market_id"></odds-history>
+        <odds-history v-if="showOddsHistory" @close="closeOddsHistory" :market_id="bet.market_id" :event_id="bet.event_id"></odds-history>
         <bet-matrix v-if="showBetMatrix" @close="closeBetMatrix" :market_id="bet.market_id" :analysis-data="analysisData" :event_id="bet.event_id"></bet-matrix>
     </div>
 </template>
