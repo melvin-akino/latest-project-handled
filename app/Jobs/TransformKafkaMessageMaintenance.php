@@ -48,7 +48,7 @@ class TransformKafkaMessageMaintenance implements ShouldQueue
                 if (strpos($key, 'uid:') !== false && $swoole->isEstablished($row['value'])) {
                     $swoole->push($ws->get($key)['value'], json_encode([
                         'getMaintenance' => [
-                            'provider'          => strtoupper($this->data->data->provider),
+                            'provider'          => strtolower($this->data->data->provider),
                             'under_maintenance' => $this->data->data->is_undermaintenance
                         ]
                     ]));
