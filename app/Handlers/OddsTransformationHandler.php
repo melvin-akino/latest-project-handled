@@ -28,6 +28,8 @@ class OddsTransformationHandler
     public function handle()
     {
         try {
+            $startTime = microtime(TRUE);
+
             $swoole   = app('swoole');
 
             list(
@@ -363,6 +365,22 @@ class OddsTransformationHandler
             if (!empty($updatedOdds)) {
                 $swoole->updatedEventsTable->set("updatedEvents:" . $uid, ['value' => json_encode($updatedOdds)]);
             }
+
+            $endTime = microtime(TRUE);
+            $timeConsumption   = $endTime - $startTime;
+
+            Log::channel('scraping-odds')->info([
+                'request_uid'      => json_encode($this->message->request_uid),
+                'request_ts'       => json_encode($this->message->request_ts),
+                'offset'           => json_encode($this->offset),
+                'time_consumption' => json_encode($timeConsumption),
+                'gamedata'         => json_encode([
+                    'leaguename' => $this->message->data->leagueName,
+                    'home'       => $this->message->data->homeTeam,
+                    'away'       => $this->message->data->awayTeam,
+                    'schedule'   => $this->message->data->schedule,
+                ]),
+            ]);
         } catch (Exception $e) {
             DB::rollBack();
             Log::error(json_encode(

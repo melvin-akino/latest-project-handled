@@ -63,7 +63,7 @@ class GameConsume implements CustomProcessInterface
                             }
                             switch ($payload->command) {
                                 case 'event':
-                                    TransformKafkaMessageEvents::dispatch($payload);
+                                    TransformKafkaMessageEvents::dispatch($payload, $message->offset);
                                     break;
                                 case 'odd':
                                     $oddsValidationHandler->init($payload, $message->offset)->handle();

@@ -14,16 +14,20 @@ class TransformKafkaMessageEvents implements ShouldQueue
     use Dispatchable;
 
     protected $message;
+    protected $offset;
     protected $swoole;
 
-    public function __construct($message)
+    public function __construct($message, $offset)
     {
         $this->message = $message;
+        $this->offset = $offset;
     }
 
     public function handle()
     {
         try {
+            $startTime = microtime(TRUE);
+
             $swoole             = app('swoole');
             $eventScrapingTable = $swoole->eventScrapingTable;
 
@@ -211,6 +215,17 @@ class TransformKafkaMessageEvents implements ShouldQueue
                 }
                 Log::info("For Removal Event - Processed");
             }
+
+            $endTime = microtime(TRUE);
+            $timeConsumption   = $endTime - $startTime;
+
+            Log::channel('scraping-events')->info([
+                'request_uid'      => json_encode($this->message->request_uid),
+                'request_ts'       => json_encode($this->message->request_ts),
+                'offset'           => json_encode($this->offset),
+                'time_consumption' => json_encode($timeConsumption),
+                'events'         => json_encode($this->message->data->event_ids),
+            ]);
         } catch (Exception $e) {
             Log::error(json_encode(
                 [

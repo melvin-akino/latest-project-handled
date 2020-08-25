@@ -103,6 +103,18 @@ return [
             'driver' => 'single',
             'path' => '/tmp/producer.logs',
         ],
+
+        'scraping-odds' => [
+            'driver' => 'single',
+            'path'   => storage_path('logs/laravels-odds.log'),
+            'level'  => 'debug',
+        ],
+
+        'scraping-events' => [
+            'driver' => 'single',
+            'path'   => storage_path('logs/laravels-events.log'),
+            'level'  => 'debug',
+        ],
     ],
 
 ];
