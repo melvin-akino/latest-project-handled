@@ -56,6 +56,7 @@ class SwtToWs implements CustomProcessInterface
         $updatedEventsTable   = $swoole->updatedEventsTable;
         $wsTable              = $swoole->wsTable;
         $topicTable           = $swoole->topicTable;
+//        $eventsInfoTable      = $swoole->eventsInfoTable;
         $userEnabledProviders = [];
         foreach ($updatedEventsTable as $k => $r) {
             $updatedMarkets = json_decode($r['value']);
@@ -75,6 +76,10 @@ class SwtToWs implements CustomProcessInterface
                                 $swoole->push($fd['value'], json_encode(['getUpdatedOdds' => [$updatedMarket]]));
                             }
 
+                            if (SwooleHandler::exists('eventsInfoTable', 'eventsInfo:' . $uid)) {
+                                $swoole->push($fd['value'], json_encode([ 'getEventsUpdate' => json_decode(SwooleHandler::getValue('eventsInfoTable', 'eventsInfo:' . $uid)['value'], true) ]));
+                                SwooleHandler::remove('eventsInfoTable', 'eventsInfo:' . $uid);
+                            }
                         }
                     }
                 }

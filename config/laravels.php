@@ -475,6 +475,12 @@ return [
                 [ 'name' => 'message', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 25000 ],
             ],
         ],
+        'eventsInfo' => [ // key format [eventsInfo:$uid]
+            'size'   => 2000,
+            'column' => [
+                ['name' => 'value', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 10000],
+            ],
+        ],
     ],
     'register_providers'       => [
         \Laravel\Passport\PassportServiceProvider::class
