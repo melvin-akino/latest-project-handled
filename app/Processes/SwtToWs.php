@@ -29,6 +29,7 @@ class SwtToWs implements CustomProcessInterface
                     self::getUpdatedPrice($swoole);
                     if ($i % 30 == 0) {
                         self::getAdditionalLeagues($swoole);
+                        self::getUpdatedLeagues();
                     }
 
                     if ($i % 5 == 0) {
@@ -89,8 +90,13 @@ class SwtToWs implements CustomProcessInterface
                 $updatedEventsTable->del($k);
             }
         }
+    }
 
-
+    private static function getUpdatedLeagues()
+    {
+        wsEmit(['getUpdatedLeagues' => [
+            'status' => true
+        ]]);
     }
 
     private static function getUpdatedPrice($swoole)
