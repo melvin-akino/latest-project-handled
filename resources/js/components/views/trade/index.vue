@@ -360,6 +360,19 @@ export default {
                         }
                     }
                     this.isMaintenance = maintenance.under_maintenance
+                } else if(getSocketKey(response.data) === 'getEventsUpdate') {
+                    let eventsUpdate = getSocketValue(response.data, 'getEventsUpdate')
+                    Object.keys(this.events).map(schedule => {
+                        Object.keys(this.events[schedule]).map(league => {
+                            this.events[schedule][league].map(event => {
+                                if(event.uid == eventsUpdate.id) {
+                                    this.$set(event.home, 'score', eventsUpdate.score.home)
+                                    this.$set(event.away, 'score', eventsUpdate.score.away)
+                                    this.$set(event, 'running_time', eventsUpdate.running_time)
+                                }
+                            })
+                        })
+                    })
                 }
             })
         }

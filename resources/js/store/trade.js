@@ -49,6 +49,19 @@ const state = {
 const getters = {
     displayedLeagues: (state) => {
         return state.leagues[state.selectedLeagueSchedMode]
+    },
+    leagueNames: (state) => {
+        if(!_.isEmpty(state.leagues)) {
+            let leagueNames = {}
+            Object.keys(state.leagues).map(schedule => {
+                let leagues = []
+                state.leagues[schedule].map(league => {
+                    leagues.push(league.name)
+                })
+                Vue.set(leagueNames, schedule, leagues)
+            })
+            return leagueNames
+        }
     }
 }
 
@@ -318,6 +331,7 @@ const actions = {
         .then(response => {
             if(response.data.sport_id == state.selectedSport) {
                 commit('SET_LEAGUES', response.data.data)
+                dispatch('removeEventsOnUpdateOfLeagues')
             }
             commit('SET_IS_LOADING_LEAGUES', false)
         })
@@ -511,6 +525,21 @@ const actions = {
             .catch(err => {
                 dispatch('auth/checkIfTokenIsValid', err.response.data.status_code,  { root: true })
                 reject(err)
+            })
+        })
+    },
+    removeEventsOnUpdateOfLeagues({state, getters, commit}) {
+        Object.keys(getters.leagueNames).map(schedule => {
+            state.allEventsList.map(event => {
+                if(!getters.leagueNames[schedule].includes(event.league_name) && schedule == event.game_schedule) {
+                    commit('REMOVE_FROM_ALL_EVENT_LIST', { type: 'league_name', data: event.league_name, game_schedule: schedule })
+                    commit('REMOVE_FROM_EVENTS', { schedule: schedule, removedLeague: event.league_name })
+                }
+            })
+            state.eventsList.map(event => {
+                if(!getters.leagueNames[schedule].includes(event.league_name) && schedule == event.game_schedule) {
+                    commit('REMOVE_FROM_EVENT_LIST', { type: 'league_name', data: event.league_name, game_schedule: schedule })
+                }
             })
         })
     }

@@ -45,7 +45,7 @@ export default {
     methods: {
         modifyLeaguesFromSocket() {
             this.$options.sockets.onmessage = (response) => {
-                if (getSocketKey(response.data) === 'getAdditionalLeagues') {
+                if (getSocketKey(response.data) === 'getAdditionalLeagues' || getSocketKey(response.data) === 'getUpdatedLeagues') {
                     this.$store.dispatch('trade/getInitialLeagues')
                 } else if (getSocketKey(response.data) === 'getSelectedLeagues') {
                     if(getSocketValue(response.data, 'getSelectedLeagues') != '') {
