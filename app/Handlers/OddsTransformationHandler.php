@@ -368,7 +368,10 @@ class OddsTransformationHandler
                 $swoole->eventsInfoTable->set("eventsInfo:" . $uid, [
                     'value' => json_encode([
                         'id'           => $uid,
-                        'score'        => $this->message->data->home_score . " - " . $this->message->data->away_score,
+                        'score' => [
+                            'home' => $this->message->data->home_score,
+                            'away' => $this->message->data->away_score
+                        ],
                         'running_time' => $this->message->data->runningtime,
                     ])
                 ]);
