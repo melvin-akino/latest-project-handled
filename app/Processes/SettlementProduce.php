@@ -65,9 +65,10 @@ class SettlementProduce implements CustomProcessInterface
                                         ];
 
                                         $payload['data'] = [
-                                            'sport'    => $sportId,
-                                            'provider' => $providerAlias,
-                                            'username' => $username
+                                            'sport'           => $sportId,
+                                            'provider'        => $providerAlias,
+                                            'username'        => $username,
+                                            'settlement_date' => Carbon::now()->subHours(4)->format('Y-m-d')
                                         ];
 
                                         KafkaPush::dispatch(
