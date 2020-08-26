@@ -11,7 +11,7 @@ class ProviderAccount extends Model
     use SoftDeletes;
 
     public $timestamps = false;
-    
+
     protected $table = "provider_accounts";
 
     protected $fillable = [
@@ -26,72 +26,89 @@ class ProviderAccount extends Model
         'is_enabled',
     ];
 
-    public static function getBettingAccount($providerId, $stake, $isVIP, $eventId,$oddType,$marketFlag) 
+    public static function getBettingAccount($providerId, $stake, $isVIP, $eventId, $oddType, $marketFlag)
     {
-        
-        $finalProvider = '';
         $type  = $isVIP ? "BET_VIP" : "BET_NORMAL";
         $query = self::where('credits', '>=', $stake)
-            ->where('provider_id', $providerId)
-            ->where('is_enabled', true)
-            ->where('type', $type)
-            ->orderBy('updated_at', 'ASC');
+                     ->where('provider_id', $providerId)
+                     ->where('is_enabled', true)
+                     ->where('type', $type);
 
-        $marketFlag = strtoupper($marketFlag);
-
-        if ($marketFlag !='DRAW') {
-            $notAllowed = $marketFlag =='HOME' ? "AWAY" : "HOME";
-            
-            # Let us get all accounts who used to bet on particular event 
-            $betRules = ProviderBetRules::where('not_allowed_ground',$marketFlag)
-                        ->where('event_id',$eventId)
-                        ->where('odd_type_id',$oddType)->get();
-            $excludeAccounts =[];
-
-            if ($betRules->count() != 0) {
-
-               foreach ($betRules as $rule) {
-                    array_push($excludeAccounts, $rule->provider_account_id);
-               }
-            }
-            
-            if (count($excludeAccounts) != 0) {
-                $query = $query->whereNotIn('id', $excludeAccounts);
-            }
-
-            $finalProvider = $query->first();
-             
-            if ($finalProvider)
-            {
-
-                $providerAccountId = $finalProvider->id;
-                $rules = ProviderBetRules::create([
-                    'event_id'              => $eventId,
-                    'provider_account_id'   => $providerAccountId,
-                    'odd_type_id'           => $oddType,
-                    'team_ground'           => $marketFlag,
-                    'not_allowed_ground'    => $notAllowed
-                ]);
-            }
-
-            return $finalProvider;
-
+        if ($query->count() == 0) {
+            return null;
         } else {
+            $marketFlag = strtoupper($marketFlag);
 
-            return $query->first();
+            if ($marketFlag != 'DRAW') {
+                $notAllowed = $marketFlag == 'HOME' ? "AWAY" : "HOME";
+
+                $accountCandidates = $query->orderBy('id', 'ASC')->get()->toArray();
+                if ($marketFlag == 'HOME') {
+                    $accountHalfCandidates = array_slice($accountCandidates, 0, ceil($query->count() / 2));
+                } else {
+                    $accountHalfCandidates = array_slice($accountCandidates, ceil($query->count() / 2));
+                }
+
+                # Let us get all accounts who used to bet on particular event
+                $betRules        = ProviderBetRules::where('not_allowed_ground', $marketFlag)
+                                                   ->where('event_id', $eventId)
+                                                   ->where('odd_type_id', $oddType)->get();
+                $excludeAccounts = [];
+
+                if ($betRules->count() != 0) {
+
+                    foreach ($betRules as $rule) {
+                        array_push($excludeAccounts, $rule->provider_account_id);
+                    }
+                }
+
+                if (count($excludeAccounts) != 0) {
+                    $accountFinalCandidates = [];
+                    foreach ($accountHalfCandidates as $accountHalfCandidate) {
+                        if (!in_array($accountHalfCandidate['id'], $excludeAccounts)) {
+                            $accountFinalCandidates[] = (array) $accountHalfCandidate;
+                        }
+                    }
+                } else {
+                    $accountFinalCandidates = (array) $accountHalfCandidates;
+                }
+
+                usort($accountFinalCandidates, function($a, $b) {
+                    return $a['updated_at'] <=> $b['updated_at'];
+                });
+
+                $finalProvider = (object) $accountFinalCandidates[0];//$query->first();
+
+                if ($finalProvider) {
+
+                    $providerAccountId = $finalProvider->id;
+                    $rules             = ProviderBetRules::firstOrCreate([
+                        'event_id'            => $eventId,
+                        'provider_account_id' => $providerAccountId,
+                        'odd_type_id'         => $oddType,
+                        'team_ground'         => $marketFlag,
+                        'not_allowed_ground'  => $notAllowed
+                    ]);
+                }
+
+                return $finalProvider;
+
+            } else {
+                $query->orderBy('updated_at', 'ASC');
+                return $query->first();
+            }
         }
-
     }
 
     public static function getProviderAccount($providerId, $stake, $isVIP)
     {
 
-        
+
         $type  = $isVIP ? "BET_VIP" : "BET_NORMAL";
         $query = self::where('credits', '>=', $stake)
-            ->where('provider_id', $providerId)
-            ->where('is_enabled', true)
-            ->where('type', $type);
+                     ->where('provider_id', $providerId)
+                     ->where('is_enabled', true)
+                     ->where('type', $type);
 
         $isIdle = $query->where('is_idle', true);
 
@@ -109,7 +126,7 @@ class ProviderAccount extends Model
                 )'
             )
         )->orderBy('updated_at', 'ASC')
-        ->orderBy('id', 'ASC');
+                       ->orderBy('id', 'ASC');
 
         return $query->first();
     }
@@ -117,7 +134,7 @@ class ProviderAccount extends Model
     public static function getUsernameId($username)
     {
         return self::where('username', $username)
-            ->first()
+                   ->first()
             ->id;
     }
 }
