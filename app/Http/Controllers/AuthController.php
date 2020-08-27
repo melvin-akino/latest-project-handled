@@ -45,50 +45,50 @@ class AuthController extends Controller
      * @return [integer]    status_code
      * @return [string]     message
      */
-    public function register(RegistrationRequests $request)
-    {
-        try {
-            $user = new User([
-                'name'                  => $request->name,
-                'email'                 => $request->email,
-                'password'              => bcrypt($request->password),
-                'firstname'             => $request->firstname,
-                'lastname'              => $request->lastname,
-                'address'               => $request->address,
-                'country_id'            => $request->country_id,
-                'state'                 => $request->state,
-                'city'                  => $request->city,
-                'postcode'              => $request->postcode,
-                'phone'                 => $request->phone,
-                'currency_id'           => $request->currency_id,
-                'birthdate'             => $request->birthdate,
-                'status'                => 1
-            ]);
-
-            $user->save();
-
-            $sourceId = Source::getIdByName('REGISTRATION');
-
-            UserWallet::makeTransaction($user->id, 0, $request->currency_id, $sourceId, 'Credit');
-
-            $user->notify(
-                new RegistrationMail($request->name)
-            );
-
-            return response()->json([
-                'status'                => true,
-                'status_code'           => 200,
-                'message'               => trans('auth.register.success'),
-            ], 200);
-        } catch (Exception $e) {
-            Log::error($e->getMessage());
-            return response()->json([
-                'status'      => false,
-                'status_code' => 500,
-                'message'     => trans('generic.internal-server-error')
-            ], 500);
-        }
-    }
+//    public function register(RegistrationRequests $request)
+//    {
+//        try {
+//            $user = new User([
+//                'name'                  => $request->name,
+//                'email'                 => $request->email,
+//                'password'              => bcrypt($request->password),
+//                'firstname'             => $request->firstname,
+//                'lastname'              => $request->lastname,
+//                'address'               => $request->address,
+//                'country_id'            => $request->country_id,
+//                'state'                 => $request->state,
+//                'city'                  => $request->city,
+//                'postcode'              => $request->postcode,
+//                'phone'                 => $request->phone,
+//                'currency_id'           => $request->currency_id,
+//                'birthdate'             => $request->birthdate,
+//                'status'                => 1
+//            ]);
+//
+//            $user->save();
+//
+//            $sourceId = Source::getIdByName('REGISTRATION');
+//
+//            UserWallet::makeTransaction($user->id, 0, $request->currency_id, $sourceId, 'Credit');
+//
+//            $user->notify(
+//                new RegistrationMail($request->name)
+//            );
+//
+//            return response()->json([
+//                'status'                => true,
+//                'status_code'           => 200,
+//                'message'               => trans('auth.register.success'),
+//            ], 200);
+//        } catch (Exception $e) {
+//            Log::error($e->getMessage());
+//            return response()->json([
+//                'status'      => false,
+//                'status_code' => 500,
+//                'message'     => trans('generic.internal-server-error')
+//            ], 500);
+//        }
+//    }
 
     /**
      * User Login
