@@ -25,7 +25,10 @@ class TransformKafkaMessageBet implements ShouldQueue
 
     protected $message;
 
-    CONST STATUS_RECEIVED = 'received';
+    const STATUS_RECEIVED = 'received';
+    const STATUS_PENDING  = 'pending';
+    const STATUS_SUCCESS  = 'success';
+    const STATUS_FAILED   = 'failed';
 
     public function __construct($message)
     {
@@ -41,8 +44,8 @@ class TransformKafkaMessageBet implements ShouldQueue
         try {
             DB::beginTransaction();
 
-            $swoole            = app('swoole');
-            $topics            = $swoole->topicTable;
+            $swoole = app('swoole');
+            $topics = $swoole->topicTable;
 
             $requestUIDArray = explode('-', $this->message->request_uid);
             $messageOrderId  = end($requestUIDArray);
@@ -55,14 +58,14 @@ class TransformKafkaMessageBet implements ShouldQueue
                 }
             } else {
                 SwooleHandler::remove('orderRetriesTable', 'orderId:' . $messageOrderId);
-                foreach ($topics AS $key => $row) {
+                foreach ($topics as $key => $row) {
                     if (strpos($row['topic_name'], 'order-') === 0) {
-                        $orderId         = substr($row['topic_name'], strlen('order-'));
-                        $orderData       = Order::where('id', $messageOrderId);
+                        $orderId   = substr($row['topic_name'], strlen('order-'));
+                        $orderData = Order::where('id', $messageOrderId);
 
                         if ($orderData->count() && $orderId == $messageOrderId) {
 
-                            $status = strtoupper($this->message->data->status);
+                            $status = $this->message->data->status != self::STATUS_PENDING ? strtoupper($this->message->data->status) : strtoupper(self::STATUS_SUCCESS);
                             $order  = Order::updateOrCreate([
                                 'id' => $messageOrderId
                             ], [
@@ -72,8 +75,8 @@ class TransformKafkaMessageBet implements ShouldQueue
                                 'odds'   => $this->message->data->odds
                             ]);
 
-                            $orderData   = Order::find($messageOrderId);
-                            if ($status != "FAILED") {
+                            $orderData = Order::find($messageOrderId);
+                            if ($status != strtoupper(self::STATUS_FAILED)) {
                                 ProviderAccount::find($order->provider_account_id)->update([
                                     'updated_at' => Carbon::now()
                                 ]);
@@ -90,7 +93,7 @@ class TransformKafkaMessageBet implements ShouldQueue
                                 $order->to_win = $order->stake * $this->message->data->odds;
                                 $order->save();
 
-                                $orderLogData = OrderLogs::where('order_id', $orderData->id)->orderBy('id', 'desc')->first();
+                                $orderLogData         = OrderLogs::where('order_id', $orderData->id)->orderBy('id', 'desc')->first();
                                 $providerAccountOrder = ProviderAccountOrder::where('order_log_id', $orderLogData->id)->orderBy('id', 'desc')->first();
 
                                 $actualStake    = $providerAccountOrder->actual_stake;
@@ -134,7 +137,7 @@ class TransformKafkaMessageBet implements ShouldQueue
                                     'settled_date'  => null,
                                 ]);
 
-                                if ($order->status == "SUCCESS") {
+                                if ($order->status == strtoupper(self::STATUS_SUCCESS)) {
                                     continue;
                                 }
 
@@ -147,7 +150,7 @@ class TransformKafkaMessageBet implements ShouldQueue
                                 );
                             }
 
-                            if ($status == 'SUCCESS') {
+                            if ($status == strtoupper(self::STATUS_SUCCESS)) {
                                 SwooleHandler::remove('pendingOrdersWithinExpiryTable', 'orderId:' . $orderId);
                             }
                             WSOrderStatus::dispatch(
