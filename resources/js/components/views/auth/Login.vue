@@ -38,9 +38,9 @@
                 <router-link to="/forgot-password" class="inline-block text-gray-700 text-xs font-bold mb-2 uppercase mr-6 hover:underline">Forgot Password</router-link>
                 <a href="#" class="inline-block text-gray-700 text-xs font-bold mb-2 uppercase hover:underline">Contact Us</a>
             </div>
-<!--            <div class="mb-1 flex justify-center sm:px-0 px-5">-->
-<!--                <small class="text-gray-700 text-xs font-bold mb-2 uppercase">Don't have an account yet? <router-link to="/register" class="hover:underline">Register Here</router-link></small>-->
-<!--            </div>-->
+            <div class="mb-1 flex justify-center sm:px-0 px-5">
+                <small class="text-gray-700 text-xs font-bold mb-2 uppercase">Please contact support if you want to create an account on multiline.io</small>
+            </div>
             <div class="hidden sm:flex justify-center sm:px-0 px-5">
                 <small class="text-gray-700 text-xs font-bold mb-2 uppercase"><i class="far fa-question-circle"></i> Best viewed on Google Chrome, Firefox or Safari</small>
             </div>
