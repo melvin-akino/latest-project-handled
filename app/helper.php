@@ -471,6 +471,7 @@ if (!function_exists('eventTransformation')) {
                     'league_name'   => $transformed->master_league_name,
                     'running_time'  => $transformed->running_time,
                     'ref_schedule'  => Carbon::createFromFormat("Y-m-d H:i:s", $transformed->ref_schedule, 'Etc/UTC')->setTimezone($userTz)->format("Y-m-d H:i:s"),
+                    'raw_schedule'  => date("Y-m-d H:i:s", strtotime($transformed->ref_schedule)),
                     'has_bet'       => $hasBet,
                     'with_providers' => $providersOfEvents,
                     'has_other_markets' => $eventHasOtherMarkets

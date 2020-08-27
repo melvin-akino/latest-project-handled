@@ -41,9 +41,10 @@
                                             </div>
                                         </div>
                                         <div class="w-1/12 flex flex-col items-center">
-                                            <span v-if="gameSchedType === 'inplay' || (gameSchedType === 'watchlist' && game.game_schedule === 'inplay')">{{game.home.score}} - {{game.away.score}}</span>
-                                            <span>{{ gameSchedType === 'inplay' || (gameSchedType === 'watchlist' && game.game_schedule === 'inplay') ? game.running_time : game.ref_schedule.split(' ')[0]}}</span>
-                                            <span v-if="game.game_schedule != 'inplay'">{{ game.ref_schedule.split(' ')[1]}}</span>
+                                            <div v-if="gameSchedType === 'inplay' || (gameSchedType === 'watchlist' && game.game_schedule === 'inplay')">{{game.home.score}} - {{game.away.score}}</div>
+                                            <div v-if="gameSchedType === 'inplay' || (gameSchedType === 'watchlist' && game.game_schedule === 'inplay')">{{game.running_time}}</div>
+                                            <div v-if="game.game_schedule != 'inplay'" class="relative">{{game.ref_schedule.split(' ')[0]}} <a href="#" class="absolute text-gray-900 text-xs ml-1 infoicon" :title="game.raw_schedule"><i class="fas fa-info-circle"></i></a></div>
+                                            <div v-if="game.game_schedule != 'inplay'">{{game.ref_schedule.split(' ')[1]}}</div>
                                         </div>
                                         <div class="w-1/12"></div>
                                         <div class="w-1/12 flex flex-col items-center" :class="column" v-for="(column, index) in oddsTypeBySport" :key="index">
@@ -482,5 +483,9 @@ export default {
             background-color:none;
             font-weight: 400;
         }
+    }
+
+    .infoicon {
+        margin-top: 2px;
     }
 </style>
