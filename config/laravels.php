@@ -151,12 +151,10 @@ return [
                 ['name' => 'value', 'type' => \Swoole\Table::TYPE_INT],
             ],
         ],
-        'newLeagues'            => [ // key format [unique:uniqid()] = [value = true]
-            'size'   => 100,// The max size
+        'updateLeagues'            => [ // key format [updateLeagues] = [value = true]
+            'size'   => 1,// The max size
             'column' => [// Define the columns
-                 ['name' => 'league_name', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 255],
-                 ['name' => 'provider_id', 'type' => \Swoole\Table::TYPE_INT],
-                 ['name' => 'sport_id', 'type' => \Swoole\Table::TYPE_INT],
+                 ['name' => 'value', 'type' => \Swoole\Table::TYPE_INT]
             ],
         ],
         'userWatchlist'       => [// key format [userWatchlist:$userId:masterEventId:$masterEventId] = [value = true]

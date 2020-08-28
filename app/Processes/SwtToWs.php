@@ -28,7 +28,6 @@ class SwtToWs implements CustomProcessInterface
                     self::getUpdatedOdds($swoole);
                     self::getUpdatedPrice($swoole);
                     if ($i % 30 == 0) {
-                        self::getAdditionalLeagues($swoole);
                         self::getUpdatedLeagues();
                     }
 
@@ -99,9 +98,12 @@ class SwtToWs implements CustomProcessInterface
 
     private static function getUpdatedLeagues()
     {
-        wsEmit(['getUpdatedLeagues' => [
-            'status' => true
-        ]]);
+        if (SwooleHandler::exists('updateLeaguesTable', 'updateLeagues')) {
+            SwooleHandler::remove('updateLeaguesTable', 'updateLeagues');
+            wsEmit(['getUpdatedLeagues' => [
+                'status' => true
+            ]]);
+        }
     }
 
     private static function getUpdatedPrice($swoole)
@@ -126,29 +128,6 @@ class SwtToWs implements CustomProcessInterface
                 }
                 $updatedEventsTable->del($k);
             }
-        }
-    }
-
-    private static function getAdditionalLeagues($swoole)
-    {
-        $newLeagues = $swoole->newLeaguesTable;
-        $doesExist = false;
-        foreach ($newLeagues as $key => $newLeague) {
-            if (
-                League::where('name', $newLeague['league_name'])
-                ->where('provider_id', $newLeague['provider_id'])
-                ->where('sport_id', $newLeague['sport_id'])
-                ->exists()
-            ) {
-                SwooleHandler::remove('newLeaguesTable', $key);
-                $doesExist = true;
-            }
-        }
-
-        if ($doesExist) {
-            wsEmit(['getAdditionalLeagues' => [
-                'status' => true
-            ]]);
         }
     }
 
