@@ -38,6 +38,8 @@ import Betbar from './Betbar'
 import BetSlip from './BetSlip'
 import { getSocketKey, getSocketValue } from '../../../helpers/socket'
 import { sortByObjectKeys } from '../../../helpers/array'
+import Vue from 'vue'
+const vm = new Vue()
 
 export default {
     components: {
@@ -69,6 +71,9 @@ export default {
         allEventsListUID() {
             return this.allEventsList.map(event => event.uid)
         }
+    },
+    created() {
+        vm.$connect()
     },
     mounted() {
         this.$store.dispatch('trade/loadTradeWindow')
@@ -444,6 +449,7 @@ export default {
         this.$store.commit('trade/CLEAR_EVENTS')
         this.$store.commit('trade/CLEAR_EVENTS_LIST')
         this.$store.commit('trade/CLEAR_ALL_EVENTS_LIST')
+        vm.$disconnect()
         next()
     }
 }

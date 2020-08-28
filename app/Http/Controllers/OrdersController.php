@@ -223,7 +223,7 @@ class OrdersController extends Controller
                 }
             }
 
-            $eventBets = Order::getOrdersByEvent($masterEvent->master_event_unique_id)->count();
+            $eventBets = Order::getOrdersByEvent($masterEvent->master_event_unique_id, true)->count();
 
             $hasBets = false;
             if ($eventBets > 0) {
