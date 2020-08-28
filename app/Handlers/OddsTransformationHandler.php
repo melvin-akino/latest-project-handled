@@ -140,6 +140,7 @@ class OddsTransformationHandler
                         }
                         foreach ($marketOdd->marketSelection as $marketSelection) {
                             if (empty($marketSelection->market_id)) {
+
                                 break 3;
                             }
                             $indicator = strtoupper($marketSelection->indicator);
