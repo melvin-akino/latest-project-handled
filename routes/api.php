@@ -40,7 +40,7 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
             'prefix' => 'auth',
         ], function () {
             Route::post('login', 'AuthController@login')->middleware(['prometheuslog']);
-            Route::post('register', 'AuthController@register');
+//            Route::post('register', 'AuthController@register');
             Route::middleware('auth:api')->post('logout', 'AuthController@logout');
 
             /** Forgot Password and Reset Route Endpoints */

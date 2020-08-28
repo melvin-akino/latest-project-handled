@@ -7,10 +7,10 @@ const routes = [
         path: '/login',
         component: () => import('./components/views/auth/Login')
     },
-    {
-        path: '/register',
-        component:() => import('./components/views/auth/Register')
-    },
+    // {
+    //     path: '/register',
+    //     component:() => import('./components/views/auth/Register')
+    // },
     {
         path: '/forgot-password',
         component: () => import('./components/views/auth/ForgotPassword')

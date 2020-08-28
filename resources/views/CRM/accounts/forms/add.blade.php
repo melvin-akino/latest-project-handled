@@ -1,8 +1,7 @@
 <div class="modal fade" id="modal-add-account" data-backdrop="static">
     <div class="modal-dialog">
         <div class="modal-content">
-            <form class="form-horizontal" name="formaddaccount" id="formaddaccount" action="{{ route('accounts.add') }}"
-                  method="POST">
+            <form class="form-horizontal" name="formaddaccount" id="formaddaccount" action="{{ route('accounts.add') }}" method="POST">
                 {{ csrf_field() }}
                 <div class="modal-header">
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
@@ -12,6 +11,15 @@
                 <div class="modal-body">
                     <div class="box-body">
 
+                        <div class="form-group">
+                            <label for="add-email-input" class="col-sm-3 control-label">E-mail Address</label>
+
+                            <div class="col-sm-8">
+                                <input type="text" class="form-control" id="add-email-input" name="email" placeholder="E-mail Address">
+                            </div>
+                        </div>
+
+                        {{--
                         <div class="form-group">
                             <label for="add-lname-input" class="col-sm-3 control-label">Username</label>
 
@@ -24,6 +32,7 @@
                                 <button type="button" id="generate_username" class="btn btn-success" data-toggle="popover" data-trigger="hover" data-content="Generate username"><i class="fa fa-refresh"></i></button>
                             </div>
                         </div>
+                        --}}
 
                         <div class="form-group">
                             <label for="add-lname-input" class="col-sm-3 control-label">Password</label>
@@ -62,7 +71,7 @@
                                 <select name="currency_id" id="add-currency-select" class="form-control">
                                     <option value="" disabled selected>Select to currency</option>
                                     @foreach($currencies as $currency)
-                                        <option value="{{ $currency->currency_id }}">{{ $currency->currency_name.': '.$currency->currency.' ('.$currency->currency_symbol.')' }}</li>
+                                        <option value="{{ $currency->id }}">{{ $currency->name . ' (' . $currency->code . ')' }}</li>
                                     @endforeach
                                 </select>
                             </div>
@@ -84,9 +93,9 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-default pull-left" data-dismiss="modal">Close</button>
-                    @usercan('add', 'assignuser.add')
+                    {{-- @usercan('add', 'assignuser.add') --}}
                     <button type="submit" role="button" data-loading-text='{{ trans('loading.please_wait') }}' class="btn btn-primary">Save changes</button>
-                    @endusercan
+                    {{-- @endusercan --}}
                 </div>
             </form>
         </div>

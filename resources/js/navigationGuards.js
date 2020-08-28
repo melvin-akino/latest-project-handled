@@ -4,7 +4,7 @@ import axios from 'axios'
 import store from './store'
 
 export default router.beforeEach((to, from, next) => {
-    const authRoutes = ['/login', '/register', '/forgot-password', '/reset-password/:token']
+    const authRoutes = ['/login', '/forgot-password', '/reset-password/:token']
     const token = Cookies.get('mltoken')
     if (token) {
         store.commit('auth/SET_IS_AUTHENTICATED', true)

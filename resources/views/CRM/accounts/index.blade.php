@@ -25,7 +25,6 @@
                     <table id="accounts-table" class="table table-bordered table-striped">
                         <thead>
                         <tr>
-
                             <th>Display Name</th>
                             <th>First Name</th>
                             <th>Last Name</th>
@@ -39,18 +38,15 @@
                     </table>
                 </div>
                 <!-- /.box-body -->
-                
-                <div class="box-footer">
-                    
-                </div><!-- /.box-footer-->
-                
-            </div>
-            <!-- /.box -->
-        </div>
-        <!-- /.col -->
-    </div>
-    <!-- /.row -->
 
+                <div class="box-footer">
+                    <a href="#" class="btn btn-default" data-toggle="modal" data-target="#modal-add-account">Add New User</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @include('CRM.accounts.forms.add')
 @endsection
 
 @section('scripts')
@@ -67,14 +63,11 @@
 
     <script>
         $(function(){
-
             $("#modal-add-account").on("hidden.bs.modal", function () {
                 var form = $('#formaddaccount');
                 form.trigger('reset');
                 clearErr(form);
             });
-
-
 
             $('#accounts-table').DataTable({
                 "processing": true,
@@ -162,7 +155,7 @@
                             return data;
                         }
                     },
-                
+
                     {"data": "created_at"},
                     {
                         "data": null,
@@ -217,16 +210,11 @@
                 return shuffle(pass).join('');
             }
 
-
             $('#generate_pass').click(function(){
-
                 var randPassword = generatePassword(3,3,1,1);
 
                 $('#add-password-input').val(randPassword);
             });
-
-
-
         });
     </script>
 @endsection
