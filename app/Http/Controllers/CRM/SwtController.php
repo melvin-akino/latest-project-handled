@@ -37,10 +37,10 @@ class SwtController extends Controller
                 'max'   => 5,
                 'count' => $swoole->priorityTriggerTable->count()
             ],
-            'newLeagues'     => [
-                'name'  => 'New Leagues',
-                'max'   => 100,
-                'count' => $swoole->newLeaguesTable->count()
+            'updateLeagues'     => [
+                'name'  => 'Update Leagues',
+                'max'   => 1,
+                'count' => $swoole->updateLeagues->count()
             ],
             'userWatchlist'       => [
                 'name'  => 'User Watchlist',
@@ -221,6 +221,11 @@ class SwtController extends Controller
                 'name'  => 'Odds Kafka Payloads',
                 'max'   => 500,
                 'count' => $swoole->oddsKafkaPayloadsTable->count()
+            ],
+            'eventsInfo'       => [
+                'name'  => 'Odds Info',
+                'max'   => 2000,
+                'count' => $swoole->eventsInfoTable->count()
             ],
         ];
 

@@ -45,7 +45,7 @@ export default {
     methods: {
         modifyLeaguesFromSocket() {
             this.$options.sockets.onmessage = (response) => {
-                if (getSocketKey(response.data) === 'getAdditionalLeagues' || getSocketKey(response.data) === 'getUpdatedLeagues') {
+                if (getSocketKey(response.data) === 'getUpdatedLeagues') {
                     this.$store.dispatch('trade/getInitialLeagues')
                 } else if (getSocketKey(response.data) === 'getSelectedLeagues') {
                     if(getSocketValue(response.data, 'getSelectedLeagues') != '') {
@@ -56,21 +56,6 @@ export default {
                                     this.$store.commit('trade/ADD_TO_SELECTED_LEAGUE', { schedule: sched, league: selectedLeague })
                                 })
                             }
-                        })
-                    }
-                } else if (getSocketKey(response.data) === 'getForRemovalLeagues') {
-                    if(getSocketValue(response.data, 'getForRemovalLeagues') != '') {
-                        let removalLeagues = getSocketValue(response.data, 'getForRemovalLeagues')
-                        this.leagueSchedModes.map(sched => {
-                            removalLeagues.map(removalLeague => {
-                                if(sched == removalLeague.schedule) {
-                                    this.$store.commit('trade/REMOVE_FROM_LEAGUE', { schedule: sched, league: removalLeague.name })
-                                    this.$store.commit('trade/REMOVE_SELECTED_LEAGUE', { schedule: sched, league: removalLeague.name })
-                                    if(removalLeague.name in this.events.watchlist) {
-                                        this.$store.commit('trade/REMOVE_FROM_EVENTS', { schedule: 'watchlist', removedLeague: removalLeague.name  })
-                                    }
-                                }
-                            })
                         })
                     }
                 }
