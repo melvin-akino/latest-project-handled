@@ -293,38 +293,8 @@ export default {
                     })
                 } else if(getSocketKey(response.data) === 'getUpdatedOdds') {
                     let updatedOdds = getSocketValue(response.data, 'getUpdatedOdds')
-                    let schedule = ['inplay', 'today', 'early', 'watchlist']
-                    let team = ['HOME', 'AWAY', 'DRAW']
-                    schedule.map(schedule => {
-                        Object.keys(this.events[schedule]).map(league => {
-                            this.events[schedule][league].map(event => {
-                                updatedOdds.map(updatedOdd => {
-                                    this.oddsTypeBySport.map(oddType => {
-                                        team.map(team => {
-                                            if(oddType in event.market_odds.main && team in event.market_odds.main[oddType]) {
-                                                if(event.market_odds.main[oddType][team].market_id === updatedOdd.market_id && event.market_odds.main[oddType][team].odds != updatedOdd.odds) {
-                                                    this.$set(event.market_odds.main[oddType][team], 'odds', updatedOdd.odds)
-                                                }
-                                            }
-                                        })
-                                    })
-
-                                    if('other' in event.market_odds) {
-                                        Object.keys(event.market_odds.other).map(otherMarket => {
-                                            this.oddsTypeBySport.map(oddType => {
-                                                team.map(team => {
-                                                    if(oddType in event.market_odds.other[otherMarket] && team in event.market_odds.other[otherMarket][oddType]) {
-                                                        if(event.market_odds.other[otherMarket][oddType][team].market_id === updatedOdd.market_id && event.market_odds.other[otherMarket][oddType][team].odds != updatedOdd.odds) {
-                                                            this.$set(event.market_odds.other[otherMarket][oddType][team], 'odds', updatedOdd.odds)
-                                                        }
-                                                    }
-                                                })
-                                            })
-                                        })
-                                    }
-                                })
-                            })
-                        })
+                    updatedOdds.map(updatedOdd => {
+                        this.$store.dispatch('trade/updateOdds', updatedOdd)
                     })
                 } else if(getSocketKey(response.data) === 'getEventHasOtherMarket') {
                     let eventHasOtherMarket = getSocketValue(response.data, 'getEventHasOtherMarket')
