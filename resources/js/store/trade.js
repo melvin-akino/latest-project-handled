@@ -390,9 +390,9 @@ const actions = {
         await dispatch('getSports')
         await dispatch('getBetColumns', state.selectedSport)
         await dispatch('getInitialLeagues')
-        Vue.prototype.$socket.send(`getSelectedLeagues_${state.selectedSport}`)
-        dispatch('getInitialEvents')
+        await dispatch('getInitialEvents')
         await dispatch('getBetbarData')
+        Vue.prototype.$socket.send(`getSelectedLeagues_${state.selectedSport}`)
         dispatch('getOrders')
     },
     async loadTradeWindow({dispatch, commit}) {
@@ -540,6 +540,37 @@ const actions = {
                 if(!getters.leagueNames[schedule].includes(event.league_name) && schedule == event.game_schedule) {
                     commit('REMOVE_FROM_EVENT_LIST', { type: 'league_name', data: event.league_name, game_schedule: schedule })
                 }
+            })
+        })
+    },
+    updateOdds({state}, data) {
+        let team = ['HOME', 'AWAY', 'DRAW']
+        Object.keys(state.events).map(schedule => {
+            Object.keys(state.events[schedule]).map(league => {
+                state.events[schedule][league].map(event => {
+                    state.oddsTypeBySport.map(oddType => {
+                        team.map(team => {
+                            if(oddType in event.market_odds.main && team in event.market_odds.main[oddType]) {
+                                if(event.market_odds.main[oddType][team].market_id === data.market_id && event.market_odds.main[oddType][team].odds != data.odds) {
+                                    Vue.set(event.market_odds.main[oddType][team], 'odds', data.odds)
+                                }
+                            }
+                        })
+                    })
+                    if('other' in event.market_odds) {
+                        Object.keys(event.market_odds.other).map(otherMarket => {
+                            state.oddsTypeBySport.map(oddType => {
+                                team.map(team => {
+                                    if(oddType in event.market_odds.other[otherMarket] && team in event.market_odds.other[otherMarket][oddType]) {
+                                        if(event.market_odds.other[otherMarket][oddType][team].market_id === data.market_id && event.market_odds.other[otherMarket][oddType][team].odds != data.odds) {
+                                            Vue.set(event.market_odds.other[otherMarket][oddType][team], 'odds', data.odds)
+                                        }
+                                    }
+                                })
+                            })
+                        })
+                    }
+                })
             })
         })
     }

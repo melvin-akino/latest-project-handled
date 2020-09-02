@@ -96,7 +96,7 @@
                         </div>
                         <div class="flex justify-between items-center py-2">
                             <label class="text-sm">Price</label>
-                            <input class="w-40 shadow appearance-none border rounded text-sm py-1 px-3 text-gray-700 leading-tight focus:outline-none" type="text" v-model="$v.inputPrice.$model" @keyup="clearOrderMessage">
+                            <input class="w-40 shadow appearance-none border rounded text-sm py-1 px-3 text-gray-700 leading-tight focus:outline-none" type="text" v-model="$v.inputPrice.$model" @keyup="clearOrderMessage" disabled>
                         </div>
                         <div class="flex justify-between items-center py-2" :class="{'hidden': betSlipSettings.adv_placement_opt == 0, 'block': betSlipSettings.adv_placement_opt == 1}">
                             <label class="text-sm">Order Expiry</label>
@@ -443,6 +443,7 @@ export default {
                     if(minmax.message == '') {
                         this.updateMinMaxData(minmax, true)
                         this.isEventNotAvailable = false
+                        this.$store.dispatch('trade/updateOdds', { market_id: minmax.market_id, odds: minmax.price })
                     } else {
                         this.minMaxData = this.minMaxData.filter(provider => provider.provider_id != minmax.provider_id)
                         this.selectedProviders = this.selectedProviders.filter(provider => provider != minmax.provider_id)
@@ -451,7 +452,6 @@ export default {
                         this.updateMinMaxData(minmax, false)
                     }
                     this.retrievedMarketData = true
-
                     let token = Cookies.get('mltoken')
                     axios.post('v1/orders/minmaxlog', { payload: response.data }, { headers: { 'Authorization': `Bearer ${token}` }})
                     .catch(err => {
