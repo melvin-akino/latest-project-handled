@@ -2,6 +2,10 @@
 
 namespace App\Jobs;
 
+use App\Models\{
+    MasterEventMarket,
+    EventMarket
+};
 use App\Facades\SwooleHandler;
 use Carbon\Carbon;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -181,6 +185,12 @@ class TransformKafkaMessageMinMax implements ShouldQueue
                                 }
 
                                 Log::info('Task: MinMax emitWS');
+
+                                $masterEventMarket = MasterEventMarket::where('master_event_market_unique_id', $memUID)->first();
+                                EventMarket::where('master_event_market_id', $masterEventMarket->id)
+                                   ->update([
+                                       'odds' => $transformed['price']
+                                   ]);
 
                                 SwooleHandler::setValue('minmaxDataTable', 'minmax-market:' . $memUID, [
                                     'min' => $data->minimum,
