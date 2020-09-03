@@ -6,6 +6,8 @@ use App\Models\{
     MasterEventMarket,
     EventMarket
 };
+use App\Facades\SwooleHandler;
+use Carbon\Carbon;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Support\Facades\Log;
@@ -189,6 +191,12 @@ class TransformKafkaMessageMinMax implements ShouldQueue
                                    ->update([
                                        'odds' => $transformed['price']
                                    ]);
+
+                                SwooleHandler::setValue('minmaxDataTable', 'minmax-market:' . $memUID, [
+                                    'min' => $data->minimum,
+                                    'max' => $data->maximum,
+                                    'ts'  => getMilliseconds()
+                                ]);
 
                                 if ($swoole->isEstablished($fd['value'])) {
                                     $swoole->push($fd['value'], json_encode([

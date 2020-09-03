@@ -485,17 +485,21 @@ class OrdersController extends Controller
                 }
 
                 $orderId = uniqid();
+
                 /** ROUNDING UP TO NEAREST 50 */
                 $ceil  = ceil($actualStake);
-                $last2 = substr($ceil, -2);
-
-                if (($last2 >= 0) && ($last2 <= 50)) {
+                $last2 = (int) substr($ceil, -2);
+                if (($last2 > 0) && ($last2 <= 50)) {
                     $actualStake = substr($ceil, 0, -2) . '50';
                 } else if ($last2 == 0) {
                     $actualStake = $ceil;
                 } else if ($last2 > 50) {
                     $actualStake = (int) substr($ceil, 0, -2) + 1;
                     $actualStake .= '00';
+                }
+                $minmaxData = SwooleHandler::getValue('minmaxDataTable', 'minmax-market:' . $request->market_id);
+                if ((float) $minmaxData['max'] < (float) $actualStake) {
+                    $actualStake = $minmaxData['max'];
                 }
 
                 $payload['user_id']          = auth()->user()->id;
