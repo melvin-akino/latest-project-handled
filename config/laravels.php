@@ -197,6 +197,14 @@ return [
                 ['name' => 'value', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 10000],
             ],
         ],
+        'minmaxData'        => [// key format [minmax-market:$marketId] = [value = true]
+            'size'   => 10000,// The max size
+            'column' => [// Define the columns
+                ['name' => 'min', 'type' => \Swoole\Table::TYPE_FLOAT],
+                ['name' => 'max', 'type' => \Swoole\Table::TYPE_FLOAT],
+                ['name' => 'ts', 'type' => \Swoole\Table::TYPE_STRING,  'size' => 30],
+            ],
+        ],
         'minmaxPayload'       => [
             'size'   => env('SWT_MAX_SIZE', 102400),// The max size
             'column' => [// Define the columns
