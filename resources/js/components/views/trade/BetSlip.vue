@@ -92,7 +92,8 @@
                         </div>
                         <div class="flex justify-between items-center py-2">
                             <label class="text-sm">Stake</label>
-                            <input class="w-40 shadow appearance-none border rounded text-sm py-1 px-3 text-gray-700 leading-tight focus:outline-none" type="text" v-model="$v.orderForm.stake.$model" @keyup="clearOrderMessage">
+                            <input type="text" style="padding-right: 4rem;" class="w-40 shadow appearance-none border rounded text-sm py-1 pl-3 pr-16 text-gray-700 leading-tight focus:outline-none" v-model="$v.orderForm.stake.$model" @keyup="clearOrderMessage">
+                            <button class="absolute bg-primary-500 right-0 mr-5 px-3 text-white rounded text-xs uppercase focus:outline-none hover:bg-primary-600" style="padding-top: 0.1rem;padding-bottom: 0.1rem;" @click="sumOfMaxStake">MAX</button>
                         </div>
                         <div class="flex justify-between items-center py-2">
                             <label class="text-sm">Price</label>
@@ -319,6 +320,14 @@ export default {
             this.isLoadingMarketDetailsAndProviders = true;
             this.clearOrderMessage();
             this.getMarketDetails(false)
+        },
+        sumOfMaxStake() {
+            let maxs = this.minMaxData.map(minmax => minmax.max)
+            let maxAmount = 0;
+            maxs.map(max => {
+                    maxAmount += max
+            })
+            this.orderForm.stake = maxAmount
         },
         getMarketDetails(setMinMaxProviders) {
             let token = Cookies.get('mltoken')
@@ -719,5 +728,20 @@ export default {
         padding: 0 5px;
         background-color: #ce6a17;
         font-size: 20px;
+    }
+    .max-sum {
+        position: absolute;
+        text-align: right;
+        margin: 5px 126px;
+        width: 50px;
+        color: #FFF;
+    }
+    .max-sum a {
+        padding: 4px 5px;
+        background-color: #ce6a17;
+        font-size: 14px;
+    }
+    .stake-padding {
+        padding-left: 40px;
     }
 </style>
