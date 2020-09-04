@@ -93,7 +93,7 @@
                         <div class="flex justify-between items-center py-2">
                             <label class="text-sm">Stake</label>
                             <input type="text" style="padding-right: 4rem;" class="w-40 shadow appearance-none border rounded text-sm py-1 pl-3 pr-16 text-gray-700 leading-tight focus:outline-none" v-model="$v.orderForm.stake.$model" @keyup="clearOrderMessage">
-                            <button class="absolute bg-primary-500 right-0 mr-5 px-3 text-white rounded text-xs uppercase focus:outline-none hover:bg-primary-600" style="padding-top: 0.1rem;padding-bottom: 0.1rem;" @click="sumOfMaxStake">MAX</button>
+                            <button class="absolute bg-primary-500 right-0 mr-5 px-3 text-white rounded text-xs uppercase focus:outline-none hover:bg-primary-600" style="padding: 0.1rem 0.5rem;padding" @click="sumOfMaxStake"><i class="fa fa-angle-double-up" aria-hidden="true"></i>&nbsp;&nbsp;&nbsp;MAX</button>
                         </div>
                         <div class="flex justify-between items-center py-2">
                             <label class="text-sm">Price</label>
