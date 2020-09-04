@@ -22,6 +22,8 @@ class OddsTransformationHandler
         $this->message            = json_decode($message['message']);
         $this->internalParameters = $internalParameters;
         $this->offset             = $offset;
+
+        SwooleHandler::remove('oddsKafkaPayloadsTable', $offset);
         return $this;
     }
 
