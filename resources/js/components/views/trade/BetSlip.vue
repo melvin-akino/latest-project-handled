@@ -729,19 +729,4 @@ export default {
         background-color: #ce6a17;
         font-size: 20px;
     }
-    .max-sum {
-        position: absolute;
-        text-align: right;
-        margin: 5px 126px;
-        width: 50px;
-        color: #FFF;
-    }
-    .max-sum a {
-        padding: 4px 5px;
-        background-color: #ce6a17;
-        font-size: 14px;
-    }
-    .stake-padding {
-        padding-left: 40px;
-    }
 </style>
