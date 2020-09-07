@@ -480,6 +480,26 @@ return [
                 ['name' => 'value', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 10000],
             ],
         ],
+        'eventsScored' => [ // key format [eventsScored:$uid]
+            'size'   => 100,
+            'column' => [
+                ['name' => 'uid', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 30],
+                ['name' => 'master_league_id', 'type' => \Swoole\Table::TYPE_INT],
+                ['name' => 'schedule', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 10],
+                ['name' => 'sport_id', 'type' => \Swoole\Table::TYPE_INT],
+            ],
+        ],
+        'eventNoMarketIds' => [ // key format [eventNoMarketId:$uid]
+            'size'   => 1000,
+            'column' => [
+                ['name' => 'uid', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 30],
+                ['name' => 'odd_type', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 30],
+                ['name' => 'market_event_identifier', 'type' => \Swoole\Table::TYPE_INT],
+                ['name' => 'master_league_id', 'type' => \Swoole\Table::TYPE_INT],
+                ['name' => 'schedule', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 10],
+                ['name' => 'sport_id', 'type' => \Swoole\Table::TYPE_INT],
+            ],
+        ],
     ],
     'register_providers'       => [
         \Laravel\Passport\PassportServiceProvider::class,
