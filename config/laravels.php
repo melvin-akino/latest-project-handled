@@ -489,7 +489,7 @@ return [
                 ['name' => 'sport_id', 'type' => \Swoole\Table::TYPE_INT],
             ],
         ],
-        'eventNoMarketIds' => [ // key format [eventNoMarketId:$uid]
+        'eventNoMarketIds' => [ // key format [market_event_identifier:$marketEventIdentifier]
             'size'   => 1000,
             'column' => [
                 ['name' => 'uid', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 30],
