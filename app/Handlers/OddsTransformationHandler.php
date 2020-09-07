@@ -148,9 +148,9 @@ class OddsTransformationHandler
                             if (empty($marketSelection->market_id)) {// means that the event no longer have market id for a specific type
 
                                 if (in_array($marketOdd->oddsType, ['1X2', 'HT 1X2']) && $event->market_type != 1) {
-                                    break 3;
+                                    break 2;
                                 }
-                                SwooleHandler::setValue('eventNoMarketIdsTable', 'eventNoMarketId:' . $uid, [
+                                SwooleHandler::setValue('eventNoMarketIdsTable', 'market_event_identifier:' . $event->eventId, [
                                     'uid'                     => $uid,
                                     'odd_type'                => $marketOdd->oddsType,
                                     'market_event_identifier' => $event->eventId,
@@ -161,7 +161,7 @@ class OddsTransformationHandler
                                 Log::info($uid . " event no market for type " . $marketOdd->oddsType . ' for market event identifier ' . $event->eventId);
 
 
-                                break 3;
+                                break 2;
                             }
                             $indicator = strtoupper($marketSelection->indicator);
                             if (in_array($indicator, ['OVER', 'UNDER'])) {
