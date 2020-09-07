@@ -5,7 +5,9 @@ namespace App\Processes;
 use App\Facades\SwooleHandler;
 use App\Models\Game;
 use App\Models\League;
+use App\Models\SystemConfiguration;
 use App\Models\UserProviderConfiguration;
+use App\Models\UserSelectedLeague;
 use Hhxsv5\LaravelS\Swoole\Process\CustomProcessInterface;
 use Illuminate\Support\Facades\Log;
 use Swoole\Http\Server;
@@ -29,10 +31,13 @@ class SwtToWs implements CustomProcessInterface
                     self::getUpdatedPrice($swoole);
                     if ($i % 30 == 0) {
                         self::getUpdatedLeagues();
+                        self::getEventSectionRemoved($swoole);
                     }
 
                     if ($i % 5 == 0) {
                         self::getForBetBarRemoval($swoole);
+                        self::getEventScored($swoole);
+                        self::getEventScored($swoole);
                     }
                     usleep(1000000);
                     $i++;
@@ -151,6 +156,64 @@ class SwtToWs implements CustomProcessInterface
                     ]));
                 }
             }
+        }
+    }
+
+    private static function getEventScored($swoole)
+    {
+        $eventsScoredTable = $swoole->eventsScoredTable;
+        foreach ($eventsScoredTable as $key => $event) {
+            $userSelectedLeagues = UserSelectedLeague::getSelectedLeagueByAllUsers([
+                'league_id' => $event['master_league_id'],
+                'schedule'  => $event['schedule'],
+                'sport_id'  => $event['sport_id']
+            ]);
+
+            if ($userSelectedLeagues->exists()) {
+                foreach ($userSelectedLeagues->get() as $userSelectedLeague) {
+                    $swtKey = 'userId:' . $userSelectedLeague->user_id . ':sId:' . $event['sport_id'] . ':lId:' . $event['master_league_id'] . ':schedule:' . $event['schedule'];
+                    if (SwooleHandler::exists('userSelectedLeaguesTable', $swtKey)) {
+                        $fd = $swoole->wsTable->get('uid:' . $userSelectedLeague->user_id);
+                        if ($swoole->isEstablished($fd['value'])) {
+                            $swoole->push($fd['value'], json_encode([
+                                'getForRemovalOdds' => ['uid' => $event['uid']]
+                            ]));
+                        }
+                    }
+                }
+            }
+            SwooleHandler::remove('eventsScoredTable', $key);
+        }
+    }
+
+    public static function getEventSectionRemoved($swoole)
+    {
+        $eventNoMarketIdsTable = $swoole->eventNoMarketIdsTable;
+        foreach ($eventNoMarketIdsTable as $key => $event) {
+            $userSelectedLeagues = UserSelectedLeague::getSelectedLeagueByAllUsers([
+                'league_id' => $event['master_league_id'],
+                'schedule'  => $event['schedule'],
+                'sport_id'  => $event['sport_id']
+            ]);
+
+            if ($userSelectedLeagues->exists()) {
+                foreach ($userSelectedLeagues->get() as $userSelectedLeague) {
+                    $swtKey = 'userId:' . $userSelectedLeague->user_id . ':sId:' . $event['sport_id'] . ':lId:' . $event['master_league_id'] . ':schedule:' . $event['schedule'];
+                    if (SwooleHandler::exists('userSelectedLeaguesTable', $swtKey)) {
+                        $fd = $swoole->wsTable->get('uid:' . $userSelectedLeague->user_id);
+                        if ($swoole->isEstablished($fd['value'])) {
+                            $swoole->push($fd['value'], json_encode([
+                                'getForRemovalSection' => [
+                                    'uid' => $event['uid'],
+                                    'odd_type'                => $event['odd_type'],
+                                    'market_event_identifier' => $event['market_event_identifier'],
+                                ]
+                            ]));
+                        }
+                    }
+                }
+            }
+            SwooleHandler::remove('eventNoMarketIdsTable', $key);
         }
     }
 }
