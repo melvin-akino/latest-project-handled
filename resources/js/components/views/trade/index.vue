@@ -272,30 +272,6 @@ export default {
                             })
                         }
                     })
-                } else if(getSocketKey(response.data) === 'getUpdatedEventsSchedule') {
-                    let updatedEventSchedule = getSocketValue(response.data, 'getUpdatedEventsSchedule')
-                    this.allEventsList.map(event => {
-                        if(event.uid === updatedEventSchedule.uid && event.game_schedule != updatedEventSchedule.game_schedule) {
-                            if(this.tradePageSettings.sort_event == 1) {
-                                this.$store.commit('trade/REMOVE_EVENT', { schedule: event.game_schedule, removedLeague: event.league_name, removedEvent: event.uid })
-                                if(this.events[event.game_schedule][event.league_name].length === 0) {
-                                    this.$store.commit('trade/REMOVE_SELECTED_LEAGUE', { schedule: event.game_schedule, league: event.league_name })
-                                    this.$delete(this.events[event.game_schedule], event.league_name)
-                                }
-                                this.$set(event, 'game_schedule', updatedEventSchedule.game_schedule)
-                                this.$store.dispatch('trade/transformEvents', { schedule: event.game_schedule, league: event.league_name, payload: event })
-                            } else if(this.tradePageSettings.sort_event == 2) {
-                                let eventStartTime = `[${event.ref_schedule.split(' ')[1]}] ${event.league_name}`
-                                this.$store.commit('trade/REMOVE_EVENT', { schedule: event.game_schedule, removedLeague: eventStartTime, removedEvent: event.uid })
-                                if(this.events[event.game_schedule][eventStartTime].length === 0) {
-                                    this.$store.commit('trade/REMOVE_SELECTED_LEAGUE', { schedule: event.game_schedule, league: event.league_name })
-                                    this.$delete(this.events[event.game_schedule], eventStartTime)
-                                }
-                                this.$set(event, 'game_schedule', updatedEventSchedule.game_schedule)
-                                this.$store.dispatch('trade/transformEvents', { schedule: event.game_schedule, league: eventStartTime, payload: event })
-                            }
-                        }
-                    })
                 } else if(getSocketKey(response.data) === 'getUpdatedOdds') {
                     let updatedOdds = getSocketValue(response.data, 'getUpdatedOdds')
                     updatedOdds.map(updatedOdd => {
@@ -347,6 +323,53 @@ export default {
                                 }
                             })
                         })
+                    })
+                } else if(getSocketKey(response.data) === 'getForRemovalOdds') {
+                    let removalOdds = getSocketValue(response.data, 'getForRemovalOdds')
+                    this.allEventsList.map(event => {
+                        if(event.uid == removalOdds.uid) {
+                            this.oddsTypeBySport.map(oddType => {
+                                if(oddType in event.market_odds.main) {
+                                    Object.keys(event.market_odds.main[oddType]).map(team => {
+                                        this.$set(event.market_odds.main[oddType][team], 'market_id', '')
+                                        this.$set(event.market_odds.main[oddType][team], 'odds', '')
+                                        if(event.market_odds.main[oddType][team].hasOwnProperty('points')) {
+                                            this.$set(event.market_odds.main[oddType][team], 'points', '')
+                                        }
+                                    })
+                                }
+                            })
+                            event.has_other_markets = false
+                            if('other' in event.market_odds) {
+                                this.$delete(event.market_odds, 'other')
+                            }
+                        }
+                    })
+                } else if(getSocketKey(response.data) === 'getForRemovalSection') {
+                    let removalSection = getSocketValue(response.data, 'getForRemovalSection')
+                    this.allEventsList.map(event => {
+                        if(event.uid == removalSection.uid) {
+                            Object.keys(event.market_odds.main[removalSection.odd_type]).map(team => {
+                                this.$set(event.market_odds.main[removalSection.odd_type][team], 'market_id', '')
+                                this.$set(event.market_odds.main[removalSection.odd_type][team], 'odds', '')
+                                if(event.market_odds.main[removalSection.odd_type][team].hasOwnProperty('points')) {
+                                    this.$set(event.market_odds.main[removalSection.odd_type][team], 'points', '')
+                                }
+                            })
+                            if('other' in event.market_odds) {
+                                Object.keys(event.market_odds.other).map(otherMarket => {
+                                    if(removalSection.odd_type in event.market_odds.other[otherMarket]) {
+                                        Object.keys(event.market_odds.other[otherMarket][removalSection.odd_type]).map(team => {
+                                            this.$set(event.market_odds.other[otherMarket][removalSection.odd_type][team], 'market_id', '')
+                                            this.$set(event.market_odds.other[otherMarket][removalSection.odd_type][team], 'odds', '')
+                                            if(event.market_odds.other[otherMarket][removalSection.odd_type][team].hasOwnProperty('points')) {
+                                                this.$set(event.market_odds.other[otherMarket][removalSection.odd_type][team], 'points', '')
+                                            }
+                                        })
+                                    }
+                                })
+                            }
+                        }
                     })
                 }
             })

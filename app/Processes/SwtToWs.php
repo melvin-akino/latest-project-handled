@@ -57,9 +57,9 @@ class SwtToWs implements CustomProcessInterface
 
     private static function getUpdatedOdds($swoole)
     {
-        $updatedEventsTable   = $swoole->updatedEventsTable;
-        $wsTable              = $swoole->wsTable;
-        $topicTable           = $swoole->topicTable;
+        $updatedEventsTable = $swoole->updatedEventsTable;
+        $wsTable            = $swoole->wsTable;
+        $topicTable         = $swoole->topicTable;
 //        $eventsInfoTable      = $swoole->eventsInfoTable;
         $userEnabledProviders = [];
         foreach ($updatedEventsTable as $k => $r) {
@@ -81,7 +81,7 @@ class SwtToWs implements CustomProcessInterface
                             }
 
                             if (SwooleHandler::exists('eventsInfoTable', 'eventsInfo:' . $uid)) {
-                                $swoole->push($fd['value'], json_encode([ 'getEventsUpdate' => json_decode(SwooleHandler::getValue('eventsInfoTable', 'eventsInfo:' . $uid)['value'], true) ]));
+                                $swoole->push($fd['value'], json_encode(['getEventsUpdate' => json_decode(SwooleHandler::getValue('eventsInfoTable', 'eventsInfo:' . $uid)['value'], true)]));
                                 SwooleHandler::remove('eventsInfoTable', 'eventsInfo:' . $uid);
                             }
                         }
@@ -91,7 +91,7 @@ class SwtToWs implements CustomProcessInterface
                     $fd = $wsTable->get('uid:' . $userId);
                     if ($swoole->isEstablished($fd['value'])) {
                         $swoole->push($fd['value'], json_encode(['getEventHasOtherMarket' => [
-                            'uid'              => $uid,
+                            'uid'               => $uid,
                             'has_other_markets' => Game::checkIfHasOtherMarkets($uid, $userEnabledProvider)
                         ]]));
                     }
@@ -138,7 +138,7 @@ class SwtToWs implements CustomProcessInterface
 
     private static function getForBetBarRemoval($swoole)
     {
-        $topicTable = $swoole->topicTable;
+        $topicTable        = $swoole->topicTable;
         $userForRemovalBet = [];
         foreach ($topicTable as $key => $topic) {
             if (strpos($topic['topic_name'], 'removal-bet-') === 0) {
@@ -168,7 +168,6 @@ class SwtToWs implements CustomProcessInterface
                 'schedule'  => $event['schedule'],
                 'sport_id'  => $event['sport_id']
             ]);
-
             if ($userSelectedLeagues->exists()) {
                 foreach ($userSelectedLeagues->get() as $userSelectedLeague) {
                     $swtKey = 'userId:' . $userSelectedLeague->user_id . ':sId:' . $event['sport_id'] . ':lId:' . $event['master_league_id'] . ':schedule:' . $event['schedule'];
@@ -204,7 +203,7 @@ class SwtToWs implements CustomProcessInterface
                         if ($swoole->isEstablished($fd['value'])) {
                             $swoole->push($fd['value'], json_encode([
                                 'getForRemovalSection' => [
-                                    'uid' => $event['uid'],
+                                    'uid'                     => $event['uid'],
                                     'odd_type'                => $event['odd_type'],
                                     'market_event_identifier' => $event['market_event_identifier'],
                                 ]
