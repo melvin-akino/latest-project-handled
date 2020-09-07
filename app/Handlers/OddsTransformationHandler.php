@@ -100,7 +100,7 @@ class OddsTransformationHandler
                     $masterLeagueId,
                     $multiTeam['home']['id'],
                     $multiTeam['away']['id'],
-                    date("Y-m-d H:i:s", strtotime($this->message->data->referenceSchedule))
+                    date("Y-m-d", strtotime($this->message->data->referenceSchedule))
                 ]));
 
                 if ($mlEventRecord) {
@@ -131,15 +131,35 @@ class OddsTransformationHandler
                 }
 
                 $this->saveEventRecords($eventSwtId, $sportId, $leagueId, $teamHomeId, $teamAwayId, $providerId);
-
                 $arrayEvents = $this->message->data->events;
                 foreach ($arrayEvents as $eventKey => $event) {
                     foreach ($event->market_odds as $marketOdd) {
-                        if (empty($marketOdd->marketSelection)) {
+                        if (empty($marketOdd->marketSelection)) { // means that one of the team scored
+                            SwooleHandler::setValue('eventsScoredTable', 'eventsScored:' . $uid, [
+                                'uid'              => $uid,
+                                'master_league_id' => $masterLeagueId,
+                                'schedule'         => $this->message->data->schedule,
+                                'sport_id'         => $sportId
+                            ]);
+                            Log::info($uid . " event scored");
                             break 2;
                         }
                         foreach ($marketOdd->marketSelection as $marketSelection) {
-                            if (empty($marketSelection->market_id)) {
+                            if (empty($marketSelection->market_id)) {// means that the event no longer have market id for a specific type
+
+                                if (in_array($marketOdd->oddsType, ['1X2', 'HT 1X2']) && $event->market_type != 1) {
+                                    break 3;
+                                }
+                                SwooleHandler::setValue('eventNoMarketIdsTable', 'eventNoMarketId:' . $uid, [
+                                    'uid'                     => $uid,
+                                    'odd_type'                => $marketOdd->oddsType,
+                                    'market_event_identifier' => $event->eventId,
+                                    'master_league_id'        => $masterLeagueId,
+                                    'schedule'                => $this->message->data->schedule,
+                                    'sport_id'                => $sportId
+                                ]);
+                                Log::info($uid . " event no market for type " . $marketOdd->oddsType . ' for market event identifier ' . $event->eventId);
+
 
                                 break 3;
                             }
@@ -246,7 +266,7 @@ class OddsTransformationHandler
                     $masterLeagueId,
                     $multiTeam['home']['id'],
                     $multiTeam['away']['id'],
-                    date("Y-m-d H:i:s", strtotime($this->message->data->referenceSchedule))
+                    date("Y-m-d", strtotime($this->message->data->referenceSchedule))
                 ]));
 
                 if ($mlEventRecord) {
@@ -264,7 +284,7 @@ class OddsTransformationHandler
                         $masterLeagueId,
                         $multiTeam['home']['id'],
                         $multiTeam['away']['id'],
-                        date("Y-m-d H:i:s", strtotime($this->message->data->referenceSchedule))
+                        date("Y-m-d", strtotime($this->message->data->referenceSchedule))
                     ]), [
                         'master_event_unique_id' => $uid,
                     ]);
@@ -358,7 +378,7 @@ class OddsTransformationHandler
                                     $masterLeagueId,
                                     $multiTeam['home']['id'],
                                     $multiTeam['away']['id'],
-                                    date("Y-m-d H:i:s", strtotime($this->message->data->referenceSchedule))
+                                    date("Y-m-d", strtotime($this->message->data->referenceSchedule))
                                 ]));
                             }
                         }

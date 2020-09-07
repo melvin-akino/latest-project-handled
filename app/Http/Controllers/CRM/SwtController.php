@@ -40,7 +40,7 @@ class SwtController extends Controller
             'updateLeagues'     => [
                 'name'  => 'Update Leagues',
                 'max'   => 1,
-                'count' => $swoole->updateLeagues->count()
+                'count' => $swoole->updateLeaguesTable->count()
             ],
             'userWatchlist'       => [
                 'name'  => 'User Watchlist',
@@ -226,6 +226,16 @@ class SwtController extends Controller
                 'name'  => 'Odds Info',
                 'max'   => 2000,
                 'count' => $swoole->eventsInfoTable->count()
+            ],
+            'eventsScored'       => [
+                'name'  => 'Events Scored',
+                'max'   => 100,
+                'count' => $swoole->eventsScoredTable->count()
+            ],
+            'eventNoMarketIds'       => [
+                'name'  => 'Event No Market IDs',
+                'max'   => 1000,
+                'count' => $swoole->eventNoMarketIdsTable->count()
             ],
         ];
 
