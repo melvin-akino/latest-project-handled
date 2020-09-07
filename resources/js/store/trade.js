@@ -151,12 +151,18 @@ const mutations = {
         state.checkedColumns = columns
     },
     SET_EVENTS_LIST: (state, event) => {
+        let eventsListUID = state.eventsList.map(event => event.uid)
+        if(eventsListUID.includes(event.uid)) {
+            state.eventsList = state.eventsList.filter(eventsList => eventsList.uid != event.uid)
+        }
         state.eventsList.push(event)
-        state.eventsList = _.uniqBy(state.eventsList, 'uid')
     },
     SET_ALL_EVENTS_LIST: (state, event) => {
+        let allEventsListUID = state.allEventsList.map(event => event.uid)
+        if(allEventsListUID.includes(event.uid)) {
+            state.allEventsList = state.allEventsList.filter(eventsList => eventsList.uid != event.uid)
+        }
         state.allEventsList.push(event)
-        state.allEventsList = _.uniqBy(state.allEventsList, 'uid')
     },
     SET_PREVIOUSLY_SELECTED_EVENTS: (state, event) => {
         state.previouslySelectedEvents.push(event)
