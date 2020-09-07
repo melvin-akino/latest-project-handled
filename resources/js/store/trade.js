@@ -332,12 +332,20 @@ const actions = {
             dispatch('auth/checkIfTokenIsValid', err.response.data.status_code, { root: true })
         })
     },
-    getInitialLeagues({commit, dispatch, state}) {
+    getInitialLeagues({commit, dispatch, state}, updatedLeagues = false) {
         return axios.get('v1/trade/leagues', { headers: { 'Authorization': `Bearer ${token}` }})
         .then(response => {
             if(response.data.sport_id == state.selectedSport) {
                 commit('SET_LEAGUES', response.data.data)
                 dispatch('removeEventsOnUpdateOfLeagues')
+
+                if(updatedLeagues) {
+                    Object.keys(state.selectedLeagues).map(schedule => {
+                        state.selectedLeagues[schedule].map(league => {
+                            Vue.prototype.$socket.send(`getEvents_${league}_${schedule}`)
+                        })
+                    })
+                }
             }
             commit('SET_IS_LOADING_LEAGUES', false)
         })
