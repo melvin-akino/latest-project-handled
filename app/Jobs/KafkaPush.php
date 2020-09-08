@@ -34,7 +34,7 @@ class KafkaPush implements ShouldQueue
     public function handle()
     {
         $kafkaProducer   = app('KafkaProducer');
-        $producerHandler = new ProducerHandler($kafkaProducer);
+        $producerHandler = app('ProducerHandler');
         try {
             appLog('info', 'Sending to Kafka Topic: ' . $this->kafkaTopic);
             $producerHandler->setTopic($this->kafkaTopic)->send($this->message, $this->key);

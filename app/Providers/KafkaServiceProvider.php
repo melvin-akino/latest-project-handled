@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Handlers\ProducerHandler;
 use RdKafka\{Conf, Consumer, KafkaConsumer, Producer};
 use Illuminate\Support\ServiceProvider;
 
@@ -44,7 +45,7 @@ class KafkaServiceProvider extends ServiceProvider
             return new Producer($conf);
         });
 
-        $this->app->bind('KafkaProducer', function () use ($conf) {
+        $this->app->singleton('KafkaProducer', function () use ($conf) {
             return new Producer($conf);
         });
 
@@ -61,6 +62,10 @@ class KafkaServiceProvider extends ServiceProvider
             $lowLevelConsumer = new Consumer($lowConf);
             $lowLevelConsumer->addBrokers(env('KAFKA_BROKERS', 'kafka:9092'));
             return $lowLevelConsumer;
+        });
+
+        $this->app->singleton('ProducerHandler', function () use ($conf) {
+            return new ProducerHandler(new Producer($conf));
         });
     }
 }
