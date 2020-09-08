@@ -53,7 +53,7 @@ class TransformKafkaMessageBet implements ShouldQueue
             if ($this->message->data->status == self::STATUS_RECEIVED) {
                 $order = Order::find($messageOrderId);
 
-                if (time() - strtotime($order->created_at) > $order->order_expiry) {
+                if (time() - strtotime($order->created_at) > 60) {
                     $order->status = 'FAILED';
                     $order->reason = 'Expired';
                     $order->updated_at = Carbon::now();
