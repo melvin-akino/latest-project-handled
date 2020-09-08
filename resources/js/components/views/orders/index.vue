@@ -261,20 +261,20 @@ export default {
         width: 48px;
     }
 
-    .VueTables__row._green td:first-child {
+    ._green td:first-child {
         box-shadow: inset 4px 0px 0px 0px #009E28;
     }
-    .VueTables__row._failed td:first-child {
+    ._failed td:first-child {
         box-shadow: inset 4px 0px 0px 0px #FF2525;
     }
-    .VueTables__row._failed td {
+    ._failed td {
         background: #ececec;
     }
 
-    .VueTables__row._failed td:nth-child(8) {
+    ._failed td:nth-child(8) {
         color: #FF2525;
     }
-    .VueTables__row._green td:nth-child(8) {
+    ._green td:nth-child(8) {
         color: #009E28;
     }
 </style>
