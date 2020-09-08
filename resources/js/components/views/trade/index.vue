@@ -171,7 +171,7 @@ export default {
                     })
                 } else if(getSocketKey(response.data) === 'getAdditionalEvents') {
                     let additionalEvents = getSocketValue(response.data, 'getAdditionalEvents')
-                    additionalEvents.map(event => {t
+                    additionalEvents.map(event => {
                         let existingleagueMatchCount = this.leagues[event.game_schedule].filter(league => league.name == event.league_name).map(league => league.match_count)[0]
                         let newleagueMatchCount = additionalEvents.filter(additionalEvent => event.league_name == additionalEvent.league_name).length
 
