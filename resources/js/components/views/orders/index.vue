@@ -75,7 +75,25 @@ export default {
                 },
                 sortable: ['bet_id', 'created', 'provider', 'odds', 'stake', 'towin', 'status','pl', 'valid_stake'],
                 rowClassCallback: row => {
-                    return row.status == 'FAILED' ? '_failed' : ''
+                    var row_class = '';
+                    switch (row.status) {
+                        case 'FAILED':
+                        case 'REJECTED':
+                        case 'CANCELLED':
+                        case 'ABNORMAL BET':
+                        case 'VOID':
+                            row_class = '_failed';
+                            break;
+                        case 'WIN':
+                        case 'HALF WIN':
+                        case 'PUSH':
+                        case 'REFUNDED':
+                            row_class = '_green';
+                            break;
+                        default:
+                            break;
+                    }
+                    return row_class;
                 }
             },
             openedOddsHistory: [],
@@ -243,8 +261,20 @@ export default {
         width: 48px;
     }
 
-    ._failed td {
-        background: #FF2525;
-        color: #FFFFFF;
+    .VueTables__row._green td:first-child {
+        box-shadow: inset 4px 0px 0px 0px #009E28;
+    }
+    .VueTables__row._failed td:first-child {
+        box-shadow: inset 4px 0px 0px 0px #FF2525;
+    }
+    .VueTables__row._failed td {
+        background: #ececec;
+    }
+
+    .VueTables__row._failed td:nth-child(8) {
+        color: #FF2525;
+    }
+    .VueTables__row._green td:nth-child(8) {
+        color: #009E28;
     }
 </style>
