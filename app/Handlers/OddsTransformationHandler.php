@@ -308,8 +308,8 @@ class OddsTransformationHandler
                         $odds   = $marketSelection->odds;
                         $points = "";
 
-                        if (gettype($marketOdds) == 'string') {
-                            $marketOdds = explode(' ', $marketSelection->odds);
+                        if (gettype($odds) == 'string') {
+                            $odds = explode(' ', $odds);
 
                             if (count($odds) > 1) {
                                 $points = $odds[0];
@@ -322,8 +322,10 @@ class OddsTransformationHandler
                         $odds                                                                        = trim($odds) == '' ? 0 : (float) $odds;
                         $getEvents['market_odds']['main'][$marketOdds->oddsType][$indicator]['odds'] = $odds;
                         if (array_key_exists('points', $marketSelection)) {
-                            $getEvents['market_odds']['main'][$marketOdds->oddsType][$indicator]['points'] = $points;
+                            $points = $marketSelection->points;
                         }
+
+                        $getEvents['market_odds']['main'][$marketOdds->oddsType][$indicator]['points'] = $points;
 
                         if (!Redis::exists($marketSelection->market_id)) {
                             $memUID = md5($this->offset . uniqid(rand(10000, 99999), true) . $indicator . $marketSelection->market_id, '');
