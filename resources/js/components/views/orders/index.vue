@@ -129,7 +129,7 @@ export default {
             axios.get(`v1/orders/all`, { headers: { 'Authorization': `Bearer ${token}` }})
             .then(response => {
                 let orders = []
-                let formattedColumns = ['stake', 'towin', 'pl']
+                let formattedColumns = ['stake', 'towin', 'pl', 'valid_stake']
                 if (response.data.data != null) {
                     response.data.data.orders.map(order => {
                         let orderObj = {}
