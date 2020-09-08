@@ -51,10 +51,16 @@ class TransformKafkaMessageBet implements ShouldQueue
             $messageOrderId  = end($requestUIDArray);
 
             if ($this->message->data->status == self::STATUS_RECEIVED) {
-                if (!SwooleHandler::exists('orderRetriesTable', 'orderId:' . $messageOrderId)) {
-                    SwooleHandler::setValue('orderRetriesTable', 'orderId:' . $messageOrderId, [
-                        'time' => Carbon::createFromFormat('H:i:s', Carbon::now()->format('H:i:s'))
-                    ]);
+                $order = Order::find($messageOrderId);
+
+                if (time() - strtotime($order->created_at) > $order->order_expiry) {
+                    $order->status = 'FAILED';
+                    $order->reason = 'Expired';
+                    $order->updated_at = Carbon::now();
+                    $order->save();
+
+                    $orderSWTKey = 'orderId:' . $messageOrderId;
+                    SwooleHandler::setColumnValue('ordersTable', $orderSWTKey, 'status', 'FAILED');
                 }
             } else {
                 SwooleHandler::remove('orderRetriesTable', 'orderId:' . $messageOrderId);

@@ -73,12 +73,6 @@ return [
             'pipe' => 0,
             'enable' => env('LARAVELS_KAFKA_CONSUME', true)
         ],
-        'bet_produce' => [
-            'class'    => \App\Processes\BetProduce::class,
-            'redirect' => false,
-            'pipe'     => 0,
-            'enable'   => env('LARAVELS_KAFKA_PRODUCE', true)
-        ],
         'minmax_produce' => [
             'class'    => \App\Processes\MinMaxProduce::class,
             'redirect' => false,
