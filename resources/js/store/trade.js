@@ -202,6 +202,12 @@ const mutations = {
         if(typeof(state.events[data.schedule][data.league]) == "undefined") {
             state.events[data.schedule][data.league] = []
         }
+
+        let eventUIDs =  state.events[data.schedule][data.league].map(event => event.uid)
+        if(eventUIDs.includes(data.event.uid)) {
+            state.events[data.schedule][data.league] = state.events[data.schedule][data.league].filter(event => data.event.uid != event.uid)
+        }
+
         state.events[data.schedule][data.league].push(data.event)
         state.events[data.schedule][data.league] = sortByObjectProperty(state.events[data.schedule][data.league], 'ref_schedule')
     },
