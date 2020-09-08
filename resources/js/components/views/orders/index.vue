@@ -68,7 +68,10 @@ export default {
                     score: 'alignRight',
                     betData: 'betData'
                 },
-                sortable: ['bet_id', 'created', 'provider', 'odds', 'stake', 'towin', 'status','pl']
+                sortable: ['bet_id', 'created', 'provider', 'odds', 'stake', 'towin', 'status','pl'],
+                rowClassCallback: row => {
+                    return row.status == 'FAILED' ? '_failed' : ''
+                }
             },
             openedOddsHistory: [],
             openedBetMatrix: [],
@@ -233,5 +236,10 @@ export default {
 
     .betData {
         width: 48px;
+    }
+
+    ._failed td {
+        background: #FF2525;
+        color: #FFFFFF;
     }
 </style>
