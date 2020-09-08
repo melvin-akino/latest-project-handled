@@ -107,6 +107,7 @@ class OrdersController extends Controller
                         'created'       => Carbon::createFromFormat("Y-m-d H:i:s", $myOrder->created_at, 'Etc/UTC')->setTimezone($userTz)->format("Y-m-d H:i:s"),
                         'settled'       => empty($myOrder->settled_date) ? "" : Carbon::createFromFormat("Y-m-d H:i:sO", $myOrder->settled_date, 'Etc/UTC')->setTimezone($userTz)->format("Y-m-d H:i:s"),
                         'pl'            => empty($myOrder->settled_date) ? 0 : $myOrder->profit_loss,
+                        'valid_stake'   => empty($myOrder->settled_date) ? 0 : abs($myOrder->profit_loss),
                         'status'        => $myOrder->status,
                         'score'         => empty($myOrder->settled_date) ? $currentScore : $myOrder->final_score,
                         'home_score'    => $score[0],

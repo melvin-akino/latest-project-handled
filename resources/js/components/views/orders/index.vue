@@ -1,4 +1,4 @@
-er <template>
+<template>
     <div class="container mx-auto my-10">
         <h3 class="text-xl">My Orders</h3>
         <div class="h-full">
@@ -17,6 +17,9 @@ er <template>
                 </div>
                 <div slot="pl" slot-scope="props">
                     <span :class="{'greenPL': props.row.status == 'WIN' || props.row.status == 'HALF WIN', 'redPL': props.row.status == 'LOSE' || props.row.status == 'HALF LOSE'}" >{{props.row.pl | formatPL}}</span>
+                </div>
+                <div slot="valid_stake" slot-scope="props">
+                    <span>{{ props.row.valid_stake | formatPL }}</span>
                 </div>
                 <div slot="score" slot-scope="props">
                     <span class="text-sm">{{ props.row.settled != "" && props.row.score != "" ? props.row.score : "-" }}</span>
@@ -47,7 +50,7 @@ export default {
     data() {
         return {
             myorders: [],
-            columns: ['bet_id', 'created', 'bet_selection', 'provider', 'odds', 'stake', 'towin', 'status', 'reason', 'score', 'pl', 'betData'],
+            columns: ['bet_id', 'created', 'bet_selection', 'provider', 'odds', 'stake', 'towin', 'status', 'reason', 'score', 'valid_stake', 'pl', 'betData'],
             options: {
                 headings: {
                     bet_id: 'Bet ID',
@@ -57,6 +60,7 @@ export default {
                     towin: 'To Win',
                     status: 'Status',
                     score: 'Result',
+                    valid_stake: 'Valid Stake',
                     betData: ''
                 },
                 columnsClasses: {
@@ -66,9 +70,10 @@ export default {
                     towin: 'towin',
                     pl: 'alignRight',
                     score: 'alignRight',
+                    valid_stake: 'alignRight',
                     betData: 'betData'
                 },
-                sortable: ['bet_id', 'created', 'provider', 'odds', 'stake', 'towin', 'status','pl']
+                sortable: ['bet_id', 'created', 'provider', 'odds', 'stake', 'towin', 'status','pl', 'valid_stake']
             },
             openedOddsHistory: [],
             openedBetMatrix: [],
