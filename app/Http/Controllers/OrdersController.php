@@ -118,9 +118,11 @@ class OrdersController extends Controller
                     ]);
 
                     if (in_array($myOrder->odd_type_id, $ouLabels)) {
+                        $lastLineBetSelection = end($origBetSelection);
+                        $ouScore = explode('(', $lastLineBetSelection);
                         $betSelection     = implode("\n", [
                             $myOrder->master_team_home_name . " vs " . $myOrder->master_team_away_name,
-                            $teamname . " @ " . $myOrder->odds
+                            $teamname . " @ " . $myOrder->odds . " (" . $ouScore[1]
                         ]);
                     }
 
