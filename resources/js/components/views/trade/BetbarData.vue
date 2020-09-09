@@ -4,9 +4,10 @@
         <div class="w-5/12 py-1 px-3">{{bet.home}} vs {{bet.away}}</div>
         <div class="w-3/12 py-1 px-3">{{bet.created_at}}</div>
         <div class="w-3/12 py-1 px-3">
-            <span v-if="bet.bet_info[0]==='HOME'">{{bet.home}}</span>
-            <span v-if="bet.bet_info[0]==='AWAY'">{{bet.away}}</span>
-            <span v-if="bet.bet_info[0]==='DRAW'">Draw</span>
+            <span v-if="bet.bet_info[6] === '' && bet.bet_info[0] === 'HOME'">{{bet.home}}</span>
+            <span v-if="bet.bet_info[6] === '' && bet.bet_info[0] === 'AWAY'">{{bet.away}}</span>
+            <span v-if="bet.bet_info[6] === '' && bet.bet_info[0] === 'DRAW'">Draw</span>
+            <span v-if="bet.bet_info[6] != ''">{{ bet.bet_info[6] }}</span>
         </div>
         <div class="w-3/12 py-1 px-3">{{bet.bet_info[1]}} {{defaultPriceFormat}} {{oddTypesWithBetMatrix.includes(bet.odd_type_id) ? bet.bet_info[4] : ''}} {{ `(${bet.score_on_bet})` }}</div>
         <div class="w-4/12 py-1 text-center" :class="{'success': bet.status==='SUCCESS', 'failed': bet.status==='FAILED', 'processing': bet.status==='PENDING'}">

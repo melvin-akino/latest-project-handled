@@ -12,7 +12,8 @@ use App\Models\{
     UserWatchlist,
     UserConfiguration,
     Timezones,
-    UserProviderConfiguration
+    UserProviderConfiguration,
+    OddType
 };
 use Illuminate\Support\Facades\Log;
 use Illuminate\Http\Request;
@@ -41,7 +42,7 @@ class TradeController extends Controller
             }
 
             $betBarData = Order::getBetBarData(auth()->user()->id);
-
+            $ouLabels   = OddType::where('type', 'ILIKE', '%OU%')->pluck('id')->toArray();
             $data = [];
             foreach ($betBarData as $betData) {
                 $proceed = false;
@@ -63,7 +64,15 @@ class TradeController extends Controller
                     } else {
                         $currentScore = $betData->current_score;
                     }
+
+                    $ou = "";
+                    if (in_array($betData->odd_type_id, $ouLabels)) {
+                        $ou = explode(' ', $betData->odd_label)[0];
+                    }
+
                     $score = explode(" - ", $currentScore);
+                    $ou    = $ou == "" ? "" : ($ou == "O" ? "Over" : "Under");
+
                     $data[] = [
                         'order_id'       => $betData->order_id,
                         'provider_alias' => $betData->alias,
@@ -79,7 +88,8 @@ class TradeController extends Controller
                             $betData->odds,
                             $betData->stake,
                             $betData->odd_label,
-                            $betData->market_flag == 'HOME' ? $betData->master_team_home_name : $betData->master_team_away_name
+                            $betData->market_flag == 'HOME' ? $betData->master_team_home_name : $betData->master_team_away_name,
+                            $ou
                         ],
                         'home_score'     => $score[0],
                         'away_score'     => $score[1],
