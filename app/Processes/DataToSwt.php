@@ -4,6 +4,7 @@ namespace App\Processes;
 
 use App\Facades\SwooleHandler;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Log;
 use App\Models\{Order, Provider, Sport, SystemConfiguration};
 use Hhxsv5\LaravelS\Swoole\Process\CustomProcessInterface;
 use Illuminate\Support\Facades\DB;
@@ -232,6 +233,7 @@ class DataToSwt implements CustomProcessInterface
                                 ->orderBy('ml.sport_id')
                                 ->orderBy('e.provider_id')
                                 ->orderBy('e.event_identifier')
+                                ->orderBy('mem.is_main', 'DESC')
                                ->get();
 
         $events = [];

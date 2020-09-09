@@ -120,7 +120,7 @@ class SwtController extends Controller
             'eventRecords'                 => [
                 'name'  => 'Event Records',
                 'max'   => 10000,
-                'count' => $swoole->eventsTable->count()
+                'count' => $swoole->eventRecordsTable->count()
             ],
             'oddRecords'                 => [
                 'name'  => 'Odd Records',
