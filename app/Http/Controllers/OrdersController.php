@@ -78,6 +78,8 @@ class OrdersController extends Controller
             $page        = $request->has('page') ? $request->get('page') : 1;
             $myAllOrders = Order::countAllOrders();
 
+            $ouLabels    = OddType::where('type', 'ILIKE', '%OU%')->pluck('id')->toArray();
+
             if (!empty($myAllOrders)) {
                 $myOrders = Order::getAllOrders($conditions, $page);
 
@@ -94,10 +96,31 @@ class OrdersController extends Controller
                         $score = explode(" - ", $currentScore);
                     }
 
+                    $teamname = "";
+
+                    if (strtoupper($myOrder->market_flag) == "DRAW") {
+                        $teamname = "DRAW";
+                    } else {
+                        $objectKey = "master_team_" . strtolower($myOrder->market_flag) . "_name";
+                        $teamname  = $myOrder->{$objectKey};
+                    }
+
+                    if (in_array($myOrder->odd_type_id, $ouLabels)) {
+                        $ou       = explode(' ', $myOrder->odd_label)[0];
+                        $teamname = $ou == "O" ? "Over" : "Under";
+                    }
+
+                    $origBetSelection = explode(PHP_EOL, $myOrder->bet_selection);
+                    $betSelection     = implode("\n", [
+                        $myOrder->master_team_home_name . " vs " . $myOrder->master_team_away_name,
+                        $teamname . " @ " . $myOrder->odds,
+                        end($origBetSelection),
+                    ]);
+
                     $data['orders'][] = [
                         'order_id'      => $myOrder->id,
                         'bet_id'        => $myOrder->ml_bet_identifier,
-                        'bet_selection' => nl2br($myOrder->bet_selection),
+                        'bet_selection' => nl2br($betSelection),
                         'provider'      => strtoupper($myOrder->alias),
                         'event_id'      => $myOrder->master_event_unique_id,
                         'market_id'     => $myOrder->master_event_market_unique_id,
