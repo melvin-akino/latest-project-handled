@@ -51,6 +51,7 @@ export default {
                                 bet.bet_info[3],
                                 bet.bet_info[4],
                                 bet.bet_info[5],
+                                bet.bet_info[6],
                             ])
                             if(!this.failedBetStatus.includes(orderStatus.status)) {
                                 this.$store.commit('trade/SHOW_BET_MATRIX_IN_BETSLIP', { market_id: bet.market_id, has_bet: true })

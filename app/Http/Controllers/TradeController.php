@@ -67,11 +67,11 @@ class TradeController extends Controller
 
                     $ou = "";
                     if (in_array($betData->odd_type_id, $ouLabels)) {
-                        $ou = explode(' ', $betData->odd_label)[0];
+                        $ou = explode(' ', $betData->odd_label);
+                        $ou = $ou[0] == "O" ? "Over " . $ou[1] : "Under " . $ou[1];
                     }
 
                     $score = explode(" - ", $currentScore);
-                    $ou    = $ou == "" ? "" : ($ou == "O" ? "Over" : "Under");
 
                     $data[] = [
                         'order_id'       => $betData->order_id,
