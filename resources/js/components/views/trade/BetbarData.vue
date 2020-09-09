@@ -14,7 +14,7 @@
         </div>
         <div class="w-3/12 py-1 px-3" v-if="bet.bet_info[6] != ''">
         {{ bet.bet_info[6] }} {{ defaultPriceFormat }} {{ `(${bet.score_on_bet})` }}
-        /div>
+        </div>
         <div class="w-4/12 py-1 text-center" :class="{'success': bet.status==='SUCCESS', 'failed': bet.status==='FAILED', 'processing': bet.status==='PENDING'}">
             {{bet.provider_alias}} - {{Number(bet.bet_info[3]) | moneyFormat}}@{{Number(bet.bet_info[2]) | twoDecimalPlacesFormat}} - {{ bet.status == 'SUCCESS' ? 'PLACED' : bet.status }}
         </div>
