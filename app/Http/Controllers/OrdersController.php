@@ -96,7 +96,6 @@ class OrdersController extends Controller
                         $score = explode(" - ", $currentScore);
                     }
 
-                    $teamname = "";
 
                     if (strtoupper($myOrder->market_flag) == "DRAW") {
                         $teamname = "DRAW";
@@ -108,6 +107,7 @@ class OrdersController extends Controller
                     if (in_array($myOrder->odd_type_id, $ouLabels)) {
                         $ou       = explode(' ', $myOrder->odd_label)[0];
                         $teamname = $ou == "O" ? "Over" : "Under";
+                        $teamname .= " " . explode(' ', $myOrder->odd_label)[1];
                     }
 
                     $origBetSelection = explode(PHP_EOL, $myOrder->bet_selection);
@@ -116,6 +116,13 @@ class OrdersController extends Controller
                         $teamname . " @ " . $myOrder->odds,
                         end($origBetSelection),
                     ]);
+
+                    if (in_array($myOrder->odd_type_id, $ouLabels)) {
+                        $betSelection     = implode("\n", [
+                            $myOrder->master_team_home_name . " vs " . $myOrder->master_team_away_name,
+                            $teamname . " @ " . $myOrder->odds
+                        ]);
+                    }
 
                     $data['orders'][] = [
                         'order_id'      => $myOrder->id,
