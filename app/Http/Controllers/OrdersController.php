@@ -762,7 +762,8 @@ class OrdersController extends Controller
                 $userTz = Timezones::find($getUserConfig->value)->name;
             }
 
-            $orders = Order::getOrdersByEvent($uid, true)->get();
+            $orders   = Order::getOrdersByEvent($uid, true)->get();
+            $ouLabels = OddType::where('type', 'ILIKE', '%OU%')->pluck('id')->toArray();
 
             $data = [];
             foreach ($orders as $order) {
@@ -775,6 +776,14 @@ class OrdersController extends Controller
                     $type       = $ouOddLabel[0];
                     $points     = $ouOddLabel[1];
                 }
+
+                $teamname = $order->market_flag == 'HOME' ? $order->home_team_name : $order->away_team_name;
+
+                if (in_array($order->odd_type_id, $ouLabels)) {
+                    $ou       = explode(' ', $order->points)[0];
+                    $teamname = $ou == "O" ? "Over" : "Under";
+                }
+
                 $scoreOnBet = explode(' - ', $order->score_on_bet);
                 $data[]     = [
                     'order_id'          => $order->id,
@@ -784,7 +793,7 @@ class OrdersController extends Controller
                     'type'              => $type,
                     'odd_type_name'     => $order->sport_odd_type_name,
                     'bet_team'          => $order->market_flag,
-                    'team_name'         => $order->market_flag == 'HOME' ? $order->home_team_name : $order->away_team_name,
+                    'team_name'         => $teamname,
                     'home_score_on_bet' => $scoreOnBet[0],
                     'away_score_on_bet' => $scoreOnBet[1],
                     'created_at'        => Carbon::createFromFormat("Y-m-d H:i:s", $order->created_at, 'Etc/UTC')->setTimezone($userTz)->format("Y-m-d H:i:s"),
