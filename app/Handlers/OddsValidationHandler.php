@@ -99,7 +99,7 @@ class OddsValidationHandler
                     return;
                 }
 
-                if ($hash == md5(json_encode((array) $toHashMessage))) {
+                if ($hash == md5(json_encode((array) $toHashMessage)) && !empty($oddsPayloadObject->data->events[0]->market_odds[0]->marketSelection)) {
                     appLog('info', "Transformation ignored - No change");
                     return;
                 }

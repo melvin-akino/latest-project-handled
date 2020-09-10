@@ -55,7 +55,7 @@ class MasterLeague extends Model
             ->whereNull('me.deleted_at')
             ->whereNull('e.deleted_at')
             ->whereNull('ml.deleted_at')
-            ->whereNull('em.deleted_at')
+//            ->whereNull('em.deleted_at')
             ->where('e.missing_count', '<=', $maxMissingCount)
             ->when($gameSchedule, function($query, $gameSchedule) {
                 return $query->where('me.game_schedule', $gameSchedule);

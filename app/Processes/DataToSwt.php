@@ -196,7 +196,7 @@ class DataToSwt implements CustomProcessInterface
                                ->leftJoin('odd_types as ot', 'ot.id', 'mem.odd_type_id')
                                ->whereNull('me.deleted_at')
                                ->whereNull('e.deleted_at')
-                               ->whereNull('em.deleted_at')
+//                               ->whereNull('em.deleted_at')
                                ->whereNull('ml.deleted_at')
                                ->select([
                                    'ml.sport_id',
