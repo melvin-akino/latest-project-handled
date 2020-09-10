@@ -231,6 +231,14 @@ class OddsTransformationHandler
                                     $updatedOdds[] = $oddsUpdated;
                                 }
                             }
+
+                            SwooleHandler::setValue('oddRecordsTable', 'sId:' . $sportId . ':pId:' . $providerId . ':marketId:' . $marketSelection->market_id, [
+                                'market_id'   => $marketSelection->market_id,
+                                'sport_id'    => $sportId,
+                                'provider_id' => $providerId,
+                                'odds'        => $odds,
+                                'memUID'      => $oddRecord['memUID']
+                            ]);
                         }
                     }
                 }
