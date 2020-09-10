@@ -397,7 +397,6 @@ class OddsTransformationHandler
             }
             if (!empty($updatedOdds)) {
                 $swoole->updatedEventsTable->set("updatedEvents:" . $uid, ['value' => json_encode($updatedOdds)]);
-
                 $swoole->eventsInfoTable->set("eventsInfo:" . $uid, [
                     'value' => json_encode([
                         'id'           => $uid,
@@ -408,6 +407,7 @@ class OddsTransformationHandler
                         'running_time' => $this->message->data->runningtime,
                     ])
                 ]);
+                SwooleHandler::setValue('updateLeaguesTable', 'updateLeagues', ['value' => 1]);
             }
 
             $endTime = microtime(TRUE);
