@@ -581,7 +581,7 @@ const actions = {
                                     if(event.market_odds.main[oddType][team].odds != data.odds) {
                                         Vue.set(event.market_odds.main[oddType][team], 'odds', data.odds)
                                     }
-                                    if(event.market_odds.main[oddType][team].hasOwnProperty('points') && event.market_odds.main[oddType][team].points != data.points) {
+                                    if(event.market_odds.main[oddType][team].hasOwnProperty('points') && event.market_odds.main[oddType][team].points != data.points && data.hasOwnProperty('points')) {
                                         Vue.set(event.market_odds.main[oddType][team], 'points', data.points)
                                     }
                                 }
@@ -597,7 +597,7 @@ const actions = {
                                             if(event.market_odds.other[otherMarket][oddType][team].odds != data.odds) {
                                                 Vue.set(event.market_odds.other[otherMarket][oddType][team], 'odds', data.odds)
                                             }
-                                            if(event.market_odds.other[otherMarket][oddType][team].hasOwnProperty('points') && event.market_odds.other[otherMarket][oddType][team].points != data.points) {
+                                            if(event.market_odds.other[otherMarket][oddType][team].hasOwnProperty('points') && event.market_odds.other[otherMarket][oddType][team].points != data.points && data.hasOwnProperty('points')) {
                                                 Vue.set(event.market_odds.other[otherMarket][oddType][team], 'points', data.points)
                                             }
                                         }
