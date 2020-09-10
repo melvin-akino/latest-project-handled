@@ -255,7 +255,7 @@ const mutations = {
             state.openedBetSlips.push(data.odd)
         }
     },
-    CLOSE_BETSLIP: (state, market_id) => {
+    CLOSE_BETSLIP: (state, betslip_id) => {
         state.openedBetSlips = state.openedBetSlips.filter(openedBetSlip => openedBetSlip.betslip_id != betslip_id)
     },
     SHOW_BET_MATRIX_IN_BETSLIP: (state, data) => {
