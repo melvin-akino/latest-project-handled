@@ -203,7 +203,6 @@ export default {
             })
         },
         openBetSlip(odd, game) {
-            this.$store.commit('trade/CLOSE_BETSLIP', odd.market_id)
             this.$store.commit('trade/OPEN_BETSLIP', { odd: odd, game: game })
             this.$store.commit('trade/SET_ACTIVE_BETSLIP', odd.market_id)
         },
