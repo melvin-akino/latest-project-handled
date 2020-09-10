@@ -40,7 +40,7 @@ class Game extends Model
                      'me.master_event_unique_id', 'mth.name as master_home_team_name', 'mta.name as master_away_team_name',
                      'me.ref_schedule', 'me.game_schedule', 'me.score', 'me.running_time',
                      'me.home_penalty', 'me.away_penalty', 'mem.odd_type_id', 'mem.master_event_market_unique_id', 'mem.is_main', 'mem.market_flag',
-                     'ot.type', 'em.odds', 'em.odd_label', 'em.provider_id', 'em.bet_identifier', 'p.alias')
+                     'ot.type', 'em.odds', 'em.odd_label', 'em.provider_id', 'em.bet_identifier', 'p.alias', 'em.deleted_at as is_market_empty')
                  ->where('ml.id', $masterLeagueId)
                  ->where('me.game_schedule', $schedule)
                  ->where('mem.is_main', true)
@@ -49,7 +49,7 @@ class Game extends Model
                 })
                  ->whereNull('me.deleted_at')
                  ->whereNull('e.deleted_at')
-                 ->whereNull('em.deleted_at')
+//                 ->whereNull('em.deleted_at')
                  ->whereNull('ml.deleted_at')
                  ->where('e.missing_count', '<=', $maxMissingCount)
                  ->get();
@@ -95,12 +95,12 @@ class Game extends Model
                      'me.ref_schedule', 'me.game_schedule', 'me.score', 'me.running_time',
                      'me.home_penalty', 'me.away_penalty', 'mem.odd_type_id', 'mem.master_event_market_unique_id',
                      'mem.is_main', 'mem.market_flag',
-                     'ot.type', 'em.odds', 'em.odd_label', 'em.provider_id', 'em.bet_identifier', 'e.master_event_id', 'p.alias')
+                     'ot.type', 'em.odds', 'em.odd_label', 'em.provider_id', 'em.bet_identifier', 'e.master_event_id', 'p.alias', 'em.deleted_at as is_market_empty')
                  ->where('uw.user_id', $userId)
                  ->where('mem.is_main', true)
                  ->whereNull('me.deleted_at')
                  ->whereNull('e.deleted_at')
-                 ->whereNull('em.deleted_at')
+//                 ->whereNull('em.deleted_at')
                  ->whereNull('ml.deleted_at')
                  ->where('e.missing_count', '<=', $maxMissingCount)
                  ->distinct()->get();
@@ -211,7 +211,7 @@ class Game extends Model
                  ->where('mem.is_main', true)
                  ->whereNull('me.deleted_at')
                  ->whereNull('e.deleted_at')
-                 ->whereNull('em.deleted_at')
+//                 ->whereNull('em.deleted_at')
                  ->whereNull('ml.deleted_at')
                  ->where('e.missing_count', '<=', $maxMissingCount)
                  ->whereNotIn('me.id', function($query) use ($userId) {
@@ -241,7 +241,8 @@ class Game extends Model
                      'em.odd_label',
                      'e.provider_id',
                      'em.bet_identifier',
-                     'p.alias'
+                     'p.alias',
+                     'em.deleted_at as is_market_empty'
                  ])
                  ->get();
     }
@@ -267,7 +268,7 @@ class Game extends Model
                  ->where('uw.user_id', $userId)
                  ->whereNull('me.deleted_at')
                  ->whereNull('e.deleted_at')
-                 ->whereNull('em.deleted_at')
+//                 ->whereNull('em.deleted_at')
                  ->whereNull('ml.deleted_at')
                  ->where('mem.is_main', true)
                  ->where('e.missing_count', '<=', $maxMissingCount)
@@ -295,7 +296,8 @@ class Game extends Model
                      'em.odd_label',
                      'e.provider_id',
                      'em.bet_identifier',
-                     'p.alias'
+                     'p.alias',
+                     'em.deleted_at as is_market_empty'
                  ])
                  ->get();
     }
