@@ -1,6 +1,6 @@
 <template>
     <div class="betslip flex justify-center items-center">
-        <dialog-drag :title="'Bet Slip - '+market_id" :options="options" @close="closeBetSlip(odd_details.market_id)" @click.native="setActiveBetSlip(market_id)" v-betslip="activeBetSlip==market_id">
+        <dialog-drag :title="'Bet Slip - '+market_id" :options="options" @close="closeBetSlip(odd_details.betslip_id)" @click.native="setActiveBetSlip(market_id)" v-betslip="activeBetSlip==market_id">
             <div class="flex flex-col justify-center items-center w-full h-full absolute top-0 left-0 bg-gray-200 z-10" :class="{'hidden': !isLoadingMarketDetailsAndProviders}">
                 <span class="betSlipSpinner"><i class="fas fa-circle-notch fa-spin"></i></span>
                 <span class="text-center mt-2">Loading Market Details...</span>
@@ -60,8 +60,8 @@
                                 <a href="#" @click.prevent="updatePrice(minmax.price)" class="w-1/5 text-sm font-bold underline text-center" v-if="minmax.hasMarketData && !underMaintenanceProviders.includes(minmax.provider.toLowerCase())">{{minmax.price | twoDecimalPlacesFormat}}</a>
                                 <span class="w-1/5 text-sm text-center" v-if="minmax.hasMarketData && !underMaintenanceProviders.includes(minmax.provider.toLowerCase())">{{minmax.age}}</span>
                                 <div class="text-sm text-center" v-if="!minmax.hasMarketData && !underMaintenanceProviders.includes(minmax.provider.toLowerCase())">
-                                    <div v-show="market_details.providers.includes(minmax.provider_id) && !isEventNotAvailable">Retrieving Market<span class="pl-1"><i class="fas fa-circle-notch fa-spin"></i></span></div>
-                                    <div v-show="!market_details.providers.includes(minmax.provider_id) || isEventNotAvailable">No Market Available</div>
+                                    <div v-show="market_details.providers.includes(minmax.provider_id) && !isEventNotAvailable && odd_details.market_id">Retrieving Market<span class="pl-1"><i class="fas fa-circle-notch fa-spin"></i></span></div>
+                                    <div v-show="!market_details.providers.includes(minmax.provider_id) || isEventNotAvailable || !odd_details.market_id">No Market Available</div>
                                 </div>
                                 <div class="text-sm text-center" v-if="underMaintenanceProviders.includes(minmax.provider.toLowerCase())">Provider under maintenance</div>
                             </div>
@@ -498,8 +498,8 @@ export default {
                 this.getMinMaxData()
             })
         },
-        closeBetSlip(market_id) {
-            this.$store.commit('trade/CLOSE_BETSLIP', this.odd_details.market_id)
+        closeBetSlip(betslip_id) {
+            this.$store.commit('trade/CLOSE_BETSLIP', betslip_id)
             this.emptyMinMax(this.market_id)
         },
         closeOddsHistory() {

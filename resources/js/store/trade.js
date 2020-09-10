@@ -6,6 +6,7 @@ const token = Cookies.get('mltoken')
 import Swal from 'sweetalert2'
 
 const state = {
+    betSlipCounter: 0,
     leagues: [],
     selectedLeagueSchedMode: Cookies.get('leagueSchedMode') || 'today',
     sports: [],
@@ -245,12 +246,17 @@ const mutations = {
         Vue.set(state.events, 'watchlist', watchlist)
     },
     OPEN_BETSLIP: (state, data) => {
-        Vue.set(data.odd, 'game', data.game)
-        Vue.set(data.odd, 'has_bet', false)
-        state.openedBetSlips.push(data.odd)
+        let openedBetSlips = state.openedBetSlips.map(betSlips => betSlips.market_id)
+        if(!openedBetSlips.includes(data.odd.market_id)) {
+            state.betSlipCounter++
+            Vue.set(data.odd, 'game', data.game)
+            Vue.set(data.odd, 'has_bet', false)
+            Vue.set(data.odd, 'betslip_id', `${data.game.uid}-${state.betSlipCounter}`)
+            state.openedBetSlips.push(data.odd)
+        }
     },
     CLOSE_BETSLIP: (state, market_id) => {
-        state.openedBetSlips = state.openedBetSlips.filter(openedBetSlip => openedBetSlip.market_id != market_id)
+        state.openedBetSlips = state.openedBetSlips.filter(openedBetSlip => openedBetSlip.betslip_id != betslip_id)
     },
     SHOW_BET_MATRIX_IN_BETSLIP: (state, data) => {
         if(!_.isEmpty(state.openedBetSlips)) {
