@@ -31,10 +31,9 @@ class ScrapeProduce implements CustomProcessInterface
     public static function callback(Server $swoole, Process $process)
     {
         if ($swoole->data2SwtTable->exist('data2Swt')) {
-            $kafkaProducer     = app('KafkaProducer');
             $refreshDBInterval = config('scraping.refreshDBInterval');
 
-            self::$producerHandler      = new ProducerHandler($kafkaProducer);
+            self::$producerHandler      = app('ProducerHandler');
             self::$kafkaTopic           = env('KAFKA_SCRAPE_REQUEST_POSTFIX', '_req');
             self::$providers            = DB::table('providers')->where('is_enabled', true)->get()->toArray();
             self::$sports               = DB::table('sports')->where('is_enabled', true)->get()->toArray();

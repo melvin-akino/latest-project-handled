@@ -31,11 +31,7 @@ class GameConsume implements CustomProcessInterface
 
                 $queue = $kafkaConsumer->newQueue();
 
-                $topicConf = new TopicConf();
-                $topicConf->set('enable.auto.commit', 'false');
-                $topicConf->set('auto.commit.interval.ms', 100);
-                $topicConf->set('offset.store.method', 'broker');
-                $topicConf->set('auto.offset.reset', 'latest');
+                $topicConf = app('KafkaTopicConf');
 
                 $oddsTopic = $kafkaConsumer->newTopic(env('KAFKA_SCRAPE_ODDS', 'SCRAPING-ODDS'), $topicConf);
                 $oddsTopic->consumeQueueStart(0, RD_KAFKA_OFFSET_END, $queue);
