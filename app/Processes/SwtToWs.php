@@ -37,7 +37,6 @@ class SwtToWs implements CustomProcessInterface
                     if ($i % 5 == 0) {
                         self::getForBetBarRemoval($swoole);
                         self::getEventScored($swoole);
-                        self::getEventScored($swoole);
                     }
                     usleep(1000000);
                     $i++;
@@ -60,7 +59,6 @@ class SwtToWs implements CustomProcessInterface
         $updatedEventsTable = $swoole->updatedEventsTable;
         $wsTable            = $swoole->wsTable;
         $topicTable         = $swoole->topicTable;
-//        $eventsInfoTable      = $swoole->eventsInfoTable;
         $userEnabledProviders = [];
         foreach ($updatedEventsTable as $k => $r) {
             $updatedMarkets = json_decode($r['value']);
@@ -80,10 +78,10 @@ class SwtToWs implements CustomProcessInterface
                                 $swoole->push($fd['value'], json_encode(['getUpdatedOdds' => [$updatedMarket]]));
                             }
 
-                            if (SwooleHandler::exists('eventsInfoTable', 'eventsInfo:' . $uid)) {
-                                $swoole->push($fd['value'], json_encode(['getEventsUpdate' => json_decode(SwooleHandler::getValue('eventsInfoTable', 'eventsInfo:' . $uid)['value'], true)]));
-                                SwooleHandler::remove('eventsInfoTable', 'eventsInfo:' . $uid);
-                            }
+//                            if (SwooleHandler::exists('eventsInfoTable', 'eventsInfo:' . $uid)) {
+//                                $swoole->push($fd['value'], json_encode(['getEventsUpdate' => json_decode(SwooleHandler::getValue('eventsInfoTable', 'eventsInfo:' . $uid)['value'], true)]));
+//                                SwooleHandler::remove('eventsInfoTable', 'eventsInfo:' . $uid);
+//                            }
                         }
                     }
                 }
@@ -97,6 +95,32 @@ class SwtToWs implements CustomProcessInterface
                     }
                 }
                 $updatedEventsTable->del($k);
+            }
+        }
+
+        $eventsInfoTable = $swoole->eventsInfoTable;
+        foreach ($eventsInfoTable as $key => $eventsInfo) {
+            $event = json_decode($eventsInfo['value'], true);
+            $uid = substr($key, strlen('eventsInfo:'));
+
+            $userSelectedLeagues = UserSelectedLeague::getSelectedLeagueByAllUsers([
+                'league_id' => $event['master_league_id'],
+                'schedule'  => $event['schedule'],
+                'sport_id'  => $event['sport_id']
+            ]);
+            if ($userSelectedLeagues->exists()) {
+                foreach ($userSelectedLeagues->get() as $userSelectedLeague) {
+                    $swtKey = 'userId:' . $userSelectedLeague->user_id . ':sId:' . $event['sport_id'] . ':lId:' . $event['master_league_id'] . ':schedule:' . $event['schedule'];
+                    if (SwooleHandler::exists('userSelectedLeaguesTable', $swtKey)) {
+                        $fd = $swoole->wsTable->get('uid:' . $userSelectedLeague->user_id);
+                        if ($swoole->isEstablished($fd['value'])) {
+                            if (SwooleHandler::exists('eventsInfoTable', 'eventsInfo:' . $uid)) {
+                                $swoole->push($fd['value'], json_encode(['getEventsUpdate' => $event]));
+                                SwooleHandler::remove('eventsInfoTable', 'eventsInfo:' . $uid);
+                            }
+                        }
+                    }
+                }
             }
         }
     }
