@@ -3,7 +3,7 @@
 namespace App\Providers;
 
 use App\Handlers\ProducerHandler;
-use RdKafka\{Conf, Consumer, KafkaConsumer, Producer};
+use RdKafka\{Conf, Consumer, KafkaConsumer, Producer, TopicConf};
 use Illuminate\Support\ServiceProvider;
 
 class KafkaServiceProvider extends ServiceProvider
@@ -66,6 +66,16 @@ class KafkaServiceProvider extends ServiceProvider
 
         $this->app->singleton('ProducerHandler', function () use ($conf) {
             return new ProducerHandler(new Producer($conf));
+        });
+
+        $this->app->bind('KafkaTopicConf', function () {
+            $topicConf = new TopicConf();
+            $topicConf->set('enable.auto.commit', 'false');
+            $topicConf->set('auto.commit.interval.ms', 100);
+            $topicConf->set('offset.store.method', 'broker');
+            $topicConf->set('auto.offset.reset', 'latest');
+
+            return $topicConf;
         });
     }
 }

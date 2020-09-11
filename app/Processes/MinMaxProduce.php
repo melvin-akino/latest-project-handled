@@ -25,8 +25,7 @@ class MinMaxProduce implements CustomProcessInterface
     public static function callback(Server $swoole, Process $process)
     {
         try {
-            $kafkaProducer         = app('KafkaProducer');
-            self::$producerHandler = new ProducerHandler($kafkaProducer);
+            self::$producerHandler = app('ProducerHandler');
 
             if ($swoole->data2SwtTable->exist('data2Swt')) {
                 $minMaxRequestsTable        = $swoole->minMaxRequestsTable;

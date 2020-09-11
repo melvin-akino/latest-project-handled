@@ -27,11 +27,7 @@ class PlacedBetConsume implements CustomProcessInterface
 
                 $queue = $kafkaConsumer->newQueue();
 
-                $topicConf = new TopicConf();
-                $topicConf->set('enable.auto.commit', 'false');
-                $topicConf->set('auto.commit.interval.ms', 100);
-                $topicConf->set('offset.store.method', 'broker');
-                $topicConf->set('auto.offset.reset', 'latest');
+                $topicConf = app('KafkaTopicConf');
 
                 $placedBetTopic = $kafkaConsumer->newTopic(env('KAFKA_BET_PLACED', 'PLACED-BET'), $topicConf);
                 $placedBetTopic->consumeQueueStart(0, RD_KAFKA_OFFSET_END, $queue);

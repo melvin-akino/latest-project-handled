@@ -27,11 +27,7 @@ class MaintenanceConsume implements CustomProcessInterface
 
                 $queue = $kafkaConsumer->newQueue();
 
-                $topicConf = new TopicConf();
-                $topicConf->set('enable.auto.commit', 'false');
-                $topicConf->set('auto.commit.interval.ms', 100);
-                $topicConf->set('offset.store.method', 'broker');
-                $topicConf->set('auto.offset.reset', 'latest');
+                $topicConf = app('KafkaTopicConf');
 
                 $providerMaintenanceTopic = $kafkaConsumer->newTopic(env('KAFKA_SCRAPE_MAINTENANCE', 'PROVIDER-MAINTENANCE'), $topicConf);
                 $providerMaintenanceTopic->consumeQueueStart(0, RD_KAFKA_OFFSET_END, $queue);
