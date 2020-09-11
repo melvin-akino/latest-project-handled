@@ -316,50 +316,58 @@ export default {
                     })
                 } else if(getSocketKey(response.data) === 'getForRemovalOdds') {
                     let removalOdds = getSocketValue(response.data, 'getForRemovalOdds')
-                    this.allEventsList.map(event => {
-                        if(event.uid == removalOdds.uid) {
-                            this.oddsTypeBySport.map(oddType => {
-                                if(oddType in event.market_odds.main) {
-                                    Object.keys(event.market_odds.main[oddType]).map(team => {
-                                        this.$set(event.market_odds.main[oddType][team], 'market_id', '')
-                                        this.$set(event.market_odds.main[oddType][team], 'odds', '')
-                                        if(event.market_odds.main[oddType][team].hasOwnProperty('points')) {
-                                            this.$set(event.market_odds.main[oddType][team], 'points', '')
+                    Object.keys(this.events).map(schedule => {
+                        Object.keys(this.events[schedule]).map(league => {
+                            this.events[schedule][league].map(event => {
+                                if(event.uid == removalOdds.uid) {
+                                    this.oddsTypeBySport.map(oddType => {
+                                        if(oddType in event.market_odds.main) {
+                                            Object.keys(event.market_odds.main[oddType]).map(team => {
+                                                this.$set(event.market_odds.main[oddType][team], 'market_id', '')
+                                                this.$set(event.market_odds.main[oddType][team], 'odds', '')
+                                                if(event.market_odds.main[oddType][team].hasOwnProperty('points')) {
+                                                    this.$set(event.market_odds.main[oddType][team], 'points', '')
+                                                }
+                                            })
                                         }
                                     })
+                                    event.has_other_markets = false
+                                    if('other' in event.market_odds) {
+                                        this.$delete(event.market_odds, 'other')
+                                    }
                                 }
                             })
-                            event.has_other_markets = false
-                            if('other' in event.market_odds) {
-                                this.$delete(event.market_odds, 'other')
-                            }
-                        }
+                        })
                     })
                 } else if(getSocketKey(response.data) === 'getForRemovalSection') {
                     let removalSection = getSocketValue(response.data, 'getForRemovalSection')
-                    this.allEventsList.map(event => {
-                        if(event.uid == removalSection.uid) {
-                            let mainMarketEventIdentifier = event.uid.split('-')[3]
-                            if(mainMarketEventIdentifier == removalSection.market_event_identifier) {
-                                Object.keys(event.market_odds.main[removalSection.odd_type]).map(team => {
-                                    this.$set(event.market_odds.main[removalSection.odd_type][team], 'market_id', '')
-                                    this.$set(event.market_odds.main[removalSection.odd_type][team], 'odds', '')
-                                    if(event.market_odds.main[removalSection.odd_type][team].hasOwnProperty('points')) {
-                                        this.$set(event.market_odds.main[removalSection.odd_type][team], 'points', '')
-                                    }
-                                })
-                            } else {
-                                if('other' in event.market_odds && removalSection.odd_type in event.market_odds.other[removalSection.market_event_identifier]) {
-                                    Object.keys(event.market_odds.other[removalSection.market_event_identifier][removalSection.odd_type]).map(team => {
-                                        this.$set(event.market_odds.other[removalSection.market_event_identifier][removalSection.odd_type][team], 'market_id', '')
-                                        this.$set(event.market_odds.other[removalSection.market_event_identifier][removalSection.odd_type][team], 'odds', '')
-                                        if(event.market_odds.other[removalSection.market_event_identifier][removalSection.odd_type][team].hasOwnProperty('points')) {
-                                            this.$set(event.market_odds.other[removalSection.market_event_identifier][removalSection.odd_type][team], 'points', '')
+                    Object.keys(this.events).map(schedule => {
+                        Object.keys(this.events[schedule]).map(league => {
+                            this.events[schedule][league].map(event => {
+                                if(event.uid == removalSection.uid) {
+                                    let mainMarketEventIdentifier = event.uid.split('-')[3]
+                                    if(mainMarketEventIdentifier == removalSection.market_event_identifier) {
+                                        Object.keys(event.market_odds.main[removalSection.odd_type]).map(team => {
+                                            this.$set(event.market_odds.main[removalSection.odd_type][team], 'market_id', '')
+                                            this.$set(event.market_odds.main[removalSection.odd_type][team], 'odds', '')
+                                            if(event.market_odds.main[removalSection.odd_type][team].hasOwnProperty('points')) {
+                                                this.$set(event.market_odds.main[removalSection.odd_type][team], 'points', '')
+                                            }
+                                        })
+                                    } else {
+                                        if('other' in event.market_odds && removalSection.odd_type in event.market_odds.other[removalSection.market_event_identifier]) {
+                                            Object.keys(event.market_odds.other[removalSection.market_event_identifier][removalSection.odd_type]).map(team => {
+                                                this.$set(event.market_odds.other[removalSection.market_event_identifier][removalSection.odd_type][team], 'market_id', '')
+                                                this.$set(event.market_odds.other[removalSection.market_event_identifier][removalSection.odd_type][team], 'odds', '')
+                                                if(event.market_odds.other[removalSection.market_event_identifier][removalSection.odd_type][team].hasOwnProperty('points')) {
+                                                    this.$set(event.market_odds.other[removalSection.market_event_identifier][removalSection.odd_type][team], 'points', '')
+                                                }
+                                            })
                                         }
-                                    })
+                                    }
                                 }
-                            }
-                        }
+                            })
+                        })
                     })
                 }
             })
