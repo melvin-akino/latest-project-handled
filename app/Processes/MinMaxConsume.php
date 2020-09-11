@@ -28,11 +28,7 @@ class MinMaxConsume implements CustomProcessInterface
 
                 $queue = $kafkaConsumer->newQueue();
 
-                $topicConf = new TopicConf();
-                $topicConf->set('enable.auto.commit', 'false');
-                $topicConf->set('auto.commit.interval.ms', 100);
-                $topicConf->set('offset.store.method', 'broker');
-                $topicConf->set('auto.offset.reset', 'latest');
+                $topicConf = app('KafkaTopicConf');
 
                 $minmaxTopic = $kafkaConsumer->newTopic(env('KAFKA_SCRAPE_MINMAX_ODDS', 'MINMAX-ODDS'), $topicConf);
                 $minmaxTopic->consumeQueueStart(0, RD_KAFKA_OFFSET_END, $queue);
