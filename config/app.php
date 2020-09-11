@@ -180,7 +180,6 @@ return [
         App\Providers\OddsHandlerProvider::class,
         App\Providers\KafkaServiceProvider::class,
         App\Providers\SwooleServiceProvider::class,
-        App\Providers\TransformRequestOddsServiceProvider::class,
         Superbalist\LaravelPrometheusExporter\PrometheusServiceProvider::class,
         App\Providers\PrometheusProvider::class,
         App\Providers\LogToolProvider::class,
