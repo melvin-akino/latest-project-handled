@@ -8,6 +8,7 @@ use App\Models\League;
 use App\Models\SystemConfiguration;
 use App\Models\UserProviderConfiguration;
 use App\Models\UserSelectedLeague;
+use App\Models\UserWatchlist;
 use Hhxsv5\LaravelS\Swoole\Process\CustomProcessInterface;
 use Illuminate\Support\Facades\Log;
 use Swoole\Http\Server;
@@ -205,6 +206,22 @@ class SwtToWs implements CustomProcessInterface
                     }
                 }
             }
+
+            $userWatchlist = UserWatchlist::getByUid($event['uid']);
+            if ($userWatchlist->exists()) {
+                foreach ($userWatchlist->get() as $userWatchlistData) {
+                    $swtKey = "userWatchlist:" . $userWatchlistData->user_id . ":masterEventId:" . $userWatchlistData->master_event_id;
+                    if (SwooleHandler::exists('userWatchlistTable', $swtKey)) {
+                        $fd = $swoole->wsTable->get('uid:' . $userWatchlistData->user_id);
+                        if ($swoole->isEstablished($fd['value'])) {
+                            $swoole->push($fd['value'], json_encode([
+                                'getForRemovalOdds' => ['uid' => $event['uid']]
+                            ]));
+                        }
+                    }
+                }
+            }
+
             SwooleHandler::remove('eventsScoredTable', $key);
         }
     }
@@ -236,6 +253,26 @@ class SwtToWs implements CustomProcessInterface
                     }
                 }
             }
+
+            $userWatchlist = UserWatchlist::getByUid($event['uid']);
+            if ($userWatchlist->exists()) {
+                foreach ($userWatchlist->get() AS $row) {
+                    $swtKey = "userWatchlist:" . $row->user_id . ":masterEventId:" . $row->master_event_id;
+                    if (SwooleHandler::exists('userWatchlistTable', $swtKey)) {
+                        $fd = $swoole->wsTable->get('uid:' . $row->user_id);
+                        if ($swoole->isEstablished($fd['value'])) {
+                            $swoole->push($fd['value'], json_encode([
+                                'getForRemovalSection' => [
+                                    'uid'                     => $event['uid'],
+                                    'odd_type'                => $event['odd_type'],
+                                    'market_event_identifier' => $event['market_event_identifier'],
+                                ]
+                            ]));
+                        }
+                    }
+                }
+            }
+
             SwooleHandler::remove('eventNoMarketIdsTable', $key);
         }
     }
