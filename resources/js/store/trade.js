@@ -357,6 +357,8 @@ const actions = {
                             Vue.prototype.$socket.send(`getEvents_${league}_${schedule}`)
                         })
                     })
+
+                    Vue.prototype.$socket.send('getWatchlist')
                 }
             }
             commit('SET_IS_LOADING_LEAGUES', false)
