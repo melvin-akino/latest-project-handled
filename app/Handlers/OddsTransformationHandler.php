@@ -164,7 +164,7 @@ class OddsTransformationHandler
                                     Log::info($uid . " event no market for type " . $marketOdd->oddsType . ' for market event identifier ' . $event->eventId);
 
 
-                                    break 2;
+                                    break;
                                 }
                                 $indicator = strtoupper($marketSelection->indicator);
                                 if (in_array($indicator, ['OVER', 'UNDER'])) {
