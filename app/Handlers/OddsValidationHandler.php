@@ -52,6 +52,7 @@ class OddsValidationHandler
             $swoole                             = app('swoole');
             $subTasks['remove-previous-market'] = [];
             $parameters                         = [];
+            $withChange                         = true;
 
             /** DATABASE TABLES */
             /** LOOK-UP TABLES */
@@ -101,7 +102,7 @@ class OddsValidationHandler
 
                 if ($hash == md5(json_encode((array) $toHashMessage)) && !empty($oddsPayloadObject->data->events[0]->market_odds[0]->marketSelection)) {
                     appLog('info', "Transformation ignored - No change");
-                    return;
+                    $withChange = false;
                 }
             } else {
                 SwooleHandler::setValue('transformedTable', $transformedSwtId, [
@@ -195,7 +196,7 @@ class OddsValidationHandler
 
             SwooleHandler::setValue('oddsKafkaPayloadsTable', $this->offset, ['message' => json_encode($this->message)]);
             $transformKafkaMessageOdds = app('TransformKafkaMessageOdds');
-            Task::deliver($transformKafkaMessageOdds->init($this->offset, compact('providerId', 'sportId', 'parameters')));
+            Task::deliver($transformKafkaMessageOdds->init($this->offset, compact('providerId', 'sportId', 'parameters', 'withChange')));
             Log::info("Transformation - validation completed");
 
         } catch (Exception $e) {
