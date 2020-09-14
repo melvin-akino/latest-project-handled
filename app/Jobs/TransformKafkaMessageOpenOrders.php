@@ -44,6 +44,8 @@ class TransformKafkaMessageOpenOrders implements ShouldQueue
      */
     public function handle()
     {
+        Log::debug('open orders handler');
+        return;
         try {
             DB::beginTransaction();
 

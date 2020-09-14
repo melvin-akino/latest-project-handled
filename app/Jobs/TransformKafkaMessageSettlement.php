@@ -31,6 +31,8 @@ class TransformKafkaMessageSettlement implements ShouldQueue
      */
     public function handle()
     {
+        Log::debug('settlement handler');
+        return;
         $swoole      = app('swoole');
         $orders      = $swoole->ordersTable;
         $providers   = $swoole->providersTable;

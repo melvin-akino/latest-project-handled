@@ -39,6 +39,9 @@ class TransformKafkaMessageBet implements ShouldQueue
 
     public function handle()
     {
+        Log::debug('bet handler');
+        return;
+
         Log::info('TransformKafkaMessageBet : HANDLE');
 
         try {

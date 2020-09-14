@@ -25,6 +25,8 @@ class TransformKafkaMessageEvents implements ShouldQueue
 
     public function handle()
     {
+        Log::debug('events handler');
+        return;
         try {
             $startTime = microtime(TRUE);
 

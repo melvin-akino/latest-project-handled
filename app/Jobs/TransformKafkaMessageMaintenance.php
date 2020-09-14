@@ -31,6 +31,8 @@ class TransformKafkaMessageMaintenance implements ShouldQueue
      */
     public function handle()
     {
+        Log::debug('maintenance handler');
+        return;
         $swoole      = app('swoole');
         $ws          = $swoole->wsTable;
         $maintenance = $swoole->maintenanceTable;

@@ -22,6 +22,8 @@ class TransformKafkaMessageBalance implements ShouldQueue
 
     public function handle()
     {
+        Log::debug('balance handler');
+        return;
         $swoole = app('swoole');
 
         try {

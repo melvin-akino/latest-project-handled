@@ -27,6 +27,8 @@ class TransformKafkaMessageMinMax implements ShouldQueue
 
     public function handle()
     {
+        Log::debug('minmax handler');
+        return;
         Log::info('Task: MinMax handle');
         $swoole = app('swoole');
 
