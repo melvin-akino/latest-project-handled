@@ -18,7 +18,7 @@ class TransformKafkaMessageOdds extends Task
 
     public function handle()
     {
-        $oddsTransformationHandler = resolve('OddsTransformationHandler');
+        $oddsTransformationHandler = app('OddsTransformationHandler');
         $oddsTransformationHandler->init($this->offset, $this->internalParameters)->handle();
     }
 }

@@ -2,12 +2,6 @@
 
 namespace App\Processes;
 
-use RdKafka\TopicConf;
-use App\Jobs\{
-    TransformKafkaMessageOpenOrders,
-    TransformKafkaMessageSettlement,
-    TransformKafkaMessageBalance
-};
 use Hhxsv5\LaravelS\Swoole\Process\CustomProcessInterface;
 use Illuminate\Support\Facades\Log;
 use Swoole\Http\Server;
@@ -27,11 +21,13 @@ class AccountConsume implements CustomProcessInterface
             if ($swoole->data2SwtTable->exist('data2Swt')) {
                 Log::info("Account Consume Starts");
 
-                $kafkaConsumer = resolve('LowLevelConsumer');
+                $kafkaConsumer                   = app('LowLevelConsumer');
+                $topicConf                       = app('KafkaTopicConf');
+                $balanceTransformationHandler    = app('BalanceTransformationHandler');
+                $openOrdersTransformationHandler = app('OpenOrdersTransformationHandler');
+                $settlementTransformationHandler = app('SettlementTransformationHandler');
 
                 $queue = $kafkaConsumer->newQueue();
-
-                $topicConf = app('KafkaTopicConf');
 
                 $openOrdersTopic = $kafkaConsumer->newTopic(env('KAFKA_SCRAPE_OPEN_ORDERS', 'OPEN-ORDERS'), $topicConf);
                 $openOrdersTopic->consumeQueueStart(0, RD_KAFKA_OFFSET_END, $queue);
@@ -54,10 +50,10 @@ class AccountConsume implements CustomProcessInterface
                                         Log::info("Balance Transformation ignored - No Data Found");
                                         break;
                                     }
-                                    TransformKafkaMessageBalance::dispatch($payload);
+                                    $balanceTransformationHandler->init($payload)->handle();
                                     break;
                                 case 'orders':
-                                    TransformKafkaMessageOpenOrders::dispatch($payload);
+                                    $openOrdersTransformationHandler->init($payload)->handle();
                                     break;
                                 case 'settlement':
                                     if (empty($payload->data)) {
@@ -65,7 +61,7 @@ class AccountConsume implements CustomProcessInterface
                                         break;
                                     }
 
-                                    TransformKafkaMessageSettlement::dispatch($payload);
+                                    $settlementTransformationHandler->init($payload)->handle();
                                     break;
                                 default:
                                     break;

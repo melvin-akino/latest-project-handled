@@ -1,37 +1,32 @@
 <?php
 
-namespace App\Jobs;
+namespace App\Handlers;
 
+use App\Models\ExchangeRate;
+use App\Models\Order;
+use App\Models\OrderLogs;
+use App\Models\OrderTransaction;
+use App\Models\ProviderAccountOrder;
+use App\Models\Source;
+use App\Models\UserWallet;
 use App\User;
-use App\Models\{
-    Order,
-    OrderLogs,
-    UserWallet,
-    ExchangeRate,
-    Source,
-    OrderTransaction,
-    ProviderAccountOrder
-};
-
-use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Foundation\Bus\Dispatchable;
-use Illuminate\Support\Facades\{DB, Log};
 use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
-class WsSettledBets implements ShouldQueue
+class SettlementTransformationHandler
 {
-    use Dispatchable;
+    protected $data;
 
     /**
      * Create a new job instance.
      *
      * @return void
      */
-    public function __construct($data, $providerId, $providerCurrency)
+    public function init($data)
     {
-        $this->data             = $data;
-        $this->providerId       = $providerId;
-        $this->providerCurrency = $providerCurrency;
+        $this->data = $data;
+        return $this;
     }
 
     /**
@@ -41,14 +36,48 @@ class WsSettledBets implements ShouldQueue
      */
     public function handle()
     {
-        $status              = strtoupper($this->data->status);
+        $swoole      = app('swoole');
+        $orders      = $swoole->ordersTable;
+        $providers   = $swoole->providersTable;
+        $settlements = $this->data->data;
+
+        foreach ($settlements AS $report) {
+            $providerId       = $providers->get('providerAlias:' . $report->provider)['id'];
+            $providerCurrency = $providers->get('providerAlias:' . $report->provider)['currency_id'];
+
+            foreach ($orders AS $key => $row) {
+                preg_match_all('!\d+!', $row['bet_id'], $mlBetIdArray);
+                preg_match_all('!\d+!', $report->bet_id, $providerBetIdArray);
+
+                $mlBetIdArrayIndex0 = $mlBetIdArray[0];
+                $mlBetId = end($mlBetIdArrayIndex0);
+
+                $providerBetIdArrayIndex0 = $providerBetIdArray[0];
+                $providerBetId = end($providerBetIdArrayIndex0);
+
+                if ($mlBetId == $providerBetId) {
+                    if ($row['status'] == 'SUCCESS' || ($row['status'] == 'PENDING' && !empty($row['bet_id']))) {
+                        $this->settledBets($report, $providerId, $providerCurrency);
+
+                        $orders->del($key);
+                    }
+                }
+            }
+        }
+
+        Log::info("Settlements - Processed");
+    }
+
+    private function settledBets($data, $providerId, $providerCurrency)
+    {
+        $status              = strtoupper($data->status);
         $balance             = 0;
         $stake               = 0;
         $sourceName          = "RETURN_STAKE";
         $stakeReturnToLedger = false;
         $transferAmount      = 0;
 
-        preg_match_all('!\d+!', $this->data->bet_id, $providerBetIdArray);
+        preg_match_all('!\d+!', $data->bet_id, $providerBetIdArray);
         $providerBetIdArrayIndex0 = $providerBetIdArray[0];
         $providerBetId = end($providerBetIdArrayIndex0);
 
@@ -63,7 +92,7 @@ class WsSettledBets implements ShouldQueue
         $orders       = Order::where('bet_id', 'like', '%' . $providerBetId)->first();
         $userWallet   = UserWallet::where('user_id', $orders->user_id)->first();
         $userCurrency = User::where('id', $orders->user_id)->first();
-        $exchangeRate = ExchangeRate::where('from_currency_id', $this->providerCurrency)
+        $exchangeRate = ExchangeRate::where('from_currency_id', $providerCurrency)
                                     ->where('to_currency_id', $userCurrency->currency_id)
                                     ->first();
 
@@ -130,23 +159,23 @@ class WsSettledBets implements ShouldQueue
 
         try {
             Order::where('bet_id', 'like', '%' . $providerBetId)
-                ->update([
-                    'status'        => strtoupper($this->data->status),
-                    'profit_loss'   => $balance,
-                    'reason'        => $this->data->reason,
-                    'settled_date'  => Carbon::now(),
-                    'updated_at'    => Carbon::now(),
-                    'final_score'   => $this->data->score
-                ]);
+                 ->update([
+                     'status'        => strtoupper($data->status),
+                     'profit_loss'   => $balance,
+                     'reason'        => $data->reason,
+                     'settled_date'  => Carbon::now(),
+                     'updated_at'    => Carbon::now(),
+                     'final_score'   => $data->score
+                 ]);
 
             $orderLogs = OrderLogs::create([
-                'provider_id'   => $this->providerId,
-                'sport_id'      => $this->data->sport,
+                'provider_id'   => $providerId,
+                'sport_id'      => $data->sport,
                 'bet_id'        => $orders->bet_id,
                 'bet_selection' => $orders->bet_selection,
                 'status'        => $status,
                 'user_id'       => $orders->user_id,
-                'reason'        => $this->data->reason,
+                'reason'        => $data->reason,
                 'profit_loss'   => $balance,
                 'order_id'      => $orders->id,
                 'settled_date'  => Carbon::now(),
@@ -165,9 +194,9 @@ class WsSettledBets implements ShouldQueue
             ProviderAccountOrder::create([
                 'order_log_id'       => $orderLogsId,
                 'exchange_rate_id'   => $exchangeRate->id,
-                'actual_stake'       => $this->data->stake,
-                'actual_to_win'      => $this->data->stake * $this->data->odds,
-                'actual_profit_loss' => $this->data->profit_loss,
+                'actual_stake'       => $data->stake,
+                'actual_to_win'      => $data->stake * $data->odds,
+                'actual_profit_loss' => $data->profit_loss,
                 'exchange_rate'      => $exchangeRate->exchange_rate,
             ]);
 
@@ -178,7 +207,7 @@ class WsSettledBets implements ShouldQueue
                 'currency_id'         => $userWallet->currency_id,
                 'wallet_ledger_id'    => $ledger->id,
                 'provider_account_id' => $orders->provider_account_id,
-                'reason'              => $this->data->reason,
+                'reason'              => $data->reason,
                 'amount'              => $balance
             ]);
 
@@ -197,7 +226,7 @@ class WsSettledBets implements ShouldQueue
                     'currency_id'         => $userWallet->currency_id,
                     'wallet_ledger_id'    => $ledger->id,
                     'provider_account_id' => $orders->provider_account_id,
-                    'reason'              => $this->data->reason,
+                    'reason'              => $data->reason,
                     'amount'              => $stake
                 ]);
             }
@@ -209,7 +238,7 @@ class WsSettledBets implements ShouldQueue
                     'message' => $e->getMessage(),
                     'line'    => $e->getLine(),
                     'file'    => $e->getFile(),
-                    'data'    => $this->data,
+                    'data'    => $data,
                 ]
             ]));
 

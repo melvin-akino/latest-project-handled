@@ -1,27 +1,24 @@
 <?php
 
-namespace App\Jobs;
+namespace App\Handlers;
 
 use App\Models\CRM\ProviderAccount;
-use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Support\Facades\Log;
-use Carbon\Carbon;
 use Exception;
 
-class TransformKafkaMessageBalance implements ShouldQueue
+class BalanceTransformationHandler
 {
-    use Dispatchable;
-
     protected $message;
 
-    public function __construct($message)
+    public function init($message)
     {
         $this->message = $message;
+        return $this;
     }
 
     public function handle()
     {
+        Log::debug("ASd");
         $swoole = app('swoole');
 
         try {
