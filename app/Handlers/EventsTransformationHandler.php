@@ -1,26 +1,24 @@
 <?php
 
-namespace App\Jobs;
+namespace App\Handlers;
 
 use App\Facades\SwooleHandler;
 use App\Models\{SystemConfiguration, UserSelectedLeague};
-use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Foundation\Bus\Dispatchable;
 use Exception;
 use Illuminate\Support\Facades\{Log, DB};
 
-class TransformKafkaMessageEvents implements ShouldQueue
+class EventsTransformationHandler
 {
-    use Dispatchable;
-
     protected $message;
     protected $offset;
     protected $swoole;
 
-    public function __construct($message, $offset)
+    public function init($message, $offset)
     {
         $this->message = $message;
-        $this->offset = $offset;
+        $this->offset  = $offset;
+
+        return $this;
     }
 
     public function handle()
@@ -36,7 +34,7 @@ class TransformKafkaMessageEvents implements ShouldQueue
                 $swtRequestUID = null;
                 foreach ($swoole->scraperRequestsTable as $key => $scraperRequestsTable) {
                     if ($key == 'type:events:requestUID:' . $this->message->request_uid) {
-                        $doesExist     = true;
+                        $doesExist = true;
                         break;
                     }
                 }
@@ -155,7 +153,7 @@ class TransformKafkaMessageEvents implements ShouldQueue
                 $data = [];
                 foreach ($inActiveEvents as $eventIdentifier) {
                     $eventTableKey = "sId:{$sportId}:pId:{$payloadProviderId}:eventIdentifier:{$eventIdentifier}";
-                    $event = SwooleHandler::getValue('eventRecordsTable', $eventTableKey);
+                    $event         = SwooleHandler::getValue('eventRecordsTable', $eventTableKey);
                     if ($event) {
                         $missingCount = (int) $event['missing_count'] + 1;
                         SwooleHandler::setColumnValue('eventRecordsTable', $eventTableKey, 'missing_count', $missingCount);
@@ -169,10 +167,10 @@ class TransformKafkaMessageEvents implements ShouldQueue
                                              ->first();
 
                             if ($masterEvent) {
-                                $data[] = [
-                                    'uid'              => $masterEvent->master_event_unique_id,
-                                    'league_name'      => $masterEvent->league_name,
-                                    'game_schedule'    => $masterEvent->game_schedule
+                                $data[]              = [
+                                    'uid'           => $masterEvent->master_event_unique_id,
+                                    'league_name'   => $masterEvent->league_name,
+                                    'game_schedule' => $masterEvent->game_schedule
                                 ];
                                 $userSelectedLeagues = UserSelectedLeague::getSelectedLeagueByAllUsers([
                                     'league_id' => $masterEvent->master_league_id,
@@ -191,7 +189,7 @@ class TransformKafkaMessageEvents implements ShouldQueue
                                     $userSelectedLeagues->delete();
                                 }
                             }
-                            $doesExist     = SwooleHandler::exists('eventRecordsTable', $eventTableKey);
+                            $doesExist = SwooleHandler::exists('eventRecordsTable', $eventTableKey);
                             if ($doesExist) {
                                 SwooleHandler::remove('eventRecordsTable', $eventTableKey);
                                 if (($key = array_search($eventIdentifier, $this->message->data->event_ids)) !== false) {
@@ -216,15 +214,15 @@ class TransformKafkaMessageEvents implements ShouldQueue
                 Log::info("For Removal Event - Processed");
             }
 
-            $endTime = microtime(TRUE);
-            $timeConsumption   = $endTime - $startTime;
+            $endTime         = microtime(TRUE);
+            $timeConsumption = $endTime - $startTime;
 
             Log::channel('scraping-events')->info([
                 'request_uid'      => json_encode($this->message->request_uid),
                 'request_ts'       => json_encode($this->message->request_ts),
                 'offset'           => json_encode($this->offset),
                 'time_consumption' => json_encode($timeConsumption),
-                'events'         => json_encode($this->message->data->event_ids),
+                'events'           => json_encode($this->message->data->event_ids),
             ]);
         } catch (Exception $e) {
             Log::error(json_encode(

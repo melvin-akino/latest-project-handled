@@ -2,8 +2,6 @@
 
 namespace App\Processes;
 
-use App\Handlers\ProducerHandler;
-use App\Jobs\KafkaPush;
 use Illuminate\Support\Facades\DB;
 use Hhxsv5\LaravelS\Swoole\Process\CustomProcessInterface;
 use Illuminate\Support\Str;
@@ -98,7 +96,7 @@ class ScrapeProduce implements CustomProcessInterface
 
                 // publish message to kafka
                 $payload['command'] = 'odd';
-                KafkaPush::dispatch(strtolower($provider->alias) . self::$kafkaTopic, $payload, $requestId);
+                kafkaPush(strtolower($provider->alias) . self::$kafkaTopic, $payload, $requestId);
 
                 $swoole->scraperRequestsTable->set('type:odds:requestUID:' . $requestId, [
                     'request_uid' => $requestId,

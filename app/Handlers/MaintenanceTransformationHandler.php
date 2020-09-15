@@ -1,16 +1,12 @@
 <?php
 
-namespace App\Jobs;
+namespace App\Handlers;
 
-use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Support\Facades\Log;
 use Exception;
 
-class TransformKafkaMessageMaintenance implements ShouldQueue
+class MaintenanceTransformationHandler
 {
-    use Dispatchable;
-
     protected $data;
 
     /**
@@ -18,10 +14,12 @@ class TransformKafkaMessageMaintenance implements ShouldQueue
      *
      * @return void
      */
-    public function __construct($data)
+    public function init($data)
     {
-        $this->data = $data;
         Log::info('MAINTENANCE -- Construct');
+
+        $this->data = $data;
+        return $this;
     }
 
     /**
