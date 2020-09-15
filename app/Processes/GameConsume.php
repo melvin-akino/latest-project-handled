@@ -2,11 +2,6 @@
 
 namespace App\Processes;
 
-use RdKafka\TopicConf;
-use App\Jobs\{
-    TransformKafkaMessageEvents,
-    TransformKafkaMessageLeagues
-};
 use Hhxsv5\LaravelS\Swoole\Process\CustomProcessInterface;
 use Illuminate\Support\Facades\Log;
 use Swoole\Http\Server;
@@ -39,7 +34,8 @@ class GameConsume implements CustomProcessInterface
                 $eventsTopic = $kafkaConsumer->newTopic(env('KAFKA_SCRAPE_EVENTS', 'SCRAPING-PROVIDER-EVENTS'), $topicConf);
                 $eventsTopic->consumeQueueStart(0, RD_KAFKA_OFFSET_END, $queue);
 
-                $oddsValidationHandler = resolve('OddsValidationHandler');
+                $oddsValidationHandler       = app('OddsValidationHandler');
+                $eventsTransformationHandler = app('EventsTransformationHandler');
 
                 while (!self::$quit) {
                     if ($swoole->priorityTriggerTable->exist('priority')) {
@@ -59,7 +55,7 @@ class GameConsume implements CustomProcessInterface
                             }
                             switch ($payload->command) {
                                 case 'event':
-                                    TransformKafkaMessageEvents::dispatch($payload, $message->offset);
+                                    $eventsTransformationHandler->init($payload, $message->offset)->handle();
                                     break;
                                 case 'odd':
                                     $oddsValidationHandler->init($payload, $message->offset)->handle();

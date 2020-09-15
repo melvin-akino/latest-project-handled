@@ -2,8 +2,6 @@
 
 namespace App\Processes;
 
-use App\Handlers\ProducerHandler;
-use App\Jobs\KafkaPush;
 use App\Models\SystemConfiguration;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
@@ -70,7 +68,7 @@ class SettlementProduce implements CustomProcessInterface
                                             'settlement_date' => Carbon::now()->subHours(4)->format('Y-m-d')
                                         ];
 
-                                        KafkaPush::dispatch(
+                                        kafkaPush(
                                             $providerAlias . env('KAFKA_SCRAPE_SETTLEMENT_POSTFIX', '_settlement_req'),
                                             $payload,
                                             $requestId

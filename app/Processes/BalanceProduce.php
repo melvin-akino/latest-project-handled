@@ -2,8 +2,6 @@
 
 namespace App\Processes;
 
-use App\Handlers\ProducerHandler;
-use App\Jobs\KafkaPush;
 use App\Models\SystemConfiguration;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
@@ -93,7 +91,7 @@ class BalanceProduce implements CustomProcessInterface
                 'username' => $username
             ];
 
-            KafkaPush::dispatch($provider . $topic, $payload, $requestId);
+            kafkaPush($provider . $topic, $payload, $requestId);
         }
     }
 }

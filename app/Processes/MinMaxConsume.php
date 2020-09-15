@@ -2,8 +2,6 @@
 
 namespace App\Processes;
 
-use RdKafka\TopicConf;
-use App\Jobs\TransformKafkaMessageMinMax;
 use Hhxsv5\LaravelS\Swoole\Process\CustomProcessInterface;
 use Illuminate\Support\Facades\Log;
 use Swoole\Http\Server;
@@ -29,6 +27,7 @@ class MinMaxConsume implements CustomProcessInterface
                 $queue = $kafkaConsumer->newQueue();
 
                 $topicConf = app('KafkaTopicConf');
+                $minMaxTransformationHandler = app('MinMaxTransformationHandler');
 
                 $minmaxTopic = $kafkaConsumer->newTopic(env('KAFKA_SCRAPE_MINMAX_ODDS', 'MINMAX-ODDS'), $topicConf);
                 $minmaxTopic->consumeQueueStart(0, RD_KAFKA_OFFSET_END, $queue);
@@ -74,7 +73,7 @@ class MinMaxConsume implements CustomProcessInterface
                             PrometheusMatric::MakeMatrix('pull_market_id_total', 'Min-max  total number of  market id  received.',$payload->data->market_id);
 
                             Log::info('Minmax calling Task Worker');
-                            TransformKafkaMessageMinMax::dispatch($payload);
+                            $minMaxTransformationHandler->init($payload)->handle();
 
                             $swoole->priorityTriggerTable->del('priority');
 

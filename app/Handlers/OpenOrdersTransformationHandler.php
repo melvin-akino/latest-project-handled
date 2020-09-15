@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Jobs;
+namespace App\Handlers;
 
 use App\Models\{
     Order,
@@ -18,14 +18,10 @@ use App\Models\CRM\{
 };
 use Carbon\Carbon;
 use Exception;
-use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Support\Facades\{DB, Log};
 
-class TransformKafkaMessageOpenOrders implements ShouldQueue
+class OpenOrdersTransformationHandler
 {
-    use Dispatchable;
-
     protected $data;
 
     /**
@@ -33,9 +29,10 @@ class TransformKafkaMessageOpenOrders implements ShouldQueue
      *
      * @return void
      */
-    public function __construct($data)
+    public function init($data)
     {
         $this->data = $data;
+        return $this;
     }
 
     /**
@@ -78,7 +75,7 @@ class TransformKafkaMessageOpenOrders implements ShouldQueue
                             $walletLedger = $this->bookMakerCantBeReached($orderTable, $orderId, $orderData, $userId, $userWallet, $exchangeRate, $sourceId);
                             $walletLedgerId = $walletLedger->id;
 
-                            WSOrderStatus::dispatch($userId, $orderId, 'FAILED', $orderData->odds, $expiry, $orderTable['created_at']);
+                            orderStatus($userId, $orderId, 'FAILED', $orderData->odds, $expiry, $orderTable['created_at']);
 
                             $ordersTable->del($_key);
                         } else {
@@ -152,7 +149,7 @@ class TransformKafkaMessageOpenOrders implements ShouldQueue
                                         $walletLedgerId = $walletLedger->id;
                                     }
 
-                                    WSOrderStatus::dispatch($userId, $orderId, strtoupper($order->status), $order->odds, $expiry, $orderTable['created_at']);
+                                    orderStatus($userId, $orderId, strtoupper($order->status), $order->odds, $expiry, $orderTable['created_at']);
 
                                     if (in_array(strtoupper($order->status), [
                                         'FAILED',
@@ -183,7 +180,7 @@ class TransformKafkaMessageOpenOrders implements ShouldQueue
                     $walletLedger = $this->bookMakerCantBeReached($orderTable, $orderId, $orderData, $userId, $userWallet, $exchangeRate, $sourceId);
                     $walletLedgerId = $walletLedger->id;
 
-                    WSOrderStatus::dispatch($userId, $orderId, 'FAILED', $orderData->odds, $expiry, $orderTable['created_at']);
+                    orderStatus($userId, $orderId, 'FAILED', $orderData->odds, $expiry, $orderTable['created_at']);
 
                     $ordersTable->del($_key);
 
@@ -204,8 +201,9 @@ class TransformKafkaMessageOpenOrders implements ShouldQueue
 
             DB::commit();
         } catch (Exception $e) {
+            Log::debug($e->getMessage());
             Log::error(json_encode([
-                'TransformKafkaMessageOpenOrders' => [
+                'OpenOrdersTranformationHandler' => [
                     'message' => $e->getMessage(),
                     'line'    => $e->getLine(),
                 ]
@@ -272,4 +270,6 @@ class TransformKafkaMessageOpenOrders implements ShouldQueue
 
         return $walletLedger;
     }
+
+
 }
