@@ -219,12 +219,15 @@ class OddsTransformationHandler
 
                                     Redis::expire($marketPointsOffsetRedis, self::REDIS_TTL);
                                     Redis::expire($marketPointsRedis, self::REDIS_TTL);
+                                    $memUID = $oddRecord['memUID'];
+                                } else {
+                                    $memUID = Redis::get($marketSelection->market_id);
                                 }
 
                                 if ($oddRecord) {
-                                    if ($oddRecord['odds'] != $odds) {
+                                    if ($oddRecord['odds'] != $odds && !empty($memUID)) {
                                         $oddsUpdated = [
-                                            'market_id'   => $oddRecord['memUID'],
+                                            'market_id'   => $memUID,
                                             'odds'        => $odds,
                                             'provider_id' => $providerId,
                                         ];
@@ -240,7 +243,7 @@ class OddsTransformationHandler
                                     'sport_id'    => $sportId,
                                     'provider_id' => $providerId,
                                     'odds'        => $odds,
-                                    'memUID'      => $oddRecord['memUID']
+                                    'memUID'      => $memUID
                                 ]);
                             }
                         }
