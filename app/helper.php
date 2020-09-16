@@ -510,11 +510,7 @@ if (!function_exists('eventTransformation')) {
             }
 
             if (!empty($transformed->odd_label)) {
-                if (empty($transformed->is_market_empty)) {
-                    $data[$transformed->master_event_unique_id]['market_odds']['main'][$transformed->type][$transformed->market_flag]['points'] = $transformed->odd_label;
-                } else {
-                    $data[$transformed->master_event_unique_id]['market_odds']['main'][$transformed->type][$transformed->market_flag]['points'] = "";
-                }
+                $data[$transformed->master_event_unique_id]['market_odds']['main'][$transformed->type][$transformed->market_flag]['points'] = $transformed->odd_label;
             }
 
             if (empty($_SERVER['_PHPUNIT'])) {
