@@ -9,7 +9,8 @@ use App\Models\{
     Source,
     OrderLogs,
     OrderTransaction,
-    ProviderAccountOrder
+    ProviderAccountOrder,
+    OddType
 };
 use App\Models\CRM\{
     ProviderAccount,
@@ -51,6 +52,7 @@ class TransformKafkaMessageOpenOrders implements ShouldQueue
             $ordersTable = $swoole->ordersTable;
             $providers   = $swoole->providersTable;
             $openOrders  = $this->data->data;
+            $col1x2      = OddType::whereIn('type', ['1X2', 'HT 1X2'])->pluck('id')->toArray();
 
             foreach ($ordersTable as $_key => $orderTable) {
                 $orderId          = substr($_key, strlen('orderId:'));
@@ -96,7 +98,9 @@ class TransformKafkaMessageOpenOrders implements ShouldQueue
                                         'reason'              => $reason,
                                         'bet_selection'       => $betSelection,
                                         'to_win'              => $orderData->stake * $order->odds,
+                                        'to_win'              => !in_array($orderData->odd_type_id, $col1x2) ? $orderData->stake * $order->odds : $orderData->stake * ($order->odds - 1),
                                         'bet_id'              => $betId,
+
                                     ]);
 
                                     $orderLogs = OrderLogs::create([
@@ -118,7 +122,7 @@ class TransformKafkaMessageOpenOrders implements ShouldQueue
                                         'order_log_id'       => $orderLogsId,
                                         'exchange_rate_id'   => $exchangeRate->id,
                                         'actual_stake'       => $stake,
-                                        'actual_to_win'      => $stake * $order->odds,
+                                        'actual_to_win'      => !in_array($orderData->odd_type_id, $col1x2) ? $stake * $order->odds : $stake * ($order->odds - 1),
                                         'actual_profit_loss' => 0.00,
                                         'exchange_rate'      => $exchangeRate->exchange_rate,
                                     ]);

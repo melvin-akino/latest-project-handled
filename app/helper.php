@@ -351,7 +351,7 @@ if (!function_exists('getMilliseconds')) {
  * @author  Kevin Uy
  */
 if (!function_exists('ordersCreation')) {
-    function ordersCreation (int $userId, int $sportId, int $providerId, int $providerAccountId, array $orderData, array $exchangeRate, string $mlBetId)
+    function ordersCreation (int $userId, int $sportId, int $providerId, int $providerAccountId, array $orderData, array $exchangeRate, string $mlBetId, array $col1x2 = [])
     {
         $order = Order::create([
             'user_id'                       => $userId,
@@ -367,7 +367,7 @@ if (!function_exists('ordersCreation')) {
             'odds'                          => $orderData['odds'],
             'odd_label'                     => $orderData['odd_label'],
             'stake'                         => $orderData['stake'],
-            'to_win'                        => ($orderData['stake'] * $orderData['odds']),
+            'to_win'                        => !in_array($orderData['odd_type_id'], $col1x2) ? $orderData['stake'] * $orderData['odds'] : $orderData['stake'] * ($orderData['odds'] - 1),
             'settled_date'                  => null,
             'reason'                        => "",
             'profit_loss'                   => 0.00,
@@ -406,7 +406,7 @@ if (!function_exists('ordersCreation')) {
             'order_log_id'       => $orderLogs->id,
             'exchange_rate_id'   => $exchangeRate['id'],
             'actual_stake'       => $orderData['actual_stake'],
-            'actual_to_win'      => $orderData['actual_stake'] * $orderData['odds'],
+            'actual_to_win'      => !in_array($orderData['odd_type_id'], $col1x2) ? $orderData['actual_stake'] * $orderData['odds'] : $orderData['actual_stake'] * ($orderData['odds'] - 1),
             'actual_profit_loss' => 0.00,
             'exchange_rate'      => $exchangeRate['exchange_rate'],
         ]);

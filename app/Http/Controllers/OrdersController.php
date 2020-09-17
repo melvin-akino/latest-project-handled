@@ -386,6 +386,7 @@ class OrdersController extends Controller
             $isUserVIP    = auth()->user()->is_vip;
             $orderIds     = [];
             $incrementIds = [];
+            $col1x2       = OddType::whereIn('type', ['1X2', 'HT 1X2'])->pluck('id')->toArray();
 
             foreach ($request->markets as $row) {
                 $betType = $request->betType;
@@ -539,9 +540,9 @@ class OrdersController extends Controller
                 $payload['provider_id']      = strtolower($row['provider']);
                 $payload['odds']             = $row['price'];
                 $payload['stake']            = $payloadStake;
-                $payload['to_win']           = $payloadStake * $row['price'];
+                $payload['to_win']           = !in_array($query->odd_type_id, $col1x2) ? $payloadStake * $row['price'] : $payloadStake * ($row['price'] - 1);
                 $payload['actual_stake']     = $actualStake;
-                $payload['actual_to_win']    = $actualStake * $row['price'];
+                $payload['actual_to_win']    = !in_array($query->odd_type_id, $col1x2) ? $actualStake * $row['price'] : $actualStake * ($row['price'] - 1);
                 $payload['market_id']        = $query->bet_identifier;
                 $payload['event_id']         = explode('-', $query->master_event_unique_id)[3];
                 $payload['score']            = $query->score;
@@ -594,7 +595,7 @@ class OrdersController extends Controller
                     'exchange_rate' => $exchangeRate['exchange_rate'],
                 ];
 
-                $orderCreation  = ordersCreation(auth()->user()->id, $query->sport_id, $row['provider_id'], $providerAccountId, $_orderData, $_exchangeRate, $mlBetId);
+                $orderCreation  = ordersCreation(auth()->user()->id, $query->sport_id, $row['provider_id'], $providerAccountId, $_orderData, $_exchangeRate, $mlBetId, $col1x2);
                 $orderIncrement = $orderCreation['orders'];
                 $orderLogsId    = $orderCreation['order_logs']->id;
 
