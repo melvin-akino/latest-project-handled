@@ -264,7 +264,7 @@ export default {
         },
         towin() {
             if(!this.$v.$invalid) {
-                if (this.market_details.odds_type == '1X2' || this.market_details.odds_type == 'HT 1X2') {
+                if (this.market_details.odd_type == '1X2' || this.market_details.odd_type == 'HT 1X2') {
                     return this.orderForm.stake * (this.initialPrice - 1)
                 } else {
                     return this.orderForm.stake * this.initialPrice
