@@ -264,7 +264,11 @@ export default {
         },
         towin() {
             if(!this.$v.$invalid) {
-                return Math.floor(this.orderForm.stake * this.initialPrice * 100) / 100
+                if(this.market_details.odd_type == '1X2' || this.market_details.odd_type == 'HT 1X2') {
+                    return Math.floor(this.orderForm.stake * (this.initialPrice - 1) * 100) / 100
+                } else {
+                    return Math.floor(this.orderForm.stake * this.initialPrice * 100) / 100
+                }
             } else {
                 return 0
             }
