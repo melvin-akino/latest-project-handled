@@ -2,25 +2,30 @@
 
 namespace App\Console\Commands;
 
+use App\Mail\SendCSV;
 use Carbon\Carbon;
 use Exception;
 use Illuminate\Console\Command;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\{DB, Mail};
+
 
 class PreviousBetExtraction extends Command
 {
     /**
      * # Extract transaction/s from previous date
-    $ php artisan bets:extract
-    # with `DATETIME` option
-    $ php artisan bets:extract --dt="2020-09-04"
-    // Extract Transactions from 2020-09-04 to present
-    # with `STEP` option
-    $ php artisan bets:extract --step=3
-    // Extract Transaction from 3 days to present
-    # with `DATETIME` and `STEP` options
-    $ php artisan bets:extract --dt="2020-09-01" --step=2
-    // Extract Transactions from 2020-09-01 to 2 days after
+     * $ php artisan bets:extract
+     *
+     * # with `DATETIME` option
+     * $ php artisan bets:extract --dt="2020-09-04"
+     * // Extract Transactions from 2020-09-04 to present
+     *
+     * # with `STEP` option
+     * $ php artisan bets:extract --step=3
+     * // Extract Transaction from 3 days to present
+     *
+     * # with `DATETIME` and `STEP` options
+     * $ php artisan bets:extract --dt="2020-09-01" --step=2
+     * // Extract Transactions from 2020-09-01 to 2 days after
      */
 
     /**
@@ -58,11 +63,8 @@ class PreviousBetExtraction extends Command
             $this->line('Running command...');
 
             $date = is_null($this->option('dt')) ? Carbon::now()->subDay()->format('Y-m-d H:i:') . "00" : $this->option('dt');
-//            $this->line('Running command...' . Carbon::createFromFormat('Y-m-d H:i:s', $date)->format('Y-m-d H:i:s'));
             $step = is_null($this->option('step')) ? Carbon::createFromFormat('Y-m-d H:i:s', $date)->diffInDays(Carbon::now()) : $this->option('step');
-//            $this->line('Running command...' . $step);
             $date = is_null($this->option('dt')) && !is_null($this->option('step')) ? Carbon::now()->subDay($step)->format('Y-m-d H:i:') . "00" : $date;
-
             $from = Carbon::createFromFormat('Y-m-d H:i:s', $date)->format('Y-m-d H:i:s');
             $to   = Carbon::createFromFormat('Y-m-d H:i:s', $date)->addDays($step)->subSecond()->format('Y-m-d H:i:s');
 
@@ -88,7 +90,7 @@ class PreviousBetExtraction extends Command
 
             $filename = "Extracted_Bet_Transactions_" . Carbon::now()->format('YmdHis') . ".csv";
             $file     = fopen($filename, 'w');
-            $columns  = ['id', 'email', 'ml_bet_identifier', 'bet_id', 'username', 'created_at', 'status', 'stake', 'profit_loss', 'actual_stake', 'actual_profit_loss', 'odds', 'odd_label', 'market_flag', 'odd_type'];
+            $columns  = ['email', 'ml_bet_identifier', 'bet_id', 'username', 'created_at', 'status', 'stake', 'profit_loss', 'actual_stake', 'actual_profit_loss', 'odds', 'odd_label', 'market_flag', 'odd_type'];
             $dups     = [];
             $data     = DB::table('orders AS o')
                           ->join('provider_accounts AS pa', 'pa.id', '=', 'o.provider_account_id')
@@ -124,7 +126,6 @@ class PreviousBetExtraction extends Command
             foreach ($data as $row) {
                 if (!in_array($row->id, $dups)) {
                     fputcsv($file, [
-                        $row->id,
                         $row->email,
                         $row->ml_bet_identifier,
                         $row->bet_id,
@@ -144,7 +145,8 @@ class PreviousBetExtraction extends Command
             }
             fclose($file);
 
-            $headers = ["Content-type" => "text/csv"];
+            Mail::to(env('CSV_EMAIL'))->send(new SendCSV("./" . $filename));
+            unlink("./" . $filename);
         } catch (Exception $e) {
             $this->error("ERROR! " . $e->getLine() . " : " . $e->getMessage() . ':' . $e->getTraceAsString());
         }
