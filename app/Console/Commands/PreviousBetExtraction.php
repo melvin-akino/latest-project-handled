@@ -88,6 +88,16 @@ class PreviousBetExtraction extends Command
                 return;
             }
 
+            $subject = env('APP_ENV') . ' Orders ';
+            if (!is_null($this->option('dt')) || !is_null($this->option('step'))) {
+                if (!is_null($this->option('dt')) && is_null($this->option('step'))) {
+                    $subject .= $this->option('dt') . " - " . Carbon::now()->format('Y-m-d H:i:s');
+                } else if (is_null($this->option('dt')) && !is_null($this->option('step'))) {
+                    $subject .= 'from present minus ' . $this->option('step') . ' days';
+                } else {
+                    $subject .= $this->option('dt') . " - " . Carbon::createFromFormat('Y-m-d H:i:s', $this->option('dt'))->addDays($this->option('step'))->format('Y-m-d H:i:s');
+                }
+            }
             $filename = "Extracted_Bet_Transactions_" . Carbon::now()->format('YmdHis') . ".csv";
             $file     = fopen($filename, 'w');
             $columns  = ['email', 'ml_bet_identifier', 'bet_id', 'username', 'created_at', 'status', 'stake', 'profit_loss', 'actual_stake', 'actual_profit_loss', 'odds', 'odd_label', 'market_flag', 'odd_type'];
@@ -145,7 +155,7 @@ class PreviousBetExtraction extends Command
             }
             fclose($file);
 
-            Mail::to(env('CSV_EMAIL'))->send(new SendCSV("./" . $filename));
+            Mail::to(env('CSV_EMAIL'))->send(new SendCSV("./" . $filename, $subject));
             unlink("./" . $filename);
         } catch (Exception $e) {
             $this->error("ERROR! " . $e->getLine() . " : " . $e->getMessage() . ':' . $e->getTraceAsString());

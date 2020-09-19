@@ -11,15 +11,17 @@ class SendCSV extends Mailable
     use Queueable, SerializesModels;
 
     protected $attachment;
+    public    $subject;
 
     /**
      * Create a new message instance.
      *
      * @return void
      */
-    public function __construct($attachment)
+    public function __construct($attachment, $subject)
     {
         $this->attachment = $attachment;
+        $this->subject    = $subject;
     }
 
     /**
@@ -30,6 +32,7 @@ class SendCSV extends Mailable
     public function build()
     {
         return $this->view('mail.bets-csv')
+                    ->subject($this->subject)
                     ->attach($this->attachment);
     }
 }
