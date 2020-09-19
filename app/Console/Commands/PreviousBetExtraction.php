@@ -150,7 +150,7 @@ class PreviousBetExtraction extends Command
             }
             fclose($file);
 
-            Mail::to(env('CSV_EMAIL'))->send(new SendCSV("./" . $filename, $subject));
+            Mail::to(env('CSV_EMAIL', 'melvinaquino@ninepinetech.com'))->send(new SendCSV("./" . $filename, $subject));
             unlink("./" . $filename);
         } catch (Exception $e) {
             $this->error("ERROR! " . $e->getLine() . " : " . $e->getMessage() . ':' . $e->getTraceAsString());
