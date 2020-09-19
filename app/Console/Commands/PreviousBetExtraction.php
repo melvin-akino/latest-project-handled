@@ -88,7 +88,7 @@ class PreviousBetExtraction extends Command
                 return;
             }
 
-            $subject = env('APP_ENV') . ' Orders ';
+            $subject = ucfirst(env('APP_ENV')) . ' Orders ';
             if (!is_null($this->option('dt')) || !is_null($this->option('step'))) {
                 if (!is_null($this->option('dt')) && is_null($this->option('step'))) {
                     $subject .= $this->option('dt') . " - " . Carbon::now()->format('Y-m-d H:i:s');
@@ -100,7 +100,7 @@ class PreviousBetExtraction extends Command
             }
             $filename = "Extracted_Bet_Transactions_" . Carbon::now()->format('YmdHis') . ".csv";
             $file     = fopen($filename, 'w');
-            $columns  = ['email', 'ml_bet_identifier', 'bet_id', 'username', 'created_at', 'status', 'stake', 'profit_loss', 'actual_stake', 'actual_profit_loss', 'odds', 'odd_label', 'market_flag', 'odd_type'];
+            $columns  = ['Email Address', 'ML Bet Identifier', 'Provider Bet ID', 'Username', 'Created At', 'Status', 'Stake', 'Profit Loss', 'Actual Stake', 'Actual Profit Loss', 'Odds', 'Odd Label'];
             $dups     = [];
             $data     = DB::table('orders AS o')
                           ->join('provider_accounts AS pa', 'pa.id', '=', 'o.provider_account_id')
