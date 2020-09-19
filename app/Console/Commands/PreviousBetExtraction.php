@@ -83,11 +83,6 @@ class PreviousBetExtraction extends Command
                 return;
             }
 
-            if ($to > Carbon::now()->format('Y-m-d H:i:s')) {
-                $this->error("ERROR! Target exceeded current date.");
-                return;
-            }
-
             $subject = ucfirst(env('APP_ENV')) . ' Orders ';
             if (!is_null($this->option('dt')) || !is_null($this->option('step'))) {
                 if (!is_null($this->option('dt')) && is_null($this->option('step'))) {
