@@ -21,6 +21,8 @@ class OrderLogs extends Model
         'reason',
         'profit_loss',
         'order_id',
+        'created_at',
+        'updated_at'
     ];
 
     protected $hidden = [];
