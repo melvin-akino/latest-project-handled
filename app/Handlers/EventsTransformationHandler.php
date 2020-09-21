@@ -13,10 +13,11 @@ class EventsTransformationHandler
     protected $offset;
     protected $swoole;
 
-    public function init($message, $offset)
+    public function init($message, $offset, $swoole)
     {
         $this->message = $message;
         $this->offset  = $offset;
+        $this->swoole  = $swoole;
 
         return $this;
     }
@@ -26,7 +27,7 @@ class EventsTransformationHandler
         try {
             $startTime = microtime(TRUE);
 
-            $swoole             = app('swoole');
+            $swoole             = $this->swoole;
             $eventScrapingTable = $swoole->eventScrapingTable;
 
             if (env('APP_ENV') != "local") {

@@ -40,18 +40,19 @@ class OddsValidationHandler
         'TEST'
     ];
 
-    public function init($message, $offset)
+    public function init($message, $offset, $swoole)
     {
         $this->message = $message;
         $this->offset  = $offset;
         $this->messageObject  = $message;
+        $this->swoole = $swoole;
         return $this;
     }
 
     public function handle()
     {
         try {
-            $swoole                             = app('swoole');
+            $swoole                             = $this->swoole;
             $subTasks['remove-previous-market'] = [];
             $parameters                         = [];
 

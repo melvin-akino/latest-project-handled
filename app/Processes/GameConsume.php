@@ -55,10 +55,10 @@ class GameConsume implements CustomProcessInterface
                             }
                             switch ($payload->command) {
                                 case 'event':
-                                    $eventsTransformationHandler->init($payload, $message->offset)->handle();
+                                    $eventsTransformationHandler->init($payload, $message->offset, $swoole)->handle();
                                     break;
                                 case 'odd':
-                                    $oddsValidationHandler->init($payload, $message->offset)->handle();
+                                    $oddsValidationHandler->init($payload, $message->offset, $swoole)->handle();
                                     break;
                                 default:
                                     break;
