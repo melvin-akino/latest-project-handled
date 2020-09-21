@@ -14,6 +14,7 @@ class OddsValidationHandler
     protected $offset;
     protected $updated = false;
     protected $uid     = null;
+    protected $messageObject;
 
     protected $disregard = [
         'No. of Corners',
@@ -43,6 +44,7 @@ class OddsValidationHandler
     {
         $this->message = $message;
         $this->offset  = $offset;
+        $this->messageObject  = $message;
         return $this;
     }
 
@@ -84,8 +86,9 @@ class OddsValidationHandler
              * Checks if hash is the same as old hash
              */
             $transformedSwtId           = 'eventIdentifier:' . $this->message->data->events[0]->eventId;
-            $oddsValidationObject       = unserialize(serialize($this));
-            $toHashMessage              = $oddsValidationObject->message->data;
+            $oddsValidationObject       = $this->messageObject;
+            $toHashMessage              = $oddsValidationObject->data;
+
             $toHashMessage->runningtime = null;
             $toHashMessage->id          = null;
 
