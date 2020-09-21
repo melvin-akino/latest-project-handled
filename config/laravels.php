@@ -29,7 +29,7 @@ return [
             'class'    => \App\Processes\ScrapeProduce::class,
             'redirect' => false,
             'pipe'     => 0,
-            'enable'   => env('LARAVELS_KAFKA_PRODUCE', true)
+            'enable'   => env('LARAVELS_KAFKA_SCRAPE_PRODUCE', true)
         ],
         'data_to_swt'   => [
             'class'    => \App\Processes\DataToSwt::class,
