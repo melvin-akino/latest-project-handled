@@ -111,6 +111,7 @@ export default {
                 'Status'                 : 'status',
                 'Reason'                 : 'reason',
                 'Result'                 : 'score',
+                'Valid Stake'            : 'valid_stake',
                 'Profit/Loss'            : 'pl'
             }
         }
