@@ -488,6 +488,7 @@ return [
         \App\Providers\ConsumerServiceProvider::class,
         \App\Providers\OddsHandlerProvider::class,
         \App\Providers\KafkaServiceProvider::class,
+        \App\Providers\SwooleServiceProvider::class
     ],
     'cleaners'                 => [
         // See LaravelS's built-in cleaners: https://github.com/hhxsv5/laravel-s/blob/master/Settings.md#cleaners
