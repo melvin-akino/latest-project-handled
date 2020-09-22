@@ -161,7 +161,11 @@ export default {
                             } else if(key=='odds') {
                                 this.$set(orderObj, key, twoDecimalPlacesFormat(Number(order[key])))
                             } else if(key=='score') {
-                                this.$set(orderObj, key, `"${order[key]}"`)
+                                if(this.failedBetStatus.includes(order.status) || order.status == 'SUCCESS') {
+                                    this.$set(orderObj, key, "")
+                                } else{
+                                    this.$set(orderObj, key, `"${order[key]}"`)
+                                }
                             } else {
                                 this.$set(orderObj, key, order[key])
                             }
