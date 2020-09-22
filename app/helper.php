@@ -507,11 +507,19 @@ if (!function_exists('eventTransformation')) {
                     'market_id'      => empty($transformed->is_market_empty) ? $transformed->master_event_market_unique_id : "",
                     'provider_alias' => $transformed->alias
                 ];
+
+                if (!empty($transformed->odd_label)) {
+                    if (empty($transformed->is_market_empty)) {
+                        $data[$transformed->master_event_unique_id]['market_odds']['main'][$transformed->type][$transformed->market_flag]['points'] = $transformed->odd_label;
+                    } else {
+                        $data[$transformed->master_event_unique_id]['market_odds']['main'][$transformed->type][$transformed->market_flag]['points'] = "";
+                    }
+                }
             }
 
-            if (!empty($transformed->odd_label)) {
-                $data[$transformed->master_event_unique_id]['market_odds']['main'][$transformed->type][$transformed->market_flag]['points'] = $transformed->odd_label;
-            }
+//            if (!empty($transformed->odd_label)) {
+//                $data[$transformed->master_event_unique_id]['market_odds']['main'][$transformed->type][$transformed->market_flag]['points'] = $transformed->odd_label;
+//            }
 
             if (empty($_SERVER['_PHPUNIT'])) {
                 $doesExist = false;
