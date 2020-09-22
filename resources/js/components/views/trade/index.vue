@@ -369,6 +369,14 @@ export default {
                             })
                         })
                     })
+                } else if(getSocketKey(response.data) === 'getEventData') {
+                    let eventData = getSocketValue(response.data, 'getEventData')
+                    this.allEventsList.map(event => {
+                        if(event.uid == eventData.uid) {
+                            this.$socket.send(`getEvents_${event.league_name}_${event.game_schedule}`)
+                            this.$socket.send('getWatchlist')
+                        }
+                    })
                 }
             })
         }

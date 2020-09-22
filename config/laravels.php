@@ -500,6 +500,16 @@ return [
                 ['name' => 'sport_id', 'type' => \Swoole\Table::TYPE_INT],
             ],
         ],
+        'eventHasMarkets' => [ // key format [eventHasMarkets:$uid]
+            'size'   => 100,
+            'column' => [
+                ['name' => 'uid', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 30],
+                ['name' => 'master_league_id', 'type' => \Swoole\Table::TYPE_INT],
+                ['name' => 'schedule', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 10],
+                ['name' => 'sport_id', 'type' => \Swoole\Table::TYPE_INT],
+                ['name' => 'has_markets', 'type' => \Swoole\Table::TYPE_INT],
+            ],
+        ],
     ],
     'register_providers'       => [
         \Laravel\Passport\PassportServiceProvider::class,

@@ -133,6 +133,10 @@ class TransformKafkaMessageOdds extends Task
 
                 $this->saveEventRecords($eventSwtId, $sportId, $leagueId, $teamHomeId, $teamAwayId, $providerId);
 
+                if (SwooleHandler::exists('eventHasMarketsTable', 'eventHasMarkets:' . $uid)) {
+                    SwooleHandler::setColumnValue('eventHasMarketsTable', 'eventHasMarkets:' . $uid, 'has_markets', 1);
+                }
+
                 if ($withChange) {
                     $arrayEvents = $this->message->data->events;
                     foreach ($arrayEvents as $eventKey => $event) {
@@ -143,6 +147,13 @@ class TransformKafkaMessageOdds extends Task
                                     'master_league_id' => $masterLeagueId,
                                     'schedule'         => $this->message->data->schedule,
                                     'sport_id'         => $sportId
+                                ]);
+                                SwooleHandler::setValue('eventHasMarketsTable', 'eventHasMarkets:' . $uid, [
+                                    'uid'              => $uid,
+                                    'master_league_id' => $masterLeagueId,
+                                    'schedule'         => $this->message->data->schedule,
+                                    'sport_id'         => $sportId,
+                                    'has_markets'      => 0
                                 ]);
                                 Log::info($uid . " event scored");
                                 break 2;

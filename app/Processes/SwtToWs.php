@@ -32,6 +32,7 @@ class SwtToWs implements CustomProcessInterface
                     self::getUpdatedPrice($swoole);
                     self::getEventSectionRemoved($swoole);
                     self::getEventScored($swoole);
+                    self::getEventScoredWithOdds($swoole);
 
                     if ($i % 15 == 0) {
                         self::getUpdatedLeagues();
@@ -224,6 +225,50 @@ class SwtToWs implements CustomProcessInterface
             }
 
             SwooleHandler::remove('eventsScoredTable', $key);
+        }
+    }
+
+    private static function getEventScoredWithOdds($swoole)
+    {
+        $eventHasMarketsTable = SwooleHandler::table('eventHasMarketsTable');
+        foreach ($eventHasMarketsTable as $key => $event) {
+            if ($event['has_markets'] == 1) {
+                $userSelectedLeagues = UserSelectedLeague::getSelectedLeagueByAllUsers([
+                    'league_id' => $event['master_league_id'],
+                    'schedule'  => $event['schedule'],
+                    'sport_id'  => $event['sport_id']
+                ]);
+                if ($userSelectedLeagues->exists()) {
+                    foreach ($userSelectedLeagues->get() as $userSelectedLeague) {
+                        $swtKey = 'userId:' . $userSelectedLeague->user_id . ':sId:' . $event['sport_id'] . ':lId:' . $event['master_league_id'] . ':schedule:' . $event['schedule'];
+                        if (SwooleHandler::exists('userSelectedLeaguesTable', $swtKey)) {
+                            $fd = $swoole->wsTable->get('uid:' . $userSelectedLeague->user_id);
+                            if ($swoole->isEstablished($fd['value'])) {
+                                $swoole->push($fd['value'], json_encode([
+                                    'getEventData' => ['uid' => $event['uid']]
+                                ]));
+                            }
+                        }
+                    }
+                }
+
+                $userWatchlist = UserWatchlist::getByUid($event['uid']);
+                if ($userWatchlist->exists()) {
+                    foreach ($userWatchlist->get() as $userWatchlistData) {
+                        $swtKey = "userWatchlist:" . $userWatchlistData->user_id . ":masterEventId:" . $userWatchlistData->master_event_id;
+                        if (SwooleHandler::exists('userWatchlistTable', $swtKey)) {
+                            $fd = $swoole->wsTable->get('uid:' . $userWatchlistData->user_id);
+                            if ($swoole->isEstablished($fd['value'])) {
+                                $swoole->push($fd['value'], json_encode([
+                                    'getEventData' => ['uid' => $event['uid']]
+                                ]));
+                            }
+                        }
+                    }
+                }
+
+                SwooleHandler::remove('eventHasMarketsTable', $key);
+            }
         }
     }
 
