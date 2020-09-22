@@ -22,7 +22,7 @@
                     <span>{{ props.row.valid_stake | formatPL }}</span>
                 </div>
                 <div slot="score" slot-scope="props">
-                    <span class="text-sm">{{ props.row.settled != "" && props.row.score != "" ? props.row.score : "-" }}</span>
+                    <span class="text-sm">{{ props.row.settled != "" && props.row.score != "" ? props.row.score.replace(/\"/g, "") : "-" }}</span>
                 </div>
                 <div class="flex justify-start" slot="betData" slot-scope="props">
                     <a href="#" @click.prevent="openBetMatrix(props.row.order_id)" class="text-center py-1 w-1/2" v-if="oddTypesWithSpreads.includes(props.row.odd_type_id) && !failedBetStatus.includes(props.row.status)"><i class="fas fa-chart-area" title="Bet Matrix"></i></a>
@@ -111,6 +111,7 @@ export default {
                 'Status'                 : 'status',
                 'Reason'                 : 'reason',
                 'Result'                 : 'score',
+                'Valid Stake'            : 'valid_stake',
                 'Profit/Loss'            : 'pl'
             }
         }
@@ -159,6 +160,12 @@ export default {
                                 this.$set(orderObj, key, moneyFormat(Number(order[key])))
                             } else if(key=='odds') {
                                 this.$set(orderObj, key, twoDecimalPlacesFormat(Number(order[key])))
+                            } else if(key=='score') {
+                                if(this.failedBetStatus.includes(order.status) || order.status == 'SUCCESS') {
+                                    this.$set(orderObj, key, "")
+                                } else{
+                                    this.$set(orderObj, key, `"${order[key]}"`)
+                                }
                             } else {
                                 this.$set(orderObj, key, order[key])
                             }
