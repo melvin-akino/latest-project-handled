@@ -30,14 +30,15 @@ class SwtToWs implements CustomProcessInterface
                 while (!self::$quit) {
                     self::getUpdatedOdds($swoole);
                     self::getUpdatedPrice($swoole);
-                    if ($i % 30 == 0) {
+                    self::getEventSectionRemoved($swoole);
+                    self::getEventScored($swoole);
+
+                    if ($i % 15 == 0) {
                         self::getUpdatedLeagues();
-                        self::getEventSectionRemoved($swoole);
                     }
 
                     if ($i % 5 == 0) {
                         self::getForBetBarRemoval($swoole);
-                        self::getEventScored($swoole);
                     }
                     usleep(1000000);
                     $i++;
