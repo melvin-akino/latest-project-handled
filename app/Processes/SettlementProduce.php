@@ -89,6 +89,33 @@ class SettlementProduce implements CustomProcessInterface
                                             );
 
                                             // add sleep to prevent detecting as bot
+                                            usleep(random_int(1, 3) * 1000000);
+
+                                            $providerAlias = strtolower($pRow['provider_alias']);
+                                            $username      = $pRow['username'];
+                                            $requestId     = (string) Str::uuid();
+                                            $requestTs     = getMilliseconds();
+                                            $payload       = [
+                                                'request_uid' => $requestId,
+                                                'request_ts'  => $requestTs,
+                                                'sub_command' => 'scrape',
+                                                'command'     => 'settlement'
+                                            ];
+
+                                            $payload['data'] = [
+                                                'sport'           => $sportId,
+                                                'provider'        => $providerAlias,
+                                                'username'        => $username,
+                                                'settlement_date' => Carbon::createFromFormat('Y-m-d', $providerUnsettledDate)->subDays(1)->format('Y-m-d')
+                                            ];
+
+                                            KafkaPush::dispatch(
+                                                $providerAlias . env('KAFKA_SCRAPE_SETTLEMENT_POSTFIX', '_settlement_req'),
+                                                $payload,
+                                                $requestId
+                                            );
+
+                                            // add sleep to prevent detecting as bot
                                             usleep(random_int(5, 15) * 1000000);
                                         }
 
