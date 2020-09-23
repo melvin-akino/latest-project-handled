@@ -64,7 +64,7 @@ export default {
         }
     },
     computed: {
-        ...mapState('trade', ['isBetBarOpen', 'selectedSport', 'leagues', 'selectedLeagues', 'oddsTypeBySport', 'columnsToDisplay', 'allEventsList', 'eventsList', 'events', 'openedBetSlips', 'tradePageSettings']),
+        ...mapState('trade', ['isBetBarOpen', 'selectedSport', 'leagues', 'selectedLeagues', 'oddsTypeBySport', 'columnsToDisplay', 'allEventsList', 'eventsList', 'events', 'openedBetSlips', 'tradePageSettings', 'watchlist']),
     },
     created() {
         vm.$connect()
@@ -79,12 +79,15 @@ export default {
             this.$options.sockets.onmessage = (response => {
                 if(getSocketKey(response.data) ===  'getWatchlist') {
                     let watchlist = getSocketValue(response.data, 'getWatchlist')
-                    let watchlistLeagues = _.uniq(watchlist.map(event => event.league_name))
-                    let watchlistStartTime = _.uniq(watchlist.map(event => `[${event.ref_schedule.split(' ')[1]}] ${event.league_name}`))
+                    watchlist.map(watchlistEvent => {
+                        this.$store.commit('trade/SET_WATCHLIST_EVENTS', watchlistEvent)
+                    })
+                    let watchlistLeagues = _.uniq(this.watchlist.map(event => event.league_name))
+                    let watchlistStartTime = _.uniq(this.watchlist.map(event => `[${event.ref_schedule.split(' ')[1]}] ${event.league_name}`))
                     let watchlistObject = {}
                     if(this.tradePageSettings.sort_event == 1) {
                         watchlistLeagues.map(league => {
-                            watchlist.map(event => {
+                            this.watchlist.map(event => {
                                 this.$delete(event.market_odds, 'other')
                                 if(event.league_name === league) {
                                     if(typeof(watchlistObject[league]) == "undefined") {
@@ -96,7 +99,7 @@ export default {
                         })
                     } else if(this.tradePageSettings.sort_event == 2) {
                         watchlistStartTime.map(startTime => {
-                            watchlist.map(event => {
+                            this.watchlist.map(event => {
                                 this.$delete(event.market_odds, 'other')
                                 let eventSchedLeague = `[${event.ref_schedule.split(' ')[1]}] ${event.league_name}`
                                 if(eventSchedLeague === startTime) {
@@ -371,11 +374,18 @@ export default {
                     })
                 } else if(getSocketKey(response.data) === 'getEventData') {
                     let eventData = getSocketValue(response.data, 'getEventData')
-                    this.allEventsList.map(event => {
-                        if(event.uid == eventData.uid) {
-                            this.$socket.send(`getEvents_${event.league_name}_${event.game_schedule}`)
-                            this.$socket.send('getWatchlist')
-                        }
+                    Object.keys(this.events).map(schedule => {
+                        Object.keys(this.events[schedule]).map(league => {
+                            this.events[schedule][league].map(event => {
+                                if(event.uid == eventData.uid) {
+                                    if(schedule == 'watchlist') {
+                                        this.$socket.send(`getWatchlist_${event.uid}`)
+                                    } else {
+                                        this.$socket.send(`getEvents_${event.league_name}_${event.game_schedule}`)
+                                    }
+                                }
+                            })
+                        })
                     })
                 }
             })
@@ -455,13 +465,13 @@ export default {
 </script>
 
 <style lang="scss">
-    .gameWindow {
-        position: relative;
-        overflow-x: auto;
-    }
+.gameWindow {
+    position: relative;
+    overflow-x: auto;
+}
 
-    .gameScheds {
-        overflow-x: hidden;
-        overflow-y: auto;
-    }
+.gameScheds {
+    overflow-x: hidden;
+    overflow-y: auto;
+}
 </style>

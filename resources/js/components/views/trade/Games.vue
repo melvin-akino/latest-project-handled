@@ -258,6 +258,7 @@ export default {
                     })
                     this.$store.commit('trade/REMOVE_FROM_EVENTS', { schedule: 'watchlist', removedLeague: data })
                     payload.map(event => {
+                        this.$store.commit('trade/REMOVE_FROM_WATCHLIST', event.uid)
                         this.$store.commit('trade/SET_EVENTS_LIST', event)
                         if(this.tradePageSettings.sort_event == 1) {
                             this.$store.dispatch('trade/transformEvents', { schedule: event.game_schedule, league: event.league_name, payload: event })
@@ -273,6 +274,7 @@ export default {
                         }
                     })
                 } else if(type==='event') {
+                    this.$store.commit('trade/REMOVE_FROM_WATCHLIST', data)
                     if(this.tradePageSettings.sort_event == 1) {
                         this.$store.commit('trade/REMOVE_EVENT', { schedule: 'watchlist', removedLeague: payload.league_name, removedEvent: data })
                         this.leaguesLength = this.events.watchlist[payload.league_name].length

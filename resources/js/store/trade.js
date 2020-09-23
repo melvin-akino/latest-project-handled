@@ -245,6 +245,16 @@ const mutations = {
     SET_WATCHLIST: (state, watchlist) => {
         Vue.set(state.events, 'watchlist', watchlist)
     },
+    SET_WATCHLIST_EVENTS: (state, event) => {
+        let watchlistEventsUID = state.watchlist.map(event => event.uid)
+        if(watchlistEventsUID.includes(event.uid)) {
+            state.watchlist = state.watchlist.filter(watchlistEvent => watchlistEvent.uid != event.uid)
+        }
+        state.watchlist.push(event)
+    },
+    REMOVE_FROM_WATCHLIST: (state, uid) => {
+        state.watchlist = state.watchlist.filter(watchlistEvent => watchlistEvent.uid != uid)
+    },
     OPEN_BETSLIP: (state, data) => {
         let openedBetSlips = state.openedBetSlips.map(betSlips => betSlips.market_id)
         if(!openedBetSlips.includes(data.odd.market_id)) {
@@ -400,6 +410,7 @@ const actions = {
                 sortedUserWatchlist[league] = sortByObjectProperty(sortedUserWatchlist[league], 'ref_schedule')
                 sortedUserWatchlist[league].map(event => {
                     commit('SET_WATCHLIST', sortedUserWatchlist)
+                    commit('SET_WATCHLIST_EVENTS', event)
                     commit('SET_ALL_EVENTS_LIST', event)
                 })
             })

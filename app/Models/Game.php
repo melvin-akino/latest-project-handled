@@ -72,7 +72,7 @@ class Game extends Model
                  ->distinct();
     }
 
-    public static function getWatchlistGameDetails(int $userId)
+    public static function getWatchlistGameDetails(int $userId, int $eventId = null)
     {
         $maxMissingCount = SystemConfiguration::getSystemConfigurationValue('EVENT_VALID_MAX_MISSING_COUNT')->value;
 
@@ -103,6 +103,9 @@ class Game extends Model
 //                 ->whereNull('em.deleted_at')
                  ->whereNull('ml.deleted_at')
                  ->where('e.missing_count', '<=', $maxMissingCount)
+                 ->when($eventId, function($query, $eventId) {
+                    return $query->where('uw.master_event_id', $eventId);
+                 })
                  ->distinct()->get();
     }
 
