@@ -32,7 +32,8 @@ class TransformKafkaMessageOdds extends Task
         try {
             $startTime = microtime(TRUE);
 
-            $swoole   = app('swoole');
+            $swoole        = app('swoole');
+            $updateLeagues = false;
 
             list(
                 'providerId' => $providerId,
@@ -138,6 +139,7 @@ class TransformKafkaMessageOdds extends Task
                 }
 
                 if ($withChange) {
+                    $updateLeagues = true;
                     $arrayEvents = $this->message->data->events;
                     foreach ($arrayEvents as $eventKey => $event) {
                         foreach ($event->market_odds as $marketOdd) {
@@ -288,6 +290,7 @@ class TransformKafkaMessageOdds extends Task
                 }
 
             } else {
+                $updateLeagues = true;
                 $mlEventRecord = SwooleHandler::getValue('mlEventsTable', implode(':', [
                     $sportId,
                     $masterLeagueId,
@@ -433,6 +436,10 @@ class TransformKafkaMessageOdds extends Task
 
             if (!empty($updatedOdds)) {
                 $swoole->updatedEventsTable->set("updatedEvents:" . $uid, ['value' => json_encode($updatedOdds)]);
+                $updateLeagues = true;
+            }
+
+            if ($updateLeagues) {
                 SwooleHandler::setValue('updateLeaguesTable', 'updateLeagues', ['value' => 1]);
             }
 

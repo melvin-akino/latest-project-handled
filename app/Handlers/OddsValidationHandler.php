@@ -71,6 +71,7 @@ class OddsValidationHandler
                 $swtRequestUID = null;
                 foreach ($swoole->scraperRequestsTable as $key => $scraperRequestsTable) {
                     if ($key == 'type:odds:requestUID:' . $this->message->request_uid) {
+                        SwooleHandler::remove('scraperRequestsTable', $key);
                         $doesExist = true;
                         break;
                     }
