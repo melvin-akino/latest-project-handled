@@ -152,6 +152,9 @@ class EventsTransformationHandler
                 $inActiveEvents = array_diff($events, $activeEvents);
 
                 $data = [];
+                if (!empty($inActiveEvents)) {
+                    SwooleHandler::setValue('updateLeaguesTable', 'updateLeagues', ['value' => 1]);
+                }
                 foreach ($inActiveEvents as $eventIdentifier) {
                     $eventTableKey = "sId:{$sportId}:pId:{$payloadProviderId}:eventIdentifier:{$eventIdentifier}";
                     $event         = SwooleHandler::getValue('eventRecordsTable', $eventTableKey);
