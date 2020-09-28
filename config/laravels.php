@@ -365,6 +365,12 @@ return [
                 ['name' => 'events', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 10000],
             ],
         ],
+        'inactiveEvents'        => [
+            'size'   => 1000,
+            'column' => [ // KEY FORMAT: [unique:<uniqid()>]
+                  ['name' => 'event', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 256],
+            ],
+        ],
         'topic'               => [
             'size'   => env('SWT_MAX_SIZE', 102400),
             'column' => [ // KEY FORMAT: [userId:$userId:unique:<uniqid()>]

@@ -152,6 +152,11 @@ class SwtController extends Controller
                 'max'   => 1000,
                 'count' => $swoole->activeEventsTable->count()
             ],
+            'inactiveEvents'          => [
+                'name'  => 'Inactive Events',
+                'max'   => 1000,
+                'count' => $swoole->inactiveEventsTable->count()
+            ],
             'topic'                 => [
                 'name'  => 'Topic',
                 'max'   => env('SWT_MAX_SIZE', 102400),
@@ -236,6 +241,11 @@ class SwtController extends Controller
                 'name'  => 'Event No Market IDs',
                 'max'   => 1000,
                 'count' => $swoole->eventNoMarketIdsTable->count()
+            ],
+            'eventHasMarkets'       => [
+                'name'  => 'Event Has Markets',
+                'max'   => 100,
+                'count' => $swoole->eventHasMarketsTable->count()
             ],
         ];
 

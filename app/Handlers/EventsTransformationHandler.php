@@ -171,15 +171,20 @@ class EventsTransformationHandler
                                              ->first();
 
                             if ($masterEvent) {
-                                $data[]              = [
+                                $inactiveEvent       = [
                                     'uid'           => $masterEvent->master_event_unique_id,
                                     'league_name'   => $masterEvent->league_name,
                                     'game_schedule' => $masterEvent->game_schedule
                                 ];
+                                $data[]              = $inactiveEvent;
                                 $userSelectedLeagues = UserSelectedLeague::getSelectedLeagueByAllUsers([
                                     'league_id' => $masterEvent->master_league_id,
                                     'schedule'  => $this->message->data->schedule,
                                     'sport_id'  => $sportId
+                                ]);
+
+                                SwooleHandler::setValue('inactiveEventsTable', 'unique:' . uniqid(), [
+                                    'event' => json_encode($inactiveEvent)
                                 ]);
 
                                 if ($userSelectedLeagues->exists()) {
@@ -208,13 +213,13 @@ class EventsTransformationHandler
 
                 $activeEventsTable->set($activeEventsSwtId, ['events' => json_encode($activeEvents)]);
 
-                if (!empty($data)) {
-                    foreach ($swoole->wsTable as $key => $row) {
-                        if (strpos($key, 'uid:') === 0 && $swoole->isEstablished($row['value'])) {
-                            $swoole->push($row['value'], json_encode(['getForRemovalEvents' => $data]));
-                        }
-                    }
-                }
+//                if (!empty($data)) {
+//                    foreach ($swoole->wsTable as $key => $row) {
+//                        if (strpos($key, 'uid:') === 0 && $swoole->isEstablished($row['value'])) {
+//                            $swoole->push($row['value'], json_encode(['getForRemovalEvents' => $data]));
+//                        }
+//                    }
+//                }
                 Log::info("For Removal Event - Processed");
             }
 

@@ -3,12 +3,7 @@
 namespace App\Processes;
 
 use App\Facades\SwooleHandler;
-use App\Models\Game;
-use App\Models\League;
-use App\Models\SystemConfiguration;
-use App\Models\UserProviderConfiguration;
-use App\Models\UserSelectedLeague;
-use App\Models\UserWatchlist;
+use App\Models\{Game, UserProviderConfiguration, UserSelectedLeague, UserWatchlist};
 use Hhxsv5\LaravelS\Swoole\Process\CustomProcessInterface;
 use Illuminate\Support\Facades\Log;
 use Swoole\Http\Server;
@@ -29,13 +24,13 @@ class SwtToWs implements CustomProcessInterface
                 $i = 0;
                 while (!self::$quit) {
                     self::getUpdatedOdds($swoole);
-                    self::getUpdatedPrice($swoole);
                     self::getEventSectionRemoved($swoole);
                     self::getEventScored($swoole);
                     self::getEventScoredWithOdds($swoole);
 
                     if ($i % 15 == 0) {
                         self::getUpdatedLeagues();
+                        self::getInActiveEvents($swoole);
                     }
 
                     if ($i % 5 == 0) {
@@ -135,31 +130,6 @@ class SwtToWs implements CustomProcessInterface
             wsEmit(['getUpdatedLeagues' => [
                 'status' => true
             ]]);
-        }
-    }
-
-    private static function getUpdatedPrice($swoole)
-    {
-        $updatedEventsTable = $swoole->updatedEventsTable;
-        $wsTable            = $swoole->wsTable;
-        $topicTable         = $swoole->topicTable;
-
-        foreach ($updatedEventsTable as $k => $r) {
-            $updatedMarkets = json_decode($r['value']);
-            if (!empty($updatedMarkets)) {
-                foreach ($topicTable as $topic => $_row) {
-                    if (strpos($_row['topic_name'], 'min-max-') === 0) {
-                        $userId = $_row['user_id'];
-                        $fd     = $wsTable->get('uid:' . $userId);
-                        if ($swoole->isEstablished($fd['value'])) {
-                            foreach ($updatedMarkets as $updatedMarket) {
-                                $swoole->push($fd['value'], json_encode(['getUpdatedPrice' => $updatedMarket]));
-                            }
-                        }
-                    }
-                }
-                $updatedEventsTable->del($k);
-            }
         }
     }
 
@@ -320,6 +290,23 @@ class SwtToWs implements CustomProcessInterface
             }
 
             SwooleHandler::remove('eventNoMarketIdsTable', $key);
+        }
+    }
+
+    private static function getInActiveEvents($swoole)
+    {
+        $inactiveEventsTable        = SwooleHandler::table('inactiveEventsTable');
+        $inactiveEvents = [];
+        foreach ($inactiveEventsTable as $key => $data) {
+            $inactiveEvents[] = json_decode($data['event'], true);
+            SwooleHandler::remove('wsTable', $key);
+        }
+
+        $wsTable = SwooleHandler::table('wsTable');
+        foreach ($wsTable as $key => $row) {
+            if (strpos($key, 'uid:') === 0 && $swoole->isEstablished($row['value'])) {
+                $swoole->push($row['value'], json_encode(['getForRemovalEvents' => $inactiveEvents]));
+            }
         }
     }
 }
