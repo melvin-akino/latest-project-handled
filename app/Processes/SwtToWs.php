@@ -302,10 +302,12 @@ class SwtToWs implements CustomProcessInterface
             SwooleHandler::remove('wsTable', $key);
         }
 
-        $wsTable = SwooleHandler::table('wsTable');
-        foreach ($wsTable as $key => $row) {
-            if (strpos($key, 'uid:') === 0 && $swoole->isEstablished($row['value'])) {
-                $swoole->push($row['value'], json_encode(['getForRemovalEvents' => $inactiveEvents]));
+        if (!empty($inactiveEvents)) {
+            $wsTable = SwooleHandler::table('wsTable');
+            foreach ($wsTable as $key => $row) {
+                if (strpos($key, 'uid:') === 0 && $swoole->isEstablished($row['value'])) {
+                    $swoole->push($row['value'], json_encode(['getForRemovalEvents' => $inactiveEvents]));
+                }
             }
         }
     }
