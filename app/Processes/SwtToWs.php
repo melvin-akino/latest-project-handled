@@ -299,7 +299,7 @@ class SwtToWs implements CustomProcessInterface
         $inactiveEvents = [];
         foreach ($inactiveEventsTable as $key => $data) {
             $inactiveEvents[] = json_decode($data['event'], true);
-            SwooleHandler::remove('wsTable', $key);
+            SwooleHandler::remove('inactiveEventsTable', $key);
         }
 
         if (!empty($inactiveEvents)) {
