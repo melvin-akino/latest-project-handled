@@ -79,7 +79,7 @@ class SettlementProduce implements CustomProcessInterface
                                                 'sport'           => $sportId,
                                                 'provider'        => $providerAlias,
                                                 'username'        => $username,
-                                                'settlement_date' => Carbon::createFromFormat('Y-m-d', $providerUnsettledDate)->subHours(5)->format('Y-m-d')
+                                                'settlement_date' => Carbon::createFromFormat('Y-m-d', $providerUnsettledDate)->subDays(1)->format('Y-m-d')
                                             ];
 
                                             KafkaPush::dispatch(
