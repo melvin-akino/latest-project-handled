@@ -152,9 +152,6 @@ class EventsTransformationHandler
                 $inActiveEvents = array_diff($events, $activeEvents);
 
                 $data = [];
-                if (!empty($inActiveEvents)) {
-                    SwooleHandler::setValue('updateLeaguesTable', 'updateLeagues', ['value' => 1]);
-                }
                 foreach ($inActiveEvents as $eventIdentifier) {
                     $eventTableKey = "sId:{$sportId}:pId:{$payloadProviderId}:eventIdentifier:{$eventIdentifier}";
                     $event         = SwooleHandler::getValue('eventRecordsTable', $eventTableKey);
@@ -213,13 +210,9 @@ class EventsTransformationHandler
 
                 $activeEventsTable->set($activeEventsSwtId, ['events' => json_encode($activeEvents)]);
 
-//                if (!empty($data)) {
-//                    foreach ($swoole->wsTable as $key => $row) {
-//                        if (strpos($key, 'uid:') === 0 && $swoole->isEstablished($row['value'])) {
-//                            $swoole->push($row['value'], json_encode(['getForRemovalEvents' => $data]));
-//                        }
-//                    }
-//                }
+                if (!empty($data)) {
+                    SwooleHandler::setValue('updateLeaguesTable', 'updateLeagues', ['value' => 1]);
+                }
                 Log::info("For Removal Event - Processed");
             }
 
