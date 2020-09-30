@@ -11,6 +11,8 @@ class Sport extends Model
     protected $fillable = [
         'sport',
         'details',
+        'slug',
+        'icon',
         'priority',
         'is_enabled'
     ];
@@ -37,5 +39,15 @@ class Sport extends Model
         return $query->where('is_enabled', true)
             ->first()
             ->sport;
+    }
+
+    public static function getLatestPriority()
+    {
+        return self::orderBy('priority', 'desc')->get()->first();
+    }
+
+    public static function getAllSports()
+    {
+        return self::orderBy('priority', 'asc')->orderBy('id', 'asc')->get()->toArray();
     }
 }

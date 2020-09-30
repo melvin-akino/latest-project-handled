@@ -35,6 +35,12 @@ Route::get('/prometheus_GGT8', 'PrometheusController@index');
         Route::get('provider_accounts/delete/{id}', 'ProviderAccountsController@softDelete')->name('provider_accounts.softdelete');
         Route::post('provider_accounts/manage', 'ProviderAccountsController@manage')->name('provider_accounts.manage');
 
+        /*Sports related routes*/
+        Route::get('sports', 'SportsController@index')->name('sports');
+        Route::get('sports/list', 'SportsController@list')->name('sports.list');
+        Route::post('sports/manage', 'SportsController@manage')->name('sports.manage');
+        Route::post('sports/sort','SportsController@prioritize')->name('sports.sort');
+
         /*System Configurations Routes*/
         Route::get('system_configurations', 'SystemConfigurationsController@index')->name('system_configurations');
         Route::get('system_configurations/all', 'SystemConfigurationsController@all')->name('system_configurations.all');

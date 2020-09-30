@@ -20,6 +20,14 @@
                         <span>Dashboard</span>
                     </a>
                 </li>
+
+                <li class="@isset($providers_menu) active @endisset">
+                    <a href="/admin/sports">
+                        <i class="fa fa-dashboard" aria-hidden="true"></i>
+                        <span>Sports</span>
+                    </a>
+                </li>
+
                 <li class="@isset($providers_menu) active @endisset">
                     <a href="/admin/providers">
                         <i class="fa fa-dashboard" aria-hidden="true"></i>
