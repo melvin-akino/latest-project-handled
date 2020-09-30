@@ -27,9 +27,7 @@ class UpdateOddEvenWinFormulaResult extends Migration
                                             ->where('order_log_id', $orderLogData->id)
                                             ->first();
 
-                if ($providerAccountOrderOE &&
-                    $providerAccountOrderOE->actual_to_win != $providerAccountOrderOE->actual_stake * ($orderData->odds - 1)) {
-
+                if ($providerAccountOrderOE) {
                     if ($orderData->status == 'WIN') {
                         DB::table('provider_account_orders')
                           ->where('id', $providerAccountOrderOE->id)
@@ -57,35 +55,31 @@ class UpdateOddEvenWinFormulaResult extends Migration
                 }
             }
 
-            if ($orderData->to_win != $orderData->stake * ($orderData->odds - 1)) {
-
-                if ($orderData->status == 'WIN') {
-                    DB::table('orders')
-                      ->where('id', $orderData->id)
-                      ->update([
-                          'to_win'      => $orderData->stake * ($orderData->odds - 1),
-                          'profit_loss' => $orderData->stake * ($orderData->odds - 1),
-                          'updated_at'  => Carbon::now()
-                      ]);
-                } else if ($orderData->status == 'HALF WIN') {
-                    DB::table('orders')
-                      ->where('id', $orderData->id)
-                      ->update([
-                          'to_win'      => $orderData->stake * ($orderData->odds - 1),
-                          'profit_loss' => ($orderData->stake * ($orderData->odds - 1)) / 2,
-                          'updated_at'  => Carbon::now()
-                      ]);
-                } else {
-                    DB::table('orders')
-                      ->where('id', $orderData->id)
-                      ->update([
-                          'to_win'     => $orderData->stake * ($orderData->odds - 1),
-                          'updated_at' => Carbon::now()
-                      ]);
-                }
-
-
+            if ($orderData->status == 'WIN') {
+                DB::table('orders')
+                  ->where('id', $orderData->id)
+                  ->update([
+                      'to_win'      => $orderData->stake * ($orderData->odds - 1),
+                      'profit_loss' => $orderData->stake * ($orderData->odds - 1),
+                      'updated_at'  => Carbon::now()
+                  ]);
+            } else if ($orderData->status == 'HALF WIN') {
+                DB::table('orders')
+                  ->where('id', $orderData->id)
+                  ->update([
+                      'to_win'      => $orderData->stake * ($orderData->odds - 1),
+                      'profit_loss' => ($orderData->stake * ($orderData->odds - 1)) / 2,
+                      'updated_at'  => Carbon::now()
+                  ]);
+            } else {
+                DB::table('orders')
+                  ->where('id', $orderData->id)
+                  ->update([
+                      'to_win'     => $orderData->stake * ($orderData->odds - 1),
+                      'updated_at' => Carbon::now()
+                  ]);
             }
+                
         }
     }
 
