@@ -1,6 +1,6 @@
 <?php
 
-use App\Models\CRM\ErrorMessage;
+use App\Models\ErrorMessage;
 use Illuminate\Database\Seeder;
 
 class ErrorMessagesSeeder extends Seeder
