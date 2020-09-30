@@ -37,9 +37,3 @@ class CreateTableErrorMessages extends Migration
         Schema::dropIfExists($this->tablename);
     }
 }
-/*
-id int autoincrement primary
-error varchar(255) unique
-created_at timestamp
-updated_at timestamp ON Update
-deleted_at datetime null
