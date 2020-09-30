@@ -121,7 +121,8 @@ class Order extends Model
                      'score_on_bet',
                      'sot.name as sport_odd_type_name',
                      'p.alias as provider',
-                     'o.status'
+                     'o.status',
+                     'final_score'
                  ]);
     }
 

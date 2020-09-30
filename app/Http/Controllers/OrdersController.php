@@ -256,7 +256,7 @@ class OrdersController extends Controller
                 }
             }
 
-            $eventBets = Order::getOrdersByEvent($masterEvent->master_event_unique_id)->count();
+            $eventBets = Order::getOrdersByEvent($masterEvent->master_event_unique_id, true)->count();
 
             $hasBets = false;
             if ($eventBets > 0) {
@@ -807,6 +807,7 @@ class OrdersController extends Controller
                     'home_score_on_bet' => $scoreOnBet[0],
                     'away_score_on_bet' => $scoreOnBet[1],
                     'created_at'        => Carbon::createFromFormat("Y-m-d H:i:s", $order->created_at, 'Etc/UTC')->setTimezone($userTz)->format("Y-m-d H:i:s"),
+                    'final_score'       => $order->final_score,
                 ];
             }
 
