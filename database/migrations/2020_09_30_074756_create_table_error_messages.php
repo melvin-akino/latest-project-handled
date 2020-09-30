@@ -3,6 +3,7 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Artisan;
 
 class CreateTableErrorMessages extends Migration
 {
@@ -20,6 +21,10 @@ class CreateTableErrorMessages extends Migration
             $table->string('error',255)->unique();
             $table->timestamps();
         });
+
+        Artisan::call('db:seed', [
+            '--class' => ErrorMessagesSeeder::class
+        ]);
     }
 
     /**
