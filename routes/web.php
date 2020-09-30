@@ -35,6 +35,11 @@ Route::get('/prometheus_GGT8', 'PrometheusController@index');
         Route::get('provider_accounts/delete/{id}', 'ProviderAccountsController@softDelete')->name('provider_accounts.softdelete');
         Route::post('provider_accounts/manage', 'ProviderAccountsController@manage')->name('provider_accounts.manage');
 
+        /*Error messages*/
+        Route::get('error_messages', 'ErrorMessagesController@index')->name('error_messages');
+        Route::get('error_messages/list', 'ErrorMessagesController@list')->name('error_messages.list');
+        Route::post('error_messages/manage', 'ErrorMessagesController@manage')->name('error_messages.manage');
+
         /*System Configurations Routes*/
         Route::get('system_configurations', 'SystemConfigurationsController@index')->name('system_configurations');
         Route::get('system_configurations/all', 'SystemConfigurationsController@all')->name('system_configurations.all');
