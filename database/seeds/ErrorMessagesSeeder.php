@@ -1,10 +1,11 @@
 <?php
 
-use App\Models\ErrorMessage;
 use Illuminate\Database\Seeder;
+use Carbon\Carbon;
 
 class ErrorMessagesSeeder extends Seeder
 {
+    protected $tablename = 'error_messages';
     /**
      * Run the database seeds.
      *
@@ -15,65 +16,67 @@ class ErrorMessagesSeeder extends Seeder
         $data = [
         	[
                 'id'         => 1,
-                'error'       => "Bet was not placed. Please try again.",
+                'error'      => "Bet was not placed. Please try again.",
                 'created_at' => Carbon::now(),
-                'updated_at' => Carbon::now()
+                'updated_at' => Carbon::now(),
             ],
             [
                 'id'         => 2,
-                'error'       => "The odds have changed. Please try again.",
+                'error'      => "The odds have changed. Please try again.",
                 'created_at' => Carbon::now(),
-                'updated_at' => Carbon::now()
+                'updated_at' => Carbon::now(),
             ],
             [
                 'id'         => 3,
-                'error'       => "Internal Error. Please contact support.",
+                'error'      => "Internal Error. Please contact support.",
                 'created_at' => Carbon::now(),
-                'updated_at' => Carbon::now()
+                'updated_at' => Carbon::now(),
             ],
             [
                 'id'         => 4,
-                'error'       => "Rejected.",
+                'error'      => "Rejected.",
                 'created_at' => Carbon::now(),
-                'updated_at' => Carbon::now()
+                'updated_at' => Carbon::now(),
             ],
             [
                 'id'         => 5,
-                'error'       => "Cancelled.",
+                'error'      => "Cancelled.",
                 'created_at' => Carbon::now(),
-                'updated_at' => Carbon::now()
+                'updated_at' => Carbon::now(),
             ],
             [
                 'id'         => 6,
-                'error'       => "Abnormal bet.",
+                'error'      => "Abnormal bet.",
                 'created_at' => Carbon::now(),
-                'updated_at' => Carbon::now()
+                'updated_at' => Carbon::now(),
             ],
             [
                 'id'         => 7,
-                'error'       => "Postponed.",
+                'error'      => "Postponed.",
                 'created_at' => Carbon::now(),
-                'updated_at' => Carbon::now()
+                'updated_at' => Carbon::now(),
             ],
             [
                 'id'         => 8,
-                'error'       => "Bookmaker cannot be reached.",
+                'error'      => "Bookmaker cannot be reached.",
                 'created_at' => Carbon::now(),
-                'updated_at' => Carbon::now()
+                'updated_at' => Carbon::now(),
             ],
             [
                 'id'         => 9,
-                'error'       => "Your bet is currently pending.",
+                'error'      => "Your bet is currently pending.",
                 'created_at' => Carbon::now(),
-                'updated_at' => Carbon::now()
+                'updated_at' => Carbon::now(),
             ],
             [
                 'id'         => 10,
-                'error'       => "Bookmaker site is currently busy. Please try again later.",
+                'error'      => "Bookmaker site is currently busy. Please try again later.",
                 'created_at' => Carbon::now(),
-                'updated_at' => Carbon::now()
+                'updated_at' => Carbon::now(),
             ]
         ];
-        ErrorMessage::create($data);
+        foreach ($data as $d) {
+            DB::table($this->tablename)->insert($d);
+        }
     }
 }

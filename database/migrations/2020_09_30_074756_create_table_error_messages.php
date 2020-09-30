@@ -18,7 +18,7 @@ class CreateTableErrorMessages extends Migration
     {
         Schema::create($this->tablename, function (Blueprint $table) {
             $table->bigIncrements('id');
-            $table->string('error',255)->unique();
+            $table->string('error',255);
             $table->timestamps();
         });
 
