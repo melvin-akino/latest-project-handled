@@ -14,7 +14,6 @@ class UpdateOddEvenWinFormulaResult extends Migration
     public function up()
     {
         $winOE = DB::table('orders')
-                   ->whereIn('status', ['WIN', 'HALF WIN'])
                    ->where('odd_type_id', 5)
                    ->get();
 
