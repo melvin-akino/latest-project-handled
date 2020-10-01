@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
+
 class ProviderErrors extends Model
 {
     //
@@ -17,6 +18,11 @@ class ProviderErrors extends Model
         'created_at',
         'updated_at',
     ];
+
+    public function Errorvalue()
+    {
+        return $this->belongsTo('App\Models\ErrorMessage','error_message_id');
+    }
     
 
 }

@@ -31,6 +31,12 @@
                         <i class="fa fa-dashboard" aria-hidden="true"></i>
                         <span>System Configurations</span>
                     </a>
+                </li>
+                <li class="@isset($system_configuration_menu) active @endisset">
+                    <a href="/admin/error_messages">
+                        <i class="fa fa-dashboard" aria-hidden="true"></i>
+                        <span>Error messages</span>
+                    </a>
                 </li> 
                 <li class="@isset($accounts_menu) active @endisset">
                     <a href="/admin/accounts">
