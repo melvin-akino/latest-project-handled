@@ -84,6 +84,38 @@
                      
                     </ul>
                 </li>
+
+                <li class="treeview @isset($wallet_menu) active menu-open @endisset" id="wallet-treeview">
+                    <a href="javascript:void(0);">
+                        <i class="fa fa-id-card-o" aria-hidden="true"></i>
+                        <span>Error Messaging</span>
+                        <i class="fa fa-angle-left pull-right"></i>
+                    </a>
+
+                    <ul class="treeview-menu">
+                       
+                        <li class=" @isset($currency_menu) active @endisset ">
+                            <a href="/admin/wallet/currencies">
+                                <i class="fa fa-usd" aria-hidden="true"></i>
+                                <span>Error jan</span>
+                            </a>
+                        </li>
+                     
+
+                       
+                        <li class="@isset($exchange_rate_menu) active @endisset">
+                            <a href="/admin/wallet/exchange_rates">
+                                <i class="fa fa-exchange" aria-hidden="true"></i>
+                                <span>Error Vin</span>
+                            </a>
+                        </li>
+                        
+
+                       
+                        
+                     
+                    </ul>
+                </li>
           
 
             {{--

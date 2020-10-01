@@ -88,15 +88,18 @@ Route::get('/prometheus_GGT8', 'PrometheusController@index');
 
          /* monitorng route */
 
-        Route::namespace('Monitoring')->group(function() {
-        	Route::prefix('monitoring')->group(function() {
-        		Route::get('minmax', 'MonitoringToolController@minmax')->name('monitoring.minmax');
+        Route::namespace('Message')->group(function() {
+        	Route::prefix('message')->group(function() {
+        		Route::get('index', 'ProviderErrorController@index')->name('providererror.index');
 
-        		Route::get('placedbet', 'MonitoringToolController@placedBet')->name('monitoring.placedBet');
-        		Route::get('odds', 'MonitoringToolController@odds')->name('monitoring.odds');
+        		Route::post('create', 'ProviderErrorController@create')->name('providererror.create');
+        		Route::put('update', 'ProviderErrorController@update')->name('providererror.update');
+        		Route::post('delete', 'ProviderErrorController@delete')->name('providererror.delete');
         	});
         });
         /* end monitoring route */
+
+
     });
 });
 
