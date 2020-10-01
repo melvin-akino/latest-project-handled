@@ -2,6 +2,8 @@
 
 namespace App\Models\CRM;
 
+use App\Models\SystemConfiguration;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\{Model, SoftDeletes};
 use Illuminate\Support\Facades\DB;
 use App\Models\ProviderBetRules;
@@ -42,57 +44,76 @@ class ProviderAccount extends Model
             if ($marketFlag != 'DRAW') {
                 $notAllowed = $marketFlag == 'HOME' ? "AWAY" : "HOME";
 
-                $accountCandidates = $query->orderBy('id', 'ASC')->get()->toArray();
-                if ($marketFlag == 'HOME') {
-                    $accountHalfCandidates = array_slice($accountCandidates, 0, ceil($query->count() / 2));
-                } else {
-                    $accountHalfCandidates = array_slice($accountCandidates, ceil($query->count() / 2));
-                }
+                $accountCandidates = $query->orderBy('credits', 'DESC')->orderBy('updated_at', 'ASC')->get()->toArray();
 
                 # Let us get all accounts who used to bet on particular event
                 $betRules        = ProviderBetRules::where('not_allowed_ground', $marketFlag)
                                                    ->where('event_id', $eventId)
-                                                   ->where('odd_type_id', $oddType)->get();
+                                                   ->get();
                 $excludeAccounts = [];
+                $reservedAccounts = [];
 
                 if ($betRules->count() != 0) {
-
                     foreach ($betRules as $rule) {
                         array_push($excludeAccounts, $rule->provider_account_id);
                     }
+                } else {
+                    $reservedPercentage = SystemConfiguration::getSystemConfigurationValue('PROVIDER_ACCOUNT_RESERVATION_PERCENTAGE')->value;
+                    $count = count($accountCandidates) * ($reservedPercentage / 100);
+                    $reservedAccounts = array_slice($accountCandidates, -1 * ((int) $count));
+                    $accountCandidates = array_slice($accountCandidates, 0, count($accountCandidates) - (int) $count);
                 }
 
+                $accountFinalCandidates = [];
                 if (count($excludeAccounts) != 0) {
-                    $accountFinalCandidates = [];
-                    foreach ($accountHalfCandidates as $accountHalfCandidate) {
-                        if (!in_array($accountHalfCandidate['id'], $excludeAccounts)) {
-                            $accountFinalCandidates[] = (array) $accountHalfCandidate;
+                    $nowTime = Carbon::createFromFormat('Y-m-d H:i:s', Carbon::now()->format('Y-m-d H:i:s'));
+                    foreach ($accountCandidates as $accountCandidate) {
+                        if (!in_array($accountCandidate['id'], $excludeAccounts)) {
+                            $updatedAt = Carbon::createFromFormat('Y-m-d H:i:s', $accountCandidate['updated_at']);
+                            if ($nowTime->diffInSeconds(Carbon::parse($updatedAt)) > 10) {
+                                $accountFinalCandidates[] = (array) $accountCandidate;
+                            }
                         }
                     }
                 } else {
-                    $accountFinalCandidates = (array) $accountHalfCandidates;
+                    $accountFinalCandidates = (array) $accountCandidates;
                 }
 
                 usort($accountFinalCandidates, function($a, $b) {
-                    return $a['updated_at'] <=> $b['updated_at'];
+                    return $b['credits'] <=> $a['credits'];
                 });
 
-                $finalProvider = (object) $accountFinalCandidates[0];//$query->first();
+                if (count($accountFinalCandidates) > 0) {
 
-                if ($finalProvider) {
+                    $finalProvider = (object) $accountFinalCandidates[0];//$query->first();
 
-                    $providerAccountId = $finalProvider->id;
-                    $rules             = ProviderBetRules::firstOrCreate([
-                        'event_id'            => $eventId,
-                        'provider_account_id' => $providerAccountId,
-                        'odd_type_id'         => $oddType,
-                        'team_ground'         => $marketFlag,
-                        'not_allowed_ground'  => $notAllowed
-                    ]);
+                    if ($finalProvider) {
+
+                        $providerAccountId = $finalProvider->id;
+
+                        foreach ($reservedAccounts as $reservedAccount) {
+                            ProviderBetRules::firstOrCreate([
+                                'event_id'            => $eventId,
+                                'provider_account_id' => $reservedAccount['id'],
+                                'odd_type_id'         => $oddType,
+                                'team_ground'         => $notAllowed,
+                                'not_allowed_ground'  => $marketFlag
+                            ]);
+                        }
+
+                        ProviderBetRules::firstOrCreate([
+                            'event_id'            => $eventId,
+                            'provider_account_id' => $providerAccountId,
+                            'odd_type_id'         => $oddType,
+                            'team_ground'         => $marketFlag,
+                            'not_allowed_ground'  => $notAllowed
+                        ]);
+                    }
+
+                    return $finalProvider;
+                } else {
+                    return null;
                 }
-
-                return $finalProvider;
-
             } else {
                 $query->orderBy('updated_at', 'ASC');
                 return $query->first();
