@@ -13,7 +13,7 @@ class ProviderReservationPercentageSeeder extends Seeder
     public function run()
     {
         SystemConfiguration::firstOrCreate([
-            'type'  => 'PROVIDER_ACCOUNT_RESERVATION_PERCENTAGE'
+            'type' => 'PROVIDER_ACCOUNT_RESERVATION_PERCENTAGE'
         ], [
             'value' => 20,
         ]);

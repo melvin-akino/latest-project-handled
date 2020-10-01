@@ -47,10 +47,10 @@ class ProviderAccount extends Model
                 $accountCandidates = $query->orderBy('credits', 'DESC')->orderBy('updated_at', 'ASC')->get()->toArray();
 
                 # Let us get all accounts who used to bet on particular event
-                $betRules        = ProviderBetRules::where('not_allowed_ground', $marketFlag)
-                                                   ->where('event_id', $eventId)
-                                                   ->get();
-                $excludeAccounts = [];
+                $betRules         = ProviderBetRules::where('not_allowed_ground', $marketFlag)
+                                                    ->where('event_id', $eventId)
+                                                    ->get();
+                $excludeAccounts  = [];
                 $reservedAccounts = [];
 
                 if ($betRules->count() != 0) {
@@ -59,9 +59,9 @@ class ProviderAccount extends Model
                     }
                 } else {
                     $reservedPercentage = SystemConfiguration::getSystemConfigurationValue('PROVIDER_ACCOUNT_RESERVATION_PERCENTAGE')->value;
-                    $count = count($accountCandidates) * ($reservedPercentage / 100);
-                    $reservedAccounts = array_slice($accountCandidates, -1 * ((int) $count));
-                    $accountCandidates = array_slice($accountCandidates, 0, count($accountCandidates) - (int) $count);
+                    $count              = count($accountCandidates) * ($reservedPercentage / 100);
+                    $reservedAccounts   = array_slice($accountCandidates, -1 * ((int) $count));
+                    $accountCandidates  = array_slice($accountCandidates, 0, count($accountCandidates) - (int) $count);
                 }
 
                 $accountFinalCandidates = [];
@@ -79,7 +79,7 @@ class ProviderAccount extends Model
                     $accountFinalCandidates = (array) $accountCandidates;
                 }
 
-                usort($accountFinalCandidates, function($a, $b) {
+                usort($accountFinalCandidates, function ($a, $b) {
                     return $b['credits'] <=> $a['credits'];
                 });
 
