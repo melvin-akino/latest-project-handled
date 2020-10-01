@@ -21,7 +21,7 @@ class ErrorMessageTest extends AdminAccountTest
         
     }
      /** @test */
-    public function InsertProviderwithRecordTest() {
+    public function InsertErrorMessagewithRecordTest() {
          
         $this->login();
         $response = $this->actingAs($this->user)->json('POST', 'admin/error_messages/manage', 
