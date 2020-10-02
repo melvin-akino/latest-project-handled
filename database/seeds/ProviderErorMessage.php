@@ -28,7 +28,7 @@ class ProviderErorMessage extends Seeder
 
         		],
         		[
-        			'message' => 'The maximum bet amount for this event is RMB 5000.16',
+        			'message' => 'The maximum bet amount for this event is ',
         			'error'	  => 'Bet was not placed. Please try again.'
         		],
        
@@ -37,12 +37,12 @@ class ProviderErorMessage extends Seeder
         			'error'	  => 'The odds have changed. Please try again.'	
         		],
         		[
-        			'message' => 'The odds have changed: 1.05. Please try again',
+        			'message' => 'The odds have changed: Please try again',
         			'error'	  => 'The odds have changed. Please try again.'	
         		],
         		
         		[
-        			'message' =>'Your bet was not placed. Please try again.156',
+        			'message' =>'Your bet was not placed. Please try again.',
         			'error'	  => 'Bet was not placed. Please try again.'	
         		],
         		[
@@ -55,7 +55,15 @@ class ProviderErorMessage extends Seeder
         		[
         			'message' => 'Internal Error: Session Inactive',
         			'error'	  => 'Internal Error. Please contact support.'	
-        		]
+        		],
+                [
+                    'message' => 'Due to the heavy traffic on the website, please try again.',
+                    'error'   => 'Bet was not placed. Please try again.'
+                ],
+                [
+                    'message'  => 'The event is currently closed for betting.',
+                    'error'    => 'Bet was not placed. Please try again.'
+                ]
 
         ];
         foreach($messages as $m) {
