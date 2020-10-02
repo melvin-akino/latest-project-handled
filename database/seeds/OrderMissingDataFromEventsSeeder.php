@@ -13,6 +13,7 @@ class OrderMissingDataFromEventsSeeder extends Seeder
      */
     public function run()
     {
+        
         $orderMarketIds = DB::table('orders')->distinct()->pluck('market_id')->toArray();
         EventMarket::getMarketDetailsByListOfMarketIds($orderMarketIds);
     }

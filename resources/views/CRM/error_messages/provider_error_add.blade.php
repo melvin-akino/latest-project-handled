@@ -12,7 +12,7 @@
                     <div class="box-body">
 
                         <div class="form-group">
-                            <label for="add-email-input" class="col-sm-3 control-label">Error Message</label>
+                            <label for="add-email-input" class="col-sm-3 control-label">Provider Message</label>
 
                             <div class="col-sm-8">
                                 <input type="text" class="form-control" id="add-message-input" name="message" placeholder="Message" required="true">
@@ -25,7 +25,7 @@
                                 <select name="error_id" id="add-error-select" class="form-control" required="true">
                                     <option value="" disabled selected>Select Error message</option>
                                     @foreach($errormessages as $errormessage)
-                                        <option value="{{ $errormessage->id }}">{{ $errormessage->error }}</li>
+                <option value="{{ $errormessage->id }}">{{trim($errormessage->error)}}</option>
                                     @endforeach
                                 </select>
                             </div>
@@ -54,27 +54,45 @@
     <script>
         $('[data-toggle="popover"]').popover();
 
-        $('#formaddaccount').submit(function (e) {
-            e.preventDefault();
-            var form = $(this);
-            var btn = form.find(':submit').button('loading');
-            var url = form.prop('action');
+       $('#formaddaccount').submit(function (e) {
+                e.preventDefault();
+                var form = $(this);
+                var btn = form.find(':submit').button('loading');
+                var url = form.prop('action');
 
-            $.post(url, form.serialize(), function (data) {
-                if (!data.errors) {
-                    $('#modal-add-account').modal('hide');
+                $.post(url, form.serialize(), function (response) {
+                    if (response.status == '{{ config('response.type.success') }}') {
+                        swal('Provider Error', 'Saved Succesfully!', response.status).then(() => {
+                            window.location = '{{ route('providererror.index') }}';
+                        });
 
-                    window.location = '{{ route('providererror.index') }}';
+                        return;
+                    } else if (response.status == '{{ config('response.type.error') }}') {
+                        if (Object.keys(response.errors).length == 1 && response.errors.confirm) {
+                            swal({
+                                title: '{{ trans('swal.currency.update.confirm.title') }}',
+                                html: '{{ trans('swal.currency.update.confirm.html') }}',
+                                type: '{{ trans('swal.currency.update.confirm.type') }}',
+                                showCancelButton: true,
+                                confirmButtonText: '{{ trans('swal.currency.update.confirm.confirmButtonText') }}'
+                            }).then(function (result) {
+                                if (result.value) {
+                                    form.find('input[name=confirm]').val(true);
+                                    form.submit();
+                                }
+                            });
+                            delete response.errors.confirm;
+                        }
+                        assocErr(response.errors, form);
+                    }
+                }).done(function () {
+                    btn.button('reset');
+                }).fail(function(xhr, status, error) {
+                    // error handling
+                    assocErr(xhr.responseJSON.errors, form);
 
-                };
-
-            }).fail(function(xhr, status, error) {
-                assocErr(xhr.responseJSON.errors, form);
-                btn.button('reset');
-
-            }).done(function () {
-                btn.button('reset');
-            })
+                    btn.button('reset');
+                });
         });
 
     </script>

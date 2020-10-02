@@ -22,9 +22,10 @@
                 </div>
                 <!-- /.box-header -->
                 <div class="box-body">
-                    <table id="accounts-table" class="table table-bordered table-striped">
+                    <table id="message-table" class="table table-bordered table-striped">
                         <thead>
                         <tr>
+                           
                             <th>Provider Message</th>
                             <th>Error Message</th>
                            
@@ -43,6 +44,7 @@
     </div>
 
     @include('CRM.error_messages.provider_error_add')
+    @include('CRM.error_messages.provider_error_edit')
 @endsection
 
 @section('scripts')
@@ -58,14 +60,25 @@
      <script src="{{ asset('CRM/Capital7-1.0.0/js/form-validation.js') }}"></script>
 
     <script>
+
+        var setFormEditMessage = function (src) {
+            var form = $('#form-edit-message');
+            var tr = $(src).closest('tr');
+            form.attr('data-message-id', tr.data('message-id'));
+            form.find('input[name=edit_message]').val(tr.find('td:eq(0)').text());
+            $("#edit_id").val(tr.attr('data-message-id'));
+            $("#error_id").val(tr.attr('data-error-message-id')).trigger('change');
+            
+           
+            $('#modal-edit-message').modal('show');
+        };
         $(function(){
             $("#modal-add-account").on("hidden.bs.modal", function () {
                 var form = $('#formaddaccount');
                 form.trigger('reset');
                 clearErr(form);
             });
-
-            $('#accounts-table').DataTable({
+            $('#message-table').DataTable({
                 "processing": true,
                 "serverSide": true,
                 "stateSave": true,
@@ -80,13 +93,15 @@
                     }
 
                 },
-                columnDefs: [{
-                       
-                        targets: 2,
-                        orderable: false
-                   
-                }],
+                 'createdRow': function (tr, data, dataIndex) {
+                    $(tr).attr('data-message-id', data.id);
+                    $(tr).attr('data-error-message-id', data.errorvalue.id);
+
+                },
+                
                 "columns": [
+                 
+
                     {
                         "data": "message",
                         "render": function (data, type, row, meta) {
@@ -111,9 +126,9 @@
                     {
                         "data": null,
                         "render": function (data, type, row, meta) {
-                            if (type === 'display') {
-                                data = '<a href="/admin/accounts/' + row.id + '#personal"><i class="fa fa-user-o"></i> Details</a>';
-                            }
+                            data = '';
+
+                                data += '<button type="button" onclick="setFormEditMessage(this);" class="btn btn-warning btn-xs" title="Edit"><i class="fa fa-edit"></i></button>';
                             return data;
                         }
                     }

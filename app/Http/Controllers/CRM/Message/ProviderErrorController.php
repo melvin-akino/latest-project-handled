@@ -4,6 +4,7 @@ namespace App\Http\Controllers\CRM\Message;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use App\Http\Requests\CRM\{ProviderErrorRequest, ProviderErrorEditRequest};
 use App\Models\{ProviderErrors, ErrorMessage};
 
 class ProviderErrorController extends Controller
@@ -28,19 +29,35 @@ class ProviderErrorController extends Controller
         return dataTable($request, ProviderErrors::with('Errorvalue'));
     }
 
-    public function create(Request $request)
+    public function create(ProviderErrorRequest $request)
     {
     	$data = [
 				'message' 			=> $request->message,
 				'error_message_id'  => $request->error_id
     		];
-    		ProviderErrors::create($data);
+    	ProviderErrors::create($data);
+    	return response()->json([
+            config('response.status') => config('response.type.success')
+        ], 201);
 
     }
-    public function update() 
+    public function update(ProviderErrorEditRequest $request) 
     {
 
+    	$data =[
+    			'message'			=> $request->edit_message,
+    			'error_message_id'	=> $request->error_id
+    		];
+    	ProviderErrors::find($request->edit_id)->update($data);
+
+    	return response()->json([
+            config('response.status') => config('response.type.success')
+        ], 201);
+    
+
+
     }
+
     public function delete() 
     {
 
