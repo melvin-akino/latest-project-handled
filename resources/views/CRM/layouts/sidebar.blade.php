@@ -32,12 +32,6 @@
                         <span>System Configurations</span>
                     </a>
                 </li>
-                <li class="@isset($system_configuration_menu) active @endisset">
-                    <a href="/admin/error_messages">
-                        <i class="fa fa-dashboard" aria-hidden="true"></i>
-                        <span>Error messages</span>
-                    </a>
-                </li> 
                 <li class="@isset($accounts_menu) active @endisset">
                     <a href="/admin/accounts">
                         <i class="fa fa-user" aria-hidden="true"></i>
@@ -99,7 +93,13 @@
                     </a>
 
                     <ul class="treeview-menu">
-                       
+                                               
+                        <li class="@isset($exchange_rate_menu) active @endisset">
+                            <a href="/admin/error_messages">
+                                <i class="fa fa-exchange" aria-hidden="true"></i>
+                                <span>General Error Messages</span>
+                            </a>
+                        </li>
                         <li class=" @isset($currency_menu) active @endisset ">
                             <a href="/admin/message/index">
                                 <i class="fa fa-usd" aria-hidden="true"></i>
@@ -108,13 +108,7 @@
                         </li>
                      
 
-                       
-                        <li class="@isset($exchange_rate_menu) active @endisset">
-                            <a href="/admin/wallet/exchange_rates">
-                                <i class="fa fa-exchange" aria-hidden="true"></i>
-                                <span>Error Vin</span>
-                            </a>
-                        </li>
+
                         
 
                        
