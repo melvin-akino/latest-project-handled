@@ -69,12 +69,18 @@ class ProviderAccount extends Model
                     $nowTime = Carbon::createFromFormat('Y-m-d H:i:s', Carbon::now()->format('Y-m-d H:i:s'));
                     foreach ($accountCandidates as $accountCandidate) {
                         if (!in_array($accountCandidate['id'], $excludeAccounts)) {
-                            $updatedAt = Carbon::createFromFormat('Y-m-d H:i:s', $accountCandidate['updated_at']);
-                            if ($nowTime->diffInSeconds(Carbon::parse($updatedAt)) > 10) {
+                            $updatedAt                          = Carbon::createFromFormat('Y-m-d H:i:s', $accountCandidate['updated_at']);
+                            $providerAccountUsageSecondsChecker = (floor((count($accountCandidates) / 10)) + 1) * 5;
+                            if ($nowTime->diffInSeconds(Carbon::parse($updatedAt)) > $providerAccountUsageSecondsChecker) {
                                 $accountFinalCandidates[] = (array) $accountCandidate;
                             }
                         }
                     }
+
+                    if (empty($accountFinalCandidates)) {
+                        $accountFinalCandidates[0] = $accountCandidates[end($accountCandidates)];
+                    }
+
                 } else {
                     $accountFinalCandidates = (array) $accountCandidates;
                 }
