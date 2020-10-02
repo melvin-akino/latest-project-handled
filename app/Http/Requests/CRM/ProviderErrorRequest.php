@@ -25,7 +25,7 @@ class ProviderErrorRequest extends FormRequest
     public function rules()
     {
         return [
-            'message'   => 'required|min:10|max:50|unique:provider_error_messages,message',
+            'message'   => 'required|min:5|max:50|unique:provider_error_messages,message',
             //
         ];
     }

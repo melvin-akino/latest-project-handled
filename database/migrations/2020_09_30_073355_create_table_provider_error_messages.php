@@ -21,10 +21,7 @@ class CreateTableProviderErrorMessages extends Migration
             $table->string('error',255)->unique();
             $table->timestamps();
 
-            $table->foreign('error_message_id')
-                ->references('id')
-                ->on('error_messages')
-                ->onUpdate('cascade');
+           
         });
     }
 
