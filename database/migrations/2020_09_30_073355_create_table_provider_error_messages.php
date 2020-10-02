@@ -21,8 +21,7 @@ class CreateTableProviderErrorMessages extends Migration
             $table->integer('error_message_id')->index();
             $table->string('message',255)->unique();
             $table->timestamps();
-
-           
+            
         });
         
     }

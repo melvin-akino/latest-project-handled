@@ -32,13 +32,14 @@ class ProviderErrorMessageTest extends AdminAccountTest
         $response = $this->actingAs($this->user)->json('POST', 'admin/message/create', 
                 [
                     'message'  => 'This data is for testing',
-                    'error_message_id' => 1
+                    'error_id' => 1
                 ]
             );
        
          $response->assertStatus(200);
     }
 
+  
     
     public function login(){
     
