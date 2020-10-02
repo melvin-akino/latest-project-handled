@@ -58,8 +58,5 @@ class ProviderErrorController extends Controller
 
     }
 
-    public function delete() 
-    {
-
-    }
+   
 }

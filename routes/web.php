@@ -99,7 +99,6 @@ Route::get('/prometheus_GGT8', 'PrometheusController@index');
 
         		Route::post('create', 'ProviderErrorController@create')->name('providererror.create');
         		Route::post('update', 'ProviderErrorController@update')->name('providererror.update');
-        		Route::post('delete', 'ProviderErrorController@delete')->name('providererror.delete');
         		Route::get('datatable','ProviderErrorController@datatable')->name('providererror.datatable');
         	});
         });
