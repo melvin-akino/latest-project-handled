@@ -22,14 +22,9 @@ class CreateTableProviderErrorMessages extends Migration
             $table->string('message',255)->unique();
             $table->timestamps();
 
-            $table->foreign('error_message_id')
-                ->references('id')
-                ->on('error_messages')
-                ->onUpdate('cascade');
+           
         });
-        Artisan::call('db:seed', [
-            '--class' => ProviderErorMessage::class
-        ]);
+        
     }
 
     /**
