@@ -101,9 +101,9 @@
                     <ul class="treeview-menu">
                        
                         <li class=" @isset($currency_menu) active @endisset ">
-                            <a href="/admin/wallet/currencies">
+                            <a href="/admin/message/index">
                                 <i class="fa fa-usd" aria-hidden="true"></i>
-                                <span>Error jan</span>
+                                <span>Provider Error</span>
                             </a>
                         </li>
                      
