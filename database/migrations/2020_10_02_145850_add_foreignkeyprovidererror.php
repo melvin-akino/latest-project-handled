@@ -31,7 +31,7 @@ class AddForeignkeyprovidererror extends Migration
     {
         Schema::table('provider_error_messages', function (Blueprint $table) {
             //
-            $table->dropForeign('error_message_id');
+            $table->dropForeign(['error_message_id']);
         });
     }
 }
