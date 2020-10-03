@@ -35,6 +35,11 @@ Route::get('/prometheus_GGT8', 'PrometheusController@index');
         Route::get('provider_accounts/delete/{id}', 'ProviderAccountsController@softDelete')->name('provider_accounts.softdelete');
         Route::post('provider_accounts/manage', 'ProviderAccountsController@manage')->name('provider_accounts.manage');
 
+        /*Error messages*/
+        Route::get('error_messages', 'ErrorMessagesController@index')->name('error_messages');
+        Route::get('error_messages/list', 'ErrorMessagesController@list')->name('error_messages.list');
+        Route::post('error_messages/manage', 'ErrorMessagesController@manage')->name('error_messages.manage');
+
         /*System Configurations Routes*/
         Route::get('system_configurations', 'SystemConfigurationsController@index')->name('system_configurations');
         Route::get('system_configurations/all', 'SystemConfigurationsController@all')->name('system_configurations.all');
@@ -88,15 +93,18 @@ Route::get('/prometheus_GGT8', 'PrometheusController@index');
 
          /* monitorng route */
 
-        Route::namespace('Monitoring')->group(function() {
-        	Route::prefix('monitoring')->group(function() {
-        		Route::get('minmax', 'MonitoringToolController@minmax')->name('monitoring.minmax');
+        Route::namespace('Message')->group(function() {
+        	Route::prefix('message')->group(function() {
+        		Route::get('index', 'ProviderErrorController@index')->name('providererror.index');
 
-        		Route::get('placedbet', 'MonitoringToolController@placedBet')->name('monitoring.placedBet');
-        		Route::get('odds', 'MonitoringToolController@odds')->name('monitoring.odds');
+        		Route::post('create', 'ProviderErrorController@create')->name('providererror.create');
+        		Route::post('update', 'ProviderErrorController@update')->name('providererror.update');
+        		Route::get('datatable','ProviderErrorController@datatable')->name('providererror.datatable');
         	});
         });
         /* end monitoring route */
+
+
     });
 });
 
