@@ -1,6 +1,7 @@
 <?php
 
 namespace Tests\Feature;
+use App\User;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\{ RefreshDatabase, WithFaker };
 use Laravel\Passport\ClientRepository;
@@ -48,9 +49,18 @@ class OrdersAllTest extends RegistrationTest
            ]);
 
         $data = $this->data();
-        $this->post('/api/v1/auth/register', $data, [
-            'X-Requested-With' => 'XMLHttpRequest'
+
+        $user = new User([
+            'name'                  => $data['name'],
+            'email'                 => $data['email'],
+            'password'              => bcrypt($data['password']),
+            'firstname'             => $data['firstname'],
+            'lastname'              => $data['lastname'],
+            'country_id'            => $data['country_id'],
+            'currency_id'           => $data['currency_id'],
+            'status'                => 1
         ]);
+        $user->save();
 
         $response = $this->post('/api/v1/auth/login', [
             'email'    => $data['email'],

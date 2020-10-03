@@ -78,7 +78,7 @@ class OrdersController extends Controller
             $page        = $request->has('page') ? $request->get('page') : 1;
             $myAllOrders = Order::countAllOrders();
 
-            $ouLabels    = OddType::where('type', 'ILIKE', '%OU%')->pluck('id')->toArray();
+            $ouLabels    = OddType::where('type', 'LIKE', '%OU%')->pluck('id')->toArray();
 
             if (!empty($myAllOrders)) {
                 $myOrders = Order::getAllOrders($conditions, $page);
