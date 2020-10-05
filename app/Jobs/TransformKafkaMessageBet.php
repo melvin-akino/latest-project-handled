@@ -69,10 +69,6 @@ class TransformKafkaMessageBet implements ShouldQueue
 
                             $errorMessageId = providerErrorMapping($this->message->data->reason);
 
-                            if ($errorMessageId == 0) {
-                                $errorMessageId = null;
-
-                            }
                            
                             $order  = Order::updateOrCreate([
                                 'id' => $messageOrderId
