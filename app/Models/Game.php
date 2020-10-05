@@ -4,7 +4,6 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 
 class Game extends Model
 {
@@ -19,7 +18,7 @@ class Game extends Model
                  ]);
     }
 
-    public static function getGameDetails(int $masterLeagueId, string $schedule = 'early', int $userId)
+    public static function getGameDetails(int $masterLeagueId, string $schedule = 'early', int $userId, string $meUID = null)
     {
         $maxMissingCount = SystemConfiguration::getSystemConfigurationValue('EVENT_VALID_MAX_MISSING_COUNT')->value;
 
@@ -43,10 +42,13 @@ class Game extends Model
                      'ot.type', 'em.odds', 'em.odd_label', 'em.provider_id', 'em.bet_identifier', 'p.alias', 'em.deleted_at as is_market_empty')
                  ->where('ml.id', $masterLeagueId)
                  ->where('me.game_schedule', $schedule)
+                 ->when($meUID, function ($query, $meUID) {
+                     return $query->where('me.master_event_unique_id', $meUID);
+                 })
                  ->where('mem.is_main', true)
-                 ->whereNotIn('me.id', function($query) use ($userId) {
-                    $query->select('master_event_id')->from('user_watchlist')->where('user_id', $userId);
-                })
+                 ->whereNotIn('me.id', function ($query) use ($userId) {
+                     $query->select('master_event_id')->from('user_watchlist')->where('user_id', $userId);
+                 })
                  ->whereNull('me.deleted_at')
                  ->whereNull('e.deleted_at')
 //                 ->whereNull('em.deleted_at')
@@ -103,8 +105,8 @@ class Game extends Model
 //                 ->whereNull('em.deleted_at')
                  ->whereNull('ml.deleted_at')
                  ->where('e.missing_count', '<=', $maxMissingCount)
-                 ->when($eventId, function($query, $eventId) {
-                    return $query->where('uw.master_event_id', $eventId);
+                 ->when($eventId, function ($query, $eventId) {
+                     return $query->where('uw.master_event_id', $eventId);
                  })
                  ->distinct()->get();
     }
@@ -114,28 +116,28 @@ class Game extends Model
         $maxMissingCount = SystemConfiguration::getSystemConfigurationValue('EVENT_VALID_MAX_MISSING_COUNT')->value;
 
         return DB::table('master_events AS me')
-            ->leftJoin('events AS e', 'e.master_event_id', '=', 'me.id')
-            ->leftJoin('master_event_markets AS mem', 'mem.master_event_id', '=', 'me.id')
-            ->leftJoin('odd_types AS ot', 'mem.odd_type_id', '=', 'ot.id')
-            ->leftJoin('event_markets AS em', function ($join) {
-                $join->on('em.master_event_market_id', '=', 'mem.id');
-                $join->on('em.event_id', '=', 'e.id');
-            })
-            ->whereNull('me.deleted_at')
-            ->whereNull('em.deleted_at')
-            ->whereNull('e.deleted_at')
-            ->whereIn('em.provider_id', $fields['providers'])
-            ->where('em.market_flag', $fields['market_flag'])
-            ->where('mem.odd_type_id', $fields['odd_type_id'])
-            ->where('me.game_schedule', $fields['game_schedule'])
-            ->where('e.master_event_id', $fields['master_event_id'])
-            ->where('e.missing_count', '<=', $maxMissingCount)
-            ->get([
-                'mem.master_event_market_unique_id',
-                'em.odds',
-                'em.odd_label',
-                'em.is_main'
-            ]);
+                 ->leftJoin('events AS e', 'e.master_event_id', '=', 'me.id')
+                 ->leftJoin('master_event_markets AS mem', 'mem.master_event_id', '=', 'me.id')
+                 ->leftJoin('odd_types AS ot', 'mem.odd_type_id', '=', 'ot.id')
+                 ->leftJoin('event_markets AS em', function ($join) {
+                     $join->on('em.master_event_market_id', '=', 'mem.id');
+                     $join->on('em.event_id', '=', 'e.id');
+                 })
+                 ->whereNull('me.deleted_at')
+                 ->whereNull('em.deleted_at')
+                 ->whereNull('e.deleted_at')
+                 ->whereIn('em.provider_id', $fields['providers'])
+                 ->where('em.market_flag', $fields['market_flag'])
+                 ->where('mem.odd_type_id', $fields['odd_type_id'])
+                 ->where('me.game_schedule', $fields['game_schedule'])
+                 ->where('e.master_event_id', $fields['master_event_id'])
+                 ->where('e.missing_count', '<=', $maxMissingCount)
+                 ->get([
+                     'mem.master_event_market_unique_id',
+                     'em.odds',
+                     'em.odd_label',
+                     'em.is_main'
+                 ]);
     }
 
     public static function getmasterEventByMarketId(string $marketId)
@@ -148,8 +150,8 @@ class Game extends Model
                  ->leftJoin('event_markets AS em', 'em.master_event_market_id', 'mem.id')
                  ->leftJoin('odd_types AS ot', 'ot.id', 'mem.odd_type_id')
                  ->leftJoin('sport_odd_type as sot', function ($join) {
-                    $join->on('sot.odd_type_id', '=', 'ot.id');
-                    $join->on('sot.sport_id', '=', 'me.sport_id');
+                     $join->on('sot.odd_type_id', '=', 'ot.id');
+                     $join->on('sot.sport_id', '=', 'me.sport_id');
                  })
                  ->whereNull('me.deleted_at')
                  ->where('mem.master_event_market_unique_id', $marketId)
@@ -178,11 +180,11 @@ class Game extends Model
     public static function getBetSlipLogs(int $userId, string $memUID)
     {
         $subquery = DB::table('bet_slip_logs')
-            ->where('memuid', $memUID)
-            ->whereIn('user_id', [0, $userId])
-            ->selectRaw('DISTINCT ON (odds) *')
-            ->orderBy('odds', 'desc')
-            ->orderBy('timestamp', 'desc');
+                      ->where('memuid', $memUID)
+                      ->whereIn('user_id', [0, $userId])
+                      ->selectRaw('DISTINCT ON (odds) *')
+                      ->orderBy('odds', 'desc')
+                      ->orderBy('timestamp', 'desc');
 
         return DB::table(DB::raw("({$subquery->toSql()}) as bsl"))
                  ->mergeBindings($subquery)
@@ -217,7 +219,7 @@ class Game extends Model
 //                 ->whereNull('em.deleted_at')
                  ->whereNull('ml.deleted_at')
                  ->where('e.missing_count', '<=', $maxMissingCount)
-                 ->whereNotIn('me.id', function($query) use ($userId) {
+                 ->whereNotIn('me.id', function ($query) use ($userId) {
                      $query->select('master_event_id')->from('user_watchlist')->where('user_id', $userId);
                  })
                  ->select([
@@ -392,48 +394,48 @@ class Game extends Model
     {
         $maxMissingCount = SystemConfiguration::getSystemConfigurationValue('EVENT_VALID_MAX_MISSING_COUNT')->value;
         return DB::table('master_events as me')
-            ->join('events as e', 'e.master_event_id', 'me.id')
-            ->leftJoin('master_event_markets as mem', 'mem.master_event_id', 'me.id')
-            ->join('event_markets as em', 'em.master_event_market_id', 'mem.id')
-            ->where('me.master_event_unique_id', $uid)
-            ->where('mem.is_main', false)
-            ->where('em.is_main', false)
-            ->whereIn('em.provider_id', $userProviderIds)
-            ->whereNull('e.deleted_at')
-            ->whereNull('em.deleted_at')
-            ->whereNull('me.deleted_at')
-            ->where('e.missing_count', '<=', $maxMissingCount)
-            ->exists();
+                 ->join('events as e', 'e.master_event_id', 'me.id')
+                 ->leftJoin('master_event_markets as mem', 'mem.master_event_id', 'me.id')
+                 ->join('event_markets as em', 'em.master_event_market_id', 'mem.id')
+                 ->where('me.master_event_unique_id', $uid)
+                 ->where('mem.is_main', false)
+                 ->where('em.is_main', false)
+                 ->whereIn('em.provider_id', $userProviderIds)
+                 ->whereNull('e.deleted_at')
+                 ->whereNull('em.deleted_at')
+                 ->whereNull('me.deleted_at')
+                 ->where('e.missing_count', '<=', $maxMissingCount)
+                 ->exists();
     }
 
     public static function getAvailableEvents(int $userId, string $keyword)
     {
         $maxMissingCount = SystemConfiguration::getSystemConfigurationValue('EVENT_VALID_MAX_MISSING_COUNT')->value;
         return DB::table('master_events as me')
-        ->leftJoin('master_event_markets as mem', 'mem.master_event_id', 'me.id')
-        ->join('events as e', 'e.master_event_id', 'me.id')
-        ->join('event_markets as em', function ($join) {
-            $join->on('em.master_event_market_id', '=', 'mem.id');
-            $join->on('em.event_id', '=', 'e.id');
-        })
-        ->leftJoin('master_leagues as ml', 'ml.id', 'me.master_league_id')
-        ->leftJoin('master_teams as mth', 'mth.id', 'me.master_team_home_id')
-        ->leftJoin('master_teams as mta', 'mta.id', 'me.master_team_away_id')
-        ->where('mem.is_main', true)
-        ->whereNull('me.deleted_at')
-        ->whereNull('e.deleted_at')
-        ->whereNull('em.deleted_at')
-        ->whereNull('ml.deleted_at')
-        ->where('e.missing_count', '<=', $maxMissingCount)
-        ->whereNotIn('me.id', function($query) use ($userId) {
-            $query->select('master_event_id')->from('user_watchlist')->where('user_id', $userId);
-        })
-        ->where(DB::raw("CONCAT(ml.name, ' | ', mth.name, ' VS ', mta.name)"), 'ILIKE', '%' . $keyword . '%')
-        ->select([
-            DB::raw("'event' as type"),
-            'me.master_event_unique_id as data',
-            DB::raw("CONCAT(ml.name, ' | ', mth.name, ' VS ', mta.name) as label")
-        ])
-        ->groupBy('me.master_event_unique_id', 'ml.name', 'mth.name', 'mta.name');
+                 ->leftJoin('master_event_markets as mem', 'mem.master_event_id', 'me.id')
+                 ->join('events as e', 'e.master_event_id', 'me.id')
+                 ->join('event_markets as em', function ($join) {
+                     $join->on('em.master_event_market_id', '=', 'mem.id');
+                     $join->on('em.event_id', '=', 'e.id');
+                 })
+                 ->leftJoin('master_leagues as ml', 'ml.id', 'me.master_league_id')
+                 ->leftJoin('master_teams as mth', 'mth.id', 'me.master_team_home_id')
+                 ->leftJoin('master_teams as mta', 'mta.id', 'me.master_team_away_id')
+                 ->where('mem.is_main', true)
+                 ->whereNull('me.deleted_at')
+                 ->whereNull('e.deleted_at')
+                 ->whereNull('em.deleted_at')
+                 ->whereNull('ml.deleted_at')
+                 ->where('e.missing_count', '<=', $maxMissingCount)
+                 ->whereNotIn('me.id', function ($query) use ($userId) {
+                     $query->select('master_event_id')->from('user_watchlist')->where('user_id', $userId);
+                 })
+                 ->where(DB::raw("CONCAT(ml.name, ' | ', mth.name, ' VS ', mta.name)"), 'ILIKE', '%' . $keyword . '%')
+                 ->select([
+                     DB::raw("'event' as type"),
+                     'me.master_event_unique_id as data',
+                     DB::raw("CONCAT(ml.name, ' | ', mth.name, ' VS ', mta.name) as label")
+                 ])
+                 ->groupBy('me.master_event_unique_id', 'ml.name', 'mth.name', 'mta.name');
     }
 }

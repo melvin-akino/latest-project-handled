@@ -88,7 +88,6 @@ export default {
                     if(this.tradePageSettings.sort_event == 1) {
                         watchlistLeagues.map(league => {
                             this.watchlist.map(event => {
-                                this.$delete(event.market_odds, 'other')
                                 if(event.league_name === league) {
                                     if(typeof(watchlistObject[league]) == "undefined") {
                                         watchlistObject[league] = []
@@ -100,7 +99,6 @@ export default {
                     } else if(this.tradePageSettings.sort_event == 2) {
                         watchlistStartTime.map(startTime => {
                             this.watchlist.map(event => {
-                                this.$delete(event.market_odds, 'other')
                                 let eventSchedLeague = `[${event.ref_schedule.split(' ')[1]}] ${event.league_name}`
                                 if(eventSchedLeague === startTime) {
                                     if(typeof(watchlistObject[startTime]) == "undefined") {
@@ -123,7 +121,6 @@ export default {
                         this.selectedLeagues[schedule].map(league => {
                             receivedEvents.map(receivedEvent => {
                                 if(receivedEvent.game_schedule == schedule && receivedEvent.league_name == league && receivedEvent.sport_id == this.selectedSport) {
-                                    this.$delete(receivedEvent.market_odds, 'other')
                                     this.$store.commit('trade/SET_EVENTS_LIST', receivedEvent)
                                     this.$store.commit('trade/SET_ALL_EVENTS_LIST', receivedEvent)
                                     this.$store.commit('trade/UPDATE_LEAGUE_MATCH_COUNT', { schedule: schedule, league: league })
@@ -379,9 +376,17 @@ export default {
                             this.events[schedule][league].map(event => {
                                 if(event.uid == eventData.uid) {
                                     if(schedule == 'watchlist') {
-                                        this.$socket.send(`getWatchlist_${event.uid}`)
+                                        if(event.market_odds.hasOwnProperty('other')) {
+                                            this.$socket.send(`getWatchlist_${event.uid}_withOtherMarket`)
+                                        } else {
+                                            this.$socket.send(`getWatchlist_${event.uid}`)
+                                        }
                                     } else {
-                                        this.$socket.send(`getEvents_${event.league_name}_${event.game_schedule}`)
+                                        if(event.market_odds.hasOwnProperty('other')) {
+                                            this.$socket.send(`getEvents_${event.league_name}_${event.game_schedule}_${event.uid}_withOtherMarket`)
+                                        } else {
+                                            this.$socket.send(`getEvents_${event.league_name}_${event.game_schedule}_${event.uid}`)
+                                        }
                                     }
                                 }
                             })

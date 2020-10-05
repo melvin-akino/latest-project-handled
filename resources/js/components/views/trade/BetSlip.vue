@@ -329,39 +329,40 @@ export default {
             let maxs = this.minMaxData.map(minmax => minmax.max)
             let maxAmount = 0;
             maxs.map(max => {
-                    maxAmount += max
+                maxAmount += max
             })
             this.orderForm.stake = maxAmount
         },
         getMarketDetails(setMinMaxProviders) {
             let token = Cookies.get('mltoken')
 
-            axios.get(`v1/orders/${this.odd_details.market_id}`, { headers: { 'Authorization': `Bearer ${token}` }})
-            .then(response => {
-                this.market_details = response.data.data
-                this.formattedRefSchedule = response.data.data.ref_schedule.split(' ')
-                this.points = this.odd_details.points || null
-                let spreadsMemUID = response.data.data.spreads.map(spread => spread.market_id)
-                if(response.data.data.spreads.length != 0) {
-                    if(spreadsMemUID.includes(this.market_id)) {
-                        this.spreads = moveToFirstElement(response.data.data.spreads, 'market_id', this.market_id)
+            axios.get(`v1/orders/${this.market_id}`, { headers: { 'Authorization': `Bearer ${token}` }})
+                .then(response => {
+                    this.market_details = response.data.data
+                    this.formattedRefSchedule = response.data.data.ref_schedule.split(' ')
+                    this.points = this.odd_details.points || null
+                    let spreadsMemUID = response.data.data.spreads.map(spread => spread.market_id)
+                    if(response.data.data.spreads.length != 0) {
+                        if(spreadsMemUID.includes(this.market_id)) {
+                            this.spreads = moveToFirstElement(response.data.data.spreads, 'market_id', this.market_id)
+                        } else {
+                            this.spreads = [this.odd_details]
+                        }
                     } else {
-                        this.spreads.push(this.odd_details)
+                        this.spreads = [this.odd_details]
                     }
-                } else {
-                    this.spreads.push(this.odd_details)
-                }
-                this.displaySpreadsByFive()
-                if (setMinMaxProviders) {
-                    this.setMinMaxProviders()
-                } else {
-                    this.isLoadingMarketDetailsAndProviders = false;
-                }
-                this.$store.commit('trade/SHOW_BET_MATRIX_IN_BETSLIP', { market_id: this.odd_details.market_id, has_bet: response.data.data.has_bets })
-            })
-            .catch(err => {
-                this.$store.dispatch('auth/checkIfTokenIsValid', err.response.data.status_code)
-            })
+                    this.displaySpreadsByFive()
+                    if (setMinMaxProviders) {
+                        this.setMinMaxProviders()
+                    } else {
+                        this.isLoadingMarketDetailsAndProviders = false;
+                        this.minmax(this.market_id)
+                    }
+                    this.$store.commit('trade/SHOW_BET_MATRIX_IN_BETSLIP', { market_id: this.market_id, has_bet: response.data.data.has_bets })
+                })
+                .catch(err => {
+                    this.$store.dispatch('auth/checkIfTokenIsValid', err.response.data.status_code)
+                })
         },
         setActiveBetSlip(market_id) {
             this.$store.commit('trade/SET_ACTIVE_BETSLIP', market_id)
@@ -488,15 +489,15 @@ export default {
         },
         emptyMinMax(market_id) {
             this.removeMinMax(market_id)
-            .then(() => {
-                this.getRemoveMinMax()
-            })
+                .then(() => {
+                    this.getRemoveMinMax()
+                })
         },
         minmax(market_id) {
             this.sendMinMax(market_id)
-            .then(() => {
-                this.getMinMaxData()
-            })
+                .then(() => {
+                    this.getMinMaxData()
+                })
         },
         closeBetSlip(betslip_id) {
             this.$store.commit('trade/CLOSE_BETSLIP', betslip_id)
@@ -624,28 +625,28 @@ export default {
                 let token = Cookies.get('mltoken')
                 if(this.orderForm.markets.length != 0) {
                     axios.post('v1/orders/bet', data, { headers: { 'Authorization': `Bearer ${token}` }})
-                    .then(response => {
-                        this.isBetSuccessful = true
-                        this.orderMessage = response.data.data
-                        this.$store.dispatch('trade/getBetbarData')
-                        this.$store.commit('trade/TOGGLE_BETBAR', true)
-                        this.$store.dispatch('trade/getWalletData')
+                        .then(response => {
+                            this.isBetSuccessful = true
+                            this.orderMessage = response.data.data
+                            this.$store.dispatch('trade/getBetbarData')
+                            this.$store.commit('trade/TOGGLE_BETBAR', true)
+                            this.$store.dispatch('trade/getWalletData')
 
-                        if(this.betSlipSettings.bets_to_fav == 1 && this.isBetSuccessful) {
-                            this.$store.dispatch('trade/addToWatchlist', { type: 'event', data: this.odd_details.game.uid, payload: this.odd_details.game })
-                        }
-                        this.isPlacingOrder = false
-                    })
-                    .catch(err => {
-                        this.isBetSuccessful = false
-                        this.isPlacingOrder = false
-                        if(this.orderMessage == '') {
-                            this.orderMessage = err.response.data.message
-                        }
-                        if(err.response.data.status_code != 404) {
-                            this.$store.dispatch('auth/checkIfTokenIsValid', err.response.data.status_code)
-                        }
-                    })
+                            if(this.betSlipSettings.bets_to_fav == 1 && this.isBetSuccessful) {
+                                this.$store.dispatch('trade/addToWatchlist', { type: 'event', data: this.odd_details.game.uid, payload: this.odd_details.game })
+                            }
+                            this.isPlacingOrder = false
+                        })
+                        .catch(err => {
+                            this.isBetSuccessful = false
+                            this.isPlacingOrder = false
+                            if(this.orderMessage == '') {
+                                this.orderMessage = err.response.data.message
+                            }
+                            if(err.response.data.status_code != 404) {
+                                this.$store.dispatch('auth/checkIfTokenIsValid', err.response.data.status_code)
+                            }
+                        })
                 } else {
                     this.isPlacingOrder = false
                 }
@@ -679,53 +680,53 @@ export default {
 </script>
 
 <style>
-    .leagueAndTeamDetails {
-        font-size: 15px;
-    }
+.leagueAndTeamDetails {
+    font-size: 15px;
+}
 
-    .loader {
-        height: 510px;
-    }
+.loader {
+    height: 510px;
+}
 
-    .betSlipSpinner {
-        font-size: 120px;
-    }
+.betSlipSpinner {
+    font-size: 120px;
+}
 
-    .success {
-        background-color: #5cb85c;
-    }
+.success {
+    background-color: #5cb85c;
+}
 
-    .failed {
-        background-color: #d9534f;
-    }
+.failed {
+    background-color: #d9534f;
+}
 
-    .orderMessage {
-        font-size: 14px;
-    }
+.orderMessage {
+    font-size: 14px;
+}
 
-    .clearOrderMessage {
-        right: 5px;
-    }
+.clearOrderMessage {
+    right: 5px;
+}
 
-    .previousPoint {
-        left: -30px;
-    }
+.previousPoint {
+    left: -30px;
+}
 
-    .nextPoint {
-        right: -30px;
-    }
+.nextPoint {
+    right: -30px;
+}
 
-    .spread-refresh {
-        position: absolute;
-        text-align: right;
-        margin: 5px 0;
-        width: 57%;
-        color: #FFF;
-    }
+.spread-refresh {
+    position: absolute;
+    text-align: right;
+    margin: 5px 0;
+    width: 57%;
+    color: #FFF;
+}
 
-    .spread-refresh a {
-        padding: 0 5px;
-        background-color: #ce6a17;
-        font-size: 20px;
-    }
+.spread-refresh a {
+    padding: 0 5px;
+    background-color: #ce6a17;
+    font-size: 20px;
+}
 </style>

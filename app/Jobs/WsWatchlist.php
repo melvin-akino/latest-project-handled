@@ -34,11 +34,22 @@ class WsWatchlist implements ShouldQueue
                 $eventUID    = $params[1];
                 $masterEvent = MasterEvent::where('master_event_unique_id', $eventUID)->first();
                 $gameDetails = Game::getWatchlistGameDetails($userId, $masterEvent->id);
+
+                if (count($params) > 2) {
+                    $otherTransformed   = Game::getOtherMarketsByMemUID($eventUID);
+                    $otherMarketDetails = [
+                        'meUID'       => $eventUID,
+                        'transformed' => $otherTransformed
+                    ];
+                    $data               = eventTransformation($gameDetails, $userId, $topicTable, 'socket-watchlist', $otherMarketDetails);
+                } else {
+                    $data = eventTransformation($gameDetails, $userId, $topicTable, 'socket-watchlist');
+                }
+
             } else {
                 $gameDetails = Game::getWatchlistGameDetails($userId);
+                $data        = eventTransformation($gameDetails, $userId, $topicTable, 'socket-watchlist');
             }
-
-            $data = eventTransformation($gameDetails, $userId, $topicTable, 'socket-watchlist');
 
             $watchlist = is_array($data) ? $data : [];
             $eventData = array_values($watchlist);

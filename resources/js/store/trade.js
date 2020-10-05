@@ -337,93 +337,105 @@ const actions = {
     },
     getBookies({commit, dispatch}) {
         return axios.get('v1/bookies', { headers: { 'Authorization': `Bearer ${token}` }})
-        .then(response => {
-            commit('SET_BOOKIES', response.data.data)
-        })
-        .catch(err => {
-            dispatch('auth/checkIfTokenIsValid', err.response.data.status_code, { root: true })
-        })
+            .then(response => {
+                commit('SET_BOOKIES', response.data.data)
+            })
+            .catch(err => {
+                dispatch('auth/checkIfTokenIsValid', err.response.data.status_code, { root: true })
+            })
     },
     getSports({commit, dispatch}) {
         return axios.get('v1/sports', { headers: { 'Authorization': `Bearer ${token}` } })
-        .then(response => {
-            commit('SET_SPORTS', response.data.data)
-            commit('SET_SELECTED_SPORT', response.data.default_sport)
-        })
-        .catch(err => {
-            dispatch('auth/checkIfTokenIsValid', err.response.data.status_code, { root: true })
-        })
+            .then(response => {
+                commit('SET_SPORTS', response.data.data)
+                commit('SET_SELECTED_SPORT', response.data.default_sport)
+            })
+            .catch(err => {
+                dispatch('auth/checkIfTokenIsValid', err.response.data.status_code, { root: true })
+            })
     },
     getInitialLeagues({commit, dispatch, state}, updatedLeagues = false) {
         return axios.get('v1/trade/leagues', { headers: { 'Authorization': `Bearer ${token}` }})
-        .then(response => {
-            if(response.data.sport_id == state.selectedSport) {
-                commit('SET_LEAGUES', response.data.data)
-                dispatch('removeEventsOnUpdateOfLeagues')
+            .then(response => {
+                if(response.data.sport_id == state.selectedSport) {
+                    commit('SET_LEAGUES', response.data.data)
+                    dispatch('removeEventsOnUpdateOfLeagues')
 
-                if(updatedLeagues) {
-                    Object.keys(state.selectedLeagues).map(schedule => {
-                        state.selectedLeagues[schedule].map(league => {
-                            Vue.prototype.$socket.send(`getEvents_${league}_${schedule}`)
+                    if(updatedLeagues) {
+                        Object.keys(state.events).map(schedule => {
+                            Object.keys(state.events[schedule]).map(league => {
+                                state.events[schedule][league].map(event => {
+                                    if(schedule == 'watchlist') {
+                                        if(event.market_odds.hasOwnProperty('other')) {
+                                            Vue.prototype.$socket.send(`getWatchlist_${event.uid}_withOtherMarket`)
+                                        } else {
+                                            Vue.prototype.$socket.send(`getWatchlist_${event.uid}`)
+                                        }
+                                    } else {
+                                        if(event.market_odds.hasOwnProperty('other')) {
+                                            Vue.prototype.$socket.send(`getEvents_${event.league_name}_${event.game_schedule}_${event.uid}_withOtherMarket`)
+                                        } else {
+                                            Vue.prototype.$socket.send(`getEvents_${event.league_name}_${event.game_schedule}_${event.uid}`)
+                                        }
+                                    }
+                                })
+                            })
                         })
-                    })
-
-                    Vue.prototype.$socket.send('getWatchlist')
+                    }
                 }
-            }
-            commit('SET_IS_LOADING_LEAGUES', false)
-        })
-        .catch(err => {
-            dispatch('auth/checkIfTokenIsValid', err.response.data.status_code, { root: true })
-        })
+                commit('SET_IS_LOADING_LEAGUES', false)
+            })
+            .catch(err => {
+                dispatch('auth/checkIfTokenIsValid', err.response.data.status_code, { root: true })
+            })
     },
     getInitialEvents({commit, dispatch, state}) {
         axios.get('v1/trade/events', { headers: { 'Authorization': `Bearer ${token}` }})
-        .then(response => {
-            let schedule = ['inplay', 'today', 'early']
-            schedule.map(schedule => {
-                if(response.data.data.user_selected.hasOwnProperty(schedule)) {
-                    let sortedUserSelected = {}
-                    Object.keys(response.data.data.user_selected[schedule]).sort().map(league => {
-                        if(typeof(sortedUserSelected[schedule]) == "undefined") {
-                            sortedUserSelected[schedule] = {}
-                        }
-                        sortedUserSelected[schedule][league] = response.data.data.user_selected[schedule][league]
-                        sortedUserSelected[schedule][league] = sortByObjectProperty(sortedUserSelected[schedule][league], 'ref_schedule')
-                        sortedUserSelected[schedule][league].map(event => {
-                            if(event.sport_id == state.selectedSport) {
-                                commit('SET_EVENTS', { schedule: schedule, events: sortedUserSelected[schedule]})
-                                commit('SET_EVENTS_LIST', event)
-                                commit('SET_ALL_EVENTS_LIST', event)
+            .then(response => {
+                let schedule = ['inplay', 'today', 'early']
+                schedule.map(schedule => {
+                    if(response.data.data.user_selected.hasOwnProperty(schedule)) {
+                        let sortedUserSelected = {}
+                        Object.keys(response.data.data.user_selected[schedule]).sort().map(league => {
+                            if(typeof(sortedUserSelected[schedule]) == "undefined") {
+                                sortedUserSelected[schedule] = {}
                             }
+                            sortedUserSelected[schedule][league] = response.data.data.user_selected[schedule][league]
+                            sortedUserSelected[schedule][league] = sortByObjectProperty(sortedUserSelected[schedule][league], 'ref_schedule')
+                            sortedUserSelected[schedule][league].map(event => {
+                                if(event.sport_id == state.selectedSport) {
+                                    commit('SET_EVENTS', { schedule: schedule, events: sortedUserSelected[schedule]})
+                                    commit('SET_EVENTS_LIST', event)
+                                    commit('SET_ALL_EVENTS_LIST', event)
+                                }
+                            })
                         })
-                    })
-                }
-            })
-
-            let sortedUserWatchlist = {}
-            Object.keys(response.data.data.user_watchlist).sort().map(league => {
-                if(typeof(sortedUserWatchlist[league]) == "undefined") {
-                    sortedUserWatchlist[league] = {}
-                }
-                sortedUserWatchlist[league] = response.data.data.user_watchlist[league]
-                sortedUserWatchlist[league] = sortByObjectProperty(sortedUserWatchlist[league], 'ref_schedule')
-                sortedUserWatchlist[league].map(event => {
-                    commit('SET_WATCHLIST', sortedUserWatchlist)
-                    commit('SET_WATCHLIST_EVENTS', event)
-                    commit('SET_ALL_EVENTS_LIST', event)
+                    }
                 })
-            })
-            commit('SET_IS_LOADING_EVENTS', false)
-        })
-        .catch(err => {
-            if(err.response.data.status_code != 500) {
-                dispatch('auth/checkIfTokenIsValid', err.response.data.status_code, { root: true })
-            } else {
+
+                let sortedUserWatchlist = {}
+                Object.keys(response.data.data.user_watchlist).sort().map(league => {
+                    if(typeof(sortedUserWatchlist[league]) == "undefined") {
+                        sortedUserWatchlist[league] = {}
+                    }
+                    sortedUserWatchlist[league] = response.data.data.user_watchlist[league]
+                    sortedUserWatchlist[league] = sortByObjectProperty(sortedUserWatchlist[league], 'ref_schedule')
+                    sortedUserWatchlist[league].map(event => {
+                        commit('SET_WATCHLIST', sortedUserWatchlist)
+                        commit('SET_WATCHLIST_EVENTS', event)
+                        commit('SET_ALL_EVENTS_LIST', event)
+                    })
+                })
                 commit('SET_IS_LOADING_EVENTS', false)
-                commit('SET_EVENTS_ERROR', true)
-            }
-        })
+            })
+            .catch(err => {
+                if(err.response.data.status_code != 500) {
+                    dispatch('auth/checkIfTokenIsValid', err.response.data.status_code, { root: true })
+                } else {
+                    commit('SET_IS_LOADING_EVENTS', false)
+                    commit('SET_EVENTS_ERROR', true)
+                }
+            })
     },
     async getTradeWindowData({dispatch}) {
         await dispatch('getSports')
@@ -449,15 +461,15 @@ const actions = {
     },
     getBetbarData({commit, state, dispatch}) {
         return axios.get('v1/trade/betbar', { headers: { 'Authorization': `Bearer ${token}` }})
-        .then(response => {
-            commit('SET_BETS', response.data.data)
-            if(state.bets.length != 0) {
-                commit('TOGGLE_BETBAR', true)
-            }
-        })
-        .catch(err => {
-            dispatch('auth/checkIfTokenIsValid', err.response.data.status_code, { root: true })
-        })
+            .then(response => {
+                commit('SET_BETS', response.data.data)
+                if(state.bets.length != 0) {
+                    commit('TOGGLE_BETBAR', true)
+                }
+            })
+            .catch(err => {
+                dispatch('auth/checkIfTokenIsValid', err.response.data.status_code, { root: true })
+            })
     },
     getOrders() {
         state.bets.map(bet => {
@@ -466,12 +478,12 @@ const actions = {
     },
     getWalletData({commit, dispatch}) {
         axios.get('v1/user/wallet', { headers: { 'Authorization': `Bearer ${token}` }})
-        .then(response => {
-            commit('SET_WALLET', response.data.data)
-        })
-        .catch(err => {
-            dispatch('auth/checkIfTokenIsValid', err.response.data.status_code, { root: true })
-        })
+            .then(response => {
+                commit('SET_WALLET', response.data.data)
+            })
+            .catch(err => {
+                dispatch('auth/checkIfTokenIsValid', err.response.data.status_code, { root: true })
+            })
     },
     async getTradePageSettings({dispatch, commit}) {
         let tradePageSettings = await dispatch('settings/getUserSettingsConfig', 'trade-page', { root: true })
@@ -484,9 +496,9 @@ const actions = {
     },
     toggleLeague({dispatch}, data) {
         axios.post(`v1/trade/leagues/toggle/${data.action}`, { league_name: data.league_name, sport_id: data.sport_id, schedule: data.schedule}, { headers: { 'Authorization': `Bearer ${token}` } })
-        .catch(err => {
-            dispatch('auth/checkIfTokenIsValid', err.response.data.status_code, { root: true })
-        })
+            .catch(err => {
+                dispatch('auth/checkIfTokenIsValid', err.response.data.status_code, { root: true })
+            })
     },
     toggleLeagueByName({dispatch}, data) {
         let schedule = ['inplay', 'today', 'early']
@@ -558,13 +570,13 @@ const actions = {
     getOrderLogs({dispatch}, event_id) {
         return new Promise((resolve, reject) => {
             axios.get(`v1/orders/logs/${event_id}`, { headers: { 'Authorization': `Bearer ${token}` }})
-            .then(response => {
-                resolve(response.data.data)
-            })
-            .catch(err => {
-                dispatch('auth/checkIfTokenIsValid', err.response.data.status_code,  { root: true })
-                reject(err)
-            })
+                .then(response => {
+                    resolve(response.data.data)
+                })
+                .catch(err => {
+                    dispatch('auth/checkIfTokenIsValid', err.response.data.status_code,  { root: true })
+                    reject(err)
+                })
         })
     },
     removeEventsOnUpdateOfLeagues({state, getters, commit}) {
