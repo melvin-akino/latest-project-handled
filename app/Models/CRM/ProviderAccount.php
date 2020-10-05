@@ -77,7 +77,7 @@ class ProviderAccount extends Model
                         }
                     }
 
-                    if (empty($accountFinalCandidates)) {
+                    if (empty($accountFinalCandidates) && !empty($accountCandidates))  {
                         $accountFinalCandidates[0] = $accountCandidates[end($accountCandidates)];
                     }
 

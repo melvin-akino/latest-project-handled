@@ -17,6 +17,11 @@ class AddProviderErrorMessageId extends Migration
             //
             $table->integer('provider_error_message_id')->nullable();
 
+              $table->foreign('provider_error_message_id')
+                ->references('id')
+                ->on('provider_error_messages')
+                ->onUpdate('cascade');
+       
         });
     }
 

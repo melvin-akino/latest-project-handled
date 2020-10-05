@@ -125,6 +125,7 @@ class OrdersController extends Controller
                             $teamname . " @ " . $myOrder->odds . " (" . $ouScore[1]
                         ]);
                     }
+                   
 
                     $data['orders'][] = [
                         'order_id'      => $myOrder->id,
@@ -146,7 +147,7 @@ class OrdersController extends Controller
                         'away_score'    => $score[1],
                         'odd_type_id'   => $myOrder->odd_type_id,
                         'points'        => $myOrder->odd_label,
-                        'reason'        => $myOrder->reason
+                        'reason'        => (!empty($myOrder->multiline_error)) ?  $myOrder->multiline_error :  $myOrder->reason
                     ];
                 }
 
