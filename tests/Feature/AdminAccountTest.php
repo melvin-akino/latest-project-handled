@@ -30,5 +30,6 @@ class AdminAccountTest extends TestCase
         ]);
 
         $this->be($this->user);
+        $this->assertTrue(true);
     }
 }
