@@ -109,29 +109,30 @@ class SettlementProduce implements CustomProcessInterface
                                                 'settlement_date' => Carbon::now()->subHours(5)->format('Y-m-d')
                                             ];
 
-                                        kafkaPush(
-                                            $providerAlias . env('KAFKA_SCRAPE_SETTLEMENT_POSTFIX', '_settlement_req'),
-                                            $payload,
-                                            $requestId
-                                        );
-                                        // add sleep to prevent detecting as bot
-                                        sleep(random_int(60, 300));
+                                            kafkaPush(
+                                                $providerAlias . env('KAFKA_SCRAPE_SETTLEMENT_POSTFIX', '_settlement_req'),
+                                                $payload,
+                                                $requestId
+                                            );
+                                            // add sleep to prevent detecting as bot
+                                            sleep(random_int(60, 300));
 
-                                        $startTime = $newTime;
+                                            $startTime = $newTime;
+                                        }
                                     }
                                 }
+
+                                $initialTime = $newTime;
                             }
-
-                            $initialTime = $newTime;
                         }
-                    }
 
-                    usleep(1000000);
+                        usleep(1000000);
+                    }
                 }
             }
         } catch (Exception $e) {
-            Log::error($e->getMessage());
-        }
+                Log::error($e->getMessage());
+            }
     }
 
     // Requirements: LaravelS >= v3.4.0 & callback() must be async non-blocking program.
