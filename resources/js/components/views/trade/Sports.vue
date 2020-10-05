@@ -54,6 +54,7 @@ export default {
     },
     methods: {
         selectSport(sport) {
+            this.$socket.send(`getSelectedLeagues_${sport}`)
             this.isSportsListOpen = !this.isSportsListOpen
             this.isSelectingSport = !this.isSelectingSport
             if(!this.isSelectingSport) {

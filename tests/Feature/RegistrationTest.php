@@ -13,38 +13,6 @@ class RegistrationTest extends TestCase
     use RefreshDatabase, WithFaker;
 
     /** @test */
-    public function requiredFields()
-    {
-        $fields = [
-            'firstname',
-            'lastname',
-            'email',
-            'password',
-            'password_confirmation',
-            'postcode',
-            'country_id',
-            'state',
-            'city',
-            'currency_id',
-            'address',
-            'phone'
-        ];
-
-        collect($fields)
-            ->each(function ($field) {
-                $response = $this->post('/api/v1/auth/register', array_merge($this->data(), [$field => '']), [
-                    'X-Requested-With' => 'XMLHttpRequest'
-                ]);
-
-                /** MUST detect that response encounters a 422 HTTP Status error */
-                $response->assertStatus(422);
-
-                /** MUST NOT be able to add a record to database table */
-                $this->assertCount(2, User::all());
-            });
-    }
-
-    /** @test */
     public function invalidParameters()
     {
         /**
@@ -156,7 +124,14 @@ class RegistrationTest extends TestCase
     /** @test */
     public function register()
     {
-        $response = $this->post('/api/v1/auth/register', $this->data(), [
+        $this->post('/admin/login', [
+            'email' => 'superadmin@ninepinetech.com',
+            'password' => '9pinesecurity@dmin'
+        ], [
+            'X-Requested-With' => 'XMLHttpRequest'
+        ]);
+
+        $response = $this->post('/admin/accounts/add_user', $this->data(), [
             'X-Requested-With' => 'XMLHttpRequest'
         ]);
 

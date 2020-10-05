@@ -5,7 +5,7 @@
                 <span class="text-gray-700">Loading bet matrix orders <i class="fas fa-circle-notch fa-spin"></i></span>
             </div>
             <div class="p-6" v-else>
-                <p class="text-gray-700 mb-4">Current Score: {{analysisData.home_score}} - {{analysisData.away_score}}</p>
+                <p class="text-gray-700 mb-4">Current Score: {{matrix_data.home_score}} - {{matrix_data.away_score}}</p>
                 <div class="matrixTable" v-if="selectedOrders.length != 0">
                     <div class="flex items-center bg-black text-white pl-4">
                         <i class="material-icons sportsIcon pr-3">sports_soccer</i>
@@ -159,23 +159,31 @@ export default {
                             }
                         }
                         if(type == 'O') {
-                            var teamTotals = home_team_counter + away_team_counter
-                            if(teamTotals > points) {
+                            var teamTotalsDifference = (home_team_counter + away_team_counter) - points
+                            if(teamTotalsDifference > 0.25) {
                                 var result = stake * price
-                            } else if(teamTotals == points) {
+                            } else if(teamTotalsDifference == 0.25) {
+                                var result = (stake * price) / 2
+                            } else if(teamTotalsDifference == 0) {
                                 var result = 0
+                            } else if(teamTotalsDifference == -0.25) {
+                                var result = (stake / 2) * -1
                             } else {
                                 var result = stake * -1
                             }
                         }
                         if(type == 'U') {
-                            var teamTotals = home_team_counter + away_team_counter
-                            if(teamTotals < points) {
-                                var result = stake * price
-                            } else if(teamTotals == points) {
-                                var result = 0
-                            } else {
+                            var teamTotalsDifference = (home_team_counter + away_team_counter) - points
+                            if(teamTotalsDifference > 0.25) {
                                 var result = stake * -1
+                            } else if(teamTotalsDifference == 0.25) {
+                                var result = (stake / 2) * -1
+                            } else if(teamTotalsDifference == 0) {
+                                var result = 0
+                            } else if(teamTotalsDifference == -0.25) {
+                                var result = (stake * price) / 2
+                            } else {
+                                var result = stake * price
                             }
                         }
 
@@ -237,6 +245,21 @@ export default {
                 this.selectedOrders.push(order_id)
                 this.matrix_orders.push(order)
             }
+
+            if(this.matrix_orders.length == 1) {
+                if(this.matrix_orders[0].final_score) {
+                    let final_score = this.matrix_orders[0].final_score.split(' - ')
+                    this.matrix_data.home_score = final_score[0]
+                    this.matrix_data.away_score = final_score[1]
+                } else {
+                    this.matrix_data.home_score = this.analysisData.home_score
+                    this.matrix_data.away_score = this.analysisData.away_score
+                }
+            } else {
+                this.matrix_data.home_score = this.analysisData.home_score
+                this.matrix_data.away_score = this.analysisData.away_score
+            }
+
             this.matrix_table = []
             this.generateBetMatrix()
         }

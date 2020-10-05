@@ -212,23 +212,31 @@ export default {
                             }
                         }
                         if(type == 'O') {
-                            var teamTotals = home_team_counter + away_team_counter
-                            if(teamTotals > points) {
+                            var teamTotalsDifference = (home_team_counter + away_team_counter) - points
+                            if(teamTotalsDifference > 0.25) {
                                 var result = stake * price
-                            } else if(teamTotals == points) {
+                            } else if(teamTotalsDifference == 0.25) {
+                                var result = (stake * price) / 2
+                            } else if(teamTotalsDifference == 0) {
                                 var result = 0
+                            } else if(teamTotalsDifference == -0.25) {
+                                var result = (stake / 2) * -1
                             } else {
                                 var result = stake * -1
                             }
                         }
                         if(type == 'U') {
-                            var teamTotals = home_team_counter + away_team_counter
-                            if(teamTotals < points) {
-                                var result = stake * price
-                            } else if(teamTotals == points) {
-                                var result = 0
-                            } else {
+                            var teamTotalsDifference = (home_team_counter + away_team_counter) - points
+                            if(teamTotalsDifference > 0.25) {
                                 var result = stake * -1
+                            } else if(teamTotalsDifference == 0.25) {
+                                var result = (stake / 2) * -1
+                            } else if(teamTotalsDifference == 0) {
+                                var result = 0
+                            } else if(teamTotalsDifference == -0.25) {
+                                var result = (stake * price) / 2
+                            } else {
+                                var result = stake * price
                             }
                         }
 

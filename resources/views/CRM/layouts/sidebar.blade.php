@@ -31,7 +31,7 @@
                         <i class="fa fa-dashboard" aria-hidden="true"></i>
                         <span>System Configurations</span>
                     </a>
-                </li> 
+                </li>
                 <li class="@isset($accounts_menu) active @endisset">
                     <a href="/admin/accounts">
                         <i class="fa fa-user" aria-hidden="true"></i>
@@ -81,6 +81,38 @@
                                 <span>Withdraw</span>
                             </a>
                         </li>
+                     
+                    </ul>
+                </li>
+
+                <li class="treeview @isset($wallet_menu) active menu-open @endisset" id="wallet-treeview">
+                    <a href="javascript:void(0);">
+                        <i class="fa fa-id-card-o" aria-hidden="true"></i>
+                        <span>Error Messaging</span>
+                        <i class="fa fa-angle-left pull-right"></i>
+                    </a>
+
+                    <ul class="treeview-menu">
+                                               
+                        <li class="@isset($exchange_rate_menu) active @endisset">
+                            <a href="/admin/error_messages">
+                                <i class="fa fa-exchange" aria-hidden="true"></i>
+                                <span>General Error Messages</span>
+                            </a>
+                        </li>
+                        <li class=" @isset($currency_menu) active @endisset ">
+                            <a href="/admin/message/index">
+                                <i class="fa fa-usd" aria-hidden="true"></i>
+                                <span>Provider Error</span>
+                            </a>
+                        </li>
+                     
+
+
+                        
+
+                       
+                        
                      
                     </ul>
                 </li>
