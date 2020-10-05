@@ -131,8 +131,8 @@ class SettlementProduce implements CustomProcessInterface
                 }
             }
         } catch (Exception $e) {
-                Log::error($e->getMessage());
-            }
+            Log::error($e->getMessage());
+        }
     }
 
     // Requirements: LaravelS >= v3.4.0 & callback() must be async non-blocking program.
