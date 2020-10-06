@@ -604,6 +604,20 @@ if (!function_exists('appLog')) {
         }
     }
 }
+if (!function_exists('providerErrorMapping')) {
+
+    function providerErrorMapping($string)
+    {
+         $data =DB::select( DB::raw("SELECT *, regexp_matches('". pg_escape_string($string)."',message) FROM provider_error_messages limit 1") );
+
+         if ($data) {
+            return $data[0]->id;
+         } else {
+            return null;
+         }
+
+    }
+}
 
 if (!function_exists('orderStatus')) {
     function orderStatus($userId, $orderId, $status, $odds, $expiry, $createdAt)
