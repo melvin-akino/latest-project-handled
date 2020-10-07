@@ -2,8 +2,6 @@
 
 namespace App\Processes;
 
-use RdKafka\TopicConf;
-use App\Jobs\TransformKafkaMessageBet;
 use Hhxsv5\LaravelS\Swoole\Process\CustomProcessInterface;
 use Illuminate\Support\Facades\Log;
 use Swoole\Http\Server;
@@ -27,11 +25,8 @@ class PlacedBetConsume implements CustomProcessInterface
 
                 $queue = $kafkaConsumer->newQueue();
 
-                $topicConf = new TopicConf();
-                $topicConf->set('enable.auto.commit', 'false');
-                $topicConf->set('auto.commit.interval.ms', 100);
-                $topicConf->set('offset.store.method', 'broker');
-                $topicConf->set('auto.offset.reset', 'latest');
+                $topicConf = app('KafkaTopicConf');
+                $betTransformationHandler = app('BetTransformationHandler');
 
                 $placedBetTopic = $kafkaConsumer->newTopic(env('KAFKA_BET_PLACED', 'PLACED-BET'), $topicConf);
                 $placedBetTopic->consumeQueueStart(0, RD_KAFKA_OFFSET_END, $queue);
@@ -53,7 +48,7 @@ class PlacedBetConsume implements CustomProcessInterface
                                 continue;
                             }
 
-                            TransformKafkaMessageBet::dispatch($payload);
+                            $betTransformationHandler->init($payload)->handle();
 
                             if (env('CONSUMER_PRODUCER_LOG', false)) {
                                 Log::channel('kafkalog')->info(json_encode($message));
@@ -67,6 +62,7 @@ class PlacedBetConsume implements CustomProcessInterface
                 }
             }
         } catch (Exception $e) {
+
             Log::error(json_encode([
                 'PlacedBetConsume' => [
                     'message' => $e->getMessage(),

@@ -27,8 +27,7 @@ class SettlementProduce implements CustomProcessInterface
     public static function callback(Server $swoole, Process $process)
     {
         try {
-            $kafkaProducer         = app('KafkaProducer');
-            self::$producerHandler = new ProducerHandler($kafkaProducer);
+            self::$producerHandler = app('ProducerHandler');
 
             if ($swoole->data2SwtTable->exist('data2Swt')) {
                 $sportsTable               = $swoole->sportsTable;
@@ -82,7 +81,7 @@ class SettlementProduce implements CustomProcessInterface
                                                 'settlement_date' => Carbon::createFromFormat('Y-m-d', $providerUnsettledDate)->subDays(1)->format('Y-m-d')
                                             ];
 
-                                            KafkaPush::dispatch(
+                                            kafkaPush(
                                                 $providerAlias . env('KAFKA_SCRAPE_SETTLEMENT_POSTFIX', '_settlement_req'),
                                                 $payload,
                                                 $requestId
@@ -110,26 +109,25 @@ class SettlementProduce implements CustomProcessInterface
                                                 'settlement_date' => Carbon::now()->subHours(5)->format('Y-m-d')
                                             ];
 
-                                            KafkaPush::dispatch(
+                                            kafkaPush(
                                                 $providerAlias . env('KAFKA_SCRAPE_SETTLEMENT_POSTFIX', '_settlement_req'),
                                                 $payload,
                                                 $requestId
                                             );
-
                                             // add sleep to prevent detecting as bot
-                                            usleep(random_int(5, 15) * 1000000);
-                                        }
+                                            sleep(random_int(60, 300));
 
-                                        $startTime = $newTime;
+                                            $startTime = $newTime;
+                                        }
                                     }
                                 }
+
+                                $initialTime = $newTime;
                             }
-
-                            $initialTime = $newTime;
                         }
-                    }
 
-                    usleep(1000000);
+                        usleep(1000000);
+                    }
                 }
             }
         } catch (Exception $e) {

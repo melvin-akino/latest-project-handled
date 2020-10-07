@@ -2,8 +2,6 @@
 
 namespace App\Processes;
 
-use App\Handlers\ProducerHandler;
-use App\Jobs\KafkaPush;
 use App\Models\SystemConfiguration;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
@@ -25,8 +23,7 @@ class MinMaxProduce implements CustomProcessInterface
     public static function callback(Server $swoole, Process $process)
     {
         try {
-            $kafkaProducer         = app('KafkaProducer');
-            self::$producerHandler = new ProducerHandler($kafkaProducer);
+            self::$producerHandler = app('ProducerHandler');
 
             if ($swoole->data2SwtTable->exist('data2Swt')) {
                 $minMaxRequestsTable        = $swoole->minMaxRequestsTable;
@@ -86,7 +83,7 @@ class MinMaxProduce implements CustomProcessInterface
 
 
                                     if (!$minmaxOnqueueExist) {
-                                        KafkaPush::dispatch(
+                                        kafkaPush(
                                             strtolower($minMaxRequest['provider']) . env('KAFKA_SCRAPE_MINMAX_REQUEST_POSTFIX', '_minmax_req'),
                                             $payload,
                                             $requestId

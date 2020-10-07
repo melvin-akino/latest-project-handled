@@ -1,28 +1,24 @@
 <?php
 
-namespace App\Jobs;
+namespace App\Handlers;
 
 use App\Facades\SwooleHandler;
-use Carbon\Carbon;
 use App\Models\{
     MasterEventMarket,
     EventMarket
 };
-use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Support\Facades\Log;
 use Exception;
 
-class TransformKafkaMessageMinMax implements ShouldQueue
+class MinMaxTransformationHandler
 {
-    use Dispatchable;
-
     protected $data;
 
-    public function __construct($data)
+    public function init($data)
     {
-        $this->data = $data;
         Log::info('Task: MinMax construct');
+        $this->data = $data;
+        return $this;
     }
 
     public function handle()

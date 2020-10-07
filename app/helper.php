@@ -604,6 +604,7 @@ if (!function_exists('appLog')) {
         }
     }
 }
+
 if (!function_exists('providerErrorMapping')) {
 
     function providerErrorMapping($string)
@@ -618,3 +619,77 @@ if (!function_exists('providerErrorMapping')) {
 
     }
 }
+
+
+if (!function_exists('orderStatus')) {
+    function orderStatus($userId, $orderId, $status, $odds, $expiry, $createdAt)
+    {
+        $swoole = app('swoole');
+
+        $doesExist = false;
+        foreach ($swoole->wsTable as $key => $value) {
+            if ($key == 'uid:' . $userId) {
+                $doesExist = true;
+                break;
+            }
+        }
+        if ($doesExist) {
+            $fd = $swoole->wsTable->get('uid:' . $userId);
+
+            if ($swoole->isEstablished($fd['value'])) {
+                $swoole->push($fd['value'], json_encode([
+                    'getOrderStatus' => [
+                        'order_id' => $orderId,
+                        'status'   => $status,
+                        'odds'     => $odds
+                    ]
+                ]));
+            }
+
+            $forBetBarRemoval = [
+                'FAILED',
+                'CANCELLED',
+            ];
+            if (in_array(strtoupper($status), $forBetBarRemoval)) {
+                if (time() - strtotime($createdAt) > $expiry) {
+                    SwooleHandler::setValue('topicTable', 'userId:' . $userId . ':unique:' . uniqid(), [
+                        'user_id' => $userId,
+                        'topic_name' => 'removal-bet-' . $orderId
+                    ]);
+                }
+            }
+        }
+    }
+}
+
+if (!function_exists('kafkaPush')) {
+    function kafkaPush($kafkaTopic, $message, $key)
+    {
+        $kafkaProducer   = app('KafkaProducer');
+        $producerHandler = app('ProducerHandler');
+        try {
+            appLog('info', 'Sending to Kafka Topic: ' . $kafkaTopic);
+            $producerHandler->setTopic($kafkaTopic)->send($message, $key);
+            if (env('APP_ENV') != 'local') {
+                for ($flushRetries = 0; $flushRetries < 10; $flushRetries++) {
+                    $result = $kafkaProducer->flush(10000);
+                    if (RD_KAFKA_RESP_ERR_NO_ERROR === $result) {
+                        break;
+                    }
+                }
+            }
+            appLog('info', 'Sent to Kafka Topic: ' . $kafkaTopic);
+        } catch (Exception $e) {
+            Log::critical('Sending Kafka Message Failed', [
+                'error' => $e->getMessage(),
+                'code'  => $e->getCode()
+            ]);
+        } finally {
+            if (env('CONSUMER_PRODUCER_LOG', false)) {
+                Log::channel('kafkaproducelog')->info(json_encode($message));
+            }
+        }
+    }
+}
+
+

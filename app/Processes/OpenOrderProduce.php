@@ -2,8 +2,6 @@
 
 namespace App\Processes;
 
-use App\Handlers\ProducerHandler;
-use App\Jobs\KafkaPush;
 use App\Models\SystemConfiguration;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
@@ -25,8 +23,7 @@ class OpenOrderProduce implements CustomProcessInterface
     public static function callback(Server $swoole, Process $process)
     {
         try {
-            $kafkaProducer         = app('KafkaProducer');
-            self::$producerHandler = new ProducerHandler($kafkaProducer);
+            self::$producerHandler = ('ProducerHandler');
 
             if ($swoole->data2SwtTable->exist('data2Swt')) {
                 $sportsTable                = $swoole->sportsTable;
@@ -70,7 +67,7 @@ class OpenOrderProduce implements CustomProcessInterface
                                             'username' => $username
                                         ];
 
-                                        KafkaPush::dispatch(
+                                        kafkaPush(
                                             $providerAlias . env('KAFKA_SCRAPE_OPEN_ORDERS_POSTFIX', '_openorder_req'),
                                             $payload,
                                             $requestId

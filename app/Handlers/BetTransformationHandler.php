@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Jobs;
+namespace App\Handlers;
 
 use App\Facades\SwooleHandler;
 
@@ -8,14 +8,10 @@ use App\Models\{OddType, Order, ProviderAccount, OrderLogs, ProviderAccountOrder
 
 use Carbon\Carbon;
 use Exception;
-use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Support\Facades\{DB, Log};
 
-class TransformKafkaMessageBet implements ShouldQueue
+class BetTransformationHandler
 {
-    use Dispatchable;
-
     protected $message;
 
     const STATUS_RECEIVED = 'received';
@@ -23,16 +19,17 @@ class TransformKafkaMessageBet implements ShouldQueue
     const STATUS_SUCCESS  = 'success';
     const STATUS_FAILED   = 'failed';
 
-    public function __construct($message)
+    public function init($message)
     {
-        Log::info('TransformKafkaMessageBet : CONSTRUCT');
+        Log::info('BetTransformationHandler : CONSTRUCT');
 
         $this->message = $message;
+        return $this;
     }
 
     public function handle()
     {
-        Log::info('TransformKafkaMessageBet : HANDLE');
+        Log::info('BetTransformationHandler : HANDLE');
 
         try {
             DB::beginTransaction();
@@ -158,7 +155,7 @@ class TransformKafkaMessageBet implements ShouldQueue
                             if ($status == strtoupper(self::STATUS_SUCCESS)) {
                                 SwooleHandler::remove('pendingOrdersWithinExpiryTable', 'orderId:' . $orderId);
                             }
-                            WSOrderStatus::dispatch(
+                            orderStatus(
                                 $row['user_id'],
                                 $orderId,
                                 $status,
@@ -182,7 +179,7 @@ class TransformKafkaMessageBet implements ShouldQueue
             DB::commit();
         } catch (Exception $e) {
             Log::error(json_encode([
-                'TransformKafkaMessageBet' => [
+                'BetTransformationHandler' => [
                     'message' => $e->getMessage(),
                     'line'    => $e->getLine(),
                 ]

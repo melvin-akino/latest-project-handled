@@ -14,6 +14,7 @@ class OddsValidationHandler
     protected $offset;
     protected $updated = false;
     protected $uid     = null;
+    protected $messageObject;
 
     protected $disregard = [
         'No. of Corners',
@@ -39,17 +40,19 @@ class OddsValidationHandler
         'TEST'
     ];
 
-    public function init($message, $offset)
+    public function init($message, $offset, $swoole)
     {
         $this->message = $message;
         $this->offset  = $offset;
+        $this->messageObject  = $message;
+        $this->swoole = $swoole;
         return $this;
     }
 
     public function handle()
     {
         try {
-            $swoole                             = app('swoole');
+            $swoole                             = $this->swoole;
             $subTasks['remove-previous-market'] = [];
             $parameters                         = [];
 
@@ -84,8 +87,9 @@ class OddsValidationHandler
              * Checks if hash is the same as old hash
              */
             $transformedSwtId           = 'eventIdentifier:' . $this->message->data->events[0]->eventId;
-            $oddsValidationObject       = unserialize(serialize($this));
-            $toHashMessage              = $oddsValidationObject->message->data;
+            $oddsValidationObject       = $this->messageObject;
+            $toHashMessage              = $oddsValidationObject->data;
+
             $toHashMessage->runningtime = null;
             $toHashMessage->id          = null;
 
@@ -198,7 +202,7 @@ class OddsValidationHandler
             }
 
             SwooleHandler::setValue('oddsKafkaPayloadsTable', $this->offset, ['message' => json_encode($this->message)]);
-            $transformKafkaMessageOdds = resolve('TransformKafkaMessageOdds');
+            $transformKafkaMessageOdds = app('TransformKafkaMessageOdds');
             Task::deliver($transformKafkaMessageOdds->init($this->offset, compact('providerId', 'sportId', 'parameters')));
             Log::info("Transformation - validation completed");
 

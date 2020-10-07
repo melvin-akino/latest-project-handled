@@ -2,8 +2,6 @@
 
 namespace App\Processes;
 
-use App\Handlers\ProducerHandler;
-use App\Jobs\KafkaPush;
 use App\Models\SystemConfiguration;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
@@ -25,8 +23,7 @@ class BalanceProduce implements CustomProcessInterface
     public static function callback(Server $swoole, Process $process)
     {
         try {
-            $kafkaProducer         = app('KafkaProducer');
-            self::$producerHandler = new ProducerHandler($kafkaProducer);
+            self::$producerHandler = app('ProducerHandler');
 
             if ($swoole->data2SwtTable->exist('data2Swt')) {
                 $initialTime                = Carbon::createFromFormat('H:i:s', Carbon::now()->format('H:i:s'));
@@ -94,7 +91,7 @@ class BalanceProduce implements CustomProcessInterface
                 'username' => $username
             ];
 
-            KafkaPush::dispatch($provider . $topic, $payload, $requestId);
+            kafkaPush($provider . $topic, $payload, $requestId);
         }
     }
 }

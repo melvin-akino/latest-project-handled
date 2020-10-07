@@ -29,7 +29,7 @@ return [
             'class'    => \App\Processes\ScrapeProduce::class,
             'redirect' => false,
             'pipe'     => 0,
-            'enable'   => env('LARAVELS_KAFKA_PRODUCE', true)
+            'enable'   => env('LARAVELS_KAFKA_SCRAPE_PRODUCE', true)
         ],
         'data_to_swt'   => [
             'class'    => \App\Processes\DataToSwt::class,
@@ -104,7 +104,6 @@ return [
             'redirect' => false,
             'pipe'     => 0,
             'enable'   => true
-
         ],
     ],
     'timer'                    => [
@@ -485,7 +484,11 @@ return [
         ],
     ],
     'register_providers'       => [
-        \Laravel\Passport\PassportServiceProvider::class
+        \Laravel\Passport\PassportServiceProvider::class,
+        \App\Providers\ConsumerServiceProvider::class,
+        \App\Providers\OddsHandlerProvider::class,
+        \App\Providers\KafkaServiceProvider::class,
+        \App\Providers\SwooleServiceProvider::class
     ],
     'cleaners'                 => [
         // See LaravelS's built-in cleaners: https://github.com/hhxsv5/laravel-s/blob/master/Settings.md#cleaners

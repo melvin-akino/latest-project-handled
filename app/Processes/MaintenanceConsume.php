@@ -3,7 +3,7 @@
 namespace App\Processes;
 
 use RdKafka\TopicConf;
-use App\Jobs\TransformKafkaMessageMaintenance;
+use App\Jobs\MaintenanceHandler;
 use Hhxsv5\LaravelS\Swoole\Process\CustomProcessInterface;
 use Illuminate\Support\Facades\Log;
 use Swoole\Http\Server;
@@ -27,11 +27,8 @@ class MaintenanceConsume implements CustomProcessInterface
 
                 $queue = $kafkaConsumer->newQueue();
 
-                $topicConf = new TopicConf();
-                $topicConf->set('enable.auto.commit', 'false');
-                $topicConf->set('auto.commit.interval.ms', 100);
-                $topicConf->set('offset.store.method', 'broker');
-                $topicConf->set('auto.offset.reset', 'latest');
+                $topicConf = app('KafkaTopicConf');
+                $maintenanceTransformationHandler = app('MaintenanceTransformationHandler');
 
                 $providerMaintenanceTopic = $kafkaConsumer->newTopic(env('KAFKA_SCRAPE_MAINTENANCE', 'PROVIDER-MAINTENANCE'), $topicConf);
                 $providerMaintenanceTopic->consumeQueueStart(0, RD_KAFKA_OFFSET_END, $queue);
@@ -46,7 +43,7 @@ class MaintenanceConsume implements CustomProcessInterface
                                 Log::info("Maintenance Transformation ignored - No Data Found");
                             } else {
                                 Log::info('Maintenance calling Task Worker');
-                                TransformKafkaMessageMaintenance::dispatchNow($payload);
+                                $maintenanceTransformationHandler->init($payload)->handle();
                             }
                         }
 
