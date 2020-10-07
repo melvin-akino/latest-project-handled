@@ -609,8 +609,7 @@ if (!function_exists('providerErrorMapping')) {
 
     function providerErrorMapping($string)
     {
-         $data =DB::select( DB::raw("SELECT *, regexp_matches('". pg_escape_string($string)."',message) FROM provider_error_messages limit 1") );
-
+         $data = DB::select(DB::raw("SELECT * FROM provider_error_messages WHERE '" . pg_escape_string($string) . "' LIKE '%' || message || '%'"));
          if ($data) {
             return $data[0]->id;
          } else {
