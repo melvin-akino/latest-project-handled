@@ -44,7 +44,7 @@ class OddsValidationHandler
     {
         $this->message = $message;
         $this->offset  = $offset;
-        $this->messageObject  = $message;
+        $this->messageObject  = unserialize(serialize($message));
         $this->swoole = $swoole;
         return $this;
     }
