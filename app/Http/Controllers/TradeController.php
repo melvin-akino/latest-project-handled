@@ -42,7 +42,7 @@ class TradeController extends Controller
             }
 
             $betBarData = Order::getBetBarData(auth()->user()->id);
-            $ouLabels   = OddType::where('type', 'ILIKE', '%OU%')->pluck('id')->toArray();
+            $ouLabels   = OddType::where('type', 'LIKE', '%OU%')->pluck('id')->toArray();
             $data = [];
             foreach ($betBarData as $betData) {
                 $proceed = false;

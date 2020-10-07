@@ -38,7 +38,8 @@ class Order extends Model
         'master_team_home_name',
         'master_team_away_name',
         'master_event_unique_id',
-        'master_event_market_unique_id'
+        'master_event_market_unique_id',
+        'provider_error_message_id'
     ];
 
     protected $hidden = [];
@@ -56,6 +57,8 @@ class Order extends Model
                  ->leftJoin('providers', 'providers.id', 'orders.provider_id')
                  ->leftJoin('odd_types AS ot', 'ot.id', 'orders.odd_type_id')
                  ->leftJoin('event_scores as es', 'es.master_event_unique_id', 'orders.master_event_unique_id')
+                 ->leftJoin('provider_error_messages As pe','pe.id','orders.provider_error_message_id')
+                 ->leftJoin('error_messages as em', 'em.id','pe.error_message_id')
                  ->select(
                      [
                          'orders.id',
@@ -80,6 +83,7 @@ class Order extends Model
                          'orders.market_flag',
                          'orders.master_team_home_name',
                          'orders.master_team_away_name',
+                         'em.error as multiline_error'
                      ]
                  )
                  ->where($whereClause)
@@ -121,7 +125,8 @@ class Order extends Model
                      'score_on_bet',
                      'sot.name as sport_odd_type_name',
                      'p.alias as provider',
-                     'o.status'
+                     'o.status',
+                     'final_score'
                  ]);
     }
 

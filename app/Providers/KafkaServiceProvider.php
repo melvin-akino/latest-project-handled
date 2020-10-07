@@ -22,7 +22,7 @@ class KafkaServiceProvider extends ServiceProvider
         $conf->set('group.id', 'ml');
         $conf->set('auto.offset.reset', 'latest');
         $conf->set('enable.auto.commit', 'false');
-        if (env('APP_ENV') != "local") {
+        if (!in_array(env('APP_ENV'), ["local", "testing"])) {
             $conf->set('max.poll.interval.ms', 10000000);
         }
 
@@ -30,7 +30,7 @@ class KafkaServiceProvider extends ServiceProvider
         $alwaysLatestConf->set('group.id', 'ml');
         $alwaysLatestConf->set('auto.offset.reset', 'latest');
         $alwaysLatestConf->set('enable.auto.commit', 'false');
-        if (env('APP_ENV') != "local") {
+        if (!in_array(env('APP_ENV'), ["local", "testing"])) {
             $alwaysLatestConf->set('max.poll.interval.ms', 10000000);
         }
 

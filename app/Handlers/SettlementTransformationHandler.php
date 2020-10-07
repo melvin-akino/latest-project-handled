@@ -79,7 +79,7 @@ class SettlementTransformationHandler
         $sourceName          = "RETURN_STAKE";
         $stakeReturnToLedger = false;
         $transferAmount      = 0;
-        $col1x2              = OddType::whereIn('type', ['1X2', 'HT 1X2'])->pluck('id')->toArray();
+        $colMinusOne              = OddType::whereIn('type', ['1X2', 'HT 1X2', 'OE'])->pluck('id')->toArray();
 
         preg_match_all('!\d+!', $data->bet_id, $providerBetIdArray);
         $providerBetIdArrayIndex0 = $providerBetIdArray[0];
@@ -199,7 +199,7 @@ class SettlementTransformationHandler
                 'order_log_id'       => $orderLogsId,
                 'exchange_rate_id'   => $exchangeRate->id,
                 'actual_stake'       => $data->stake,
-                'actual_to_win'      => !in_array($orders->odd_type_id, $col1x2) ? $data->stake * $data->odds : $data->stake * ($data->odds - 1),
+                'actual_to_win'      => !in_array($orders->odd_type_id, $colMinusOne) ? $data->stake * $data->odds : $data->stake * ($data->odds - 1),
                 'actual_profit_loss' => $data->profit_loss,
                 'exchange_rate'      => $exchangeRate->exchange_rate,
             ]);

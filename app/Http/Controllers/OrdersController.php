@@ -78,7 +78,7 @@ class OrdersController extends Controller
             $page        = $request->has('page') ? $request->get('page') : 1;
             $myAllOrders = Order::countAllOrders();
 
-            $ouLabels    = OddType::where('type', 'ILIKE', '%OU%')->pluck('id')->toArray();
+            $ouLabels    = OddType::where('type', 'LIKE', '%OU%')->pluck('id')->toArray();
 
             if (!empty($myAllOrders)) {
                 $myOrders = Order::getAllOrders($conditions, $page);
@@ -125,6 +125,7 @@ class OrdersController extends Controller
                             $teamname . " @ " . $myOrder->odds . " (" . $ouScore[1]
                         ]);
                     }
+                   
 
                     $data['orders'][] = [
                         'order_id'      => $myOrder->id,
@@ -146,7 +147,7 @@ class OrdersController extends Controller
                         'away_score'    => $score[1],
                         'odd_type_id'   => $myOrder->odd_type_id,
                         'points'        => $myOrder->odd_label,
-                        'reason'        => $myOrder->reason
+                        'reason'        => (!empty($myOrder->multiline_error)) ?  $myOrder->multiline_error :  $myOrder->reason
                     ];
                 }
 
@@ -386,7 +387,7 @@ class OrdersController extends Controller
             $isUserVIP    = auth()->user()->is_vip;
             $orderIds     = [];
             $incrementIds = [];
-            $col1x2       = OddType::whereIn('type', ['1X2', 'HT 1X2'])->pluck('id')->toArray();
+            $colMinusOne       = OddType::whereIn('type', ['1X2', 'HT 1X2', 'OE'])->pluck('id')->toArray();
 
             foreach ($request->markets as $row) {
                 $betType = $request->betType;
@@ -540,9 +541,9 @@ class OrdersController extends Controller
                 $payload['provider_id']      = strtolower($row['provider']);
                 $payload['odds']             = $row['price'];
                 $payload['stake']            = $payloadStake;
-                $payload['to_win']           = !in_array($query->odd_type_id, $col1x2) ? $payloadStake * $row['price'] : $payloadStake * ($row['price'] - 1);
+                $payload['to_win']           = !in_array($query->odd_type_id, $colMinusOne) ? $payloadStake * $row['price'] : $payloadStake * ($row['price'] - 1);
                 $payload['actual_stake']     = $actualStake;
-                $payload['actual_to_win']    = !in_array($query->odd_type_id, $col1x2) ? $actualStake * $row['price'] : $actualStake * ($row['price'] - 1);
+                $payload['actual_to_win']    = !in_array($query->odd_type_id, $colMinusOne) ? $actualStake * $row['price'] : $actualStake * ($row['price'] - 1);
                 $payload['market_id']        = $query->bet_identifier;
                 $payload['event_id']         = explode('-', $query->master_event_unique_id)[3];
                 $payload['score']            = $query->score;
@@ -595,7 +596,7 @@ class OrdersController extends Controller
                     'exchange_rate' => $exchangeRate['exchange_rate'],
                 ];
 
-                $orderCreation  = ordersCreation(auth()->user()->id, $query->sport_id, $row['provider_id'], $providerAccountId, $_orderData, $_exchangeRate, $mlBetId, $col1x2);
+                $orderCreation  = ordersCreation(auth()->user()->id, $query->sport_id, $row['provider_id'], $providerAccountId, $_orderData, $_exchangeRate, $mlBetId, $colMinusOne);
                 $orderIncrement = $orderCreation['orders'];
                 $orderLogsId    = $orderCreation['order_logs']->id;
 
@@ -807,6 +808,7 @@ class OrdersController extends Controller
                     'home_score_on_bet' => $scoreOnBet[0],
                     'away_score_on_bet' => $scoreOnBet[1],
                     'created_at'        => Carbon::createFromFormat("Y-m-d H:i:s", $order->created_at, 'Etc/UTC')->setTimezone($userTz)->format("Y-m-d H:i:s"),
+                    'final_score'       => $order->final_score,
                 ];
             }
 

@@ -36,7 +36,7 @@ class BetTransformationHandler
 
             $swoole = app('swoole');
             $topics = $swoole->topicTable;
-            $col1x2 = OddType::whereIn('type', ['1X2', 'HT 1X2'])->pluck('id')->toArray();
+            $colMinusOne = OddType::whereIn('type', ['1X2', 'HT 1X2', 'OE'])->pluck('id')->toArray();
 
             $requestUIDArray = explode('-', $this->message->request_uid);
             $messageOrderId  = end($requestUIDArray);
@@ -63,13 +63,18 @@ class BetTransformationHandler
                         if ($orderData->count() && $orderId == $messageOrderId) {
 
                             $status = $this->message->data->status != self::STATUS_PENDING ? strtoupper($this->message->data->status) : strtoupper(self::STATUS_SUCCESS);
+
+                            $errorMessageId = providerErrorMapping($this->message->data->reason);
+
+                           
                             $order  = Order::updateOrCreate([
                                 'id' => $messageOrderId
                             ], [
-                                'bet_id' => $this->message->data->bet_id,
-                                'reason' => $this->message->data->reason,
-                                'status' => $status,
-                                'odds'   => $this->message->data->odds
+                                'bet_id'                    => $this->message->data->bet_id,
+                                'reason'                    => $this->message->data->reason,
+                                'status'                    => $status,
+                                'odds'                      => $this->message->data->odds,
+                                'provider_error_message_id' => $errorMessageId
                             ]);
 
                             $orderData = Order::find($messageOrderId);
@@ -87,7 +92,7 @@ class BetTransformationHandler
                                     $betSelectionArray[2]
                                 ]);
 
-                                $order->to_win = !in_array($order->odd_type_id, $col1x2) ? $order->stake * $this->message->data->odds : $order->stake * ($this->message->data->odds - 1);
+                                $order->to_win = !in_array($order->odd_type_id, $colMinusOne) ? $order->stake * $this->message->data->odds : $order->stake * ($this->message->data->odds - 1);
                                 $order->save();
 
                                 $orderLogData         = OrderLogs::where('order_id', $orderData->id)->orderBy('id', 'desc')->first();
@@ -114,7 +119,7 @@ class BetTransformationHandler
                                     'order_log_id'       => $orderLogs->id,
                                     'exchange_rate_id'   => $exchangeRateId,
                                     'actual_stake'       => $actualStake,
-                                    'actual_to_win'      => !in_array($order->odd_type_id, $col1x2) ? $actualStake * $order->odds : $actualStake * ($order->odds - 1),
+                                    'actual_to_win'      => !in_array($order->odd_type_id, $colMinusOne) ? $actualStake * $order->odds : $actualStake * ($order->odds - 1),
                                     'actual_profit_loss' => 0.00,
                                     'exchange_rate'      => $exchangeRate,
                                 ]);
