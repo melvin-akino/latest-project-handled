@@ -80,7 +80,7 @@
             table = $('#UnsettledTable').DataTable({
                 ajax: function (data, callback, settings) {
                     $.ajax({
-                        url: "transactions/unsettled",
+                        url: "unsettled_transactions/list",
                     }).then ( function(json) {
                         callback(json);            
                     });

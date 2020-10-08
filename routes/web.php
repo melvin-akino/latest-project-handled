@@ -40,6 +40,11 @@ Route::get('/prometheus_GGT8', 'PrometheusController@index');
         Route::get('error_messages/list', 'ErrorMessagesController@list')->name('error_messages.list');
         Route::post('error_messages/manage', 'ErrorMessagesController@manage')->name('error_messages.manage');
 
+        /*Transactions*/
+        Route::get('unsettled_transactions', 'TransactionsController@index')->name('unsettled');
+        Route::get('unsettled_transactions/list', 'TransactionsController@unsettled')->name('unsettled_transactions.list');
+        Route::post('unsettled_transactions/generate_settlement', 'TransactionsController@generate_settlement')->name('unsettled_transactions.generate_settlement');
+
         /*System Configurations Routes*/
         Route::get('system_configurations', 'SystemConfigurationsController@index')->name('system_configurations');
         Route::get('system_configurations/all', 'SystemConfigurationsController@all')->name('system_configurations.all');

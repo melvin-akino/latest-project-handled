@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\CRM;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\CRM\TransactionRequest;
-use App\Models\Transaction;
+use App\Http\Requests\CRM\AdminSettlementRequest;
+use App\Models\{Transaction, AdminSettlement};
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -29,7 +29,7 @@ class TransactionsController extends Controller
         return response()->json(!empty($data) ? $data : []);
     }
 
-    public function generate_settlement(TransactionRequest $request) 
+    public function generate_settlement(AdminSettlementRequest $request) 
     {
         try {
             if (!empty($request)) {
