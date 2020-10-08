@@ -29,6 +29,7 @@ class TransformKafkaMessageOdds extends Task
 
     public function handle()
     {
+        Log::debug("Starting Task for offset:" . $this->offset);
         try {
             $startTime = microtime(TRUE);
 
@@ -468,6 +469,8 @@ class TransformKafkaMessageOdds extends Task
                 ]
             ));
         }
+
+        Log::debug("Ending Task for offset:" . $this->offset);
     }
 
     private function saveEventRecords($eventSwtId, $sportId, $leagueId, $teamHomeId, $teamAwayId, $providerId)
