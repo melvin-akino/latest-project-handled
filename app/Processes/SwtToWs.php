@@ -114,12 +114,12 @@ class SwtToWs implements CustomProcessInterface
                         if ($swoole->isEstablished($fd['value'])) {
                             if (SwooleHandler::exists('eventsInfoTable', 'eventsInfo:' . $uid)) {
                                 $swoole->push($fd['value'], json_encode(['getEventsUpdate' => $event]));
-                                SwooleHandler::remove('eventsInfoTable', 'eventsInfo:' . $uid);
                             }
                         }
                     }
                 }
             }
+            SwooleHandler::remove('eventsInfoTable', 'eventsInfo:' . $uid);
         }
     }
 

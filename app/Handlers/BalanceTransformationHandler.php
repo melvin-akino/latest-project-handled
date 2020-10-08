@@ -18,7 +18,6 @@ class BalanceTransformationHandler
 
     public function handle()
     {
-        Log::debug("ASd");
         $swoole = app('swoole');
 
         try {

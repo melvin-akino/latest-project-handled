@@ -201,7 +201,7 @@ class OddsValidationHandler
 
             SwooleHandler::setValue('oddsKafkaPayloadsTable', $this->offset, ['message' => json_encode($this->message)]);
             $transformKafkaMessageOdds = app('TransformKafkaMessageOdds');
-            Log::debug("Executing Task for offset:" . $this->offset);
+            Log::info("Executing Task for offset:" . $this->offset);
             Task::deliver($transformKafkaMessageOdds->init($this->offset, compact('providerId', 'sportId', 'parameters', 'withChange')));
             Log::info("Transformation - validation completed");
 
