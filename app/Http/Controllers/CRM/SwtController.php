@@ -182,7 +182,8 @@ class SwtController extends Controller
             'inactiveEvents'          => [
                 'name'  => 'Inactive Events',
                 'max'   => 1000,
-                'count' => $swoole->inactiveEventsTable->count()
+                'count' => $swoole->inactiveEventsTable->count(),
+                'memory' => $swoole->inactiveEventsTable->getMemorySize()
             ],
             'topic'                 => [
                 'name'  => 'Topic',
