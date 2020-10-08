@@ -36,6 +36,8 @@ class EventsTransformationHandler
                 foreach ($swoole->scraperRequestsTable as $key => $scraperRequestsTable) {
                     if ($key == 'type:events:requestUID:' . $this->message->request_uid) {
                         SwooleHandler::remove('scraperRequestsTable', $key);
+                        usleep(1000000);
+                        SwooleHandler::remove('scraperRequestsTable', 'type:odds:requestUID:' . $this->message->request_uid);
                         $doesExist = true;
                         break;
                     }
