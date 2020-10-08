@@ -271,22 +271,26 @@ class SwtController extends Controller
             'eventsInfo'       => [
                 'name'  => 'Odds Info',
                 'max'   => 2000,
-                'count' => $swoole->eventsInfoTable->count()
+                'count' => $swoole->eventsInfoTable->count(),
+                'memory' => $swoole->eventsInfoTable->getMemorySize()
             ],
             'eventsScored'       => [
                 'name'  => 'Events Scored',
                 'max'   => 100,
-                'count' => $swoole->eventsScoredTable->count()
+                'count' => $swoole->eventsScoredTable->count(),
+                'memory' => $swoole->eventsScoredTable->getMemorySize()
             ],
             'eventNoMarketIds'       => [
                 'name'  => 'Event No Market IDs',
                 'max'   => 1000,
-                'count' => $swoole->eventNoMarketIdsTable->count()
+                'count' => $swoole->eventNoMarketIdsTable->count(),
+                'memory' => $swoole->eventNoMarketIdsTable->getMemorySize()
             ],
             'eventHasMarkets'       => [
                 'name'  => 'Event Has Markets',
                 'max'   => 100,
-                'count' => $swoole->eventHasMarketsTable->count()
+                'count' => $swoole->eventHasMarketsTable->count(),
+                'memory' => $swoole->eventHasMarketsTable->getMemorySize()
             ],
         ];
 
