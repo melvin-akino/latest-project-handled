@@ -38,11 +38,6 @@ class GameConsume implements CustomProcessInterface
                 $eventsTransformationHandler = app('EventsTransformationHandler');
 
                 while (!self::$quit) {
-                    if ($swoole->priorityTriggerTable->exist('priority')) {
-                        usleep(10000);
-                        continue;
-                    }
-
                     $message = $queue->consume(0);
                     if (!is_null($message)) {
                         if ($message->err == RD_KAFKA_RESP_ERR_NO_ERROR) {
