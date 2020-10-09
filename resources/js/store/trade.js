@@ -419,7 +419,7 @@ const actions = {
                         sortedUserWatchlist[league] = {}
                     }
                     sortedUserWatchlist[league] = response.data.data.user_watchlist[league]
-                    sortedUserWatchlist[league] = sortByObjectProperty(sortedUserWatchlist[league], 'ref_schedule')
+                    sortedUserWatchlist[league] = sortByObjectProperty(sortedUserWatchlist[league], 'ref_schedule', 'uid')
                     sortedUserWatchlist[league].map(event => {
                         commit('SET_WATCHLIST', sortedUserWatchlist)
                         commit('SET_WATCHLIST_EVENTS', event)
