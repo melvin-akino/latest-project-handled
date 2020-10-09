@@ -38,9 +38,10 @@ class TransactionsController extends Controller
 
                 if (!empty($data)) {
                     preg_match_all('!\d+!', $data['bet_id'], $id);
+                    $requestId = Str::uuid();
                     //Generate kafka json payload here
                     $payload = [
-                        'request_id'    => Str::uuid(),
+                        'request_id'    => $requestId,
                         'request_ts'    => getMilliseconds(),
                         'command'       => 'settlement',
                         'sub_command'   => 'transform',
@@ -62,8 +63,7 @@ class TransactionsController extends Controller
                     $data['payload'] = serialize(json_encode($payload));
                     if (AdminSettlement::create($data)) {
                         
-                        //Push payload to kafka
-                        //json_encode($payload);
+                        kafkaPush('SCRAPING-SETTLEMENTS', $payload, $requestId);
 
 
                         $message = 'success';
