@@ -110,7 +110,7 @@ export default {
                         })
                     }
                     let sortedWatchlistObject = {}
-                    let watchlistEvents = sortByObjectKeys(watchlistObject, sortedWatchlistObject, 'ref_schedule')
+                    let watchlistEvents = sortByObjectKeys(watchlistObject, sortedWatchlistObject, 'ref_schedule', 'uid')
                     this.$store.commit('trade/SET_WATCHLIST', watchlistEvents)
                 } else if(getSocketKey(response.data) === 'getEvents') {
                     let receivedEvents = getSocketValue(response.data, 'getEvents')
@@ -166,7 +166,7 @@ export default {
                     })
                     let sortedEventObject = {}
                     Object.keys(eventObject).map(schedule => {
-                        let events = sortByObjectKeys(eventObject[schedule], sortedEventObject[schedule], 'ref_schedule')
+                        let events = sortByObjectKeys(eventObject[schedule], sortedEventObject[schedule], 'ref_schedule', 'uid')
                         this.$store.commit('trade/SET_EVENTS', { schedule: schedule, events: events })
                     })
                 } else if(getSocketKey(response.data) === 'getAdditionalEvents') {

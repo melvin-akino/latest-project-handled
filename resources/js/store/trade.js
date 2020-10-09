@@ -210,7 +210,7 @@ const mutations = {
         }
 
         state.events[data.schedule][data.league].push(data.event)
-        state.events[data.schedule][data.league] = sortByObjectProperty(state.events[data.schedule][data.league], 'ref_schedule')
+        state.events[data.schedule][data.league] = sortByObjectProperty(state.events[data.schedule][data.league], 'ref_schedule', 'uid')
     },
     REMOVE_FROM_EVENTS: (state, data) => {
         if(state.tradePageSettings.sort_event == 1) {
@@ -401,7 +401,7 @@ const actions = {
                                 sortedUserSelected[schedule] = {}
                             }
                             sortedUserSelected[schedule][league] = response.data.data.user_selected[schedule][league]
-                            sortedUserSelected[schedule][league] = sortByObjectProperty(sortedUserSelected[schedule][league], 'ref_schedule')
+                            sortedUserSelected[schedule][league] = sortByObjectProperty(sortedUserSelected[schedule][league], 'ref_schedule', 'uid')
                             sortedUserSelected[schedule][league].map(event => {
                                 if(event.sport_id == state.selectedSport) {
                                     commit('SET_EVENTS', { schedule: schedule, events: sortedUserSelected[schedule]})
@@ -553,7 +553,7 @@ const actions = {
                 if(data.league == league && checkEventUID === -1) {
                     state.events[data.schedule][league].push(data.payload)
                     let sortedEventObject = {}
-                    let sortedEvents = sortByObjectKeys(state.events[data.schedule], sortedEventObject[data.schedule], 'ref_schedule')
+                    let sortedEvents = sortByObjectKeys(state.events[data.schedule], sortedEventObject[data.schedule], 'ref_schedule', 'uid')
                     commit('SET_EVENTS', { schedule: data.schedule, events: sortedEvents })
                 }
             })
@@ -563,7 +563,7 @@ const actions = {
             }
             state.events[data.schedule][data.league].push(data.payload)
             let sortedEventObject = {}
-            let sortedEvents = sortByObjectKeys(state.events[data.schedule], sortedEventObject[data.schedule], 'ref_schedule')
+            let sortedEvents = sortByObjectKeys(state.events[data.schedule], sortedEventObject[data.schedule], 'ref_schedule', 'uid')
             commit('SET_EVENTS', { schedule: data.schedule, events: sortedEvents })
         }
     },
