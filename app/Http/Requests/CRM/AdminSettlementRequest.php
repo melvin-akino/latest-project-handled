@@ -2,7 +2,7 @@
 
 namespace App\Http\Requests\CRM;
 
-use App\Models\AdminSettlement;
+use App\Models\CRM\AdminSettlement;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Auth;
 

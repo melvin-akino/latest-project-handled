@@ -4,7 +4,7 @@ namespace App\Http\Controllers\CRM;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\CRM\AdminSettlementRequest;
-use App\Models\{Transaction, AdminSettlement};
+use App\Models\CRM\{Transaction, AdminSettlement};
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -24,8 +24,7 @@ class TransactionsController extends Controller
 
     public function unsettled()
     {
-        $transactions = Transaction::getTransactions('open');
-        dd($transactions);
+        $data['data'] = Transaction::getTransactions(['status' => 'open']);
         return response()->json(!empty($data) ? $data : []);
     }
 

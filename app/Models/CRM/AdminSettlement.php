@@ -3,6 +3,7 @@
 namespace App\Models\CRM;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\DB;
 
 class AdminSettlement extends Model
 {

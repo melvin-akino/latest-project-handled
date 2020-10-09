@@ -3,6 +3,7 @@
 namespace App\Models\CRM;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\DB;
 
 class Transaction extends Model
 {
@@ -20,11 +21,11 @@ class Transaction extends Model
     ];
 
 
-    public function getTransactions($options)
+    public static function getTransactions($options)
     {
         $dups = [];
         //filter our failed orders by default
-        $where[] = ['o.bet_id', '!=', ""];
+        $where[] = ['o.status', '<>', 'FAILED'];
         if (!empty($options)) {
             foreach($options as $key=>$value) {
                 switch($key) {
@@ -40,11 +41,13 @@ class Transaction extends Model
                     case 'settled_to' :
                         $where[] = ['o.settled_at', '<=', $value];
                         break;
-                    case 'settled' :
-                        $where[] = ['o.settled_at', '<>', ''];
-                        break;
-                    case 'open' :
-                        $where[] = ['o.settled_at', '==', ''];
+                    case 'status' :
+                        if ($value == 'open') {
+                            $where[] = ['o.settled_date', null];
+                        }
+                        else {
+                            $where[] = ['o.settled_date', '<>', null];
+                        }                        
                         break;
                     case 'provider' :
                         $where[] = ['p.id', '<=', $value];
@@ -59,7 +62,9 @@ class Transaction extends Model
         }
         
         $data = DB::table('orders AS o')
+            ->join('sports AS s', 's.id', '=', 'o.sport_id')
             ->join('provider_accounts AS pa', 'pa.id', '=', 'o.provider_account_id')
+            ->join('providers AS p', 'p.id', '=', 'pa.provider_id')
             ->join('users AS u', 'u.id', '=', 'o.user_id')
             ->join('order_logs AS ol', 'ol.order_id', '=', 'o.id')
             ->join('provider_account_orders AS pao', 'pao.order_log_id', '=', 'ol.id')
@@ -70,6 +75,11 @@ class Transaction extends Model
             ->distinct()
             ->get([
                 'o.id',
+                'p.id as provider_id',
+                'p.name as provider',
+                's.id as sport_id',
+                's.sport',
+                'o.bet_selection',
                 'pao.order_log_id',
                 'u.email',
                 'o.ml_bet_identifier',
@@ -80,6 +90,7 @@ class Transaction extends Model
                 'o.stake',
                 'o.profit_loss',
                 'pao.actual_stake',
+                'pao.actual_to_win',
                 'pao.actual_profit_loss',
                 'o.odds',
                 'o.odd_label'
@@ -88,25 +99,31 @@ class Transaction extends Model
 
         foreach ($data as $row) {
             if (!in_array($row->id, $dups)) {
-                $transactions = [
-                    $row->email,
-                    $row->ml_bet_identifier,
-                    $row->bet_id,
-                    $row->username,
-                    $row->created_at,
-                    $row->status,
-                    $row->stake,
-                    $row->profit_loss,
-                    $row->actual_stake,
-                    $row->actual_profit_loss,
-                    $row->odds,
-                    $row->odd_label
+                $transactions[] = [
+                    'email' => $row->email,
+                    'bet_identifier' => $row->ml_bet_identifier,
+                    'provider_id' => $row->provider_id,
+                    'provider' => $row->provider,
+                    'sport_id' => $row->sport_id,
+                    'sport' => $row->sport,
+                    'bet_id' => $row->bet_id,
+                    'bet_selection' => $row->bet_selection,
+                    'username' => $row->username,
+                    'created_at' => $row->created_at,
+                    'status' => $row->status,
+                    'user_stake' => $row->stake,
+                    'user_pl' => $row->profit_loss,
+                    'actual_stake' => $row->actual_stake,
+                    'actual_to_win' => $row->actual_to_win,
+                    'actual_profit_loss' => $row->actual_profit_loss,
+                    'odds' => $row->odds,
+                    'odds_label' => $row->odd_label
                 ];
 
                 $dups[] = $row->id;
             }
         }
 
-        return $transactions;
+        return !empty($transactions) ? $transactions : [];
     }
 }

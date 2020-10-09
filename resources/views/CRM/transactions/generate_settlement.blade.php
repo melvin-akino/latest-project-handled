@@ -2,18 +2,37 @@
     <div class="modal-dialog">
         <div class="modal-content">
             <form class="form-horizontal" name="form-generate-settlement" id="form-generate-settlement"
-                  action="{{ route('transactions.generate_settlement') }}"
-                  method="POST">
-                  {{ csrf_field() }}
-                  <input type="hidden" class="form-control" name="orderId"
-                                   id="orderId"
-                                   placeholder="errorId">
+                    action="{{ route('unsettled_transactions.generate_settlement') }}"
+                    method="POST">
+                    {{ csrf_field() }}
+                    <input type="hidden" class="form-control" name="betId" id="betId" placeholder="betId">
+                    <input type="hidden" class="form-control" name="sportId" id="sportId" placeholder="sportId">
+                    <input type="hidden" class="form-control" name="providerId" id="providerId" placeholder="providerId">
+
                 <div class="modal-header">
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span></button>
                     <h4 class="modal-title">Generate Settlement</h4>
                 </div>
                 <div class="modal-body">
+                    <div class="form-group">
+                        <label for="add-currency-name-input" class="col-sm-3 control-label">Bet Selection</label>
+                        <div class="col-sm-8" id="bet_selection">
+                            
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="add-currency-name-input" class="col-sm-3 control-label">Stake</label>
+                        <div class="col-sm-8" id="stake">
+                            
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="add-currency-name-input" class="col-sm-3 control-label">To Win</label>
+                        <div class="col-sm-8" id="to_win">
+                            
+                        </div>
+                    </div>
                     <div class="form-group">
                         <label for="add-currency-name-input" class="col-sm-3 control-label">Status</label>
                         <div class="col-sm-8">
