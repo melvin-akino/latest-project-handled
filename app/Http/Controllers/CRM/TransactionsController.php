@@ -7,6 +7,7 @@ use App\Http\Requests\CRM\AdminSettlementRequest;
 use App\Models\CRM\{Transaction, AdminSettlement};
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 
 class TransactionsController extends Controller
@@ -36,10 +37,34 @@ class TransactionsController extends Controller
                 $data = $request->toArray();
 
                 if (!empty($data)) {
-                    if (AdminSettlement::create($data)) {
-                        //Generate kafka json payload here
+                    preg_match_all('!\d+!', $data['bet_id'], $id);
+                    //Generate kafka json payload here
+                    $payload = [
+                        'request_id'    => Str::uuid(),
+                        'request_ts'    => getMilliseconds(),
+                        'command'       => 'settlement',
+                        'sub_command'   => 'transform',
+                        'data' => [
+                            'provider'      => $data['provider'],
+                            'sport'         => $data['sport'],
+                            'id'            => $id,
+                            'username'      => $data['username'],
+                            'status'        => $data['status'],
+                            'odds'          => $data['odds'],
+                            'score'         => $data['score'],
+                            'stake'         => $data['stake'],
+                            'profit_loss'   => $data['pl'],
+                            'bet_id'        => $data['bet_id'],
+                            'reason'        => $data['reason']
+                        ]
+                    ];
 
+                    $data['payload'] = serialize(json_encode($payload));
+                    if (AdminSettlement::create($data)) {
+                        
                         //Push payload to kafka
+                        //json_encode($payload);
+
 
                         $message = 'success';
                     }                    

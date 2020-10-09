@@ -141,10 +141,13 @@
                 $('#stake').text(orderInfo['actual_stake']);
                 $('#to_win').text(orderInfo['actual_to_win']);
                 
-                form.find('input[name=betId]').val(orderInfo['bet_id']);
-                form.find('input[name=providerId]').val(orderInfo['provider_id']);
-                form.find('input[name=sportId]').val(orderInfo['sport_id']);
-
+                form.find('input[name=bet_id]').val(orderInfo['bet_id']);
+                form.find('input[name=provider]').val(orderInfo['provider']);
+                form.find('input[name=sport]').val(orderInfo['sport_id']);
+                form.find('input[name=username]').val(orderInfo['username']);
+                form.find('input[name=odds]').val(orderInfo['odds']);
+                form.find('input[name=stake]').val(orderInfo['actual_stake']);
+                form.find('input[name=towin]').val(orderInfo['actual_to_win']);
                 $('#modal-generate-settlement').modal('show');
 
             });

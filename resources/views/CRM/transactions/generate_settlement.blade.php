@@ -5,10 +5,13 @@
                     action="{{ route('unsettled_transactions.generate_settlement') }}"
                     method="POST">
                     {{ csrf_field() }}
-                    <input type="hidden" class="form-control" name="betId" id="betId" placeholder="betId">
-                    <input type="hidden" class="form-control" name="sportId" id="sportId" placeholder="sportId">
-                    <input type="hidden" class="form-control" name="providerId" id="providerId" placeholder="providerId">
-
+                    <input type="hidden" class="form-control" name="bet_id" id="bet_id" placeholder="bet_id">
+                    <input type="hidden" class="form-control" name="sport" id="sport" placeholder="sport">
+                    <input type="hidden" class="form-control" name="provider" id="provider" placeholder="provider">
+                    <input type="hidden" class="form-control" name="username" id="username" placeholder="username">
+                    <input type="hidden" class="form-control" name="odds" id="odds" placeholder="odds">
+                    <input type="hidden" class="form-control" name="stake" id="stake" placeholder="stake">
+                    <input type="hidden" class="form-control" name="towin" id="towin" placeholder="towin">
                 <div class="modal-header">
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span></button>
@@ -55,6 +58,14 @@
                             <input type="text" class="form-control" name="pl"
                                    id="pl"
                                    placeholder="Profit and Loss">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="add-currency-name-input" class="col-sm-3 control-label">Reason</label>
+                        <div class="col-sm-8">
+                            <input type="textarea" class="form-control" name="reason"
+                                   id="reason"
+                                   placeholder="Reason">
                         </div>
                     </div>
                 </div>

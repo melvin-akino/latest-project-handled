@@ -76,7 +76,7 @@ class Transaction extends Model
             ->get([
                 'o.id',
                 'p.id as provider_id',
-                'p.name as provider',
+                'p.alias as provider',
                 's.id as sport_id',
                 's.sport',
                 'o.bet_selection',
