@@ -6,6 +6,7 @@ use App\Facades\SwooleHandler;
 use Illuminate\Support\Facades\Log;
 use Hhxsv5\LaravelS\Swoole\Task\Task;
 use Exception;
+use Illuminate\Support\Facades\Redis;
 
 class OddsValidationHandler
 {
@@ -70,16 +71,8 @@ class OddsValidationHandler
             }
 
             if (env('APP_ENV') != "local") {
-                $doesExist     = false;
-                $swtRequestUID = null;
-                foreach ($swoole->scraperRequestsTable as $key => $scraperRequestsTable) {
-                    if ($key == 'type:odds:requestUID:' . $this->message->request_uid) {
-                        $doesExist = true;
-                        break;
-                    }
-                }
-                if (!$doesExist) {
-                    appLog('info', "Transformation ignored - Request UID is from ML");
+                if (!Redis::exists('type:odds:requestUID:' . $this->message->request_uid)) {
+                    appLog('info', "Transformation ignored - Request UID is not from ML");
                     return;
                 }
             }

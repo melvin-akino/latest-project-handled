@@ -4,6 +4,7 @@ namespace App\Processes;
 
 use Illuminate\Support\Facades\DB;
 use Hhxsv5\LaravelS\Swoole\Process\CustomProcessInterface;
+use Illuminate\Support\Facades\Redis;
 use Illuminate\Support\Str;
 use Swoole\Http\Server;
 use Swoole\Process;
@@ -25,6 +26,8 @@ class ScrapeProduce implements CustomProcessInterface
     private static   $scheduleType;
     private static   $providers;
     private static   $sports;
+
+    const REDIS_TTL = 60 * 10;
 
     public static function callback(Server $swoole, Process $process)
     {
@@ -58,7 +61,7 @@ class ScrapeProduce implements CustomProcessInterface
                     self::$scheduleType = $key;
                     if ($i % $req['timer'] == 0) {
                         for ($interval = 0; $interval < $req['requestNumber']; $interval++) {
-                            self::sendPayload($swoole);
+                            self::sendPayload();
                             usleep($req['requestInterval'] * 1000);
                         }
                     }
@@ -76,7 +79,7 @@ class ScrapeProduce implements CustomProcessInterface
         self::$quit = true;
     }
 
-    private static function sendPayload($swoole)
+    private static function sendPayload()
     {
         foreach (self::$providers as $provider) {
             foreach (self::$sports as $sport) {
@@ -98,20 +101,17 @@ class ScrapeProduce implements CustomProcessInterface
                 $payload['command'] = 'odd';
                 kafkaPush(strtolower($provider->alias) . self::$kafkaTopic, $payload, $requestId);
 
-                $swoole->scraperRequestsTable->set('type:odds:requestUID:' . $requestId, [
+                Redis::set('type:odds:requestUID:' . $requestId, json_encode([
                     'request_uid' => $requestId,
                     'request_ts'  => $requestTs
-                ]);
+                ]));
+                Redis::expire('type:odds:requestUID:' . $requestId, self::REDIS_TTL);
 
-                $swoole->scraperRequestsTable->set('type:events:requestUID:' . $requestId, [
+                Redis::set('type:events:requestUID:' . $requestId, json_encode([
                     'request_uid' => $requestId,
                     'request_ts'  => $requestTs
-                ]);
-
-                $swoole->scraperRequestsTable->set('type:leagues:requestUID:' . $requestId, [
-                    'request_uid' => $requestId,
-                    'request_ts'  => $requestTs
-                ]);
+                ]));
+                Redis::expire('type:events:requestUID:' . $requestId, self::REDIS_TTL);
             }
         }
     }
