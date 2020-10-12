@@ -65,7 +65,6 @@ class TransactionsController extends Controller
                         
                         kafkaPush('SCRAPING-SETTLEMENTS', $payload, $requestId);
 
-
                         $message = 'success';
                     }                    
                 }
