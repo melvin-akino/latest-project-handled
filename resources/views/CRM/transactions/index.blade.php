@@ -138,7 +138,7 @@
                 form.attr('data-bet-id', orderInfo['bet_id']);
                 
                 $('#bet_selection').html(orderInfo['bet_selection'].replace(/\n/gmi,'<br>'));
-                $('#stake').text(orderInfo['actual_stake']);
+                $('#actual_stake').text(orderInfo['actual_stake']);
                 $('#to_win').text(orderInfo['actual_to_win']);
                 
                 form.find('input[name=bet_id]').val(orderInfo['bet_id']);

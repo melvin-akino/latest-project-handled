@@ -8,7 +8,8 @@ use App\Models\CRM\{Transaction, AdminSettlement};
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
-
+use App\Jobs\KafkaPush;
+use Exception;
 
 class TransactionsController extends Controller
 {
@@ -33,7 +34,7 @@ class TransactionsController extends Controller
     {
         try {
             if (!empty($request)) {
-                DB::beginTransaction();
+                
                 $data = $request->toArray();
 
                 if (!empty($data)) {
@@ -61,16 +62,15 @@ class TransactionsController extends Controller
                     ];
 
                     $data['payload'] = serialize(json_encode($payload));
+                    DB::beginTransaction();
                     if (AdminSettlement::create($data)) {
-                        
-                        kafkaPush('SCRAPING-SETTLEMENTS', $payload, $requestId);
-
+                        if (env('APP_ENV') != 'local') {
+                           //KafkaPush::dispatch('SCRAPING-SETTLEMENTS', $payload, $requestId);
+                        }
                         $message = 'success';
-                    }                    
+                    }
+                    DB::commit();                    
                 }
-
-                DB::commit();
-
                 return response()->json([
                     'status'      => true,
                     'status_code' => 200,

@@ -26,7 +26,7 @@
                     </div>
                     <div class="form-group">
                         <label for="add-currency-name-input" class="col-sm-3 control-label">Stake</label>
-                        <div class="col-sm-8" id="stake">
+                        <div class="col-sm-8" id="actual_stake">
                             
                         </div>
                     </div>
@@ -110,7 +110,7 @@
 
             $("#modal-generate-settlement").on("hidden.bs.modal", function () {
                 var form = $('#form-generate-settlement');
-                form.find('input[name=orderId]').val();                
+                form.find('input[name=bet_id]').val();                
                 form.trigger('reset');
                 clearErr(form);
             });
