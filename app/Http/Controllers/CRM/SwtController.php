@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\CRM;
 
+use App\Facades\SwooleHandler;
 use App\Http\Controllers\Controller;
 
 class SwtController extends Controller
@@ -13,285 +14,282 @@ class SwtController extends Controller
 
     public function index()
     {
-        $swoole = app('swoole');
-
-
         $data = [
             'ws'                  => [
                 'name'  => 'WS',
                 'max'   => env('SWT_MAX_SIZE', 102400),
-                'count' => $swoole->wsTable->count(),
-                'memory' => $swoole->wsTable->getMemorySize()
+                'count' => SwooleHandler::table('wsTable')->count(),
+                'memory' => SwooleHandler::table('wsTable')->getMemorySize()
             ],
             'data2Swt'            => [
                 'name'  => 'Data to SWT',
                 'max'   => 5,
-                'count' => $swoole->data2SwtTable->count(),
-                'memory' => $swoole->data2SwtTable->getMemorySize()
+                'count' => SwooleHandler::table('data2SwtTable')->count(),
+                'memory' => SwooleHandler::table('data2SwtTable')->getMemorySize()
             ],
             'maintenance'     => [
                 'name'  => 'Maintenance',
                 'max'   => 64,
-                'count' => $swoole->maintenanceTable->count(),
-                'memory' => $swoole->maintenanceTable->getMemorySize()
+                'count' => SwooleHandler::table('maintenanceTable')->count(),
+                'memory' => SwooleHandler::table('maintenanceTable')->getMemorySize()
             ],
             'priorityTrigger'     => [
                 'name'  => 'Priority Trigger',
                 'max'   => 5,
-                'count' => $swoole->priorityTriggerTable->count(),
-                'memory' => $swoole->priorityTriggerTable->getMemorySize()
+                'count' => SwooleHandler::table('priorityTriggerTable')->count(),
+                'memory' => SwooleHandler::table('priorityTriggerTable')->getMemorySize()
             ],
             'updateLeagues'     => [
                 'name'  => 'Update Leagues',
-                'max'   => 100,
-                'count' => $swoole->updateLeaguesTable->count(),
-                'memory' => $swoole->updateLeaguesTable->getMemorySize()
+                'max'   => 1,
+                'count' => SwooleHandler::table('updateLeaguesTable')->count(),
+                'memory' => SwooleHandler::table('updateLeaguesTable')->getMemorySize()
             ],
             'userWatchlist'       => [
                 'name'  => 'User Watchlist',
                 'max'   => 10000,
-                'count' => $swoole->userWatchlistTable->count(),
-                'memory' => $swoole->userWatchlistTable->getMemorySize()
+                'count' => SwooleHandler::table('userWatchlistTable')->count(),
+                'memory' => SwooleHandler::table('userWatchlistTable')->getMemorySize()
             ],
             'updatedEvents'       => [
                 'name'  => 'Updated Events',
                 'max'   => 2000,
-                'count' => $swoole->updatedEventsTable->count(),
-                'memory' => $swoole->updatedEventsTable->getMemorySize()
+                'count' => SwooleHandler::table('updatedEventsTable')->count(),
+                'memory' => SwooleHandler::table('updatedEventsTable')->getMemorySize()
             ],
             'getActionLeagues'       => [
                 'name'  => 'Get Action Leagues',
                 'max'   => 10000,
-                'count' => $swoole->getActionLeaguesTable->count(),
-                'memory' => $swoole->getActionLeaguesTable->getMemorySize()
+                'count' => SwooleHandler::table('getActionLeaguesTable')->count(),
+                'memory' => SwooleHandler::table('getActionLeaguesTable')->getMemorySize()
             ],
             'consumeLeagues'      => [
                 'name'  => 'Consume Leagues',
                 'max'   => 10000,
-                'count' => $swoole->consumeLeaguesTable->count(),
-                'memory' => $swoole->consumeLeaguesTable->getMemorySize()
+                'count' => SwooleHandler::table('consumeLeaguesTable')->count(),
+                'memory' => SwooleHandler::table('consumeLeaguesTable')->getMemorySize()
             ],
             'minmaxMarket'        => [
                 'name'  => 'Min Max Market',
                 'max'   => env('SWT_MAX_SIZE', 102400),
-                'count' => $swoole->minmaxMarketTable->count(),
-                'memory' => $swoole->minmaxMarketTable->getMemorySize()
+                'count' => SwooleHandler::table('minmaxMarketTable')->count(),
+                'memory' => SwooleHandler::table('minmaxMarketTable')->getMemorySize()
             ],
             'minmaxPayload'       => [
                 'name'  => 'Min Max Payload',
                 'max'   => env('SWT_MAX_SIZE', 102400),
-                'count' => $swoole->minmaxPayloadTable->count(),
-                'memory' => $swoole->minmaxPayloadTable->getMemorySize()
+                'count' => SwooleHandler::table('minmaxPayloadTable')->count(),
+                'memory' => SwooleHandler::table('minmaxPayloadTable')->getMemorySize()
             ],
             'eventScraping'       => [
                 'name'  => 'Event Scraping',
                 'max'   => env('SWT_MAX_SIZE', 102400),
-                'count' => $swoole->eventScrapingTable->count(),
-                'memory' => $swoole->eventScrapingTable->getMemorySize()
+                'count' => SwooleHandler::table('eventScrapingTable')->count(),
+                'memory' => SwooleHandler::table('eventScrapingTable')->getMemorySize()
             ],
             'userSelectedLeagues'   => [
                 'name'  => 'User Selected Leagues',
                 'max'   => env('SWT_MAX_SIZE', 102400),
-                'count' => $swoole->userSelectedLeaguesTable->count(),
-                'memory' => $swoole->userSelectedLeaguesTable->getMemorySize()
+                'count' => SwooleHandler::table('userSelectedLeaguesTable')->count(),
+                'memory' => SwooleHandler::table('userSelectedLeaguesTable')->getMemorySize()
             ],
             'oddTypes'              => [
                 'name'  => 'Odd Types',
                 'max'   => 100,
-                'count' => $swoole->oddTypesTable->count(),
-                'memory' => $swoole->oddTypesTable->getMemorySize()
+                'count' => SwooleHandler::table('oddTypesTable')->count(),
+                'memory' => SwooleHandler::table('oddTypesTable')->getMemorySize()
             ],
             'providers'             => [
                 'name'  => 'Providers',
                 'max'   => 10,
-                'count' => $swoole->providersTable->count(),
-                'memory' => $swoole->providersTable->getMemorySize()
+                'count' => SwooleHandler::table('providersTable')->count(),
+                'memory' => SwooleHandler::table('providersTable')->getMemorySize()
             ],
             'sports'                => [
                 'name'  => 'Sports',
                 'max'   => 10,
-                'count' => $swoole->sportsTable->count(),
-                'memory' => $swoole->sportsTable->getMemorySize()
+                'count' => SwooleHandler::table('sportsTable')->count(),
+                'memory' => SwooleHandler::table('sportsTable')->getMemorySize()
             ],
             'sportOddTypes'         => [
                 'name'  => 'Sport Odd Types',
                 'max'   => 100,
-                'count' => $swoole->sportOddTypesTable->count(),
-                'memory' => $swoole->sportOddTypesTable->getMemorySize()
+                'count' => SwooleHandler::table('sportOddTypesTable')->count(),
+                'memory' => SwooleHandler::table('sportOddTypesTable')->getMemorySize()
             ],
             'leagues'               => [
                 'name'  => 'Leagues',
                 'max'   => 10000,
-                'count' => $swoole->leaguesTable->count(),
-                'memory' => $swoole->leaguesTable->getMemorySize()
+                'count' => SwooleHandler::table('leaguesTable')->count(),
+                'memory' => SwooleHandler::table('leaguesTable')->getMemorySize()
             ],
             'teams'                 => [
                 'name'  => 'Teams',
                 'max'   => 20000,
-                'count' => $swoole->teamsTable->count(),
-                'memory' => $swoole->teamsTable->getMemorySize()
+                'count' => SwooleHandler::table('teamsTable')->count(),
+                'memory' => SwooleHandler::table('teamsTable')->getMemorySize()
             ],
             'events'                 => [
                 'name'  => 'Events',
                 'max'   => env('SWT_MAX_SIZE', 102400),
-                'count' => $swoole->eventsTable->count(),
-                'memory' => $swoole->eventsTable->getMemorySize()
+                'count' => SwooleHandler::table('eventsTable')->count(),
+                'memory' => SwooleHandler::table('eventsTable')->getMemorySize()
             ],
             'eventRecords'                 => [
                 'name'  => 'Event Records',
                 'max'   => 10000,
-                'count' => $swoole->eventRecordsTable->count(),
-                'memory' => $swoole->eventRecordsTable->getMemorySize()
+                'count' => SwooleHandler::table('eventRecordsTable')->count(),
+                'memory' => SwooleHandler::table('eventRecordsTable')->getMemorySize()
             ],
             'oddRecords'                 => [
                 'name'  => 'Odd Records',
                 'max'   => env('SWT_MAX_SIZE', 102400),
-                'count' => $swoole->oddRecordsTable->count(),
-                'memory' => $swoole->oddRecordsTable->getMemorySize()
+                'count' => SwooleHandler::table('oddRecordsTable')->count(),
+                'memory' => SwooleHandler::table('oddRecordsTable')->getMemorySize()
             ],
             'mlEvents'                 => [
                 'name'  => 'ML Events',
                 'max'   => 10000,
-                'count' => $swoole->mlEventsTable->count(),
-                'memory' => $swoole->mlEventsTable->getMemorySize()
+                'count' => SwooleHandler::table('mlEventsTable')->count(),
+                'memory' => SwooleHandler::table('mlEventsTable')->getMemorySize()
             ],
             'eventMarkets'                 => [
                 'name'  => 'Event Markets',
                 'max'   => env('SWT_MAX_SIZE', 102400),
-                'count' => $swoole->eventMarketsTable->count(),
-                'memory' => $swoole->eventMarketsTable->getMemorySize()
+                'count' => SwooleHandler::table('eventMarketsTable')->count(),
+                'memory' => SwooleHandler::table('eventMarketsTable')->getMemorySize()
             ],
             'transformed'           => [
                 'name'  => 'Transformed',
                 'max'   => env('SWT_MAX_SIZE', 102400),
-                'count' => $swoole->transformedTable->count(),
-                'memory' => $swoole->transformedTable->getMemorySize()
+                'count' => SwooleHandler::table('transformedTable')->count(),
+                'memory' => SwooleHandler::table('transformedTable')->getMemorySize()
             ],
             'userProviderConfig'    => [
                 'name'  => 'User Provider Configuration',
                 'max'   => 10000,
-                'count' => $swoole->userProviderConfigTable->count(),
-                'memory' => $swoole->userProviderConfigTable->getMemorySize()
+                'count' => SwooleHandler::table('userProviderConfigTable')->count(),
+                'memory' => SwooleHandler::table('userProviderConfigTable')->getMemorySize()
             ],
             'activeEvents'          => [
                 'name'  => 'Active Events',
                 'max'   => 1000,
-                'count' => $swoole->activeEventsTable->count(),
-                'memory' => $swoole->activeEventsTable->getMemorySize()
+                'count' => SwooleHandler::table('activeEventsTable')->count(),
+                'memory' => SwooleHandler::table('activeEventsTable')->getMemorySize()
             ],
             'inactiveEvents'          => [
                 'name'  => 'Inactive Events',
                 'max'   => 1000,
-                'count' => $swoole->inactiveEventsTable->count(),
-                'memory' => $swoole->inactiveEventsTable->getMemorySize()
+                'count' => SwooleHandler::table('inactiveEventsTable')->count(),
+                'memory' => SwooleHandler::table('inactiveEventsTable')->getMemorySize()
             ],
             'topic'                 => [
                 'name'  => 'Topic',
                 'max'   => env('SWT_MAX_SIZE', 102400),
-                'count' => $swoole->topicTable->count(),
-                'memory' => $swoole->topicTable->getMemorySize()
+                'count' => SwooleHandler::table('topicTable')->count(),
+                'memory' => SwooleHandler::table('topicTable')->getMemorySize()
             ],
             'orders'                => [
                 'name'  => 'Orders',
                 'max'   => 10000,
-                'count' => $swoole->ordersTable->count(),
-                'memory' => $swoole->ordersTable->getMemorySize()
+                'count' => SwooleHandler::table('ordersTable')->count(),
+                'memory' => SwooleHandler::table('ordersTable')->getMemorySize()
             ],
             'minMaxRequests'        => [
                 'name'  => 'Min Max Requests',
                 'max'   => 10000,
-                'count' => $swoole->minMaxRequestsTable->count(),
-                'memory' => $swoole->minMaxRequestsTable->getMemorySize()
+                'count' => SwooleHandler::table('minMaxRequestsTable')->count(),
+                'memory' => SwooleHandler::table('minMaxRequestsTable')->getMemorySize()
             ],
             'exchangeRates'         => [
                 'name'  => 'Exchange Rates',
                 'max'   => 100,
-                'count' => $swoole->exchangeRatesTable->count(),
-                'memory' => $swoole->exchangeRatesTable->getMemorySize()
+                'count' => SwooleHandler::table('exchangeRatesTable')->count(),
+                'memory' => SwooleHandler::table('exchangeRatesTable')->getMemorySize()
             ],
             'currencies'            => [
                 'name'  => 'Currencies',
                 'max'   => 100,
-                'count' => $swoole->currenciesTable->count(),
-                'memory' => $swoole->currenciesTable->getMemorySize()
+                'count' => SwooleHandler::table('currenciesTable')->count(),
+                'memory' => SwooleHandler::table('currenciesTable')->getMemorySize()
             ],
             'users'                 => [
                 'name'  => 'Users',
                 'max'   => 10000,
-                'count' => $swoole->usersTable->count(),
-                'memory' => $swoole->usersTable->getMemorySize()
+                'count' => SwooleHandler::table('usersTable')->count(),
+                'memory' => SwooleHandler::table('usersTable')->getMemorySize()
             ],
             'orderPayloads'         => [
                 'name'  => 'Order Payloads',
                 'max'   => 100000,
-                'count' => $swoole->orderPayloadsTable->count(),
-                'memory' => $swoole->orderPayloadsTable->getMemorySize()
+                'count' => SwooleHandler::table('orderPayloadsTable')->count(),
+                'memory' => SwooleHandler::table('orderPayloadsTable')->getMemorySize()
             ],
             'orderRetries'          => [
                 'name'  => 'Order Retries',
                 'max'   => 10000,
-                'count' => $swoole->orderRetriesTable->count(),
-                'memory' => $swoole->orderRetriesTable->getMemorySize()
+                'count' => SwooleHandler::table('orderRetriesTable')->count(),
+                'memory' => SwooleHandler::table('orderRetriesTable')->getMemorySize()
             ],
             'minmaxOnqueueRequests' => [
                 'name'  => 'Min Max Onqueue Requests',
                 'max'   => 10000,
-                'count' => $swoole->minmaxOnqueueRequestsTable->count(),
-                'memory' => $swoole->minmaxOnqueueRequestsTable->getMemorySize()
+                'count' => SwooleHandler::table('minmaxOnqueueRequestsTable')->count(),
+                'memory' => SwooleHandler::table('minmaxOnqueueRequestsTable')->getMemorySize()
             ],
             'providerAccounts'      => [
                 'name'  => 'Provider Accounts',
                 'max'   => 2000,
-                'count' => $swoole->providerAccountsTable->count(),
-                'memory' => $swoole->providerAccountsTable->getMemorySize()
+                'count' => SwooleHandler::table('providerAccountsTable')->count(),
+                'memory' => SwooleHandler::table('providerAccountsTable')->getMemorySize()
             ],
             'mlBetId'               => [
                 'name'  => 'ML BET ID',
                 'max'   => 10000,
-                'count' => $swoole->mlBetIdTable->count(),
-                'memory' => $swoole->mlBetIdTable->getMemorySize()
+                'count' => SwooleHandler::table('mlBetIdTable')->count(),
+                'memory' => SwooleHandler::table('mlBetIdTable')->getMemorySize()
             ],
             'scraperRequests'       => [
                 'name'  => 'Scraper requests',
                 'max'   => env('SWT_MAX_SIZE', 102400),
-                'count' => $swoole->scraperRequestsTable->count(),
-                'memory' => $swoole->scraperRequestsTable->getMemorySize()
+                'count' => SwooleHandler::table('scraperRequestsTable')->count(),
+                'memory' => SwooleHandler::table('scraperRequestsTable')->getMemorySize()
             ],
             'pendingOrdersWithinExpiry'       => [
                 'name'  => 'Pending Orders Within Expiry',
                 'max'   => 500,
-                'count' => $swoole->pendingOrdersWithinExpiryTable->count(),
-                'memory' => $swoole->pendingOrdersWithinExpiryTable->getMemorySize()
+                'count' => SwooleHandler::table('pendingOrdersWithinExpiryTable')->count(),
+                'memory' => SwooleHandler::table('pendingOrdersWithinExpiryTable')->getMemorySize()
             ],
             'oddsKafkaPayloads'       => [
                 'name'  => 'Odds Kafka Payloads',
                 'max'   => 500,
-                'count' => $swoole->oddsKafkaPayloadsTable->count(),
-                'memory' => $swoole->oddsKafkaPayloadsTable->getMemorySize()
+                'count' => SwooleHandler::table('oddsKafkaPayloadsTable')->count(),
+                'memory' => SwooleHandler::table('oddsKafkaPayloadsTable')->getMemorySize()
             ],
             'eventsInfo'       => [
                 'name'  => 'Odds Info',
                 'max'   => 2000,
-                'count' => $swoole->eventsInfoTable->count(),
-                'memory' => $swoole->eventsInfoTable->getMemorySize()
+                'count' => SwooleHandler::table('eventsInfoTable')->count(),
+                'memory' => SwooleHandler::table('eventsInfoTable')->getMemorySize()
             ],
             'eventsScored'       => [
                 'name'  => 'Events Scored',
                 'max'   => 100,
-                'count' => $swoole->eventsScoredTable->count(),
-                'memory' => $swoole->eventsScoredTable->getMemorySize()
+                'count' => SwooleHandler::table('eventsScoredTable')->count(),
+                'memory' => SwooleHandler::table('eventsScoredTable')->getMemorySize()
             ],
             'eventNoMarketIds'       => [
                 'name'  => 'Event No Market IDs',
                 'max'   => 1000,
-                'count' => $swoole->eventNoMarketIdsTable->count(),
-                'memory' => $swoole->eventNoMarketIdsTable->getMemorySize()
+                'count' => SwooleHandler::table('eventNoMarketIdsTable')->count(),
+                'memory' => SwooleHandler::table('eventNoMarketIdsTable')->getMemorySize()
             ],
             'eventHasMarkets'       => [
                 'name'  => 'Event Has Markets',
                 'max'   => 100,
-                'count' => $swoole->eventHasMarketsTable->count(),
-                'memory' => $swoole->eventHasMarketsTable->getMemorySize()
+                'count' => SwooleHandler::table('eventHasMarketsTable')->count(),
+                'memory' => SwooleHandler::table('eventHasMarketsTable')->getMemorySize()
             ],
         ];
 
