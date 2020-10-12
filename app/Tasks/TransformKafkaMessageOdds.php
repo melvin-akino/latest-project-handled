@@ -263,7 +263,7 @@ class TransformKafkaMessageOdds extends Task
                         }
                     }
 
-                    foreach ($swoole->wsTable as $key => $row) {
+                    foreach (SwooleHandler::table('wsTable') as $key => $row) {
                         if (strpos($key, 'uid:') === 0 && $swoole->isEstablished($row['value'])) {
                             $maxMissingCount = SystemConfiguration::getSystemConfigurationValue('EVENT_VALID_MAX_MISSING_COUNT')->value;
                             if ($missingCount > $maxMissingCount) {
@@ -393,7 +393,7 @@ class TransformKafkaMessageOdds extends Task
                             ]);
                         }
                     }
-                    foreach ($swoole->wsTable as $key => $row) {
+                    foreach (SwooleHandler::table('wsTable') as $key => $row) {
                         if (strpos($key, 'uid:') === 0 && $swoole->isEstablished($row['value'])) {
                             $userId = substr($key, strlen('uid:'));
                             $userProviderIds = UserProviderConfiguration::getProviderIdList($userId);
@@ -421,7 +421,7 @@ class TransformKafkaMessageOdds extends Task
                 }
             }
 
-            $swoole->eventsInfoTable->set("eventsInfo:" . $uid, [
+            SwooleHandler::setValue('eventsInfoTable', "eventsInfo:" . $uid, [
                 'value' => json_encode([
                     'id'           => $uid,
                     'score' => [
@@ -436,7 +436,7 @@ class TransformKafkaMessageOdds extends Task
             ]);
 
             if (!empty($updatedOdds)) {
-                $swoole->updatedEventsTable->set("updatedEvents:" . $uid, ['value' => json_encode($updatedOdds)]);
+                SwooleHandler::setValue('updatedEventsTable', "updatedEvents:" . $uid, ['value' => json_encode($updatedOdds)]);
                 $updateLeagues = true;
             }
 
