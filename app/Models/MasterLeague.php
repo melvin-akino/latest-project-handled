@@ -73,7 +73,7 @@ class MasterLeague extends Model
             ->mergeBindings($subquery)
             ->select($columns)
             ->when($keyword, function($query, $keyword) {
-                return $query->where('master_league_name', 'ILIKE', '%' . $keyword . '%');
+                return $query->where('master_league_name', 'ILIKE', $keyword . '%');
             })
             ->groupBy('master_league_name');
     }
