@@ -90,7 +90,7 @@ class SettlementProduce implements CustomProcessInterface
                                             // add sleep to prevent detecting as bot
                                             usleep(random_int(1, 3) * 1000000);
                                         }
-                                        if (!empty($providerHasUnsettled)) {
+                                        if (!empty($providerUnsettledDates)) {
                                             $providerAlias = strtolower($pRow['provider_alias']);
                                             $username      = $pRow['username'];
                                             $requestId     = (string) Str::uuid();
