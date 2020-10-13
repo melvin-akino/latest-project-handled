@@ -95,7 +95,7 @@ class PreviousBetExtraction extends Command
             }
             $filename = "Extracted_Bet_Transactions_" . Carbon::now()->format('YmdHis') . ".csv";
             $file     = fopen($filename, 'w');
-            $columns  = ['Email Address', 'ML Bet Identifier', 'Provider Bet ID', 'Username', 'Created At', 'Status', 'Stake', 'Profit Loss', 'Actual Stake', 'Actual Profit Loss', 'Odds', 'Odd Label'];
+            $columns  = ['Email Address', 'ML Bet Identifier', 'Provider Bet ID', 'Username', 'Created At', 'Status', 'Settled Date', 'Stake', 'Profit Loss', 'Actual Stake', 'Actual Profit Loss', 'Odds', 'Odd Label'];
             $dups     = [];
             $data     = DB::table('orders AS o')
                           ->join('provider_accounts AS pa', 'pa.id', '=', 'o.provider_account_id')
@@ -118,6 +118,7 @@ class PreviousBetExtraction extends Command
                               'pa.username',
                               'o.created_at',
                               'o.status',
+                              'o.settled_date',
                               'o.stake',
                               'o.profit_loss',
                               'pao.actual_stake',
@@ -137,6 +138,7 @@ class PreviousBetExtraction extends Command
                         $row->username,
                         $row->created_at,
                         $row->status,
+                        $row->settled_date,
                         $row->stake,
                         $row->profit_loss,
                         $row->actual_stake,
@@ -150,7 +152,8 @@ class PreviousBetExtraction extends Command
             }
             fclose($file);
 
-            Mail::to(env('CSV_EMAIL', 'melvinaquino@ninepinetech.com'))->send(new SendCSV("./" . $filename, $subject));
+            $to = explode(",", env('CSV_EMAIL', 'melvinaquino@ninepinetech.com'));
+            Mail::to($to)->send(new SendCSV("./" . $filename, $subject));
             unlink("./" . $filename);
         } catch (Exception $e) {
             $this->error("ERROR! " . $e->getLine() . " : " . $e->getMessage() . ':' . $e->getTraceAsString());
