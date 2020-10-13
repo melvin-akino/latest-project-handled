@@ -125,12 +125,12 @@ class SwtToWs implements CustomProcessInterface
 
     private static function getUpdatedLeagues()
     {
-        if (SwooleHandler::exists('updateLeaguesTable', 'updateLeagues')) {
-            SwooleHandler::remove('updateLeaguesTable', 'updateLeagues');
+//        if (SwooleHandler::exists('updateLeaguesTable', 'updateLeagues')) {
+//            SwooleHandler::remove('updateLeaguesTable', 'updateLeagues');
             wsEmit(['getUpdatedLeagues' => [
                 'status' => true
             ]]);
-        }
+//        }
     }
 
     private static function getForBetBarRemoval($swoole)
