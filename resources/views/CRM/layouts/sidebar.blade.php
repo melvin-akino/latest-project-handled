@@ -84,6 +84,12 @@
                      
                     </ul>
                 </li>
+                <li class="@isset($accounts_menu) active @endisset">
+                    <a href="/admin/unsettled_transactions">
+                        <i class="fa fa-user" aria-hidden="true"></i>
+                        <span>Admin Settlements</span>
+                    </a>
+                </li>
 
                 <li class="treeview @isset($wallet_menu) active menu-open @endisset" id="wallet-treeview">
                     <a href="javascript:void(0);">
