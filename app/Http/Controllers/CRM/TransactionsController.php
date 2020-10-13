@@ -64,8 +64,8 @@ class TransactionsController extends Controller
                     $data['payload'] = serialize(json_encode($payload));
                     DB::beginTransaction();
                     if (AdminSettlement::create($data)) {
-                        if (env('APP_ENV') != 'local') {
-                           //KafkaPush::dispatch('SCRAPING-SETTLEMENTS', $payload, $requestId);
+                        if (!in_array(env('APP_ENV'), ['local', 'testing'])) {
+                           KafkaPush::dispatch('SCRAPING-SETTLEMENTS', json_encode($payload), $requestId);
                         }
                         $message = 'success';
                     }
