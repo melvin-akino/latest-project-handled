@@ -438,6 +438,12 @@ export default {
                     })
                 }
             })
+            this.$options.sockets.onclose = (response => {
+                console.clear()
+                setTimeout(function() {
+                    vm.$connect()
+                }, 3000)
+            })
         }
     },
     directives: {
