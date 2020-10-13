@@ -65,7 +65,7 @@ class TransactionsController extends Controller
                     DB::beginTransaction();
                     if (AdminSettlement::create($data)) {
                         if (!in_array(env('APP_ENV'), ['local', 'testing'])) {
-                           KafkaPush::dispatch('SCRAPING-SETTLEMENTS', json_encode($payload), $requestId);
+                           KafkaPush::dispatch('SCRAPING-SETTLEMENTS', $payload, $requestId);
                         }
                         $message = 'success';
                     }
