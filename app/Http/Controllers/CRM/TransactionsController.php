@@ -49,7 +49,7 @@ class TransactionsController extends Controller
                         'data' => [
                             'provider'      => $data['provider'],
                             'sport'         => $data['sport'],
-                            'id'            => $id,
+                            'id'            => $id[0][0],
                             'username'      => $data['username'],
                             'status'        => $data['status'],
                             'odds'          => $data['odds'],
@@ -64,7 +64,7 @@ class TransactionsController extends Controller
                     $data['payload'] = serialize(json_encode($payload));
                     DB::beginTransaction();
                     if (AdminSettlement::create($data)) {
-                        if (!in_array(env('APP_ENV'), ['local', 'testing'])) {
+                        if (!in_array(env('APP_ENV'), ['testing'])) {
                            KafkaPush::dispatch('SCRAPING-SETTLEMENTS', $payload, $requestId);
                         }
                         $message = 'success';

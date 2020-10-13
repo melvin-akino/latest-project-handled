@@ -132,7 +132,6 @@
 
                   orderInfo[key] = value;
                 });
-                console.log(orderInfo);
 
                 var form = $('#form-generate-settlement');
                 form.attr('data-bet-id', orderInfo['bet_id']);
