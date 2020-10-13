@@ -136,9 +136,9 @@ export default {
                     this.$store.commit('trade/SET_WATCHLIST', watchlistEvents)
                 } else if(getSocketKey(response.data) === 'getEvents') {
                     let receivedEvents = getSocketValue(response.data, 'getEvents')
-                    let league_name = _.uniq(receivedEvents.map(event => event.league_name))[0]
-                    let game_schedule = _.uniq(receivedEvents.map(event => event.game_schedule))[0]
-                    this.$store.dispatch('trade/toggleLeague', { action: 'add', league_name: league_name, sport_id: this.selectedSport, schedule: game_schedule  })
+                    // let league_name = _.uniq(receivedEvents.map(event => event.league_name))[0]
+                    // let game_schedule = _.uniq(receivedEvents.map(event => event.game_schedule))[0]
+                    // this.$store.dispatch('trade/toggleLeague', { action: 'add', league_name: league_name, sport_id: this.selectedSport, schedule: game_schedule  })
                     Object.keys(this.selectedLeagues).map(schedule => {
                         this.selectedLeagues[schedule].map(league => {
                             receivedEvents.map(receivedEvent => {

@@ -358,9 +358,6 @@ const actions = {
         return axios.get('v1/trade/leagues', { headers: { 'Authorization': `Bearer ${token}` }})
             .then(response => {
                 if(response.data.sport_id == state.selectedSport) {
-                    commit('SET_LEAGUES', response.data.data)
-                    dispatch('removeEventsOnUpdateOfLeagues')
-
                     if(updatedLeagues) {
                         Object.keys(state.events).map(schedule => {
                             Object.keys(state.events[schedule]).map(league => {
@@ -382,6 +379,17 @@ const actions = {
                             })
                         })
                     }
+                    Object.keys(state.leagues).map(schedule => {
+                        let leagueNames = state.leagues[schedule].map(league => league.name)
+                        let newLeagueNames = response.data.data[schedule].map(league => league.name)
+                        leagueNames.map(league => {
+                            if(!newLeagueNames.includes(league)) {
+                                dispatch('toggleLeague', { action: 'remove', league_name: league, sport_id: state.selectedSport, schedule: schedule  })
+                            }
+                        })
+                    })
+                    commit('SET_LEAGUES', response.data.data)
+                    dispatch('removeEventsOnUpdateOfLeagues')
                 }
                 commit('SET_IS_LOADING_LEAGUES', false)
             })

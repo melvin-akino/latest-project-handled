@@ -77,6 +77,7 @@ export default {
             } else {
                 this.$store.commit('trade/ADD_TO_SELECTED_LEAGUE', { schedule: this.selectedLeagueSchedMode, league: league })
                 this.$socket.send(`getEvents_${league}_${this.selectedLeagueSchedMode}`)
+                this.$store.dispatch('trade/toggleLeague', { action: 'add', league_name: league, sport_id: this.selectedSport, schedule: this.selectedLeagueSchedMode  })
             }
         }
     }
