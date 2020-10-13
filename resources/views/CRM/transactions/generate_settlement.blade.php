@@ -101,9 +101,7 @@
                 }).done(function () {
                     btn.button('reset');
                 }).fail(function(xhr, status, error) {
-
-                    assocErr(xhr.responseJSON.errors, form);
-
+                    swal('Settlement', 'This bet id has already been sent out for settlement.', 'warning');
                     btn.button('reset');
                 });
             };
