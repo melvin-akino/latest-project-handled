@@ -39,6 +39,7 @@ import BetSlip from './BetSlip'
 import { getSocketKey, getSocketValue } from '../../../helpers/socket'
 import { sortByObjectKeys } from '../../../helpers/array'
 import Vue from 'vue'
+
 const vm = new Vue()
 
 export default {
@@ -65,6 +66,9 @@ export default {
     },
     computed: {
         ...mapState('trade', ['isBetBarOpen', 'selectedSport', 'leagues', 'selectedLeagues', 'oddsTypeBySport', 'columnsToDisplay', 'allEventsList', 'eventsList', 'events', 'openedBetSlips', 'tradePageSettings', 'watchlist']),
+    },
+    created() {
+        vm.$connect()
     },
     created() {
         vm.$connect()

@@ -412,30 +412,30 @@ class Game extends Model
     {
         $maxMissingCount = SystemConfiguration::getSystemConfigurationValue('EVENT_VALID_MAX_MISSING_COUNT')->value;
         return DB::table('master_events as me')
-                 ->leftJoin('master_event_markets as mem', 'mem.master_event_id', 'me.id')
-                 ->join('events as e', 'e.master_event_id', 'me.id')
-                 ->join('event_markets as em', function ($join) {
-                     $join->on('em.master_event_market_id', '=', 'mem.id');
-                     $join->on('em.event_id', '=', 'e.id');
-                 })
-                 ->leftJoin('master_leagues as ml', 'ml.id', 'me.master_league_id')
-                 ->leftJoin('master_teams as mth', 'mth.id', 'me.master_team_home_id')
-                 ->leftJoin('master_teams as mta', 'mta.id', 'me.master_team_away_id')
-                 ->where('mem.is_main', true)
-                 ->whereNull('me.deleted_at')
-                 ->whereNull('e.deleted_at')
-                 ->whereNull('em.deleted_at')
-                 ->whereNull('ml.deleted_at')
-                 ->where('e.missing_count', '<=', $maxMissingCount)
-                 ->whereNotIn('me.id', function ($query) use ($userId) {
-                     $query->select('master_event_id')->from('user_watchlist')->where('user_id', $userId);
-                 })
-                 ->where(DB::raw("CONCAT(ml.name, ' | ', mth.name, ' VS ', mta.name)"), 'ILIKE', '%' . $keyword . '%')
-                 ->select([
-                     DB::raw("'event' as type"),
-                     'me.master_event_unique_id as data',
-                     DB::raw("CONCAT(ml.name, ' | ', mth.name, ' VS ', mta.name) as label")
-                 ])
-                 ->groupBy('me.master_event_unique_id', 'ml.name', 'mth.name', 'mta.name');
+        ->leftJoin('master_event_markets as mem', 'mem.master_event_id', 'me.id')
+        ->join('events as e', 'e.master_event_id', 'me.id')
+        ->join('event_markets as em', function ($join) {
+            $join->on('em.master_event_market_id', '=', 'mem.id');
+            $join->on('em.event_id', '=', 'e.id');
+        })
+        ->leftJoin('master_leagues as ml', 'ml.id', 'me.master_league_id')
+        ->leftJoin('master_teams as mth', 'mth.id', 'me.master_team_home_id')
+        ->leftJoin('master_teams as mta', 'mta.id', 'me.master_team_away_id')
+        ->where('mem.is_main', true)
+        ->whereNull('me.deleted_at')
+        ->whereNull('e.deleted_at')
+        ->whereNull('em.deleted_at')
+        ->whereNull('ml.deleted_at')
+        ->where('e.missing_count', '<=', $maxMissingCount)
+        ->whereNotIn('me.id', function($query) use ($userId) {
+            $query->select('master_event_id')->from('user_watchlist')->where('user_id', $userId);
+        })
+        ->where(DB::raw("CONCAT(ml.name, ' | ', mth.name, ' VS ', mta.name)"), 'ILIKE', str_replace('%', '^', $keyword) . '%')
+        ->select([
+            DB::raw("'event' as type"),
+            'me.master_event_unique_id as data',
+            DB::raw("CONCAT(ml.name, ' | ', mth.name, ' VS ', mta.name) as label")
+        ])
+        ->groupBy('me.master_event_unique_id', 'ml.name', 'mth.name', 'mta.name');
     }
 }
