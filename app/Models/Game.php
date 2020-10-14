@@ -423,7 +423,7 @@ class Game extends Model
         ->whereNotIn('me.id', function($query) use ($userId) {
             $query->select('master_event_id')->from('user_watchlist')->where('user_id', $userId);
         })
-        ->where(DB::raw("CONCAT(ml.name, ' | ', mth.name, ' VS ', mta.name)"), 'ILIKE', $keyword . '%')
+        ->where(DB::raw("CONCAT(ml.name, ' | ', mth.name, ' VS ', mta.name)"), 'ILIKE', str_replace('%', '^', $keyword) . '%')
         ->select([
             DB::raw("'event' as type"),
             'me.master_event_unique_id as data',
