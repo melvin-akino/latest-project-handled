@@ -204,7 +204,7 @@ class TransformKafkaMessageOdds extends Task
                                         'odds'        => $odds,
                                         'provider_id' => $providerId
                                     ];
-                                    if (!empty($marketPoints)) {
+                                    if (!empty($points)) {
                                         $oddsUpdated['points'] = $points;
                                     }
                                     $updatedOdds[] = $oddsUpdated;
