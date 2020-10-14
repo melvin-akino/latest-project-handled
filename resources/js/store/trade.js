@@ -384,6 +384,7 @@ const actions = {
                         let newLeagueNames = response.data.data[schedule].map(league => league.name)
                         leagueNames.map(league => {
                             if(!newLeagueNames.includes(league)) {
+                                commit('REMOVE_SELECTED_LEAGUE', { schedule: schedule, league: league })
                                 dispatch('toggleLeague', { action: 'remove', league_name: league, sport_id: state.selectedSport, schedule: schedule  })
                             }
                         })
