@@ -54,6 +54,7 @@ class GameConsume implements CustomProcessInterface
                             Log::channel('kafkalog')->info(json_encode($message));
                         }
                         usleep(10000);
+                        $kafkaConsumer->commitAsync($message);
                         continue;
                     }
                     usleep(100000);
