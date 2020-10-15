@@ -3,10 +3,7 @@
 namespace App\Handlers;
 
 use App\Facades\SwooleHandler;
-use App\Models\{
-    MasterEventMarket,
-    EventMarket
-};
+use App\Models\{MasterEventMarket, EventMarket, SystemConfiguration};
 use Illuminate\Support\Facades\Log;
 use Exception;
 
@@ -132,6 +129,7 @@ class MinMaxTransformationHandler
                                     $punterPercentage = $userProviderConfigTable->get($userProviderSwtId)['punter_percentage'];
                                 }
 
+                                $maxBetDisplay = $missingCountConfiguration = SystemConfiguration::getSystemConfigurationValue('MAX_BET')->value;
                                 $maximum = floor((($data->maximum) * ($punterPercentage / 100)) * 100 ) / 100;
                                 $timeDiff    = time() - (int) $data->timestamp;
                                 $age         = ($timeDiff > 60) ? floor($timeDiff / 60) . 'm' : $timeDiff . 's';
@@ -140,7 +138,7 @@ class MinMaxTransformationHandler
                                     "provider_id" => $provTable->get($providerSwtId)['id'],
                                     "provider"    => strtoupper($data->provider),
                                     "min"         => $data->minimum,
-                                    "max"         => ($maximum <= 45000) ? $maximum : 45000,
+                                    "max"         => ($maximum <= $maxBetDisplay) ? $maximum : $maxBetDisplay,
                                     "price"       => (double) $data->odds,
                                     "priority"    => $provTable->get($providerSwtId)['priority'],
                                     'market_id'   => $memUID,
@@ -178,7 +176,7 @@ class MinMaxTransformationHandler
 
                                     $transformed['min'] = ceil(($data->minimum * $exchangeRate) * 100 ) / 100;
                                     $max = floor((($data->maximum * $exchangeRate) * ($punterPercentage / 100)) * 100) / 100;
-                                    $transformed['max'] = ($max <= 45000) ? $max : 45000;
+                                    $transformed['max'] = ($max <= $maxBetDisplay) ? $max : $maxBetDisplay;
                                 }
 
                                 Log::info('Task: MinMax emitWS');
