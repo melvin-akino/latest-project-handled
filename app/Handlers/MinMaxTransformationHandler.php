@@ -140,7 +140,7 @@ class MinMaxTransformationHandler
                                     "provider_id" => $provTable->get($providerSwtId)['id'],
                                     "provider"    => strtoupper($data->provider),
                                     "min"         => $data->minimum,
-                                    "max"         => $maximum,
+                                    "max"         => ($maximum <= 45000) ? $maximum : 45000,
                                     "price"       => (double) $data->odds,
                                     "priority"    => $provTable->get($providerSwtId)['priority'],
                                     'market_id'   => $memUID,
@@ -177,7 +177,8 @@ class MinMaxTransformationHandler
                                     }
 
                                     $transformed['min'] = ceil(($data->minimum * $exchangeRate) * 100 ) / 100;
-                                    $transformed['max'] = floor((($data->maximum * $exchangeRate) * ($punterPercentage / 100)) * 100) / 100;
+                                    $max = floor((($data->maximum * $exchangeRate) * ($punterPercentage / 100)) * 100) / 100;
+                                    $transformed['max'] = ($max <= 45000) ? $max : 45000;
                                 }
 
                                 Log::info('Task: MinMax emitWS');
