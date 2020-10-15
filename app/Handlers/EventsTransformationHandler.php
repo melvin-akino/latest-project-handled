@@ -161,8 +161,7 @@ class EventsTransformationHandler
                     if ($event) {
                         $missingCount = (int) $event['missing_count'] + 1;
                         SwooleHandler::setColumnValue('eventRecordsTable', $eventTableKey, 'missing_count', $missingCount);
-                        if ($missingCount > $missingCountConfiguration->value) {
-
+                        if ($missingCount >= $missingCountConfiguration->value) {
                             $masterEvent = DB::table('master_events AS me')
                                              ->join('master_leagues AS ml', 'me.master_league_id', '=', 'ml.id')
                                              ->join('events as e', 'e.master_event_id', 'me.id')

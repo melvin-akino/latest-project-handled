@@ -507,7 +507,7 @@ return [
             ],
         ],
         'eventHasMarkets' => [ // key format [eventHasMarkets:$uid]
-            'size'   => 100,
+            'size'   => 1000,
             'column' => [
                 ['name' => 'uid', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 30],
                 ['name' => 'master_league_id', 'type' => \Swoole\Table::TYPE_INT],
