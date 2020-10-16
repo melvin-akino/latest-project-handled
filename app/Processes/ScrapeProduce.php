@@ -112,6 +112,12 @@ class ScrapeProduce implements CustomProcessInterface
                     'request_ts'  => $requestTs
                 ]));
                 Redis::expire('type:events:requestUID:' . $requestId, self::REDIS_TTL);
+
+                Redis::set('type:leagues:requestUID:' . $requestId, json_encode([
+                    'request_uid' => $requestId,
+                    'request_ts'  => $requestTs
+                ]));
+                Redis::expire('type:leagues:requestUID:' . $requestId, self::REDIS_TTL);
             }
         }
     }

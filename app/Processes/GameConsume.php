@@ -25,11 +25,13 @@ class GameConsume implements CustomProcessInterface
                 $kafkaConsumer = app('KafkaConsumer');
                 $kafkaConsumer->subscribe([
                     env('KAFKA_SCRAPE_ODDS', 'SCRAPING-ODDS'),
-                    env('KAFKA_SCRAPE_EVENTS', 'SCRAPING-PROVIDER-EVENTS')
+                    env('KAFKA_SCRAPE_EVENTS', 'SCRAPING-PROVIDER-EVENTS'),
+                    env('KAFKA_SCRAPE_LEAGUES', 'SCRAPING-PROVIDER-LEAGUES')
                 ]);
 
                 $oddsValidationHandler       = app('OddsValidationHandler');
                 $eventsTransformationHandler = app('EventsTransformationHandler');
+                $leaguesTransformationHandler = app('LeaguesTransformationHandler');
 
                 while (!self::$quit) {
                     $message = $kafkaConsumer->consume(0);
@@ -41,6 +43,9 @@ class GameConsume implements CustomProcessInterface
                             continue;
                         }
                         switch ($payload->command) {
+                            case 'league':
+                                $leaguesTransformationHandler->init($payload, $message->offset, $swoole)->handle();
+                                break;
                             case 'event':
                                 $eventsTransformationHandler->init($payload, $message->offset, $swoole)->handle();
                                 break;

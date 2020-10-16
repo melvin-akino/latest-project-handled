@@ -3,7 +3,7 @@
 namespace App\Tasks;
 
 use App\Facades\SwooleHandler;
-use App\Models\{SystemConfiguration, UserProviderConfiguration, UserSelectedLeague};
+use App\Models\{SystemConfiguration, UserProviderConfiguration};
 use Hhxsv5\LaravelS\Swoole\Task\Task;
 use Illuminate\Support\Facades\{DB, Log, Redis};
 
@@ -259,32 +259,6 @@ class TransformKafkaMessageOdds extends Task
                                     'odds'        => $odds,
                                     'memUID'      => $memUID
                                 ]);
-                            }
-                        }
-                    }
-
-                    foreach (SwooleHandler::table('wsTable') as $key => $row) {
-                        if (strpos($key, 'uid:') === 0 && $swoole->isEstablished($row['value'])) {
-                            $maxMissingCount = SystemConfiguration::getSystemConfigurationValue('EVENT_VALID_MAX_MISSING_COUNT')->value;
-                            if ($missingCount > $maxMissingCount) {
-                                $userId = substr($key, strlen('uid:'));
-
-                                $userSelectedLeagues = UserSelectedLeague::getUserSelectedLeague($userId, [
-                                    'league_id' => $masterLeagueId,
-                                    'schedule'  => $this->message->data->schedule,
-                                    'sport_id'  => $sportId
-                                ]);
-
-                                if ($userSelectedLeagues->exists()) {
-                                    foreach ($userSelectedLeagues->get() as $userSelectedLeague) {
-                                        $swtKey = 'userId:' . $userSelectedLeague->user_id . ':sId:' . $sportId . ':lId:' . $masterLeagueId . ':schedule:' . $this->message->data->schedule;
-
-                                        if (SwooleHandler::exists('userSelectedLeaguesTable', $swtKey)) {
-                                            SwooleHandler::remove('userSelectedLeaguesTable', $swtKey);
-                                        }
-                                    }
-                                    $userSelectedLeagues->delete();
-                                }
                             }
                         }
                     }
