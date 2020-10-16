@@ -551,8 +551,13 @@ const actions = {
                     state.oddsTypeBySport.map(oddType => {
                         team.map(team => {
                             if(oddType in event.market_odds.main && team in event.market_odds.main[oddType]) {
-                                if(event.market_odds.main[oddType][team].market_id === data.market_id && event.market_odds.main[oddType][team].odds != data.odds) {
-                                    Vue.set(event.market_odds.main[oddType][team], 'odds', data.odds)
+                                if(event.market_odds.main[oddType][team].market_id === data.market_id) {
+                                    if(event.market_odds.main[oddType][team].odds != data.odds) {
+                                        Vue.set(event.market_odds.main[oddType][team], 'odds', data.odds)
+                                    }
+                                    if(event.market_odds.main[oddType][team].hasOwnProperty('points') && event.market_odds.main[oddType][team].points != data.points && data.hasOwnProperty('points')) {
+                                        Vue.set(event.market_odds.main[oddType][team], 'points', data.points)
+                                    }
                                 }
                             }
                         })
@@ -562,8 +567,13 @@ const actions = {
                             state.oddsTypeBySport.map(oddType => {
                                 team.map(team => {
                                     if(oddType in event.market_odds.other[otherMarket] && team in event.market_odds.other[otherMarket][oddType]) {
-                                        if(event.market_odds.other[otherMarket][oddType][team].market_id === data.market_id && event.market_odds.other[otherMarket][oddType][team].odds != data.odds) {
-                                            Vue.set(event.market_odds.other[otherMarket][oddType][team], 'odds', data.odds)
+                                        if(event.market_odds.other[otherMarket][oddType][team].market_id === data.market_id) {
+                                            if(event.market_odds.other[otherMarket][oddType][team].odds != data.odds) {
+                                                Vue.set(event.market_odds.other[otherMarket][oddType][team], 'odds', data.odds)
+                                            }
+                                            if(event.market_odds.other[otherMarket][oddType][team].hasOwnProperty('points') && event.market_odds.other[otherMarket][oddType][team].points != data.points && data.hasOwnProperty('points')) {
+                                                Vue.set(event.market_odds.other[otherMarket][oddType][team], 'points', data.points)
+                                            }
                                         }
                                     }
                                 })
