@@ -70,9 +70,7 @@ export default {
 
             if(this.selectedLeagues[this.selectedLeagueSchedMode].includes(league)) {
                 this.$store.commit('trade/REMOVE_SELECTED_LEAGUE', { schedule: this.selectedLeagueSchedMode, league: league })
-                this.$store.commit('trade/REMOVE_FROM_EVENTS', { schedule: this.selectedLeagueSchedMode, removedLeague: league })
-                this.$store.commit('trade/REMOVE_FROM_EVENT_LIST', { type: 'league_name', data: league, game_schedule: this.selectedLeagueSchedMode })
-                this.$store.commit('trade/REMOVE_FROM_ALL_EVENT_LIST', { type: 'league_name', data: league, game_schedule: this.selectedLeagueSchedMode })
+                this.$store.commit('trade/REMOVE_FROM_EVENT_LIST', { league_name: league, game_schedule: this.selectedLeagueSchedMode })
                 this.$store.dispatch('trade/toggleLeague', { action: 'remove', league_name: league, sport_id: this.selectedSport, schedule: this.selectedLeagueSchedMode  })
             } else {
                 this.$store.commit('trade/ADD_TO_SELECTED_LEAGUE', { schedule: this.selectedLeagueSchedMode, league: league })
@@ -85,9 +83,9 @@ export default {
 </script>
 
 <style>
-    .selectedLeague {
-        -webkit-box-shadow: inset 8px 0px 0px 0px rgba(237,137,54,1);
-        -moz-box-shadow: inset 8px 0px 0px 0px rgba(237,137,54,1);
-        box-shadow: inset 8px 0px 0px 0px rgba(237,137,54,1);
-    }
+.selectedLeague {
+    -webkit-box-shadow: inset 8px 0px 0px 0px rgba(237,137,54,1);
+    -moz-box-shadow: inset 8px 0px 0px 0px rgba(237,137,54,1);
+    box-shadow: inset 8px 0px 0px 0px rgba(237,137,54,1);
+}
 </style>

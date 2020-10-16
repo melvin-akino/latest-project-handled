@@ -1,8 +1,6 @@
-const sortByObjectKeys = (object, sortedObject, property = null, equalValueProperty = null) => {
+const sortByObjectKeys = (object, property = null, equalValueProperty = null) => {
+    let sortedObject = {}
     Object.keys(object).sort().map(key => {
-        if(typeof(sortedObject) == "undefined") {
-            sortedObject = {}
-        }
         sortedObject[key] = object[key]
         if(property) {
             if(equalValueProperty) {

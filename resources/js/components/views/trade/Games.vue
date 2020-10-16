@@ -141,7 +141,7 @@ export default {
         }
     },
     computed: {
-        ...mapState('trade', ['leagues', 'selectedSport', 'selectedLeagues', 'tradeLayout', 'oddsTypeBySport', 'events', 'eventsList', 'watchlist', 'openedBetSlips', 'tradePageSettings', 'isLoadingEvents', 'eventsError']),
+        ...mapState('trade', ['leagues', 'selectedSport', 'selectedLeagues', 'tradeLayout', 'oddsTypeBySport', 'eventsList', 'openedBetSlips', 'tradePageSettings', 'isLoadingEvents', 'eventsError']),
         ...mapState('settings', ['disabledBetColumns']),
         checkIfGamesIsEmpty() {
             return _.isEmpty(this.games)
@@ -151,10 +151,9 @@ export default {
         toggleOtherMarkets(game) {
             let token = Cookies.get('mltoken')
             axios.get(`v1/trade/other-markets/${game.uid}`, { headers: { 'Authorization': `Bearer ${token}` }})
-            .then(response => {
-                if(!_.isEmpty(response.data.data)) {
-                    if(this.tradePageSettings.sort_event == 1) {
-                        this.events[this.gameSchedType][game.league_name].map(event => {
+                .then(response => {
+                    if(!_.isEmpty(response.data.data)) {
+                        this.eventsList.map(event => {
                             if(game.uid == event.uid) {
                                 if('other' in event.market_odds) {
                                     this.$delete(event.market_odds, 'other')
@@ -163,44 +162,24 @@ export default {
                                 }
                             }
                         })
-                    } else if(this.tradePageSettings.sort_event == 2) {
-                        let eventStartTime = `[${game.ref_schedule.split(' ')[1]}] ${game.league_name}`
-                        this.events[this.gameSchedType][eventStartTime].map(event => {
+                    } else {
+                        this.eventsList.map(event => {
                             if(game.uid == event.uid) {
                                 if('other' in event.market_odds) {
                                     this.$delete(event.market_odds, 'other')
-                                } else {
-                                    this.$set(event.market_odds, 'other', response.data.data)
                                 }
                             }
                         })
-                    }
-                } else {
-                    if(this.tradePageSettings.sort_event == 1) {
-                        this.events[this.gameSchedType][game.league_name].map(event => {
-                            if(game.uid == event.uid) {
-                                this.$delete(event.market_odds, 'other')
-                            }
-                        })
-                    } else if(this.tradePageSettings.sort_event == 2) {
-                        let eventStartTime = `[${game.ref_schedule.split(' ')[1]}] ${game.league_name}`
-                        this.events[this.gameSchedType][eventStartTime].map(event => {
-                            if(game.uid == event.uid) {
-                                this.$delete(event.market_odds, 'other')
-                            }
+                        game.has_other_markets = false
+                        Swal.fire({
+                            icon: 'warning',
+                            text: 'No other markets available for that event.'
                         })
                     }
-
-                    game.has_other_markets = false
-                    Swal.fire({
-                        icon: 'warning',
-                        text: 'No other markets available for that event.'
-                    })
-                }
-            })
-            .catch(err => {
-                this.$store.dispatch('auth/checkIfTokenIsValid', err.response.data.status_code)
-            })
+                })
+                .catch(err => {
+                    this.$store.dispatch('auth/checkIfTokenIsValid', err.response.data.status_code)
+                })
         },
         openBetSlip(odd, game) {
             this.$store.commit('trade/OPEN_BETSLIP', { odd: odd, game: game })
@@ -219,9 +198,7 @@ export default {
             }
             let token = Cookies.get('mltoken')
             this.$store.commit('trade/REMOVE_SELECTED_LEAGUE', { schedule: this.gameSchedType, league: league })
-            this.$store.commit('trade/REMOVE_FROM_EVENTS', { schedule: this.gameSchedType, removedLeague: league })
-            this.$store.commit('trade/REMOVE_FROM_EVENT_LIST', { type: 'league_name', data: league, game_schedule: this.gameSchedType })
-            this.$store.commit('trade/REMOVE_FROM_ALL_EVENT_LIST', { type: 'league_name', data: league, game_schedule: this.gameSchedType })
+            this.$store.commit('trade/REMOVE_FROM_EVENT_LIST', {  league_name: league, game_schedule: this.gameSchedType })
             this.$store.dispatch('trade/toggleLeague', { action: 'remove', league_name: league, sport_id: this.selectedSport, schedule: this.gameSchedType })
         },
         addToWatchlist(type, data, payload) {
@@ -248,63 +225,41 @@ export default {
                 data = data.split('] ')[1]
             }
             axios.post('v1/trade/watchlist/remove', { type: type, data: data }, { headers: { 'Authorization': `Bearer ${token}` }})
-            .then(response => {
-                if(type==='league') {
-                    let league_name = _.uniq(payload.map(event => event.league_name))[0]
-                    let game_schedule = _.uniq(payload.map(event => event.game_schedule))
-                    game_schedule.map(schedule => {
-                        this.$store.dispatch('trade/toggleLeague', { action: 'add', league_name: league_name, sport_id: this.selectedSport, schedule: schedule  })
-                        this.$store.commit('trade/ADD_TO_SELECTED_LEAGUE', { schedule: schedule, league: league_name })
-                    })
-                    this.$store.commit('trade/REMOVE_FROM_EVENTS', { schedule: 'watchlist', removedLeague: data })
-                    payload.map(event => {
-                        this.$store.commit('trade/REMOVE_FROM_WATCHLIST', event.uid)
-                        this.$store.commit('trade/SET_EVENTS_LIST', event)
-                        if(this.tradePageSettings.sort_event == 1) {
-                            this.$store.dispatch('trade/transformEvents', { schedule: event.game_schedule, league: event.league_name, payload: event })
-                        } else if(this.tradePageSettings.sort_event == 2) {
-                            let eventStartTime = `[${event.ref_schedule.split(' ')[1]}] ${event.league_name}`
-                            this.$store.dispatch('trade/transformEvents', { schedule: event.game_schedule, league: eventStartTime, payload: event })
-                        }
-                        let leagueNames = this.leagues[event.game_schedule].map(league => league.name)
-                        if(leagueNames.includes(event.league_name)) {
-                            this.$store.commit('trade/UPDATE_LEAGUE_MATCH_COUNT', { schedule: event.game_schedule, league: event.league_name })
+                .then(response => {
+                    if(type==='league') {
+                        let league_name = _.uniq(payload.map(event => event.league_name))[0]
+                        let game_schedule = _.uniq(payload.map(event => event.game_schedule))
+                        game_schedule.map(schedule => {
+                            this.$store.dispatch('trade/toggleLeague', { action: 'add', league_name: league_name, sport_id: this.selectedSport, schedule: schedule  })
+                            this.$store.commit('trade/ADD_TO_SELECTED_LEAGUE', { schedule: schedule, league: league_name })
+                        })
+                        payload.map(watchlistEvent => {
+                            this.$store.commit('trade/REMOVE_FROM_WATCHLIST', watchlistEvent.uid)
+                            let leagueNames = this.leagues[watchlistEvent.game_schedule].map(league => league.name)
+                            let leagueMatchCount = this.eventsList.filter(event => watchlistEvent.league_name == event.league_name && watchlistEvent.game_schedule == event.game_schedule && !event.hasOwnProperty('watchlist')).length
+                            if(leagueNames.includes(watchlistEvent.league_name)) {
+                                this.$store.commit('trade/UPDATE_LEAGUE_MATCH_COUNT', { schedule: watchlistEvent.game_schedule, league: watchlistEvent.league_name, match_count: leagueMatchCount  })
+                            } else {
+                                this.$store.commit('trade/ADD_TO_LEAGUES', { schedule: watchlistEvent.game_schedule, league: { name: watchlistEvent.league_name, match_count: leagueMatchCount } })
+                            }
+                        })
+                    } else if(type==='event') {
+                        this.$store.commit('trade/REMOVE_FROM_WATCHLIST', data)
+                        this.$store.dispatch('trade/toggleLeague', { action: 'add', league_name: payload.league_name, sport_id: this.selectedSport, schedule: payload.game_schedule  })
+                        this.$store.commit('trade/ADD_TO_SELECTED_LEAGUE', { schedule: payload.game_schedule, league: payload.league_name })
+                        let leagueNames = this.leagues[payload.game_schedule].map(league => league.name)
+                        if(leagueNames.includes(payload.league_name)) {
+                            let leagueMatchCount = this.leagues[payload.game_schedule].filter(league => league.name == payload.league_name)[0].match_count
+                            this.$store.commit('trade/UPDATE_LEAGUE_MATCH_COUNT', { schedule: payload.game_schedule, league: payload.league_name, match_count: leagueMatchCount + 1 })
                         } else {
-                            this.$store.commit('trade/ADD_TO_LEAGUES', { schedule: event.game_schedule, league: { name: event.league_name, match_count: payload.length } })
+                            let leagueMatchCount = this.eventsList.filter(event => event.league_name == payload.league_name && event.game_schedule == payload.game_schedule && !event.hasOwnProperty('watchlist')).length
+                            this.$store.commit('trade/ADD_TO_LEAGUES', { schedule: payload.game_schedule, league: { name: payload.league_name, match_count: leagueMatchCount } })
                         }
-                    })
-                } else if(type==='event') {
-                    this.$store.commit('trade/REMOVE_FROM_WATCHLIST', data)
-                    if(this.tradePageSettings.sort_event == 1) {
-                        this.$store.commit('trade/REMOVE_EVENT', { schedule: 'watchlist', removedLeague: payload.league_name, removedEvent: data })
-                        this.leaguesLength = this.events.watchlist[payload.league_name].length
-                        this.$store.dispatch('trade/transformEvents', { schedule: payload.game_schedule, league: payload.league_name, payload: payload })
-                    } else if(this.tradePageSettings.sort_event == 2) {
-                        let eventStartTime = `[${payload.ref_schedule.split(' ')[1]}] ${payload.league_name}`
-                        this.$store.commit('trade/REMOVE_EVENT', { schedule: 'watchlist', removedLeague: eventStartTime, removedEvent: data })
-                        this.leaguesLength = this.events.watchlist[eventStartTime].length
-                        this.$store.dispatch('trade/transformEvents', { schedule: payload.game_schedule, league: eventStartTime, payload: payload })
                     }
-                    if(this.leaguesLength == 0) {
-                        this.$store.commit('trade/REMOVE_FROM_EVENTS', { schedule: 'watchlist', removedLeague: payload.league_name })
-                    }
-                    this.$store.dispatch('trade/toggleLeague', { action: 'add', league_name: payload.league_name, sport_id: this.selectedSport, schedule: payload.game_schedule  })
-                    this.$store.commit('trade/ADD_TO_SELECTED_LEAGUE', { schedule: payload.game_schedule, league: payload.league_name })
-                    let leagueNames = this.leagues[payload.game_schedule].map(league => league.name)
-                    if(leagueNames.includes(payload.league_name)) {
-                        this.$store.commit('trade/UPDATE_LEAGUE_MATCH_COUNT', { schedule: payload.game_schedule, league: payload.league_name, watchlist: 'remove' })
-                    } else {
-                        this.$store.commit('trade/ADD_TO_LEAGUES', { schedule: payload.game_schedule, league: { name: payload.league_name, match_count: 1 } })
-                    }
-                    let eventsListCheckUID = this.eventsList.findIndex(event => event.uid === payload.uid)
-                    if(eventsListCheckUID === -1) {
-                        this.$store.commit('trade/SET_EVENTS_LIST', payload)
-                    }
-                }
-            })
-            .catch(err => {
-                this.$store.dispatch('auth/checkIfTokenIsValid', err.response.data.status_code)
-            })
+                })
+                .catch(err => {
+                    this.$store.dispatch('auth/checkIfTokenIsValid', err.response.data.status_code)
+                })
         }
     },
     directives: {
@@ -347,141 +302,141 @@ export default {
 </script>
 
 <style>
-    .otherMarketsBtn {
-        bottom: 5px;
-        right: 15px;
-    }
+.otherMarketsBtn {
+    bottom: 5px;
+    right: 15px;
+}
 
-    .europeanOtherMarketsBtn {
-        right: -16px;
-        bottom: -25px;
-    }
+.europeanOtherMarketsBtn {
+    right: -16px;
+    bottom: -25px;
+}
 
-    .gameSchedPanel {
-        border-bottom: solid #ffe8cc 1px;
-    }
+.gameSchedPanel {
+    border-bottom: solid #ffe8cc 1px;
+}
 
-    .noeventspanel {
-        height:34px;
-    }
+.noeventspanel {
+    height:34px;
+}
 
-    .gameColumn {
-        width: 90px;
-    }
+.gameColumn {
+    width: 90px;
+}
 
-    .teamColumn {
-        width:140px;
-    }
+.teamColumn {
+    width:140px;
+}
 
-    .leaguePanel {
-        background-color: #ffe8cc;
-    }
+.leaguePanel {
+    background-color: #ffe8cc;
+}
 
-    .alternateEvent {
-        background-color: #f1f1f1;
-    }
+.alternateEvent {
+    background-color: #f1f1f1;
+}
 
-    .fa-star {
-        filter:drop-shadow(0px 0px 1px #000000);
-        z-index:1;
-    }
+.fa-star {
+    filter:drop-shadow(0px 0px 1px #000000);
+    z-index:1;
+}
 
-    .fa-star:hover {
-        color: #fff200;
-    }
+.fa-star:hover {
+    color: #fff200;
+}
 
-    .in-watchlist-star {
-        color: #fff200;
-    }
+.in-watchlist-star {
+    color: #fff200;
+}
 
-    .eventStar {
-        right: 15px;
-    }
+.eventStar {
+    right: 15px;
+}
 
-    .european-event-star {
-        right:-17px;
-    }
+.european-event-star {
+    right:-17px;
+}
 
-    .game:not(:last-child) {
-        border-bottom: solid #edf2f7 1px;
-    }
+.game:not(:last-child) {
+    border-bottom: solid #edf2f7 1px;
+}
 
-    .bet-click:hover {
-        color: #ffffff;
-        cursor: pointer;
-        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-    }
+.bet-click:hover {
+    color: #ffffff;
+    cursor: pointer;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
 
-    .hg:hover, .provider.hg {
-        background-color: #8B0000;
-    }
+.hg:hover, .provider.hg {
+    background-color: #8B0000;
+}
 
-    .pin:hover, .provider.pin {
-        background-color: #ed8936;
-    }
+.pin:hover, .provider.pin {
+    background-color: #ed8936;
+}
 
-    .provider {
-        color: #ffffff;
-        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-    }
+.provider {
+    color: #ffffff;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
 
-    .odds-label {
-        width: 50px;
-    }
+.odds-label {
+    width: 50px;
+}
 
-        .european-left-label {
-            right: 35px;
-            width: 30px !important;
-        }
+.european-left-label {
+    right: 35px;
+    width: 30px !important;
+}
 
-        .left-label {
-            left: -52px;
-            text-align: right;
-        }
+.left-label {
+    left: -52px;
+    text-align: right;
+}
 
-        .empty-left-label {
-            left: -63px;
-            text-align: right;
-        }
+.empty-left-label {
+    left: -63px;
+    text-align: right;
+}
 
-        .right-label {
-            right: -52px;
-            text-align: left;
-        }
+.right-label {
+    right: -52px;
+    text-align: left;
+}
 
-    .bet-click.ping-danger {
-        animation-name: ping-danger;
-        animation-duration: 2s;
-        animation-iteration-count: 1;
-    }
+.bet-click.ping-danger {
+    animation-name: ping-danger;
+    animation-duration: 2s;
+    animation-iteration-count: 1;
+}
 
-    .bet-click.ping-success {
-        animation-name: ping-success;
-        animation-duration: 2s;
-        animation-iteration-count: 1;
-    }
+.bet-click.ping-success {
+    animation-name: ping-success;
+    animation-duration: 2s;
+    animation-iteration-count: 1;
+}
 
-    @keyframes ping-danger{
-        from {
-            color:#ffffff;
-            background-color: #d9534f;
-            font-weight: 700;
-        } to {
-            color: rgba(74, 85, 104, 1);
-            background-color: none;
-            font-weight: 400;
-        }
-    }
+@keyframes ping-danger{
+    from {
+        color:#ffffff;
+        background-color: #d9534f;
+        font-weight: 700;
+    } to {
+          color: rgba(74, 85, 104, 1);
+          background-color: none;
+          font-weight: 400;
+      }
+}
 
-    @keyframes ping-success{
-        from {
-            color:#ffffff;
-            background-color: #5cb85c;
-            font-weight: 700;
-        } to {
-            color: rgba(74, 85, 104, 1);
-            background-color:none;
-            font-weight: 400;
-        }
-    }
+@keyframes ping-success{
+    from {
+        color:#ffffff;
+        background-color: #5cb85c;
+        font-weight: 700;
+    } to {
+          color: rgba(74, 85, 104, 1);
+          background-color:none;
+          font-weight: 400;
+      }
+}
 </style>

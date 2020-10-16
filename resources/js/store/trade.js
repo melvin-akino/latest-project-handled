@@ -22,16 +22,7 @@ const state = {
     oddsTypeBySport: [],
     columnsToDisplay: [],
     checkedColumns: [],
-    allEventsList: [],
     eventsList: [],
-    events: {
-        watchlist: {},
-        inplay: {},
-        today: {},
-        early: {}
-    },
-    watchlist: [],
-    previouslySelectedEvents: [],
     openedBetSlips: [],
     bookies: [],
     bets: [],
@@ -63,6 +54,54 @@ const getters = {
             })
             return leagueNames
         }
+    },
+    events: (state) => {
+        let schedule = _.uniq(state.eventsList.map(event => event.game_schedule))
+        let leagues = _.uniq(state.eventsList.map(event => event.league_name))
+        let eventStartTime = _.uniq(state.eventsList.map(event => `[${event.ref_schedule.split(' ')[1]}] ${event.league_name}`))
+        let eventObject = {
+            watchlist: {},
+            inplay: {},
+            today: {},
+            early: {}
+        }
+        schedule.map(schedule => {
+            if(state.tradePageSettings.sort_event == 1) {
+                leagues.map(league => {
+                    state.eventsList.map(event => {
+                        if(schedule == event.game_schedule && league == event.league_name) {
+                            let eventSchedule = event.hasOwnProperty('watchlist') ? 'watchlist' : schedule
+                            if(typeof(eventObject[eventSchedule]) == "undefined") {
+                                eventObject[eventSchedule] = {}
+                            }
+                            if(typeof(eventObject[eventSchedule][league]) == "undefined") {
+                                eventObject[eventSchedule][league] = []
+                            }
+                            eventObject[eventSchedule][league].push(event)
+                            eventObject[eventSchedule] = sortByObjectKeys(eventObject[eventSchedule], 'ref_schedule', 'uid')
+                        }
+                    })
+                })
+            } else {
+                eventStartTime.map(startTime => {
+                    state.eventsList.map(event => {
+                        let eventSchedLeague = `[${event.ref_schedule.split(' ')[1]}] ${event.league_name}`
+                        if(schedule == event.game_schedule && startTime == eventSchedLeague) {
+                            let eventSchedule = event.hasOwnProperty('watchlist') ? 'watchlist' : schedule
+                            if(typeof(eventObject[eventSchedule]) == "undefined") {
+                                eventObject[eventSchedule] = {}
+                            }
+                            if(typeof(eventObject[eventSchedule][startTime]) == "undefined") {
+                                eventObject[eventSchedule][startTime] = []
+                            }
+                            eventObject[eventSchedule][startTime].push(event)
+                            eventObject[eventSchedule] = sortByObjectKeys(eventObject[eventSchedule], 'ref_schedule', 'uid')
+                        }
+                    })
+                })
+            }
+        })
+        return eventObject
     }
 }
 
@@ -92,17 +131,11 @@ const mutations = {
     UPDATE_LEAGUE_MATCH_COUNT: (state, data) => {
         state.leagues[data.schedule].map(league => {
             if(league.name == data.league) {
-                let events = state.eventsList.filter(event => event.game_schedule == data.schedule && event.league_name == data.league)
-                if(events.length > 0) {
-                    if(data.watchlist == 'add') {
-                        Vue.set(league, 'match_count', events.length - 1)
-                    } else if(data.watchlist == 'remove') {
-                        Vue.set(league, 'match_count', events.length + 1)
-                    } else {
-                        Vue.set(league, 'match_count', events.length)
-                    }
+                if(data.hasOwnProperty('match_count')) {
+                    Vue.set(league, 'match_count', data.match_count)
                 } else {
-                    Vue.set(league, 'match_count', data.eventsRemaining)
+                    let match_count = state.eventsList.filter(event => event.league_name == data.league && event.game_schedule == data.schedule && !event.hasOwnProperty('watchlist')).length
+                    Vue.set(league, 'match_count', match_count)
                 }
             }
         })
@@ -130,11 +163,9 @@ const mutations = {
         state.selectedLeagues[data.schedule] = state.selectedLeagues[data.schedule].filter(league => league != data.league)
     },
     REMOVE_SELECTED_LEAGUE_BY_NAME: (state, removedLeague) => {
-        let schedule = ['inplay', 'today', 'early']
-        schedule.map(schedule => {
+        Object.keys(state.selectedLeagues).map(schedule => {
             state.selectedLeagues[schedule] = state.selectedLeagues[schedule].filter(league => league != removedLeague)
         })
-
     },
     CLEAR_SELECTED_LEAGUES: (state, data) => {
         let schedule = ['inplay', 'today', 'early']
@@ -158,102 +189,33 @@ const mutations = {
         }
         state.eventsList.push(event)
     },
-    SET_ALL_EVENTS_LIST: (state, event) => {
-        let allEventsListUID = state.allEventsList.map(event => event.uid)
-        if(allEventsListUID.includes(event.uid)) {
-            state.allEventsList = state.allEventsList.filter(eventsList => eventsList.uid != event.uid)
-        }
-        state.allEventsList.push(event)
-    },
-    SET_PREVIOUSLY_SELECTED_EVENTS: (state, event) => {
-        state.previouslySelectedEvents.push(event)
-    },
     REMOVE_FROM_EVENT_LIST: (state, data) => {
-        state.eventsList = state.eventsList.filter(event => {
-            let _string = `${ data.data }_${ data.game_schedule }`
-            let _dataString = `${ event[data.type] }_${ event.game_schedule }`;
-            return _string != _dataString
-        })
-    },
-    REMOVE_FROM_ALL_EVENT_LIST: (state, data) => {
-        state.allEventsList = state.allEventsList.filter(event => {
-            let _string = `${ data.data }_${ data.game_schedule }`
-            let _dataString = `${ event[data.type] }_${ event.game_schedule }`;
-            return _string != _dataString
-        })
-    },
-    REMOVE_FROM_PREVIOUSLY_SELECTED_EVENT_LIST: (state, data) => {
-        state.previouslySelectedEvents = state.previouslySelectedEvents.filter(uid => uid != data)
-    },
-    CLEAR_EVENTS: (state) => {
-        Object.keys(state.events).map(key => {
-            state.events[key] = {}
-        })
-    },
-    CLEAR_EVENTS_LIST: (state, event) => {
-        state.eventsList = []
-    },
-    CLEAR_ALL_EVENTS_LIST: (state, event) => {
-        state.allEventsList = []
-    },
-    SET_EVENTS: (state, data) => {
-        Vue.set(state.events, data.schedule, data.events)
-    },
-    ADD_TO_EVENTS: (state, data) => {
-        if(typeof(state.events[data.schedule][data.league]) == "undefined") {
-            state.events[data.schedule][data.league] = []
-        }
-
-        let eventUIDs =  state.events[data.schedule][data.league].map(event => event.uid)
-        if(eventUIDs.includes(data.event.uid)) {
-            state.events[data.schedule][data.league] = state.events[data.schedule][data.league].filter(event => data.event.uid != event.uid)
-        }
-
-        state.events[data.schedule][data.league].push(data.event)
-        state.events[data.schedule][data.league] = sortByObjectProperty(state.events[data.schedule][data.league], 'ref_schedule', 'uid')
-    },
-    REMOVE_FROM_EVENTS: (state, data) => {
-        if(state.tradePageSettings.sort_event == 1) {
-            Vue.delete(state.events[data.schedule], data.removedLeague)
-        } else if(state.tradePageSettings.sort_event == 2) {
-            state.allEventsList.map(event => {
-                if(event.league_name == data.removedLeague) {
-                    let eventSchedLeague = `[${event.ref_schedule.split(' ')[1]}] ${event.league_name}`
-                    Vue.delete(state.events[data.schedule], eventSchedLeague)
+        state.eventsList.map(event => {
+            if(event.league_name == data.league_name && event.game_schedule == data.game_schedule && !event.hasOwnProperty('watchlist')) {
+                if(data.hasOwnProperty('uid')) {
+                    state.eventsList = state.eventsList.filter(filteredEvent => filteredEvent.uid != data.uid)
+                } else {
+                    state.eventsList = state.eventsList.filter(filteredEvent => filteredEvent.uid != event.uid)
                 }
-            })
-        }
-    },
-    REMOVE_FROM_EVENTS_BY_LEAGUE: (state, removedLeague) => {
-        let schedule = ['inplay', 'today', 'early']
-        schedule.map(schedule => {
-            if(state.tradePageSettings.sort_event == 1) {
-                Vue.delete(state.events[schedule], removedLeague)
-            } else if(state.tradePageSettings.sort_event == 2) {
-                state.allEventsList.map(event => {
-                    if(event.league_name == removedLeague) {
-                        let eventSchedLeague = `[${event.ref_schedule.split(' ')[1]}] ${event.league_name}`
-                        Vue.delete(state.events[schedule], eventSchedLeague)
-                    }
-                })
             }
         })
     },
-    REMOVE_EVENT: (state, data) => {
-        state.events[data.schedule][data.removedLeague] = state.events[data.schedule][data.removedLeague].filter(event => event.uid != data.removedEvent)
-    },
-    SET_WATCHLIST: (state, watchlist) => {
-        Vue.set(state.events, 'watchlist', watchlist)
-    },
-    SET_WATCHLIST_EVENTS: (state, event) => {
-        let watchlistEventsUID = state.watchlist.map(event => event.uid)
-        if(watchlistEventsUID.includes(event.uid)) {
-            state.watchlist = state.watchlist.filter(watchlistEvent => watchlistEvent.uid != event.uid)
+    REMOVE_ALL_FROM_EVENT_LIST: (state, data) => {
+        if(data.hasOwnProperty('uid')) {
+            state.eventsList = state.eventsList.filter(event => event.uid != data.uid)
+        } else {
+            state.eventsList = state.eventsList.filter(event => event.league_name != data.league_name && event.game_schedule != data.game_schedule)
         }
-        state.watchlist.push(event)
+    },
+    CLEAR_EVENTS_LIST: (state) => {
+        state.eventsList = []
     },
     REMOVE_FROM_WATCHLIST: (state, uid) => {
-        state.watchlist = state.watchlist.filter(watchlistEvent => watchlistEvent.uid != uid)
+        state.eventsList.map(event => {
+            if(event.uid == uid) {
+                Vue.delete(event, 'watchlist')
+            }
+        })
     },
     OPEN_BETSLIP: (state, data) => {
         let openedBetSlips = state.openedBetSlips.map(betSlips => betSlips.market_id)
@@ -359,24 +321,20 @@ const actions = {
             .then(response => {
                 if(response.data.sport_id == state.selectedSport) {
                     if(updatedLeagues) {
-                        Object.keys(state.events).map(schedule => {
-                            Object.keys(state.events[schedule]).map(league => {
-                                state.events[schedule][league].map(event => {
-                                    if(schedule == 'watchlist') {
-                                        if(event.market_odds.hasOwnProperty('other')) {
-                                            Vue.prototype.$socket.send(`getWatchlist_${event.uid}_withOtherMarket`)
-                                        } else {
-                                            Vue.prototype.$socket.send(`getWatchlist_${event.uid}`)
-                                        }
-                                    } else {
-                                        if(event.market_odds.hasOwnProperty('other')) {
-                                            Vue.prototype.$socket.send(`getEvents_${event.league_name}_${event.game_schedule}_${event.uid}_withOtherMarket`)
-                                        } else {
-                                            Vue.prototype.$socket.send(`getEvents_${event.league_name}_${event.game_schedule}_${event.uid}`)
-                                        }
-                                    }
-                                })
-                            })
+                        state.eventsList.map(event => {
+                            if(event.hasOwnProperty('watchlist')) {
+                                if(event.market_odds.hasOwnProperty('other')) {
+                                    Vue.prototype.$socket.send(`getWatchlist_${event.uid}_withOtherMarket`)
+                                } else {
+                                    Vue.prototype.$socket.send(`getWatchlist_${event.uid}`)
+                                }
+                            } else {
+                                if(event.market_odds.hasOwnProperty('other')) {
+                                    Vue.prototype.$socket.send(`getEvents_${event.league_name}_${event.game_schedule}_${event.uid}_withOtherMarket`)
+                                } else {
+                                    Vue.prototype.$socket.send(`getEvents_${event.league_name}_${event.game_schedule}_${event.uid}`)
+                                }
+                            }
                         })
                     }
                     Object.keys(state.leagues).map(schedule => {
@@ -401,38 +359,17 @@ const actions = {
     getInitialEvents({commit, dispatch, state}) {
         axios.get('v1/trade/events', { headers: { 'Authorization': `Bearer ${token}` }})
             .then(response => {
-                let schedule = ['inplay', 'today', 'early']
-                schedule.map(schedule => {
-                    if(response.data.data.user_selected.hasOwnProperty(schedule)) {
-                        let sortedUserSelected = {}
-                        Object.keys(response.data.data.user_selected[schedule]).sort().map(league => {
-                            if(typeof(sortedUserSelected[schedule]) == "undefined") {
-                                sortedUserSelected[schedule] = {}
-                            }
-                            sortedUserSelected[schedule][league] = response.data.data.user_selected[schedule][league]
-                            sortedUserSelected[schedule][league] = sortByObjectProperty(sortedUserSelected[schedule][league], 'ref_schedule', 'uid')
-                            sortedUserSelected[schedule][league].map(event => {
-                                if(event.sport_id == state.selectedSport) {
-                                    commit('SET_EVENTS', { schedule: schedule, events: sortedUserSelected[schedule]})
-                                    commit('SET_EVENTS_LIST', event)
-                                    commit('SET_ALL_EVENTS_LIST', event)
-                                }
-                            })
+                Object.keys(response.data.data.user_selected).map(schedule => {
+                    Object.keys(response.data.data.user_selected[schedule]).map(league => {
+                        response.data.data.user_selected[schedule][league].map(event => {
+                            commit('SET_EVENTS_LIST', event)
                         })
-                    }
+                    })
                 })
-
-                let sortedUserWatchlist = {}
-                Object.keys(response.data.data.user_watchlist).sort().map(league => {
-                    if(typeof(sortedUserWatchlist[league]) == "undefined") {
-                        sortedUserWatchlist[league] = {}
-                    }
-                    sortedUserWatchlist[league] = response.data.data.user_watchlist[league]
-                    sortedUserWatchlist[league] = sortByObjectProperty(sortedUserWatchlist[league], 'ref_schedule', 'uid')
-                    sortedUserWatchlist[league].map(event => {
-                        commit('SET_WATCHLIST', sortedUserWatchlist)
-                        commit('SET_WATCHLIST_EVENTS', event)
-                        commit('SET_ALL_EVENTS_LIST', event)
+                Object.keys(response.data.data.user_watchlist).map(league => {
+                    response.data.data.user_watchlist[league].map(event => {
+                        Vue.set(event, 'watchlist', true)
+                        commit('SET_EVENTS_LIST', event)
                     })
                 })
                 commit('SET_IS_LOADING_EVENTS', false)
@@ -519,61 +456,24 @@ const actions = {
     },
     async addToWatchlist({dispatch, state, commit}, data) {
         try {
-
             await axios.post('v1/trade/watchlist/add', { type: data.type, data: data.data }, { headers: { 'Authorization': `Bearer ${token}` }})
             Vue.prototype.$socket.send('getWatchlist')
             if(data.type=='league') {
                 await dispatch('toggleLeagueByName', { action: 'remove', league_name: data.data, sport_id: state.selectedSport })
-                commit('REMOVE_FROM_LEAGUE_BY_NAME', { league: data.data })
                 commit('REMOVE_SELECTED_LEAGUE_BY_NAME', data.data)
-                commit('REMOVE_FROM_EVENTS_BY_LEAGUE', data.data)
-                commit('REMOVE_FROM_EVENT_LIST', { type: 'league_name', data: data.data, game_schedule: data.game_schedule })
+                commit('REMOVE_FROM_LEAGUE_BY_NAME', { league: data.data })
             } else if(data.type=='event') {
-                if(!_.isEmpty(data.payload)) {
-                    let leaguesLength = 0
-                    if(state.tradePageSettings.sort_event == 1) {
-                        commit('REMOVE_EVENT', { schedule: data.payload.game_schedule, removedLeague: data.payload.league_name, removedEvent: data.payload.uid})
-                        leaguesLength = state.events[data.payload.game_schedule][data.payload.league_name].length
-                    } else if(state.tradePageSettings.sort_event == 2) {
-                        let eventStartTime = `[${data.payload.ref_schedule.split(' ')[1]}] ${data.payload.league_name}`
-                        commit('REMOVE_EVENT', { schedule: data.payload.game_schedule, removedLeague: eventStartTime, removedEvent: data.payload.uid})
-                        leaguesLength = state.events[data.payload.game_schedule][eventStartTime].length
-                    }
-
-                    if(leaguesLength == 0) {
-                        await dispatch('toggleLeague', { action: 'remove', league_name: data.payload.league_name,  schedule: data.payload.game_schedule, sport_id: state.selectedSport })
-                        commit('REMOVE_SELECTED_LEAGUE', {schedule: data.payload.game_schedule, league: data.payload.league_name })
-                        commit('REMOVE_FROM_LEAGUE', {schedule: data.payload.game_schedule, league: data.payload.league_name })
-                        commit('REMOVE_FROM_EVENTS', { schedule: data.payload.game_schedule, removedLeague: data.payload.league_name })
-                    } else {
-                        commit('UPDATE_LEAGUE_MATCH_COUNT', { schedule: data.payload.game_schedule, league: data.payload.league_name, eventsRemaining: leaguesLength, watchlist: 'add' })
-                    }
-                    commit('REMOVE_FROM_EVENT_LIST', { type: 'uid', data: data.payload.uid, game_schedule: data.payload.game_schedule })
+                let leagueMatchCount = state.eventsList.filter(event => event.league_name == data.payload.league_name && event.game_schedule == data.payload.game_schedule && !event.hasOwnProperty('watchlist')).length
+                if(leagueMatchCount == 1) {
+                    await dispatch('toggleLeague', { action: 'remove', league_name: data.payload.league_name,  schedule: data.payload.game_schedule, sport_id: state.selectedSport })
+                    commit('REMOVE_SELECTED_LEAGUE', {schedule: data.payload.game_schedule, league: data.payload.league_name })
+                    commit('REMOVE_FROM_LEAGUE', {schedule: data.payload.game_schedule, league: data.payload.league_name })
+                } else {
+                    commit('UPDATE_LEAGUE_MATCH_COUNT', { schedule: data.payload.game_schedule, league: data.payload.league_name, match_count: leagueMatchCount - 1 })
                 }
             }
         } catch(err) {
             dispatch('auth/checkIfTokenIsValid', err.response.data.status_code, { root: true })
-        }
-    },
-    transformEvents({commit, state}, data) {
-        if(data.league in state.events[data.schedule]) {
-            Object.keys(state.events[data.schedule]).map(league => {
-                let checkEventUID = state.events[data.schedule][league].findIndex(event => event.uid === data.payload.uid)
-                if(data.league == league && checkEventUID === -1) {
-                    state.events[data.schedule][league].push(data.payload)
-                    let sortedEventObject = {}
-                    let sortedEvents = sortByObjectKeys(state.events[data.schedule], sortedEventObject[data.schedule], 'ref_schedule', 'uid')
-                    commit('SET_EVENTS', { schedule: data.schedule, events: sortedEvents })
-                }
-            })
-        } else {
-            if(typeof(state.events[data.schedule][data.league]) == "undefined") {
-                state.events[data.schedule][data.league] = []
-            }
-            state.events[data.schedule][data.league].push(data.payload)
-            let sortedEventObject = {}
-            let sortedEvents = sortByObjectKeys(state.events[data.schedule], sortedEventObject[data.schedule], 'ref_schedule', 'uid')
-            commit('SET_EVENTS', { schedule: data.schedule, events: sortedEvents })
         }
     },
     getOrderLogs({dispatch}, event_id) {
@@ -590,58 +490,48 @@ const actions = {
     },
     removeEventsOnUpdateOfLeagues({state, getters, commit}) {
         Object.keys(getters.leagueNames).map(schedule => {
-            state.allEventsList.map(event => {
-                if(!getters.leagueNames[schedule].includes(event.league_name) && schedule == event.game_schedule) {
-                    commit('REMOVE_FROM_ALL_EVENT_LIST', { type: 'league_name', data: event.league_name, game_schedule: schedule })
-                    commit('REMOVE_FROM_EVENTS', { schedule: schedule, removedLeague: event.league_name })
-                }
-            })
             state.eventsList.map(event => {
-                if(!getters.leagueNames[schedule].includes(event.league_name) && schedule == event.game_schedule) {
-                    commit('REMOVE_FROM_EVENT_LIST', { type: 'league_name', data: event.league_name, game_schedule: schedule })
+                if(!getters.leagueNames[schedule].includes(event.league_name) && schedule == event.game_schedule && !event.hasOwnProperty('watchlist')) {
+                    commit('REMOVE_FROM_EVENT_LIST', { league_name: event.league_name, game_schedule: schedule })
                 }
             })
         })
     },
     updateOdds({state}, data) {
         let team = ['HOME', 'AWAY', 'DRAW']
-        Object.keys(state.events).map(schedule => {
-            Object.keys(state.events[schedule]).map(league => {
-                state.events[schedule][league].map(event => {
+        state.eventsList.map(event => {
+            state.oddsTypeBySport.map(oddType => {
+                team.map(team => {
+                    if(oddType in event.market_odds.main && team in event.market_odds.main[oddType]) {
+                        if(event.market_odds.main[oddType][team].market_id === data.market_id) {
+                            if(event.market_odds.main[oddType][team].odds != data.odds) {
+                                Vue.set(event.market_odds.main[oddType][team], 'odds', data.odds)
+                            }
+                            if(event.market_odds.main[oddType][team].hasOwnProperty('points') && event.market_odds.main[oddType][team].points != data.points && data.hasOwnProperty('points')) {
+                                Vue.set(event.market_odds.main[oddType][team], 'points', data.points)
+                            }
+                        }
+                    }
+                })
+            })
+            if('other' in event.market_odds) {
+                Object.keys(event.market_odds.other).map(otherMarket => {
                     state.oddsTypeBySport.map(oddType => {
                         team.map(team => {
-                            if(oddType in event.market_odds.main && team in event.market_odds.main[oddType]) {
-                                if(event.market_odds.main[oddType][team].market_id === data.market_id) {
-                                    if(event.market_odds.main[oddType][team].odds != data.odds) {
-                                        Vue.set(event.market_odds.main[oddType][team], 'odds', data.odds)
+                            if(oddType in event.market_odds.other[otherMarket] && team in event.market_odds.other[otherMarket][oddType]) {
+                                if(event.market_odds.other[otherMarket][oddType][team].market_id === data.market_id) {
+                                    if(event.market_odds.other[otherMarket][oddType][team].odds != data.odds) {
+                                        Vue.set(event.market_odds.other[otherMarket][oddType][team], 'odds', data.odds)
                                     }
-                                    if(event.market_odds.main[oddType][team].hasOwnProperty('points') && event.market_odds.main[oddType][team].points != data.points && data.hasOwnProperty('points')) {
-                                        Vue.set(event.market_odds.main[oddType][team], 'points', data.points)
+                                    if(event.market_odds.other[otherMarket][oddType][team].hasOwnProperty('points') && event.market_odds.other[otherMarket][oddType][team].points != data.points && data.hasOwnProperty('points')) {
+                                        Vue.set(event.market_odds.other[otherMarket][oddType][team], 'points', data.points)
                                     }
                                 }
                             }
                         })
                     })
-                    if('other' in event.market_odds) {
-                        Object.keys(event.market_odds.other).map(otherMarket => {
-                            state.oddsTypeBySport.map(oddType => {
-                                team.map(team => {
-                                    if(oddType in event.market_odds.other[otherMarket] && team in event.market_odds.other[otherMarket][oddType]) {
-                                        if(event.market_odds.other[otherMarket][oddType][team].market_id === data.market_id) {
-                                            if(event.market_odds.other[otherMarket][oddType][team].odds != data.odds) {
-                                                Vue.set(event.market_odds.other[otherMarket][oddType][team], 'odds', data.odds)
-                                            }
-                                            if(event.market_odds.other[otherMarket][oddType][team].hasOwnProperty('points') && event.market_odds.other[otherMarket][oddType][team].points != data.points && data.hasOwnProperty('points')) {
-                                                Vue.set(event.market_odds.other[otherMarket][oddType][team], 'points', data.points)
-                                            }
-                                        }
-                                    }
-                                })
-                            })
-                        })
-                    }
                 })
-            })
+            }
         })
     }
 }
