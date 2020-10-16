@@ -46,8 +46,11 @@ class MasterLeague extends Model
             ->leftJoin('sports as s', 's.id', 'ml.sport_id')
             ->leftJoin('master_events as me', 'ml.id', 'me.master_league_id')
             ->join('events as e', 'me.id', 'e.master_event_id')
-            ->leftJoin('master_event_markets as mem', 'me.id', 'mem.master_event_id')
-            ->join('event_markets AS em', function ($join) {
+            ->leftJoin('master_event_markets as mem', function($join) {
+                $join->on('me.id', 'mem.master_event_id');
+                $join->where('mem.is_main', true);
+            })
+            ->leftJoin('event_markets AS em', function ($join) use ($userProviderIds) {
                 $join->on('mem.id', 'em.master_event_market_id');
                 $join->on('e.id', 'em.event_id');
             })
@@ -60,9 +63,7 @@ class MasterLeague extends Model
             ->when($gameSchedule, function($query, $gameSchedule) {
                 return $query->where('me.game_schedule', $gameSchedule);
             })
-            ->whereIn('e.provider_id', $userProviderIds)
-            ->whereIn('em.provider_id', $userProviderIds)
-            ->where('mem.is_main', true)
+//            ->where('mem.is_main', true)
             ->whereNotIn('me.id', function($query) use ($userId) {
                 $query->select('master_event_id')->from('user_watchlist')->where('user_id', $userId);
             })
