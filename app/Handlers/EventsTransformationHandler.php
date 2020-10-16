@@ -164,10 +164,6 @@ class EventsTransformationHandler
                 }
 
                 $activeEventsTable->set($activeEventsSwtId, ['events' => json_encode($activeEvents)]);
-
-                if (!empty($data)) {
-                    SwooleHandler::setValue('updateLeaguesTable', 'updateLeagues', ['value' => 1]);
-                }
                 Log::info("For Removal Event - Processed");
             }
 

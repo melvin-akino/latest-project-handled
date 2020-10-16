@@ -70,7 +70,8 @@ class LeaguesTransformationHandler
                 $sportId = $sports['id'];
             }
 
-            $unusedMasterLeagues = MasterLeague::whereNotIn('name', (array) $this->message->data->leagues)->pluck('name')->toArray();
+            $leagues = (array) $this->message->data->leagues;
+            $unusedMasterLeagues = MasterLeague::whereNotIn('name', $leagues)->pluck('name')->toArray();
             UserSelectedLeague::removeByMasterLeagueNamesAndSchedule($unusedMasterLeagues, $this->message->data->schedule);
             foreach (SwooleHandler::table('userSelectedLeaguesTable') as $key => $userSelectedLeague) {
                 if (in_array($userSelectedLeague['league_name'], $unusedMasterLeagues) &&
@@ -79,6 +80,14 @@ class LeaguesTransformationHandler
                     SwooleHandler::remove('userSelectedLeaguesTable', $key);
                 }
             }
+
+            if (!SwooleHandler::exists('updateLeaguesTable', 'leagueCount:' . $this->message->data->schedule) ||
+                SwooleHandler::getValue('updateLeaguesTable', 'leagueCount:' . $this->message->data->schedule)['value'] != count($leagues)
+            ) {
+                SwooleHandler::setValue('updateLeaguesTable', 'leagueCount:' . $this->message->data->schedule, ['value' => count($leagues)]);
+                SwooleHandler::setValue('updateLeaguesTable', 'updateLeagues', ['value' => 1]);
+            }
+
 
             foreach (SwooleHandler::table('wsTable') as $key => $row) {
                 if (strpos($key, 'uid:') === 0 && $swoole->isEstablished($row['value'])) {

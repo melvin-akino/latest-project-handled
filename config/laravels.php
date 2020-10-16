@@ -151,7 +151,7 @@ return [
             ],
         ],
         'updateLeagues'            => [ // key format [updateLeagues] = [value = true]
-            'size'   => 1,// The max size
+            'size'   => 4,// The max size
             'column' => [// Define the columns
                  ['name' => 'value', 'type' => \Swoole\Table::TYPE_INT]
             ],

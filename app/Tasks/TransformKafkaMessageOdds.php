@@ -414,10 +414,6 @@ class TransformKafkaMessageOdds extends Task
                 $updateLeagues = true;
             }
 
-            if ($updateLeagues) {
-                SwooleHandler::setValue('updateLeaguesTable', 'updateLeagues', ['value' => 1]);
-            }
-
             $endTime = microtime(TRUE);
             $timeConsumption   = $endTime - $startTime;
 
