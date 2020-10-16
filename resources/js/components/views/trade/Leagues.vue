@@ -49,11 +49,32 @@ export default {
                     this.$store.dispatch('trade/getInitialLeagues', true)
                 } else if (getSocketKey(response.data) === 'getSelectedLeagues') {
                     if(getSocketValue(response.data, 'getSelectedLeagues') != '') {
-                        let selectedLeagues = getSocketValue(response.data, 'getSelectedLeagues')
-                        this.leagueSchedModes.map(sched => {
-                            if(sched in selectedLeagues) {
-                                selectedLeagues[sched].map(selectedLeague => {
-                                    this.$store.commit('trade/ADD_TO_SELECTED_LEAGUE', { schedule: sched, league: selectedLeague })
+                        let getSelectedLeagues = getSocketValue(response.data, 'getSelectedLeagues')
+                        Object.keys(getSelectedLeagues).map(schedule => {
+                            let selectedLeagues = this.selectedLeagues[schedule]
+                            let newSelectedLeagues = getSelectedLeagues[schedule]
+                            newSelectedLeagues.map(league => {
+                                if(!selectedLeagues.includes(league)) {
+                                    this.$store.commit('trade/ADD_TO_SELECTED_LEAGUE', { schedule: schedule, league: league })
+                                }
+                            })
+                        })
+                        Object.keys(this.selectedLeagues).map(schedule => {
+                            let selectedLeagues = this.selectedLeagues[schedule]
+                            if(getSelectedLeagues.hasOwnProperty(schedule)) {
+                                let newSelectedLeagues = getSelectedLeagues[schedule]
+                                selectedLeagues.map(league => {
+                                    if(!newSelectedLeagues.includes(league)) {
+                                        this.$store.commit('trade/REMOVE_SELECTED_LEAGUE', { schedule: schedule, league: league })
+                                        this.$store.dispatch('trade/toggleLeague', { action: 'remove', league_name: league, sport_id: this.selectedSport, schedule: schedule  })
+                                        this.$store.commit('trade/REMOVE_FROM_EVENT_LIST', { league_name: league, game_schedule: schedule })
+                                    }
+                                })
+                            } else {
+                                selectedLeagues.map(league => {
+                                    this.$store.commit('trade/REMOVE_SELECTED_LEAGUE', { schedule: schedule, league: league })
+                                    this.$store.dispatch('trade/toggleLeague', { action: 'remove', league_name: league, sport_id: this.selectedSport, schedule: schedule  })
+                                    this.$store.commit('trade/REMOVE_FROM_EVENT_LIST', { league_name: league, game_schedule: schedule })
                                 })
                             }
                         })
