@@ -39,7 +39,7 @@ class TransactionsController extends Controller
 
                 if (!empty($data)) {
                     preg_match_all('!\d+!', $data['bet_id'], $id);
-                    $requestId = Str::uuid();
+                    $requestId = (string) Str::uuid();
                     //Generate kafka json payload here
                     $payload = [
                         'request_id'    => $requestId,
