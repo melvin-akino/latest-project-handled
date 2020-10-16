@@ -3,6 +3,7 @@
 namespace App\Handlers;
 
 use App\Facades\SwooleHandler;
+use App\Jobs\WsSelectedLeagues;
 use App\Models\{MasterLeague, SystemConfiguration, UserSelectedLeague};
 use Exception;
 use Illuminate\Support\Facades\{Log, DB, Redis};
@@ -26,6 +27,8 @@ class LeaguesTransformationHandler
     {
         try {
             $startTime = microtime(TRUE);
+
+            $swoole = $this->swoole;
 
             if (env('APP_ENV') != "local") {
                 if (!Redis::exists('type:events:requestUID:' . $this->message->request_uid)) {
@@ -62,6 +65,9 @@ class LeaguesTransformationHandler
             if (!SwooleHandler::exists('sportsTable', $sportSwtId)) {
                 Log::info("Leagues Transformation ignored - Sport doesn't exist");
                 return;
+            } else {
+                $sports = SwooleHandler::getValue('sportsTable', $sportSwtId);
+                $sportId = $sports['id'];
             }
 
             $unusedMasterLeagues = MasterLeague::whereNotIn('name', (array) $this->message->data->leagues)->pluck('name')->toArray();
@@ -71,6 +77,13 @@ class LeaguesTransformationHandler
                     $userSelectedLeague['schedule'] == $this->message->data->schedule
                 ) {
                     SwooleHandler::remove('userSelectedLeaguesTable', $key);
+                }
+            }
+
+            foreach (SwooleHandler::table('wsTable') as $key => $row) {
+                if (strpos($key, 'uid:') === 0 && $swoole->isEstablished($row['value'])) {
+                    $userId = substr($key, strlen('uid:'));
+                    WsSelectedLeagues::dispatch($userId, [1 => $sportId]);
                 }
             }
 
