@@ -89,12 +89,12 @@ class LeaguesTransformationHandler
             }
 
 
-            foreach (SwooleHandler::table('wsTable') as $key => $row) {
-                if (strpos($key, 'uid:') === 0 && $swoole->isEstablished($row['value'])) {
-                    $userId = substr($key, strlen('uid:'));
-                    WsSelectedLeagues::dispatch($userId, [1 => $sportId]);
-                }
-            }
+//            foreach (SwooleHandler::table('wsTable') as $key => $row) {
+//                if (strpos($key, 'uid:') === 0 && $swoole->isEstablished($row['value'])) {
+//                    $userId = substr($key, strlen('uid:'));
+//                    WsSelectedLeagues::dispatch($userId, [1 => $sportId]);
+//                }
+//            }
 
             $endTime         = microtime(TRUE);
             $timeConsumption = $endTime - $startTime;
