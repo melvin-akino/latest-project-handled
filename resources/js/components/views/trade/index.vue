@@ -159,10 +159,11 @@ export default {
                             }
                         } else {
                             if(leagueNames.includes(newEvent.league_name)) {
-                                this.$store.commit('trade/UPDATE_LEAGUE_MATCH_COUNT', { schedule: newEvent.game_schedule, league: newEvent.league_name, match_count: leagueMatchCount + 1 })
                                 let leagueMatchCount = this.leagues[newEvent.game_schedule].filter(league => league.name == newEvent.league_name)[0].match_count
+                                this.$store.commit('trade/UPDATE_LEAGUE_MATCH_COUNT', { schedule: newEvent.game_schedule, league: newEvent.league_name, match_count: leagueMatchCount + 1 })
                             } else {
-                                this.$store.commit('trade/ADD_TO_LEAGUES', { schedule: newEvent.game_schedule, league: { name: newEvent.league_name, match_count: additionalEvents.length } })
+                                let newEventsCount = additionalEvents.filter(event => event.league_name == newEvent.league_name && event.game_schedule == newEvent.game_schedule).length
+                                this.$store.commit('trade/ADD_TO_LEAGUES', { schedule: newEvent.game_schedule, league: { name: newEvent.league_name, match_count: newEventsCount } })
                             }
                         }
                     })
@@ -170,11 +171,11 @@ export default {
                     let removedEvents = getSocketValue(response.data, 'getForRemovalEvents')
                     removedEvents.map(removedEvent => {
                         let leagueNames = this.leagues[removedEvent.game_schedule].map(league => league.name)
-                        let selected = this.selectedLeagues[removedEvent.game_schedule].includes(removedEvent.league_name)
-                        if(selected) {
+                        let eventInTradeWindow = this.eventsList.some(event => event.league_name == removedEvent.league_name && event.game_schedule == removedEvent.game_schedule)
+                        if(eventInTradeWindow) {
                             this.$store.commit('trade/REMOVE_ALL_FROM_EVENT_LIST', { league_name: removedEvent.league_name, game_schedule: removedEvent.game_schedule, uid: removedEvent.uid })
                             let leagueMatchCount = this.eventsList.filter(event => removedEvent.league_name == event.league_name && removedEvent.game_schedule == event.game_schedule && !event.hasOwnProperty('watchlist')).length
-                            if(leagueMatchCount == 1) {
+                            if(leagueMatchCount == 0) {
                                 this.$store.dispatch('trade/toggleLeague', { action: 'remove', league_name: removedEvent.league_name,  schedule: removedEvent.game_schedule, sport_id: this.selectedSport })
                                 this.$store.commit('trade/REMOVE_SELECTED_LEAGUE', {schedule: removedEvent.game_schedule, league: removedEvent.league_name })
                                 this.$store.commit('trade/REMOVE_FROM_LEAGUE', {schedule: removedEvent.game_schedule, league: removedEvent.league_name })
@@ -187,7 +188,8 @@ export default {
                                 if(leagueMatchCount == 1) {
                                     this.$store.commit('trade/REMOVE_FROM_LEAGUE', {schedule: removedEvent.game_schedule, league: removedEvent.league_name })
                                 } else {
-                                    this.$store.commit('trade/UPDATE_LEAGUE_MATCH_COUNT', { schedule: removedEvent.game_schedule, league: removedEvent.league_name, match_count: leagueMatchCount - removedEvents.length })
+                                    let removedEventsCount = removedEvents.filter(event => event.league_name == removedEvent.league_name && event.game_schedule == removedEvent.game_schedule).length
+                                    this.$store.commit('trade/UPDATE_LEAGUE_MATCH_COUNT', { schedule: removedEvent.game_schedule, league: removedEvent.league_name, match_count: leagueMatchCount - removedEventsCount })
                                 }
                             }
                         }

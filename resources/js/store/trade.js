@@ -342,13 +342,15 @@ const actions = {
                         let newLeagueNames = response.data.data[schedule].map(league => league.name)
                         leagueNames.map(league => {
                             if(!newLeagueNames.includes(league)) {
-                                commit('REMOVE_SELECTED_LEAGUE', { schedule: schedule, league: league })
-                                dispatch('toggleLeague', { action: 'remove', league_name: league, sport_id: state.selectedSport, schedule: schedule  })
+                                if(state.selectedLeagues[schedule].includes(league)) {
+                                    commit('REMOVE_SELECTED_LEAGUE', { schedule: schedule, league: league })
+                                    dispatch('toggleLeague', { action: 'remove', league_name: league, sport_id: state.selectedSport, schedule: schedule  })
+                                }
+                                commit('REMOVE_FROM_EVENT_LIST', { league_name: league, game_schedule: schedule })
                             }
                         })
                     })
                     commit('SET_LEAGUES', response.data.data)
-                    dispatch('removeEventsOnUpdateOfLeagues')
                 }
                 commit('SET_IS_LOADING_LEAGUES', false)
             })
@@ -486,15 +488,6 @@ const actions = {
                     dispatch('auth/checkIfTokenIsValid', err.response.data.status_code,  { root: true })
                     reject(err)
                 })
-        })
-    },
-    removeEventsOnUpdateOfLeagues({state, getters, commit}) {
-        Object.keys(getters.leagueNames).map(schedule => {
-            state.eventsList.map(event => {
-                if(!getters.leagueNames[schedule].includes(event.league_name) && schedule == event.game_schedule && !event.hasOwnProperty('watchlist')) {
-                    commit('REMOVE_FROM_EVENT_LIST', { league_name: event.league_name, game_schedule: schedule })
-                }
-            })
         })
     },
     updateOdds({state}, data) {
