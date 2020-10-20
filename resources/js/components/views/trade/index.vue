@@ -80,70 +80,84 @@ export default {
             this.$options.sockets.onmessage = (response => {
                 if(getSocketKey(response.data) ===  'getWatchlist') {
                     let watchlist = getSocketValue(response.data, 'getWatchlist')
-                    watchlist.map(watchlistEvent => {
-                        let oddTypeWithIncompleteMarkets = []
-                        Object.keys(watchlistEvent.market_odds).map(marketType => {
-                            Object.keys(watchlistEvent.market_odds[marketType]).map(oddType => {
-                                let marketIds = []
-                                Object.keys(watchlistEvent.market_odds[marketType][oddType]).map(team => {
-                                    marketIds.push(watchlistEvent.market_odds[marketType][oddType][team].market_id)
-                                })
-                                let marketIdsNonEmpty = marketIds.filter(marketId => marketId)
-                                let marketIdsEmpty = marketIds.filter(marketId => !marketId)
-                                if(marketIds.length != marketIdsNonEmpty.length && marketIds.length != marketIdsEmpty.length) {
-                                    oddTypeWithIncompleteMarkets.push(oddType)
-                                    if(watchlistEvent.market_odds[marketType].hasOwnProperty(oddType)) {
-                                        this.$delete(watchlistEvent.market_odds[marketType], oddType)
+                    if(_.isArray(watchlist)) {
+                        watchlist.map(watchlistEvent => {
+                            let oddTypeWithIncompleteMarkets = []
+                            Object.keys(watchlistEvent.market_odds).map(marketType => {
+                                Object.keys(watchlistEvent.market_odds[marketType]).map(oddType => {
+                                    let odds = []
+                                    Object.keys(watchlistEvent.market_odds[marketType][oddType]).map(team => {
+                                        odds.push(watchlistEvent.market_odds[marketType][oddType][team].odds)
+                                    })
+                                    let oddsNonEmpty = odds.filter(odds => odds)
+                                    let oddsEmpty = odds.filter(odds => !odds)
+                                    if(odds.length != oddsNonEmpty.length && odds.length != oddsEmpty.length) {
+                                        oddTypeWithIncompleteMarkets.push(oddType)
+                                        if(watchlistEvent.market_odds[marketType].hasOwnProperty(oddType)) {
+                                            this.$delete(watchlistEvent.market_odds[marketType], oddType)
+                                        }
                                     }
-                                }
+                                })
                             })
-                        })
-                        if(!_.isEmpty(oddTypeWithIncompleteMarkets)) {
-                            if(watchlistEvent.market_odds.hasOwnProperty('other')) {
-                                this.$socket.send(`getWatchlist_${watchlistEvent.uid}_withOtherMarket`)
-                            } else {
-                                this.$socket.send(`getWatchlist_${watchlistEvent.uid}`)
+                            if(!_.isEmpty(oddTypeWithIncompleteMarkets)) {
+                                if(watchlistEvent.market_odds.hasOwnProperty('other')) {
+                                    this.$socket.send(`getWatchlist_${watchlistEvent.uid}_withOtherMarket`)
+                                } else {
+                                    this.$socket.send(`getWatchlist_${watchlistEvent.uid}`)
+                                }
                             }
-                        }
-                        this.$set(watchlistEvent, 'watchlist', true)
-                        this.$store.commit('trade/SET_EVENTS_LIST', watchlistEvent)
-                    })
+                            this.$set(watchlistEvent, 'watchlist', true)
+                            this.$store.commit('trade/SET_EVENTS_LIST', watchlistEvent)
+                        })
+                    }
                 } else if(getSocketKey(response.data) === 'getEvents') {
                     let receivedEvents = getSocketValue(response.data, 'getEvents')
-                    Object.keys(this.selectedLeagues).map(schedule => {
-                        this.selectedLeagues[schedule].map(league => {
-                            receivedEvents.map(receivedEvent => {
-                                let oddTypeWithIncompleteMarkets = []
-                                Object.keys(receivedEvent.market_odds).map(marketType => {
-                                    Object.keys(receivedEvent.market_odds[marketType]).map(oddType => {
-                                        let marketIds = []
-                                        Object.keys(receivedEvent.market_odds[marketType][oddType]).map(team => {
-                                            marketIds.push(receivedEvent.market_odds[marketType][oddType][team].market_id)
+                    if(_.isArray(receivedEvents)) {
+                        Object.keys(this.selectedLeagues).map(schedule => {
+                            this.selectedLeagues[schedule].map(league => {
+                                receivedEvents.map(receivedEvent => {
+                                    let oddTypeWithIncompleteMarkets = []
+                                    Object.keys(receivedEvent.market_odds).map(marketType => {
+                                        Object.keys(receivedEvent.market_odds[marketType]).map(oddType => {
+                                            let odds = []
+                                            Object.keys(receivedEvent.market_odds[marketType][oddType]).map(team => {
+                                                odds.push(receivedEvent.market_odds[marketType][oddType][team].odds)
+                                            })
+                                            let oddsNonEmpty = odds.filter(odds => odds)
+                                            let oddsEmpty = odds.filter(odds => !odds)
+                                            if(odds.length != oddsNonEmpty.length && odds.length != oddsEmpty.length) {
+                                                oddTypeWithIncompleteMarkets.push(oddType)
+                                                if(receivedEvent.market_odds[marketType].hasOwnProperty(oddType)) {
+                                                    this.$delete(receivedEvent.market_odds[marketType], oddType)
+                                                }
+                                            }
                                         })
-                                        let marketIdsNonEmpty = marketIds.filter(marketId => marketId)
-                                        let marketIdsEmpty = marketIds.filter(marketId => !marketId)
-                                        if(marketIds.length != marketIdsNonEmpty.length && marketIds.length != marketIdsEmpty.length) {
-                                            oddTypeWithIncompleteMarkets.push(oddType)
-                                            if(receivedEvent.market_odds[marketType].hasOwnProperty(oddType)) {
-                                                this.$delete(receivedEvent.market_odds[marketType], oddType)
+                                    })
+                                    if(receivedEvent.game_schedule == schedule && receivedEvent.league_name == league && receivedEvent.sport_id == this.selectedSport) {
+                                        if(!_.isEmpty(oddTypeWithIncompleteMarkets)) {
+                                            if(receivedEvent.market_odds.hasOwnProperty('other')) {
+                                                this.$socket.send(`getEvents_${receivedEvent.league_name}_${receivedEvent.game_schedule}_${receivedEvent.uid}_withOtherMarket`)
+                                            } else {
+                                                this.$socket.send(`getEvents_${receivedEvent.league_name}_${receivedEvent.game_schedule}_${receivedEvent.uid}`)
                                             }
                                         }
-                                    })
-                                })
-                                if(receivedEvent.game_schedule == schedule && receivedEvent.league_name == league && receivedEvent.sport_id == this.selectedSport) {
-                                    if(!_.isEmpty(oddTypeWithIncompleteMarkets)) {
-                                        if(receivedEvent.market_odds.hasOwnProperty('other')) {
-                                            this.$socket.send(`getEvents_${receivedEvent.league_name}_${receivedEvent.game_schedule}_${receivedEvent.uid}_withOtherMarket`)
-                                        } else {
-                                            this.$socket.send(`getEvents_${receivedEvent.league_name}_${receivedEvent.game_schedule}_${receivedEvent.uid}`)
-                                        }
+                                        this.$store.commit('trade/SET_EVENTS_LIST', receivedEvent)
+                                        this.$store.commit('trade/UPDATE_LEAGUE_MATCH_COUNT', { schedule: schedule, league: league })
                                     }
-                                    this.$store.commit('trade/SET_EVENTS_LIST', receivedEvent)
-                                    this.$store.commit('trade/UPDATE_LEAGUE_MATCH_COUNT', { schedule: schedule, league: league })
-                                }
+                                })
                             })
                         })
-                    })
+                    } else {
+                        let leagueMatchCount = this.leagues[receivedEvents.schedule].filter(league => league.name == receivedEvents.leagueName)[0].match_count
+                        if(leagueMatchCount == 1) {
+                            this.$store.commit('trade/REMOVE_FROM_LEAGUE', {schedule: receivedEvents.schedule, league: receivedEvents.leagueName })
+                        }
+                        if(receivedEvents.hasOwnProperty('uid')) {
+                            this.$store.commit('trade/REMOVE_FROM_EVENT_LIST', { game_schedule: receivedEvents.schedule, league_name: receivedEvents.leagueName, uid: receivedEvents.uid })
+                        } else {
+                            this.$store.commit('trade/REMOVE_FROM_EVENT_LIST', { game_schedule: receivedEvents.schedule, league_name: receivedEvents.leagueName })
+                        }
+                    }
                 } else if(getSocketKey(response.data) === 'getAdditionalEvents') {
                     let additionalEvents = getSocketValue(response.data, 'getAdditionalEvents')
                     additionalEvents.map(newEvent => {

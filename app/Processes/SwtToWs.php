@@ -75,11 +75,6 @@ class SwtToWs implements CustomProcessInterface
                             if (in_array($updatedMarket->provider_id, $userEnabledProviders[$topic['user_id']]) && $swoole->isEstablished($fd['value'])) {
                                 $swoole->push($fd['value'], json_encode(['getUpdatedOdds' => [$updatedMarket]]));
                             }
-
-//                            if (SwooleHandler::exists('eventsInfoTable', 'eventsInfo:' . $uid)) {
-//                                $swoole->push($fd['value'], json_encode(['getEventsUpdate' => json_decode(SwooleHandler::getValue('eventsInfoTable', 'eventsInfo:' . $uid)['value'], true)]));
-//                                SwooleHandler::remove('eventsInfoTable', 'eventsInfo:' . $uid);
-//                            }
                         }
                     }
                 }
@@ -125,12 +120,12 @@ class SwtToWs implements CustomProcessInterface
 
     private static function getUpdatedLeagues()
     {
-        if (SwooleHandler::exists('updateLeaguesTable', 'updateLeagues')) {
-            SwooleHandler::remove('updateLeaguesTable', 'updateLeagues');
+//        if (SwooleHandler::exists('updateLeaguesTable', 'updateLeagues')) {
+//            SwooleHandler::remove('updateLeaguesTable', 'updateLeagues');
             wsEmit(['getUpdatedLeagues' => [
                 'status' => true
             ]]);
-        }
+//        }
     }
 
     private static function getForBetBarRemoval($swoole)

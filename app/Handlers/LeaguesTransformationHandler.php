@@ -104,7 +104,7 @@ class LeaguesTransformationHandler
                 'request_ts'       => json_encode($this->message->request_ts),
                 'offset'           => json_encode($this->offset),
                 'time_consumption' => json_encode($timeConsumption),
-                'events'           => json_encode($this->message->data->leagues),
+                'leagues'           => json_encode($this->message->data->leagues),
             ]);
         } catch (Exception $e) {
             Log::error(json_encode(

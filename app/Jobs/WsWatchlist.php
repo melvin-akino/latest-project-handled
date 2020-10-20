@@ -22,6 +22,7 @@ class WsWatchlist implements ShouldQueue
 
     public function handle()
     {
+        $eventData = [];
         try {
             $server = app('swoole');
             $fd     = $server->wsTable->get('uid:' . $this->userId);
@@ -53,14 +54,14 @@ class WsWatchlist implements ShouldQueue
 
             $watchlist = is_array($data) ? $data : [];
             $eventData = array_values($watchlist);
-
-            if (!empty($eventData) && $server->isEstablished($fd['value'])) {
+        } catch (Exception $e) {
+            Log::error($e->getMessage());
+        } finally {
+            if ($server->isEstablished($fd['value'])) {
                 $server->push($fd['value'], json_encode([
                     'getWatchlist' => $eventData
                 ]));
             }
-        } catch (Exception $e) {
-            Log::error($e->getMessage());
         }
     }
 }

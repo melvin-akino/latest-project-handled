@@ -503,8 +503,8 @@ if (!function_exists('eventTransformation')) {
                     $data[$transformed->master_event_unique_id]['market_odds']['main'][$transformed->type][$transformed->market_flag]['odds'] < (double) $transformed->odds)
             ) {
                 $data[$transformed->master_event_unique_id]['market_odds']['main'][$transformed->type][$transformed->market_flag] = [
-                    'odds'           => empty($transformed->is_market_empty) ? (double) $transformed->odds : "",
-                    'market_id'      => empty($transformed->is_market_empty) ? $transformed->master_event_market_unique_id : "",
+                    'odds'           => !empty($transformed->master_event_market_unique_id) && empty($transformed->is_market_empty) ? (double) $transformed->odds : "",
+                    'market_id'      => !empty($transformed->master_event_market_unique_id) && empty($transformed->is_market_empty) ? $transformed->master_event_market_unique_id : "",
                     'provider_alias' => $transformed->alias
                 ];
 
@@ -516,10 +516,6 @@ if (!function_exists('eventTransformation')) {
                     }
                 }
             }
-
-//            if (!empty($transformed->odd_label)) {
-//                $data[$transformed->master_event_unique_id]['market_odds']['main'][$transformed->type][$transformed->market_flag]['points'] = $transformed->odd_label;
-//            }
 
             if($otherMarketDetails && $transformed->master_event_unique_id == $otherMarketDetails['meUID']) {
                 $otherTransformed = $otherMarketDetails['transformed'];
