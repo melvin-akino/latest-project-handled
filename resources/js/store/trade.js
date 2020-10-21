@@ -215,6 +215,13 @@ const mutations = {
             state.eventsList = state.eventsList.filter(event => event.league_name != data.league_name && event.game_schedule != data.game_schedule)
         }
     },
+    REMOVE_FROM_EVENT_LIST_BY_LEAGUE: (state, data) => {
+        state.eventsList.map(event => {
+            if(event.league_name == data.league_name && !event.hasOwnProperty('watchlist')) {
+                state.eventsList = state.eventsList.filter(filteredEvent => filteredEvent.uid != event.uid)
+            }
+        })
+    },
     CLEAR_EVENTS_LIST: (state) => {
         state.eventsList = []
     },
@@ -339,10 +346,13 @@ const actions = {
                             } else {
                                 if(event.market_odds.hasOwnProperty('other')) {
                                     Vue.prototype.$socket.send(`getEvents_${event.league_name}_${event.game_schedule}_${event.uid}_withOtherMarket`)
-                                } else {
-                                    Vue.prototype.$socket.send(`getEvents_${event.league_name}_${event.game_schedule}`)
                                 }
                             }
+                        })
+                        Object.keys(state.selectedLeagues).map(schedule => {
+                            state.selectedLeagues[schedule].map(league => {
+                                Vue.prototype.$socket.send(`getEvents_${league}_${schedule}`)
+                            })
                         })
                     }
                     Object.keys(state.leagues).map(schedule => {
@@ -472,14 +482,16 @@ const actions = {
                 await dispatch('toggleLeagueByName', { action: 'remove', league_name: data.data, sport_id: state.selectedSport })
                 commit('REMOVE_SELECTED_LEAGUE_BY_NAME', data.data)
                 commit('REMOVE_FROM_LEAGUE_BY_NAME', { league: data.data })
+                commit('REMOVE_FROM_EVENT_LIST_BY_LEAGUE', { league_name: data.data })
             } else if(data.type=='event') {
+                commit('REMOVE_FROM_EVENT_LIST',  { league_name: data.payload.league_name, game_schedule: data.payload.game_schedule, uid: data.data })
                 let leagueMatchCount = state.eventsList.filter(event => event.league_name == data.payload.league_name && event.game_schedule == data.payload.game_schedule && !event.hasOwnProperty('watchlist')).length
-                if(leagueMatchCount == 1) {
+                if(leagueMatchCount == 0) {
                     await dispatch('toggleLeague', { action: 'remove', league_name: data.payload.league_name,  schedule: data.payload.game_schedule, sport_id: state.selectedSport })
                     commit('REMOVE_SELECTED_LEAGUE', {schedule: data.payload.game_schedule, league: data.payload.league_name })
                     commit('REMOVE_FROM_LEAGUE', {schedule: data.payload.game_schedule, league: data.payload.league_name })
                 } else {
-                    commit('UPDATE_LEAGUE_MATCH_COUNT', { schedule: data.payload.game_schedule, league: data.payload.league_name, match_count: leagueMatchCount - 1 })
+                    commit('UPDATE_LEAGUE_MATCH_COUNT', { schedule: data.payload.game_schedule, league: data.payload.league_name, match_count: leagueMatchCount })
                 }
             }
         } catch(err) {

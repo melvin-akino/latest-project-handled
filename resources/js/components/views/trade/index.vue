@@ -148,9 +148,12 @@ export default {
                             })
                         })
                     } else {
-                        let leagueMatchCount = this.leagues[receivedEvents.schedule].filter(league => league.name == receivedEvents.leagueName)[0].match_count
-                        if(leagueMatchCount == 1) {
-                            this.$store.commit('trade/REMOVE_FROM_LEAGUE', {schedule: receivedEvents.schedule, league: receivedEvents.leagueName })
+                        let leagueNames = this.leagues[receivedEvents.schedule].map(league => league.name)
+                        if(leagueNames.includes(receivedEvents.leagueName)) {
+                            let leagueMatchCount = this.leagues[receivedEvents.schedule].filter(league => league.name == receivedEvents.leagueName)[0].match_count
+                            if(leagueMatchCount == 1) {
+                                this.$store.commit('trade/REMOVE_FROM_LEAGUE', {schedule: receivedEvents.schedule, league: receivedEvents.leagueName })
+                            }
                         }
                         if(receivedEvents.hasOwnProperty('uid')) {
                             this.$store.commit('trade/REMOVE_FROM_EVENT_LIST', { game_schedule: receivedEvents.schedule, league_name: receivedEvents.leagueName, uid: receivedEvents.uid })

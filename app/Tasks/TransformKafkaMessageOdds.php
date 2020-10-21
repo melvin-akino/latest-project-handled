@@ -239,9 +239,9 @@ class TransformKafkaMessageOdds extends Task
                                 }
 
                                 if ($oddRecord) {
-                                    if ($oddRecord['odds'] != $odds && !empty($memUID)) {
+                                    if ($oddRecord['odds'] != $odds) {
                                         $oddsUpdated = [
-                                            'market_id'   => $memUID,
+                                            'market_id'   => $oddRecord['memUID'],
                                             'odds'        => $odds,
                                             'provider_id' => $providerId,
                                         ];
