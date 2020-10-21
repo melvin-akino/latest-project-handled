@@ -182,12 +182,20 @@ const mutations = {
     SET_CHECKED_COLUMNS: (state, columns) => {
         state.checkedColumns = columns
     },
-    SET_EVENTS_LIST: (state, event) => {
+    SET_EVENTS_LIST: (state, newEvent) => {
         let eventsListUID = state.eventsList.map(event => event.uid)
-        if(eventsListUID.includes(event.uid)) {
-            state.eventsList = state.eventsList.filter(eventsList => eventsList.uid != event.uid)
+        if(eventsListUID.includes(newEvent.uid)) {
+            state.eventsList.map(event => {
+                if(event.uid == newEvent.uid) {
+                    Vue.set(event.market_odds, 'main', newEvent.market_odds.main)
+                    if(newEvent.market_odds.hasOwnProperty('other')) {
+                        Vue.set(event.market_odds, 'other', newEvent.market_odds.other)
+                    }
+                }
+            })
+        } else {
+            state.eventsList.push(newEvent)
         }
-        state.eventsList.push(event)
     },
     REMOVE_FROM_EVENT_LIST: (state, data) => {
         state.eventsList.map(event => {
@@ -332,7 +340,7 @@ const actions = {
                                 if(event.market_odds.hasOwnProperty('other')) {
                                     Vue.prototype.$socket.send(`getEvents_${event.league_name}_${event.game_schedule}_${event.uid}_withOtherMarket`)
                                 } else {
-                                    Vue.prototype.$socket.send(`getEvents_${event.league_name}_${event.game_schedule}_${event.uid}`)
+                                    Vue.prototype.$socket.send(`getEvents_${event.league_name}_${event.game_schedule}`)
                                 }
                             }
                         })
