@@ -459,22 +459,21 @@ if (!function_exists('eventTransformation')) {
             }
 
             if (empty($data[$transformed->master_event_unique_id])) {
+//            if (empty($transformed->odd_type_id)) {
                 $providersOfEvents = Game::providersOfEvents($transformed->master_event_id, $userProviderIds)->get();
                 $eventHasOtherMarkets = Game::checkIfHasOtherMarkets($transformed->master_event_unique_id, $userProviderIds);
 
-                $data[$transformed->master_event_unique_id] = [
-                    "uid"           => $transformed->master_event_unique_id,
-                    'sport_id'      => $transformed->sport_id,
-                    'sport'         => $transformed->sport,
-                    'provider_id'   => $transformed->provider_id,
-                    'game_schedule' => $transformed->game_schedule,
-                    'league_name'   => $transformed->master_league_name,
-                    'running_time'  => $transformed->running_time,
-                    'ref_schedule'  => Carbon::createFromFormat("Y-m-d H:i:s", $transformed->ref_schedule, 'Etc/UTC')->setTimezone($userTz)->format("Y-m-d H:i:s"),
-                    'has_bet'       => $hasBet,
-                    'with_providers' => $providersOfEvents,
-                    'has_other_markets' => $eventHasOtherMarkets
-                ];
+                $data[$transformed->master_event_unique_id]["uid"] = $transformed->master_event_unique_id;
+                $data[$transformed->master_event_unique_id]['sport_id'] = $transformed->sport_id;
+                $data[$transformed->master_event_unique_id]['sport'] = $transformed->sport;
+                $data[$transformed->master_event_unique_id]['provider_id'] = $transformed->provider_id;
+                $data[$transformed->master_event_unique_id]['game_schedule'] = $transformed->game_schedule;
+                $data[$transformed->master_event_unique_id]['league_name'] = $transformed->master_league_name;
+                $data[$transformed->master_event_unique_id]['running_time'] = $transformed->running_time;
+                $data[$transformed->master_event_unique_id]['ref_schedule'] = Carbon::createFromFormat("Y-m-d H:i:s", $transformed->ref_schedule, 'Etc/UTC')->setTimezone($userTz)->format("Y-m-d H:i:s");
+                $data[$transformed->master_event_unique_id]['has_bet'] = $hasBet;
+                $data[$transformed->master_event_unique_id]['with_providers'] = $providersOfEvents;
+                $data[$transformed->master_event_unique_id]['has_other_markets'] = $eventHasOtherMarkets;
 
                 if (in_array($type, ['socket-watchlist', 'watchlist'])) {
                     SwooleHandler::setValue('userWatchlistTable', 'userWatchlist:' . $userId . ':masterEventUniqueId:' . $transformed->master_event_unique_id, [
@@ -482,6 +481,7 @@ if (!function_exists('eventTransformation')) {
                     ]);
                 }
             }
+
             if (empty($data[$transformed->master_event_unique_id]['home'])) {
                 $data[$transformed->master_event_unique_id]['home'] = [
                     'name'    => $transformed->master_home_team_name,
@@ -497,6 +497,14 @@ if (!function_exists('eventTransformation')) {
                 ];
             }
 
+            if (empty($transformed->type)) {
+                continue;
+            }
+
+            var_dump($transformed->odd_label);
+            var_dump($transformed->odds);
+            var_dump($transformed->master_event_market_unique_id);
+            var_dump($transformed->is_market_empty);
             if (
                 empty($data[$transformed->master_event_unique_id]['market_odds']['main'][$transformed->type][$transformed->market_flag]) ||
                 ($data[$transformed->master_event_unique_id]['market_odds']['main'][$transformed->type][$transformed->market_flag]['market_id'] == $transformed->master_event_market_unique_id &&
@@ -617,6 +625,7 @@ if (!function_exists('eventTransformation')) {
             return $result;
         }
 
+        Log::debug($newResult);
         return $newResult;
     }
 }
