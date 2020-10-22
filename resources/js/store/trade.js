@@ -187,9 +187,13 @@ const mutations = {
         if(eventsListUID.includes(newEvent.uid)) {
             state.eventsList.map(event => {
                 if(event.uid == newEvent.uid) {
-                    Vue.set(event.market_odds, 'main', newEvent.market_odds.main)
-                    if(newEvent.market_odds.hasOwnProperty('other')) {
-                        Vue.set(event.market_odds, 'other', newEvent.market_odds.other)
+                    if(event.hasOwnProperty('market_odds') && newEvent.hasOwnProperty('market_odds')) {
+                        Vue.set(event.market_odds, 'main', newEvent.market_odds.main)
+                        if(newEvent.market_odds.hasOwnProperty('other')) {
+                            Vue.set(event.market_odds, 'other', newEvent.market_odds.other)
+                        }
+                    } else if(!event.hasOwnProperty('market_odds') && newEvent.hasOwnProperty('market_odds')) {
+                        Vue.set(event, 'market_odds', newEvent.market_odds)
                     }
                 }
             })
@@ -337,15 +341,17 @@ const actions = {
                 if(response.data.sport_id == state.selectedSport) {
                     if(updatedLeagues) {
                         state.eventsList.map(event => {
-                            if(event.hasOwnProperty('watchlist')) {
-                                if(event.market_odds.hasOwnProperty('other')) {
-                                    Vue.prototype.$socket.send(`getWatchlist_${event.uid}_withOtherMarket`)
+                            if(event.hasOwnProperty('market_odds')) {
+                                if(event.hasOwnProperty('watchlist')) {
+                                    if(event.market_odds.hasOwnProperty('other')) {
+                                        Vue.prototype.$socket.send(`getWatchlist_${event.uid}_withOtherMarket`)
+                                    } else {
+                                        Vue.prototype.$socket.send(`getWatchlist_${event.uid}`)
+                                    }
                                 } else {
-                                    Vue.prototype.$socket.send(`getWatchlist_${event.uid}`)
-                                }
-                            } else {
-                                if(event.market_odds.hasOwnProperty('other')) {
-                                    Vue.prototype.$socket.send(`getEvents_${event.league_name}_${event.game_schedule}_${event.uid}_withOtherMarket`)
+                                    if(event.market_odds.hasOwnProperty('other')) {
+                                        Vue.prototype.$socket.send(`getEvents_${event.league_name}_${event.game_schedule}_${event.uid}_withOtherMarket`)
+                                    }
                                 }
                             }
                         })
@@ -513,37 +519,39 @@ const actions = {
     updateOdds({state}, data) {
         let team = ['HOME', 'AWAY', 'DRAW']
         state.eventsList.map(event => {
-            state.oddsTypeBySport.map(oddType => {
-                team.map(team => {
-                    if(oddType in event.market_odds.main && team in event.market_odds.main[oddType]) {
-                        if(event.market_odds.main[oddType][team].market_id === data.market_id) {
-                            if(event.market_odds.main[oddType][team].odds != data.odds) {
-                                Vue.set(event.market_odds.main[oddType][team], 'odds', data.odds)
-                            }
-                            if(event.market_odds.main[oddType][team].hasOwnProperty('points') && event.market_odds.main[oddType][team].points != data.points && data.hasOwnProperty('points')) {
-                                Vue.set(event.market_odds.main[oddType][team], 'points', data.points)
-                            }
-                        }
-                    }
-                })
-            })
-            if('other' in event.market_odds) {
-                Object.keys(event.market_odds.other).map(otherMarket => {
-                    state.oddsTypeBySport.map(oddType => {
-                        team.map(team => {
-                            if(oddType in event.market_odds.other[otherMarket] && team in event.market_odds.other[otherMarket][oddType]) {
-                                if(event.market_odds.other[otherMarket][oddType][team].market_id === data.market_id) {
-                                    if(event.market_odds.other[otherMarket][oddType][team].odds != data.odds) {
-                                        Vue.set(event.market_odds.other[otherMarket][oddType][team], 'odds', data.odds)
-                                    }
-                                    if(event.market_odds.other[otherMarket][oddType][team].hasOwnProperty('points') && event.market_odds.other[otherMarket][oddType][team].points != data.points && data.hasOwnProperty('points')) {
-                                        Vue.set(event.market_odds.other[otherMarket][oddType][team], 'points', data.points)
-                                    }
+            if(event.hasOwnProperty('market_odds')) {
+                state.oddsTypeBySport.map(oddType => {
+                    team.map(team => {
+                        if(oddType in event.market_odds.main && team in event.market_odds.main[oddType]) {
+                            if(event.market_odds.main[oddType][team].market_id === data.market_id) {
+                                if(event.market_odds.main[oddType][team].odds != data.odds) {
+                                    Vue.set(event.market_odds.main[oddType][team], 'odds', data.odds)
+                                }
+                                if(event.market_odds.main[oddType][team].hasOwnProperty('points') && event.market_odds.main[oddType][team].points != data.points && data.hasOwnProperty('points')) {
+                                    Vue.set(event.market_odds.main[oddType][team], 'points', data.points)
                                 }
                             }
-                        })
+                        }
                     })
                 })
+                if('other' in event.market_odds) {
+                    Object.keys(event.market_odds.other).map(otherMarket => {
+                        state.oddsTypeBySport.map(oddType => {
+                            team.map(team => {
+                                if(oddType in event.market_odds.other[otherMarket] && team in event.market_odds.other[otherMarket][oddType]) {
+                                    if(event.market_odds.other[otherMarket][oddType][team].market_id === data.market_id) {
+                                        if(event.market_odds.other[otherMarket][oddType][team].odds != data.odds) {
+                                            Vue.set(event.market_odds.other[otherMarket][oddType][team], 'odds', data.odds)
+                                        }
+                                        if(event.market_odds.other[otherMarket][oddType][team].hasOwnProperty('points') && event.market_odds.other[otherMarket][oddType][team].points != data.points && data.hasOwnProperty('points')) {
+                                            Vue.set(event.market_odds.other[otherMarket][oddType][team], 'points', data.points)
+                                        }
+                                    }
+                                }
+                            })
+                        })
+                    })
+                }
             }
         })
     }
