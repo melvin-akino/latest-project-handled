@@ -27,7 +27,7 @@ class Game extends Model
              ->where('game_schedule', $schedule)
              ->where('missing_count', '<=', $maxMissingCount)
              ->when($meUID, function ($query, $meUID) {
-                 return $query->where('me.master_event_unique_id', $meUID);
+                 return $query->where('master_event_unique_id', $meUID);
              })
              ->whereNotIn('master_event_id', function ($query) use ($userId) {
                  $query->select('master_event_id')->from('user_watchlist')->where('user_id', $userId);

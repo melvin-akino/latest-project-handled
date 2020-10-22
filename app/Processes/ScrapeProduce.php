@@ -27,7 +27,7 @@ class ScrapeProduce implements CustomProcessInterface
     private static   $providers;
     private static   $sports;
 
-    const REDIS_TTL = 60 * 10;
+    const REDIS_TTL = 60;
 
     public static function callback(Server $swoole, Process $process)
     {
