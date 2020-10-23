@@ -125,7 +125,7 @@ class OrdersController extends Controller
                             $teamname . " @ " . $myOrder->odds . " (" . $ouScore[1]
                         ]);
                     }
-                   
+
 
                     $data['orders'][] = [
                         'order_id'      => $myOrder->id,
@@ -194,7 +194,7 @@ class OrdersController extends Controller
                 return response()->json([
                     'status'      => false,
                     'status_code' => 404,
-                    'message'     => trans('generic.not-found')
+                    'message'     => trans('orders-related.master-event-market-404')
                 ], 404);
             }
 
@@ -228,7 +228,7 @@ class OrdersController extends Controller
                 return response()->json([
                     'status'      => false,
                     'status_code' => 404,
-                    'message'     => trans('generic.not-found')
+                    'message'     => trans('orders-related.master-event-404')
                 ], 404);
             }
 
@@ -245,16 +245,24 @@ class OrdersController extends Controller
             $spreads          = [];
             $duplicateHandler = [];
 
-            foreach ($getOtherMarkets as $row) {
-                if (!in_array($row->odd_label, $duplicateHandler)) {
-                    $duplicateHandler[] = $row->odd_label;
-                    $spreads[]          = [
-                        'market_id' => $row->master_event_market_unique_id,
-                        'odds'      => $row->odds,
-                        'points'    => $row->odd_label,
-                        'is_main'   => $row->is_main
-                    ];
+            if (!empty($getOtherMarkets)) {
+                foreach ($getOtherMarkets as $row) {
+                    if (!in_array($row->odd_label, $duplicateHandler)) {
+                        $duplicateHandler[] = $row->odd_label;
+                        $spreads[]          = [
+                            'market_id' => $row->master_event_market_unique_id,
+                            'odds'      => $row->odds,
+                            'points'    => $row->odd_label,
+                            'is_main'   => $row->is_main
+                        ];
+                    }
                 }
+            } else {
+                return response()->json([
+                    'status'      => false,
+                    'status_code' => 404,
+                    'message'     => trans('orders-related.other-market-404')
+                ], 404);
             }
 
             $eventBets = Order::getOrdersByEvent($masterEvent->master_event_unique_id, true)->count();
@@ -500,7 +508,7 @@ class OrdersController extends Controller
                 $query = Game::getmasterEventByMarketId($request->market_id);
 
                 if (!$query) {
-                    throw new NotFoundException(trans('generic.not-found'));
+                    throw new NotFoundException(trans('game.bet.errors.place-bet-event-ended'));
                 }
 
                 // Checks if odd type of market is not 1x2 or HT 1x2

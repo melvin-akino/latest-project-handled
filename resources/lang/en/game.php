@@ -14,7 +14,8 @@ return [
             'wallet_not_found'      => "User wallet not found",
             'insufficient'          => "Insufficient wallet balance",
             'no_bookmaker'          => "Bookmaker not found",
-            'type_has_been_changed' => ":type has been changed. Please refresh the bet slip"
+            'type_has_been_changed' => ":type has been changed. Please refresh the bet slip",
+            'place-bet-event-ended'   => "Match already ended. Please close this Bet Slip.",
         ],
     ],
     'bet_slip_logs' => [
