@@ -149,6 +149,13 @@ class EventsTransformationHandler
                                 SwooleHandler::setValue('inactiveEventsTable', 'unique:' . uniqid(), [
                                     'event' => json_encode($inactiveEvent)
                                 ]);
+
+                                $topicTable = SwooleHandler::table('topicTable');
+                                foreach ($topicTable as $k => $topic) {
+                                    if (strpos($topic['topic_name'], 'uid-' . $data['uid']) === 0) {
+                                        SwooleHandler::remove('topicTable', $k);
+                                    }
+                                }
                             }
                             $doesExist = SwooleHandler::exists('eventRecordsTable', $eventTableKey);
                             if ($doesExist) {

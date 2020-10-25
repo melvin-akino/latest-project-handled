@@ -241,7 +241,6 @@ class TransformKafkaMessageOdds extends Task
                                         $oddsUpdated = [
                                             'market_id'   => $oddRecord['memUID'],
                                             'odds'        => $odds,
-                                            'provider_id' => $providerId,
                                         ];
                                         if (!empty($points)) {
                                             $oddsUpdated['points'] = $points;
@@ -407,7 +406,7 @@ class TransformKafkaMessageOdds extends Task
                 ])
             ]);
 
-            SwooleHandler::setValue('updatedEventsTable', "updatedEvents:" . $uid, ['value' => json_encode($updatedOdds)]);
+            SwooleHandler::setValue('updatedEventsTable', "updatedEvents:" . $uid, ['provider_id' => $providerId, 'odds' => json_encode($updatedOdds)]);
 
             $endTime = microtime(TRUE);
             $timeConsumption   = $endTime - $startTime;

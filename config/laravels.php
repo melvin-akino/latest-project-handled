@@ -166,7 +166,8 @@ return [
             // key format [updatedEvents:$uid] = [value = $timestamp]
             'size'   => 2000,// The max size
             'column' => [// Define the columns
-                ['name' => 'value', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 10000],
+                ['name' => 'odds', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 10000],
+                ['name' => 'provider_id', 'type' => \Swoole\Table::TYPE_INT],
             ],
         ],
         'getActionLeagues'    => [
