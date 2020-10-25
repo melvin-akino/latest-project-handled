@@ -156,6 +156,8 @@ export default {
                         if(leagueNames.includes(receivedEvents.leagueName)) {
                             let leagueMatchCount = this.leagues[receivedEvents.schedule].filter(league => league.name == receivedEvents.leagueName)[0].match_count
                             if(leagueMatchCount == 1) {
+                                this.$store.dispatch('trade/toggleLeague', { action: 'remove', league_name: receivedEvents.leagueName,  schedule: receivedEvents.schedule, sport_id: receivedEvents.sport_id })
+                                this.$store.commit('trade/REMOVE_SELECTED_LEAGUE', {schedule: receivedEvents.schedule, league: receivedEvents.leagueName })
                                 this.$store.commit('trade/REMOVE_FROM_LEAGUE', {schedule: receivedEvents.schedule, league: receivedEvents.leagueName })
                             }
                         }

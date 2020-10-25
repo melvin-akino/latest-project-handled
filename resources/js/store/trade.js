@@ -129,8 +129,10 @@ const mutations = {
         })
     },
     UPDATE_LEAGUE_MATCH_COUNT: (state, data) => {
+        let isNotLeagueFound = true;
         state.leagues[data.schedule].map(league => {
             if(league.name == data.league) {
+                isNotLeagueFound = false;
                 if(data.hasOwnProperty('match_count')) {
                     Vue.set(league, 'match_count', data.match_count)
                 } else {
@@ -139,6 +141,11 @@ const mutations = {
                 }
             }
         })
+        if (isNotLeagueFound) {
+            commit('ADD_TO_LEAGUES', { schedule: data.schedule, league: data.league, match_count: 1 })
+            dispatch('trade/toggleLeague', { action: 'add', league_name: data.league, sport_id: state.selectedSport, schedule: data.schedule  })
+            commit('ADD_TO_SELECTED_LEAGUE', { schedule: data.schedule, league: data.league })
+        }
     },
     CLEAR_LEAGUES: (state) => {
         Object.keys(state.leagues).map(schedule => {
