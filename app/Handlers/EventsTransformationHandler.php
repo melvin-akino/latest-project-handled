@@ -152,7 +152,7 @@ class EventsTransformationHandler
 
                                 $topicTable = SwooleHandler::table('topicTable');
                                 foreach ($topicTable as $k => $topic) {
-                                    if (strpos($topic['topic_name'], 'uid-' . $data['uid']) === 0) {
+                                    if (strpos($topic['topic_name'], 'uid-' . $masterEvent->master_event_unique_id) === 0) {
                                         SwooleHandler::remove('topicTable', $k);
                                     }
                                 }
