@@ -214,7 +214,12 @@ export default {
                                     this.$store.commit('trade/REMOVE_FROM_LEAGUE', {schedule: removedEvent.game_schedule, league: removedEvent.league_name })
                                 } else {
                                     let removedEventsCount = removedEvents.filter(event => event.league_name == removedEvent.league_name && event.game_schedule == removedEvent.game_schedule).length
-                                    this.$store.commit('trade/UPDATE_LEAGUE_MATCH_COUNT', { schedule: removedEvent.game_schedule, league: removedEvent.league_name, match_count: leagueMatchCount - removedEventsCount })
+                                    let updatedMatchCount = leagueMatchCount - removedEventsCount
+                                    if(updatedMatchCount > 0) {
+                                        this.$store.commit('trade/UPDATE_LEAGUE_MATCH_COUNT', { schedule: removedEvent.game_schedule, league: removedEvent.league_name, match_count: updatedMatchCount })
+                                    } else {
+                                        this.$store.commit('trade/REMOVE_FROM_LEAGUE', {schedule: removedEvent.game_schedule, league: removedEvent.league_name })
+                                    }
                                 }
                             }
                         }
