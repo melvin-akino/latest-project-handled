@@ -293,14 +293,16 @@ export default {
                     this.eventsList.map(event => {
                         if(event.uid == removalSection.uid && event.hasOwnProperty('market_odds')) {
                             let mainMarketEventIdentifier = event.uid.split('-')[3]
-                            if(removalSection.odd_type in event.market_odds.main) {
-                                Object.keys(event.market_odds.main[removalSection.odd_type]).map(team => {
-                                    this.$set(event.market_odds.main[removalSection.odd_type][team], 'market_id', '')
-                                    this.$set(event.market_odds.main[removalSection.odd_type][team], 'odds', '')
-                                    if(event.market_odds.main[removalSection.odd_type][team].hasOwnProperty('points')) {
-                                        this.$set(event.market_odds.main[removalSection.odd_type][team], 'points', '')
-                                    }
-                                })
+                            if(mainMarketEventIdentifier == removalSection.market_event_identifier) {
+                                if(removalSection.odd_type in event.market_odds.main) {
+                                    Object.keys(event.market_odds.main[removalSection.odd_type]).map(team => {
+                                        this.$set(event.market_odds.main[removalSection.odd_type][team], 'market_id', '')
+                                        this.$set(event.market_odds.main[removalSection.odd_type][team], 'odds', '')
+                                        if(event.market_odds.main[removalSection.odd_type][team].hasOwnProperty('points')) {
+                                            this.$set(event.market_odds.main[removalSection.odd_type][team], 'points', '')
+                                        }
+                                    })
+                                }
                             } else {
                                 if('other' in event.market_odds && removalSection.odd_type in event.market_odds.other[removalSection.market_event_identifier]) {
                                     Object.keys(event.market_odds.other[removalSection.market_event_identifier][removalSection.odd_type]).map(team => {
