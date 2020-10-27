@@ -196,6 +196,7 @@ class Game extends Model
                  ->whereNull('me.deleted_at')
                  ->whereNull('e.deleted_at')
                  ->where('me.master_event_unique_id', $meUID)
+                 ->whereNull('em.deleted_at')
                  ->where('e.missing_count', '<=', $maxMissingCount)
                  ->select([
                      's.sport',
