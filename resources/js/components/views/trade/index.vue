@@ -293,7 +293,7 @@ export default {
                     this.eventsList.map(event => {
                         if(event.uid == removalSection.uid && event.hasOwnProperty('market_odds')) {
                             let mainMarketEventIdentifier = event.uid.split('-')[3]
-                            if(mainMarketEventIdentifier == removalSection.market_event_identifier) {
+                            if(removalSection.odd_type in event.market_odds.main) {
                                 Object.keys(event.market_odds.main[removalSection.odd_type]).map(team => {
                                     this.$set(event.market_odds.main[removalSection.odd_type][team], 'market_id', '')
                                     this.$set(event.market_odds.main[removalSection.odd_type][team], 'odds', '')
