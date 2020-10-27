@@ -18,14 +18,14 @@ class KafkaServiceProvider extends ServiceProvider
         $conf = $lowConf = new Conf();
 
         $conf->set('metadata.broker.list', env('KAFKA_BROKERS', 'kafka:9092'));
-        $conf->set('group.id', 'ml');
+        $conf->set('group.id', env('KAFKA_GROUP_ID', 'ml'));
         $conf->set('auto.offset.reset', 'latest');
         $conf->set('enable.auto.commit', 'false');
         if (!in_array(env('APP_ENV'), ["local", "testing"])) {
             $conf->set('max.poll.interval.ms', 10000000);
         }
 
-        $lowConf->set('group.id', 'ml');
+        $lowConf->set('group.id', env('KAFKA_GROUP_ID', 'ml'));
 
         if (env('KAFKA_DEBUG', false)) {
             $conf->set('log_level', LOG_DEBUG);
