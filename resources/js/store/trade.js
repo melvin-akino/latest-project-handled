@@ -70,10 +70,7 @@ const getters = {
                 leagues.map(league => {
                     state.eventsList.map(event => {
                         if(schedule == event.game_schedule && league == event.league_name) {
-                            let eventSchedule = event.hasOwnProperty('watchlist') ? 'watchlist' : schedule
-                            if(typeof(eventObject[eventSchedule]) == "undefined") {
-                                eventObject[eventSchedule] = {}
-                            }
+                            let eventSchedule = event.hasOwnProperty('watchlist') ? 'watchlist' : event.game_schedule
                             if(typeof(eventObject[eventSchedule][league]) == "undefined") {
                                 eventObject[eventSchedule][league] = []
                             }
@@ -87,10 +84,7 @@ const getters = {
                     state.eventsList.map(event => {
                         let eventSchedLeague = `[${event.ref_schedule.split(' ')[1]}] ${event.league_name}`
                         if(schedule == event.game_schedule && startTime == eventSchedLeague) {
-                            let eventSchedule = event.hasOwnProperty('watchlist') ? 'watchlist' : schedule
-                            if(typeof(eventObject[eventSchedule]) == "undefined") {
-                                eventObject[eventSchedule] = {}
-                            }
+                            let eventSchedule = event.hasOwnProperty('watchlist') ? 'watchlist' : event.game_schedule
                             if(typeof(eventObject[eventSchedule][startTime]) == "undefined") {
                                 eventObject[eventSchedule][startTime] = []
                             }
