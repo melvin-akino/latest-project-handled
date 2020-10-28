@@ -171,27 +171,43 @@ export default {
                     }
                 } else if(getSocketKey(response.data) === 'getAdditionalEvents') {
                     let additionalEvents = getSocketValue(response.data, 'getAdditionalEvents')
-                    additionalEvents.map(newEvent => {
-                        let leagueNames = this.leagues[newEvent.game_schedule].map(league => league.name)
-                        let selected = this.selectedLeagues[newEvent.game_schedule].includes(newEvent.league_name)
-                        if(selected) {
-                            this.$store.commit('trade/SET_EVENTS_LIST', newEvent)
-                            let leagueMatchCount = this.eventsList.filter(event => newEvent.league_name == event.league_name && newEvent.game_schedule == event.game_schedule && !event.hasOwnProperty('watchlist')).length
-                            if(leagueNames.includes(newEvent.league_name)) {
-                                this.$store.commit('trade/UPDATE_LEAGUE_MATCH_COUNT', { schedule: newEvent.game_schedule, league: newEvent.league_name, match_count: leagueMatchCount })
+                    if(_.isArray(additionalEvents)) {
+                        additionalEvents.map(newEvent => {
+                            let leagueNames = this.leagues[newEvent.game_schedule].map(league => league.name)
+                            let selected = this.selectedLeagues[newEvent.game_schedule].includes(newEvent.league_name)
+                            if (selected) {
+                                this.$store.commit('trade/SET_EVENTS_LIST', newEvent)
+                                let leagueMatchCount = this.eventsList.filter(event => newEvent.league_name == event.league_name && newEvent.game_schedule == event.game_schedule && !event.hasOwnProperty('watchlist')).length
+                                if (leagueNames.includes(newEvent.league_name)) {
+                                    this.$store.commit('trade/UPDATE_LEAGUE_MATCH_COUNT', {
+                                        schedule: newEvent.game_schedule,
+                                        league: newEvent.league_name,
+                                        match_count: leagueMatchCount
+                                    })
+                                } else {
+                                    this.$store.commit('trade/ADD_TO_LEAGUES', {
+                                        schedule: newEvent.game_schedule,
+                                        league: {name: newEvent.league_name, match_count: leagueMatchCount}
+                                    })
+                                }
                             } else {
-                                this.$store.commit('trade/ADD_TO_LEAGUES', { schedule: newEvent.game_schedule, league: { name: newEvent.league_name, match_count: leagueMatchCount } })
+                                if (leagueNames.includes(newEvent.league_name)) {
+                                    let leagueMatchCount = this.leagues[newEvent.game_schedule].filter(league => league.name == newEvent.league_name)[0].match_count
+                                    this.$store.commit('trade/UPDATE_LEAGUE_MATCH_COUNT', {
+                                        schedule: newEvent.game_schedule,
+                                        league: newEvent.league_name,
+                                        match_count: leagueMatchCount + 1
+                                    })
+                                } else {
+                                    let newEventsCount = additionalEvents.filter(event => event.league_name == newEvent.league_name && event.game_schedule == newEvent.game_schedule).length
+                                    this.$store.commit('trade/ADD_TO_LEAGUES', {
+                                        schedule: newEvent.game_schedule,
+                                        league: {name: newEvent.league_name, match_count: newEventsCount}
+                                    })
+                                }
                             }
-                        } else {
-                            if(leagueNames.includes(newEvent.league_name)) {
-                                let leagueMatchCount = this.leagues[newEvent.game_schedule].filter(league => league.name == newEvent.league_name)[0].match_count
-                                this.$store.commit('trade/UPDATE_LEAGUE_MATCH_COUNT', { schedule: newEvent.game_schedule, league: newEvent.league_name, match_count: leagueMatchCount + 1 })
-                            } else {
-                                let newEventsCount = additionalEvents.filter(event => event.league_name == newEvent.league_name && event.game_schedule == newEvent.game_schedule).length
-                                this.$store.commit('trade/ADD_TO_LEAGUES', { schedule: newEvent.game_schedule, league: { name: newEvent.league_name, match_count: newEventsCount } })
-                            }
-                        }
-                    })
+                        })
+                    }
                 } else if(getSocketKey(response.data) === 'getForRemovalEvents') {
                     let removedEvents = getSocketValue(response.data, 'getForRemovalEvents')
                     removedEvents.map(removedEvent => {
