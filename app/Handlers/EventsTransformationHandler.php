@@ -3,7 +3,6 @@
 namespace App\Handlers;
 
 use App\Facades\SwooleHandler;
-use App\Models\{SystemConfiguration};
 use Exception;
 use Illuminate\Support\Facades\{Log, DB, Redis};
 
@@ -12,12 +11,14 @@ class EventsTransformationHandler
     protected $message;
     protected $offset;
     protected $swoole;
+    protected $missingCountConfiguration;
 
-    public function init($message, $offset, $swoole)
+    public function init($message, $offset, $swoole, $missingCountConfiguration)
     {
-        $this->message = $message;
-        $this->offset  = $offset;
-        $this->swoole  = $swoole;
+        $this->message                   = $message;
+        $this->offset                    = $offset;
+        $this->swoole                    = $swoole;
+        $this->missingCountConfiguration = $missingCountConfiguration;
 
         return $this;
     }
@@ -25,7 +26,11 @@ class EventsTransformationHandler
     public function handle()
     {
         try {
-            $startTime = microtime(TRUE);
+            $startTime                 = microtime(TRUE);
+            $activeEventsTable         = SwooleHandler::table('activeEventsTable');
+            $missingCountConfiguration = $this->missingCountConfiguration;
+            $activeEvents              = $this->message->data->event_ids;
+            $topicTable                = SwooleHandler::table('topicTable');
 
             if (env('APP_ENV') != "local") {
                 if (!Redis::exists('type:events:requestUID:' . $this->message->request_uid)) {
@@ -40,14 +45,7 @@ class EventsTransformationHandler
                     'schedule:' . $this->message->data->schedule
                 ]);
 
-            $doesExist = false;
-            foreach (SwooleHandler::table('eventScrapingTable') as $key => $value) {
-                if ($key == $timestampSwtId) {
-                    $doesExist = true;
-                    break;
-                }
-            }
-            if ($doesExist) {
+            if (SwooleHandler::exists('eventScrapingTable', $timestampSwtId)) {
                 $swooleTS = SwooleHandler::getValue('eventScrapingTable', $timestampSwtId)['value'];
 
                 if ($swooleTS > $this->message->request_ts) {
@@ -57,9 +55,6 @@ class EventsTransformationHandler
             }
 
             SwooleHandler::setColumnValue('eventScrapingTable', $timestampSwtId, 'value', $this->message->request_ts);
-
-            /** LOOK-UP TABLES */
-            $activeEventsTable = SwooleHandler::table('activeEventsTable');
 
             /**
              * PROVIDERS Swoole Table
@@ -75,7 +70,7 @@ class EventsTransformationHandler
                 Log::info("Leagues Transformation ignored - Provider doesn't exist");
                 return;
             } else {
-                $provider = SwooleHandler::getValue('providersTable', $providerSwtId);
+                $provider   = SwooleHandler::getValue('providersTable', $providerSwtId);
                 $providerId = $provider['id'];
             }
 
@@ -93,7 +88,7 @@ class EventsTransformationHandler
                 Log::info("Events Transformation ignored - Sport doesn't exist");
                 return;
             } else {
-                $sports = SwooleHandler::getValue('sportsTable', $sportSwtId);
+                $sports  = SwooleHandler::getValue('sportsTable', $sportSwtId);
                 $sportId = $sports['id'];
             }
 
@@ -103,67 +98,42 @@ class EventsTransformationHandler
                 'schedule:' . $this->message->data->schedule
             ]);
 
-            $doesExist = false;
-            foreach ($activeEventsTable as $key => $value) {
-                if ($key == $activeEventsSwtId) {
-                    $doesExist = true;
-                    break;
-                }
-            }
-
-            if ($doesExist) {
-                $missingCountConfiguration = SystemConfiguration::getSystemConfigurationValue('EVENT_VALID_MAX_MISSING_COUNT');
-
-                $eventsJson   = $activeEventsTable->get($activeEventsSwtId);
-                $events       = json_decode($eventsJson['events'], true);
-                $activeEvents = $this->message->data->event_ids;
+            if (SwooleHandler::exists('activeEventsTable', $activeEventsSwtId)) {
+                $eventsJson = SwooleHandler::getValue('activeEventsTable', $activeEventsSwtId);
+                $events     = json_decode($eventsJson['events'], true);
 
                 if (is_null($events) || !is_array($events)) {
                     $events = [];
                 }
                 $inActiveEvents = array_diff($events, $activeEvents);
 
-                $data = [];
                 foreach ($inActiveEvents as $eventIdentifier) {
                     $eventTableKey = "sId:{$sportId}:pId:{$providerId}:eventIdentifier:{$eventIdentifier}";
                     $event         = SwooleHandler::getValue('eventRecordsTable', $eventTableKey);
                     if ($event) {
                         $missingCount = (int) $event['missing_count'] + 1;
-                        SwooleHandler::setColumnValue('eventRecordsTable', $eventTableKey, 'missing_count', $missingCount);
                         if ($missingCount >= $missingCountConfiguration->value) {
-                            $masterEvent = DB::table('master_events AS me')
-                                             ->join('master_leagues AS ml', 'me.master_league_id', '=', 'ml.id')
-                                             ->join('events as e', 'e.master_event_id', 'me.id')
-                                             ->where('e.event_identifier', $event['event_identifier'])
-                                             ->select('me.*', 'ml.name AS league_name', 'me.master_league_id')
-                                             ->first();
+                            $inactiveEvent = [
+                                'uid'           => $event['master_event_unique_id'],
+                                'league_name'   => $event['master_league_name'],
+                                'game_schedule' => $event['game_schedule']
+                            ];
 
-                            if ($masterEvent) {
-                                $inactiveEvent       = [
-                                    'uid'           => $masterEvent->master_event_unique_id,
-                                    'league_name'   => $masterEvent->league_name,
-                                    'game_schedule' => $masterEvent->game_schedule
-                                ];
-                                $data[]              = $inactiveEvent;
+                            SwooleHandler::setValue('inactiveEventsTable', 'unique:' . uniqid(), [
+                                'event' => json_encode($inactiveEvent)
+                            ]);
 
-                                SwooleHandler::setValue('inactiveEventsTable', 'unique:' . uniqid(), [
-                                    'event' => json_encode($inactiveEvent)
-                                ]);
-
-                                $topicTable = SwooleHandler::table('topicTable');
-                                foreach ($topicTable as $k => $topic) {
-                                    if (strpos($topic['topic_name'], 'uid-' . $masterEvent->master_event_unique_id) === 0) {
-                                        SwooleHandler::remove('topicTable', $k);
-                                    }
+                            foreach ($topicTable as $k => $topic) {
+                                if (strpos($topic['topic_name'], 'uid-' . $event['master_event_unique_id']) === 0) {
+                                    SwooleHandler::remove('topicTable', $k);
                                 }
                             }
-                            $doesExist = SwooleHandler::exists('eventRecordsTable', $eventTableKey);
-                            if ($doesExist) {
+
+                            if (SwooleHandler::exists('eventRecordsTable', $eventTableKey)) {
                                 SwooleHandler::remove('eventRecordsTable', $eventTableKey);
-                                if (($key = array_search($eventIdentifier, $this->message->data->event_ids)) !== false) {
-                                    unset($this->message->data->event_ids[$key]);
-                                }
                             }
+
+                            SwooleHandler::setColumnValue('eventRecordsTable', $eventTableKey, 'missing_count', $missingCount);
                         } else {
                             $activeEvents[] = $eventIdentifier;
                         }
@@ -182,7 +152,7 @@ class EventsTransformationHandler
                 'request_ts'       => json_encode($this->message->request_ts),
                 'offset'           => json_encode($this->offset),
                 'time_consumption' => json_encode($timeConsumption),
-                'events'           => json_encode($this->message->data->event_ids),
+                'events'           => json_encode($activeEvents),
             ]);
         } catch (Exception $e) {
             Log::error(json_encode(

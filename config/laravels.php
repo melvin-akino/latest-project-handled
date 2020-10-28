@@ -297,15 +297,17 @@ return [
         'eventRecords'              => [ //key format [sId:$sportId:pId:$providerId:eventIdentifier:$eventIdentifier] = [event_identifier = $eventIdentifier, ...]
             'size'   => 10000,
             'column' => [
+                ['name' => 'master_event_unique_id', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 30],
                 ['name' => 'event_identifier', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 30],
                 ['name' => 'sport_id', 'type' => \Swoole\Table::TYPE_INT],
                 ['name' => 'league_id', 'type' => \Swoole\Table::TYPE_INT],
+                ['name' => 'master_league_name', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 100],
                 ['name' => 'team_home_id', 'type' => \Swoole\Table::TYPE_INT],
                 ['name' => 'team_away_id', 'type' => \Swoole\Table::TYPE_INT],
                 ['name' => 'ref_schedule', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 30],
+                ['name' => 'game_schedule', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 30],
                 ['name' => 'provider_id', 'type' => \Swoole\Table::TYPE_INT],
-                ['name' => 'missing_count', 'type' => \Swoole\Table::TYPE_INT],
-                ['name' => 'raw_data', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 10000]
+                ['name' => 'missing_count', 'type' => \Swoole\Table::TYPE_INT]
             ],
         ],
         'oddRecords' => [ //key format [sId:$sportId:pId:$providerId:marketId:$marketId] = [event_identifier = $eventIdentifier, ...]

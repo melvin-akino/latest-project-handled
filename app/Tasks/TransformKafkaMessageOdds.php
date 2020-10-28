@@ -3,9 +3,8 @@
 namespace App\Tasks;
 
 use App\Facades\SwooleHandler;
-use App\Models\{SystemConfiguration, UserProviderConfiguration};
 use Hhxsv5\LaravelS\Swoole\Task\Task;
-use Illuminate\Support\Facades\{DB, Log, Redis};
+use Illuminate\Support\Facades\{Log, Redis};
 
 class TransformKafkaMessageOdds extends Task
 {
@@ -32,8 +31,6 @@ class TransformKafkaMessageOdds extends Task
         Log::info("Starting Task for offset:" . $this->offset);
         try {
             $startTime = microtime(TRUE);
-
-            $swoole        = app('swoole');
 
             list(
                 'providerId' => $providerId,
@@ -94,8 +91,6 @@ class TransformKafkaMessageOdds extends Task
             ];
 
             if ($eventRecord) {
-                $eventsData = json_decode($eventRecord['raw_data'], true);
-
                 $mlEventRecord = SwooleHandler::getValue('mlEventsTable', implode(':', [
                     $sportId,
                     $masterLeagueId,
@@ -117,21 +112,21 @@ class TransformKafkaMessageOdds extends Task
 
                 $getEvents['uid'] = $uid;
 
-                if ($this->message->data->schedule == 'early' && $eventsData['schedule'] == 'today') {
+                if ($this->message->data->schedule == 'early' && $eventRecord['game_schedule'] == 'today') {
                     Log::info("Transformation ignored - event is already in today");
 
-                    $this->saveEventRecords($eventSwtId, $sportId, $leagueId, $teamHomeId, $teamAwayId, $providerId);
+                    $this->saveEventRecords($eventSwtId, $sportId, $leagueId, $teamHomeId, $teamAwayId, $providerId, $uid, $masterLeagueName);
                     return;
                 }
 
-                if ($this->message->data->schedule == 'today' && $eventsData['schedule'] == 'inplay') {
+                if ($this->message->data->schedule == 'today' && $eventRecord['game_schedule'] == 'inplay') {
                     Log::info("Transformation ignored - event is already in play");
 
-                    $this->saveEventRecords($eventSwtId, $sportId, $leagueId, $teamHomeId, $teamAwayId, $providerId);
+                    $this->saveEventRecords($eventSwtId, $sportId, $leagueId, $teamHomeId, $teamAwayId, $providerId, $uid, $masterLeagueName);
                     return;
                 }
 
-                $this->saveEventRecords($eventSwtId, $sportId, $leagueId, $teamHomeId, $teamAwayId, $providerId);
+                $this->saveEventRecords($eventSwtId, $sportId, $leagueId, $teamHomeId, $teamAwayId, $providerId, $uid, $masterLeagueName);
 
                 if (SwooleHandler::exists('eventHasMarketsTable', 'eventHasMarkets:' . $uid)) {
                     SwooleHandler::setColumnValue('eventHasMarketsTable', 'eventHasMarkets:' . $uid, 'has_markets', 1);
@@ -292,7 +287,7 @@ class TransformKafkaMessageOdds extends Task
                     ]);
                 }
 
-                $this->saveEventRecords($eventSwtId, $sportId, $leagueId, $teamHomeId, $teamAwayId, $providerId);
+                $this->saveEventRecords($eventSwtId, $sportId, $leagueId, $teamHomeId, $teamAwayId, $providerId, $uid, $masterLeagueName);
 
                 $getEvents['uid'] = $uid;
 
@@ -364,31 +359,6 @@ class TransformKafkaMessageOdds extends Task
                             ]);
                         }
                     }
-                    foreach (SwooleHandler::table('wsTable') as $key => $row) {
-                        if (strpos($key, 'uid:') === 0 && $swoole->isEstablished($row['value'])) {
-                            $userId = substr($key, strlen('uid:'));
-                            $userProviderIds = UserProviderConfiguration::getProviderIdList($userId);
-                            if (in_array($providerId, $userProviderIds)) {
-                                $fd     = SwooleHandler::getValue('wsTable', 'uid:' . $userId);
-                                if (!empty($getEvents['market_odds'])) {
-                                    if ($swoole->isEstablished($fd['value'])) {
-                                        $swoole->push($fd['value'], json_encode([
-                                            'getAdditionalEvents' => [$getEvents]
-                                        ]));
-                                    }
-                                } else {
-                                    SwooleHandler::remove('eventRecordsTable', $eventSwtId);
-                                    SwooleHandler::remove('mlEventsTable', implode(':', [
-                                        $sportId,
-                                        $masterLeagueId,
-                                        $multiTeam['home']['id'],
-                                        $multiTeam['away']['id'],
-                                        date("Y-m-d", strtotime($this->message->data->referenceSchedule))
-                                    ]));
-                                }
-                            }
-                        }
-                    }
                 }
             }
 
@@ -426,7 +396,6 @@ class TransformKafkaMessageOdds extends Task
                 ]),
             ]);
         } catch (Exception $e) {
-            DB::rollBack();
             Log::error(json_encode(
                 [
                     'message' => $e->getMessage(),
@@ -439,20 +408,20 @@ class TransformKafkaMessageOdds extends Task
         Log::info("Ending Task for offset:" . $this->offset);
     }
 
-    private function saveEventRecords($eventSwtId, $sportId, $leagueId, $teamHomeId, $teamAwayId, $providerId)
+    private function saveEventRecords($eventSwtId, $sportId, $leagueId, $teamHomeId, $teamAwayId, $providerId, $uid, $masterLeagueName)
     {
-        $this->message->data->id = null;
-
         SwooleHandler::setValue('eventRecordsTable', $eventSwtId, [
-            'event_identifier' => $this->message->data->events[0]->eventId,
-            'sport_id'         => $sportId,
-            'league_id'        => $leagueId,
-            'team_home_id'     => $teamHomeId,
-            'team_away_id'     => $teamAwayId,
-            'ref_schedule'     => date("Y-m-d H:i:s", strtotime($this->message->data->referenceSchedule)),
-            'provider_id'      => $providerId,
-            'missing_count'    => 0,
-            'raw_data'         => json_encode($this->message->data)
+            'master_event_unique_id' => $uid,
+            'event_identifier'       => $this->message->data->events[0]->eventId,
+            'sport_id'               => $sportId,
+            'league_id'              => $leagueId,
+            'master_league_name'     => $masterLeagueName,
+            'team_home_id'           => $teamHomeId,
+            'team_away_id'           => $teamAwayId,
+            'ref_schedule'           => date("Y-m-d H:i:s", strtotime($this->message->data->referenceSchedule)),
+            'game_schedule'          => $this->message->data->schedule,
+            'provider_id'            => $providerId,
+            'missing_count'          => 0,
         ]);
 
         $activeEventsSwtId = implode(':', [
@@ -460,16 +429,13 @@ class TransformKafkaMessageOdds extends Task
             'pId:' . $providerId,
             'schedule:' . $this->message->data->schedule
         ]);
-        $activeEvents = SwooleHandler::getValue('activeEventsTable', $activeEventsSwtId);
-        if ($activeEvents) {
-            $activeEvents = json_decode($activeEvents['events'], true);
-            if (is_null($activeEvents)) {
-                $activeEvents = [];
-            }
-            if (!in_array($this->message->data->events[0]->eventId, $activeEvents)) {
-                $activeEvents[] = $this->message->data->events[0]->eventId;
-                SwooleHandler::setColumnValue('activeEventsTable', $activeEventsSwtId, 'events', json_encode($activeEvents));
-            }
+        $activeEvents = [];
+        if (SwooleHandler::exists('activeEventsTable', $activeEventsSwtId)) {
+            $activeEvents = json_decode(SwooleHandler::getValue('activeEventsTable', $activeEventsSwtId)['events'], true);
+        }
+        if (!in_array($this->message->data->events[0]->eventId, $activeEvents)) {
+            $activeEvents[] = $this->message->data->events[0]->eventId;
+            SwooleHandler::setValue('activeEventsTable', $activeEventsSwtId, ['events' => json_encode($activeEvents)]);
         }
     }
 }

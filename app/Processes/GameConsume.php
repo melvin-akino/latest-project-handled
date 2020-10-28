@@ -2,6 +2,7 @@
 
 namespace App\Processes;
 
+use App\Models\SystemConfiguration;
 use Hhxsv5\LaravelS\Swoole\Process\CustomProcessInterface;
 use Illuminate\Support\Facades\Log;
 use Swoole\Http\Server;
@@ -33,6 +34,8 @@ class GameConsume implements CustomProcessInterface
                 $eventsTransformationHandler = app('EventsTransformationHandler');
                 $leaguesTransformationHandler = app('LeaguesTransformationHandler');
 
+                $missingCountConfiguration = SystemConfiguration::getSystemConfigurationValue('EVENT_VALID_MAX_MISSING_COUNT');
+
                 while (!self::$quit) {
                     $message = $kafkaConsumer->consume(0);
                     if ($message->err == RD_KAFKA_RESP_ERR_NO_ERROR) {
@@ -47,7 +50,7 @@ class GameConsume implements CustomProcessInterface
                                 $leaguesTransformationHandler->init($payload, $message->offset, $swoole)->handle();
                                 break;
                             case 'event':
-                                $eventsTransformationHandler->init($payload, $message->offset, $swoole)->handle();
+                                $eventsTransformationHandler->init($payload, $message->offset, $swoole, $missingCountConfiguration)->handle();
                                 break;
                             case 'odd':
                                 $oddsValidationHandler->init($payload, $message->offset, $swoole)->handle();
