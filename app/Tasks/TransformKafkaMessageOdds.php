@@ -231,26 +231,26 @@ class TransformKafkaMessageOdds extends Task
                                     $memUID = Redis::get($marketSelection->market_id);
                                 }
 
-                                if ($oddRecord) {
+                                if (!empty($memUID)) {
                                     if ($oddRecord['odds'] != $odds) {
                                         $oddsUpdated = [
-                                            'market_id'   => $oddRecord['memUID'],
-                                            'odds'        => $odds,
+                                            'market_id' => $memUID,
+                                            'odds'      => $odds,
                                         ];
                                         if (!empty($points)) {
                                             $oddsUpdated['points'] = $points;
                                         }
                                         $updatedOdds[] = $oddsUpdated;
                                     }
-                                }
 
-                                SwooleHandler::setValue('oddRecordsTable', 'sId:' . $sportId . ':pId:' . $providerId . ':marketId:' . $marketSelection->market_id, [
-                                    'market_id'   => $marketSelection->market_id,
-                                    'sport_id'    => $sportId,
-                                    'provider_id' => $providerId,
-                                    'odds'        => $odds,
-                                    'memUID'      => $memUID
-                                ]);
+                                    SwooleHandler::setValue('oddRecordsTable', 'sId:' . $sportId . ':pId:' . $providerId . ':marketId:' . $marketSelection->market_id, [
+                                        'market_id'   => $marketSelection->market_id,
+                                        'sport_id'    => $sportId,
+                                        'provider_id' => $providerId,
+                                        'odds'        => $odds,
+                                        'memUID'      => $memUID
+                                    ]);
+                                }
                             }
                         }
                     }

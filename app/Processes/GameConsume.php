@@ -5,6 +5,7 @@ namespace App\Processes;
 use App\Models\SystemConfiguration;
 use Hhxsv5\LaravelS\Swoole\Process\CustomProcessInterface;
 use Illuminate\Support\Facades\Log;
+use Swoole\Coroutine;
 use Swoole\Http\Server;
 use Swoole\Process;
 use Exception;
@@ -61,11 +62,11 @@ class GameConsume implements CustomProcessInterface
                         if (env('CONSUMER_PRODUCER_LOG', false)) {
                             Log::channel('kafkalog')->info(json_encode($message));
                         }
-                        usleep(10000);
+                        Coroutine::sleep(0.01);
                         $kafkaConsumer->commitAsync($message);
                         continue;
                     }
-                    usleep(100000);
+                    Coroutine::sleep(0.01);
                 }
             }
         } catch (Exception $e) {

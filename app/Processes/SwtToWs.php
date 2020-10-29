@@ -54,47 +54,15 @@ class SwtToWs implements CustomProcessInterface
 
     private static function getUpdatedOdds($swoole)
     {
-        $updatedEventsTable = $swoole->updatedEventsTable;
-        $wsTable            = $swoole->wsTable;
-        $topicTable         = $swoole->topicTable;
-        $userEnabledProviders = [];
+        $updatedEventsTable = SwooleHandler::table('updatedEventsTable');
+        $wsTable            = SwooleHandler::table('wsTable');
+        $topicTable         = SwooleHandler::table('topicTable');
         foreach ($updatedEventsTable as $k => $r) {
             $updatedMarkets = json_decode($r['odds']);
-            $providerId = $r['provider_id'];
-
-            $uid = substr($k, strlen('updatedEvents:'));
-
-            if (!empty($updatedMarkets)) {
-                foreach ($topicTable as $topic) {
-                    if (strpos($topic['topic_name'], 'uid-' . $uid) === 0) {
-                        if (!array_key_exists($topic['user_id'], $userEnabledProviders)) {
-                            $userProviderIds                         = UserProviderConfiguration::getProviderIdList($topic['user_id']);
-                            $userEnabledProviders[$topic['user_id']] = $userProviderIds;
-                        }
-                        $fd = $wsTable->get('uid:' . $topic['user_id']);
-                        if (in_array($providerId, $userEnabledProviders[$topic['user_id']]) && $swoole->isEstablished($fd['value'])) {
-                            $swoole->push($fd['value'], json_encode(['getUpdatedOdds' => $updatedMarkets]));
-                        }
-                    }
-                }
-
-                foreach ($userEnabledProviders as $userId => $userEnabledProvider) {
-                    $fd = $wsTable->get('uid:' . $userId);
-                    if ($swoole->isEstablished($fd['value'])) {
-                        $swoole->push($fd['value'], json_encode(['getEventHasOtherMarket' => [
-                            'uid'               => $uid,
-                            'has_other_markets' => Game::checkIfHasOtherMarkets($uid, $userEnabledProvider)
-                        ]]));
-                    }
-                }
-            }
-            $updatedEventsTable->del($k);
-        }
-
-        $eventsInfoTable = $swoole->eventsInfoTable;
-        foreach ($eventsInfoTable as $key => $eventsInfo) {
-            $event = json_decode($eventsInfo['value'], true);
-            $uid = substr($key, strlen('eventsInfo:'));
+            $providerId     = $r['provider_id'];
+            $uid            = substr($k, strlen('updatedEvents:'));
+            $eventsInfo     = SwooleHandler::getValue('eventsInfoTable', 'eventsInfo:' . $uid);
+            $event          = json_decode($eventsInfo['value'], true);
 
             $userSelectedLeagues = UserSelectedLeague::getSelectedLeagueByAllUsers([
                 'league_id' => $event['master_league_id'],
@@ -107,13 +75,32 @@ class SwtToWs implements CustomProcessInterface
                     if (SwooleHandler::exists('userSelectedLeaguesTable', $swtKey)) {
                         $fd = $swoole->wsTable->get('uid:' . $userSelectedLeague->user_id);
                         if ($swoole->isEstablished($fd['value'])) {
-                            if (SwooleHandler::exists('eventsInfoTable', 'eventsInfo:' . $uid)) {
-                                $swoole->push($fd['value'], json_encode(['getEventsUpdate' => $event]));
-                            }
+                            $swoole->push($fd['value'], json_encode(['getEventsUpdate' => $event]));
                         }
                     }
                 }
             }
+
+            if (!empty($updatedMarkets)) {
+                foreach ($topicTable as $topic) {
+                    if (strpos($topic['topic_name'], 'uid-' . $uid) === 0) {
+                        $fd              = $wsTable->get('uid:' . $topic['user_id']);
+                        $userProviderIds = UserProviderConfiguration::getProviderIdList($topic['user_id']);
+
+                        if (in_array($providerId, $userProviderIds) && $swoole->isEstablished($fd['value'])) {
+                            $swoole->push($fd['value'], json_encode(['getEventHasOtherMarket' => [
+                                'uid'               => $uid,
+                                'has_other_markets' => Game::checkIfHasOtherMarkets($uid, $userProviderIds)
+                            ]]));
+                        }
+
+                        if (in_array($providerId, $userProviderIds) && $swoole->isEstablished($fd['value'])) {
+                            $swoole->push($fd['value'], json_encode(['getUpdatedOdds' => $updatedMarkets]));
+                        }
+                    }
+                }
+            }
+            SwooleHandler::remove('updatedEventsTable', $k);
             SwooleHandler::remove('eventsInfoTable', 'eventsInfo:' . $uid);
         }
     }
