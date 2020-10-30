@@ -2,19 +2,15 @@
 
 namespace App\Jobs;
 
+use App\Facades\SwooleHandler;
 use Exception;
 use App\Models\{
     Game,
-    MasterLeague,
-    Timezones,
-    UserConfiguration,
-    UserProviderConfiguration
+    MasterLeague
 };
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Support\Facades\Log;
-use Hhxsv5\LaravelS\Swoole\Task\Task;
-use Illuminate\Support\Facades\Redis;
 
 class WsEvents implements ShouldQueue
 {
@@ -22,39 +18,61 @@ class WsEvents implements ShouldQueue
 
     public function __construct($userId, $params, $additional = false)
     {
-        $this->userId             = $userId;
-        $this->params             = $params;
-        $this->masterLeagueName   = $params[1];
-        $this->schedule           = $params[2];
-        $this->additional         = $additional;
+        $this->userId           = $userId;
+        $this->params           = $params;
+        $this->masterLeagueName = $params[1];
+        $this->schedule         = $params[2];
+        $this->additional       = $additional;
     }
 
     public function handle()
     {
+        $channelName = $this->additional ? "getAdditionalEvents" : "getEvents";
+        $server      = app('swoole');
+        $eventData   = [];
+        $userId      = $this->userId;
+        $fd          = SwooleHandler::getValue('wsTable', 'uid:' . $userId);
         try {
-            $userId = $this->userId;
-            $server = app('swoole');
-            $fd     = $server->wsTable->get('uid:' . $userId);
-            $topicTable   = $server->topicTable;
+            $topicTable   = SwooleHandler::table('topicTable');
             $masterLeague = MasterLeague::where('name', $this->masterLeagueName)->first();
 
-            $gameDetails = Game::getGameDetails($masterLeague->id, $this->schedule, $userId);
-            $data        = eventTransformation($gameDetails, $userId, $topicTable, 'socket');
+            if (count($this->params) > 3) {
+                $meUID       = $this->params[3];
+                $gameDetails = Game::getGameDetails($masterLeague->id, $this->schedule, $userId, $meUID);
+                if (count($this->params) > 4) {
+                    $otherTransformed   = Game::getOtherMarketsByMemUID($meUID);
+                    $otherMarketDetails = [
+                        'meUID'       => $meUID,
+                        'transformed' => $otherTransformed
+                    ];
+                    $data               = eventTransformation($gameDetails, $userId, $topicTable, 'socket', $otherMarketDetails);
+                } else {
+                    $data = eventTransformation($gameDetails, $userId, $topicTable, 'socket');
+                }
+            } else {
+                $gameDetails = Game::getGameDetails($masterLeague->id, $this->schedule, $userId);
+                $data        = eventTransformation($gameDetails, $userId, $topicTable, 'socket');
+            }
 
-            $gameData = is_array($data) ? $data : [];
+            $gameData  = is_array($data) ? $data : [];
             $eventData = array_values($gameData);
-
-            if (!empty($eventData)) {
-                $channelName = $this->additional ? "getAdditionalEvents" : "getEvents";
-
-                if ($server->isEstablished($fd['value'])) {
+        } catch (Exception $e) {
+            Log::error($e->getMessage());
+        } finally {
+            if ($server->isEstablished($fd['value'])) {
+                if (count($this->params) > 3) {
                     $server->push($fd['value'], json_encode([
-                        $channelName => $eventData
+                        $channelName => !empty($eventData) ? $eventData : [
+                            'leagueName' => $this->masterLeagueName,
+                            'schedule' => $this->schedule,
+                            'uid' => $this->params[3]]
+                    ]));
+                } else {
+                    $server->push($fd['value'], json_encode([
+                        $channelName => !empty($eventData) ? $eventData : ['leagueName' => $this->masterLeagueName, 'schedule' => $this->schedule]
                     ]));
                 }
             }
-        } catch (Exception $e) {
-            Log::error($e->getMessage());
         }
     }
 }

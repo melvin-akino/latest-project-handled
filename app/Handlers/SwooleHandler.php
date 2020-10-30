@@ -61,4 +61,9 @@ class SwooleHandler
     {
         return self::$swoole->{$swooleTable}[$key][$column] = $value;
     }
+
+    public static function table($swooleTable)
+    {
+        return self::$swoole->{$swooleTable};
+    }
 }

@@ -3,9 +3,8 @@
 namespace App\Tasks;
 
 use App\Facades\SwooleHandler;
-use App\Models\{SystemConfiguration, UserProviderConfiguration, UserSelectedLeague};
 use Hhxsv5\LaravelS\Swoole\Task\Task;
-use Illuminate\Support\Facades\{DB, Log, Redis};
+use Illuminate\Support\Facades\{Log, Redis};
 
 class TransformKafkaMessageOdds extends Task
 {
@@ -29,25 +28,25 @@ class TransformKafkaMessageOdds extends Task
 
     public function handle()
     {
+        Log::info("Starting Task for offset:" . $this->offset);
         try {
             $startTime = microtime(TRUE);
 
-            $swoole = app('swoole');
-
             list(
                 'providerId' => $providerId,
-                'sportId' => $sportId,
-                'parameters' => $parameters
+                'sportId'    => $sportId,
+                'parameters' => $parameters,
+                'withChange' => $withChange
                 ) = $this->internalParameters;
 
             list(
-                'master_league_id' => $masterLeagueId,
-                'master_team_home_id' => $multiTeam['home']['id'],
-                'master_team_away_id' => $multiTeam['away']['id'],
-                'league_id' => $leagueId,
-                'team_home_id' => $teamHomeId,
-                'team_away_id' => $teamAwayId,
-                'master_league_name' => $masterLeagueName,
+                'master_league_id'      => $masterLeagueId,
+                'master_team_home_id'   => $multiTeam['home']['id'],
+                'master_team_away_id'   => $multiTeam['away']['id'],
+                'league_id'             => $leagueId,
+                'team_home_id'          => $teamHomeId,
+                'team_away_id'          => $teamAwayId,
+                'master_league_name'    => $masterLeagueName,
                 'master_team_home_name' => $multiTeam['home']['name'],
                 'master_team_away_name' => $multiTeam['away']['name']
                 ) = $parameters;
@@ -70,8 +69,7 @@ class TransformKafkaMessageOdds extends Task
 
             $eventRecord = SwooleHandler::getValue('eventRecordsTable', $eventSwtId);
 
-            $missingCount = $eventRecord['missing_count'];
-            $getEvents    = [
+            $getEvents = [
                 'game_schedule'  => $this->message->data->schedule,
                 'has_bet'        => false,
                 'home'           => [
@@ -93,14 +91,12 @@ class TransformKafkaMessageOdds extends Task
             ];
 
             if ($eventRecord) {
-                $eventsData = json_decode($eventRecord['raw_data'], true);
-
                 $mlEventRecord = SwooleHandler::getValue('mlEventsTable', implode(':', [
                     $sportId,
                     $masterLeagueId,
                     $multiTeam['home']['id'],
                     $multiTeam['away']['id'],
-                    date("Y-m-d H:i:s", strtotime($this->message->data->referenceSchedule))
+                    date("Y-m-d", strtotime($this->message->data->referenceSchedule))
                 ]));
 
                 if ($mlEventRecord) {
@@ -116,136 +112,158 @@ class TransformKafkaMessageOdds extends Task
 
                 $getEvents['uid'] = $uid;
 
-                if ($this->message->data->schedule == 'early' && $eventsData['schedule'] == 'today') {
+                if ($this->message->data->schedule == 'early' && $eventRecord['game_schedule'] == 'today') {
                     Log::info("Transformation ignored - event is already in today");
 
-                    $this->saveEventRecords($eventSwtId, $sportId, $leagueId, $teamHomeId, $teamAwayId, $providerId);
+                    $this->saveEventRecords($eventSwtId, $sportId, $leagueId, $teamHomeId, $teamAwayId, $providerId, $uid, $masterLeagueName);
                     return;
                 }
 
-                if ($this->message->data->schedule == 'today' && $eventsData['schedule'] == 'inplay') {
+                if ($this->message->data->schedule == 'today' && $eventRecord['game_schedule'] == 'inplay') {
                     Log::info("Transformation ignored - event is already in play");
 
-                    $this->saveEventRecords($eventSwtId, $sportId, $leagueId, $teamHomeId, $teamAwayId, $providerId);
+                    $this->saveEventRecords($eventSwtId, $sportId, $leagueId, $teamHomeId, $teamAwayId, $providerId, $uid, $masterLeagueName);
                     return;
                 }
 
-                $this->saveEventRecords($eventSwtId, $sportId, $leagueId, $teamHomeId, $teamAwayId, $providerId);
+                $this->saveEventRecords($eventSwtId, $sportId, $leagueId, $teamHomeId, $teamAwayId, $providerId, $uid, $masterLeagueName);
 
-                $arrayEvents = $this->message->data->events;
-                foreach ($arrayEvents as $eventKey => $event) {
-                    foreach ($event->market_odds as $marketOdd) {
-                        if (empty($marketOdd->marketSelection)) {
-                            break 2;
-                        }
-                        foreach ($marketOdd->marketSelection as $marketSelection) {
-                            if (empty($marketSelection->market_id)) {
-                                break 3;
+                if (SwooleHandler::exists('eventHasMarketsTable', 'eventHasMarkets:' . $uid)) {
+                    SwooleHandler::setColumnValue('eventHasMarketsTable', 'eventHasMarkets:' . $uid, 'has_markets', 1);
+                }
+
+                if ($withChange) {
+                    $updateLeagues = true;
+                    $arrayEvents = $this->message->data->events;
+                    foreach ($arrayEvents as $eventKey => $event) {
+                        foreach ($event->market_odds as $marketOdd) {
+                            if (empty($marketOdd->marketSelection)) { // means that one of the team scored
+                                SwooleHandler::setValue('eventsScoredTable', 'eventsScored:' . $uid, [
+                                    'uid'              => $uid,
+                                    'master_league_id' => $masterLeagueId,
+                                    'schedule'         => $this->message->data->schedule,
+                                    'sport_id'         => $sportId
+                                ]);
+                                SwooleHandler::setValue('eventHasMarketsTable', 'eventHasMarkets:' . $uid, [
+                                    'uid'              => $uid,
+                                    'master_league_id' => $masterLeagueId,
+                                    'schedule'         => $this->message->data->schedule,
+                                    'sport_id'         => $sportId,
+                                    'has_markets'      => 0
+                                ]);
+                                Log::info($uid . " event scored");
+                                break 2;
                             }
-                            $indicator = strtoupper($marketSelection->indicator);
-                            if (in_array($indicator, ['OVER', 'UNDER'])) {
-                                if ($indicator == 'OVER') {
-                                    $indicator = 'HOME';
-                                } else {
-                                    $indicator = 'AWAY';
+                            foreach ($marketOdd->marketSelection as $marketSelection) {
+                                if (empty($marketSelection->market_id)) {// means that the event no longer have market id for a specific type
+
+                                    if (in_array($marketOdd->oddsType, ['1X2', 'HT 1X2']) && $event->market_type != 1) {
+                                        break 2;
+                                    }
+                                    SwooleHandler::setValue('eventNoMarketIdsTable', 'market_event_identifier:' . $event->eventId, [
+                                        'uid'                     => $uid,
+                                        'odd_type'                => $marketOdd->oddsType,
+                                        'market_event_identifier' => $event->eventId,
+                                        'master_league_id'        => $masterLeagueId,
+                                        'schedule'                => $this->message->data->schedule,
+                                        'sport_id'                => $sportId
+                                    ]);
+                                    Log::info($uid . " event no market for type " . $marketOdd->oddsType . ' for market event identifier ' . $event->eventId);
+
+
+                                    break;
                                 }
-                            }
-
-                            $odds   = $marketSelection->odds;
-                            $points = "";
-
-                            if (gettype($odds) == 'string') {
-                                $odds = explode(' ', $marketSelection->odds);
-
-                                if (count($odds) > 1) {
-                                    $points = $odds[0];
-                                    $odds   = $odds[1];
-                                } else {
-                                    $odds = $odds[0];
+                                $indicator = strtoupper($marketSelection->indicator);
+                                if (in_array($indicator, ['OVER', 'UNDER'])) {
+                                    if ($indicator == 'OVER') {
+                                        $indicator = 'HOME';
+                                    } else {
+                                        $indicator = 'AWAY';
+                                    }
                                 }
-                            }
 
-                            $odds = trim($odds) == '' ? 0 : (float) $odds;
-                            if ($eventKey == 0) {
-                                $getEvents['market_odds']['main'][$marketOdd->oddsType][$indicator]['odds'] = $odds;
-                            }
+                                $odds   = $marketSelection->odds;
+                                $points = "";
 
-                            if (array_key_exists('points', $marketSelection)) {
-                                $points = $marketSelection->points;
+                                if (gettype($odds) == 'string') {
+                                    $odds = explode(' ', $marketSelection->odds);
+
+                                    if (count($odds) > 1) {
+                                        $points = $odds[0];
+                                        $odds   = $odds[1];
+                                    } else {
+                                        $odds = $odds[0];
+                                    }
+                                }
+
+                                $odds = trim($odds) == '' ? 0 : (float) $odds;
                                 if ($eventKey == 0) {
-                                    $getEvents['market_odds']['main'][$marketOdd->oddsType][$indicator]['points'] = $points;
+                                    $getEvents['market_odds']['main'][$marketOdd->oddsType][$indicator]['odds'] = $odds;
                                 }
-                            }
 
-                            $oddRecord = SwooleHandler::getValue('oddRecordsTable', 'sId:' . $sportId . ':pId:' . $providerId . ':marketId:' . $marketSelection->market_id);
+                                if (array_key_exists('points', $marketSelection)) {
+                                    $points = $marketSelection->points;
+                                    if ($eventKey == 0) {
+                                        $getEvents['market_odds']['main'][$marketOdd->oddsType][$indicator]['points'] = $points;
+                                    }
+                                }
 
-                            if ($eventKey == 0) {
-                                $getEvents['market_odds']['main'][$marketOdd->oddsType][$indicator]['market_id']      = $oddRecord['memUID'];
-                                $getEvents['market_odds']['main'][$marketOdd->oddsType][$indicator]['provider_alias'] = strtoupper($this->message->data->provider);
-                            }
+                                $oddRecord = SwooleHandler::getValue('oddRecordsTable', 'sId:' . $sportId . ':pId:' . $providerId . ':marketId:' . $marketSelection->market_id);
 
-                            $marketPointsRedis       = 'marketPoints:' . $marketSelection->market_id;
-                            $marketPointsOffsetRedis = 'offsetMarketPoints:' . $marketSelection->market_id;
-                            if (
-                                !Redis::exists($marketPointsOffsetRedis) ||
-                                (int) Redis::get($marketPointsOffsetRedis) < (int) $this->offset
-                            ) {
-                                Redis::set($marketPointsOffsetRedis, $this->offset);
-                                Redis::set($marketPointsRedis, $points);
+                                if ($eventKey == 0) {
+                                    $getEvents['market_odds']['main'][$marketOdd->oddsType][$indicator]['market_id']      = $oddRecord['memUID'];
+                                    $getEvents['market_odds']['main'][$marketOdd->oddsType][$indicator]['provider_alias'] = strtoupper($this->message->data->provider);
+                                }
 
-                                Redis::expire($marketPointsOffsetRedis, self::REDIS_TTL);
-                                Redis::expire($marketPointsRedis, self::REDIS_TTL);
-                            }
+                                $marketPointsRedis       = 'marketPoints:' . $marketSelection->market_id;
+                                $marketPointsOffsetRedis = 'offsetMarketPoints:' . $marketSelection->market_id;
+                                if (
+                                    !Redis::exists($marketPointsOffsetRedis) ||
+                                    (int) Redis::get($marketPointsOffsetRedis) < (int) $this->offset
+                                ) {
+                                    Redis::set($marketPointsOffsetRedis, $this->offset);
+                                    Redis::set($marketPointsRedis, $points);
 
-                            if ($oddRecord) {
-                                if ($oddRecord['odds'] != $odds) {
-                                    $oddsUpdated = [
-                                        'market_id'   => $oddRecord['memUID'],
+                                    Redis::expire($marketPointsOffsetRedis, self::REDIS_TTL);
+                                    Redis::expire($marketPointsRedis, self::REDIS_TTL);
+                                    $memUID = $oddRecord['memUID'];
+                                } else {
+                                    $memUID = Redis::get($marketSelection->market_id);
+                                }
+
+                                if (!empty($memUID)) {
+                                    if ($oddRecord['odds'] != $odds) {
+                                        $oddsUpdated = [
+                                            'market_id' => $memUID,
+                                            'odds'      => $odds,
+                                        ];
+                                        if (!empty($points)) {
+                                            $oddsUpdated['points'] = $points;
+                                        }
+                                        $updatedOdds[] = $oddsUpdated;
+                                    }
+
+                                    SwooleHandler::setValue('oddRecordsTable', 'sId:' . $sportId . ':pId:' . $providerId . ':marketId:' . $marketSelection->market_id, [
+                                        'market_id'   => $marketSelection->market_id,
+                                        'sport_id'    => $sportId,
+                                        'provider_id' => $providerId,
                                         'odds'        => $odds,
-                                        'provider_id' => $providerId
-                                    ];
-                                    if (!empty($points)) {
-                                        $oddsUpdated['points'] = $points;
-                                    }
-                                    $updatedOdds[] = $oddsUpdated;
+                                        'memUID'      => $memUID
+                                    ]);
                                 }
                             }
                         }
                     }
                 }
 
-                foreach ($swoole->wsTable as $key => $row) {
-                    if (strpos($key, 'uid:') === 0 && $swoole->isEstablished($row['value'])) {
-                        $maxMissingCount = SystemConfiguration::getSystemConfigurationValue('EVENT_VALID_MAX_MISSING_COUNT')->value;
-                        if ($missingCount > $maxMissingCount) {
-                            $userId = substr($key, strlen('uid:'));
-
-                            $userSelectedLeagues = UserSelectedLeague::getUserSelectedLeague($userId, [
-                                'league_id' => $masterLeagueId,
-                                'schedule'  => $this->message->data->schedule,
-                                'sport_id'  => $sportId
-                            ]);
-
-                            if ($userSelectedLeagues->exists()) {
-                                foreach ($userSelectedLeagues->get() as $userSelectedLeague) {
-                                    $swtKey = 'userId:' . $userSelectedLeague->user_id . ':sId:' . $sportId . ':lId:' . $masterLeagueId . ':schedule:' . $this->message->data->schedule;
-
-                                    if (SwooleHandler::exists('userSelectedLeaguesTable', $swtKey)) {
-                                        SwooleHandler::remove('userSelectedLeaguesTable', $swtKey);
-                                    }
-                                }
-                                $userSelectedLeagues->delete();
-                            }
-                        }
-                    }
-                }
             } else {
+                $updateLeagues = true;
                 $mlEventRecord = SwooleHandler::getValue('mlEventsTable', implode(':', [
                     $sportId,
                     $masterLeagueId,
                     $multiTeam['home']['id'],
                     $multiTeam['away']['id'],
-                    date("Y-m-d H:i:s", strtotime($this->message->data->referenceSchedule))
+                    date("Y-m-d", strtotime($this->message->data->referenceSchedule))
                 ]));
 
                 if ($mlEventRecord) {
@@ -263,124 +281,107 @@ class TransformKafkaMessageOdds extends Task
                         $masterLeagueId,
                         $multiTeam['home']['id'],
                         $multiTeam['away']['id'],
-                        date("Y-m-d H:i:s", strtotime($this->message->data->referenceSchedule))
+                        date("Y-m-d", strtotime($this->message->data->referenceSchedule))
                     ]), [
                         'master_event_unique_id' => $uid,
                     ]);
                 }
 
-                $this->saveEventRecords($eventSwtId, $sportId, $leagueId, $teamHomeId, $teamAwayId, $providerId);
+                $this->saveEventRecords($eventSwtId, $sportId, $leagueId, $teamHomeId, $teamAwayId, $providerId, $uid, $masterLeagueName);
 
                 $getEvents['uid'] = $uid;
 
-                $mainMarkets = $this->message->data->events[0];
-                foreach ($mainMarkets->market_odds as $marketOdds) {
-                    foreach ($marketOdds->marketSelection as $marketSelection) {
-                        $indicator = strtoupper($marketSelection->indicator);
-                        if (in_array($indicator, ['OVER', 'UNDER'])) {
-                            if ($indicator == 'OVER') {
-                                $indicator = 'HOME';
-                            } else {
-                                $indicator = 'AWAY';
-                            }
-                        }
-                        $odds   = $marketSelection->odds;
-                        $points = "";
-
-                        if (gettype($marketOdds) == 'string') {
-                            $marketOdds = explode(' ', $marketSelection->odds);
-
-                            if (count($odds) > 1) {
-                                $points = $odds[0];
-                                $odds   = $odds[1];
-                            } else {
-                                $odds = $odds[0];
-                            }
-                        }
-
-                        $odds                                                                        = trim($odds) == '' ? 0 : (float) $odds;
-                        $getEvents['market_odds']['main'][$marketOdds->oddsType][$indicator]['odds'] = $odds;
-                        if (array_key_exists('points', $marketSelection)) {
-                            $getEvents['market_odds']['main'][$marketOdds->oddsType][$indicator]['points'] = $points;
-                        }
-
-                        if (!Redis::exists($marketSelection->market_id)) {
-                            $memUID = md5($this->offset . uniqid(rand(10000, 99999), true) . $indicator . $marketSelection->market_id, '');
-                            Redis::set($marketSelection->market_id, $memUID);
-
-                            Redis::expire($marketSelection->market_id, self::REDIS_TTL);
-                        } else {
-                            $memUID = Redis::get($marketSelection->market_id);
-                        }
-
-                        $marketPointsRedis       = 'marketPoints:' . $marketSelection->market_id;
-                        $marketPointsOffsetRedis = 'offsetMarketPoints:' . $marketSelection->market_id;
-                        if (
-                            !Redis::exists($marketPointsOffsetRedis) ||
-                            (int) Redis::get($marketPointsOffsetRedis) < (int) $this->offset
-                        ) {
-                            Redis::set($marketPointsOffsetRedis, $this->offset);
-                            Redis::set($marketPointsRedis, $points);
-
-                            Redis::expire($marketPointsOffsetRedis, self::REDIS_TTL);
-                            Redis::expire($marketPointsRedis, self::REDIS_TTL);
-                        }
-
-                        $getEvents['market_odds']['main'][$marketOdds->oddsType][$indicator]['market_id']      = $memUID;
-                        $getEvents['market_odds']['main'][$marketOdds->oddsType][$indicator]['provider_alias'] = strtoupper($this->message->data->provider);
-
-                        SwooleHandler::setValue('oddRecordsTable', 'sId:' . $sportId . ':pId:' . $providerId . ':marketId:' . $marketSelection->market_id, [
-                            'market_id'   => $marketSelection->market_id,
-                            'sport_id'    => $sportId,
-                            'provider_id' => $providerId,
-                            'odds'        => $odds,
-                            'memUID'      => $memUID
-                        ]);
-                    }
-                }
-                foreach ($swoole->wsTable as $key => $row) {
-                    if (strpos($key, 'uid:') === 0 && $swoole->isEstablished($row['value'])) {
-                        $userId          = substr($key, strlen('uid:'));
-                        $userProviderIds = UserProviderConfiguration::getProviderIdList($userId);
-                        if (in_array($providerId, $userProviderIds)) {
-                            $fd = SwooleHandler::getValue('wsTable', 'uid:' . $userId);
-                            if (!empty($getEvents['market_odds'])) {
-                                if ($swoole->isEstablished($fd['value'])) {
-                                    $swoole->push($fd['value'], json_encode([
-                                        'getAdditionalEvents' => [$getEvents]
-                                    ]));
+                if ($withChange) {
+                    $mainMarkets = $this->message->data->events[0];
+                    foreach ($mainMarkets->market_odds as $marketOdds) {
+                        foreach ($marketOdds->marketSelection as $marketSelection) {
+                            $indicator = strtoupper($marketSelection->indicator);
+                            if (in_array($indicator, ['OVER', 'UNDER'])) {
+                                if ($indicator == 'OVER') {
+                                    $indicator = 'HOME';
+                                } else {
+                                    $indicator = 'AWAY';
                                 }
-                            } else {
-                                SwooleHandler::remove('eventRecordsTable', $eventSwtId);
-                                SwooleHandler::remove('mlEventsTable', implode(':', [
-                                    $sportId,
-                                    $masterLeagueId,
-                                    $multiTeam['home']['id'],
-                                    $multiTeam['away']['id'],
-                                    date("Y-m-d H:i:s", strtotime($this->message->data->referenceSchedule))
-                                ]));
                             }
+                            $odds   = $marketSelection->odds;
+                            $points = "";
+
+                            if (gettype($odds) == 'string') {
+                                $odds = explode(' ', $odds);
+
+                                if (count($odds) > 1) {
+                                    $points = $odds[0];
+                                    $odds   = $odds[1];
+                                } else {
+                                    $odds = $odds[0];
+                                }
+                            }
+
+                            $odds                                                                        = trim($odds) == '' ? 0 : (float) $odds;
+                            $getEvents['market_odds']['main'][$marketOdds->oddsType][$indicator]['odds'] = $odds;
+                            if (array_key_exists('points', $marketSelection)) {
+                                $points = $marketSelection->points;
+                            }
+
+                            $getEvents['market_odds']['main'][$marketOdds->oddsType][$indicator]['points'] = $points;
+
+                            if (!Redis::exists($marketSelection->market_id)) {
+                                $memUID = md5($this->offset . uniqid(rand(10000, 99999), true) . $indicator . $marketSelection->market_id, '');
+                                Redis::set($marketSelection->market_id, $memUID);
+
+                                Redis::expire($marketSelection->market_id, self::REDIS_TTL);
+                            } else {
+                                $memUID = Redis::get($marketSelection->market_id);
+                            }
+
+                            $marketPointsRedis       = 'marketPoints:' . $marketSelection->market_id;
+                            $marketPointsOffsetRedis = 'offsetMarketPoints:' . $marketSelection->market_id;
+                            if (
+                                !Redis::exists($marketPointsOffsetRedis) ||
+                                (int) Redis::get($marketPointsOffsetRedis) < (int) $this->offset
+                            ) {
+                                Redis::set($marketPointsOffsetRedis, $this->offset);
+                                Redis::set($marketPointsRedis, $points);
+
+                                Redis::expire($marketPointsOffsetRedis, self::REDIS_TTL);
+                                Redis::expire($marketPointsRedis, self::REDIS_TTL);
+                            }
+
+                            $getEvents['market_odds']['main'][$marketOdds->oddsType][$indicator]['market_id']      = $memUID;
+                            $getEvents['market_odds']['main'][$marketOdds->oddsType][$indicator]['provider_alias'] = strtoupper($this->message->data->provider);
+
+                            SwooleHandler::setValue('oddRecordsTable', 'sId:' . $sportId . ':pId:' . $providerId . ':marketId:' . $marketSelection->market_id, [
+                                'market_id'   => $marketSelection->market_id,
+                                'sport_id'    => $sportId,
+                                'provider_id' => $providerId,
+                                'odds'        => $odds,
+                                'memUID'      => $memUID
+                            ]);
                         }
                     }
                 }
             }
-            if (!empty($updatedOdds)) {
-                $swoole->updatedEventsTable->set("updatedEvents:" . $uid, ['value' => json_encode($updatedOdds)]);
 
-                $swoole->eventsInfoTable->set("eventsInfo:" . $uid, [
-                    'value' => json_encode([
-                        'id'           => $uid,
-                        'score'        => [
-                            'home' => $this->message->data->home_score,
-                            'away' => $this->message->data->away_score
-                        ],
-                        'running_time' => $this->message->data->runningtime,
-                    ])
-                ]);
+            SwooleHandler::setValue('eventsInfoTable', "eventsInfo:" . $uid, [
+                'value' => json_encode([
+                    'id'           => $uid,
+                    'score' => [
+                        'home' => $this->message->data->home_score,
+                        'away' => $this->message->data->away_score
+                    ],
+                    'running_time' => $this->message->data->runningtime,
+                    'master_league_id'        => $masterLeagueId,
+                    'schedule'                => $this->message->data->schedule,
+                    'sport_id'                => $sportId
+                ])
+            ]);
+
+            if (!empty($updatedOdds)) {
+                SwooleHandler::setValue('updatedEventsTable', "updatedEvents:" . $uid, ['provider_id' => $providerId, 'odds' => json_encode($updatedOdds)]);
             }
 
-            $endTime         = microtime(TRUE);
-            $timeConsumption = $endTime - $startTime;
+            $endTime = microtime(TRUE);
+            $timeConsumption   = $endTime - $startTime;
 
             Log::channel('scraping-odds')->info([
                 'request_uid'      => json_encode($this->message->request_uid),
@@ -395,7 +396,6 @@ class TransformKafkaMessageOdds extends Task
                 ]),
             ]);
         } catch (Exception $e) {
-            DB::rollBack();
             Log::error(json_encode(
                 [
                     'message' => $e->getMessage(),
@@ -404,22 +404,24 @@ class TransformKafkaMessageOdds extends Task
                 ]
             ));
         }
+
+        Log::info("Ending Task for offset:" . $this->offset);
     }
 
-    private function saveEventRecords($eventSwtId, $sportId, $leagueId, $teamHomeId, $teamAwayId, $providerId)
+    private function saveEventRecords($eventSwtId, $sportId, $leagueId, $teamHomeId, $teamAwayId, $providerId, $uid, $masterLeagueName)
     {
-        $this->message->data->id = null;
-
         SwooleHandler::setValue('eventRecordsTable', $eventSwtId, [
-            'event_identifier' => $this->message->data->events[0]->eventId,
-            'sport_id'         => $sportId,
-            'league_id'        => $leagueId,
-            'team_home_id'     => $teamHomeId,
-            'team_away_id'     => $teamAwayId,
-            'ref_schedule'     => date("Y-m-d H:i:s", strtotime($this->message->data->referenceSchedule)),
-            'provider_id'      => $providerId,
-            'missing_count'    => 0,
-            'raw_data'         => json_encode($this->message->data)
+            'master_event_unique_id' => $uid,
+            'event_identifier'       => $this->message->data->events[0]->eventId,
+            'sport_id'               => $sportId,
+            'league_id'              => $leagueId,
+            'master_league_name'     => $masterLeagueName,
+            'team_home_id'           => $teamHomeId,
+            'team_away_id'           => $teamAwayId,
+            'ref_schedule'           => date("Y-m-d H:i:s", strtotime($this->message->data->referenceSchedule)),
+            'game_schedule'          => $this->message->data->schedule,
+            'provider_id'            => $providerId,
+            'missing_count'          => 0,
         ]);
 
         $activeEventsSwtId = implode(':', [
@@ -427,16 +429,13 @@ class TransformKafkaMessageOdds extends Task
             'pId:' . $providerId,
             'schedule:' . $this->message->data->schedule
         ]);
-        $activeEvents      = SwooleHandler::getValue('activeEventsTable', $activeEventsSwtId);
-        if ($activeEvents) {
-            $activeEvents = json_decode($activeEvents['events'], true);
-            if (is_null($activeEvents)) {
-                $activeEvents = [];
-            }
-            if (!in_array($this->message->data->events[0]->eventId, $activeEvents)) {
-                $activeEvents[] = $this->message->data->events[0]->eventId;
-                SwooleHandler::setColumnValue('activeEventsTable', $activeEventsSwtId, 'events', json_encode($activeEvents));
-            }
+        $activeEvents = [];
+        if (SwooleHandler::exists('activeEventsTable', $activeEventsSwtId)) {
+            $activeEvents = json_decode(SwooleHandler::getValue('activeEventsTable', $activeEventsSwtId)['events'], true);
+        }
+        if (!in_array($this->message->data->events[0]->eventId, $activeEvents)) {
+            $activeEvents[] = $this->message->data->events[0]->eventId;
+            SwooleHandler::setValue('activeEventsTable', $activeEventsSwtId, ['events' => json_encode($activeEvents)]);
         }
     }
 }

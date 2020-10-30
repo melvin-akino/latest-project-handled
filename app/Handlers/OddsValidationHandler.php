@@ -6,6 +6,7 @@ use App\Facades\SwooleHandler;
 use Illuminate\Support\Facades\Log;
 use Hhxsv5\LaravelS\Swoole\Task\Task;
 use Exception;
+use Illuminate\Support\Facades\Redis;
 
 class OddsValidationHandler
 {
@@ -55,6 +56,7 @@ class OddsValidationHandler
             $swoole                             = $this->swoole;
             $subTasks['remove-previous-market'] = [];
             $parameters                         = [];
+            $withChange                         = true;
 
             /** DATABASE TABLES */
             /** LOOK-UP TABLES */
@@ -69,16 +71,8 @@ class OddsValidationHandler
             }
 
             if (env('APP_ENV') != "local") {
-                $doesExist     = false;
-                $swtRequestUID = null;
-                foreach ($swoole->scraperRequestsTable as $key => $scraperRequestsTable) {
-                    if ($key == 'type:odds:requestUID:' . $this->message->request_uid) {
-                        $doesExist = true;
-                        break;
-                    }
-                }
-                if (!$doesExist) {
-                    appLog('info', "Transformation ignored - Request UID is from ML");
+                if (!Redis::exists('type:odds:requestUID:' . $this->message->request_uid)) {
+                    appLog('info', "Transformation ignored - Request UID is not from ML");
                     return;
                 }
             }
@@ -103,9 +97,9 @@ class OddsValidationHandler
                     return;
                 }
 
-                if ($hash == md5(json_encode((array) $toHashMessage))) {
+                if ($hash == md5(json_encode((array) $toHashMessage)) && !empty($oddsPayloadObject->data->events[0]->market_odds[0]->marketSelection)) {
                     appLog('info', "Transformation ignored - No change");
-                    return;
+                    $withChange = false;
                 }
             } else {
                 SwooleHandler::setValue('transformedTable', $transformedSwtId, [
@@ -170,11 +164,6 @@ class OddsValidationHandler
 
             if (!$leagueExist) {
                 appLog('info', "Transformation ignored - League is not in the masterlist");
-                SwooleHandler::setValue('newLeaguesTable', 'unique:' . uniqid(), [
-                    'league_name' => $this->message->data->leagueName,
-                    'provider_id' => $providerId,
-                    'sport_id'    => $sportId
-                ]);
                 return;
             }
 
@@ -203,7 +192,8 @@ class OddsValidationHandler
 
             SwooleHandler::setValue('oddsKafkaPayloadsTable', $this->offset, ['message' => json_encode($this->message)]);
             $transformKafkaMessageOdds = app('TransformKafkaMessageOdds');
-            Task::deliver($transformKafkaMessageOdds->init($this->offset, compact('providerId', 'sportId', 'parameters')));
+            Log::info("Executing Task for offset:" . $this->offset);
+            Task::deliver($transformKafkaMessageOdds->init($this->offset, compact('providerId', 'sportId', 'parameters', 'withChange')));
             Log::info("Transformation - validation completed");
 
         } catch (Exception $e) {

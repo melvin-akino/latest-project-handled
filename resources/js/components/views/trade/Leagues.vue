@@ -45,32 +45,38 @@ export default {
     methods: {
         modifyLeaguesFromSocket() {
             this.$options.sockets.onmessage = (response) => {
-                if (getSocketKey(response.data) === 'getAdditionalLeagues' || getSocketKey(response.data) === 'getUpdatedLeagues') {
-                    this.$store.dispatch('trade/getInitialLeagues')
+                if (getSocketKey(response.data) === 'getUpdatedLeagues') {
+                    this.$store.dispatch('trade/getInitialLeagues', true)
                 } else if (getSocketKey(response.data) === 'getSelectedLeagues') {
                     if(getSocketValue(response.data, 'getSelectedLeagues') != '') {
-                        let selectedLeagues = getSocketValue(response.data, 'getSelectedLeagues')
-                        this.leagueSchedModes.map(sched => {
-                            if(sched in selectedLeagues) {
-                                selectedLeagues[sched].map(selectedLeague => {
-                                    this.$store.commit('trade/ADD_TO_SELECTED_LEAGUE', { schedule: sched, league: selectedLeague })
-                                })
-                            }
-                        })
-                    }
-                } else if (getSocketKey(response.data) === 'getForRemovalLeagues') {
-                    if(getSocketValue(response.data, 'getForRemovalLeagues') != '') {
-                        let removalLeagues = getSocketValue(response.data, 'getForRemovalLeagues')
-                        this.leagueSchedModes.map(sched => {
-                            removalLeagues.map(removalLeague => {
-                                if(sched == removalLeague.schedule) {
-                                    this.$store.commit('trade/REMOVE_FROM_LEAGUE', { schedule: sched, league: removalLeague.name })
-                                    this.$store.commit('trade/REMOVE_SELECTED_LEAGUE', { schedule: sched, league: removalLeague.name })
-                                    if(removalLeague.name in this.events.watchlist) {
-                                        this.$store.commit('trade/REMOVE_FROM_EVENTS', { schedule: 'watchlist', removedLeague: removalLeague.name  })
-                                    }
+                        let getSelectedLeagues = getSocketValue(response.data, 'getSelectedLeagues')
+                        Object.keys(getSelectedLeagues).map(schedule => {
+                            let selectedLeagues = this.selectedLeagues[schedule]
+                            let newSelectedLeagues = getSelectedLeagues[schedule]
+                            newSelectedLeagues.map(league => {
+                                if(!selectedLeagues.includes(league)) {
+                                    this.$store.commit('trade/ADD_TO_SELECTED_LEAGUE', { schedule: schedule, league: league })
                                 }
                             })
+                        })
+                        Object.keys(this.selectedLeagues).map(schedule => {
+                            let selectedLeagues = this.selectedLeagues[schedule]
+                            if(getSelectedLeagues.hasOwnProperty(schedule)) {
+                                let newSelectedLeagues = getSelectedLeagues[schedule]
+                                selectedLeagues.map(league => {
+                                    if(!newSelectedLeagues.includes(league)) {
+                                        this.$store.commit('trade/REMOVE_SELECTED_LEAGUE', { schedule: schedule, league: league })
+                                        this.$store.dispatch('trade/toggleLeague', { action: 'remove', league_name: league, sport_id: this.selectedSport, schedule: schedule  })
+                                        this.$store.commit('trade/REMOVE_FROM_EVENT_LIST', { league_name: league, game_schedule: schedule })
+                                    }
+                                })
+                            } else {
+                                selectedLeagues.map(league => {
+                                    this.$store.commit('trade/REMOVE_SELECTED_LEAGUE', { schedule: schedule, league: league })
+                                    this.$store.dispatch('trade/toggleLeague', { action: 'remove', league_name: league, sport_id: this.selectedSport, schedule: schedule  })
+                                    this.$store.commit('trade/REMOVE_FROM_EVENT_LIST', { league_name: league, game_schedule: schedule })
+                                })
+                            }
                         })
                     }
                 }
@@ -85,13 +91,12 @@ export default {
 
             if(this.selectedLeagues[this.selectedLeagueSchedMode].includes(league)) {
                 this.$store.commit('trade/REMOVE_SELECTED_LEAGUE', { schedule: this.selectedLeagueSchedMode, league: league })
-                this.$store.commit('trade/REMOVE_FROM_EVENTS', { schedule: this.selectedLeagueSchedMode, removedLeague: league })
-                this.$store.commit('trade/REMOVE_FROM_EVENT_LIST', { type: 'league_name', data: league, game_schedule: this.selectedLeagueSchedMode })
-                this.$store.commit('trade/REMOVE_FROM_ALL_EVENT_LIST', { type: 'league_name', data: league, game_schedule: this.selectedLeagueSchedMode })
+                this.$store.commit('trade/REMOVE_FROM_EVENT_LIST', { league_name: league, game_schedule: this.selectedLeagueSchedMode })
                 this.$store.dispatch('trade/toggleLeague', { action: 'remove', league_name: league, sport_id: this.selectedSport, schedule: this.selectedLeagueSchedMode  })
             } else {
                 this.$store.commit('trade/ADD_TO_SELECTED_LEAGUE', { schedule: this.selectedLeagueSchedMode, league: league })
                 this.$socket.send(`getEvents_${league}_${this.selectedLeagueSchedMode}`)
+                this.$store.dispatch('trade/toggleLeague', { action: 'add', league_name: league, sport_id: this.selectedSport, schedule: this.selectedLeagueSchedMode  })
             }
         }
     }
@@ -99,9 +104,9 @@ export default {
 </script>
 
 <style>
-    .selectedLeague {
-        -webkit-box-shadow: inset 8px 0px 0px 0px rgba(237,137,54,1);
-        -moz-box-shadow: inset 8px 0px 0px 0px rgba(237,137,54,1);
-        box-shadow: inset 8px 0px 0px 0px rgba(237,137,54,1);
-    }
+.selectedLeague {
+    -webkit-box-shadow: inset 8px 0px 0px 0px rgba(237,137,54,1);
+    -moz-box-shadow: inset 8px 0px 0px 0px rgba(237,137,54,1);
+    box-shadow: inset 8px 0px 0px 0px rgba(237,137,54,1);
+}
 </style>

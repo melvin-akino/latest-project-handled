@@ -290,22 +290,23 @@ class TradeController extends Controller
                 $checkTable->delete();
 
                 if (empty($_SERVER['_PHPUNIT'])) {
-                    if(SwooleHandler::exists('userSelectedLeaguesTable', $swtKey)) {
-                        SwooleHandler::remove('userSelectedLeaguesTable', $swtKey);
-                    }
 
-                    $marketsFromSelectedLeagues = MasterEventMarket::getSelectedMarkets($masterLeague->id, $request->schedule, $request->sport_id);
-                    $topicTable                 = app('swoole')->topicTable;
+                    $previouslySelectedEvents = MasterEvent::where('master_league_id', $masterLeague->id)
+                                                            ->where('game_schedule', $request->schedule)
+                                                            ->where('sport_id', $request->sport_id)
+                                                            ->get();
 
-                    foreach ($marketsFromSelectedLeagues as $masterEventMarketUniqueId => $masterEventUniqueId) {
-                        if (!SwooleHandler::exists('userWatchlistTable', 'userWatchlist:' . $userId . ':masterEventUniqueId:' . $masterEventUniqueId)) {
-                            foreach ($topicTable as $k => $topic) {
-                                if ($topic['user_id'] == $userId && $topic['topic_name'] == 'market-id-' . $masterEventMarketUniqueId) {
-                                    $topicTable->del($k);
-                                    break;
-                                }
+                    foreach($previouslySelectedEvents as $events) {
+                        $topicTable = SwooleHandler::table('topicTable');
+                        foreach ($topicTable as $k => $topic) {
+                            if (strpos($topic['topic_name'], 'uid-' . $events->master_event_unique_id) === 0) {
+                                SwooleHandler::remove('topicTable', $k);
                             }
                         }
+                    }
+
+                    if(SwooleHandler::exists('userSelectedLeaguesTable', $swtKey)) {
+                        SwooleHandler::remove('userSelectedLeaguesTable', $swtKey);
                     }
                 }
             }

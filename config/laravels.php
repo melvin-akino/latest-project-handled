@@ -150,12 +150,10 @@ return [
                 ['name' => 'value', 'type' => \Swoole\Table::TYPE_INT],
             ],
         ],
-        'newLeagues'            => [ // key format [unique:uniqid()] = [value = true]
-            'size'   => 100,// The max size
+        'updateLeagues'            => [ // key format [updateLeagues] = [value = true]
+            'size'   => 4,// The max size
             'column' => [// Define the columns
-                 ['name' => 'league_name', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 255],
-                 ['name' => 'provider_id', 'type' => \Swoole\Table::TYPE_INT],
-                 ['name' => 'sport_id', 'type' => \Swoole\Table::TYPE_INT],
+                 ['name' => 'value', 'type' => \Swoole\Table::TYPE_INT]
             ],
         ],
         'userWatchlist'       => [// key format [userWatchlist:$userId:masterEventId:$masterEventId] = [value = true]
@@ -168,7 +166,8 @@ return [
             // key format [updatedEvents:$uid] = [value = $timestamp]
             'size'   => 2000,// The max size
             'column' => [// Define the columns
-                ['name' => 'value', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 10000],
+                ['name' => 'odds', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 10000],
+                ['name' => 'provider_id', 'type' => \Swoole\Table::TYPE_INT],
             ],
         ],
         'getActionLeagues'    => [
@@ -298,15 +297,17 @@ return [
         'eventRecords'              => [ //key format [sId:$sportId:pId:$providerId:eventIdentifier:$eventIdentifier] = [event_identifier = $eventIdentifier, ...]
             'size'   => 10000,
             'column' => [
+                ['name' => 'master_event_unique_id', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 30],
                 ['name' => 'event_identifier', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 30],
                 ['name' => 'sport_id', 'type' => \Swoole\Table::TYPE_INT],
                 ['name' => 'league_id', 'type' => \Swoole\Table::TYPE_INT],
+                ['name' => 'master_league_name', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 100],
                 ['name' => 'team_home_id', 'type' => \Swoole\Table::TYPE_INT],
                 ['name' => 'team_away_id', 'type' => \Swoole\Table::TYPE_INT],
                 ['name' => 'ref_schedule', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 30],
+                ['name' => 'game_schedule', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 30],
                 ['name' => 'provider_id', 'type' => \Swoole\Table::TYPE_INT],
-                ['name' => 'missing_count', 'type' => \Swoole\Table::TYPE_INT],
-                ['name' => 'raw_data', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 10000]
+                ['name' => 'missing_count', 'type' => \Swoole\Table::TYPE_INT]
             ],
         ],
         'oddRecords' => [ //key format [sId:$sportId:pId:$providerId:marketId:$marketId] = [event_identifier = $eventIdentifier, ...]
@@ -365,6 +366,12 @@ return [
             'size'   => 1000,
             'column' => [ // KEY FORMAT: [sId:$sportId:pId:$providerId:schedule:$schedule]
                 ['name' => 'events', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 10000],
+            ],
+        ],
+        'inactiveEvents'        => [
+            'size'   => 1000,
+            'column' => [ // KEY FORMAT: [unique:<uniqid()>]
+                  ['name' => 'event', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 256],
             ],
         ],
         'topic'               => [
@@ -480,6 +487,36 @@ return [
             'size'   => 2000,
             'column' => [
                 ['name' => 'value', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 10000],
+            ],
+        ],
+        'eventsScored' => [ // key format [eventsScored:$uid]
+            'size'   => 100,
+            'column' => [
+                ['name' => 'uid', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 30],
+                ['name' => 'master_league_id', 'type' => \Swoole\Table::TYPE_INT],
+                ['name' => 'schedule', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 10],
+                ['name' => 'sport_id', 'type' => \Swoole\Table::TYPE_INT],
+            ],
+        ],
+        'eventNoMarketIds' => [ // key format [market_event_identifier:$marketEventIdentifier]
+            'size'   => 1000,
+            'column' => [
+                ['name' => 'uid', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 30],
+                ['name' => 'odd_type', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 30],
+                ['name' => 'market_event_identifier', 'type' => \Swoole\Table::TYPE_INT],
+                ['name' => 'master_league_id', 'type' => \Swoole\Table::TYPE_INT],
+                ['name' => 'schedule', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 10],
+                ['name' => 'sport_id', 'type' => \Swoole\Table::TYPE_INT],
+            ],
+        ],
+        'eventHasMarkets' => [ // key format [eventHasMarkets:$uid]
+            'size'   => 1000,
+            'column' => [
+                ['name' => 'uid', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 30],
+                ['name' => 'master_league_id', 'type' => \Swoole\Table::TYPE_INT],
+                ['name' => 'schedule', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 10],
+                ['name' => 'sport_id', 'type' => \Swoole\Table::TYPE_INT],
+                ['name' => 'has_markets', 'type' => \Swoole\Table::TYPE_INT],
             ],
         ],
     ],

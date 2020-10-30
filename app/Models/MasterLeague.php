@@ -42,32 +42,17 @@ class MasterLeague extends Model
             $columns = ['master_league_name', DB::raw('COUNT(master_league_name) AS match_count')];
         }
 
-        $subquery = DB::table('master_leagues as ml')
-            ->leftJoin('sports as s', 's.id', 'ml.sport_id')
-            ->leftJoin('master_events as me', 'ml.id', 'me.master_league_id')
-            ->join('events as e', 'me.id', 'e.master_event_id')
-            ->leftJoin('master_event_markets as mem', 'me.id', 'mem.master_event_id')
-            ->join('event_markets AS em', function ($join) {
-                $join->on('mem.id', 'em.master_event_market_id');
-                $join->on('e.id', 'em.event_id');
-            })
-            ->where('s.id', $sportId)
-            ->whereNull('me.deleted_at')
-            ->whereNull('e.deleted_at')
-            ->whereNull('ml.deleted_at')
-            ->whereNull('em.deleted_at')
-            ->where('e.missing_count', '<=', $maxMissingCount)
+        $subquery = DB::table('trade_window')
+            ->where('sport_id', $sportId)
+            ->where('missing_count', '<=', $maxMissingCount)
             ->when($gameSchedule, function($query, $gameSchedule) {
-                return $query->where('me.game_schedule', $gameSchedule);
+                return $query->where('game_schedule', $gameSchedule);
             })
-            ->whereIn('e.provider_id', $userProviderIds)
-            ->whereIn('em.provider_id', $userProviderIds)
-            ->where('mem.is_main', true)
-            ->whereNotIn('me.id', function($query) use ($userId) {
+            ->whereNotIn('master_event_id', function($query) use ($userId) {
                 $query->select('master_event_id')->from('user_watchlist')->where('user_id', $userId);
             })
-            ->select('ml.name as master_league_name', 'me.id')
-            ->groupBy('ml.name', 'me.id');
+            ->select('master_league_name', 'master_event_id')
+            ->groupBy('master_league_name', 'master_event_id');
 
         return DB::table(DB::raw("({$subquery->toSql()}) AS leagues_list"))
             ->mergeBindings($subquery)

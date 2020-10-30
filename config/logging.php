@@ -115,6 +115,12 @@ return [
             'path'   => storage_path('logs/laravels-events.log'),
             'level'  => 'debug',
         ],
+
+        'scraping-leagues' => [
+            'driver' => 'single',
+            'path'   => storage_path('logs/laravels-leagues.log'),
+            'level'  => 'debug',
+        ],
     ],
 
 ];

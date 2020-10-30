@@ -133,16 +133,16 @@ if (!function_exists('setUserDefault')) {
                             'value' => $data['sport_id']
                         ]
                     );
-                break;
+                    break;
 
                 case 'league':
                     //
-                break;
+                    break;
 
-                $data = [
-                    'status'  => true,
-                    'message' => trans('notifications.save.success')
-                ];
+                    $data = [
+                        'status'  => true,
+                        'message' => trans('notifications.save.success')
+                    ];
             }
         } else {
             $data = [
@@ -178,8 +178,8 @@ if (!function_exists('getUserDefault')) {
             switch ($type) {
                 case 'sport':
                     $defaultSport = UserConfiguration::where('type', 'DEFAULT_SPORT')
-                        ->where('menu', 'TRADE')
-                        ->where('user_id', $userId);
+                                                     ->where('menu', 'TRADE')
+                                                     ->where('user_id', $userId);
 
                     if ($defaultSport->count() == 0) {
                         $defaultSport = Sport::getActiveSports();
@@ -192,11 +192,11 @@ if (!function_exists('getUserDefault')) {
                         'status'        => true,
                         'default_sport' => $sport,
                     ];
-                break;
+                    break;
                 case 'sort-event':
                     $defaultEventSort = UserConfiguration::where('type', 'sort_event')
-                        ->where('menu', 'trade-page')
-                        ->where('user_id', $userId);
+                                                         ->where('menu', 'trade-page')
+                                                         ->where('user_id', $userId);
 
                     if ($defaultEventSort->count() == 0) {
                         $sort = config('default_config.trade-page.sort_event');
@@ -211,7 +211,7 @@ if (!function_exists('getUserDefault')) {
                     break;
                 case 'league':
                     //
-                break;
+                    break;
             }
         } else {
             $data = [
@@ -290,7 +290,7 @@ if (!function_exists('userWalletTransaction')) {
                         'amount'              => $amount,
                     ]
                 );
-            break;
+                break;
 
             /** TO DO: Add more cases for every User Transaction catered by the application */
         }
@@ -419,7 +419,7 @@ if (!function_exists('ordersCreation')) {
 }
 
 if (!function_exists('eventTransformation')) {
-    function eventTransformation($transformed, $userId, $topicTable, $type = 'selected')
+    function eventTransformation($transformed, $userId, $topicTable, $type = 'selected', $otherMarketDetails = [])
     {
         $data     = [];
         $result   = [];
@@ -428,8 +428,8 @@ if (!function_exists('eventTransformation')) {
         $userConfig    = getUserDefault($userId, 'sort-event')['default_sort'];
         $userTz        = "Etc/UTC";
         $getUserConfig = UserConfiguration::getUserConfig($userId)
-                                            ->where('type', 'timezone')
-                                            ->first();
+                                          ->where('type', 'timezone')
+                                          ->first();
 
         if ($getUserConfig) {
             $userTz = Timezones::find($getUserConfig->value)->name;
@@ -459,22 +459,21 @@ if (!function_exists('eventTransformation')) {
             }
 
             if (empty($data[$transformed->master_event_unique_id])) {
+//            if (empty($transformed->odd_type_id)) {
                 $providersOfEvents = Game::providersOfEvents($transformed->master_event_id, $userProviderIds)->get();
                 $eventHasOtherMarkets = Game::checkIfHasOtherMarkets($transformed->master_event_unique_id, $userProviderIds);
 
-                $data[$transformed->master_event_unique_id] = [
-                    "uid"           => $transformed->master_event_unique_id,
-                    'sport_id'      => $transformed->sport_id,
-                    'sport'         => $transformed->sport,
-                    'provider_id'   => $transformed->provider_id,
-                    'game_schedule' => $transformed->game_schedule,
-                    'league_name'   => $transformed->master_league_name,
-                    'running_time'  => $transformed->running_time,
-                    'ref_schedule'  => Carbon::createFromFormat("Y-m-d H:i:s", $transformed->ref_schedule, 'Etc/UTC')->setTimezone($userTz)->format("Y-m-d H:i:s"),
-                    'has_bet'       => $hasBet,
-                    'with_providers' => $providersOfEvents,
-                    'has_other_markets' => $eventHasOtherMarkets
-                ];
+                $data[$transformed->master_event_unique_id]["uid"] = $transformed->master_event_unique_id;
+                $data[$transformed->master_event_unique_id]['sport_id'] = $transformed->sport_id;
+                $data[$transformed->master_event_unique_id]['sport'] = $transformed->sport;
+                $data[$transformed->master_event_unique_id]['provider_id'] = $transformed->provider_id;
+                $data[$transformed->master_event_unique_id]['game_schedule'] = $transformed->game_schedule;
+                $data[$transformed->master_event_unique_id]['league_name'] = $transformed->master_league_name;
+                $data[$transformed->master_event_unique_id]['running_time'] = $transformed->running_time;
+                $data[$transformed->master_event_unique_id]['ref_schedule'] = Carbon::createFromFormat("Y-m-d H:i:s", $transformed->ref_schedule, 'Etc/UTC')->setTimezone($userTz)->format("Y-m-d H:i:s");
+                $data[$transformed->master_event_unique_id]['has_bet'] = $hasBet;
+                $data[$transformed->master_event_unique_id]['with_providers'] = $providersOfEvents;
+                $data[$transformed->master_event_unique_id]['has_other_markets'] = $eventHasOtherMarkets;
 
                 if (in_array($type, ['socket-watchlist', 'watchlist'])) {
                     SwooleHandler::setValue('userWatchlistTable', 'userWatchlist:' . $userId . ':masterEventUniqueId:' . $transformed->master_event_unique_id, [
@@ -482,6 +481,7 @@ if (!function_exists('eventTransformation')) {
                     ]);
                 }
             }
+
             if (empty($data[$transformed->master_event_unique_id]['home'])) {
                 $data[$transformed->master_event_unique_id]['home'] = [
                     'name'    => $transformed->master_home_team_name,
@@ -497,36 +497,92 @@ if (!function_exists('eventTransformation')) {
                 ];
             }
 
-            if (
-                empty($data[$transformed->master_event_unique_id]['market_odds']['main'][$transformed->type][$transformed->market_flag]) ||
-                ($data[$transformed->master_event_unique_id]['market_odds']['main'][$transformed->type][$transformed->market_flag]['market_id'] == $transformed->master_event_market_unique_id &&
-                    $data[$transformed->master_event_unique_id]['market_odds']['main'][$transformed->type][$transformed->market_flag]['odds'] < (double) $transformed->odds)
-            ) {
-                $data[$transformed->master_event_unique_id]['market_odds']['main'][$transformed->type][$transformed->market_flag] = [
-                    'odds'           => (double) $transformed->odds,
-                    'market_id'      => $transformed->master_event_market_unique_id,
-                    'provider_alias' => $transformed->alias
-                ];
-            }
+            if (!empty($transformed->type)) {
+                if (
+                    empty($data[$transformed->master_event_unique_id]['market_odds']['main'][$transformed->type][$transformed->market_flag]) ||
+                    ($data[$transformed->master_event_unique_id]['market_odds']['main'][$transformed->type][$transformed->market_flag]['market_id'] == $transformed->master_event_market_unique_id &&
+                        $data[$transformed->master_event_unique_id]['market_odds']['main'][$transformed->type][$transformed->market_flag]['odds'] < (double) $transformed->odds)
+                ) {
+                    $data[$transformed->master_event_unique_id]['market_odds']['main'][$transformed->type][$transformed->market_flag] = [
+                        'odds'           => !empty($transformed->master_event_market_unique_id) && empty($transformed->is_market_empty) ? (double) $transformed->odds : "",
+                        'market_id'      => !empty($transformed->master_event_market_unique_id) && empty($transformed->is_market_empty) ? $transformed->master_event_market_unique_id : "",
+                        'provider_alias' => $transformed->alias
+                    ];
 
-            if (!empty($transformed->odd_label)) {
-                $data[$transformed->master_event_unique_id]['market_odds']['main'][$transformed->type][$transformed->market_flag]['points'] = $transformed->odd_label;
-            }
-
-            if (empty($_SERVER['_PHPUNIT'])) {
-                $doesExist = false;
-                foreach ($topicTable as $topic) {
-                    if ($topic['topic_name'] == 'market-id-' . $transformed->master_event_market_unique_id &&
-                        $topic['user_id'] == $userId) {
-                        $doesExist = true;
-                        break;
+                    if (!empty($transformed->odd_label)) {
+                        if (empty($transformed->is_market_empty)) {
+                            $data[$transformed->master_event_unique_id]['market_odds']['main'][$transformed->type][$transformed->market_flag]['points'] = $transformed->odd_label;
+                        } else {
+                            $data[$transformed->master_event_unique_id]['market_odds']['main'][$transformed->type][$transformed->market_flag]['points'] = "";
+                        }
                     }
                 }
-                if (empty($doesExist)) {
-                    $topicTable->set('userId:' . $userId . ':unique:' . uniqid(), [
-                        'user_id'    => $userId,
-                        'topic_name' => 'market-id-' . $transformed->master_event_market_unique_id
-                    ]);
+
+                if($otherMarketDetails && $transformed->master_event_unique_id == $otherMarketDetails['meUID']) {
+                    $otherTransformed = $otherMarketDetails['transformed'];
+                    $otherData = [];
+                    array_map(function ($otherTransformed) use (&$otherData, $userProviderIds) {
+                        if (!in_array($otherTransformed->provider_id, $userProviderIds)) {
+                            return $otherTransformed;
+                        }
+                        if (!empty($otherTransformed->odd_label)) {
+                            $otherData[$otherTransformed->market_event_identifier][$otherTransformed->odd_label . $otherTransformed->type . $otherTransformed->market_flag] = [
+                                'odds'                    => (double) $otherTransformed->odds,
+                                'market_id'               => $otherTransformed->master_event_market_unique_id,
+                                'points'                  => $otherTransformed->odd_label,
+                                'master_event_identifier' => $otherTransformed->market_event_identifier,
+                                'odd_type'                => $otherTransformed->type,
+                                'market_flag'             => $otherTransformed->market_flag,
+                                'market_event_identifier' => $otherTransformed->market_event_identifier,
+                                'provider_alias'          => $otherTransformed->alias
+                            ];
+                        }
+                    }, $otherTransformed->toArray());
+
+                    $otherResult = [];
+                    $otherValues = [];
+                    foreach ($otherData as $masterEventIdentifier) {
+                        foreach ($masterEventIdentifier as $k => $d) {
+                            if (empty($otherValues[$d['odd_type'] . $d['market_flag'] . $d['points']])) {
+                                $otherResult[$d['market_event_identifier']][$d['odd_type']][$d['market_flag']] = [
+                                    'market_id'      => $d['market_id'],
+                                    'odds'           => $d['odds'],
+                                    'points'         => $d['points'],
+                                    'provider_alias' => $d['provider_alias']
+                                ];
+                                $otherValues[$d['odd_type'] . $d['market_flag'] . $d['points']]           = $d['market_event_identifier'];
+                            } else {
+                                $key = $otherValues[$d['odd_type'] . $d['market_flag'] . $d['points']];
+                                if (
+                                    !empty($otherResult[$key][$d['odd_type']]) &&
+                                    $otherResult[$key][$d['odd_type']][$d['market_flag']]['market_id'] == $d['market_id'] &&
+                                    $otherResult[$key][$d['odd_type']][$d['market_flag']]['odds'] < $d['odds']
+                                ) {
+                                    $otherResult[$key][$d['odd_type']][$d['market_flag']]['odds'] = $d['odds'];
+                                }
+                            }
+                        }
+                    }
+
+                    krsort($otherResult, SORT_NUMERIC);
+                    $data[$transformed->master_event_unique_id]['market_odds']['other'] = $otherResult;
+                }
+
+                if (empty($_SERVER['_PHPUNIT'])) {
+                    $doesExist = false;
+                    foreach ($topicTable as $topic) {
+                        if ($topic['topic_name'] == 'uid-' . $transformed->master_event_unique_id &&
+                            $topic['user_id'] == $userId) {
+                            $doesExist = true;
+                            break;
+                        }
+                    }
+                    if (empty($doesExist)) {
+                        $topicTable->set('userId:' . $userId . ':unique:' . uniqid(), [
+                            'user_id'    => $userId,
+                            'topic_name' => 'uid-' . $transformed->master_event_unique_id
+                        ]);
+                    }
                 }
             }
 
@@ -690,5 +746,4 @@ if (!function_exists('kafkaPush')) {
         }
     }
 }
-
 

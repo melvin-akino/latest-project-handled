@@ -59,4 +59,13 @@ class UserSelectedLeague extends Model
                  ->where('game_schedule', $filters['schedule'])
                  ->where('sport_id', $filters['sport_id']);
     }
+
+    public static function removeByMasterLeagueNamesAndSchedule(array $names = [], string $schedule = "early")
+    {
+        return DB::table('user_selected_leagues as usl')
+                ->join('master_leagues as ml', 'ml.id', 'usl.master_league_id')
+                 ->whereIn('ml.name', $names)
+                 ->where('game_schedule', $schedule)
+                 ->delete();
+    }
 }
