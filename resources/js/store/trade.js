@@ -7,7 +7,11 @@ import Swal from 'sweetalert2'
 
 const state = {
     betSlipCounter: 0,
-    leagues: [],
+    leagues: {
+        inplay: [],
+        today: [],
+        early: []
+    },
     selectedLeagueSchedMode: Cookies.get('leagueSchedMode') || 'today',
     sports: [],
     selectedSport: null,
