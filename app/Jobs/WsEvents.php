@@ -38,6 +38,7 @@ class WsEvents implements ShouldQueue
 
             if (count($this->params) > 3) {
                 $meUID       = $this->params[3];
+                $singleEvent = true;
                 $gameDetails = Game::getGameDetails($masterLeague->id, $this->schedule, $userId, $meUID);
                 if (count($this->params) > 4) {
                     $otherTransformed   = Game::getOtherMarketsByMemUID($meUID);
@@ -45,9 +46,9 @@ class WsEvents implements ShouldQueue
                         'meUID'       => $meUID,
                         'transformed' => $otherTransformed
                     ];
-                    $data               = eventTransformation($gameDetails, $userId, $topicTable, 'socket', $otherMarketDetails);
+                    $data               = eventTransformation($gameDetails, $userId, $topicTable, 'socket', $otherMarketDetails, $singleEvent);
                 } else {
-                    $data = eventTransformation($gameDetails, $userId, $topicTable, 'socket');
+                    $data = eventTransformation($gameDetails, $userId, $topicTable, 'socket', [], $singleEvent);
                 }
             } else {
                 $gameDetails = Game::getGameDetails($masterLeague->id, $this->schedule, $userId);
