@@ -566,10 +566,10 @@ if (!function_exists('eventTransformation')) {
 
                     krsort($otherResult, SORT_NUMERIC);
                     $data[$transformed->master_event_unique_id]['market_odds']['other'] = $otherResult;
+                }
 
-                    if($singleEvent) {
-                        $data[$transformed->master_event_unique_id]['single_event_response'] = true;
-                    }
+                if($singleEvent) {
+                    $data[$transformed->master_event_unique_id]['single_event_response'] = true;
                 }
 
                 if (empty($_SERVER['_PHPUNIT'])) {
