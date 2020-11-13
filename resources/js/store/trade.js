@@ -189,6 +189,9 @@ const mutations = {
             state.eventsList.map(event => {
                 if(event.uid == newEvent.uid) {
                     Vue.set(event, 'game_schedule', newEvent.game_schedule)
+                    Vue.set(event.home, 'score', newEvent.home.score)
+                    Vue.set(event.away, 'score', newEvent.away.score)
+                    Vue.set(event, 'running_time', newEvent.running_time)
                     if(event.hasOwnProperty('market_odds') && newEvent.hasOwnProperty('market_odds')) {
                         Vue.set(event.market_odds, 'main', newEvent.market_odds.main)
                         if(newEvent.market_odds.hasOwnProperty('other')) {
