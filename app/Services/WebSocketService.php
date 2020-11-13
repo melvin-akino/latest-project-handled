@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Facades\SwooleHandler;
 use Hhxsv5\LaravelS\Swoole\WebSocketHandlerInterface;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
@@ -65,12 +66,27 @@ class WebSocketService implements WebSocketHandlerInterface
 
     public function onClose(Server $server, $fd, $reactorId)
     {
-        $user   = $server->wsTable->get('fd:' . $fd);
-        $server->wsTable->del('fd:' . $fd);
-        $userId = $user['value'];
+        $user                         = SwooleHandler::getValue('wsTable', 'fd:' . $fd);
+        $userId                       = $user['value'];
+        $userMinmaxSubscriptions      = [];
+        $otherUserMinmaxSubscriptions = [];
+
         foreach ($server->topicTable as $key => $topic) {
             if ($topic['user_id'] == $userId) {
+                if (strpos($topic['topic_name'], 'min-max-') === 0) {// Fetch user's minmax subscriptions
+                    $userMinmaxSubscriptions[] = substr($topic['topic_name'], strlen('min-max-'));
+                }
+
                 $server->topicTable->del($key);
+            } else if (strpos($topic['topic_name'], 'min-max-') === 0) {// Fetch other user's minmax subscriptions
+                $otherUserMinmaxSubscriptions[] = substr($topic['topic_name'], strlen('min-max-'));
+            }
+        }
+
+        $forRemovalOfMinmaxSubscriptions = array_diff($userMinmaxSubscriptions, $otherUserMinmaxSubscriptions);
+        foreach ($server->minMaxRequestsTable as $key => $ws) {
+            if (in_array($ws['market_id'], $forRemovalOfMinmaxSubscriptions)) {
+                $server->minMaxRequestsTable->del($key);
             }
         }
 
@@ -81,6 +97,8 @@ class WebSocketService implements WebSocketHandlerInterface
         foreach ($server->minmaxPayloadTable as $key => $ws) {
             $server->minmaxPayloadTable->del($key);
         }
+
+        SwooleHandler::remove('fd:' . $fd);
     }
 
     private function getUser($bearerToken)
@@ -100,7 +118,7 @@ class WebSocketService implements WebSocketHandlerInterface
             Log::error('Bearer Token is expired/invalid');
             return 0;
         }
-        
+
     }
 
     private function dispatchJob($user, $job, $clientCommand)
