@@ -91,14 +91,20 @@ class WebSocketService implements WebSocketHandlerInterface
         }
 
         foreach ($server->minmaxMarketTable as $key => $ws) {
-            SwooleHandler::remove('minmaxMarketTable', $key);
+            $marketId = substr($ws['value'], strlen('minmax-market:'));
+            if (in_array($marketId, $forRemovalOfMinmaxSubscriptions)) {
+                SwooleHandler::remove('minmaxMarketTable', $key);
+            }
         }
 
         foreach ($server->minmaxPayloadTable as $key => $ws) {
-            SwooleHandler::remove('minmaxPayloadTable', $key);
+            $marketId = substr($ws['value'], strlen('minmax-payload:'));
+            if (in_array($marketId, $forRemovalOfMinmaxSubscriptions)) {
+                SwooleHandler::remove('minmaxPayloadTable', $key);
+            }
         }
 
-        SwooleHandler::remove('fd:' . $fd);
+        SwooleHandler::remove('wsTable', 'fd:' . $fd);
     }
 
     private function getUser($bearerToken)
