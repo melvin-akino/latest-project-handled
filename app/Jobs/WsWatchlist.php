@@ -35,6 +35,7 @@ class WsWatchlist implements ShouldQueue
                 $eventUID    = $params[1];
                 $masterEvent = MasterEvent::where('master_event_unique_id', $eventUID)->first();
                 $gameDetails = Game::getWatchlistGameDetails($userId, $masterEvent->id);
+                $singleEvent = true;
 
                 if (count($params) > 2) {
                     $otherTransformed   = Game::getOtherMarketsByMemUID($eventUID);
@@ -42,9 +43,9 @@ class WsWatchlist implements ShouldQueue
                         'meUID'       => $eventUID,
                         'transformed' => $otherTransformed
                     ];
-                    $data               = eventTransformation($gameDetails, $userId, $topicTable, 'socket-watchlist', $otherMarketDetails);
+                    $data               = eventTransformation($gameDetails, $userId, $topicTable, 'socket-watchlist', $otherMarketDetails, $singleEvent);
                 } else {
-                    $data = eventTransformation($gameDetails, $userId, $topicTable, 'socket-watchlist');
+                    $data = eventTransformation($gameDetails, $userId, $topicTable, 'socket-watchlist', [],  $singleEvent);
                 }
 
             } else {

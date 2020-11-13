@@ -110,6 +110,15 @@ export default {
                             }
                             this.$set(watchlistEvent, 'watchlist', true)
                             this.$store.commit('trade/SET_EVENTS_LIST', watchlistEvent)
+                            if(!watchlistEvent.hasOwnProperty('single_event_response')) {
+                                let watchlistEventsUIDs = this.eventsList.filter(event => event.league_name == watchlistEvent.league_name && event.game_schedule == watchlistEvent.game_schedule && event.hasOwnProperty('watchlist')).map(event => event.uid)
+                                let watchlistUIDs = watchlist.map(event => event.uid)
+                                watchlistEventsUIDs.map(uid => {
+                                    if(!watchlistUIDs.includes(uid)) {
+                                        this.$store.commit('trade/REMOVE_ALL_FROM_EVENT_LIST', { game_schedule: watchlistEvent.game_schedule, league_name: watchlistEvent.league_name, uid: uid })
+                                    }
+                                })
+                            }
                         })
                     }
                 } else if(getSocketKey(response.data) === 'getEvents') {
@@ -146,6 +155,17 @@ export default {
                                             }
                                         }
                                         this.$store.commit('trade/SET_EVENTS_LIST', receivedEvent)
+
+                                        if(!receivedEvent.hasOwnProperty('single_event_response')) {
+                                            let selectedEventsUIDs = this.eventsList.filter(event => event.league_name == receivedEvent.league_name && event.game_schedule == receivedEvent.game_schedule && !event.hasOwnProperty('watchlist')).map(event => event.uid)
+                                            let receivedEventsUIDs = receivedEvents.map(event => event.uid)
+                                            selectedEventsUIDs.map(uid => {
+                                                if(!receivedEventsUIDs.includes(uid)) {
+                                                    this.$store.commit('trade/REMOVE_FROM_EVENT_LIST', { game_schedule: receivedEvent.game_schedule, league_name: receivedEvent.league_name, uid: uid })
+                                                }
+                                            })
+                                        }
+
                                         this.$store.commit('trade/UPDATE_LEAGUE_MATCH_COUNT', { schedule: schedule, league: league })
                                     }
                                 })

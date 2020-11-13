@@ -419,7 +419,7 @@ if (!function_exists('ordersCreation')) {
 }
 
 if (!function_exists('eventTransformation')) {
-    function eventTransformation($transformed, $userId, $topicTable, $type = 'selected', $otherMarketDetails = [])
+    function eventTransformation($transformed, $userId, $topicTable, $type = 'selected', $otherMarketDetails = [], $singleEvent = false)
     {
         $data     = [];
         $result   = [];
@@ -566,6 +566,10 @@ if (!function_exists('eventTransformation')) {
 
                     krsort($otherResult, SORT_NUMERIC);
                     $data[$transformed->master_event_unique_id]['market_odds']['other'] = $otherResult;
+                }
+
+                if($singleEvent) {
+                    $data[$transformed->master_event_unique_id]['single_event_response'] = true;
                 }
 
                 if (empty($_SERVER['_PHPUNIT'])) {
