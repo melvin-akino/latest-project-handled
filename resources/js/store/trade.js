@@ -193,6 +193,10 @@ const mutations = {
                         Vue.set(event.market_odds, 'main', newEvent.market_odds.main)
                         if(newEvent.market_odds.hasOwnProperty('other')) {
                             Vue.set(event.market_odds, 'other', newEvent.market_odds.other)
+
+                            Vue.set(event.home, 'score', newEvent.home.score)
+                            Vue.set(event.away, 'score', newEvent.away.score)
+                            Vue.set(event, 'runing_time', newEvent.running_time)
                         }
                     } else if(!event.hasOwnProperty('market_odds') && newEvent.hasOwnProperty('market_odds')) {
                         Vue.set(event, 'market_odds', newEvent.market_odds)
