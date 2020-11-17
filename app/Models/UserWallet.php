@@ -3,8 +3,6 @@
 namespace App\Models;
 
 use App\User;
-use App\Models\{Currency, Source};
-use App\Models\CRM\WalletLedger;
 
 use Exception;
 use Illuminate\Database\Eloquent\Model;
@@ -25,7 +23,7 @@ class UserWallet extends Model
 
     public function Order()
     {
-        return $this->hasMany('App\Models\Order','user_id','user_id');
+        return $this->hasMany('App\Models\Order', 'user_id', 'user_id');
     }
 
     public function account()
@@ -57,7 +55,7 @@ class UserWallet extends Model
         $credit   = doubleval(0);
 
         if (!$receiver->wallet()->count()) {
-            if($type == self::TYPE_DISCHARGE) {
+            if ($type == self::TYPE_DISCHARGE) {
                 // no account yet but already deducted
                 throw new Exception(self::ERR_NEW_WALLET_DEDUCT);
             }
@@ -78,7 +76,7 @@ class UserWallet extends Model
                 if ($type == self::TYPE_CHARGE) {
                     $wallet->balance += $amount;
                 } else {
-                    if($wallet->balance < $amount){
+                    if ($wallet->balance < $amount) {
                         throw new Exception(self::ERR_WALLET_DEDUCT);
                     }
 

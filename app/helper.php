@@ -35,12 +35,10 @@ use App\Models\{
     Game,
     Timezones,
     UserProviderConfiguration,
-    EventScore
-};
-use App\Models\CRM\{
-    OrderTransaction,
+    EventScore,
     WalletLedger
 };
+use App\Models\CRM\OrderTransaction;
 use Illuminate\Support\Facades\Log;
 use App\Facades\SwooleHandler;
 
@@ -48,12 +46,12 @@ use App\Facades\SwooleHandler;
 
 function dataTable(Request $request, $query, $cols = null)
 {
-    $order  = collect($request->input('order')[0]);
-    $col    = collect($request->input('columns')[$order->get('column')])->get('data');
-    $dir    = $order->get('dir');
-    $q      = trim($request->input('search')['value']);
-    $len    = $request->input('length');
-    $page   = ($request->input('start') / $len) + 1;
+    $order = collect($request->input('order')[0]);
+    $col   = collect($request->input('columns')[$order->get('column')])->get('data');
+    $dir   = $order->get('dir');
+    $q     = trim($request->input('search')['value']);
+    $len   = $request->input('length');
+    $page  = ($request->input('start') / $len) + 1;
 
     Paginator::currentPageResolver(function () use ($page) {
         return $page;
@@ -71,9 +69,10 @@ function dataTable(Request $request, $query, $cols = null)
         "draw"            => intval($request->input('draw')),
         "recordsTotal"    => $pagin->total(),
         "recordsFiltered" => $pagin->total(),
-        "data" => $pagin->items()
+        "data"            => $pagin->items()
     ]);
 }
+
 /* end databtable */
 
 /* Swal CRM popup container*/
@@ -88,12 +87,13 @@ function swal($title, $html, $type)
 
     return compact('swal');
 }
+
 /* End SWal CRM popup container */
 
 /**
  * Delete Cookie by Name
  *
- * @param   string   $cookieName     Illuminate\Support\Facades\Cookie;
+ * @param string $cookieName Illuminate\Support\Facades\Cookie;
  *
  * @author  Kevin Uy
  */
@@ -105,9 +105,9 @@ function deleteCookie(string $cookieName)
 /**
  * Save Authenticated User's Default Configuration by Type
  *
- * @param   int        $userId
- * @param   string     $type
- * @param   array|null $data
+ * @param int $userId
+ * @param string $type
+ * @param array|null $data
  * @return  json
  *
  * @author  Kevin Uy, Alex Virtucio
@@ -158,8 +158,8 @@ if (!function_exists('setUserDefault')) {
 /**
  * Get Authenticated User's Default Configuration by Type
  *
- * @param   int    $userId
- * @param   string $type
+ * @param int $userId
+ * @param string $type
  * @return  $data
  *
  * @author  Kevin Uy
@@ -167,7 +167,7 @@ if (!function_exists('setUserDefault')) {
 if (!function_exists('getUserDefault')) {
     function getUserDefault(int $userId, string $type)
     {
-        $data = [];
+        $data  = [];
         $types = [
             'sport',
             'league',
@@ -183,7 +183,7 @@ if (!function_exists('getUserDefault')) {
 
                     if ($defaultSport->count() == 0) {
                         $defaultSport = Sport::getActiveSports();
-                        $sport = $defaultSport->first()->id;
+                        $sport        = $defaultSport->first()->id;
                     } else {
                         $sport = $defaultSport->first()->value;
                     }
@@ -205,8 +205,8 @@ if (!function_exists('getUserDefault')) {
                     }
 
                     $data = [
-                        'status'        => true,
-                        'default_sort'  => $sort,
+                        'status'       => true,
+                        'default_sort' => $sort,
                     ];
                     break;
                 case 'league':
@@ -247,10 +247,10 @@ if (!function_exists('wsEmit')) {
 /**
  * Handle User Wallet related Transactions
  *
- * @param  int     $userId          Authenticated User's ID
- * @param  string  $transactionType 'source_name' from 'source' Database Table
- * @param  float   $amount          Amount from Transaction (MUST already be converted to Application's Base Currency [CNY])
- * @param  float   $orderLogsId     Order Logs ID
+ * @param int $userId Authenticated User's ID
+ * @param string $transactionType 'source_name' from 'source' Database Table
+ * @param float $amount Amount from Transaction (MUST already be converted to Application's Base Currency [CNY])
+ * @param float $orderLogsId Order Logs ID
  */
 if (!function_exists('userWalletTransaction')) {
     function userWalletTransaction($userId, $transactionType, $amount, $orderLogsId)
@@ -265,7 +265,7 @@ if (!function_exists('userWalletTransaction')) {
                 $newBalance  = $userBalance - $amount;
 
                 $userWallet->update(
-                    [ 'balance' => $newBalance ]
+                    ['balance' => $newBalance]
                 );
 
                 $ledgerId = WalletLedger::create(
@@ -339,19 +339,19 @@ if (!function_exists('getMilliseconds')) {
 /**
  * Reusable Orders and Orders-related Table Insertion.
  *
- * @param  int     $userId
- * @param  int     $sportId
- * @param  int     $providerId
- * @param  int     $providerAccountId
- * @param  array   $orderData          ['master_event_market_id', 'market_id', 'odds', 'odd_label', 'stake', 'actual_stake', 'score', 'expiry', 'bet_selection']
- * @param  array   $exchangeRate       ['id', 'exchange_rate']
- * @param  string  $mlBetId
+ * @param int $userId
+ * @param int $sportId
+ * @param int $providerId
+ * @param int $providerAccountId
+ * @param array $orderData ['master_event_market_id', 'market_id', 'odds', 'odd_label', 'stake', 'actual_stake', 'score', 'expiry', 'bet_selection']
+ * @param array $exchangeRate ['id', 'exchange_rate']
+ * @param string $mlBetId
  * @return void
  *
  * @author  Kevin Uy
  */
 if (!function_exists('ordersCreation')) {
-    function ordersCreation (int $userId, int $sportId, int $providerId, int $providerAccountId, array $orderData, array $exchangeRate, string $mlBetId, array $colMinusOne = [])
+    function ordersCreation(int $userId, int $sportId, int $providerId, int $providerAccountId, array $orderData, array $exchangeRate, string $mlBetId, array $colMinusOne = [])
     {
         $order = Order::create([
             'user_id'                       => $userId,
@@ -437,7 +437,7 @@ if (!function_exists('eventTransformation')) {
 
         $userProviderIds = UserProviderConfiguration::getProviderIdList($userId);
 
-        foreach($transformed as $transformed) {
+        foreach ($transformed as $transformed) {
             if (!in_array($transformed->provider_id, $userProviderIds)) {
                 continue;
             }
@@ -460,19 +460,19 @@ if (!function_exists('eventTransformation')) {
 
             if (empty($data[$transformed->master_event_unique_id])) {
 //            if (empty($transformed->odd_type_id)) {
-                $providersOfEvents = Game::providersOfEvents($transformed->master_event_id, $userProviderIds)->get();
+                $providersOfEvents    = Game::providersOfEvents($transformed->master_event_id, $userProviderIds)->get();
                 $eventHasOtherMarkets = Game::checkIfHasOtherMarkets($transformed->master_event_unique_id, $userProviderIds);
 
-                $data[$transformed->master_event_unique_id]["uid"] = $transformed->master_event_unique_id;
-                $data[$transformed->master_event_unique_id]['sport_id'] = $transformed->sport_id;
-                $data[$transformed->master_event_unique_id]['sport'] = $transformed->sport;
-                $data[$transformed->master_event_unique_id]['provider_id'] = $transformed->provider_id;
-                $data[$transformed->master_event_unique_id]['game_schedule'] = $transformed->game_schedule;
-                $data[$transformed->master_event_unique_id]['league_name'] = $transformed->master_league_name;
-                $data[$transformed->master_event_unique_id]['running_time'] = $transformed->running_time;
-                $data[$transformed->master_event_unique_id]['ref_schedule'] = Carbon::createFromFormat("Y-m-d H:i:s", $transformed->ref_schedule, 'Etc/UTC')->setTimezone($userTz)->format("Y-m-d H:i:s");
-                $data[$transformed->master_event_unique_id]['has_bet'] = $hasBet;
-                $data[$transformed->master_event_unique_id]['with_providers'] = $providersOfEvents;
+                $data[$transformed->master_event_unique_id]["uid"]               = $transformed->master_event_unique_id;
+                $data[$transformed->master_event_unique_id]['sport_id']          = $transformed->sport_id;
+                $data[$transformed->master_event_unique_id]['sport']             = $transformed->sport;
+                $data[$transformed->master_event_unique_id]['provider_id']       = $transformed->provider_id;
+                $data[$transformed->master_event_unique_id]['game_schedule']     = $transformed->game_schedule;
+                $data[$transformed->master_event_unique_id]['league_name']       = $transformed->master_league_name;
+                $data[$transformed->master_event_unique_id]['running_time']      = $transformed->running_time;
+                $data[$transformed->master_event_unique_id]['ref_schedule']      = Carbon::createFromFormat("Y-m-d H:i:s", $transformed->ref_schedule, 'Etc/UTC')->setTimezone($userTz)->format("Y-m-d H:i:s");
+                $data[$transformed->master_event_unique_id]['has_bet']           = $hasBet;
+                $data[$transformed->master_event_unique_id]['with_providers']    = $providersOfEvents;
                 $data[$transformed->master_event_unique_id]['has_other_markets'] = $eventHasOtherMarkets;
 
                 if (in_array($type, ['socket-watchlist', 'watchlist'])) {
@@ -518,9 +518,9 @@ if (!function_exists('eventTransformation')) {
                     }
                 }
 
-                if($otherMarketDetails && $transformed->master_event_unique_id == $otherMarketDetails['meUID']) {
+                if ($otherMarketDetails && $transformed->master_event_unique_id == $otherMarketDetails['meUID']) {
                     $otherTransformed = $otherMarketDetails['transformed'];
-                    $otherData = [];
+                    $otherData        = [];
                     array_map(function ($otherTransformed) use (&$otherData, $userProviderIds) {
                         if (!in_array($otherTransformed->provider_id, $userProviderIds)) {
                             return $otherTransformed;
@@ -550,7 +550,7 @@ if (!function_exists('eventTransformation')) {
                                     'points'         => $d['points'],
                                     'provider_alias' => $d['provider_alias']
                                 ];
-                                $otherValues[$d['odd_type'] . $d['market_flag'] . $d['points']]           = $d['market_event_identifier'];
+                                $otherValues[$d['odd_type'] . $d['market_flag'] . $d['points']]                = $d['market_event_identifier'];
                             } else {
                                 $key = $otherValues[$d['odd_type'] . $d['market_flag'] . $d['points']];
                                 if (
@@ -568,7 +568,7 @@ if (!function_exists('eventTransformation')) {
                     $data[$transformed->master_event_unique_id]['market_odds']['other'] = $otherResult;
                 }
 
-                if($singleEvent) {
+                if ($singleEvent) {
                     $data[$transformed->master_event_unique_id]['single_event_response'] = true;
                 }
 
@@ -602,9 +602,9 @@ if (!function_exists('eventTransformation')) {
         $newResult = [];
 
         if ($type == "selected") {
-            foreach ($result AS $gameSchedule => $row) {
-                foreach ($row AS $leagueName => $data) {
-                    foreach ($data AS $meuid => $event) {
+            foreach ($result as $gameSchedule => $row) {
+                foreach ($row as $leagueName => $data) {
+                    foreach ($data as $meuid => $event) {
                         if (($gameSchedule == $event['game_schedule']) && (strpos($leagueName, $event['league_name']) !== false)) {
                             $newResult[$gameSchedule][$leagueName][$meuid] = (object) $event;
                         }
@@ -612,8 +612,8 @@ if (!function_exists('eventTransformation')) {
                 }
             }
         } else if ($type == "watchlist") {
-            foreach ($result AS $leagueName => $data) {
-                foreach ($data AS $meuid => $event) {
+            foreach ($result as $leagueName => $data) {
+                foreach ($data as $meuid => $event) {
                     if (strpos($leagueName, $event['league_name']) !== false) {
                         $newResult[$leagueName][$meuid] = (object) $event;
                     }
@@ -628,10 +628,11 @@ if (!function_exists('eventTransformation')) {
 }
 
 if (!function_exists('checkIfInSWTKey')) {
-    function checkIfInSWTKey($swt, $toCheck) {
+    function checkIfInSWTKey($swt, $toCheck)
+    {
         $inSWT = false;
-        foreach($swt as $key => $row) {
-            if(strpos($key, $toCheck) !== false) {
+        foreach ($swt as $key => $row) {
+            if (strpos($key, $toCheck) !== false) {
                 $inSWT = true;
             } else {
                 continue;
@@ -642,7 +643,8 @@ if (!function_exists('checkIfInSWTKey')) {
 }
 
 if (!function_exists('getFromSWT')) {
-    function getFromSWT($swt, $toCheck) {
+    function getFromSWT($swt, $toCheck)
+    {
         $data = [];
         foreach ($swt as $key => $row) {
             if (strpos($key, $toCheck) !== false) {
@@ -669,12 +671,12 @@ if (!function_exists('providerErrorMapping')) {
 
     function providerErrorMapping($string)
     {
-         $data = DB::select(DB::raw("SELECT * FROM provider_error_messages WHERE '" . pg_escape_string($string) . "' LIKE '%' || message || '%'"));
-         if ($data) {
+        $data = DB::select(DB::raw("SELECT * FROM provider_error_messages WHERE '" . pg_escape_string($string) . "' LIKE '%' || message || '%'"));
+        if ($data) {
             return $data[0]->id;
-         } else {
+        } else {
             return null;
-         }
+        }
 
     }
 }
@@ -712,7 +714,7 @@ if (!function_exists('orderStatus')) {
             if (in_array(strtoupper($status), $forBetBarRemoval)) {
                 if (time() - strtotime($createdAt) > $expiry) {
                     SwooleHandler::setValue('topicTable', 'userId:' . $userId . ':unique:' . uniqid(), [
-                        'user_id' => $userId,
+                        'user_id'    => $userId,
                         'topic_name' => 'removal-bet-' . $orderId
                     ]);
                 }

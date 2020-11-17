@@ -10,11 +10,11 @@ use App\Models\{
     OrderLogs,
     OrderTransaction,
     ProviderAccountOrder,
-    OddType
+    OddType,
+    WalletLedger
 };
 use App\Models\CRM\{
-    ProviderAccount,
-    WalletLedger
+    ProviderAccount
 };
 use Carbon\Carbon;
 use Exception;
@@ -49,30 +49,30 @@ class OpenOrdersTransformationHandler
             $ordersTable = $swoole->ordersTable;
             $providers   = $swoole->providersTable;
             $openOrders  = $this->data->data;
-            $colMinusOne      = OddType::whereIn('type', ['1X2', 'HT 1X2', 'OE'])->pluck('id')->toArray();
+            $colMinusOne = OddType::whereIn('type', ['1X2', 'HT 1X2', 'OE'])->pluck('id')->toArray();
 
             foreach ($ordersTable as $_key => $orderTable) {
-                $orderId          = substr($_key, strlen('orderId:'));
-                $expiry           = $orderTable['orderExpiry'];
-                $status           = $orderTable['status'];
-                $orderData        = Order::find($orderId);
-                $userWallet       = UserWallet::where('user_id', $orderData->user_id)->first();
-                $sourceId         = Source::where('source_name', 'LIKE', 'PLACE_BET')->first();
-                $userId           = $orderData->user_id;
-                $orderLogsId      = 0;
-                $walletLedgerId   = 0;
-                $credit           = 0;
-                $reason           = "";
+                $orderId        = substr($_key, strlen('orderId:'));
+                $expiry         = $orderTable['orderExpiry'];
+                $status         = $orderTable['status'];
+                $orderData      = Order::find($orderId);
+                $userWallet     = UserWallet::where('user_id', $orderData->user_id)->first();
+                $sourceId       = Source::where('source_name', 'LIKE', 'PLACE_BET')->first();
+                $userId         = $orderData->user_id;
+                $orderLogsId    = 0;
+                $walletLedgerId = 0;
+                $credit         = 0;
+                $reason         = "";
 
                 if (!empty($openOrders)) {
                     foreach ($openOrders as $order) {
-                        $betId = $order->bet_id;
+                        $betId            = $order->bet_id;
                         $providerCurrency = $providers->get('providerAlias:' . $order->provider)['currency_id'];
                         $exchangeRate     = ExchangeRate::where('from_currency_id', $providerCurrency)->where('to_currency_id', 1)->first();
                         $stake            = $order->stake * $exchangeRate->exchange_rate;
 
                         if (time() - strtotime($orderTable['created_at']) > $expiry && $status == 'PENDING' && empty($orderData->bet_id)) {
-                            $walletLedger = $this->bookMakerCantBeReached($orderTable, $orderId, $orderData, $userId, $userWallet, $exchangeRate, $sourceId);
+                            $walletLedger   = $this->bookMakerCantBeReached($orderTable, $orderId, $orderData, $userId, $userWallet, $exchangeRate, $sourceId);
                             $walletLedgerId = $walletLedger->id;
 
                             orderStatus($userId, $orderId, 'FAILED', $orderData->odds, $expiry, $orderTable['created_at']);
@@ -86,7 +86,7 @@ class OpenOrdersTransformationHandler
                                     $betSelectionArray            = explode("\n", $orderData->bet_selection);
                                     $betSelectionTeamOddsArray    = explode('@ ', $betSelectionArray[1]);
                                     $updatedOrderOdds             = $betSelectionTeamOddsArray[0] . '@ ' . number_format($order->odds, 2);
-                                    $betSelection                 = implode("\n", [ $betSelectionArray[0], $updatedOrderOdds, $betSelectionArray[2] ]);
+                                    $betSelection                 = implode("\n", [$betSelectionArray[0], $updatedOrderOdds, $betSelectionArray[2]]);
 
                                     Order::where('id', $orderId)->update([
                                         'provider_account_id' => ProviderAccount::getUsernameId($orderTable['username']),
@@ -139,11 +139,11 @@ class OpenOrdersTransformationHandler
                                                   ]);
 
                                         $walletLedger = WalletLedger::create([
-                                            'wallet_id'  => $userWallet->id,
-                                            'source_id'  => $sourceId->id,
-                                            'debit'      => 0,
-                                            'credit'     => $credit,
-                                            'balance'    => $newBalance
+                                            'wallet_id' => $userWallet->id,
+                                            'source_id' => $sourceId->id,
+                                            'debit'     => 0,
+                                            'credit'    => $credit,
+                                            'balance'   => $newBalance
                                         ]);
 
                                         $walletLedgerId = $walletLedger->id;
@@ -173,11 +173,11 @@ class OpenOrdersTransformationHandler
                         ]);
                     }
                 } else if (time() - strtotime($orderTable['created_at']) > $expiry && $status == 'PENDING' && empty($orderData->bet_id)) {
-                    $orderAliasStake = Order::getOrderProviderAlias($orderId);
+                    $orderAliasStake  = Order::getOrderProviderAlias($orderId);
                     $providerCurrency = $providers->get('providerAlias:' . strtolower($orderAliasStake->alias))['currency_id'];
                     $exchangeRate     = ExchangeRate::where('from_currency_id', $providerCurrency)->where('to_currency_id', 1)->first();
 
-                    $walletLedger = $this->bookMakerCantBeReached($orderTable, $orderId, $orderData, $userId, $userWallet, $exchangeRate, $sourceId);
+                    $walletLedger   = $this->bookMakerCantBeReached($orderTable, $orderId, $orderData, $userId, $userWallet, $exchangeRate, $sourceId);
                     $walletLedgerId = $walletLedger->id;
 
                     orderStatus($userId, $orderId, 'FAILED', $orderData->odds, $expiry, $orderTable['created_at']);
@@ -224,7 +224,7 @@ class OpenOrdersTransformationHandler
             'updated_at'          => Carbon::now(),
         ]);
 
-        $lastOrderLogs = OrderLogs::where('order_id', $orderId)->orderBy('id', 'desc')->limit(1)->first();
+        $lastOrderLogs        = OrderLogs::where('order_id', $orderId)->orderBy('id', 'desc')->limit(1)->first();
         $providerAccountOrder = ProviderAccountOrder::where('order_log_id', $lastOrderLogs->id)->first();
 
         $orderLogs = OrderLogs::create([
@@ -261,11 +261,11 @@ class OpenOrdersTransformationHandler
                   ]);
 
         $walletLedger = WalletLedger::create([
-            'wallet_id'  => $userWallet->id,
-            'source_id'  => $sourceId->id,
-            'debit'      => 0,
-            'credit'     => $credit,
-            'balance'    => $newBalance
+            'wallet_id' => $userWallet->id,
+            'source_id' => $sourceId->id,
+            'debit'     => 0,
+            'credit'    => $credit,
+            'balance'   => $newBalance
         ]);
 
         return $walletLedger;

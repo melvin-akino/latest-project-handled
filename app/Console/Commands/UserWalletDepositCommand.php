@@ -7,7 +7,7 @@ use App\Models\{
     Currency,
     Source,
     UserWallet AS Wallet,
-    CRM\WalletLedger
+    WalletLedger
 };
 use Illuminate\Console\Command;
 
