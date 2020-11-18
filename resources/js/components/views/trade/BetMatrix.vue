@@ -37,7 +37,7 @@
                             <label class="text-gray-500 font-bold">
                                 <input class="mr-2 leading-tight" type="checkbox" @change="toggleEventOrder(order, order.order_id)" :checked="selectedOrders.includes(order.order_id)">
                             </label>
-                            {{order.team_name}} {{order.odd_type_name}} {{order.points}} {{`(${defaultPriceFormat})`}}
+                            {{order.team_name}} {{ order.type == 'HDP' ? order.odd_type_name : ''}} {{order.points}} {{`(${defaultPriceFormat})`}}
                         </div>
                         <span class="w-32">{{order.bet_team}}</span>
                         <span class="w-32">{{order.odds}}</span>
