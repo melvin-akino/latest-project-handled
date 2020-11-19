@@ -25,6 +25,7 @@ class WsRemoveMinMax implements ShouldQueue
             $topicTable          = $server->topicTable;
             $wsTable             = $server->wsTable;
             $minMaxRequestsTable = $server->minMaxRequestsTable;
+            $minmaxDataTable     = $server->minmaxDataTable;
             $minmaxMarketTable   = $server->minmaxMarketTable;
             $minmaxPayloadTable  = $server->minmaxPayloadTable;
 
@@ -50,7 +51,7 @@ class WsRemoveMinMax implements ShouldQueue
 
                         if ($noSubscription) {
                             $minMaxRequestsTable->del($minMaxReqkey);
-
+                            $minmaxDataTable->del('minmax-market:' . $minMaxRequest['memUID']);
                         }
                         $minmaxMarketTable->del('minmax-market:' . $minMaxRequest['market_id']);
                         $minmaxPayloadTable->del('minmax-payload:' . $minMaxRequest['market_id']);

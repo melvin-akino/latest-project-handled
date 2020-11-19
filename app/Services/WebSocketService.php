@@ -87,6 +87,7 @@ class WebSocketService implements WebSocketHandlerInterface
         foreach ($server->minMaxRequestsTable as $key => $ws) {
             if (in_array($ws['market_id'], $forRemovalOfMinmaxSubscriptions)) {
                 SwooleHandler::remove('minMaxRequestsTable', $key);
+                SwooleHandler::remove('minmaxDataTable', $ws['memUID']);
             }
         }
 

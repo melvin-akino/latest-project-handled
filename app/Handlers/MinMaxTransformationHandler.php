@@ -194,6 +194,7 @@ class MinMaxTransformationHandler
                                    ]);
 
                                 if ($swoole->isEstablished($fd['value'])) {
+                                    $minMaxRequests['mId:' . $data->market_id . ':memUID:' . $memUID]['odds'] = $transformed['price'];
                                     $swoole->push($fd['value'], json_encode([
                                         'getMinMax' => $transformed
                                     ]));
