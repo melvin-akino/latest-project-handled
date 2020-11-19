@@ -90,14 +90,6 @@ return [
             'redirect' => false,
             'pipe'     => 0,
             'enable'   => env('LARAVELS_KAFKA_PRODUCE', true)
-
-        ],
-        'balance_produce' => [
-            'class'    => \App\Processes\BalanceProduce::class,
-            'redirect' => false,
-            'pipe'     => 0,
-            'enable'   => env('LARAVELS_KAFKA_PRODUCE', true)
-
         ],
         'bet_bar_behaviour' => [
             'class'    => \App\Processes\BetBarBehaviour::class,
