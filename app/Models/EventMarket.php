@@ -102,6 +102,13 @@ class EventMarket extends Model
         ";
 
         DB::update($sql);
+    }
 
+    public static function updateProviderEventMarketsByMemUIDWithOdds(string $memUID, $odds)
+    {
+        return DB::table('event_markets as em')
+                 ->leftJoin('master_event_markets as mem', 'mem.id', 'em.master_event_market_id')
+                 ->where('mem.master_event_market_unique_id', $memUID)
+                 ->update(['em.odds' => $odds]);
     }
 }
