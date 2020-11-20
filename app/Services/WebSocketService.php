@@ -3,8 +3,7 @@
 namespace App\Services;
 
 use App\Facades\SwooleHandler;
-use App\Models\Provider;
-use App\Models\SystemConfiguration;
+use App\Models\{Provider, SystemConfiguration};
 use Hhxsv5\LaravelS\Swoole\WebSocketHandlerInterface;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
