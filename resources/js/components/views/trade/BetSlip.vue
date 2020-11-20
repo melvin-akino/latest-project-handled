@@ -51,7 +51,7 @@
                             <div class="flex items-center py-2" v-for="minmax in minMaxProviders" :key="minmax.provider_id">
                                 <span class="w-1/5 text-sm font-bold text-center pl-3">
                                     <label class="text-gray-500 font-bold">
-                                        <input class="mr-2 leading-tight" type="checkbox" @change="toggleMinmaxProviders(minmax, minmax.provider_id)" :checked="selectedProviders.includes(minmax.provider_id) && minmax.hasMarketData" :disabled="!minmax.hasMarketData">
+                                        <input class="mr-2 leading-tight" type="checkbox" @change="toggleMinmaxProviders(minmax, minmax.provider_id)" :checked="selectedProviders.includes(minmax.provider_id) && minmax.hasMarketData" :disabled="!minmax.hasMarketData || underMaintenanceProviders.includes(minmax.provider.toLowerCase())">
                                     </label>
                                     {{minmax.provider}}
                                 </span>
