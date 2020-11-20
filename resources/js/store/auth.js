@@ -38,6 +38,24 @@ const actions = {
                 commit('SET_IS_AUTHENTICATED', false)
             }, 2000)
         }
+    },
+    logout: ({commit, dispatch}) => {
+        let token = Cookies.get('mltoken')
+
+        return axios.post('/v1/auth/logout', null, { headers: { 'Authorization': `Bearer ${token}` } })
+            .then(response => {
+                location.reload('/login')
+
+                Cookies.remove('mltoken')
+                Cookies.remove('display_name')
+
+                setTimeout(() => {
+                    commit('SET_IS_AUTHENTICATED', false)
+                }, 2000)
+            })
+            .catch(err => {
+                dispatch('checkIfTokenIsValid', err.response.data.status_code)
+            })
     }
 }
 

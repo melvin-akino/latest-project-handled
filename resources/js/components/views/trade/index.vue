@@ -376,6 +376,8 @@ export default {
                             }
                         }
                     })
+                } else if (getSocketKey(response.data) === 'userLogout') {
+                    this.$store.dispatch('auth/logout')
                 }
             })
             this.$options.sockets.onclose = (response => {

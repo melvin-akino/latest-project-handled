@@ -106,6 +106,9 @@ class AuthController extends Controller
      */
     public function login(LoginRequests $request)
     {
+        $server  = app('swoole');
+        $wsTable = $server->wsTable;
+
         try {
             $credentials = request(['email', 'password']);
 
@@ -125,9 +128,15 @@ class AuthController extends Controller
                 ], 451);
             }
 
-            $user = $request->user();
+            if ($fd = $wsTable->get("uid:" . auth()->user()->id, 'value')) {
+                $server->push($fd, json_encode([
+                    'userLogout' => true
+                ]));
+            }
+
+            $user        = $request->user();
             $tokenResult = $user->createToken(env('PASSPORT_TOKEN', 'Multiline Authentication Token'));
-            $token = $tokenResult->token;
+            $token       = $tokenResult->token;
 
             if ($request->remember_me) {
                 $token->expires_at = Carbon::now()->addWeeks(1);
