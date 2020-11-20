@@ -3,6 +3,8 @@
 namespace App\Services;
 
 use App\Facades\SwooleHandler;
+use App\Models\Provider;
+use App\Models\SystemConfiguration;
 use Hhxsv5\LaravelS\Swoole\WebSocketHandlerInterface;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
@@ -44,6 +46,22 @@ class WebSocketService implements WebSocketHandlerInterface
 
         $server->wsTable->set('uid:' . $userId, ['value' => $request->fd]);
         $server->wsTable->set('fd:' . $request->fd, ['value' => $userId]);
+
+        $providers = Provider::getActiveProviders();
+        $providers = $providers->get()->toArray();
+        array_map(function($value) use ($server, $request) {
+            $maintenanceConfiguration = SystemConfiguration::getSystemConfigurationValue(strtoupper($value['alias']) . '_MAINTENANCE', 'ProviderMaintenance');
+            $isMaintenance = false;
+            if ($maintenanceConfiguration) {
+                $isMaintenance = $maintenanceConfiguration['value'];
+            }
+            $server->push($request->fd, json_encode([
+                'getMaintenance' => [
+                    'provider'          => strtolower($value['alias']),
+                    'under_maintenance' => $isMaintenance == '1' ? true : false
+                ]
+            ]));
+        }, $providers);
     }
 
     public function onMessage(Server $server, Frame $frame)

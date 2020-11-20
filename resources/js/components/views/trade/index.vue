@@ -60,7 +60,11 @@ export default {
     },
     data() {
         return {
-            isMaintenance: Cookies.get('under_maintenance') || false
+            maintenance: {
+                hg: false,
+                isn: false,
+                pin: false
+            }
         }
     },
     computed: {
@@ -71,7 +75,7 @@ export default {
         vm.$connect()
     },
     mounted() {
-        this.$store.dispatch('trade/loadTradeWindow')
+        this.$store.dispatch('trade/getTradeWindowData')
         this.$store.dispatch('trade/getTradePageSettings')
         this.modifyEventsFromSocket()
     },
@@ -277,28 +281,30 @@ export default {
                     })
                 } else if(getSocketKey(response.data) === 'getMaintenance') {
                     let maintenance = getSocketValue(response.data, 'getMaintenance')
-                    if(this.isMaintenance != maintenance.under_maintenance) {
+                    if(this.maintenance[maintenance.provider] != maintenance.under_maintenance) {
                         if(maintenance.under_maintenance) {
                             Swal.fire({
                                 icon: 'warning',
-                                text: 'No Available Bookmaker.',
+                                text: maintenance.provider.toUpperCase() + ' is not available',
                                 allowOutsideClick: false,
                                 allowEscapeKey: false,
                                 allowEnterKey: false,
-                                showConfirmButton: false
+                                confirmButtonText: "Okay"
                             })
                             this.$store.commit('trade/ADD_TO_UNDER_MAINTENANCE_PROVIDERS', maintenance.provider)
-                            Cookies.set('under_maintenance', true)
                         } else {
-                            Swal.close()
-                            if(Cookies.get('under_maintenance')) {
-                                this.$store.dispatch('trade/getTradeWindowData')
-                            }
+                            Swal.fire({
+                                icon: 'info',
+                                text: maintenance.provider.toUpperCase() + ' is now available',
+                                allowOutsideClick: false,
+                                allowEscapeKey: false,
+                                allowEnterKey: false,
+                                confirmButtonText: "Okay"
+                            })
                             this.$store.commit('trade/REMOVE_FROM_UNDER_MAINTENANCE_PROVIDERS', maintenance.provider)
-                            Cookies.remove('under_maintenance')
                         }
                     }
-                    this.isMaintenance = maintenance.under_maintenance
+                    this.maintenance[maintenance.provider] = maintenance.under_maintenance
                 } else if(getSocketKey(response.data) === 'getEventsUpdate') {
                     let eventsUpdate = getSocketValue(response.data, 'getEventsUpdate')
                     this.eventsList.map(event => {
