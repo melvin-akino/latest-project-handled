@@ -285,7 +285,7 @@ export default {
                         if(maintenance.under_maintenance) {
                             Swal.fire({
                                 icon: 'warning',
-                                text: maintenance.provider.toUpperCase() + ' is not available',
+                                text: maintenance.provider.toUpperCase() + ' bookmaker is unavailable',
                                 allowOutsideClick: false,
                                 allowEscapeKey: false,
                                 allowEnterKey: false,
@@ -295,7 +295,7 @@ export default {
                         } else {
                             Swal.fire({
                                 icon: 'info',
-                                text: maintenance.provider.toUpperCase() + ' is now available',
+                                text: maintenance.provider.toUpperCase() + ' bookmaker is now available',
                                 allowOutsideClick: false,
                                 allowEscapeKey: false,
                                 allowEnterKey: false,
