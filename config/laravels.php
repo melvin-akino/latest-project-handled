@@ -85,12 +85,6 @@ return [
             'pipe'     => 0,
             'enable'   => env('LARAVELS_KAFKA_PRODUCE', true)
         ],
-        'open_order_produce' => [
-            'class'    => \App\Processes\OpenOrderProduce::class,
-            'redirect' => false,
-            'pipe'     => 0,
-            'enable'   => env('LARAVELS_KAFKA_PRODUCE', true)
-        ],
         'bet_bar_behaviour' => [
             'class'    => \App\Processes\BetBarBehaviour::class,
             'redirect' => false,
