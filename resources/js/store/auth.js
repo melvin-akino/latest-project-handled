@@ -6,7 +6,8 @@ const state = {
     authUser: '',
     resetPasswordEmail: '',
     isResetPasswordTokenInvalid: false,
-    resetPasswordInvalidTokenError: ''
+    resetPasswordInvalidTokenError: '',
+    new_access: false
 }
 
 const mutations = {
@@ -39,7 +40,7 @@ const actions = {
             }, 2000)
         }
     },
-    logout: ({commit, dispatch}) => {
+    logout({commit, dispatch}, {new_access}) {
         let token = Cookies.get('mltoken')
 
         return axios.post('/v1/auth/logout', null, { headers: { 'Authorization': `Bearer ${token}` } })
@@ -49,8 +50,12 @@ const actions = {
                 Cookies.remove('mltoken')
                 Cookies.remove('display_name')
 
+                if(new_access) {
+                    Cookies.set('new_access')
+                }
+
                 setTimeout(() => {
-                    commit('SET_IS_AUTHENTICATED', false)
+                    this.$store.commit('auth/SET_IS_AUTHENTICATED', false)
                 }, 2000)
             })
             .catch(err => {
