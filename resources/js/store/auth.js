@@ -6,8 +6,7 @@ const state = {
     authUser: '',
     resetPasswordEmail: '',
     isResetPasswordTokenInvalid: false,
-    resetPasswordInvalidTokenError: '',
-    new_access: false
+    resetPasswordInvalidTokenError: ''
 }
 
 const mutations = {
@@ -51,7 +50,7 @@ const actions = {
                 Cookies.remove('display_name')
 
                 if(new_access) {
-                    Cookies.set('new_access')
+                    Cookies.set('new_access', true)
                 }
 
                 setTimeout(() => {
