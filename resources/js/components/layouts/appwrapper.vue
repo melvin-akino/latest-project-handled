@@ -83,7 +83,7 @@ export default {
             }
         },
         logout() {
-            this.$store.dispatch('auth/logout')
+            this.$store.dispatch('auth/logout', { new_access: false })
             this.isLoggingOut = true
         }
     }
