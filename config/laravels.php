@@ -79,12 +79,6 @@ return [
             'pipe'     => 0,
             'enable'   => env('LARAVELS_KAFKA_PRODUCE', true)
         ],
-        'settlement_produce' => [
-            'class'    => \App\Processes\SettlementProduce::class,
-            'redirect' => false,
-            'pipe'     => 0,
-            'enable'   => env('LARAVELS_KAFKA_PRODUCE', true)
-        ],
         'bet_bar_behaviour' => [
             'class'    => \App\Processes\BetBarBehaviour::class,
             'redirect' => false,
