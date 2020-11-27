@@ -83,20 +83,7 @@ export default {
             }
         },
         logout() {
-            let token = Cookies.get('mltoken')
-
-            axios.post('/v1/auth/logout', null, { headers: { 'Authorization': `Bearer ${token}` } })
-            .then(response => {
-                location.reload('/login')
-                Cookies.remove('mltoken')
-                Cookies.remove('display_name')
-                setTimeout(() => {
-                    this.$store.commit('auth/SET_IS_AUTHENTICATED', false)
-                }, 2000)
-            })
-            .catch(err => {
-                this.$store.dispatch('auth/checkIfTokenIsValid', err.response.data.status_code)
-            })
+            this.$store.dispatch('auth/logout', { new_access: false })
             this.isLoggingOut = true
         }
     }
