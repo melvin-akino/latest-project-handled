@@ -8,8 +8,7 @@ use App\Handlers\{BalanceTransformationHandler,
     LeaguesTransformationHandler,
     MaintenanceTransformationHandler,
     MinMaxTransformationHandler,
-    OpenOrdersTransformationHandler,
-    SettlementTransformationHandler};
+    OpenOrdersTransformationHandler};
 use Illuminate\Support\ServiceProvider;
 
 class ConsumerServiceProvider extends ServiceProvider
@@ -35,10 +34,6 @@ class ConsumerServiceProvider extends ServiceProvider
 
         $this->app->singleton('OpenOrdersTransformationHandler', function () {
             return new OpenOrdersTransformationHandler();
-        });
-
-        $this->app->singleton('SettlementTransformationHandler', function () {
-            return new SettlementTransformationHandler();
         });
 
         $this->app->singleton('MaintenanceTransformationHandler', function () {
