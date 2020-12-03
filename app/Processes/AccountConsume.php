@@ -23,16 +23,12 @@ class AccountConsume implements CustomProcessInterface
 
                 $kafkaConsumer                   = app('LowLevelConsumer');
                 $topicConf                       = app('KafkaTopicConf');
-                $balanceTransformationHandler    = app('BalanceTransformationHandler');
                 $openOrdersTransformationHandler = app('OpenOrdersTransformationHandler');
 
                 $queue = $kafkaConsumer->newQueue();
 
                 $openOrdersTopic = $kafkaConsumer->newTopic(env('KAFKA_SCRAPE_OPEN_ORDERS', 'OPEN-ORDERS'), $topicConf);
                 $openOrdersTopic->consumeQueueStart(0, RD_KAFKA_OFFSET_END, $queue);
-
-                $balanceTopic = $kafkaConsumer->newTopic(env('KAFKA_SCRAPE_BALANCE', 'BALANCE'), $topicConf);
-                $balanceTopic->consumeQueueStart(0, RD_KAFKA_OFFSET_END, $queue);
 
                 while (!self::$quit) {
                     $message = $queue->consume(0);
@@ -41,13 +37,6 @@ class AccountConsume implements CustomProcessInterface
                             $payload = json_decode($message->payload);
 
                             switch ($payload->command) {
-                                case 'balance':
-                                    if (empty($payload->data->provider) || empty($payload->data->username) || empty($payload->data->available_balance) || empty($payload->data->currency)) {
-                                        Log::info("Balance Transformation ignored - No Data Found");
-                                        break;
-                                    }
-                                    $balanceTransformationHandler->init($payload)->handle();
-                                    break;
                                 case 'orders':
                                     $openOrdersTransformationHandler->init($payload)->handle();
                                     break;

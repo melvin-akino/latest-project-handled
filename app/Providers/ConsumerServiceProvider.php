@@ -2,7 +2,7 @@
 
 namespace App\Providers;
 
-use App\Handlers\{BalanceTransformationHandler,
+use App\Handlers\{
     BetTransformationHandler,
     EventsTransformationHandler,
     LeaguesTransformationHandler,
@@ -26,10 +26,6 @@ class ConsumerServiceProvider extends ServiceProvider
 
         $this->app->singleton('LeaguesTransformationHandler', function () {
             return new LeaguesTransformationHandler();
-        });
-
-        $this->app->singleton('BalanceTransformationHandler', function () {
-            return new BalanceTransformationHandler();
         });
 
         $this->app->singleton('OpenOrdersTransformationHandler', function () {
