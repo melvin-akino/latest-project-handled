@@ -2,14 +2,13 @@
 
 namespace App\Providers;
 
-use App\Handlers\{BalanceTransformationHandler,
+use App\Handlers\{
     BetTransformationHandler,
     EventsTransformationHandler,
     LeaguesTransformationHandler,
     MaintenanceTransformationHandler,
     MinMaxTransformationHandler,
-    OpenOrdersTransformationHandler,
-    SettlementTransformationHandler};
+    OpenOrdersTransformationHandler};
 use Illuminate\Support\ServiceProvider;
 
 class ConsumerServiceProvider extends ServiceProvider
@@ -29,16 +28,8 @@ class ConsumerServiceProvider extends ServiceProvider
             return new LeaguesTransformationHandler();
         });
 
-        $this->app->singleton('BalanceTransformationHandler', function () {
-            return new BalanceTransformationHandler();
-        });
-
         $this->app->singleton('OpenOrdersTransformationHandler', function () {
             return new OpenOrdersTransformationHandler();
-        });
-
-        $this->app->singleton('SettlementTransformationHandler', function () {
-            return new SettlementTransformationHandler();
         });
 
         $this->app->singleton('MaintenanceTransformationHandler', function () {

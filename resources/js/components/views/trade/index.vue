@@ -60,7 +60,11 @@ export default {
     },
     data() {
         return {
-            isMaintenance: Cookies.get('under_maintenance') || false
+            maintenance: {
+                hg: false,
+                isn: false,
+                pin: false
+            }
         }
     },
     computed: {
@@ -71,7 +75,7 @@ export default {
         vm.$connect()
     },
     mounted() {
-        this.$store.dispatch('trade/loadTradeWindow')
+        this.$store.dispatch('trade/getTradeWindowData')
         this.$store.dispatch('trade/getTradePageSettings')
         this.modifyEventsFromSocket()
     },
@@ -231,30 +235,32 @@ export default {
                 } else if(getSocketKey(response.data) === 'getForRemovalEvents') {
                     let removedEvents = getSocketValue(response.data, 'getForRemovalEvents')
                     removedEvents.map(removedEvent => {
-                        let leagueNames = this.leagues[removedEvent.game_schedule].map(league => league.name)
-                        let eventInTradeWindow = this.eventsList.some(event => event.league_name == removedEvent.league_name && event.game_schedule == removedEvent.game_schedule)
-                        if(eventInTradeWindow) {
-                            this.$store.commit('trade/REMOVE_ALL_FROM_EVENT_LIST', { league_name: removedEvent.league_name, game_schedule: removedEvent.game_schedule, uid: removedEvent.uid })
-                            let leagueMatchCount = this.eventsList.filter(event => removedEvent.league_name == event.league_name && removedEvent.game_schedule == event.game_schedule && !event.hasOwnProperty('watchlist')).length
-                            if(leagueMatchCount == 0) {
-                                this.$store.dispatch('trade/toggleLeague', { action: 'remove', league_name: removedEvent.league_name,  schedule: removedEvent.game_schedule, sport_id: this.selectedSport })
-                                this.$store.commit('trade/REMOVE_SELECTED_LEAGUE', {schedule: removedEvent.game_schedule, league: removedEvent.league_name })
-                                this.$store.commit('trade/REMOVE_FROM_LEAGUE', {schedule: removedEvent.game_schedule, league: removedEvent.league_name })
-                            } else {
-                                this.$store.commit('trade/UPDATE_LEAGUE_MATCH_COUNT', { schedule: removedEvent.game_schedule, league: removedEvent.league_name, match_count: leagueMatchCount })
-                            }
-                        } else {
-                            if(leagueNames.includes(removedEvent.league_name)) {
-                                let leagueMatchCount = this.leagues[removedEvent.game_schedule].filter(league => league.name == removedEvent.league_name)[0].match_count
-                                if(leagueMatchCount == 1) {
+                        if(removedEvent.game_schedule && removedEvent.league_name && removedEvent.uid) {
+                            let leagueNames = this.leagues[removedEvent.game_schedule].map(league => league.name)
+                            let eventInTradeWindow = this.eventsList.some(event => event.league_name == removedEvent.league_name && event.game_schedule == removedEvent.game_schedule)
+                            if(eventInTradeWindow) {
+                                this.$store.commit('trade/REMOVE_ALL_FROM_EVENT_LIST', { league_name: removedEvent.league_name, game_schedule: removedEvent.game_schedule, uid: removedEvent.uid })
+                                let leagueMatchCount = this.eventsList.filter(event => removedEvent.league_name == event.league_name && removedEvent.game_schedule == event.game_schedule && !event.hasOwnProperty('watchlist')).length
+                                if(leagueMatchCount == 0) {
+                                    this.$store.dispatch('trade/toggleLeague', { action: 'remove', league_name: removedEvent.league_name,  schedule: removedEvent.game_schedule, sport_id: this.selectedSport })
+                                    this.$store.commit('trade/REMOVE_SELECTED_LEAGUE', {schedule: removedEvent.game_schedule, league: removedEvent.league_name })
                                     this.$store.commit('trade/REMOVE_FROM_LEAGUE', {schedule: removedEvent.game_schedule, league: removedEvent.league_name })
                                 } else {
-                                    let removedEventsCount = removedEvents.filter(event => event.league_name == removedEvent.league_name && event.game_schedule == removedEvent.game_schedule).length
-                                    let updatedMatchCount = leagueMatchCount - removedEventsCount
-                                    if(updatedMatchCount > 0) {
-                                        this.$store.commit('trade/UPDATE_LEAGUE_MATCH_COUNT', { schedule: removedEvent.game_schedule, league: removedEvent.league_name, match_count: updatedMatchCount })
-                                    } else {
+                                    this.$store.commit('trade/UPDATE_LEAGUE_MATCH_COUNT', { schedule: removedEvent.game_schedule, league: removedEvent.league_name, match_count: leagueMatchCount })
+                                }
+                            } else {
+                                if(leagueNames.includes(removedEvent.league_name)) {
+                                    let leagueMatchCount = this.leagues[removedEvent.game_schedule].filter(league => league.name == removedEvent.league_name)[0].match_count
+                                    if(leagueMatchCount == 1) {
                                         this.$store.commit('trade/REMOVE_FROM_LEAGUE', {schedule: removedEvent.game_schedule, league: removedEvent.league_name })
+                                    } else {
+                                        let removedEventsCount = removedEvents.filter(event => event.league_name == removedEvent.league_name && event.game_schedule == removedEvent.game_schedule).length
+                                        let updatedMatchCount = leagueMatchCount - removedEventsCount
+                                        if(updatedMatchCount > 0) {
+                                            this.$store.commit('trade/UPDATE_LEAGUE_MATCH_COUNT', { schedule: removedEvent.game_schedule, league: removedEvent.league_name, match_count: updatedMatchCount })
+                                        } else {
+                                            this.$store.commit('trade/REMOVE_FROM_LEAGUE', {schedule: removedEvent.game_schedule, league: removedEvent.league_name })
+                                        }
                                     }
                                 }
                             }
@@ -277,28 +283,30 @@ export default {
                     })
                 } else if(getSocketKey(response.data) === 'getMaintenance') {
                     let maintenance = getSocketValue(response.data, 'getMaintenance')
-                    if(this.isMaintenance != maintenance.under_maintenance) {
+                    if(this.maintenance[maintenance.provider] != maintenance.under_maintenance) {
                         if(maintenance.under_maintenance) {
                             Swal.fire({
                                 icon: 'warning',
-                                text: 'No Available Bookmaker.',
+                                text: maintenance.provider.toUpperCase() + ' bookmaker is unavailable',
                                 allowOutsideClick: false,
                                 allowEscapeKey: false,
                                 allowEnterKey: false,
-                                showConfirmButton: false
+                                confirmButtonText: "Okay"
                             })
                             this.$store.commit('trade/ADD_TO_UNDER_MAINTENANCE_PROVIDERS', maintenance.provider)
-                            Cookies.set('under_maintenance', true)
                         } else {
-                            Swal.close()
-                            if(Cookies.get('under_maintenance')) {
-                                this.$store.dispatch('trade/getTradeWindowData')
-                            }
+                            Swal.fire({
+                                icon: 'info',
+                                text: maintenance.provider.toUpperCase() + ' bookmaker is now available',
+                                allowOutsideClick: false,
+                                allowEscapeKey: false,
+                                allowEnterKey: false,
+                                confirmButtonText: "Okay"
+                            })
                             this.$store.commit('trade/REMOVE_FROM_UNDER_MAINTENANCE_PROVIDERS', maintenance.provider)
-                            Cookies.remove('under_maintenance')
                         }
                     }
-                    this.isMaintenance = maintenance.under_maintenance
+                    this.maintenance[maintenance.provider] = maintenance.under_maintenance
                 } else if(getSocketKey(response.data) === 'getEventsUpdate') {
                     let eventsUpdate = getSocketValue(response.data, 'getEventsUpdate')
                     this.eventsList.map(event => {
@@ -376,6 +384,8 @@ export default {
                             }
                         }
                     })
+                } else if (getSocketKey(response.data) === 'userLogout') {
+                    this.$store.dispatch('auth/logout', { new_access: true })
                 }
             })
             this.$options.sockets.onclose = (response => {

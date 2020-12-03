@@ -90,6 +90,16 @@ export default {
             this.$store.commit('auth/SET_IS_RESET_PASSWORD_TOKEN_INVALID', false)
             this.$store.commit('auth/SET_RESET_PASSWORD_INVALID_TOKEN_ERROR', '')
         }
+
+        if(Cookies.get('new_access')) {
+            Swal.fire({
+                icon: 'error',
+                text: 'Your account has been logged out due to multiple login.'
+            })
+            .then(response => {
+                Cookies.remove('new_access')
+            })
+        }
     },
     methods: {
         async login() {

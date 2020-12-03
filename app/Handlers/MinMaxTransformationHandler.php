@@ -187,13 +187,10 @@ class MinMaxTransformationHandler
                                     'ts'  => getMilliseconds()
                                 ]);
 
-                                $masterEventMarket = MasterEventMarket::where('master_event_market_unique_id', $memUID)->first();
-                                EventMarket::where('master_event_market_id', $masterEventMarket->id)
-                                   ->update([
-                                       'odds' => $transformed['price']
-                                   ]);
+                                EventMarket::updateProviderEventMarketsByMemUIDWithOdds($memUID, $transformed['price']);
 
                                 if ($swoole->isEstablished($fd['value'])) {
+                                    $minMaxRequests['mId:' . $data->market_id . ':memUID:' . $memUID]['odds'] = $transformed['price'];
                                     $swoole->push($fd['value'], json_encode([
                                         'getMinMax' => $transformed
                                     ]));

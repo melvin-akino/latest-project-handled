@@ -25,12 +25,6 @@ return [
     ],
     'sockets'                  => [],
     'processes'                => [
-        'scrape_produce'     => [
-            'class'    => \App\Processes\ScrapeProduce::class,
-            'redirect' => false,
-            'pipe'     => 0,
-            'enable'   => env('LARAVELS_KAFKA_SCRAPE_PRODUCE', true)
-        ],
         'data_to_swt'   => [
             'class'    => \App\Processes\DataToSwt::class,
             'redirect' => false,
@@ -78,26 +72,6 @@ return [
             'redirect' => false,
             'pipe'     => 0,
             'enable'   => env('LARAVELS_KAFKA_PRODUCE', true)
-        ],
-        'settlement_produce' => [
-            'class'    => \App\Processes\SettlementProduce::class,
-            'redirect' => false,
-            'pipe'     => 0,
-            'enable'   => env('LARAVELS_KAFKA_PRODUCE', true)
-        ],
-        'open_order_produce' => [
-            'class'    => \App\Processes\OpenOrderProduce::class,
-            'redirect' => false,
-            'pipe'     => 0,
-            'enable'   => env('LARAVELS_KAFKA_PRODUCE', true)
-
-        ],
-        'balance_produce' => [
-            'class'    => \App\Processes\BalanceProduce::class,
-            'redirect' => false,
-            'pipe'     => 0,
-            'enable'   => env('LARAVELS_KAFKA_PRODUCE', true)
-
         ],
         'bet_bar_behaviour' => [
             'class'    => \App\Processes\BetBarBehaviour::class,

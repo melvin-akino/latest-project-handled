@@ -354,8 +354,6 @@ const actions = {
                                 if(event.hasOwnProperty('watchlist')) {
                                     if(event.market_odds.hasOwnProperty('other')) {
                                         Vue.prototype.$socket.send(`getWatchlist_${event.uid}_withOtherMarket`)
-                                    } else {
-                                        Vue.prototype.$socket.send(`getWatchlist_${event.uid}`)
                                     }
                                 } else {
                                     if(event.market_odds.hasOwnProperty('other')) {
@@ -364,6 +362,7 @@ const actions = {
                                 }
                             }
                         })
+                        Vue.prototype.$socket.send('getWatchlist')
                         Object.keys(state.selectedLeagues).map(schedule => {
                             state.selectedLeagues[schedule].map(league => {
                                 Vue.prototype.$socket.send(`getEvents_${league}_${schedule}`)

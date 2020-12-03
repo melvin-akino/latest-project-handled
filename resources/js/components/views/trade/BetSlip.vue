@@ -51,7 +51,7 @@
                             <div class="flex items-center py-2" v-for="minmax in minMaxProviders" :key="minmax.provider_id">
                                 <span class="w-1/5 text-sm font-bold text-center pl-3">
                                     <label class="text-gray-500 font-bold">
-                                        <input class="mr-2 leading-tight" type="checkbox" @change="toggleMinmaxProviders(minmax, minmax.provider_id)" :checked="selectedProviders.includes(minmax.provider_id) && minmax.hasMarketData" :disabled="!minmax.hasMarketData">
+                                        <input class="mr-2 leading-tight" type="checkbox" @change="toggleMinmaxProviders(minmax, minmax.provider_id)" :checked="selectedProviders.includes(minmax.provider_id) && minmax.hasMarketData && !underMaintenanceProviders.includes(minmax.provider.toLowerCase())" :disabled="!minmax.hasMarketData || underMaintenanceProviders.includes(minmax.provider.toLowerCase())">
                                     </label>
                                     {{minmax.provider}}
                                 </span>
@@ -300,10 +300,10 @@ export default {
             handler(value) {
                 this.minMaxUpdateCounter = this.minMaxUpdateCounter + 1
                 if(this.minMaxUpdateCounter <= (this.market_details.providers.length + 1)) {
-                    let minMaxPrices = value.filter(minmax => minmax.price != null).map(minmax => minmax.price)
+                    let minMaxPrices = value.filter(minmax => minmax.price != null && !this.underMaintenanceProviders.includes(minmax.provider.toLowerCase())).map(minmax => minmax.price)
                     if(minMaxPrices.length > 0) {
                         this.inputPrice = twoDecimalPlacesFormat(Math.max(...minMaxPrices))
-                        this.minMaxData = value.filter(minmax => minmax.price == Math.max(...minMaxPrices))
+                        this.minMaxData = value.filter(minmax => minmax.price == Math.max(...minMaxPrices) && !this.underMaintenanceProviders.includes(minmax.provider.toLowerCase()))
                         this.selectedProviders = this.minMaxData.map(minmax => minmax.provider_id)
                     }
                 }
