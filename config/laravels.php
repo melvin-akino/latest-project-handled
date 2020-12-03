@@ -25,12 +25,6 @@ return [
     ],
     'sockets'                  => [],
     'processes'                => [
-        'scrape_produce'     => [
-            'class'    => \App\Processes\ScrapeProduce::class,
-            'redirect' => false,
-            'pipe'     => 0,
-            'enable'   => env('LARAVELS_KAFKA_SCRAPE_PRODUCE', true)
-        ],
         'data_to_swt'   => [
             'class'    => \App\Processes\DataToSwt::class,
             'redirect' => false,
