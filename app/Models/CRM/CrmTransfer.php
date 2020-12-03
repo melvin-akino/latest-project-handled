@@ -3,13 +3,13 @@
 namespace App\Models\CRM;
 
 use Illuminate\Database\Eloquent\Model;
-use App\Models\Currency;
+use App\Models\{Currency, WalletLedger};
 
 class CrmTransfer extends Model
 {
     //
     protected $table = 'crmtransfer';
-    
+
     protected $fillable = [
         'transfer_amount',
         'currency_id',

@@ -4,14 +4,14 @@ namespace App\Models;
 
 use App\User;
 use App\Models\{Currency, Source};
-use App\Models\CRM\WalletLedger;
+use App\Models\WalletLedger;
 
 use Exception;
 use Illuminate\Database\Eloquent\Model;
 
 class OrderTransaction extends Model
 {
-    protected $table    = "order_transactions";
+    protected $table = "order_transactions";
 
     public $timestamps = true;
 
