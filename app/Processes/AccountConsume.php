@@ -24,15 +24,11 @@ class AccountConsume implements CustomProcessInterface
                 $kafkaConsumer                   = app('LowLevelConsumer');
                 $topicConf                       = app('KafkaTopicConf');
                 $openOrdersTransformationHandler = app('OpenOrdersTransformationHandler');
-                $settlementTransformationHandler = app('SettlementTransformationHandler');
 
                 $queue = $kafkaConsumer->newQueue();
 
                 $openOrdersTopic = $kafkaConsumer->newTopic(env('KAFKA_SCRAPE_OPEN_ORDERS', 'OPEN-ORDERS'), $topicConf);
                 $openOrdersTopic->consumeQueueStart(0, RD_KAFKA_OFFSET_END, $queue);
-
-                $settlementTopic = $kafkaConsumer->newTopic(env('KAFKA_SCRAPE_SETTLEMENTS', 'SCRAPING-SETTLEMENTS'), $topicConf);
-                $settlementTopic->consumeQueueStart(0, RD_KAFKA_OFFSET_END, $queue);
 
                 while (!self::$quit) {
                     $message = $queue->consume(0);
@@ -43,14 +39,6 @@ class AccountConsume implements CustomProcessInterface
                             switch ($payload->command) {
                                 case 'orders':
                                     $openOrdersTransformationHandler->init($payload)->handle();
-                                    break;
-                                case 'settlement':
-                                    if (empty($payload->data)) {
-                                        Log::info("Settlement Transformation ignored - No Data Found");
-                                        break;
-                                    }
-
-                                    $settlementTransformationHandler->init($payload)->handle();
                                     break;
                                 default:
                                     break;
