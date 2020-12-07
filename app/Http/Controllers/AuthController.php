@@ -129,9 +129,11 @@ class AuthController extends Controller
             }
 
             if ($fd = $wsTable->get("uid:" . auth()->user()->id, 'value')) {
-                $server->push($fd, json_encode([
-                    'userLogout' => true
-                ]));
+                if ($server->isEstablished($fd)) {
+                    $server->push($fd, json_encode([
+                        'userLogout' => true
+                    ]));
+                }
             }
 
             $user        = $request->user();
