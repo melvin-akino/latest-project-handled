@@ -8,10 +8,7 @@ use App\Facades\SwooleHandler;
 use App\Jobs\KafkaPush;
 
 use App\Models\{
-    Currency,
-    ExchangeRate,
     Game,
-    MasterEvent,
     MasterEventMarket,
     MasterEventMarketLog,
     OddType,
@@ -20,12 +17,8 @@ use App\Models\{
     UserConfiguration,
     UserProviderConfiguration,
     Order,
-    OrderLogs,
     Timezones,
     UserWallet,
-    ProviderAccountOrder
-};
-use App\Models\CRM\{
     ProviderAccount
 };
 use Illuminate\Http\Request;
