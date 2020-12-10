@@ -430,13 +430,6 @@ return [
                 ['name' => 'payload', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 1000],
             ],
         ],
-        'orderRetries'        => [ // KEY FORMAT: [orderId:$orderId]
-            'size'   => 10000,
-            'column' => [
-                // ['name' => 'order_id', 'type' => \Swoole\Table::TYPE_INT],
-                ['name' => 'time', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 50],
-            ],
-        ],
         'minmaxOnqueueRequests'        => [ // KEY FORMAT: [min-max:$marketId]
             'size'   => 10000,
             'column' => [
