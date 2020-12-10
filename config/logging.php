@@ -121,6 +121,12 @@ return [
             'path'   => storage_path('logs/laravels-leagues.log'),
             'level'  => 'debug',
         ],
+
+        'bets' => [
+            'driver' => 'single',
+            'path'   => storage_path('logs/bets.log'),
+            'level'  => 'debug',
+        ],
     ],
 
 ];
