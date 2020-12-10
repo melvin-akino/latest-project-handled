@@ -8,10 +8,7 @@ use App\Facades\SwooleHandler;
 use App\Jobs\KafkaPush;
 
 use App\Models\{
-    Currency,
-    ExchangeRate,
     Game,
-    MasterEvent,
     MasterEventMarket,
     MasterEventMarketLog,
     OddType,
@@ -20,16 +17,14 @@ use App\Models\{
     UserConfiguration,
     UserProviderConfiguration,
     Order,
-    OrderLogs,
     Timezones,
     UserWallet,
-    ProviderAccountOrder
 };
 use App\Models\CRM\{
     ProviderAccount
 };
 use Illuminate\Http\Request;
-use Illuminate\Support\{Facades\DB, Facades\Redis, Str};
+use Illuminate\Support\{Facades\DB, Str};
 use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
 use SendLogData;
@@ -509,13 +504,6 @@ class OrdersController extends Controller
 
                 if (!$query) {
                     throw new NotFoundException(trans('game.bet.errors.place-bet-event-ended'));
-                }
-
-                // Checks if odd type of market is not 1x2 or HT 1x2
-                if (!in_array($query->odd_type_id, [1, 10])) {
-                    if ($query->odd_label != Redis::get('marketPoints:' . $query->bet_identifier)) {
-                        throw new BadRequestException(trans('game.bet.errors.type_has_been_changed', ['type' => $query->column_type]));
-                    }
                 }
 
                 $actualStake = ($payloadStake * $exchangeRate['exchange_rate']) / ($percentage / 100);
