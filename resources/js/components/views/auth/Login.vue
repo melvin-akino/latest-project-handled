@@ -25,7 +25,7 @@
                     </label>
                 </div>
                 <div class="mb-4 flex" :class="[hasLoginErrors ? 'justify-between' : 'justify-end']">
-                    <span class="text-sm text-red-600" v-if="hasLoginErrors">{{loginError}}</span>
+                    <span class="text-sm text-red-600" v-if="hasLoginErrors" v-html="loginError"></span>
                     <button type="submit" class="bg-orange-400 text-white rounded-full font-bold sm:text-sm text-xs uppercase px-12 sm:py-5 py-2 hover:bg-orange-500 focus:outline-none">
                         <span v-if="this.isLoggingIn">Logging In</span>
                         <span v-else>Login</span>
