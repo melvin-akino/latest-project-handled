@@ -85,45 +85,49 @@ export default {
                 if(getSocketKey(response.data) ===  'getWatchlist') {
                     let watchlist = getSocketValue(response.data, 'getWatchlist')
                     if(_.isArray(watchlist)) {
-                        watchlist.map(watchlistEvent => {
-                            let oddTypeWithIncompleteMarkets = []
-                            if(watchlistEvent.hasOwnProperty('market_odds')) {
-                                Object.keys(watchlistEvent.market_odds).map(marketType => {
-                                    Object.keys(watchlistEvent.market_odds[marketType]).map(oddType => {
-                                        let odds = []
-                                        Object.keys(watchlistEvent.market_odds[marketType][oddType]).map(team => {
-                                            odds.push(watchlistEvent.market_odds[marketType][oddType][team].odds)
-                                        })
-                                        let oddsNonEmpty = odds.filter(odds => odds)
-                                        let oddsEmpty = odds.filter(odds => !odds)
-                                        if(odds.length != oddsNonEmpty.length && odds.length != oddsEmpty.length) {
-                                            oddTypeWithIncompleteMarkets.push(oddType)
-                                            if(watchlistEvent.market_odds[marketType].hasOwnProperty(oddType)) {
-                                                this.$delete(watchlistEvent.market_odds[marketType], oddType)
+                        if(watchlist.length == 0) {
+                            this.$store.commit('trade/CLEAR_WATCHLIST')
+                        } else {
+                            watchlist.map(watchlistEvent => {
+                                let oddTypeWithIncompleteMarkets = []
+                                if(watchlistEvent.hasOwnProperty('market_odds')) {
+                                    Object.keys(watchlistEvent.market_odds).map(marketType => {
+                                        Object.keys(watchlistEvent.market_odds[marketType]).map(oddType => {
+                                            let odds = []
+                                            Object.keys(watchlistEvent.market_odds[marketType][oddType]).map(team => {
+                                                odds.push(watchlistEvent.market_odds[marketType][oddType][team].odds)
+                                            })
+                                            let oddsNonEmpty = odds.filter(odds => odds)
+                                            let oddsEmpty = odds.filter(odds => !odds)
+                                            if(odds.length != oddsNonEmpty.length && odds.length != oddsEmpty.length) {
+                                                oddTypeWithIncompleteMarkets.push(oddType)
+                                                if(watchlistEvent.market_odds[marketType].hasOwnProperty(oddType)) {
+                                                    this.$delete(watchlistEvent.market_odds[marketType], oddType)
+                                                }
                                             }
-                                        }
+                                        })
                                     })
-                                })
-                                if(!_.isEmpty(oddTypeWithIncompleteMarkets)) {
-                                    if(watchlistEvent.market_odds.hasOwnProperty('other')) {
-                                        this.$socket.send(`getWatchlist_${watchlistEvent.uid}_withOtherMarket`)
-                                    } else {
-                                        this.$socket.send(`getWatchlist_${watchlistEvent.uid}`)
+                                    if(!_.isEmpty(oddTypeWithIncompleteMarkets)) {
+                                        if(watchlistEvent.market_odds.hasOwnProperty('other')) {
+                                            this.$socket.send(`getWatchlist_${watchlistEvent.uid}_withOtherMarket`)
+                                        } else {
+                                            this.$socket.send(`getWatchlist_${watchlistEvent.uid}`)
+                                        }
                                     }
                                 }
-                            }
-                            this.$set(watchlistEvent, 'watchlist', true)
-                            this.$store.commit('trade/SET_EVENTS_LIST', watchlistEvent)
-                            if(!watchlistEvent.hasOwnProperty('single_event_response')) {
-                                let watchlistEventsUIDs = this.eventsList.filter(event => event.league_name == watchlistEvent.league_name && event.game_schedule == watchlistEvent.game_schedule && event.hasOwnProperty('watchlist')).map(event => event.uid)
-                                let watchlistUIDs = watchlist.map(event => event.uid)
-                                watchlistEventsUIDs.map(uid => {
-                                    if(!watchlistUIDs.includes(uid)) {
-                                        this.$store.commit('trade/REMOVE_ALL_FROM_EVENT_LIST', { game_schedule: watchlistEvent.game_schedule, league_name: watchlistEvent.league_name, uid: uid })
-                                    }
-                                })
-                            }
-                        })
+                                this.$set(watchlistEvent, 'watchlist', true)
+                                this.$store.commit('trade/SET_EVENTS_LIST', watchlistEvent)
+                                if(!watchlistEvent.hasOwnProperty('single_event_response')) {
+                                    let watchlistEventsUIDs = this.eventsList.filter(event => event.league_name == watchlistEvent.league_name && event.game_schedule == watchlistEvent.game_schedule && event.hasOwnProperty('watchlist')).map(event => event.uid)
+                                    let watchlistUIDs = watchlist.map(event => event.uid)
+                                    watchlistEventsUIDs.map(uid => {
+                                        if(!watchlistUIDs.includes(uid)) {
+                                            this.$store.commit('trade/REMOVE_ALL_FROM_EVENT_LIST', { game_schedule: watchlistEvent.game_schedule, league_name: watchlistEvent.league_name, uid: uid })
+                                        }
+                                    })
+                                }
+                            })
+                        }
                     }
                 } else if(getSocketKey(response.data) === 'getEvents') {
                     let receivedEvents = getSocketValue(response.data, 'getEvents')
