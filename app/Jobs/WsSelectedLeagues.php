@@ -26,7 +26,7 @@ class WsSelectedLeagues implements ShouldQueue
         $fd = $server->wsTable->get('uid:' . $this->userId);
         $providers = UserProviderConfiguration::getProviderIdList($this->userId);
         $leagues = [];
-        $userSelectedLeagues = UserSelectedLeague::getSelectedLeagueByUserId($this->userId, $providers);
+        $userSelectedLeagues = UserSelectedLeague::getSelectedLeagueByUserId($this->userId, $this->sportId, $providers);
         array_map(function($userSelectedLeague) use (&$leagues) {
             $leagues[$userSelectedLeague->game_schedule][] = $userSelectedLeague->master_league_name;
         }, $userSelectedLeagues->toArray());

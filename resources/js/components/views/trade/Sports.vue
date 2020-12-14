@@ -54,17 +54,14 @@ export default {
     },
     methods: {
         selectSport(sport) {
-            this.$socket.send(`getSelectedLeagues_${sport}`)
             this.isSportsListOpen = !this.isSportsListOpen
             this.isSelectingSport = !this.isSelectingSport
-            if(!this.isSelectingSport) {
-                this.$store.commit('trade/SET_EVENTS', { schedule: 'inplay', events: [] })
-                this.$store.commit('trade/SET_EVENTS', { schedule: 'today', events: [] })
-                this.$store.commit('trade/SET_EVENTS', { schedule: 'early', events: [] })
+            if(!this.isSelectingSport && this.selectedSport != sport) {
                 this.$store.commit('trade/CLEAR_EVENTS_LIST')
                 this.$store.commit('trade/CLEAR_SELECTED_LEAGUES')
                 this.$store.commit('trade/SET_SELECTED_SPORT', sport)
                 this.$store.dispatch('trade/getBetColumns', sport)
+                this.$socket.send(`getSelectedLeagues_${sport}`)
                 this.$socket.send(`getSelectedSport_${sport}`)
                 this.$store.dispatch('trade/getInitialLeagues')
                 this.$store.dispatch('trade/getInitialEvents')
@@ -75,7 +72,7 @@ export default {
 </script>
 
 <style>
-    .sportsIcon {
-        font-size: 18px !important;
-    }
+.sportsIcon {
+    font-size: 18px !important;
+}
 </style>
