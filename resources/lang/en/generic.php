@@ -1,7 +1,7 @@
 <?php
 
 return [
-    'internal-server-error' => 'Internal Server Error',
+    'internal-server-error' => 'Oops! Something went wrong.<br>Please contact support, email us at support@multiline.io',
     'forbidden'             => 'Forbidden',
     'method-not-allowed'    => 'Method Not Allowed',
     'unauthorized'          => 'Unauthorized',
