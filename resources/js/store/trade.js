@@ -245,6 +245,9 @@ const mutations = {
             }
         })
     },
+    CLEAR_WATCHLIST: (state) => {
+        state.eventsList = state.eventsList.filter(event => !event.hasOwnProperty('watchlist'))
+    },
     OPEN_BETSLIP: (state, data) => {
         let openedBetSlips = state.openedBetSlips.map(betSlips => betSlips.market_id)
         if(!openedBetSlips.includes(data.odd.market_id)) {

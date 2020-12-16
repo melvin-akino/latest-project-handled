@@ -48,7 +48,7 @@ class PlacedBetConsume implements CustomProcessInterface
                                 continue;
                             }
 
-                            $betTransformationHandler->init($payload)->handle();
+                            $betTransformationHandler->init($payload, $message->offset)->handle();
 
                             if (env('CONSUMER_PRODUCER_LOG', false)) {
                                 Log::channel('kafkalog')->info(json_encode($message));

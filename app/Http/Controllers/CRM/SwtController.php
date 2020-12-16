@@ -225,12 +225,6 @@ class SwtController extends Controller
                 'count' => SwooleHandler::table('orderPayloadsTable')->count(),
                 'memory' => SwooleHandler::table('orderPayloadsTable')->getMemorySize()
             ],
-            'orderRetries'          => [
-                'name'  => 'Order Retries',
-                'max'   => 10000,
-                'count' => SwooleHandler::table('orderRetriesTable')->count(),
-                'memory' => SwooleHandler::table('orderRetriesTable')->getMemorySize()
-            ],
             'minmaxOnqueueRequests' => [
                 'name'  => 'Min Max Onqueue Requests',
                 'max'   => 10000,

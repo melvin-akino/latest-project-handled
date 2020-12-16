@@ -43,7 +43,7 @@ class TradeController extends Controller
 
             $betBarData = Order::getBetBarData(auth()->user()->id);
             $ouLabels   = OddType::where('type', 'LIKE', '%OU%')->pluck('id')->toArray();
-            $data = [];
+            $data       = [];
             foreach ($betBarData as $betData) {
                 $proceed = false;
                 if ($betData->status != 'FAILED') {
@@ -59,7 +59,7 @@ class TradeController extends Controller
                 }
 
                 if ($proceed) {
-                    if(empty($betData->current_score)) {
+                    if (empty($betData->current_score)) {
                         $currentScore = "0 - 0";
                     } else {
                         $currentScore = $betData->current_score;
@@ -203,8 +203,8 @@ class TradeController extends Controller
     {
         try {
             /** Get Authenticated User's Default Initial Sport : Last Sport visited */
-            $data         = getUserDefault(auth()->user()->id, 'sport');
-            $dataSchedule = [
+            $data            = getUserDefault(auth()->user()->id, 'sport');
+            $dataSchedule    = [
                 'inplay' => [],
                 'today'  => [],
                 'early'  => []
@@ -256,7 +256,7 @@ class TradeController extends Controller
     public function postManageSidebarLeagues($action, ToggleLeaguesRequest $request)
     {
         try {
-            $userId = auth()->user()->id;
+            $userId       = auth()->user()->id;
             $masterLeague = MasterLeague::getLeagueDetailsByName($request->league_name);
             $checkTable   = UserSelectedLeague::getUserSelectedLeague($userId, [
                 'league_id' => $masterLeague->id,
@@ -277,7 +277,7 @@ class TradeController extends Controller
                 );
 
                 if (empty($_SERVER['_PHPUNIT'])) {
-                    if(!SwooleHandler::exists('userSelectedLeaguesTable', $swtKey)) {
+                    if (!SwooleHandler::exists('userSelectedLeaguesTable', $swtKey)) {
                         SwooleHandler::setValue('userSelectedLeaguesTable', $swtKey, [
                             'user_id'     => $userId,
                             'sport_id'    => $request->sport_id,
@@ -286,17 +286,17 @@ class TradeController extends Controller
                         ]);
                     }
                 }
-            } else if($action == 'remove' && $checkTable->count() > 0) {
+            } else if ($action == 'remove' && $checkTable->count() > 0) {
                 $checkTable->delete();
 
                 if (empty($_SERVER['_PHPUNIT'])) {
 
                     $previouslySelectedEvents = MasterEvent::where('master_league_id', $masterLeague->id)
-                                                            ->where('game_schedule', $request->schedule)
-                                                            ->where('sport_id', $request->sport_id)
-                                                            ->get();
+                                                           ->where('game_schedule', $request->schedule)
+                                                           ->where('sport_id', $request->sport_id)
+                                                           ->get();
 
-                    foreach($previouslySelectedEvents as $events) {
+                    foreach ($previouslySelectedEvents as $events) {
                         $topicTable = SwooleHandler::table('topicTable');
                         foreach ($topicTable as $k => $topic) {
                             if (strpos($topic['topic_name'], 'uid-' . $events->master_event_unique_id) === 0) {
@@ -305,7 +305,7 @@ class TradeController extends Controller
                         }
                     }
 
-                    if(SwooleHandler::exists('userSelectedLeaguesTable', $swtKey)) {
+                    if (SwooleHandler::exists('userSelectedLeaguesTable', $swtKey)) {
                         SwooleHandler::remove('userSelectedLeaguesTable', $swtKey);
                     }
                 }
@@ -336,19 +336,20 @@ class TradeController extends Controller
                 'user_selected',
             ];
 
-            $userId        = auth()->user()->id;
-            $topicTable    = app('swoole')->topicTable;
+            $userId     = auth()->user()->id;
+            $topicTable = app('swoole')->topicTable;
+            $default    = getUserDefault(auth()->user()->id, 'sport');
             foreach ($type as $row) {
                 if ($row == 'user_watchlist') {
-                    $transformed = Game::getWatchlistEvents($userId);
-                    $watchlist = eventTransformation($transformed, $userId, $topicTable, 'watchlist');
+                    $transformed = Game::getWatchlistEvents($userId, $default['default_sport']);
+                    $watchlist   = eventTransformation($transformed, $userId, $topicTable, 'watchlist');
                     if (!empty($watchlist)) {
                         foreach ($watchlist as $key => $league) {
                             $watchlistData[$key] = array_values($watchlist[$key]);
                         }
                     }
                 } else {
-                    $transformed = Game::getSelectedLeagueEvents($userId);
+                    $transformed  = Game::getSelectedLeagueEvents($userId, $default['default_sport']);
                     $userSelected = eventTransformation($transformed, $userId, $topicTable, 'selected');
                     if (!empty($userSelected)) {
                         foreach ($userSelected as $key => $schedule) {
@@ -475,8 +476,8 @@ class TradeController extends Controller
 
             $results = $leagues->union($events);
 
-            $query   = $results->limit($limit)
-                          ->offset(($request->page - 1) * $limit);
+            $query = $results->limit($limit)
+                             ->offset(($request->page - 1) * $limit);
 
             return response()->json([
                 'status'      => true,
