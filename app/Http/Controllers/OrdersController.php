@@ -527,7 +527,7 @@ class OrdersController extends Controller
                     $actualStake .= '00';
                 }
                 $minmaxData = SwooleHandler::getValue('minmaxDataTable', 'minmax-market:' . $request->market_id);
-                if ((float) $minmaxData['max'] < (float) $actualStake) {
+                if ((float) $minmaxData['max'] < (float) $actualStake && $minmaxData) {
                     $actualStake = $minmaxData['max'];
                 }
 
