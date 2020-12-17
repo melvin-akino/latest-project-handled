@@ -23,11 +23,6 @@ class ProviderAccount extends Model
         'deleted_at'
     ];
 
-    protected $hidden = [
-        'created_at',
-        'updated_at',
-    ];
-
     public function providers()
     {
         return $this->belongsTo('App\Models\Provider');
