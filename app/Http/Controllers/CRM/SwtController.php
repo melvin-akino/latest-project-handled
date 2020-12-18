@@ -231,12 +231,6 @@ class SwtController extends Controller
                 'count' => SwooleHandler::table('minmaxOnqueueRequestsTable')->count(),
                 'memory' => SwooleHandler::table('minmaxOnqueueRequestsTable')->getMemorySize()
             ],
-            'providerAccounts'      => [
-                'name'  => 'Provider Accounts',
-                'max'   => 2000,
-                'count' => SwooleHandler::table('providerAccountsTable')->count(),
-                'memory' => SwooleHandler::table('providerAccountsTable')->getMemorySize()
-            ],
             'mlBetId'               => [
                 'name'  => 'ML BET ID',
                 'max'   => 10000,

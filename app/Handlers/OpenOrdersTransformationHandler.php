@@ -11,9 +11,7 @@ use App\Models\{
     OrderTransaction,
     ProviderAccountOrder,
     OddType,
-    WalletLedger
-};
-use App\Models\CRM\{
+    WalletLedger,
     ProviderAccount
 };
 use Carbon\Carbon;

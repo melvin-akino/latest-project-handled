@@ -35,11 +35,9 @@ class DataToSwt implements CustomProcessInterface
             'ActiveEvents',
             'UserSelectedLeagues',
             'Orders',
-//            'OrderPayloads',
             'ExchangeRates',
             'Currencies',
             'UserInfo',
-            'ProviderAccounts',
             'MLBetId',
             'Maintenance'
         ];
@@ -458,52 +456,6 @@ class DataToSwt implements CustomProcessInterface
         }, $orders->toArray());
     }
 
-//    private static function db2SwtOrderPayloads(Server $swoole)
-//    {
-//
-//        $orderPayloads = DB::table('orders as o')
-//                           ->leftJoin('providers as p', 'p.id', 'o.provider_id')
-//                           ->leftJoin('provider_accounts as pa', 'pa.id', 'o.provider_account_id')
-//                           ->select('o.*', 'p.alias', 'pa.username')
-//                           ->get();
-//
-//        $orderPayloadsTable = $swoole->orderPayloadsTable;
-//        array_map(function ($order) use ($orderPayloadsTable) {
-//
-//            $eventAndMarket = DB::table('event_markets as em')
-//                                ->leftJoin('events as e', 'e.id', 'em.event_id')
-//                                ->where('em.bet_identifier', $order->market_id)
-//                                ->first();
-//
-//            $orderLogs = DB::table('order_logs as ol')
-//                           ->leftJoin('provider_account_orders as pao', 'pao.order_log_id', 'ol.id')
-//                           ->select('ol.*', 'pao.actual_stake', 'pao.exchange_rate_id', 'pao.exchange_rate')
-//                           ->orderBy('ol.created_at', 'desc')
-//                           ->first();
-//            if ($eventAndMarket && $orderLogs) {
-//                $payloadsSwtId = implode(':', [
-//                    "place-bet-" . $order->id,
-//                    "uId:" . $order->user_id,
-//                    "mId:" . $order->market_id
-//                ]);
-//
-//                $payload['data'] = [
-//                    'provider'         => strtolower($order->alias),
-//                    'sport'            => $order->sport_id,
-//                    'stake'            => $orderLogs->actual_stake,
-//                    'odds'             => $order->odds,
-//                    'market_id'        => $order->market_id,
-//                    'event_id'         => $eventAndMarket->event_identifier,
-//                    'score'            => $order->score_on_bet,
-//                    'username'         => $order->username,
-//                    'exchange_rate_id' => $orderLogs->exchange_rate_id,
-//                    'exchange_rate'    => $orderLogs->exchange_rate
-//                ];
-//                $orderPayloadsTable->set($payloadsSwtId, ['payload' => json_encode($payload)]);
-//            }
-//        }, $orderPayloads->toArray());
-//    }
-
     private static function db2SwtExchangeRates(Server $swoole)
     {
         $exchangeRates = DB::table('exchange_rates AS er')
@@ -559,38 +511,6 @@ class DataToSwt implements CustomProcessInterface
                 'currency_id' => $users->currency_id,
             ]);
         }, $users->toArray());
-    }
-
-    private static function db2SwtProviderAccounts(Server $swoole)
-    {
-        $providerAccounts = DB::table('provider_accounts as pa')
-                              ->join('providers as p', 'p.id', 'pa.provider_id')
-                              ->where('pa.is_enabled', true)
-                              ->where('p.is_enabled', true)
-                              ->select('pa.id', 'pa.provider_id', 'pa.type', 'pa.username', 'pa.password', 'pa.punter_percentage',
-                                  'pa.credits', 'p.alias')
-                              ->orderBy('pa.updated_at', 'desc')
-                              ->get();
-
-        $providerAccountsTable = $swoole->providerAccountsTable;
-
-        array_map(function ($providerAccount) use ($providerAccountsTable) {
-            $swtId = implode(':', [
-                "providerId:" . $providerAccount->provider_id,
-                'uniqueId:' . uniqid()
-            ]);
-
-            $providerAccountsTable->set($swtId, [
-                'id'                => $providerAccount->id,
-                'provider_id'       => $providerAccount->provider_id,
-                'provider_alias'    => $providerAccount->alias,
-                'type'              => $providerAccount->type,
-                'username'          => $providerAccount->username,
-                'password'          => $providerAccount->password,
-                'punter_percentage' => $providerAccount->punter_percentage,
-                'credits'           => $providerAccount->credits,
-            ]);
-        }, $providerAccounts->toArray());
     }
 
     private static function db2SwtMLBetId(Server $swoole)
