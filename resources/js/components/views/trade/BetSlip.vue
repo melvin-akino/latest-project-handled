@@ -61,7 +61,10 @@
                                 <span class="w-1/5 text-sm text-center" v-if="minmax.hasMarketData && !underMaintenanceProviders.includes(minmax.provider.toLowerCase())">{{minmax.age}}</span>
                                 <div class="text-sm text-center" v-if="!minmax.hasMarketData && !underMaintenanceProviders.includes(minmax.provider.toLowerCase())">
                                     <div v-show="market_details.providers.includes(minmax.provider_id) && !isEventNotAvailable && odd_details.market_id">Retrieving Market<span class="pl-1"><i class="fas fa-circle-notch fa-spin"></i></span></div>
-                                    <div v-show="!market_details.providers.includes(minmax.provider_id) || isEventNotAvailable || !odd_details.market_id">No Market Available</div>
+                                    <div v-show="!market_details.providers.includes(minmax.provider_id) || isEventNotAvailable || !odd_details.market_id">
+                                        <span v-if="hasNewOddsInTradeWindow">This market is now unavailable please refresh the bet slip</span>
+                                        <span v-else>No Market Available</span>
+                                    </div>
                                 </div>
                                 <div class="text-sm text-center" v-if="underMaintenanceProviders.includes(minmax.provider.toLowerCase())">Provider under maintenance</div>
                             </div>
@@ -205,7 +208,8 @@ export default {
             startPointIndex: 0,
             endPointIndex: 5,
             isEventNotAvailable: null,
-            minMaxUpdateCounter: 0
+            minMaxUpdateCounter: 0,
+            hasNewOddsInTradeWindow: false
         }
     },
     validations: {
@@ -292,6 +296,21 @@ export default {
                 home_score: this.market_details.score.split(' - ')[0],
                 away_score: this.market_details.score.split(' - ')[1]
             }
+        },
+        tradeWindowOdds() {
+            if(!_.isEmpty(this.market_details)) {
+                let odd_type = this.market_details.odd_type
+                let market_flag = this.market_details.market_flag
+                let market_type = this.odd_details.marketType
+                let event_identifier = this.odd_details.eventIdentifier
+                if(market_type == 'main') {
+                    return this.odd_details.game.market_odds.main[odd_type][market_flag].odds
+                } else {
+                    return this.odd_details.game.market_odds.other[event_identifier][odd_type][market_flag].odds
+                }
+            } else {
+                return this.odd_details.odds
+            }
         }
     },
     watch: {
@@ -313,6 +332,13 @@ export default {
                     this.inputPrice = twoDecimalPlacesFormat(Math.min(...selectedMinmaxDataPrices))
                 }
             }
+        },
+        tradeWindowOdds(newValue, oldValue) {
+            if(!oldValue && newValue) {
+                this.hasNewOddsInTradeWindow = true
+            } else {
+                this.hasNewOddsInTradeWindow = false
+            }
         }
     },
     mounted() {
@@ -321,7 +347,10 @@ export default {
     },
     methods: {
         reloadSpread() {
-            this.isLoadingMarketDetailsAndProviders = true;
+            this.isLoadingMarketDetailsAndProviders = true
+            this.isEventNotAvailable = false
+            this.hasNewOddsInTradeWindow = false
+            this.minMaxUpdateCounter = 0
             this.clearOrderMessage();
             this.getMarketDetails(false)
         },

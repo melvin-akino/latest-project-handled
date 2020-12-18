@@ -255,6 +255,8 @@ const mutations = {
             Vue.set(data.odd, 'game', data.game)
             Vue.set(data.odd, 'has_bet', false)
             Vue.set(data.odd, 'betslip_id', `${data.game.uid}-${state.betSlipCounter}`)
+            Vue.set(data.odd, 'marketType', data.marketType)
+            Vue.set(data.odd, 'eventIdentifier', data.eventIdentifier)
             state.openedBetSlips.push(data.odd)
         }
     },
