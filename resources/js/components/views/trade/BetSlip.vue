@@ -311,6 +311,25 @@ export default {
             } else {
                 return this.odd_details.odds
             }
+        },
+        tradeWindowPoints() {
+            let points = []
+            if(!_.isEmpty(this.market_details)) {
+                let odd_type = this.market_details.odd_type
+                let market_flag = this.market_details.market_flag
+                let mainSpread = {
+                    market_id: this.odd_details.game.market_odds.main[odd_type][market_flag].market_id,
+                    odds: this.odd_details.game.market_odds.main[odd_type][market_flag].odds,
+                    points: this.odd_details.game.market_odds.main[odd_type][market_flag].points
+                }
+                points.push(mainSpread)
+                if(this.odd_details.game.market_odds.hasOwnProperty('other')) {
+                    Object.keys(this.odd_details.game.market_odds.other).map(key => {
+                        points.push(this.odd_details.game.market_odds.other[key][odd_type][market_flag])
+                    })
+                }
+            }
+            return points
         }
     },
     watch: {
@@ -375,10 +394,10 @@ export default {
                         if(spreadsMemUID.includes(this.market_id)) {
                             this.spreads = moveToFirstElement(response.data.data.spreads, 'market_id', this.market_id)
                         } else {
-                            this.spreads = [this.odd_details]
+                            this.spreads = moveToFirstElement(this.tradeWindowPoints, 'market_id', this.market_id)
                         }
                     } else {
-                        this.spreads = [this.odd_details]
+                        this.spreads = moveToFirstElement(this.tradeWindowPoints,'market_id', this.market_id)
                     }
                     this.displaySpreadsByFive()
                     if (setMinMaxProviders) {
