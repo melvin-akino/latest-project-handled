@@ -249,12 +249,15 @@ const mutations = {
         let openedBetSlips = state.openedBetSlips.map(betSlips => betSlips.market_id)
         if(!openedBetSlips.includes(data.odd.market_id)) {
             state.betSlipCounter++
-            Vue.set(data.odd, 'game', data.game)
-            Vue.set(data.odd, 'has_bet', false)
-            Vue.set(data.odd, 'betslip_id', `${data.game.uid}-${state.betSlipCounter}`)
-            Vue.set(data.odd, 'marketType', data.marketType)
-            Vue.set(data.odd, 'eventIdentifier', data.eventIdentifier)
-            state.openedBetSlips.push(data.odd)
+            let betslip = {
+                odd: data.odd,
+                game: data.game,
+                marketType: data.marketType,
+                eventIdentifier: data.eventIdentifier,
+                betslip_id: `${data.game.uid}-${state.betSlipCounter}`,
+                has_bet: false
+            }
+            state.openedBetSlips.push(betslip)
         }
     },
     CLOSE_BETSLIP: (state, betslip_id) => {
