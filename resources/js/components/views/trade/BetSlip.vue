@@ -315,8 +315,7 @@ export default {
                         }
                     })
                 }
-
-                if(this.market_details.spreads.length != 0) {
+                if(this.market_details.spreads.length != 0 && this.odd_details.game.has_other_markets) {
                     this.market_details.spreads.map(spread => {
                         points.map(point => {
                             if(spread.market_id == point.market_id) {

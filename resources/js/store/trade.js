@@ -266,7 +266,7 @@ const mutations = {
     SHOW_BET_MATRIX_IN_BETSLIP: (state, data) => {
         if(!_.isEmpty(state.openedBetSlips)) {
             state.openedBetSlips.map(betSlip => {
-                if(betSlip.market_id == data.market_id) {
+                if(betSlip.odd.market_id == data.market_id) {
                     Vue.set(betSlip, 'has_bet', data.has_bet)
                 }
             })
