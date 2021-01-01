@@ -21,17 +21,15 @@ class AccountConsume implements CustomProcessInterface
             if ($swoole->data2SwtTable->exist('data2Swt')) {
                 Log::info("Account Consume Starts");
 
-                $kafkaConsumer                   = app('LowLevelConsumer');
-                $topicConf                       = app('KafkaTopicConf');
                 $openOrdersTransformationHandler = app('OpenOrdersTransformationHandler');
 
-                $queue = $kafkaConsumer->newQueue();
-
-                $openOrdersTopic = $kafkaConsumer->newTopic(env('KAFKA_SCRAPE_OPEN_ORDERS', 'OPEN-ORDERS'), $topicConf);
-                $openOrdersTopic->consumeQueueStart(0, RD_KAFKA_OFFSET_END, $queue);
+                $kafkaConsumer = app('KafkaConsumer');
+                $kafkaConsumer->subscribe([
+                    env('KAFKA_SCRAPE_OPEN_ORDERS', 'OPEN-ORDERS'),
+                ]);
 
                 while (!self::$quit) {
-                    $message = $queue->consume(0);
+                    $message = $kafkaConsumer->consume(0);
                     if (!is_null($message)) {
                         if ($message->err == RD_KAFKA_RESP_ERR_NO_ERROR) {
                             $payload = json_decode($message->payload);
@@ -47,6 +45,7 @@ class AccountConsume implements CustomProcessInterface
                                 Log::channel('kafkalog')->info(json_encode($message));
                             }
                             usleep(10000);
+                            $kafkaConsumer->commitAsync($message);
                             continue;
                         }
                         usleep(100000);
