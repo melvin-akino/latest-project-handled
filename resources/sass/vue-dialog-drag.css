@@ -11,7 +11,6 @@
     box-shadow: none;
     height:auto;
     width:auto;
-    z-index:101;
     background-color: #edf2f7;
 }
 @keyframes fadeIn {
@@ -38,7 +37,6 @@
     position:absolute;
     right:0;
     top:0;
-    z-index:105
 }
 .dialog-drag .dialog-header button.close,.dialog-drag .dialog-header button.pin{
     -webkit-box-shadow:none;

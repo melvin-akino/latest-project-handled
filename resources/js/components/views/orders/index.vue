@@ -25,8 +25,8 @@
                     <span class="text-sm">{{ props.row.settled != "" && props.row.score != "" ? props.row.score.replace(/\"/g, "") : "-" }}</span>
                 </div>
                 <div class="flex justify-start" slot="betData" slot-scope="props">
-                    <a href="#" @click.prevent="openBetMatrix(props.row.order_id)" class="text-center py-1 w-1/2" v-if="oddTypesWithSpreads.includes(props.row.odd_type_id) && !failedBetStatus.includes(props.row.status)"><i class="fas fa-chart-area" title="Bet Matrix"></i></a>
-                    <a href="#" @click.prevent="openOddsHistory(props.row.order_id)" class="text-center py-1 w-1/2" :class="{'ml-4': !oddTypesWithSpreads.includes(props.row.odd_type_id) || failedBetStatus.includes(props.row.status)}"><i class="fas fa-bars" title="Odds History"></i></a>
+                    <a href="#" @click.prevent="openBetMatrix(props.row.order_id, `${props.row.order_id}-betmatrix`)" class="text-center py-1 w-1/2" v-if="oddTypesWithSpreads.includes(props.row.odd_type_id) && !failedBetStatus.includes(props.row.status)"><i class="fas fa-chart-area" title="Bet Matrix"></i></a>
+                    <a href="#" @click.prevent="openOddsHistory(props.row.order_id, `${props.row.order_id}-orderlogs`)" class="text-center py-1 w-1/2" :class="{'ml-4': !oddTypesWithSpreads.includes(props.row.odd_type_id) || failedBetStatus.includes(props.row.status)}"><i class="fas fa-bars" title="Odds History"></i></a>
                 </div>
             </v-client-table>
             <order-data v-for="order in myorders" :key="order.order_id" :openedOddsHistory="openedOddsHistory" :openedBetMatrix="openedBetMatrix" @closeOddsHistory="closeOddsHistory" @closeBetMatrix="closeBetMatrix" :order="order"></order-data>
@@ -187,11 +187,13 @@ export default {
         getFilteredData() {
             this.toExport = this.$refs.ordersTable.allFilteredData
         },
-        openOddsHistory(id) {
+        openOddsHistory(id, data) {
             this.openedOddsHistory.push(id)
+            this.$store.dispatch('trade/setActivePopup', data)
         },
-        openBetMatrix(id) {
+        openBetMatrix(id, data) {
             this.openedBetMatrix.push(id)
+            this.$store.dispatch('trade/setActivePopup', data)
         },
         closeOddsHistory(id) {
             this.openedOddsHistory = this.openedOddsHistory.filter(oddHistory => oddHistory != id)

@@ -1,7 +1,7 @@
 <template>
     <div class="betData">
-        <odds-history v-if="openedOddsHistory.includes(order.order_id)" @close="$emit('closeOddsHistory', order.order_id)" :market_id="order.market_id" :event_id="order.event_id"></odds-history>
-        <bet-matrix v-if="openedBetMatrix.includes(order.order_id)" @close="$emit('closeBetMatrix', order.order_id)" :market_id="order.market_id" :analysis-data="analysisData" :event_id="order.event_id"></bet-matrix>
+        <odds-history v-if="openedOddsHistory.includes(order.order_id)" @close="$emit('closeOddsHistory', order.order_id)" :market_id="order.market_id" :event_id="order.event_id" :key="`${order.order_id}-orderlogs`"></odds-history>
+        <bet-matrix v-if="openedBetMatrix.includes(order.order_id)" @close="$emit('closeBetMatrix', order.order_id)" :market_id="order.market_id" :analysis-data="analysisData" :event_id="order.event_id" :key="`${order.order_id}-betmatrix`"></bet-matrix>
     </div>
 </template>
 

@@ -19,11 +19,11 @@
             {{bet.provider_alias}} - {{Number(bet.bet_info[3]) | moneyFormat}}@{{Number(bet.bet_info[2]) | twoDecimalPlacesFormat}} - {{ bet.status == 'SUCCESS' ? 'PLACED' : bet.status }}
         </div>
         <div class="flex items-center w-20 px-1">
-            <a href="#" @click.prevent="showBetMatrix = true" class="text-center py-1 w-1/2" title="Bet Matrix" v-if="oddTypesWithBetMatrix.includes(bet.odd_type_id) && !failedBetStatus.includes(bet.status)"><i class="fas fa-chart-area"></i></a>
-            <a href="#" @click.prevent="showOddsHistory = true" class="text-center py-1 w-1/2" :class="{'ml-5': !oddTypesWithBetMatrix.includes(bet.odd_type_id) || failedBetStatus.includes(bet.status)}" title="Odds History"><i class="fas fa-bars"></i></a>
+            <a href="#" @click.prevent="openBetMatrix(`${bet.order_id}-betmatrix`)" class="text-center py-1 w-1/2" title="Bet Matrix" v-if="oddTypesWithBetMatrix.includes(bet.odd_type_id) && !failedBetStatus.includes(bet.status)"><i class="fas fa-chart-area"></i></a>
+            <a href="#" @click.prevent="openOddsHistory(`${bet.order_id}-orderlogs`)" class="text-center py-1 w-1/2" :class="{'ml-5': !oddTypesWithBetMatrix.includes(bet.odd_type_id) || failedBetStatus.includes(bet.status)}" title="Odds History"><i class="fas fa-bars"></i></a>
         </div>
-        <odds-history v-if="showOddsHistory" @close="closeOddsHistory" :market_id="bet.market_id" :event_id="bet.event_id"></odds-history>
-        <bet-matrix v-if="showBetMatrix" @close="closeBetMatrix" :market_id="bet.market_id" :analysis-data="analysisData" :event_id="bet.event_id"></bet-matrix>
+        <odds-history v-if="showOddsHistory" @close="closeOddsHistory" :market_id="bet.market_id" :event_id="bet.event_id" :key="`${bet.order_id}-orderlogs`"></odds-history>
+        <bet-matrix v-if="showBetMatrix" @close="closeBetMatrix" :market_id="bet.market_id" :analysis-data="analysisData" :event_id="bet.event_id" :key="`${bet.order_id}-betmatrix`"></bet-matrix>
     </div>
 </template>
 
@@ -65,6 +65,14 @@ export default {
         }
     },
     methods: {
+        openOddsHistory(data) {
+            this.showOddsHistory = true
+            this.$store.dispatch('trade/setActivePopup', data)
+        },
+        openBetMatrix(data) {
+            this.showBetMatrix = true
+            this.$store.dispatch('trade/setActivePopup', data)
+        },
         closeOddsHistory() {
             this.showOddsHistory = false
         },

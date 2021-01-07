@@ -1,6 +1,6 @@
 <template>
     <div class="oddsHistory text-sm">
-        <dialog-drag title="Order Logs" :options="options" @close="$emit('close')" v-order-logs="activeBetSlip==market_id">
+        <dialog-drag title="Order Logs" :options="options" @close="$emit('close')" @mousedown.native="$store.dispatch('trade/setActivePopup', $vnode.key)" v-order-logs="activePopup==$vnode.key">
             <div class="flex flex-col">
                 <div class="bg-gray-800 w-full p-2">
                     <div class="container mx-auto">
@@ -53,7 +53,7 @@ export default {
         }
     },
     computed: {
-        ...mapState('trade', ['activeBetSlip'])
+        ...mapState('trade', ['activePopup', 'popupZIndex'])
     },
     mounted() {
         this.getOrderLogs()
@@ -81,20 +81,14 @@ export default {
     directives: {
         orderLogs: {
             bind(el, binding, vnode) {
-                if(binding.value) {
-                    el.style.zIndex = '152'
-                } else {
-                    el.style.zIndex = '103'
-                }
-                let { $set, options } = vnode.context
+                let { $set, options, popupZIndex } = vnode.context
                 $set(options, 'top', window.innerHeight / 2)
                 $set(options, 'left', window.innerWidth / 2)
+                el.style.zIndex = popupZIndex
             },
             componentUpdated(el, binding, vnode) {
                 if(binding.value) {
-                    el.style.zIndex = '152'
-                } else {
-                    el.style.zIndex = '103'
+                    el.style.zIndex = vnode.context.popupZIndex
                 }
                 el.style.marginTop = 'calc(316px / 2 * -1)'
                 el.style.marginLeft = `calc(${el.offsetWidth}px / 2 * -1)`
