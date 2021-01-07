@@ -1,6 +1,6 @@
 <template>
     <div class="betMatrix text-sm">
-        <dialog-drag title="Bet Matrix" :options="options" @close="$emit('close')" v-bet-matrix="activeBetSlip==market_id">
+        <dialog-drag title="Bet Matrix" :options="options" @close="$emit('close')" @mousedown.native="$store.dispatch('trade/setActivePopup', $vnode.key)" v-bet-matrix="activePopup==$vnode.key">
             <div class="text-center text-sm m-4" v-if="isLoadingBetMatrixOrders">
                 <span class="text-gray-700">Loading bet matrix orders <i class="fas fa-circle-notch fa-spin"></i></span>
             </div>
@@ -84,7 +84,7 @@ export default {
         }
     },
     computed: {
-        ...mapState('trade', ['wallet', 'activeBetSlip']),
+        ...mapState('trade', ['wallet', 'activePopup', 'popupZIndex']),
         ...mapState('settings', ['defaultPriceFormat']),
     },
     watch: {
@@ -267,15 +267,14 @@ export default {
     directives: {
         betMatrix: {
             bind(el, binding, vnode) {
-                let { $set, options } = vnode.context
+                let { $set, options, popupZIndex } = vnode.context
                 $set(options, 'top', window.innerHeight / 2)
                 $set(options, 'left', window.innerWidth / 2)
+                el.style.zIndex = popupZIndex
             },
             componentUpdated(el, binding, vnode) {
                 if(binding.value) {
-                    el.style.zIndex = '151'
-                } else {
-                    el.style.zIndex = '102'
+                    el.style.zIndex = vnode.context.popupZIndex
                 }
                 el.style.marginTop = 'calc(567px / 2 * -1)'
                 el.style.marginLeft = `calc(${el.offsetWidth}px / 2 * -1)`

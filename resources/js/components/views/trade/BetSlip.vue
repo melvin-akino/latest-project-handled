@@ -1,6 +1,6 @@
 <template>
     <div class="betslip flex justify-center items-center">
-        <dialog-drag :title="'Bet Slip - '+market_id" :options="options" @close="closeBetSlip(odd_details.betslip_id)" @click.native="setActiveBetSlip(market_id)" v-betslip="activeBetSlip==market_id">
+        <dialog-drag :title="'Bet Slip - '+market_id" :options="options" @close="closeBetSlip($vnode.key)" @mousedown.native="$store.dispatch('trade/setActivePopup', $vnode.key)" v-betslip="activePopup==$vnode.key">
             <div class="flex flex-col justify-center items-center w-full h-full absolute top-0 left-0 bg-gray-200 z-10" :class="{'hidden': !isLoadingMarketDetailsAndProviders}">
                 <span class="betSlipSpinner"><i class="fas fa-circle-notch fa-spin"></i></span>
                 <span class="text-center mt-2">Loading Market Details...</span>
@@ -10,8 +10,8 @@
                     <div class="flex items-center">
                         <span class="text-white uppercase font-bold mr-2 my-2 px-2 bg-orange-500">{{market_details.odd_type}}</span>
                         <span class="text-gray-800 font-bold my-2 pr-6">{{market_details.league_name}}</span>
-                        <a href="#" @click.prevent="showBetMatrix = true" class="text-center py-1 pr-1" title="Bet Matrix" v-if="oddTypesWithSpreads.includes(market_details.odd_type) && odd_details.has_bet"><i class="fas fa-chart-area"></i></a>
-                        <a href="#" @click.prevent="showOddsHistory = true" class="text-center py-1" title="Odds History"><i class="fas fa-bars"></i></a>
+                        <a href="#" @click.prevent="openBetMatrix(`${odd_details.betslip_id}-betmatrix`)" class="text-center py-1 pr-1" title="Bet Matrix" v-if="oddTypesWithSpreads.includes(market_details.odd_type) && odd_details.has_bet"><i class="fas fa-chart-area"></i></a>
+                        <a href="#" @click.prevent="openOddsHistory(`${odd_details.betslip_id}-orderlogs`)" class="text-center py-1" title="Odds History"><i class="fas fa-bars"></i></a>
                     </div>
                     <div class="flex items-center">
                         <a href="#" class="text-center py-1 pr-1 mr-2"><i class="far fa-calendar-alt"></i> {{formattedRefSchedule[0]}}</a>
@@ -147,8 +147,8 @@
                 </div>
             </div>
         </dialog-drag>
-        <odds-history v-if="showOddsHistory" @close="closeOddsHistory" :market_id="market_id" :event_id="odd_details.game.uid"></odds-history>
-        <bet-matrix v-if="showBetMatrix" @close="closeBetMatrix" :market_id="market_id" :analysis-data="analysisData" :event_id="odd_details.game.uid"></bet-matrix>
+        <odds-history v-if="showOddsHistory" @close="closeOddsHistory" :market_id="market_id" :event_id="odd_details.game.uid" :key="`${odd_details.betslip_id}-orderlogs`"></odds-history>
+        <bet-matrix v-if="showBetMatrix" @close="closeBetMatrix" :market_id="market_id" :analysis-data="analysisData" :event_id="odd_details.game.uid" :key="`${odd_details.betslip_id}-betmatrix`"></bet-matrix>
     </div>
 </template>
 
@@ -216,7 +216,7 @@ export default {
         }
     },
     computed: {
-        ...mapState('trade', ['activeBetSlip', 'bookies', 'betSlipSettings', 'wallet', 'underMaintenanceProviders']),
+        ...mapState('trade', ['activePopup', 'popupZIndex', 'bookies', 'betSlipSettings', 'wallet', 'underMaintenanceProviders']),
         ...mapState('settings', ['defaultPriceFormat']),
         activePointIndex() {
             if(!_.isEmpty(this.displayedSpreads)) {
@@ -424,8 +424,13 @@ export default {
                     this.$store.dispatch('auth/checkIfTokenIsValid', err.response.data.status_code)
                 })
         },
-        setActiveBetSlip(market_id) {
-            this.$store.commit('trade/SET_ACTIVE_BETSLIP', market_id)
+        openBetMatrix(data) {
+            this.showBetMatrix = true
+            this.$store.dispatch('trade/setActivePopup', data)
+        },
+        openOddsHistory(data) {
+            this.showOddsHistory = true
+            this.$store.dispatch('trade/setActivePopup', data)
         },
         async setMinMaxProviders() {
             await this.$store.dispatch('trade/getBookies')
@@ -441,7 +446,6 @@ export default {
             this.points = points
             this.market_id = market_id
             this.inputPrice = twoDecimalPlacesFormat(Number(odds))
-            this.setActiveBetSlip(market_id)
             this.minmax(market_id)
             this.showBetMatrix = false
             this.minMaxUpdateCounter = 0
@@ -713,17 +717,15 @@ export default {
     directives: {
         betslip: {
             bind(el, binding, vnode) {
-                let { $set, options } = vnode.context
+                let { $set, options, popupZIndex } = vnode.context
                 $set(options, 'top', window.innerHeight / 2)
                 $set(options, 'left', window.innerWidth / 2)
+                el.style.zIndex = popupZIndex
             },
             componentUpdated(el, binding, vnode)  {
                 if(binding.value) {
-                    el.style.zIndex = '150'
-                } else {
-                    el.style.zIndex = '101'
+                    el.style.zIndex = vnode.context.popupZIndex
                 }
-
                 el.style.marginTop = 'calc(556px / 2 * -1)'
                 el.style.marginLeft = `calc(${el.offsetWidth}px / 2 * -1)`
             }

@@ -189,7 +189,7 @@ export default {
         },
         openBetSlip(odd, game, marketType, eventIdentifier) {
             this.$store.commit('trade/OPEN_BETSLIP', { odd, game, marketType, eventIdentifier })
-            this.$store.commit('trade/SET_ACTIVE_BETSLIP', odd.market_id)
+            this.$store.dispatch('trade/setActivePopup', `${game.uid}-${odd.market_id}`)
         },
         toggleLeague(index) {
             if(this.closedLeagues.includes(index)) {

@@ -6,7 +6,6 @@ const token = Cookies.get('mltoken')
 import Swal from 'sweetalert2'
 
 const state = {
-    betSlipCounter: 0,
     leagues: {
         inplay: [],
         today: [],
@@ -33,13 +32,14 @@ const state = {
     tradePageSettings: {},
     betSlipSettings: {},
     showSearch: true,
-    activeBetSlip: null,
+    activePopup: null,
     wallet: {},
     isLoadingLeagues: true,
     isLoadingEvents: true,
     failedBetStatus: ['PENDING', 'FAILED', 'CANCELLED', 'REJECTED', 'VOID', 'ABNORMAL BET', 'REFUNDED'],
     eventsError: false,
-    underMaintenanceProviders: []
+    underMaintenanceProviders: [],
+    popupZIndex: 100
 }
 
 const getters = {
@@ -251,13 +251,12 @@ const mutations = {
     OPEN_BETSLIP: (state, data) => {
         let openedBetSlips = state.openedBetSlips.map(betSlips => betSlips.market_id)
         if(!openedBetSlips.includes(data.odd.market_id)) {
-            state.betSlipCounter++
             let betslip = {
                 odd: data.odd,
                 game: data.game,
                 marketType: data.marketType,
                 eventIdentifier: data.eventIdentifier,
-                betslip_id: `${data.game.uid}-${state.betSlipCounter}`,
+                betslip_id: `${data.game.uid}-${data.odd.market_id}`,
                 has_bet: false
             }
             state.openedBetSlips.push(betslip)
@@ -290,8 +289,8 @@ const mutations = {
     SHOW_SEARCH: (state, data) => {
         state.showSearch = data
     },
-    SET_ACTIVE_BETSLIP: (state, data) => {
-        state.activeBetSlip = data
+    SET_ACTIVE_POPUP: (state, data) => {
+        state.activePopup = data
     },
     SET_WALLET: (state, data) => {
         state.wallet = data
@@ -314,6 +313,9 @@ const mutations = {
         if(state.underMaintenanceProviders.includes(provider)) {
             state.underMaintenanceProviders = state.underMaintenanceProviders.filter(underMaintenanceProvider => underMaintenanceProvider != provider)
         }
+    },
+    SET_POPUP_ZINDEX: (state) => {
+        state.popupZIndex++
     }
 }
 
@@ -570,7 +572,11 @@ const actions = {
                 }
             }
         })
-    }
+    },
+    setActivePopup({commit}, data) {
+        commit('SET_ACTIVE_POPUP', data)
+        commit('SET_POPUP_ZINDEX')
+    },
 }
 
 export default {
