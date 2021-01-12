@@ -280,7 +280,8 @@ class OrdersController extends Controller
                 'sport'         => Sport::getNameByID($masterEvent->sport_id),
                 'spreads'       => $spreads,
                 'has_bets'      => $hasBets,
-                'providers'     => Provider::getProvidersByMemUID($memUID)
+                'providers'     => Provider::getProvidersByMemUID($memUID),
+                'user_status'   => auth()->user()->status
             ];
 
             return response()->json([
