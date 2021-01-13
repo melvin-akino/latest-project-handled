@@ -34,7 +34,7 @@
                         <span class="spread-refresh"><a href="#" @click="reloadSpread()"><i class="fas fa-retweet"></i></a></span>
                         <div class="flex flex-col items-center bg-white shadow-xl mb-2" v-if="oddTypesWithSpreads.includes(market_details.odd_type)">
                             <div class="text-white uppercase font-bold p-2 bg-orange-500 w-full text-center">{{market_details.odd_type}}</div>
-                            <div class="relative flex justify-center items-center p-2">
+                            <div class="relative flex justify-center items-center p-2" v-if="spreads.length != 0">
                                 <a href="#" class="previousPoint absolute m-1 w-12 text-center text-gray-800" @click="previousPoint" v-show="points != displayedSpreads[0].points && displayedSpreads.length > 2"><i class="fas fa-chevron-left"></i></a>
                                 <a href="#" class="m-1 w-16 text-center text-sm" :class="[spread.market_id == market_id ? 'text-white bg-orange-500 px-1 py-1' : 'text-gray-800']" v-for="(spread, index) in displayedSpreads" :key="index" @click="changePoint(spread.points, spread.market_id, spread.odds)">{{spread.points}}</a>
                                 <a href="#" class="nextPoint absolute m-1 w-12 text-center text-gray-800" @click="nextPoint" v-show="points != displayedSpreads[displayedSpreads.length - 1].points && displayedSpreads.length > 2"><i class="fas fa-chevron-right"></i></a>
@@ -305,15 +305,17 @@ export default {
             if(!_.isEmpty(this.market_details)) {
                 let odd_type = this.market_details.odd_type
                 let market_flag = this.market_details.market_flag
-                if(this.odd_details.game.market_odds.main.hasOwnProperty(odd_type) && this.odd_details.game.market_odds.main[odd_type].hasOwnProperty(market_flag)) {
-                    points.push(this.odd_details.game.market_odds.main[odd_type][market_flag])
-                }
-                if(this.odd_details.game.market_odds.hasOwnProperty('other')) {
-                    Object.keys(this.odd_details.game.market_odds.other).map(key => {
-                        if(this.odd_details.game.market_odds.other[key].hasOwnProperty(odd_type) && this.odd_details.game.market_odds.other[key][odd_type].hasOwnProperty(market_flag)) {
-                            points.push(this.odd_details.game.market_odds.other[key][odd_type][market_flag])
-                        }
-                    })
+                if(this.odd_details.game.hasOwnProperty('market_odds')) {
+                    if(this.odd_details.game.market_odds.main.hasOwnProperty(odd_type) && this.odd_details.game.market_odds.main[odd_type].hasOwnProperty(market_flag)) {
+                        points.push(this.odd_details.game.market_odds.main[odd_type][market_flag])
+                    }
+                    if(this.odd_details.game.market_odds.hasOwnProperty('other')) {
+                        Object.keys(this.odd_details.game.market_odds.other).map(key => {
+                            if(this.odd_details.game.market_odds.other[key].hasOwnProperty(odd_type) && this.odd_details.game.market_odds.other[key][odd_type].hasOwnProperty(market_flag)) {
+                                points.push(this.odd_details.game.market_odds.other[key][odd_type][market_flag])
+                            }
+                        })
+                    }
                 }
                 if(this.market_details.spreads.length != 0 && this.odd_details.game.has_other_markets) {
                     this.market_details.spreads.map(spread => {
@@ -379,10 +381,16 @@ export default {
                 let market_flag = this.market_details.market_flag
                 let market_type = this.odd_details.marketType
                 let event_identifier = this.odd_details.eventIdentifier
-                if(market_type == 'main') {
-                    return this.odd_details.game.market_odds.main[odd_type][market_flag][key]
-                } else {
-                    return this.odd_details.game.market_odds.other[event_identifier][odd_type][market_flag][key]
+                if(this.odd_details.game.hasOwnProperty('market_odds')) {
+                    if(market_type == 'main') {
+                        if(this.odd_details.game.market_odds.main.hasOwnProperty(odd_type) && this.odd_details.game.market_odds.main[odd_type].hasOwnProperty(market_flag) && this.odd_details.game.market_odds.main[odd_type][market_flag].hasOwnProperty(key)) {
+                            return this.odd_details.game.market_odds.main[odd_type][market_flag][key]
+                        }
+                    } else {
+                        if(this.odd_details.game.market_odds.other.hasOwnProperty(event_identifier) && this.odd_details.game.market_odds.other[event_identifier].hasOwnProperty(odd_type) && this.odd_details.game.market_odds.other[event_identifier][odd_type].hasOwnProperty(market_flag) && this.odd_details.game.market_odds.other[event_identifier][odd_type][market_flag].hasOwnProperty(key)) {
+                            return this.odd_details.game.market_odds.other[event_identifier][odd_type][market_flag][key]
+                        }
+                    }
                 }
             } else {
                 return this.odd_details.odd[key]
