@@ -100,11 +100,4 @@ class User extends Authenticatable
     {
         return self::whereDate('created_at', '=', date('Y-m-d'));
     }
-
-    public function accessTokens()
-    {
-        return $this->hasMany('App\Models\OauthAccessToken');
-    }
-
-
 }
