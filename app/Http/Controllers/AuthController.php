@@ -176,6 +176,7 @@ class AuthController extends Controller
     public function logout(Request $request)
     {
         try {
+            SwooleHandler::remove('userStatusesTable', Auth::user()->id);
             $request->user()->token()->revoke();
             deleteCookie('access_token');
 

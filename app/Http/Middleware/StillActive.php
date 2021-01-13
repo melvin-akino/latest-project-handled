@@ -15,9 +15,7 @@ class StillActive
         if ($userStatus != 1 || $cachedStatus != 1) {
             if ($cachedStatus != $userStatus) {
                 SwooleHandler::remove('userStatusesTable', auth()->user()->id);
-                if ($userStatus != 1) {
-                    Auth::user()->accessTokens()->update(['revoked' => true]);
-                }
+                $request->user()->token()->revoke();
 
                 return response()->json([
                     'status'      => false,
