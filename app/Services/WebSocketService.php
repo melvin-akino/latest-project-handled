@@ -124,6 +124,7 @@ class WebSocketService implements WebSocketHandlerInterface
 
         SwooleHandler::remove('wsTable', 'fd:' . $fd);
         SwooleHandler::remove('wsTable', 'uid:' . $userId);
+        SwooleHandler::remove('userStatusesTable', $userId);
     }
 
     private function getUser($bearerToken)

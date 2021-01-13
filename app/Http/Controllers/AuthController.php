@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Facades\SwooleHandler;
 use App\User;
 use Illuminate\Support\Facades\Log;
 use App\Models\{
@@ -120,12 +121,12 @@ class AuthController extends Controller
                 ], 401);
             }
 
-            if (User::activeUser(auth()->user()->id)->count() == 0) {
+            if (auth()->user()->status == 0) {
                 return response()->json([
                     'status'      => false,
-                    'status_code' => 451,
-                    'message'     => trans('auth.login.451')
-                ], 451);
+                    'status_code' => 401,
+                    'message'     => trans('auth.login.suspended')
+                ], 401);
             }
 
             if ($fd = $wsTable->get("uid:" . auth()->user()->id, 'value')) {
@@ -145,6 +146,7 @@ class AuthController extends Controller
             }
 
             $token->save();
+            SwooleHandler::setValue('userStatusesTable', auth()->user()->id, ['status' => auth()->user()->status]);
 
             return response()->json([
                 'status'       => true,

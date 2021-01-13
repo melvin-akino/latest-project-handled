@@ -141,7 +141,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="flex justify-center w-full">
+                <div class="flex justify-center w-full" v-if="market_details.user_status == 1">
                     <button v-if="isPlacingOrder" @click="placeOrder" class="bg-orange-500 text-white rounded-lg w-full text-sm uppercase p-2 mt-2 opacity-75" disabled>Placing Order... <span class="text-sm"><i class="fas fa-circle-notch fa-spin"></i></span></button>
                     <button v-if="!isPlacingOrder" @click="placeOrder" class="bg-orange-500 text-white rounded-lg w-full text-sm uppercase p-2 mt-2 focus:outline-none" :class="[!retrievedMarketData || minMaxData.length == 0 ? 'opacity-75' : 'hover:bg-orange-600']" :disabled="!retrievedMarketData || minMaxData.length == 0">Place Order</button>
                 </div>

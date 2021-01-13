@@ -105,6 +105,12 @@ return [
                 ['name' => 'value', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 10000],
             ],
         ],
+        'userStatuses'            => [
+            'size'   => 1000,// The max size
+            'column' => [// Define the columns
+                 ['name' => 'status', 'type' => \Swoole\Table::TYPE_INT],
+            ],
+        ],
         'data2Swt'            => [
             'size'   => 5,// The max size
             'column' => [// Define the columns

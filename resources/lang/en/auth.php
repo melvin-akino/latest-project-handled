@@ -18,6 +18,7 @@ return [
         '401'           => "Unauthorized.",
         '451'           => "User Account is Inactive.",
         'success'       => "Login Successful",
+        'suspended'     => "Your account has been suspended.<br>Contact support@multline.io if you have questions."
     ],
     'logout'            => [
         'success'       => "Logout Successful",
