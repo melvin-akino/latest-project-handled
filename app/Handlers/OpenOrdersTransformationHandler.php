@@ -2,6 +2,7 @@
 
 namespace App\Handlers;
 
+use App\Exceptions\{BadRequestException, NotFoundException};
 use App\Models\{
     Order,
     ExchangeRate,
@@ -42,6 +43,9 @@ class OpenOrdersTransformationHandler
      */
     public function handle()
     {
+        $hasError = false;
+        $errMsg   = "";
+
         try {
             DB::beginTransaction();
 
@@ -101,6 +105,15 @@ class OpenOrdersTransformationHandler
                                     'order_id'      => $orderId,
                                     'settled_date'  => $orderData->settled_date
                                 ]);
+
+                                $toLogs = [
+                                    "module"            => "BET_INFO",
+                                    "status"            => $order->status,
+                                    "ml_bet_identifier" => $orderData->ml_bet_identifier,
+                                    "bet_id"            => $betId,
+                                    "username"          => $orderTable['username']
+                                ];
+                                monitorLog('monitor_bet_info', 'info', $toLogs);
 
                                 $orderLogsId = $orderLogs->id;
 
@@ -166,16 +179,34 @@ class OpenOrdersTransformationHandler
             Log::info("Open Orders - Processed");
 
             DB::commit();
-        } catch (Exception $e) {
-            Log::debug($e->getMessage());
-            Log::error(json_encode([
-                'OpenOrdersTranformationHandler' => [
-                    'message' => $e->getMessage(),
-                    'line'    => $e->getLine(),
-                ]
-            ]));
+        } catch (BadRequestException $e) {
+            $hasError = true;
+            $errCode  = 400;
+            $errMsg = "Line " . $e->getLine() . " | " . $e->getMessage();
 
             DB::rollBack();
+        } catch (NotFoundException $e) {
+            $hasError = true;
+            $errCode  = 404;
+            $errMsg = "Line " . $e->getLine() . " | " . $e->getMessage();
+
+            DB::rollBack();
+        } catch (Exception $e) {
+            $hasError = true;
+            $errCode  = 500;
+            $errMsg = "Line " . $e->getLine() . " | " . $e->getMessage();
+
+            DB::rollBack();
+        }
+
+        if ($hasError) {
+            $toLogs = [
+                "class"       => "OpenOrdersTransformationHandler",
+                "message"     => $errMsg,
+                "module"      => "BET_INFO_ERROR",
+                "status_code" => $errCode,
+            ];
+            monitorLog('monitor_bet_info', 'error', $toLogs);
         }
     }
 }
