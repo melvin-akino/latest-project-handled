@@ -142,5 +142,11 @@ return [
             'path'   => storage_path('logs/monitor/jobs/laravel.log'),
             'level'  => 'debug',
         ],
+
+        'monitor_tasks' => [
+            'driver' => 'single',
+            'path'   => storage_path('logs/monitor/tasks/laravel.log'),
+            'level'  => 'debug',
+        ],
     ],
 ];
