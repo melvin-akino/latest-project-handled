@@ -32,8 +32,13 @@ class BetTransformationHandler
 
     public function handle()
     {
-        Log::info('Processing ' . $this->offset);
-        Log::channel($this->channel)->info('Processing ' . $this->offset);
+        $toLogs = [
+            "class"       => "BetTransformationHandler",
+            "message"     => "Initiating...",
+            "module"      => "HANDLER",
+            "status_code" => 200,
+        ];
+        monitorLog('monitor_handlers', 'info', $toLogs);
 
         try {
             DB::beginTransaction();
@@ -173,19 +178,21 @@ class BetTransformationHandler
 
             DB::commit();
 
-            Log::channel($this->channel)->info('Processed ' . $this->offset);
+            $toLogs = [
+                "class"       => "BetTransformationHandler",
+                "message"     => "Processed (open-order-" . $this->message->data->bet_id . ")",
+                "module"      => "HANDLER",
+                "status_code" => 200,
+            ];
+            monitorLog('monitor_handlers', 'info', $toLogs);
         } catch (Exception $e) {
-            Log::channel($this->channel)->info([
-                'message' => $e->getMessage(),
-                'line'    => $e->getLine(),
-                'file'    => $e->getFile()
-            ]);
-            Log::error(json_encode([
-                'BetTransformationHandler' => [
-                    'message' => $e->getMessage(),
-                    'line'    => $e->getLine(),
-                ]
-            ]));
+            $toLogs = [
+                "class"       => "BetTransformationHandler",
+                "message"     => "Line " . $e->getLine() . " | " . $e->getMessage(),
+                "module"      => "HANDLER_ERROR",
+                "status_code" => $e->getCode(),
+            ];
+            monitorLog('monitor_handlers', 'error', $toLogs);
 
             DB::rollBack();
         }
