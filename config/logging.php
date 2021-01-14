@@ -95,10 +95,12 @@ return [
             'driver' => 'monolog',
             'handler' => NullHandler::class,
         ],
+
         'kafkalog' => [
             'driver' => 'single',
             'path' => '/tmp/consumer.logs',
         ],
+
         'kafkaproducelog' => [
             'driver' => 'single',
             'path' => '/tmp/producer.logs',
@@ -127,6 +129,12 @@ return [
             'path'   => storage_path('logs/bets.log'),
             'level'  => 'debug',
         ],
-    ],
 
+        // LOGS MONITORING
+        'monitor_bet_info' => [
+            'driver' => 'single',
+            'path'   => storage_path('logs/monitor/bet_info/laravel.log'),
+            'level'  => 'debug',
+        ],
+    ],
 ];
