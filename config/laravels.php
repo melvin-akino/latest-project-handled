@@ -79,6 +79,12 @@ return [
             'pipe'     => 0,
             'enable'   => true
         ],
+        'socket_data_consume' => [
+            'class'    => \App\Processes\SocketConsume::class,
+            'redirect' => false,
+            'pipe'     => 0,
+            'enable'   => true
+        ],
     ],
     'timer'                    => [
         'enable'        => env('LARAVELS_TIMER', false),
