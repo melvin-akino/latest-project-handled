@@ -23,6 +23,15 @@ class TransformKafkaMessageOdds extends Task
         $this->offset             = $offset;
 
         SwooleHandler::remove('oddsKafkaPayloadsTable', $offset);
+
+        $toLogs = [
+            "class"       => "TransformKafkaMessageOdds",
+            "message"     => "Initiating...",
+            "module"      => "TASK",
+            "status_code" => 102,
+        ];
+        monitorLog('monitor_tasks', 'info', $toLogs);
+
         return $this;
     }
 
@@ -383,7 +392,7 @@ class TransformKafkaMessageOdds extends Task
             $endTime = microtime(TRUE);
             $timeConsumption   = $endTime - $startTime;
 
-            Log::channel('scraping-odds')->info([
+            $payload = [
                 'request_uid'      => json_encode($this->message->request_uid),
                 'request_ts'       => json_encode($this->message->request_ts),
                 'offset'           => json_encode($this->offset),
@@ -394,15 +403,23 @@ class TransformKafkaMessageOdds extends Task
                     'away'       => $this->message->data->awayTeam,
                     'schedule'   => $this->message->data->schedule,
                 ]),
-            ]);
+            ];
+
+            $toLogs = [
+                "class"       => "TransformKafkaMessageOdds",
+                "message"     => $payload,
+                "module"      => "TASK",
+                "status_code" => 200,
+            ];
+            monitorLog('monitor_tasks', 'info', $toLogs);
         } catch (Exception $e) {
-            Log::error(json_encode(
-                [
-                    'message' => $e->getMessage(),
-                    'line'    => $e->getLine(),
-                    'file'    => $e->getFile(),
-                ]
-            ));
+            $toLogs = [
+                "class"       => "TransformKafkaMessageOdds",
+                "message"     => "Line " . $e->getLine() . " | " . $e->getMessage(),
+                "module"      => "TASK_ERROR",
+                "status_code" => $e->getCode(),
+            ];
+            monitorLog('monitor_tasks', 'error', $toLogs);
         }
 
         Log::info("Ending Task for offset:" . $this->offset);
