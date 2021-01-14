@@ -26,6 +26,17 @@ class WsUserSport implements ShouldQueue
                     'sport_id' => $userSport['default_sport']
                 ]
             ]));
+
+            $toLogs = [
+                "class"       => "WsUserSport",
+                "message"     => [
+                    'getUserSport' => [
+                        'sport_id' => $userSport['default_sport']
+                ],
+                "module"      => "JOB",
+                "status_code" => 200,
+            ];
+            monitorLog('monitor_jobs', 'info', $toLogs);
         }
     }
 }
