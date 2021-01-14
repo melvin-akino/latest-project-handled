@@ -58,12 +58,28 @@ class WsWatchlist implements ShouldQueue
             $watchlist = is_array($data) ? $data : [];
             $eventData = array_values($watchlist);
         } catch (Exception $e) {
-            Log::error($e->getMessage());
+            $toLogs = [
+                "class"       => "WsWatchlist",
+                "message"     => "Line " . $e->getLine() . " | " . $e->getMessage(),
+                "module"      => "JOB_ERROR",
+                "status_code" => $e->getCode(),
+            ];
+            monitorLog('monitor_jobs', 'error', $toLogs);
         } finally {
             if ($server->isEstablished($fd['value'])) {
                 $server->push($fd['value'], json_encode([
                     'getWatchlist' => $eventData
                 ]));
+
+                $toLogs = [
+                    "class"       => "WsWatchlist",
+                    "message"     => [
+                        'getWatchlist' => $eventData
+                    ],
+                    "module"      => "JOB",
+                    "status_code" => 200,
+                ];
+                monitorLog('monitor_jobs', 'error', $toLogs);
             }
         }
     }

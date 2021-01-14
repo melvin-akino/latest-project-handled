@@ -22,5 +22,13 @@ class WsOrder implements ShouldQueue
             'user_id'    => $this->userId,
             'topic_name' => 'order-' . $this->orderId
         ]);
+
+        $toLogs = [
+            "class"       => "WsOrder",
+            "message"     => "Processed Order (order-" . $this->orderId . ")",
+            "module"      => "JOB",
+            "status_code" => 200,
+        ];
+        monitorLog('monitor_jobs', 'info', $toLogs);
     }
 }

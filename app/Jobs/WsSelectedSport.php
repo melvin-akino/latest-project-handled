@@ -11,7 +11,7 @@ class WsSelectedSport implements ShouldQueue
 
     public function __construct($userId, $params)
     {
-        $this->userId = $userId;
+        $this->userId  = $userId;
         $this->sportId = $params[1];
     }
 
@@ -25,6 +25,18 @@ class WsSelectedSport implements ShouldQueue
             $server->push($fd['value'], json_encode([
                 'getSelectedSport' => ['sport_id' => $this->sportId]
             ]));
+
+            $toLogs = [
+                "class"       => "WsSelectedSport",
+                "message"     => [
+                    'getSelectedSport' => [
+                        'sport_id' => $this->sportId
+                    ]
+                ],
+                "module"      => "JOB",
+                "status_code" => 200,
+            ];
+            monitorLog('monitor_jobs', 'info', $toLogs);
         }
     }
 }

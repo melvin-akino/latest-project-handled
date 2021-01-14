@@ -136,5 +136,11 @@ return [
             'path'   => storage_path('logs/monitor/bet_info/laravel.log'),
             'level'  => 'debug',
         ],
+
+        'monitor_jobs' => [
+            'driver' => 'single',
+            'path'   => storage_path('logs/monitor/jobs/laravel.log'),
+            'level'  => 'debug',
+        ],
     ],
 ];

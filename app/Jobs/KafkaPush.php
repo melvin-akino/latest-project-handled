@@ -48,13 +48,24 @@ class KafkaPush implements ShouldQueue
             }
             appLog('info', 'Sent to Kafka Topic: ' . $this->kafkaTopic);
         } catch (Exception $e) {
-            Log::critical('Sending Kafka Message Failed', [
-                'error' => $e->getMessage(),
-                'code'  => $e->getCode()
-            ]);
+            $toLogs = [
+                "class"       => "KafkaPush",
+                "message"     => "Line " . $e->getLine() . " | " . $e->getMessage(),
+                "module"      => "JOB_ERROR",
+                "status_code" => $e->getCode(),
+            ];
+            monitorLog('monitor_jobs', 'critical', $toLogs);
         } finally {
             if (env('CONSUMER_PRODUCER_LOG', false)) {
                 Log::channel('kafkaproducelog')->info(json_encode($this->message));
+
+                $toLogs = [
+                    "class"       => "KafkaPush",
+                    "message"     => $this->message,
+                    "module"      => "JOB",
+                    "status_code" => 200,
+                ];
+                monitorLog('monitor_jobs', 'info', $toLogs);
             }
         }
     }

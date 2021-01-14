@@ -65,10 +65,17 @@ class WsRemoveMinMax implements ShouldQueue
                         ]
                     ]));
                 }
+
+                $toLogs = [
+                    "class"       => "WsRemoveMinMax",
+                    "message"     => "MinMax Removed (min-max-" . $minMaxRequest['market_id'] . ")",
+                    "module"      => "JOB",
+                    "status_code" => 200,
+                ];
+                monitorLog('monitor_jobs', 'info', $toLogs);
             }
         } catch (Exception $e) {
             Log::error($e->getMessage());
         }
-
     }
 }
