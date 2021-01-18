@@ -30,9 +30,20 @@ class BetBarBehaviour implements CustomProcessInterface
                             if ($pendingOrder['created_at'] < Carbon::now()->subSeconds($pendingOrder['order_expiry'])) {
                                 SwooleHandler::remove('pendingOrdersWithinExpiryTable', $key);
                                 SwooleHandler::setValue('topicTable', 'userId:' . $pendingOrder['user_id'] . ':unique:' . uniqid(), [
-                                    'user_id' => $pendingOrder['user_id'],
+                                    'user_id'    => $pendingOrder['user_id'],
                                     'topic_name' => 'removal-bet-' . $pendingOrder['id']
                                 ]);
+
+                                $toLogs = [
+                                    "class"       => "BetBarBehaviour",
+                                    "message"     => [
+                                        'user_id'    => $pendingOrder['user_id'],
+                                        'topic_name' => 'removal-bet-' . $pendingOrder['id']
+                                    ],
+                                    "module"      => "PROCESS",
+                                    "status_code" => 206,
+                                ];
+                                monitorLog('kafkalog', 'info', $toLogs);
                             }
                         }
                         $initialTime = $newTime;
@@ -41,7 +52,13 @@ class BetBarBehaviour implements CustomProcessInterface
                 }
             }
         } catch (Exception $e) {
-            Log::error($e->getMessage());
+            $toLogs = [
+                "class"       => "BetBarBehaviour",
+                "message"     => "Line " . $e->getLine() . " | " . $e->getMessage(),
+                "module"      => "PRODUCE_ERROR",
+                "status_code" => $e->getCode(),
+            ];
+            monitorLog('monitor_process', 'error', $toLogs);
         }
     }
 

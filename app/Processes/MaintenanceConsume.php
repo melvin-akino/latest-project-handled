@@ -21,7 +21,13 @@ class MaintenanceConsume implements CustomProcessInterface
     {
         try {
             if ($swoole->data2SwtTable->exist('data2Swt')) {
-                Log::info("Maintenance Consume Starts");
+                $toLogs = [
+                    "class"       => "MaintenanceConsume",
+                    "message"     => "Initiating...",
+                    "module"      => "PROCESS",
+                    "status_code" => 102,
+                ];
+                monitorLog('monitor_process', 'info', $toLogs);
 
                 $kafkaConsumer = resolve('LowLevelConsumer');
 
@@ -40,9 +46,22 @@ class MaintenanceConsume implements CustomProcessInterface
                             $payload = json_decode($message->payload);
 
                             if (empty($payload->data)) {
-                                Log::info("Maintenance Transformation ignored - No Data Found");
+                                $toLogs = [
+                                    "class"       => "MaintenanceConsume",
+                                    "message"     => "Maintenance Transformation ignored - No Data Found",
+                                    "module"      => "PRODUCE_ERROR",
+                                    "status_code" => 404,
+                                ];
+                                monitorLog('monitor_process', 'error', $toLogs);
                             } else {
-                                Log::info('Maintenance calling Task Worker');
+                                $toLogs = [
+                                    "class"       => "MaintenanceConsume",
+                                    "message"     => "Maintenance calling Task Worker",
+                                    "module"      => "PROCESS",
+                                    "status_code" => 102,
+                                ];
+                                monitorLog('monitor_process', 'info', $toLogs);
+
                                 $maintenanceTransformationHandler->init($payload)->handle();
                             }
                         }
@@ -54,7 +73,13 @@ class MaintenanceConsume implements CustomProcessInterface
                 }
             }
         } catch (Exception $e) {
-            Log::error($e->getMessage());
+            $toLogs = [
+                "class"       => "MaintenanceConsume",
+                "message"     => "Line " . $e->getLine() . " | " . $e->getMessage(),
+                "module"      => "PRODUCE_ERROR",
+                "status_code" => $e->getCode(),
+            ];
+            monitorLog('monitor_process', 'error', $toLogs);
         }
     }
 
