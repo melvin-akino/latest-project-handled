@@ -154,5 +154,11 @@ return [
             'path'   => storage_path('logs/monitor/ws/laravel.log'),
             'level'  => 'debug',
         ],
+
+        'monitor_handlers' => [
+            'driver' => 'single',
+            'path'   => storage_path('logs/monitor/handlers/laravel.log'),
+            'level'  => 'debug',
+        ],
     ],
 ];

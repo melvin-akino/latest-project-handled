@@ -66,13 +66,27 @@ class OddsValidationHandler
             $teamsTable     = $swoole->teamsTable;
 
             if (!isset($this->message->data->events)) {
-                appLog('info', "Transformation ignored - No Event Found");
+                $toLogs = [
+                    "class"       => "OddsValidationHandler",
+                    "message"     => "Transformation ignored - No Event Found",
+                    "module"      => "HANDLER_ERROR",
+                    "status_code" => 404,
+                ];
+                monitorLog('monitor_handlers', 'error', $toLogs);
+
                 return;
             }
 
             if (env('APP_ENV') != "local") {
                 if (!Redis::exists('type:odds:requestUID:' . $this->message->request_uid)) {
-                    appLog('info', "Transformation ignored - Request UID is not from ML");
+                    $toLogs = [
+                        "class"       => "OddsValidationHandler",
+                        "message"     => "Transformation ignored - Request UID is not from ML",
+                        "module"      => "HANDLER_ERROR",
+                        "status_code" => 400,
+                    ];
+                    monitorLog('monitor_handlers', 'error', $toLogs);
+
                     return;
                 }
             }
@@ -93,12 +107,25 @@ class OddsValidationHandler
                 $hash = $payloadHash['hash'];
 
                 if ($ts > $this->message->request_ts) {
-                    appLog('info', "Transformation ignored - Old Timestamp");
+                    $toLogs = [
+                        "class"       => "OddsValidationHandler",
+                        "message"     => "Transformation ignored - Old Timestamp",
+                        "module"      => "HANDLER",
+                        "status_code" => 208,
+                    ];
+                    monitorLog('monitor_handlers', 'info', $toLogs);
+
                     return;
                 }
 
                 if ($hash == md5(json_encode((array) $toHashMessage)) && !empty($oddsPayloadObject->data->events[0]->market_odds[0]->marketSelection)) {
-                    appLog('info', "Transformation ignored - No change");
+                    $toLogs = [
+                        "class"       => "OddsValidationHandler",
+                        "message"     => "Transformation ignored - No change",
+                        "module"      => "HANDLER",
+                        "status_code" => 208,
+                    ];
+                    monitorLog('monitor_handlers', 'info', $toLogs);
                     $withChange = false;
                 }
             } else {
@@ -110,7 +137,14 @@ class OddsValidationHandler
 
             foreach ($this->disregard as $disregard) {
                 if (strpos($this->message->data->leagueName, $disregard) !== false) {
-                    appLog('info', "Transformation ignored - Filtered League");
+                    $toLogs = [
+                        "class"       => "OddsValidationHandler",
+                        "message"     => "Transformation ignored - Filtered League",
+                        "module"      => "HANDLER",
+                        "status_code" => 208,
+                    ];
+                    monitorLog('monitor_handlers', 'info', $toLogs);
+
                     return;
                 }
             }
@@ -129,7 +163,14 @@ class OddsValidationHandler
             if ($providersTable->exist($providerSwtId)) {
                 $providerId = $providersTable->get($providerSwtId)['id'];
             } else {
-                appLog('info', "Transformation ignored - Provider doesn't exist");
+                $toLogs = [
+                    "class"       => "OddsValidationHandler",
+                    "message"     => "Transformation ignored - Provider doesn't exist",
+                    "module"      => "HANDLER_ERROR",
+                    "status_code" => 404,
+                ];
+                monitorLog('monitor_handlers', 'error', $toLogs);
+
                 return;
             }
 
@@ -147,7 +188,14 @@ class OddsValidationHandler
             if ($sportsTable->exists($sportSwtId)) {
                 $sportId = $sportsTable->get($sportSwtId)['id'];
             } else {
-                appLog('info', "Transformation ignored - Sport doesn't exist");
+                $toLogs = [
+                    "class"       => "OddsValidationHandler",
+                    "message"     => "Transformation ignored - Sport doesn't exist",
+                    "module"      => "HANDLER_ERROR",
+                    "status_code" => 404,
+                ];
+                monitorLog('monitor_handlers', 'error', $toLogs);
+
                 return;
             }
 
@@ -163,7 +211,14 @@ class OddsValidationHandler
             }
 
             if (!$leagueExist) {
-                appLog('info', "Transformation ignored - League is not in the masterlist");
+                $toLogs = [
+                    "class"       => "OddsValidationHandler",
+                    "message"     => "Transformation ignored - League is not in the masterlist",
+                    "module"      => "HANDLER_ERROR",
+                    "status_code" => 404,
+                ];
+                monitorLog('monitor_handlers', 'error', $toLogs);
+
                 return;
             }
 
@@ -185,7 +240,14 @@ class OddsValidationHandler
                 }
 
                 if (!$teamExist) {
-                    appLog('info', "Transformation ignored - No Available Teams in the masterlist");
+                    $toLogs = [
+                        "class"       => "OddsValidationHandler",
+                        "message"     => "Transformation ignored - No Available Teams in the masterlist",
+                        "module"      => "HANDLER_ERROR",
+                        "status_code" => 404,
+                    ];
+                    monitorLog('monitor_handlers', 'error', $toLogs);
+
                     return;
                 }
             }
@@ -195,10 +257,23 @@ class OddsValidationHandler
             Log::info("Executing Task for offset:" . $this->offset);
             Task::deliver($transformKafkaMessageOdds->init($this->offset, compact('providerId', 'sportId', 'parameters', 'withChange')));
             Log::info("Transformation - validation completed");
-
+            $toLogs = [
+                "class"       => "OddsValidationHandler",
+                "message"     => [
+                    "Transformation Complete" => json_encode($this->message)
+                ],
+                "module"      => "HANDLER",
+                "status_code" => 200,
+            ];
+            monitorLog('monitor_handlers', 'info', $toLogs);
         } catch (Exception $e) {
-            Log::error($e->getMessage());
-            Log::error($e->getLine());
+            $toLogs = [
+                "class"       => "OddsValidationHandler",
+                "message"     => "Line " . $e->getLine() . " | " . $e->getMessage(),
+                "module"      => "HANDLER_ERROR",
+                "status_code" => $e->getCode(),
+            ];
+            monitorLog('monitor_handlers', 'error', $toLogs);
         }
     }
 }

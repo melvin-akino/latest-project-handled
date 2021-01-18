@@ -32,7 +32,14 @@ class LeaguesTransformationHandler
 
             if (env('APP_ENV') != "local") {
                 if (!Redis::exists('type:events:requestUID:' . $this->message->request_uid)) {
-                    appLog('info', "Leagues Transformation ignored - Request UID is not from ML");
+                    $toLogs = [
+                        "class"       => "LeaguesTransformationHandler",
+                        "message"     => "Leagues Transformation ignored - Request UID is not from ML",
+                        "module"      => "HANDLER_ERROR",
+                        "status_code" => 400,
+                    ];
+                    monitorLog('monitor_handlers', 'error', $toLogs);
+
                     return;
                 }
             }
@@ -48,7 +55,14 @@ class LeaguesTransformationHandler
              */
             $providerSwtId = "providerAlias:" . strtolower($this->message->data->provider);
             if (!SwooleHandler::exists('providersTable', $providerSwtId)) {
-                Log::info("Leagues Transformation ignored - Provider doesn't exist");
+                $toLogs = [
+                    "class"       => "LeaguesTransformationHandler",
+                    "message"     => "Leagues Transformation ignored - Provider doesn't exist",
+                    "module"      => "HANDLER_ERROR",
+                    "status_code" => 404,
+                ];
+                monitorLog('monitor_handlers', 'error', $toLogs);
+
                 return;
             }
 
@@ -63,7 +77,14 @@ class LeaguesTransformationHandler
              */
             $sportSwtId = "sId:" . $this->message->data->sport;
             if (!SwooleHandler::exists('sportsTable', $sportSwtId)) {
-                Log::info("Leagues Transformation ignored - Sport doesn't exist");
+                $toLogs = [
+                    "class"       => "LeaguesTransformationHandler",
+                    "message"     => "Leagues Transformation ignored - Sport doesn't exist",
+                    "module"      => "HANDLER_ERROR",
+                    "status_code" => 404,
+                ];
+                monitorLog('monitor_handlers', 'error', $toLogs);
+
                 return;
             } else {
                 $sports = SwooleHandler::getValue('sportsTable', $sportSwtId);
@@ -99,21 +120,27 @@ class LeaguesTransformationHandler
             $endTime         = microtime(TRUE);
             $timeConsumption = $endTime - $startTime;
 
-            Log::channel('scraping-leagues')->info([
-                'request_uid'      => json_encode($this->message->request_uid),
-                'request_ts'       => json_encode($this->message->request_ts),
-                'offset'           => json_encode($this->offset),
-                'time_consumption' => json_encode($timeConsumption),
-                'leagues'           => json_encode($this->message->data->leagues),
-            ]);
+            $toLogs = [
+                "class"       => "LeaguesTransformationHandler",
+                "message"     => [
+                    'request_uid'      => json_encode($this->message->request_uid),
+                    'request_ts'       => json_encode($this->message->request_ts),
+                    'offset'           => json_encode($this->offset),
+                    'time_consumption' => json_encode($timeConsumption),
+                    'leagues'          => json_encode($this->message->data->leagues),
+                ],
+                "module"      => "HANDLER",
+                "status_code" => 200,
+            ];
+            monitorLog('monitor_handlers', 'info', $toLogs);
         } catch (Exception $e) {
-            Log::error(json_encode(
-                [
-                    'message' => $e->getMessage(),
-                    'line'    => $e->getLine(),
-                    'file'    => $e->getFile(),
-                ]
-            ));
+            $toLogs = [
+                "class"       => "LeaguesTransformationHandler",
+                "message"     => "Line " . $e->getLine() . " | " . $e->getMessage(),
+                "module"      => "HANDLER_ERROR",
+                "status_code" => $e->getCode(),
+            ];
+            monitorLog('monitor_handlers', 'error', $toLogs);
         }
     }
 }
