@@ -88,6 +88,16 @@ class MinMaxProduce implements CustomProcessInterface
                                             $payload,
                                             $requestId
                                         );
+
+                                        $toLogs = [
+                                            "class"       => "MinMaxProduce",
+                                            "message"     => [
+                                                "payload_sent" => $payload
+                                            ],
+                                            "module"      => "PROCESS",
+                                            "status_code" => 200,
+                                        ];
+                                        monitorLog('monitor_process', 'info', $toLogs);
                                     }
                                 }
                             }
@@ -98,7 +108,13 @@ class MinMaxProduce implements CustomProcessInterface
                 }
             }
         } catch (Exception $e) {
-            Log::error($e->getMessage());
+            $toLogs = [
+                "class"       => "MinMaxProduce",
+                "message"     => "Line " . $e->getLine() . " | " . $e->getMessage(),
+                "module"      => "PRODUCE_ERROR",
+                "status_code" => $e->getCode(),
+            ];
+            monitorLog('monitor_process', 'error', $toLogs);
         }
     }
 

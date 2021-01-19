@@ -19,7 +19,14 @@ class ResourceController extends Controller
                 'data'        => $timezones,
             ]);
         } catch (Exception $e) {
-            Log::error($e->getMessage());
+            $toLogs = [
+                "class"       => "ResourceController",
+                "message"     => "Line " . $e->getLine() . " | " . $e->getMessage(),
+                "module"      => "API_ERROR",
+                "status_code" => $e->getCode(),
+            ];
+            monitorLog('monitor_api', 'error', $toLogs);
+
             return response()->json([
                 'status'      => false,
                 'status_code' => 500,
@@ -43,7 +50,14 @@ class ResourceController extends Controller
                 'data'        => $providers
             ], 200);
         } catch (Exception $e) {
-            Log::error($e->getMessage());
+            $toLogs = [
+                "class"       => "ResourceController",
+                "message"     => "Line " . $e->getLine() . " | " . $e->getMessage(),
+                "module"      => "API_ERROR",
+                "status_code" => $e->getCode(),
+            ];
+            monitorLog('monitor_api', 'error', $toLogs);
+
             return response()->json([
                 'status'      => false,
                 'status_code' => 400,

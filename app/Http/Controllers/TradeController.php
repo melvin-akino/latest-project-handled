@@ -106,7 +106,14 @@ class TradeController extends Controller
                 'data'        => array_slice($data, 0, 5)
             ], 200);
         } catch (Exception $e) {
-            Log::error($e->getMessage());
+            $toLogs = [
+                "class"       => "TradeController",
+                "message"     => "Line " . $e->getLine() . " | " . $e->getMessage(),
+                "module"      => "API_ERROR",
+                "status_code" => $e->getCode(),
+            ];
+            monitorLog('monitor_api', 'error', $toLogs);
+
             return response()->json([
                 'status'      => false,
                 'status_code' => 500,
@@ -138,6 +145,14 @@ class TradeController extends Controller
                                                            ->get(['id', 'master_event_unique_id'])
                                                            ->toArray();
                     } else {
+                        $toLogs = [
+                            "class"       => "TradeController",
+                            "message"     => trans('generic.not-found'),
+                            "module"      => "API_ERROR",
+                            "status_code" => 404,
+                        ];
+                        monitorLog('monitor_api', 'error', $toLogs);
+
                         return response()->json([
                             'status'      => false,
                             'status_code' => 404,
@@ -185,7 +200,14 @@ class TradeController extends Controller
                 'message'     => trans('game.watchlist.' . $lang)
             ], 200);
         } catch (Exception $e) {
-            Log::error($e->getMessage());
+            $toLogs = [
+                "class"       => "TradeController",
+                "message"     => "Line " . $e->getLine() . " | " . $e->getMessage(),
+                "module"      => "API_ERROR",
+                "status_code" => $e->getCode(),
+            ];
+            monitorLog('monitor_api', 'error', $toLogs);
+
             return response()->json([
                 'status'      => false,
                 'status_code' => 500,
@@ -224,6 +246,14 @@ class TradeController extends Controller
             }
 
             if (!$data['status']) {
+                $toLogs = [
+                    "class"       => "TradeController",
+                    "message"     => $data['error'],
+                    "module"      => "API_ERROR",
+                    "status_code" => 400,
+                ];
+                monitorLog('monitor_api', 'error', $toLogs);
+
                 return response()->json([
                     'status'      => false,
                     'status_code' => 400,
@@ -238,7 +268,14 @@ class TradeController extends Controller
                 'data'        => $dataSchedule
             ], 200);
         } catch (Exception $e) {
-            Log::error($e->getMessage());
+            $toLogs = [
+                "class"       => "TradeController",
+                "message"     => "Line " . $e->getLine() . " | " . $e->getMessage(),
+                "module"      => "API_ERROR",
+                "status_code" => $e->getCode(),
+            ];
+            monitorLog('monitor_api', 'error', $toLogs);
+
             return response()->json([
                 'status'      => false,
                 'status_code' => 500,
@@ -317,7 +354,14 @@ class TradeController extends Controller
                 'message'     => trans('notifications.save.success')
             ], 200);
         } catch (Exception $e) {
-            Log::error($e->getMessage());
+            $toLogs = [
+                "class"       => "TradeController",
+                "message"     => "Line " . $e->getLine() . " | " . $e->getMessage(),
+                "module"      => "API_ERROR",
+                "status_code" => $e->getCode(),
+            ];
+            monitorLog('monitor_api', 'error', $toLogs);
+
             return response()->json([
                 'status'      => false,
                 'status_code' => 500,
@@ -370,7 +414,14 @@ class TradeController extends Controller
                 ]
             ], 200);
         } catch (Exception $e) {
-            Log::error($e->getMessage());
+            $toLogs = [
+                "class"       => "TradeController",
+                "message"     => "Line " . $e->getLine() . " | " . $e->getMessage(),
+                "module"      => "API_ERROR",
+                "status_code" => $e->getCode(),
+            ];
+            monitorLog('monitor_api', 'error', $toLogs);
+
             return response()->json([
                 'status'      => false,
                 'status_code' => 500,
@@ -437,8 +488,14 @@ class TradeController extends Controller
                 'data'        => $result
             ], 200);
         } catch (Exception $e) {
-            Log::error($e->getMessage());
-            Log::error($e->getLine());
+            $toLogs = [
+                "class"       => "TradeController",
+                "message"     => "Line " . $e->getLine() . " | " . $e->getMessage(),
+                "module"      => "API_ERROR",
+                "status_code" => $e->getCode(),
+            ];
+            monitorLog('monitor_api', 'error', $toLogs);
+
             return response()->json([
                 'status'      => false,
                 'status_code' => 500,
@@ -451,6 +508,14 @@ class TradeController extends Controller
     {
         try {
             if (!$request->has('page')) {
+                $toLogs = [
+                    "class"       => "TradeController",
+                    "message"     => trans('generic.not-found'),
+                    "module"      => "API_ERROR",
+                    "status_code" => 404,
+                ];
+                monitorLog('monitor_api', 'error', $toLogs);
+
                 return response()->json([
                     'status'      => false,
                     'status_code' => 404,
@@ -459,6 +524,14 @@ class TradeController extends Controller
             }
 
             if ($request->page < 1) {
+                $toLogs = [
+                    "class"       => "TradeController",
+                    "message"     => trans('generic.bad-request'),
+                    "module"      => "API_ERROR",
+                    "status_code" => 400,
+                ];
+                monitorLog('monitor_api', 'error', $toLogs);
+
                 return response()->json([
                     'status'      => false,
                     'status_code' => 400,
@@ -486,7 +559,14 @@ class TradeController extends Controller
                 'paginated'   => (($request->page * $limit) - $results->count()) >= 0 ? false : true
             ], 200);
         } catch (Exception $e) {
-            Log::error($e->getMessage());
+            $toLogs = [
+                "class"       => "TradeController",
+                "message"     => "Line " . $e->getLine() . " | " . $e->getMessage(),
+                "module"      => "API_ERROR",
+                "status_code" => $e->getCode(),
+            ];
+            monitorLog('monitor_api', 'error', $toLogs);
+
             return response()->json([
                 'status'      => false,
                 'status_code' => 500,

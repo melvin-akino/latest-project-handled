@@ -121,7 +121,6 @@ class OrdersController extends Controller
                         ]);
                     }
 
-
                     $data['orders'][] = [
                         'order_id'      => $myOrder->id,
                         'bet_id'        => $myOrder->ml_bet_identifier,
@@ -155,7 +154,14 @@ class OrdersController extends Controller
                 'data'        => !empty($data) ? $data : null
             ], 200);
         } catch (Exception $e) {
-            Log::error($e->getMessage());
+            $toLogs = [
+                "class"       => "OrdersController",
+                "message"     => "Line " . $e->getLine() . " | " . $e->getMessage(),
+                "module"      => "API_ERROR",
+                "status_code" => $e->getCode(),
+            ];
+            monitorLog('monitor_api', 'error', $toLogs);
+
             return response()->json([
                 'status'      => false,
                 'status_code' => 500,
@@ -186,6 +192,14 @@ class OrdersController extends Controller
             $masterEventMarket = MasterEventMarket::where('master_event_market_unique_id', $memUID);
 
             if (!$masterEventMarket->exists()) {
+                $toLogs = [
+                    "class"       => "OrdersController",
+                    "message"     => trans('orders-related.master-event-market-404'),
+                    "module"      => "API_ERROR",
+                    "status_code" => 404,
+                ];
+                monitorLog('monitor_api', 'error', $toLogs);
+
                 return response()->json([
                     'status'      => false,
                     'status_code' => 404,
@@ -220,6 +234,14 @@ class OrdersController extends Controller
                              ]);
 
             if (!$masterEvent->exists()) {
+                $toLogs = [
+                    "class"       => "OrdersController",
+                    "message"     => trans('orders-related.master-event-404'),
+                    "module"      => "API_ERROR",
+                    "status_code" => 404,
+                ];
+                monitorLog('monitor_api', 'error', $toLogs);
+
                 return response()->json([
                     'status'      => false,
                     'status_code' => 404,
@@ -253,6 +275,14 @@ class OrdersController extends Controller
                     }
                 }
             } else {
+                $toLogs = [
+                    "class"       => "OrdersController",
+                    "message"     => trans('orders-related.other-market-404'),
+                    "module"      => "API_ERROR",
+                    "status_code" => 404,
+                ];
+                monitorLog('monitor_api', 'error', $toLogs);
+
                 return response()->json([
                     'status'      => false,
                     'status_code' => 404,
@@ -291,7 +321,14 @@ class OrdersController extends Controller
                 'data'        => $data
             ], 200);
         } catch (Exception $e) {
-            Log::error($e->getMessage());
+            $toLogs = [
+                "class"       => "OrdersController",
+                "message"     => "Line " . $e->getLine() . " | " . $e->getMessage(),
+                "module"      => "API_ERROR",
+                "status_code" => $e->getCode(),
+            ];
+            monitorLog('monitor_api', 'error', $toLogs);
+
             return response()->json([
                 'status'      => false,
                 'status_code' => 500,
@@ -320,6 +357,14 @@ class OrdersController extends Controller
             $masterEventMarket = MasterEventMarket::where('master_event_market_unique_id', $memUID);
 
             if (!$masterEventMarket->exists()) {
+                $toLogs = [
+                    "class"       => "OrdersController",
+                    "message"     => trans('generic.not-found'),
+                    "module"      => "API_ERROR",
+                    "status_code" => 404,
+                ];
+                monitorLog('monitor_api', 'error', $toLogs);
+
                 return response()->json([
                     'status'      => false,
                     'status_code' => 404,
@@ -346,7 +391,14 @@ class OrdersController extends Controller
                 'data'        => $data
             ], 200);
         } catch (Exception $e) {
-            Log::error($e->getMessage());
+            $toLogs = [
+                "class"       => "OrdersController",
+                "message"     => "Line " . $e->getLine() . " | " . $e->getMessage(),
+                "module"      => "API_ERROR",
+                "status_code" => $e->getCode(),
+            ];
+            monitorLog('monitor_api', 'error', $toLogs);
+
             return response()->json([
                 'status'      => false,
                 'status_code' => 500,
@@ -417,6 +469,14 @@ class OrdersController extends Controller
                 }
 
                 if (empty($userProviderPercentage)) {
+                    $toLogs = [
+                        "class"       => "OrdersController",
+                        "message"     => trans('generic.bad-request'),
+                        "module"      => "API_ERROR",
+                        "status_code" => 400,
+                    ];
+                    monitorLog('monitor_api', 'error', $toLogs);
+
                     throw new BadRequestException(trans('generic.bad-request'));
                 }
 
@@ -491,18 +551,42 @@ class OrdersController extends Controller
                 $userWallet = UserWallet::where('user_id', auth()->user()->id);
 
                 if (!$userWallet->exists()) {
+                    $toLogs = [
+                        "class"       => "OrdersController",
+                        "message"     => trans('game.bet.errors.wallet_not_found'),
+                        "module"      => "API_ERROR",
+                        "status_code" => 404,
+                    ];
+                    monitorLog('monitor_api', 'error', $toLogs);
+
                     throw new NotFoundException(trans('game.bet.errors.wallet_not_found'));
                 }
 
                 $userBalance = $userWallet->first()->balance * $exchangeRate['exchange_rate'];
 
                 if ($userBalance < $payloadStake) {
+                    $toLogs = [
+                        "class"       => "OrdersController",
+                        "message"     => trans('game.bet.errors.insufficient'),
+                        "module"      => "API_ERROR",
+                        "status_code" => 400,
+                    ];
+                    monitorLog('monitor_api', 'error', $toLogs);
+
                     throw new BadRequestException(trans('game.bet.errors.insufficient'));
                 }
 
                 $query = Game::getmasterEventByMarketId($request->market_id);
 
                 if (!$query) {
+                    $toLogs = [
+                        "class"       => "OrdersController",
+                        "message"     => trans('game.bet.errors.place-bet-event-ended'),
+                        "module"      => "API_ERROR",
+                        "status_code" => 404,
+                    ];
+                    monitorLog('monitor_api', 'error', $toLogs);
+
                     throw new NotFoundException(trans('game.bet.errors.place-bet-event-ended'));
                 }
 
@@ -512,6 +596,14 @@ class OrdersController extends Controller
                 }
 
                 if ($payloadStake < $row['min']) {
+                    $toLogs = [
+                        "class"       => "OrdersController",
+                        "message"     => trans('generic.bad-request'),
+                        "module"      => "API_ERROR",
+                        "status_code" => 400,
+                    ];
+                    monitorLog('monitor_api', 'error', $toLogs);
+
                     throw new BadRequestException(trans('generic.bad-request'));
                 }
 
@@ -561,6 +653,14 @@ class OrdersController extends Controller
                 $providerAccount = ProviderAccount::getBettingAccount($row['provider_id'], $actualStake, $isUserVIP, $payload['event_id'], $query->odd_type_id, $query->market_flag);
 
                 if (!$providerAccount) {
+                    $toLogs = [
+                        "class"       => "OrdersController",
+                        "message"     => trans('game.bet.errors.no_bookmaker'),
+                        "module"      => "API_ERROR",
+                        "status_code" => 404,
+                    ];
+                    monitorLog('monitor_api', 'error', $toLogs);
+
                     throw new NotFoundException(trans('game.bet.errors.no_bookmaker'));
                 }
 
@@ -672,6 +772,16 @@ class OrdersController extends Controller
                     $requestId
                 );
 
+                $toLogs = [
+                    "class"       => "OrdersController",
+                    "message"     => [
+                        "payload_sent" => $payload
+                    ],
+                    "module"      => "API",
+                    "status_code" => 200,
+                ];
+                monitorLog('monitor_api', 'info', $toLogs);
+
                 $orderSWTKey = 'orderId:' . $incrementIds['id'][$i];
                 SwooleHandler::setColumnValue('ordersTable', $orderSWTKey, 'username', $payload['data']['username']);
                 SwooleHandler::setColumnValue('ordersTable', $orderSWTKey, 'orderExpiry', $payload['data']['orderExpiry']);
@@ -695,6 +805,14 @@ class OrdersController extends Controller
             ], $returnCode);
         } catch (BadRequestException $e) {
             DB::rollback();
+            $toLogs = [
+                "class"       => "OrdersController",
+                "message"     => "Line " . $e->getLine() . " | " . $e->getMessage(),
+                "module"      => "API_ERROR",
+                "status_code" => 400,
+            ];
+            monitorLog('monitor_api', 'error', $toLogs);
+
             return response()->json([
                 'status'      => false,
                 'status_code' => 400,
@@ -702,6 +820,14 @@ class OrdersController extends Controller
             ], 400);
         } catch (NotFoundException $e) {
             DB::rollback();
+            $toLogs = [
+                "class"       => "OrdersController",
+                "message"     => "Line " . $e->getLine() . " | " . $e->getMessage(),
+                "module"      => "API_ERROR",
+                "status_code" => 404,
+            ];
+            monitorLog('monitor_api', 'error', $toLogs);
+
             return response()->json([
                 'status'      => false,
                 'status_code' => 404,
@@ -709,7 +835,13 @@ class OrdersController extends Controller
             ], 404);
         } catch (Exception $e) {
             DB::rollback();
-            Log::error($e->getMessage());
+            $toLogs = [
+                "class"       => "OrdersController",
+                "message"     => "Line " . $e->getLine() . " | " . $e->getMessage(),
+                "module"      => "API_ERROR",
+                "status_code" => $e->getCode(),
+            ];
+            monitorLog('monitor_api', 'error', $toLogs);
 
             return response()->json([
                 'status'      => false,
@@ -748,7 +880,14 @@ class OrdersController extends Controller
                 'data'        => $data,
             ], 200);
         } catch (Exception $e) {
-            Log::error($e->getMessage());
+            $toLogs = [
+                "class"       => "OrdersController",
+                "message"     => "Line " . $e->getLine() . " | " . $e->getMessage(),
+                "module"      => "API_ERROR",
+                "status_code" => $e->getCode(),
+            ];
+            monitorLog('monitor_api', 'error', $toLogs);
+
             return response()->json([
                 'status'      => false,
                 'status_code' => 500,
@@ -814,7 +953,14 @@ class OrdersController extends Controller
                 'data'        => $data,
             ], 200);
         } catch (Exception $e) {
-            Log::error($e->getMessage());
+            $toLogs = [
+                "class"       => "OrdersController",
+                "message"     => "Line " . $e->getLine() . " | " . $e->getMessage(),
+                "module"      => "API_ERROR",
+                "status_code" => $e->getCode(),
+            ];
+            monitorLog('monitor_api', 'error', $toLogs);
+
             return response()->json([
                 'status'      => false,
                 'status_code' => 500,

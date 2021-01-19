@@ -38,7 +38,14 @@ class WalletController extends Controller
                 ],
             ]);
         } catch (Exception $e) {
-            Log::error($e->getMessage());
+            $toLogs = [
+                "class"       => "WalletController",
+                "message"     => "Line " . $e->getLine() . " | " . $e->getMessage(),
+                "module"      => "API_ERROR",
+                "status_code" => $e->getCode(),
+            ];
+            monitorLog('monitor_api', 'error', $toLogs);
+
             return response()->json([
                 'status'      => false,
                 'status_code' => 500,
