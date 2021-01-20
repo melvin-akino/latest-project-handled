@@ -22,7 +22,7 @@ use App\Models\{
 };
 use App\Services\WalletService;
 use Illuminate\Http\Request;
-use Illuminate\Support\{Facades\Cookie, Facades\DB, Facades\Log, Str};
+use Illuminate\Support\{Facades\DB, Facades\Log, Str};
 use Carbon\Carbon;
 use SendLogData;
 
@@ -493,7 +493,7 @@ class OrdersController extends Controller
                 }
 
                 // $userBalance = $userWallet->first()->balance * $exchangeRate['exchange_rate'];
-                $walletToken = Cookie::get('wallet_token');
+                $walletToken = SwooleHandler::getValue('usersTable', 'userId:' . auth()->user()->id)['wallet_token'];
                 $userBalance = $wallet->getBalance($walletToken, auth()->user()->uuid, $userCurrencyInfo['code']);
 
                 if ($userBalance->data->balance < $payloadStake) {

@@ -14,7 +14,7 @@ use App\Services\WalletService;
 use App\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
-use Illuminate\Support\{Str, Facades\Auth, Facades\Cookie, Facades\Log};
+use Illuminate\Support\{Str, Facades\Auth, Facades\Log};
 
 use Exception;
 
@@ -140,9 +140,9 @@ class AuthController extends Controller
 
             if ($getToken->status) {
                 $walletToken = $getToken->data->access_token;
-
-                Cookie::forever('wallet_token', $walletToken);
             }
+
+            SwooleHandler::setValue('usersTable', 'userId:' . auth()->user()->id, [ 'wallet_token' => $walletToken ]);
 
             if ($request->remember_me) {
                 $token->expires_at = Carbon::now()->addWeeks(1);

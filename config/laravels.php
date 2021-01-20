@@ -402,6 +402,7 @@ return [
             'size'   => 10000,
             'column' => [ // KEY FORMAT: [userId:$userId]
                 ['name' => 'currency_id', 'type' => \Swoole\Table::TYPE_INT],
+                ['name' => 'wallet_token', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 64],
             ],
         ],
         'orderPayloads'            => [
