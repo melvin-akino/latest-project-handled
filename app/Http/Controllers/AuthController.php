@@ -142,7 +142,7 @@ class AuthController extends Controller
                 $walletToken = $getToken->data->access_token;
             }
 
-            SwooleHandler::setValue('usersTable', 'userId:' . auth()->user()->id, [ 'wallet_token' => $walletToken ]);
+            SwooleHandler::setColumnValue('usersTable', 'userId:' . auth()->user()->id, 'wallet_token', $walletToken);
 
             if ($request->remember_me) {
                 $token->expires_at = Carbon::now()->addWeeks(1);
@@ -182,7 +182,6 @@ class AuthController extends Controller
             SwooleHandler::remove('userStatusesTable', Auth::user()->id);
             $request->user()->token()->revoke();
             deleteCookie('access_token');
-            deleteCookie('wallet_token');
 
             return response()->json([
                 'status'        => true,
