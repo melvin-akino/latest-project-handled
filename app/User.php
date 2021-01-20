@@ -36,6 +36,7 @@ class User extends Authenticatable
         'currency_id',
         'birthdate',
         'is_vip',
+        'uuid',
     ];
 
     /**

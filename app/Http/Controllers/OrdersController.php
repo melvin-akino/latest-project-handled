@@ -6,7 +6,6 @@ use App\Exceptions\BadRequestException;
 use App\Exceptions\NotFoundException;
 use App\Facades\SwooleHandler;
 use App\Jobs\KafkaPush;
-
 use App\Models\{
     Game,
     MasterEventMarket,
@@ -21,9 +20,9 @@ use App\Models\{
     UserWallet,
     ProviderAccount
 };
+use App\Services\WalletService;
 use Illuminate\Http\Request;
-use Illuminate\Support\{Facades\DB, Str};
-use Illuminate\Support\Facades\Log;
+use Illuminate\Support\{Facades\Cookie, Facades\DB, Facades\Log, Str};
 use Carbon\Carbon;
 use SendLogData;
 
@@ -354,7 +353,7 @@ class OrdersController extends Controller
         }
     }
 
-    public function postPlaceBet(Request $request)
+    public function postPlaceBet(Request $request, WalletService $wallet)
     {
         try {
             DB::beginTransaction();
@@ -493,9 +492,11 @@ class OrdersController extends Controller
                     throw new NotFoundException(trans('game.bet.errors.wallet_not_found'));
                 }
 
-                $userBalance = $userWallet->first()->balance * $exchangeRate['exchange_rate'];
+                // $userBalance = $userWallet->first()->balance * $exchangeRate['exchange_rate'];
+                $walletToken = Cookie::get('wallet_token');
+                $userBalance = $wallet->getBalance($walletToken, auth()->user()->uuid, $userCurrencyInfo['code']);
 
-                if ($userBalance < $payloadStake) {
+                if ($userBalance->data->balance < $payloadStake) {
                     throw new BadRequestException(trans('game.bet.errors.insufficient'));
                 }
 

@@ -2,23 +2,19 @@
 
 namespace App\Http\Controllers;
 
+use App\Auth\PasswordReset;
 use App\Facades\SwooleHandler;
-use App\User;
-use Illuminate\Support\Facades\Log;
+use App\Http\Requests\Auth\{ChangePasswordRequests, ForgotPasswordRequests, LoginRequests, RegistrationRequests};
 use App\Models\{
     Source,
     UserWallet
 };
-use App\Auth\PasswordReset;
-
-use App\Http\Requests\Auth\{ChangePasswordRequests, ForgotPasswordRequests, LoginRequests, RegistrationRequests};
-
 use App\Notifications\{PasswordResetRequest, PasswordResetSuccess, RegistrationMail};
-
+use App\Services\WalletService;
+use App\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Str;
+use Illuminate\Support\{Str, Facades\Auth, Facades\Cookie, Facades\Log};
 
 use Exception;
 
@@ -107,8 +103,8 @@ class AuthController extends Controller
      */
     public function login(LoginRequests $request)
     {
-        $server  = app('swoole');
-        $wsTable = $server->wsTable;
+        $server   = app('swoole');
+        $wsTable  = $server->wsTable;
 
         try {
             $credentials = request(['email', 'password']);
@@ -140,6 +136,13 @@ class AuthController extends Controller
             $user        = $request->user();
             $tokenResult = $user->createToken(env('PASSPORT_TOKEN', 'Multiline Authentication Token'));
             $token       = $tokenResult->token;
+            $getToken    = WalletFacade::getAccessToken('wallet');
+
+            if ($getToken->status) {
+                $walletToken = $getToken->data->access_token;
+
+                Cookie::forever('wallet_token', $walletToken);
+            }
 
             if ($request->remember_me) {
                 $token->expires_at = Carbon::now()->addWeeks(1);
@@ -179,6 +182,7 @@ class AuthController extends Controller
             SwooleHandler::remove('userStatusesTable', Auth::user()->id);
             $request->user()->token()->revoke();
             deleteCookie('access_token');
+            deleteCookie('wallet_token');
 
             return response()->json([
                 'status'        => true,
