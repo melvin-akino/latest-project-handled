@@ -36,8 +36,15 @@ class ProviderAccount extends Model
     public static function getUsernameId($username)
     {
         return self::where('username', $username)
+                    ->first()
+                    ->id;
+    }
+
+    public static function getUuidByUsername($username)
+    {
+        return self::where('username', $username)
                    ->first()
-            ->id;
+            ->uuid;
     }
 
     public static function getBettingAccount($providerId, $stake, $isVIP, $eventId, $oddType, $marketFlag)
