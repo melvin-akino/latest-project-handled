@@ -24,7 +24,7 @@ class WalletServiceProvider extends ServiceProvider
      */
     public function boot()
     {
-        $this->app->singleton(WalletService::class, function() {
+        $this->app->bind('App\Services\WalletService', function() {
           return new WalletService(config('wallet.url'), config('wallet.client_id'), config('wallet.client_secret'));
         });
     }

@@ -7,6 +7,8 @@ use Illuminate\Support\Facades\Log;
 use Swoole\Http\Server;
 use Swoole\Process;
 use Exception;
+use App\Services\WalletService;
+use Carbon\Carbon;
 
 class AccountConsume implements CustomProcessInterface
 {
@@ -32,15 +34,9 @@ class AccountConsume implements CustomProcessInterface
                     $message = $kafkaConsumer->consume(0);
                     if (!is_null($message)) {
                         if ($message->err == RD_KAFKA_RESP_ERR_NO_ERROR) {
-                            $payload = json_decode($message->payload);
-
-                            switch ($payload->command) {
-                                case 'orders':
-                                    $openOrdersTransformationHandler->init($payload)->handle();
-                                    break;
-                                default:
-                                    break;
-                            }
+                            $payload       = json_decode($message->payload);
+                            
+                            $openOrdersTransformationHandler->init($payload)->handle();
                             if (env('CONSUMER_PRODUCER_LOG', false)) {
                                 Log::channel('kafkalog')->info(json_encode($message));
                             }

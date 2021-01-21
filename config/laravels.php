@@ -79,6 +79,12 @@ return [
             'pipe'     => 0,
             'enable'   => true
         ],
+        'wallet_token' => [
+            'class'    => \App\Processes\WalletToken::class,
+            'redirect' => false,
+            'pipe'     => 0,
+            'enable'   => true
+        ],
     ],
     'timer'                    => [
         'enable'        => env('LARAVELS_TIMER', false),
@@ -492,6 +498,12 @@ return [
                 ['name' => 'sport_id', 'type' => \Swoole\Table::TYPE_INT],
                 ['name' => 'has_markets', 'type' => \Swoole\Table::TYPE_INT],
             ],
+        ],
+        'walletClients'               => [
+            "size"   => 64,
+            "column" => [
+                ["name" => "token", "type" => \Swoole\Table::TYPE_STRING, 'size' => 32],
+            ]
         ],
     ],
     'register_providers'       => [
