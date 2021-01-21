@@ -388,7 +388,7 @@ class OrdersController extends Controller
             $isUserVIP    = auth()->user()->is_vip;
             $orderIds     = [];
             $incrementIds = [];
-            $colMinusOne       = OddType::whereIn('type', ['1X2', 'HT 1X2', 'OE'])->pluck('id')->toArray();
+            $colMinusOne  = OddType::whereIn('type', ['1X2', 'HT 1X2', 'OE'])->pluck('id')->toArray();
 
             foreach ($request->markets as $row) {
                 $betType = $request->betType;
@@ -492,7 +492,6 @@ class OrdersController extends Controller
                     throw new NotFoundException(trans('game.bet.errors.wallet_not_found'));
                 }
 
-                // $userBalance = $userWallet->first()->balance * $exchangeRate['exchange_rate'];
                 $walletToken = SwooleHandler::getValue('usersTable', 'userId:' . auth()->user()->id)['wallet_token'];
                 $userBalance = $wallet->getBalance($walletToken, auth()->user()->uuid, $userCurrencyInfo['code']);
 
@@ -596,7 +595,7 @@ class OrdersController extends Controller
                 $orderIncrement = $orderCreation['orders'];
                 $orderLogsId    = $orderCreation['order_logs']->id;
 
-                userWalletTransaction(auth()->user()->id, 'PLACE_BET', ($payloadStake), $orderLogsId);
+                userWalletTransaction(auth()->user()->uuid, 'PLACE_BET', ($payloadStake), $providerCurrencyInfo['code'], $orderLogsId);
 
                 $updateProvider             = ProviderAccount::find($providerAccountId);
                 $updateProvider->updated_at = Carbon::now();

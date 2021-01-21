@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Auth\PasswordReset;
-use App\Facades\SwooleHandler;
+use App\Facades\{WalletFacade, SwooleHandler};
 use App\Http\Requests\Auth\{ChangePasswordRequests, ForgotPasswordRequests, LoginRequests, RegistrationRequests};
 use App\Models\{
     Source,
