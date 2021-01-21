@@ -492,7 +492,7 @@ class OrdersController extends Controller
                     throw new NotFoundException(trans('game.bet.errors.wallet_not_found'));
                 }
 
-                $walletToken = SwooleHandler::getValue('usersTable', 'userId:' . auth()->user()->id)['wallet_token'];
+                $walletToken = SwooleHandler::getValue('walletClientsTable', 'ml-users')['token'];
                 $userBalance = $wallet->getBalance($walletToken, auth()->user()->uuid, $userCurrencyInfo['code']);
 
                 if ($userBalance->data->balance < $payloadStake) {

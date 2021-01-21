@@ -257,7 +257,7 @@ if (!function_exists('userWalletTransaction')) {
     {
         switch ($transactionType) {
             case 'PLACE_BET':
-                $walletToken = SwooleHandler::getValue('usersTable', 'userId:' . auth()->user()->id)['wallet_token'];
+                $walletToken = SwooleHandler::getValue('walletClientsTable', 'ml-users')['token'];
                 $userBalance = $wallet->subtractBalance($walletToken, $uuid, trim(strtoupper($currency)), $amount, $transactionType);
 
                 OrderTransaction::create(

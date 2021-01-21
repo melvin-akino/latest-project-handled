@@ -3,14 +3,13 @@
 namespace App\Http\Controllers;
 
 use App\Auth\PasswordReset;
-use App\Facades\{WalletFacade, SwooleHandler};
+use App\Facades\SwooleHandler;
 use App\Http\Requests\Auth\{ChangePasswordRequests, ForgotPasswordRequests, LoginRequests, RegistrationRequests};
 use App\Models\{
     Source,
     UserWallet
 };
 use App\Notifications\{PasswordResetRequest, PasswordResetSuccess, RegistrationMail};
-use App\Services\WalletService;
 use App\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -136,13 +135,6 @@ class AuthController extends Controller
             $user        = $request->user();
             $tokenResult = $user->createToken(env('PASSPORT_TOKEN', 'Multiline Authentication Token'));
             $token       = $tokenResult->token;
-            $getToken    = WalletFacade::getAccessToken('wallet');
-
-            if ($getToken->status) {
-                $walletToken = $getToken->data->access_token;
-            }
-
-            SwooleHandler::setColumnValue('usersTable', 'userId:' . auth()->user()->id, 'wallet_token', $walletToken);
 
             if ($request->remember_me) {
                 $token->expires_at = Carbon::now()->addWeeks(1);
