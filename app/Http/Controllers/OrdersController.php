@@ -2,9 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Exceptions\BadRequestException;
-use App\Exceptions\NotFoundException;
-use App\Facades\SwooleHandler;
+use App\Exceptions\{BadRequestException, NotFoundException};
+use App\Facades\{SwooleHandler, WalletFacade};
 use App\Jobs\KafkaPush;
 use App\Models\{
     Game,
@@ -492,7 +491,7 @@ class OrdersController extends Controller
                 }
 
                 $walletToken = SwooleHandler::getValue('walletClientsTable', 'ml-users')['token'];
-                $userBalance = $wallet->getBalance($walletToken, auth()->user()->uuid, $userCurrencyInfo['code']);
+                $userBalance = WalletFacade::getBalance($walletToken, auth()->user()->uuid, $userCurrencyInfo['code']);
 
                 if ($userBalance->data->balance < $payloadStake) {
                     throw new BadRequestException(trans('game.bet.errors.insufficient'));
