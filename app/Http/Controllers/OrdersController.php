@@ -594,8 +594,9 @@ class OrdersController extends Controller
                 $orderCreation  = ordersCreation(auth()->user()->id, $query->sport_id, $row['provider_id'], $providerAccountId, $_orderData, $_exchangeRate, $mlBetId, $colMinusOne);
                 $orderIncrement = $orderCreation['orders'];
                 $orderLogsId    = $orderCreation['order_logs']->id;
+                $reason         = "[PLACE_BET][BET PENDING] - transaction for order id " . $orderId;
 
-                userWalletTransaction(auth()->user()->uuid, 'PLACE_BET', ($payloadStake), $providerCurrencyInfo['code'], $orderLogsId);
+                userWalletTransaction(auth()->user()->uuid, $reason, ($payloadStake), $providerCurrencyInfo['code'], $orderLogsId);
 
                 $updateProvider             = ProviderAccount::find($providerAccountId);
                 $updateProvider->updated_at = Carbon::now();
