@@ -12,11 +12,13 @@ use App\Models\{
     ProviderAccountOrder,
     OddType,
     WalletLedger,
-    ProviderAccount
+    ProviderAccount,
+    Currency
 };
 use Carbon\Carbon;
 use Exception;
 use Illuminate\Support\Facades\{DB, Log};
+use App\Facades\WalletFacade;
 
 class OpenOrdersTransformationHandler
 {
@@ -115,25 +117,19 @@ class OpenOrdersTransformationHandler
                                     'FAILED',
                                     'CANCELLED',
                                 ])) {
-                                    $credit     = $orderData->stake;
-                                    $balance    = $credit;
-                                    $newBalance = $userWallet->balance + $balance;
+                                    $credit             = $orderData->stake;
+                                    $walletClientsTable = app('swoole')->walletClientsTable;
+                                    $userToken          = $walletClientsTable['ml-users']['token'];
+                                    $user               = User::find($userId);
+                                    $currency           = Currency::find($providerCurrency);
+                                    $creditReason       = "[RETURN_STAKE][BET FAILED/CANCELLED] - transaction for order id " . $orderId;
+                                    $addBalance         = WalletFacade::addBalance($userToken, $user->uuid, $currency->code, $credit, $creditReason);
 
-                                    UserWallet::where('user_id', $orderData->user_id)
-                                              ->update([
-                                                  'balance'    => $newBalance,
-                                                  'updated_at' => Carbon::now(),
-                                              ]);
-
-                                    $walletLedger = WalletLedger::create([
-                                        'wallet_id' => $userWallet->id,
-                                        'source_id' => $sourceId->id,
-                                        'debit'     => 0,
-                                        'credit'    => $credit,
-                                        'balance'   => $newBalance
-                                    ]);
-
-                                    $walletLedgerId = $walletLedger->id;
+                                    if ($addBalance->status) {
+                                        $walletLedgerId = $addBalance->data->id;
+                                    } else {
+                                        throw new Exception('Wallet Credit Failed');
+                                    }
                                 }
 
                                 orderStatus($userId, $orderId, strtoupper($order->status), $order->odds, $expiry, $orderTable['created_at']);
