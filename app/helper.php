@@ -256,6 +256,8 @@ if (!function_exists('userWalletTransaction')) {
     {
         switch ($transactionType) {
             case 'PLACE_BET':
+                $sourceId    = Source::where('source_name', $transactionType)->first()->id;
+                $currencyId  = Currency::where('code', 'LIKE', trim(strtoupper($currency)))->first()->id;
                 $walletToken = SwooleHandler::getValue('walletClientsTable', 'ml-users')['token'];
                 $userBalance = WalletFacade::subtractBalance($walletToken, $uuid, trim(strtoupper($currency)), $amount, $reason);
 
