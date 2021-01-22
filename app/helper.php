@@ -253,12 +253,12 @@ if (!function_exists('wsEmit')) {
  * @param float $orderLogsId Order Logs ID
  */
 if (!function_exists('userWalletTransaction')) {
-    function userWalletTransaction($uuid, $transactionType, $amount, $currency, $orderLogsId, WalletService $wallet)
+    function userWalletTransaction($uuid, $transactionType, $amount, $currency, $orderLogsId, $reason, WalletService $wallet)
     {
         switch ($transactionType) {
             case 'PLACE_BET':
                 $walletToken = SwooleHandler::getValue('walletClientsTable', 'ml-users')['token'];
-                $userBalance = $wallet->subtractBalance($walletToken, $uuid, trim(strtoupper($currency)), $amount, $transactionType);
+                $userBalance = $wallet->subtractBalance($walletToken, $uuid, trim(strtoupper($currency)), $amount, $reason);
 
                 OrderTransaction::create(
                     [
