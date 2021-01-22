@@ -120,10 +120,10 @@ class OpenOrdersTransformationHandler
                                     $credit             = $orderData->stake;
                                     $walletClientsTable = app('swoole')->walletClientsTable;
                                     $userToken          = $walletClientsTable['ml-users']['token'];
-                                    $providerUuid       = ProviderAccount::getUuidByUsername($orderTable['username']);
+                                    $user               = User::find($userId);
                                     $currency           = Currency::find($providerCurrency);
                                     $creditReason       = "[RETURN_STAKE][BET FAILED/CANCELLED] - transaction for order id " . $orderId;
-                                    $addBalance         = WalletFacade::addBalance($userToken, $providerUuid, $currency->code, $credit, $creditReason);
+                                    $addBalance         = WalletFacade::addBalance($userToken, $user->uuid, $currency->code, $credit, $creditReason);
 
                                     if ($addBalance->status) {
                                         $walletLedgerId = $addBalance->data->id;
