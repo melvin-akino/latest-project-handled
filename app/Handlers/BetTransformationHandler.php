@@ -121,7 +121,8 @@ class BetTransformationHandler
                         $walletToken  = SwooleHandler::getValue('walletClientsTable', 'ml-users')['token'];
                         $user         = User::find($order->user_id);
                         $currencyCode = $user->wallet()->first()->currency->code;
-                        $userBalance  = WalletFacade::addBalance($walletToken, $user->uuid, trim(strtoupper($currencyCode)), $order->stake, 'RETURN_STAKE');
+                        $reason       = "[RETURN_STAKE][BET FAILED/CANCELLED] - transaction for order id " . $order->id;
+                        $userBalance  = WalletFacade::addBalance($walletToken, $user->uuid, trim(strtoupper($currencyCode)), $order->stake, $reason);
 
                         $orderLogs  = OrderLogs::create([
                             'provider_id'   => $order->provider_id,
