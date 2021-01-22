@@ -30,8 +30,8 @@ class WalletToken implements CustomProcessInterface
                 Log::info("Wallet Token Starts");
 
                 self::$walletClientsTable = app('swoole')->walletClientsTable;
-                self::$providers = app('swoole')->providersTable;
-                self::$countToExpiration = Carbon::now()->timestamp;
+                self::$providers          = app('swoole')->providersTable;
+                self::$countToExpiration  = Carbon::now()->timestamp;
                 
                 self::connectAccess();
 
@@ -45,8 +45,7 @@ class WalletToken implements CustomProcessInterface
                             self::checkRefreshToken($providerAlias);
                         }
                     }
-                    usleep(100000);
-                    // usleep(100000 * 60 * 60 * 24);
+                    usleep(100000 * 60 * 60 * 24);
                 }
             }
         } catch (Exception $e) {
