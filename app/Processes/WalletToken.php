@@ -45,6 +45,7 @@ class WalletToken implements CustomProcessInterface
                             self::checkRefreshToken($providerAlias);
                         }
                     }
+
                     usleep(100000 * 60 * 60 * 24);
                 }
             }

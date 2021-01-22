@@ -20,10 +20,7 @@
 |
 */
 
-use Carbon\Carbon;
-use Illuminate\Pagination\Paginator;
-use Illuminate\Support\Facades\Cookie;
-use Illuminate\Http\Request;
+use App\Facades\{WalletFacade, SwooleHandler};
 use App\Models\{
     Sport,
     UserConfiguration,
@@ -39,8 +36,10 @@ use App\Models\{
     WalletLedger
 };
 use App\Models\CRM\OrderTransaction;
-use Illuminate\Support\Facades\Log;
-use App\Facades\SwooleHandler;
+use Carbon\Carbon;
+use Illuminate\Http\Request;
+use Illuminate\Pagination\Paginator;
+use Illuminate\Support\Facades\{Cookie, Log};
 
 /* Datatable for CRM admin */
 
@@ -253,37 +252,19 @@ if (!function_exists('wsEmit')) {
  * @param float $orderLogsId Order Logs ID
  */
 if (!function_exists('userWalletTransaction')) {
-    function userWalletTransaction($userId, $transactionType, $amount, $orderLogsId)
+    function userWalletTransaction($uuid, $transactionType, $amount, $currency, $orderLogsId, $reason)
     {
         switch ($transactionType) {
             case 'PLACE_BET':
-                $userWallet  = UserWallet::where('user_id', $userId);
-                $walletId    = $userWallet->first()->id;
-                $userBalance = $userWallet->first()->balance;
-                $currencyId  = $userWallet->first()->currency_id;
-                $sourceId    = Source::where('source_name', $transactionType)->first()->id;
-                $newBalance  = $userBalance - $amount;
-
-                $userWallet->update(
-                    ['balance' => $newBalance]
-                );
-
-                $ledgerId = WalletLedger::create(
-                    [
-                        'wallet_id' => $walletId,
-                        'source_id' => $sourceId,
-                        'credit'    => 0,
-                        'debit'     => $amount,
-                        'balance'   => $newBalance,
-                    ]
-                )->id;
+                $walletToken = SwooleHandler::getValue('walletClientsTable', 'ml-users')['token'];
+                $userBalance = WalletFacade::subtractBalance($walletToken, $uuid, trim(strtoupper($currency)), $amount, $reason);
 
                 OrderTransaction::create(
                     [
-                        'wallet_ledger_id'    => $ledgerId,
+                        'wallet_ledger_id'    => $userBalance->data->id,
                         'provider_account_id' => 0,
                         'order_logs_id'       => $orderLogsId,
-                        'user_id'             => $userId,
+                        'user_id'             => $uuid,
                         'source_id'           => $sourceId,
                         'currency_id'         => $currencyId,
                         'reason'              => "Placed Bet",

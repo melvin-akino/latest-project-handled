@@ -20,7 +20,6 @@ use App\Models\{
     UserWallet,
     ProviderAccount
 };
-use App\Services\WalletService;
 use Illuminate\Http\Request;
 use Illuminate\Support\{Facades\DB, Facades\Log, Str};
 use Carbon\Carbon;
@@ -353,7 +352,7 @@ class OrdersController extends Controller
         }
     }
 
-    public function postPlaceBet(Request $request, WalletService $wallet)
+    public function postPlaceBet(Request $request)
     {
         try {
             DB::beginTransaction();
@@ -388,7 +387,7 @@ class OrdersController extends Controller
             $isUserVIP    = auth()->user()->is_vip;
             $orderIds     = [];
             $incrementIds = [];
-            $colMinusOne       = OddType::whereIn('type', ['1X2', 'HT 1X2', 'OE'])->pluck('id')->toArray();
+            $colMinusOne  = OddType::whereIn('type', ['1X2', 'HT 1X2', 'OE'])->pluck('id')->toArray();
 
             foreach ($request->markets as $row) {
                 $betType = $request->betType;
@@ -492,8 +491,7 @@ class OrdersController extends Controller
                     throw new NotFoundException(trans('game.bet.errors.wallet_not_found'));
                 }
 
-                // $userBalance = $userWallet->first()->balance * $exchangeRate['exchange_rate'];
-                $walletToken = SwooleHandler::getValue('usersTable', 'userId:' . auth()->user()->id)['wallet_token'];
+                $walletToken = SwooleHandler::getValue('walletClientsTable', 'ml-users')['token'];
                 $userBalance = $wallet->getBalance($walletToken, auth()->user()->uuid, $userCurrencyInfo['code']);
 
                 if ($userBalance->data->balance < $payloadStake) {
@@ -595,8 +593,9 @@ class OrdersController extends Controller
                 $orderCreation  = ordersCreation(auth()->user()->id, $query->sport_id, $row['provider_id'], $providerAccountId, $_orderData, $_exchangeRate, $mlBetId, $colMinusOne);
                 $orderIncrement = $orderCreation['orders'];
                 $orderLogsId    = $orderCreation['order_logs']->id;
+                $reason         = "[PLACE_BET][BET PENDING] - transaction for order id " . $orderId;
 
-                userWalletTransaction(auth()->user()->id, 'PLACE_BET', ($payloadStake), $orderLogsId);
+                userWalletTransaction(auth()->user()->uuid, 'PLACE_BET', ($payloadStake), $providerCurrencyInfo['code'], $orderLogsId, $reason);
 
                 $updateProvider             = ProviderAccount::find($providerAccountId);
                 $updateProvider->updated_at = Carbon::now();
