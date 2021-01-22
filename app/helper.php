@@ -20,7 +20,7 @@
 |
 */
 
-use App\Facades\SwooleHandler;
+use App\Facades\{WalletFacade, SwooleHandler};
 use App\Models\{
     Sport,
     UserConfiguration,
@@ -36,7 +36,6 @@ use App\Models\{
     WalletLedger
 };
 use App\Models\CRM\OrderTransaction;
-use App\Services\WalletService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\Paginator;
@@ -258,7 +257,7 @@ if (!function_exists('userWalletTransaction')) {
         switch ($transactionType) {
             case 'PLACE_BET':
                 $walletToken = SwooleHandler::getValue('walletClientsTable', 'ml-users')['token'];
-                $userBalance = WalletService::subtractBalance($walletToken, $uuid, trim(strtoupper($currency)), $amount, $reason);
+                $userBalance = WalletFacade::subtractBalance($walletToken, $uuid, trim(strtoupper($currency)), $amount, $reason);
 
                 OrderTransaction::create(
                     [

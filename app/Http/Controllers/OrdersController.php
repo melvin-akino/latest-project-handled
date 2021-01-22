@@ -20,7 +20,6 @@ use App\Models\{
     UserWallet,
     ProviderAccount
 };
-use App\Services\WalletService;
 use Illuminate\Http\Request;
 use Illuminate\Support\{Facades\DB, Facades\Log, Str};
 use Carbon\Carbon;
@@ -353,7 +352,7 @@ class OrdersController extends Controller
         }
     }
 
-    public function postPlaceBet(Request $request, WalletService $wallet)
+    public function postPlaceBet(Request $request)
     {
         try {
             DB::beginTransaction();
