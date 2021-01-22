@@ -116,7 +116,6 @@ class BetTransformationHandler
                             'exchange_rate'      => $exchangeRate,
                         ]);
                     } else {
-                        // $userWallet = UserWallet::where('user_id', $order->user_id)->first();
                         $source       = Source::where('source_name', 'LIKE', 'RETURN_STAKE')->first();
                         $walletToken  = SwooleHandler::getValue('walletClientsTable', 'ml-users')['token'];
                         $user         = User::find($order->user_id);
