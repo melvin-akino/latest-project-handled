@@ -22,6 +22,7 @@
 
 use App\Facades\{WalletFacade, SwooleHandler};
 use App\Models\{
+    Currency,
     Sport,
     UserConfiguration,
     UserWallet,
