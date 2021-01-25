@@ -37,6 +37,7 @@ use App\Models\{
     WalletLedger
 };
 use App\Models\CRM\OrderTransaction;
+use App\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\Paginator;
@@ -261,13 +262,14 @@ if (!function_exists('userWalletTransaction')) {
                 $currencyId  = Currency::where('code', 'LIKE', trim(strtoupper($currency)))->first()->id;
                 $walletToken = SwooleHandler::getValue('walletClientsTable', 'ml-users')['token'];
                 $userBalance = WalletFacade::subtractBalance($walletToken, $uuid, trim(strtoupper($currency)), $amount, $reason);
+                $userId      = User::where('uuid', $uuid)->first()->id;
 
                 OrderTransaction::create(
                     [
                         'wallet_ledger_id'    => $userBalance->data->id,
                         'provider_account_id' => 0,
                         'order_logs_id'       => $orderLogsId,
-                        'user_id'             => $uuid,
+                        'user_id'             => $userId,
                         'source_id'           => $sourceId,
                         'currency_id'         => $currencyId,
                         'reason'              => "Placed Bet",
