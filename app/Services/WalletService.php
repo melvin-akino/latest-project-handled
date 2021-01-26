@@ -4,6 +4,8 @@ namespace App\Services;
 
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\ClientException;
+use Illuminate\Database\Eloquent\JsonEncodingException;
+use JsonException;
 
 class WalletService
 {
@@ -66,6 +68,31 @@ class WalletService
             }
 
             $response = $this->http->request('GET', $this->url . '/api/v1/wallet/balance?' . $params, [
+                'headers' => [
+                    'Authorization'    => 'Bearer ' . $token,
+                    'X-Requested-With' => 'XMLHttpRequest'
+                ]
+            ]);
+
+            $response = json_decode($response->getBody());
+        } catch (ClientException $e) {
+            $response = json_decode($e->getResponse()->getBody()->getContents());
+        }
+
+        return $response;
+    }
+
+    public function getBatchBalance (string $token, array $uuids, string $currency = null)
+    {
+        try {
+            $uuids  = http_build_query(['uuids' => $uuids]);
+            $params = "uuids=" . $uuids;
+
+            if (!empty($currency)) {
+                $params .= '&currency=' . $currency;
+            }
+
+            $response = $this->http->request('GET', $this->url . '/api/v1/wallet/balance/batch?' . $params, [
                 'headers' => [
                     'Authorization'    => 'Bearer ' . $token,
                     'X-Requested-With' => 'XMLHttpRequest'
