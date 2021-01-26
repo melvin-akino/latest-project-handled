@@ -86,7 +86,7 @@ class WalletService
     {
         try {
             $uuids  = http_build_query(['uuids' => $uuids]);
-            $params = "uuids=" . $uuids;
+            $params = $uuids;
 
             if (!empty($currency)) {
                 $params .= '&currency=' . $currency;
