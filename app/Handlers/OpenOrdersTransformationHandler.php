@@ -61,7 +61,7 @@ class OpenOrdersTransformationHandler
                 $credit         = 0;
                 $reason         = "";
 
-                if (!empty($openOrders)) {
+                if (!empty($openOrders) && in_array(strtoupper($orderData->status), ['SUCCESS', 'PENDING'])) {
                     foreach ($openOrders as $order) {
                         $betId            = $order->bet_id;
                         $providerCurrency = $providers->get('providerAlias:' . $order->provider)['currency_id'];
@@ -69,7 +69,7 @@ class OpenOrdersTransformationHandler
                         $stake            = $order->stake * $exchangeRate->exchange_rate;
 
                         if ($orderTable['bet_id'] == $betId) {
-                            if (strtoupper($order->status) != strtoupper($orderData->status) && in_array(strtoupper($orderData->status), ['SUCCESS', 'PENDING'])) {
+                            if (strtoupper($order->status) != strtoupper($orderData->status)) {
                                 $ordersTable[$_key]['status'] = strtoupper($order->status);
                                 $reason                       = $order->reason;
                                 $betSelectionArray            = explode("\n", $orderData->bet_selection);
