@@ -69,7 +69,7 @@ class OpenOrdersTransformationHandler
                         $stake            = $order->stake * $exchangeRate->exchange_rate;
 
                         if ($orderTable['bet_id'] == $betId) {
-                            if (strtoupper($order->status) != strtoupper($orderData->status)) {
+                            if (strtoupper($order->status) != strtoupper($orderData->status) && in_array(strtoupper($orderData->status), ['SUCCESS', 'PENDING'])) {
                                 $ordersTable[$_key]['status'] = strtoupper($order->status);
                                 $reason                       = $order->reason;
                                 $betSelectionArray            = explode("\n", $orderData->bet_selection);
