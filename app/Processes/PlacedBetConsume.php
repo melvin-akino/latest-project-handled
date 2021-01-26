@@ -5,7 +5,7 @@ namespace App\Processes;
 use Hhxsv5\LaravelS\Swoole\Process\CustomProcessInterface;
 use Illuminate\Support\Facades\Log;
 use Swoole\Http\Server;
-use Swoole\Process;
+use Swoole\{Process, Coroutine};
 use Exception;
 
 class PlacedBetConsume implements CustomProcessInterface
@@ -21,44 +21,39 @@ class PlacedBetConsume implements CustomProcessInterface
             if ($swoole->data2SwtTable->exist('data2Swt')) {
                 Log::info("Bet Consume Starts");
 
-                $kafkaConsumer = resolve('LowLevelConsumer');
-
-                $queue = $kafkaConsumer->newQueue();
-
-                $topicConf = app('KafkaTopicConf');
                 $betTransformationHandler = app('BetTransformationHandler');
 
-                $placedBetTopic = $kafkaConsumer->newTopic(env('KAFKA_BET_PLACED', 'PLACED-BET'), $topicConf);
-                $placedBetTopic->consumeQueueStart(0, RD_KAFKA_OFFSET_END, $queue);
+                $kafkaConsumer = app('KafkaConsumer');
+                $kafkaConsumer->subscribe([
+                    env('KAFKA_BET_PLACED', 'PLACED-BET'),
+                ]);
 
                 while (!self::$quit) {
-                    $message = $queue->consume(0);
-                    if (!is_null($message)) {
-                        if ($message->err == RD_KAFKA_RESP_ERR_NO_ERROR) {
-                            $payload = json_decode($message->payload);
+                    $message = $kafkaConsumer->consume(0);
+                    if ($message->err == RD_KAFKA_RESP_ERR_NO_ERROR) {
+                        $payload = json_decode($message->payload);
 
-                            if (empty($payload->data->status) || empty($payload->data->odds)) {
-                                Log::info("Bet Transformation ignored - Status Or Odds Not Found");
-                                if (env('CONSUMER_PRODUCER_LOG', false)) {
-                                    Log::channel('kafkalog')->info(json_encode($message));
-                                }
-                                continue;
-                            } else if (strpos($payload->data->reason, "Internal Error: Session Inactive")) {
-                                Log::info("Bet Transformation ignored - Internal error");
-                                continue;
-                            }
-
-                            $betTransformationHandler->init($payload, $message->offset)->handle();
-
+                        if (empty($payload->data->status) || empty($payload->data->odds)) {
+                            Log::info("Bet Transformation ignored - Status Or Odds Not Found");
                             if (env('CONSUMER_PRODUCER_LOG', false)) {
                                 Log::channel('kafkalog')->info(json_encode($message));
                             }
                             continue;
+                        } else if (strpos($payload->data->reason, "Internal Error: Session Inactive")) {
+                            Log::info("Bet Transformation ignored - Internal error");
+                            continue;
                         }
-                        usleep(100000);
-                    } else {
-                        usleep(10000);
+
+                        $betTransformationHandler->init($payload, $message->offset)->handle();
+
+                        if (env('CONSUMER_PRODUCER_LOG', false)) {
+                            Log::channel('kafkalog')->info(json_encode($message));
+                        }
+                        Coroutine::sleep(0.01);
+                        $kafkaConsumer->commitAsync($message);
+                        continue;
                     }
+                    Coroutine::sleep(0.01);
                 }
             }
         } catch (Exception $e) {
