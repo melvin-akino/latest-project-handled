@@ -33,13 +33,13 @@ class AccountConsume implements CustomProcessInterface
                     if ($message->err == RD_KAFKA_RESP_ERR_NO_ERROR) {
                         $payload = json_decode($message->payload);
 
-                        switch ($payload->command) {
-                            case 'orders':
-                                $openOrdersTransformationHandler->init($payload)->handle();
-                                break;
-                            default:
-                                break;
+                        if (empty($payload->data)) {
+                            Log::info("Open Orders ignored - No Data Found");
+                            continue;
                         }
+
+                        $openOrdersTransformationHandler->init($payload)->handle();
+                        
                         if (env('CONSUMER_PRODUCER_LOG', false)) {
                             Log::channel('kafkalog')->info(json_encode($message));
                         }

@@ -18,19 +18,6 @@ class KafkaServiceProvider extends ServiceProvider
         $conf = $lowConf = new Conf();
 
         $conf->set('metadata.broker.list', env('KAFKA_BROKERS', 'kafka:9092'));
-        $conf->set('group.id', env('KAFKA_GROUP_ID', 'ml'));
-        $conf->set('auto.offset.reset', 'latest');
-        $conf->set('enable.auto.commit', 'false');
-        if (!in_array(env('APP_ENV'), ["local", "testing"])) {
-            $conf->set('max.poll.interval.ms', 10000000);
-        }
-
-        $lowConf->set('group.id', env('KAFKA_GROUP_ID', 'ml'));
-
-        if (env('KAFKA_DEBUG', false)) {
-            $conf->set('log_level', LOG_DEBUG);
-            $conf->set('debug', 'all');
-        }
 
         $this->app->bind(Producer::class, function () use ($conf) {
             return new Producer($conf);
@@ -41,10 +28,19 @@ class KafkaServiceProvider extends ServiceProvider
         });
 
         $this->app->bind('KafkaConsumer', function () use ($conf) {
+            $conf->set('group.id', env('KAFKA_GROUP_ID', 'ml'));
+            $conf->set('auto.offset.reset', 'latest');
+            $conf->set('enable.auto.commit', 'false');
+            if (!in_array(env('APP_ENV'), ["local", "testing"])) {
+                $conf->set('max.poll.interval.ms', 10000000);
+            }
+            
             return new KafkaConsumer($conf);
         });
 
         $this->app->bind('LowLevelConsumer', function () use ($lowConf) {
+            $lowConf->set('group.id', env('KAFKA_GROUP_ID', 'ml'));
+
             $lowLevelConsumer = new Consumer($lowConf);
             $lowLevelConsumer->addBrokers(env('KAFKA_BROKERS', 'kafka:9092'));
             return $lowLevelConsumer;
