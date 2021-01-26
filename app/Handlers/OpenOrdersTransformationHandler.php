@@ -50,6 +50,9 @@ class OpenOrdersTransformationHandler
             $colMinusOne = OddType::whereIn('type', ['1X2', 'HT 1X2', 'OE'])->pluck('id')->toArray();
 
             foreach ($ordersTable as $_key => $orderTable) {
+                if (!in_array(strtoupper($orderTable['status']), ['SUCCESS', 'PENDING'])) {
+                    continue;
+                }
                 $orderId        = substr($_key, strlen('orderId:'));
                 $expiry         = $orderTable['orderExpiry'];
                 $orderData      = Order::find($orderId);
@@ -61,7 +64,7 @@ class OpenOrdersTransformationHandler
                 $credit         = 0;
                 $reason         = "";
 
-                if (!empty($openOrders) && in_array(strtoupper($orderData->status), ['SUCCESS', 'PENDING'])) {
+                if (!empty($openOrders)) {
                     foreach ($openOrders as $order) {
                         $betId            = $order->bet_id;
                         $providerCurrency = $providers->get('providerAlias:' . $order->provider)['currency_id'];
