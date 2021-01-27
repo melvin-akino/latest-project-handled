@@ -15,7 +15,6 @@ class WalletService
     public $expiresIn;
     public $clientId;
     public $clientSecret;
-    public $test;
 
     private $http;
 
@@ -25,11 +24,6 @@ class WalletService
         $this->clientId     = $clientId;
         $this->clientSecret = $clientSecret;
         $this->http         = new Client();
-        $this->test         = [
-            'status'      => true,
-            'status_code' => 401,
-            'error'       => "Unauthorized"
-        ];
     }
 
     public function getAccessToken(string $scopes)
@@ -110,7 +104,7 @@ class WalletService
             $response = json_decode($e->getResponse()->getBody()->getContents());
         }
 
-        return $this->test;
+        return $response;
     }
 
     public function addBalance(string $token, string $uuid, string $currency, float $amount, string $reason)
@@ -134,7 +128,7 @@ class WalletService
             $response = json_decode($e->getResponse()->getBody()->getContents());
         }
 
-        return $this->test;
+        return $response;
     }
 
     public function subtractBalance(string $token, string $uuid, string $currency, float $amount, string $reason)
@@ -158,6 +152,6 @@ class WalletService
             $response = json_decode($e->getResponse()->getBody()->getContents());
         }
 
-        return $this->test;
+        return $response;
     }
 }

@@ -52,7 +52,6 @@ class ProviderAccount extends Model
             ->uuid;
     }
 
-    // App\Models\ProviderAccount::getBettingAccount(1, 150, false, 1, 1, 'HOME', 'asdasdasd');
     public static function getBettingAccount($providerId, $stake, $isVIP, $eventId, $oddType, $marketFlag, $token)
     {
         $type     = $isVIP ? "BET_VIP" : "BET_NORMAL";

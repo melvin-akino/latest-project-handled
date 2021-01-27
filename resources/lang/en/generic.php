@@ -7,7 +7,5 @@ return [
     'unauthorized'          => 'Unauthorized',
     'db-transaction-error'  => 'DB Transaction error',
     'not-found'             => 'Not Found',
-    'bad-request'           => 'Bad Request',
-    'user-wallet-api-error' => 'User Wallet Endpoint Error',
-    'prov-wallet-api-error' => 'Provider Account Wallet Endpoint Error'
+    'bad-request'           => 'Bad Request'
 ];
