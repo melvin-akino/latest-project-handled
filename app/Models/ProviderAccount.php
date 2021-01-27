@@ -58,8 +58,7 @@ class ProviderAccount extends Model
         $currency = Currency::find($provider->currency_id);
         $query    = self::where('provider_id', $providerId)
             ->where('is_enabled', true)
-            ->where('type', $type)
-            ->orderBy('credits', 'DESC');
+            ->where('type', $type);
 
         if ($query->pluck('uuid')->count() == 0) {
             return null;
