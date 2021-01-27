@@ -87,7 +87,7 @@ class WalletService
             $response = json_decode($e->getResponse()->getBody()->getContents());
         }
 
-        return $this->test;
+        return $response;
     }
 
     public function getBatchBalance (string $token, array $uuids, string $currency = null)
