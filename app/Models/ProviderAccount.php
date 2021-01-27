@@ -68,6 +68,13 @@ class ProviderAccount extends Model
             if ($marketFlag != 'DRAW') {
                 $notAllowed        = $marketFlag == 'HOME' ? "AWAY" : "HOME";
                 $batch             = WalletFacade::getBatchBalance($token, $query->pluck('uuid')->toArray(), trim(strtoupper($currency->code)));
+
+                foreach ($batch->data AS $uuid => $row) {
+                    if ($row->balance < $stake) {
+                        unset($batch->data->{$uuid});
+                    }
+                }
+
                 $uuids             = array_keys((array) $batch->data);
                 $accountCandidates = $query->whereIn('uuid', $uuids)->get()->toArray();
                 $betRules          = ProviderBetRules::where('not_allowed_ground', $marketFlag)
