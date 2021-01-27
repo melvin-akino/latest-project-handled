@@ -48,11 +48,20 @@ class OpenOrdersTransformationHandler
             $providers   = $swoole->providersTable;
             $openOrders  = $this->data->data;
             $colMinusOne = OddType::whereIn('type', ['1X2', 'HT 1X2', 'OE'])->pluck('id')->toArray();
+            if (!empty($openOrders)) {
+                foreach ($openOrders as $order) {
+                    $kafkaBetIds[] = $order->bet_id;
+                }
+            }
 
             foreach ($ordersTable as $_key => $orderTable) {
                 if (!in_array(strtoupper($orderTable['status']), ['SUCCESS', 'PENDING'])) {
                     continue;
                 }
+                if (!in_array($orderTable['bet_id'], $kafkaBetIds)) {
+                    continue;
+                }
+
                 $orderId        = substr($_key, strlen('orderId:'));
                 $expiry         = $orderTable['orderExpiry'];
                 $orderData      = Order::find($orderId);
