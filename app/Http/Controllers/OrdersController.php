@@ -599,7 +599,7 @@ class OrdersController extends Controller
 
                 $providerWalletToken = SwooleHandler::getValue('walletClientsTable', trim(strtolower($providerInfo['alias'])) . '-users')['token'];
                 $providerUUID        = trim($providerAccount->uuid);
-                $providerReason      = "[PLACE_BET][BET PENDING] - transaction for order id " . $orderId;
+                $providerReason      = "[PLACE_BET][BET PENDING] - transaction for order id " . $orderCreation['orders']->id;
                 $providerWallet      = WalletFacade::subtractBalance($providerWalletToken, $providerUUID, trim(strtoupper($providerCurrencyInfo['code'])), $actualStake, $providerReason);
 
                 $updateProvider             = ProviderAccount::find($providerAccountId);
