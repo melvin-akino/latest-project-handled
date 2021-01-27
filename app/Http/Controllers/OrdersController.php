@@ -427,6 +427,7 @@ class OrdersController extends Controller
                     'currency_id'       => $providersSWT[$providerKey]['currency_id'],
                     'is_enabled'        => $providersSWT[$providerKey]['is_enabled'],
                     'punter_percentage' => $providersSWT[$providerKey]['punter_percentage'],
+                    'uuid'              => $providersSWT[$providerKey]['uuid'],
                 ];
 
                 /**
@@ -555,7 +556,8 @@ class OrdersController extends Controller
                     $query->column_type . " " . $query->odd_label . "(" . $query->score . ")",
                 ]);
 
-                $providerAccount = ProviderAccount::getBettingAccount($row['provider_id'], $actualStake, $isUserVIP, $payload['event_id'], $query->odd_type_id, $query->market_flag);
+                $providerToken   = SwooleHandler::getValue('walletClientsTable', trim(strtolower($providerInfo['alias'])) . '-users')['token'];
+                $providerAccount = ProviderAccount::getBettingAccount($row['provider_id'], $actualStake, $isUserVIP, $payload['event_id'], $query->odd_type_id, $query->market_flag, $providerToken);
 
                 if (!$providerAccount) {
                     throw new NotFoundException(trans('game.bet.errors.no_bookmaker'));
@@ -595,6 +597,11 @@ class OrdersController extends Controller
                 $reason         = "[PLACE_BET][BET PENDING] - transaction for order id " . $orderId;
 
                 userWalletTransaction(auth()->user()->uuid, 'PLACE_BET', ($payloadStake), $providerCurrencyInfo['code'], $orderLogsId, $reason);
+
+                $providerWalletToken = SwooleHandler::getValue('walletClientsTable', trim(strtolower($providerInfo['alias'])) . '-users')['token'];
+                $providerUUID        = trim($providerInfo['uuid']);
+                $providerReason      = "[PLACE_BET][BET PENDING] - transaction for order id " . $orderId;
+                $providerWallet      = WalletFacade::subtractBalance($providerWalletToken, $providerUUID, trim(strtoupper($providerCurrencyInfo['code'])), $actualStake, $providerReason);
 
                 $updateProvider             = ProviderAccount::find($providerAccountId);
                 $updateProvider->updated_at = Carbon::now();

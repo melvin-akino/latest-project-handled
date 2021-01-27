@@ -2,8 +2,11 @@
 
 namespace App\Models;
 
+use App\Facades\{SwooleHandler, WalletFacade};
+use App\Models\{Currency, Provider};
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\{Model, SoftDeletes};
+use JsonException;
 
 class ProviderAccount extends Model
 {
@@ -20,6 +23,7 @@ class ProviderAccount extends Model
         'is_enabled',
         'is_idle',
         'credits',
+        'uuid',
         'deleted_at'
     ];
 
@@ -30,47 +34,54 @@ class ProviderAccount extends Model
 
     public static function getProviderAccounts($providerId)
     {
-    	return self::where('provider_id', $providerId)->get()->toArray();
+        return self::where('provider_id', $providerId)->get()->toArray();
     }
 
     public static function getUsernameId($username)
     {
         return self::where('username', $username)
-                    ->first()
-                    ->id;
+            ->first()
+            ->id;
     }
 
     public static function getUuidByUsername($username)
     {
         return self::where('username', $username)
-                   ->first()
+            ->first()
             ->uuid;
     }
 
-    public static function getBettingAccount($providerId, $stake, $isVIP, $eventId, $oddType, $marketFlag)
+    public static function getBettingAccount($providerId, $stake, $isVIP, $eventId, $oddType, $marketFlag, $token)
     {
-        $type  = $isVIP ? "BET_VIP" : "BET_NORMAL";
-        $query = self::where('credits', '>=', $stake)
-                     ->where('provider_id', $providerId)
-                     ->where('is_enabled', true)
-                     ->where('type', $type);
+        $type     = $isVIP ? "BET_VIP" : "BET_NORMAL";
+        $provider = Provider::find($providerId);
+        $currency = Currency::find($provider->currency_id);
+        $query    = self::where('provider_id', $providerId)
+            ->where('is_enabled', true)
+            ->where('type', $type);
 
-        if ($query->count() == 0) {
+        if ($query->pluck('uuid')->count() == 0) {
             return null;
         } else {
             $marketFlag = strtoupper($marketFlag);
 
             if ($marketFlag != 'DRAW') {
-                $notAllowed = $marketFlag == 'HOME' ? "AWAY" : "HOME";
+                $notAllowed        = $marketFlag == 'HOME' ? "AWAY" : "HOME";
+                $batch             = WalletFacade::getBatchBalance($token, $query->pluck('uuid')->toArray(), trim(strtoupper($currency->code)));
 
-                $accountCandidates = $query->orderBy('credits', 'DESC')->orderBy('updated_at', 'ASC')->get()->toArray();
+                foreach ($batch->data AS $uuid => $row) {
+                    if ($row->balance < $stake) {
+                        unset($batch->data->{$uuid});
+                    }
+                }
 
-                # Let us get all accounts who used to bet on particular event
-                $betRules         = ProviderBetRules::where('not_allowed_ground', $marketFlag)
-                                                    ->where('event_id', $eventId)
-                                                    ->get();
-                $excludeAccounts  = [];
-                $reservedAccounts = [];
+                $uuids             = array_keys((array) $batch->data);
+                $accountCandidates = $query->whereIn('uuid', $uuids)->get()->toArray();
+                $betRules          = ProviderBetRules::where('not_allowed_ground', $marketFlag)
+                    ->where('event_id', $eventId)
+                    ->get();
+                $excludeAccounts   = [];
+                $reservedAccounts  = [];
 
                 if ($betRules->count() != 0) {
                     foreach ($betRules as $rule) {
@@ -96,10 +107,9 @@ class ProviderAccount extends Model
                         }
                     }
 
-                    if (empty($accountFinalCandidates) && !empty($accountCandidates))  {
+                    if (empty($accountFinalCandidates) && !empty($accountCandidates)) {
                         $accountFinalCandidates[0] = end($accountCandidates);
                     }
-
                 } else {
                     $accountFinalCandidates = (array) $accountCandidates;
                 }
@@ -109,11 +119,9 @@ class ProviderAccount extends Model
                 });
 
                 if (count($accountFinalCandidates) > 0) {
-
-                    $finalProvider = (object) $accountFinalCandidates[0];//$query->first();
+                    $finalProvider = (object) $accountFinalCandidates[0]; //$query->first();
 
                     if ($finalProvider) {
-
                         $providerAccountId = $finalProvider->id;
 
                         foreach ($reservedAccounts as $reservedAccount) {
@@ -141,6 +149,7 @@ class ProviderAccount extends Model
                 }
             } else {
                 $query->orderBy('updated_at', 'ASC');
+
                 return $query->first();
             }
         }

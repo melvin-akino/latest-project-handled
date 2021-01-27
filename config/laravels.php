@@ -220,6 +220,7 @@ return [
                 ['name' => 'priority', 'type' => \Swoole\Table::TYPE_INT],
                 ['name' => 'is_enabled', 'type' => \Swoole\Table::TYPE_INT],
                 ['name' => 'currency_id', 'type' => \Swoole\Table::TYPE_INT],
+                ['name' => 'uuid', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 32],
             ],
         ],
         'sports'              => [ //key format [sId:$sportId] = [name = $sport]
