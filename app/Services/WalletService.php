@@ -25,7 +25,7 @@ class WalletService
         $this->clientId     = $clientId;
         $this->clientSecret = $clientSecret;
         $this->http         = new Client();
-        $this->test         =  = json_encode([
+        $this->test         = json_encode([
             'status'      => true,
             'status_code' => 401,
             'error'       => "Unauthorized"
