@@ -3,6 +3,7 @@
 namespace App\Handlers;
 
 use App\Facades\{WalletFacade, SwooleHandler};
+use App\User;
 use App\Models\{OddType, Order, ProviderAccount, OrderLogs, ProviderAccountOrder, UserWallet, Source};
 
 use Carbon\Carbon;
