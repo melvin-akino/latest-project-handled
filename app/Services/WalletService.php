@@ -15,6 +15,11 @@ class WalletService
     public $expiresIn;
     public $clientId;
     public $clientSecret;
+    public $test = json_encode([
+        'status'      => true,
+        'status_code' => 401,
+        'error'       => "Unauthorized"
+    ]);
 
     private $http;
 
@@ -39,7 +44,7 @@ class WalletService
 
         $response = json_decode($response->getBody());
 
-        return $response;
+        return $this->test;
     }
 
     public function refreshToken(string $refreshToken)
@@ -55,7 +60,7 @@ class WalletService
 
         $response = json_decode($response->getBody());
 
-        return $response;
+        return $this->test;
     }
 
     public function getBalance(string $token, string $uuid, string $currency = null)
@@ -79,7 +84,7 @@ class WalletService
             $response = json_decode($e->getResponse()->getBody()->getContents());
         }
 
-        return $response;
+        return $this->test;
     }
 
     public function getBatchBalance (string $token, array $uuids, string $currency = null)
@@ -104,7 +109,7 @@ class WalletService
             $response = json_decode($e->getResponse()->getBody()->getContents());
         }
 
-        return $response;
+        return $this->test;
     }
 
     public function addBalance(string $token, string $uuid, string $currency, float $amount, string $reason)
@@ -128,7 +133,7 @@ class WalletService
             $response = json_decode($e->getResponse()->getBody()->getContents());
         }
 
-        return $response;
+        return $this->test;
     }
 
     public function subtractBalance(string $token, string $uuid, string $currency, float $amount, string $reason)
@@ -152,6 +157,6 @@ class WalletService
             $response = json_decode($e->getResponse()->getBody()->getContents());
         }
 
-        return $response;
+        return $this->test;
     }
 }
