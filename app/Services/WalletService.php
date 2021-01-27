@@ -15,11 +15,7 @@ class WalletService
     public $expiresIn;
     public $clientId;
     public $clientSecret;
-    public $test = json_encode([
-        'status'      => true,
-        'status_code' => 401,
-        'error'       => "Unauthorized"
-    ]);
+    public $test;
 
     private $http;
 
@@ -29,6 +25,11 @@ class WalletService
         $this->clientId     = $clientId;
         $this->clientSecret = $clientSecret;
         $this->http         = new Client();
+        $this->test         =  = json_encode([
+            'status'      => true,
+            'status_code' => 401,
+            'error'       => "Unauthorized"
+        ]);
     }
 
     public function getAccessToken(string $scopes)
