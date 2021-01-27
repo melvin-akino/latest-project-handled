@@ -37,7 +37,7 @@ export default {
         }
     },
     computed: {
-        ...mapState('trade', ['showSearch', 'allEventsList'])
+        ...mapState('trade', ['showSearch', 'eventsList'])
     },
     watch: {
         searchKeyword(newValue, oldValue) {
@@ -81,10 +81,12 @@ export default {
             if(type=='league') {
                 this.$store.dispatch('trade/addToWatchlist', { type: type, data: data })
             } else if(type=='event') {
-                let payload = {}
-                let event = this.allEventsList.filter(event => event.uid == data)
+                let payload
+                let event = this.eventsList.filter(event => event.uid == data)
                 if(event.length != 0) {
                     payload = event[0]
+                } else {
+                    payload = null
                 }
                 this.$store.dispatch('trade/addToWatchlist', { type: type, data: data, payload: payload })
             }
