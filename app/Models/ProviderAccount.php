@@ -71,7 +71,7 @@ class ProviderAccount extends Model
                 $batch      = WalletFacade::getBatchBalance($token, $query->pluck('uuid')->toArray(), trim(strtoupper($currency->code)));
 
                 if (array_key_exists('error', $batch) || $batch->status_code != 200) {
-                    throw new BadRequestException(trans('generic.prov-wallet-api-error'));
+                    throw new BadRequestException(trans('game.wallet-api.error.prov'));
                 }
 
                 foreach ($batch->data AS $uuid => $row) {

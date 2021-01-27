@@ -494,7 +494,7 @@ class OrdersController extends Controller
                 $userBalance = WalletFacade::getBalance($walletToken, auth()->user()->uuid, $userCurrencyInfo['code']);
 
                 if (array_key_exists('error', $userBalance) || $userBalance->status_code != 200) {
-                    throw new BadRequestException(trans('generic.user-wallet-api-error'));
+                    throw new BadRequestException(trans('game.wallet-api.error.user'));
                 }
 
                 if ($userBalance->data->balance < $payloadStake) {
@@ -618,10 +618,10 @@ class OrdersController extends Controller
                     $userReturnStake = WalletFacade::addBalance($userWalletToken, auth()->user()->uuid, $providerCurrencyInfo['code'], ($payloadStake), "[PLACE_BET][RETURN_STAKE] - Something went wrong: " . $providerWallet->error);
 
                     if (array_key_exists('error', $userReturnStake) || $userReturnStake->status_code != 200) {
-                        throw new BadRequestException(trans('generic.user-wallet-api-error'));
+                        throw new BadRequestException(trans('game.wallet-api.error.user'));
                     }
 
-                    throw new BadRequestException(trans('generic.prov-wallet-api-error'));
+                    throw new BadRequestException(trans('game.wallet-api.error.prov'));
                 }
 
                 $updateProvider             = ProviderAccount::find($providerAccountId);
