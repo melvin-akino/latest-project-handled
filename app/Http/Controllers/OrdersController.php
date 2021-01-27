@@ -426,8 +426,7 @@ class OrdersController extends Controller
                     'alias'             => $providersSWT[$providerKey]['alias'],
                     'currency_id'       => $providersSWT[$providerKey]['currency_id'],
                     'is_enabled'        => $providersSWT[$providerKey]['is_enabled'],
-                    'punter_percentage' => $providersSWT[$providerKey]['punter_percentage'],
-                    'uuid'              => $providersSWT[$providerKey]['uuid'],
+                    'punter_percentage' => $providersSWT[$providerKey]['punter_percentage']
                 ];
 
                 /**
@@ -599,7 +598,7 @@ class OrdersController extends Controller
                 userWalletTransaction(auth()->user()->uuid, 'PLACE_BET', ($payloadStake), $providerCurrencyInfo['code'], $orderLogsId, $reason);
 
                 $providerWalletToken = SwooleHandler::getValue('walletClientsTable', trim(strtolower($providerInfo['alias'])) . '-users')['token'];
-                $providerUUID        = trim($providerInfo['uuid']);
+                $providerUUID        = trim($providerAccount->uuid;);
                 $providerReason      = "[PLACE_BET][BET PENDING] - transaction for order id " . $orderId;
                 $providerWallet      = WalletFacade::subtractBalance($providerWalletToken, $providerUUID, trim(strtoupper($providerCurrencyInfo['code'])), $actualStake, $providerReason);
 
