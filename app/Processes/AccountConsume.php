@@ -5,7 +5,7 @@ namespace App\Processes;
 use Hhxsv5\LaravelS\Swoole\Process\CustomProcessInterface;
 use Illuminate\Support\Facades\Log;
 use Swoole\Http\Server;
-use Swoole\Process;
+use Swoole\{Process, Coroutine};
 use Exception;
 
 class AccountConsume implements CustomProcessInterface
@@ -30,28 +30,24 @@ class AccountConsume implements CustomProcessInterface
 
                 while (!self::$quit) {
                     $message = $kafkaConsumer->consume(0);
-                    if (!is_null($message)) {
-                        if ($message->err == RD_KAFKA_RESP_ERR_NO_ERROR) {
-                            $payload = json_decode($message->payload);
+                    if ($message->err == RD_KAFKA_RESP_ERR_NO_ERROR) {
+                        $payload = json_decode($message->payload);
 
-                            switch ($payload->command) {
-                                case 'orders':
-                                    $openOrdersTransformationHandler->init($payload)->handle();
-                                    break;
-                                default:
-                                    break;
-                            }
-                            if (env('CONSUMER_PRODUCER_LOG', false)) {
-                                Log::channel('kafkalog')->info(json_encode($message));
-                            }
-                            usleep(10000);
-                            $kafkaConsumer->commitAsync($message);
+                        if (empty($payload->data)) {
+                            Log::info("Open Orders ignored - No Data Found");
                             continue;
                         }
-                        usleep(100000);
-                    } else {
-                        usleep(10000);
+
+                        $openOrdersTransformationHandler->init($payload)->handle();
+                        
+                        if (env('CONSUMER_PRODUCER_LOG', false)) {
+                            Log::channel('kafkalog')->info(json_encode($message));
+                        }
+                        Coroutine::sleep(0.01);
+                        $kafkaConsumer->commitAsync($message);
+                        continue;
                     }
+                    Coroutine::sleep(0.01);
                 }
             }
         } catch (Exception $e) {

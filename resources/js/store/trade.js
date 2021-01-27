@@ -508,14 +508,16 @@ const actions = {
                 commit('REMOVE_FROM_LEAGUE_BY_NAME', { league: data.data })
                 commit('REMOVE_FROM_EVENT_LIST_BY_LEAGUE', { league_name: data.data })
             } else if(data.type=='event') {
-                commit('REMOVE_FROM_EVENT_LIST',  { league_name: data.payload.league_name, game_schedule: data.payload.game_schedule, uid: data.data })
-                let leagueMatchCount = state.eventsList.filter(event => event.league_name == data.payload.league_name && event.game_schedule == data.payload.game_schedule && !event.hasOwnProperty('watchlist')).length
-                if(leagueMatchCount == 0) {
-                    await dispatch('toggleLeague', { action: 'remove', league_name: data.payload.league_name,  schedule: data.payload.game_schedule, sport_id: state.selectedSport })
-                    commit('REMOVE_SELECTED_LEAGUE', {schedule: data.payload.game_schedule, league: data.payload.league_name })
-                    commit('REMOVE_FROM_LEAGUE', {schedule: data.payload.game_schedule, league: data.payload.league_name })
-                } else {
-                    commit('UPDATE_LEAGUE_MATCH_COUNT', { schedule: data.payload.game_schedule, league: data.payload.league_name, match_count: leagueMatchCount })
+                if(data.payload) {
+                    commit('REMOVE_FROM_EVENT_LIST',  { league_name: data.payload.league_name, game_schedule: data.payload.game_schedule, uid: data.data })
+                    let leagueMatchCount = state.eventsList.filter(event => event.league_name == data.payload.league_name && event.game_schedule == data.payload.game_schedule && !event.hasOwnProperty('watchlist')).length
+                    if(leagueMatchCount == 0) {
+                        await dispatch('toggleLeague', { action: 'remove', league_name: data.payload.league_name,  schedule: data.payload.game_schedule, sport_id: state.selectedSport })
+                        commit('REMOVE_SELECTED_LEAGUE', {schedule: data.payload.game_schedule, league: data.payload.league_name })
+                        commit('REMOVE_FROM_LEAGUE', {schedule: data.payload.game_schedule, league: data.payload.league_name })
+                    } else {
+                        commit('UPDATE_LEAGUE_MATCH_COUNT', { schedule: data.payload.game_schedule, league: data.payload.league_name, match_count: leagueMatchCount })
+                    }
                 }
             }
         } catch(err) {

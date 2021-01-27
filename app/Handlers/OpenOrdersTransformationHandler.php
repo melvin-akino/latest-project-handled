@@ -50,6 +50,9 @@ class OpenOrdersTransformationHandler
             $colMinusOne = OddType::whereIn('type', ['1X2', 'HT 1X2', 'OE'])->pluck('id')->toArray();
 
             foreach ($ordersTable as $_key => $orderTable) {
+                if (!in_array(strtoupper($orderTable['status']), ['SUCCESS', 'PENDING'])) {
+                    continue;
+                }
                 $orderId        = substr($_key, strlen('orderId:'));
                 $expiry         = $orderTable['orderExpiry'];
                 $orderData      = Order::find($orderId);
