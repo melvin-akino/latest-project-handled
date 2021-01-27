@@ -70,7 +70,7 @@ class ProviderAccount extends Model
                 $notAllowed = $marketFlag == 'HOME' ? "AWAY" : "HOME";
                 $batch      = WalletFacade::getBatchBalance($token, $query->pluck('uuid')->toArray(), trim(strtoupper($currency->code)));
 
-                if (array_key_exists('error', $batch)) {
+                if (array_key_exists('error', $batch) || $batch->status_code != 200) {
                     throw new BadRequestException(trans('generic.prov-wallet-api-error'));
                 }
 

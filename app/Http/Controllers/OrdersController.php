@@ -493,7 +493,7 @@ class OrdersController extends Controller
                 $walletToken = SwooleHandler::getValue('walletClientsTable', 'ml-users')['token'];
                 $userBalance = WalletFacade::getBalance($walletToken, auth()->user()->uuid, $userCurrencyInfo['code']);
 
-                if (array_key_exists('error', $userBalance)) {
+                if (array_key_exists('error', $userBalance) || $userBalance->status_code != 200) {
                     throw new BadRequestException(trans('generic.user-wallet-api-error'));
                 }
 
@@ -613,11 +613,11 @@ class OrdersController extends Controller
                 $providerReason      = "[PLACE_BET][BET PENDING] - transaction for order id " . $orderCreation['orders']->id;
                 $providerWallet      = WalletFacade::subtractBalance($providerWalletToken, $providerUUID, trim(strtoupper($providerCurrencyInfo['code'])), $actualStake, $providerReason);
 
-                if (array_key_exists('error', $providerWallet)) {
+                if (array_key_exists('error', $providerWallet) || $providerWallet->status_code != 200) {
                     $userWalletToken = SwooleHandler::getValue('walletClientsTable', 'ml-users')['token'];
                     $userReturnStake = WalletFacade::addBalance($userWalletToken, auth()->user()->uuid, $providerCurrencyInfo['code'], ($payloadStake), "[PLACE_BET][RETURN_STAKE] - Something went wrong: " . $providerWallet->error);
 
-                    if (array_key_exists('error', $userReturnStake)) {
+                    if (array_key_exists('error', $userReturnStake) || $userReturnStake->status_code != 200) {
                         throw new BadRequestException(trans('generic.user-wallet-api-error'));
                     }
 
