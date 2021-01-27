@@ -265,7 +265,7 @@ if (!function_exists('userWalletTransaction')) {
                     $userBalance = WalletFacade::subtractBalance($walletToken, $uuid, trim(strtoupper($currency)), $amount, $reason);
                     $userId      = User::where('uuid', $uuid)->first()->id;
 
-                    if (!array_key_exists('error', $userBalance) || $userBalance->status_code != 200) {
+                    if (!array_key_exists('error', $userBalance) && array_key_exists('status_code', $userBalance) && $userBalance->status_code == 200) {
                         OrderTransaction::create(
                             [
                                 'wallet_ledger_id'    => $userBalance->data->id,
