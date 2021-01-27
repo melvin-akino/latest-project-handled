@@ -256,29 +256,46 @@ if (!function_exists('wsEmit')) {
 if (!function_exists('userWalletTransaction')) {
     function userWalletTransaction($uuid, $transactionType, $amount, $currency, $orderLogsId, $reason)
     {
-        switch ($transactionType) {
-            case 'PLACE_BET':
-                $sourceId    = Source::where('source_name', $transactionType)->first()->id;
-                $currencyId  = Currency::where('code', 'LIKE', trim(strtoupper($currency)))->first()->id;
-                $walletToken = SwooleHandler::getValue('walletClientsTable', 'ml-users')['token'];
-                $userBalance = WalletFacade::subtractBalance($walletToken, $uuid, trim(strtoupper($currency)), $amount, $reason);
-                $userId      = User::where('uuid', $uuid)->first()->id;
+        try {
+            switch ($transactionType) {
+                case 'PLACE_BET':
+                    $sourceId    = Source::where('source_name', $transactionType)->first()->id;
+                    $currencyId  = Currency::where('code', 'LIKE', trim(strtoupper($currency)))->first()->id;
+                    $walletToken = SwooleHandler::getValue('walletClientsTable', 'ml-users')['token'];
+                    $userBalance = WalletFacade::subtractBalance($walletToken, $uuid, trim(strtoupper($currency)), $amount, $reason);
+                    $userId      = User::where('uuid', $uuid)->first()->id;
 
-                OrderTransaction::create(
-                    [
-                        'wallet_ledger_id'    => $userBalance->data->id,
-                        'provider_account_id' => 0,
-                        'order_logs_id'       => $orderLogsId,
-                        'user_id'             => $userId,
-                        'source_id'           => $sourceId,
-                        'currency_id'         => $currencyId,
-                        'reason'              => "Placed Bet",
-                        'amount'              => $amount,
-                    ]
-                );
+                    if (!array_key_exists('error', $userBalance)) {
+                        OrderTransaction::create(
+                            [
+                                'wallet_ledger_id'    => $userBalance->data->id,
+                                'provider_account_id' => 0,
+                                'order_logs_id'       => $orderLogsId,
+                                'user_id'             => $userId,
+                                'source_id'           => $sourceId,
+                                'currency_id'         => $currencyId,
+                                'reason'              => "Placed Bet",
+                                'amount'              => $amount,
+                            ]
+                        );
+                    } else {
+                        return false;
+                    }
                 break;
 
-            /** TO DO: Add more cases for every User Transaction catered by the application */
+                /** TO DO: Add more cases for every User Transaction catered by the application */
+            }
+
+            return true;
+        } catch (Exception $e) {
+            Log::error(json_encode(
+                [
+                    'message' => $e->getMessage(),
+                    'file'    => $e->getFile() . " @ " . $e->getLine()
+                ]
+            ));
+
+            return false;
         }
     }
 }

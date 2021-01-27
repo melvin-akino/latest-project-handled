@@ -2,11 +2,12 @@
 
 namespace App\Models;
 
-use App\Facades\{SwooleHandler, WalletFacade};
-use App\Models\{Currency, Provider};
 use Carbon\Carbon;
-use Illuminate\Database\Eloquent\{Model, SoftDeletes};
 use JsonException;
+use App\Models\{Currency, Provider};
+use App\Exceptions\BadRequestException;
+use App\Facades\{SwooleHandler, WalletFacade};
+use Illuminate\Database\Eloquent\{Model, SoftDeletes};
 
 class ProviderAccount extends Model
 {
@@ -51,6 +52,7 @@ class ProviderAccount extends Model
             ->uuid;
     }
 
+    // App\Models\ProviderAccount::getBettingAccount(1, 150, false, 1, 1, 'HOME', 'asdasdasd');
     public static function getBettingAccount($providerId, $stake, $isVIP, $eventId, $oddType, $marketFlag, $token)
     {
         $type     = $isVIP ? "BET_VIP" : "BET_NORMAL";
@@ -66,8 +68,12 @@ class ProviderAccount extends Model
             $marketFlag = strtoupper($marketFlag);
 
             if ($marketFlag != 'DRAW') {
-                $notAllowed        = $marketFlag == 'HOME' ? "AWAY" : "HOME";
-                $batch             = WalletFacade::getBatchBalance($token, $query->pluck('uuid')->toArray(), trim(strtoupper($currency->code)));
+                $notAllowed = $marketFlag == 'HOME' ? "AWAY" : "HOME";
+                $batch      = WalletFacade::getBatchBalance($token, $query->pluck('uuid')->toArray(), trim(strtoupper($currency->code)));
+
+                if (array_key_exists('error', $batch)) {
+                    throw new BadRequestException(trans('generic.prov-wallet-api-error'));
+                }
 
                 foreach ($batch->data AS $uuid => $row) {
                     if ($row->balance < $stake) {
