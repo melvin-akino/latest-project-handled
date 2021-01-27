@@ -25,11 +25,13 @@ class WalletService
         $this->clientId     = $clientId;
         $this->clientSecret = $clientSecret;
         $this->http         = new Client();
-        $this->test         = json_encode([
-            'status'      => true,
-            'status_code' => 401,
-            'error'       => "Unauthorized"
-        ]);
+        $this->test         = json_encode(
+            [
+                'status'      => true,
+                'status_code' => 401,
+                'error'       => "Unauthorized"
+            ]
+        );
     }
 
     public function getAccessToken(string $scopes)
@@ -45,7 +47,7 @@ class WalletService
 
         $response = json_decode($response->getBody());
 
-        return $this->test;
+        return $response;
     }
 
     public function refreshToken(string $refreshToken)
@@ -61,7 +63,7 @@ class WalletService
 
         $response = json_decode($response->getBody());
 
-        return $this->test;
+        return $response;
     }
 
     public function getBalance(string $token, string $uuid, string $currency = null)
