@@ -36,6 +36,7 @@ class User extends Authenticatable
         'currency_id',
         'birthdate',
         'is_vip',
+        'uuid',
     ];
 
     /**
@@ -61,10 +62,12 @@ class User extends Authenticatable
     {
         return self::find($userId)->where('status', 1);
     }
+
     public function wallet()
     {
         return $this->hasMany(UserWallet::class, 'user_id', 'id');
     }
+
     public function wallet_deposit()
     {
         return $this->hasMany(WalletDeposit::class, 'user_id', 'id');

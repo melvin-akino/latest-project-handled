@@ -2,8 +2,8 @@
 
 namespace App\Handlers;
 
-use App\Facades\SwooleHandler;
-
+use App\Facades\{WalletFacade, SwooleHandler};
+use App\User;
 use App\Models\{OddType, Order, ProviderAccount, OrderLogs, ProviderAccountOrder, UserWallet, Source};
 
 use Carbon\Carbon;
@@ -38,13 +38,12 @@ class BetTransformationHandler
         try {
             DB::beginTransaction();
 
-            $swoole      = app('swoole');
-            $topics      = $swoole->topicTable;
-            $colMinusOne = OddType::whereIn('type', ['1X2', 'HT 1X2', 'OE'])->pluck('id')->toArray();
-
+            $swoole          = app('swoole');
+            $topics          = $swoole->topicTable;
+            $colMinusOne     = OddType::whereIn('type', ['1X2', 'HT 1X2', 'OE'])->pluck('id')->toArray();
             $requestUIDArray = explode('-', $this->message->request_uid);
             $messageOrderId  = end($requestUIDArray);
-            $orderData = Order::find($messageOrderId);
+            $orderData       = Order::find($messageOrderId);
 
             if ($this->message->data->status == self::STATUS_RECEIVED) {
                 if (time() - strtotime($orderData->created_at) > 60) {
@@ -58,11 +57,8 @@ class BetTransformationHandler
                 }
             } else {
                 if ($orderData) {
-
-                    $orderId = $orderData->id;
-
-                    $status = $this->message->data->status != self::STATUS_PENDING ? strtoupper($this->message->data->status) : strtoupper(self::STATUS_SUCCESS);
-
+                    $orderId        = $orderData->id;
+                    $status         = $this->message->data->status != self::STATUS_PENDING ? strtoupper($this->message->data->status) : strtoupper(self::STATUS_SUCCESS);
                     $errorMessageId = providerErrorMapping($this->message->data->reason);
 
                     $order = Order::updateOrCreate([
@@ -121,8 +117,13 @@ class BetTransformationHandler
                             'exchange_rate'      => $exchangeRate,
                         ]);
                     } else {
-                        $userWallet = UserWallet::where('user_id', $order->user_id)->first();
-                        $source     = Source::where('source_name', 'LIKE', 'RETURN_STAKE')->first();
+                        $source       = Source::where('source_name', 'LIKE', 'RETURN_STAKE')->first();
+                        $walletToken  = SwooleHandler::getValue('walletClientsTable', 'ml-users')['token'];
+                        $user         = User::find($order->user_id);
+                        $currencyCode = $user->wallet()->first()->currency->code;
+                        $reason       = "[RETURN_STAKE][BET FAILED/CANCELLED] - transaction for order id " . $order->id;
+                        $userBalance  = WalletFacade::addBalance($walletToken, $user->uuid, trim(strtoupper($currencyCode)), $order->stake, $reason);
+
                         $orderLogs  = OrderLogs::create([
                             'provider_id'   => $order->provider_id,
                             'sport_id'      => $order->sport_id,
@@ -143,7 +144,7 @@ class BetTransformationHandler
                         UserWallet::makeTransaction(
                             $order->user_id,
                             $order->stake,
-                            $userWallet->currency_id,
+                            $user->wallet()->first()->currency_id,
                             $source->id,
                             'Credit'
                         );
@@ -152,6 +153,7 @@ class BetTransformationHandler
                     if ($status == strtoupper(self::STATUS_SUCCESS)) {
                         SwooleHandler::remove('pendingOrdersWithinExpiryTable', 'orderId:' . $orderId);
                     }
+
                     orderStatus(
                         $orderData->user_id,
                         $orderId,

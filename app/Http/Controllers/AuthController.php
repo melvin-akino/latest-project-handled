@@ -2,23 +2,18 @@
 
 namespace App\Http\Controllers;
 
+use App\Auth\PasswordReset;
 use App\Facades\SwooleHandler;
-use App\User;
-use Illuminate\Support\Facades\Log;
+use App\Http\Requests\Auth\{ChangePasswordRequests, ForgotPasswordRequests, LoginRequests, RegistrationRequests};
 use App\Models\{
     Source,
     UserWallet
 };
-use App\Auth\PasswordReset;
-
-use App\Http\Requests\Auth\{ChangePasswordRequests, ForgotPasswordRequests, LoginRequests, RegistrationRequests};
-
 use App\Notifications\{PasswordResetRequest, PasswordResetSuccess, RegistrationMail};
-
+use App\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Str;
+use Illuminate\Support\{Str, Facades\Auth, Facades\Log};
 
 use Exception;
 
@@ -107,8 +102,8 @@ class AuthController extends Controller
      */
     public function login(LoginRequests $request)
     {
-        $server  = app('swoole');
-        $wsTable = $server->wsTable;
+        $server   = app('swoole');
+        $wsTable  = $server->wsTable;
 
         try {
             $credentials = request(['email', 'password']);
