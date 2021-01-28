@@ -144,7 +144,7 @@ class BetTransformationHandler
                         UserWallet::makeTransaction(
                             $order->user_id,
                             $order->stake,
-                            $userWallet->currency_id,
+                            $user->wallet()->first()->currency_id,
                             $source->id,
                             'Credit'
                         );
