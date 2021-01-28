@@ -35,6 +35,8 @@ class AccountConsume implements CustomProcessInterface
 
                         if (empty($payload->data)) {
                             Log::info("Open Orders ignored - No Data Found");
+                            Coroutine::sleep(0.01);
+                            $kafkaConsumer->commitAsync($message);
                             continue;
                         }
 
