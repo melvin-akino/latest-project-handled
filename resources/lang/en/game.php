@@ -30,8 +30,8 @@ return [
     ],
     'wallet-api' => [
         'error' => [
-            'user' => "Oops! Somethink went wrong. (#RLEGM000300)<br>Please refresh the Bet Slip.",
-            'prov' => "Oops! Somethink went wrong. (#RLEGM000301)<br>Please refresh the Bet Slip.",
+            'user' => "Oops! Something went wrong.<br>Please contact support " . env('MAIL_USERNAME', 'multilineio888@gmail.com') . ", or try refreshing the page.",
+            'prov' => "Ooops! Something went wrong.<br>Please contact support " . env('MAIL_USERNAME', 'multilineio888@gmail.com') . ", or try refreshing the page.",
         ],
     ],
 ];
