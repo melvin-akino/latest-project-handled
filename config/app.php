@@ -185,6 +185,7 @@ return [
         App\Providers\PrometheusProvider::class,
         App\Providers\LogToolProvider::class,
         App\Providers\WalletServiceProvider::class,
+        App\Providers\SocketProvider::class,
     ],
 
     /*

@@ -690,14 +690,7 @@ if (!function_exists('orderStatus')) {
     {
         $swoole = app('swoole');
 
-        $doesExist = false;
-        foreach ($swoole->wsTable as $key => $value) {
-            if ($key == 'uid:' . $userId) {
-                $doesExist = true;
-                break;
-            }
-        }
-        if ($doesExist) {
+        if ($swoole->wsTable->exists('uid:' . $userId)) {
             $fd = $swoole->wsTable->get('uid:' . $userId);
 
             if ($swoole->isEstablished($fd['value'])) {
@@ -708,6 +701,27 @@ if (!function_exists('orderStatus')) {
                         'odds'     => $odds
                     ]
                 ]));
+            } else {
+                $requestId = (string) Str::uuid();
+                $payload         = [
+                    'request_uid' => $requestId,
+                    'request_ts'  => getMilliseconds(),
+                    'sub_command' => 'order-status',
+                    'command'     => 'socket'
+                ];
+                $payload['data'] = [
+                    'user_id' => $userId,
+                    'retry'   => 1,
+                    'payload' => [
+                        'getOrderStatus' => [
+                            'order_id' => $orderId,
+                            'status'   => $status,
+                            'odds'     => $odds
+                        ]
+                    ]
+                ];
+
+                kafkaPush(env('KAFKA_SOCKET', 'SOCKET-DATA'), $payload, $requestId);
             }
 
             $forBetBarRemoval = [
