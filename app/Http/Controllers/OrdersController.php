@@ -493,7 +493,7 @@ class OrdersController extends Controller
                 $walletToken = SwooleHandler::getValue('walletClientsTable', 'ml-users')['token'];
                 $userBalance = WalletFacade::getBalance($walletToken, auth()->user()->uuid, $userCurrencyInfo['code']);
 
-                if (array_key_exists('error', $userBalance) || !array_key_exists('status_code', $userBalance) || $userBalance->status_code != 200) {
+                if (empty($userBalance) || array_key_exists('error', $userBalance) || !array_key_exists('status_code', $userBalance) || $userBalance->status_code != 200) {
                     throw new BadRequestException(trans('game.wallet-api.error.user'));
                 }
 
@@ -605,7 +605,7 @@ class OrdersController extends Controller
                 $userWalletTransaction = userWalletTransaction(auth()->user()->uuid, 'PLACE_BET', ($payloadStake), $providerCurrencyInfo['code'], $orderLogsId, $reason);
 
                 if (!$userWalletTransaction) {
-                    throw new BadRequestException(trans('generic.user-wallet-api-error'));
+                    throw new BadRequestException(trans('game.wallet-api.error.user'));
                 }
 
                 $providerWalletToken = SwooleHandler::getValue('walletClientsTable', trim(strtolower($providerInfo['alias'])) . '-users')['token'];
@@ -613,11 +613,12 @@ class OrdersController extends Controller
                 $providerReason      = "[PLACE_BET][BET PENDING] - transaction for order id " . $orderCreation['orders']->id;
                 $providerWallet      = WalletFacade::subtractBalance($providerWalletToken, $providerUUID, trim(strtoupper($providerCurrencyInfo['code'])), $actualStake, $providerReason);
 
-                if (array_key_exists('error', $providerWallet) || !array_key_exists('status_code', $providerWallet) || $providerWallet->status_code != 200) {
+                if (empty($providerWallet) || array_key_exists('error', $providerWallet) || !array_key_exists('status_code', $providerWallet) || $providerWallet->status_code != 200) {
                     $userWalletToken = SwooleHandler::getValue('walletClientsTable', 'ml-users')['token'];
-                    $userReturnStake = WalletFacade::addBalance($userWalletToken, auth()->user()->uuid, $providerCurrencyInfo['code'], ($payloadStake), "[PLACE_BET][RETURN_STAKE] - Something went wrong: " . $providerWallet->error);
+                    $error = !empty($providerWallet->error) ? $providerWallet->error : "Wallet API interaction";
+                    $userReturnStake = WalletFacade::addBalance($userWalletToken, auth()->user()->uuid, $providerCurrencyInfo['code'], ($payloadStake), "[PLACE_BET][RETURN_STAKE] - Something went wrong: " . $error);
 
-                    if (array_key_exists('error', $userReturnStake) || !array_key_exists('status_code', $userReturnStake) || $userReturnStake->status_code != 200) {
+                    if (empty($userReturnStake) || array_key_exists('error', $userReturnStake) || !array_key_exists('status_code', $userReturnStake) || $userReturnStake->status_code != 200) {
                         throw new BadRequestException(trans('game.wallet-api.error.user'));
                     }
 

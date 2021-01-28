@@ -30,8 +30,8 @@ return [
     ],
     'wallet-api' => [
         'error' => [
-            'user' => "Oops! Something went wrong.<br>Please contact support " . env('MAIL_USERNAME', 'multilineio888@gmail.com') . ", or try refreshing the page.",
-            'prov' => "Ooops! Something went wrong.<br>Please contact support " . env('MAIL_USERNAME', 'multilineio888@gmail.com') . ", or try refreshing the page.",
+            'user' => "Oops! Something went wrong.<br>Please contact support support@multline.io, or try refreshing the page.",
+            'prov' => "Ooops! Something went wrong.<br>Please contact support support@multline.io, or try refreshing the page.",
         ],
     ],
 ];
