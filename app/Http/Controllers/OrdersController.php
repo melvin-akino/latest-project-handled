@@ -493,6 +493,10 @@ class OrdersController extends Controller
                 $walletToken = SwooleHandler::getValue('walletClientsTable', 'ml-users')['token'];
                 $userBalance = WalletFacade::getBalance($walletToken, auth()->user()->uuid, $userCurrencyInfo['code']);
 
+                if (empty($userBalance) || array_key_exists('error', $userBalance) || !array_key_exists('status_code', $userBalance) || $userBalance->status_code != 200) {
+                    throw new BadRequestException(trans('game.wallet-api.error.user'));
+                }
+
                 if ($userBalance->data->balance < $payloadStake) {
                     throw new BadRequestException(trans('game.bet.errors.insufficient'));
                 }
@@ -517,15 +521,18 @@ class OrdersController extends Controller
                 /** ROUNDING UP TO NEAREST 50 */
                 $ceil  = ceil($actualStake);
                 $last2 = (int) substr($ceil, -2);
+
                 if (($last2 > 0) && ($last2 <= 50)) {
                     $actualStake = substr($ceil, 0, -2) . '50';
                 } else if ($last2 == 0) {
                     $actualStake = $ceil;
                 } else if ($last2 > 50) {
-                    $actualStake = (int) substr($ceil, 0, -2) + 1;
+                    $actualStake  = (int) substr($ceil, 0, -2) + 1;
                     $actualStake .= '00';
                 }
+
                 $minmaxData = SwooleHandler::getValue('minmaxDataTable', 'minmax-market:' . $request->market_id);
+
                 if ((float) $minmaxData['max'] < (float) $actualStake && $minmaxData) {
                     $actualStake = $minmaxData['max'];
                 }
@@ -595,12 +602,28 @@ class OrdersController extends Controller
                 $orderLogsId    = $orderCreation['order_logs']->id;
                 $reason         = "[PLACE_BET][BET PENDING] - transaction for order id " . $orderCreation['orders']->id;
 
-                userWalletTransaction(auth()->user()->uuid, 'PLACE_BET', ($payloadStake), $providerCurrencyInfo['code'], $orderLogsId, $reason);
+                $userWalletTransaction = userWalletTransaction(auth()->user()->uuid, 'PLACE_BET', ($payloadStake), $providerCurrencyInfo['code'], $orderLogsId, $reason);
+
+                if (!$userWalletTransaction) {
+                    throw new BadRequestException(trans('game.wallet-api.error.user'));
+                }
 
                 $providerWalletToken = SwooleHandler::getValue('walletClientsTable', trim(strtolower($providerInfo['alias'])) . '-users')['token'];
                 $providerUUID        = trim($providerAccount->uuid);
                 $providerReason      = "[PLACE_BET][BET PENDING] - transaction for order id " . $orderCreation['orders']->id;
                 $providerWallet      = WalletFacade::subtractBalance($providerWalletToken, $providerUUID, trim(strtoupper($providerCurrencyInfo['code'])), $actualStake, $providerReason);
+
+                if (empty($providerWallet) || array_key_exists('error', $providerWallet) || !array_key_exists('status_code', $providerWallet) || $providerWallet->status_code != 200) {
+                    $userWalletToken = SwooleHandler::getValue('walletClientsTable', 'ml-users')['token'];
+                    $error = !empty($providerWallet->error) ? $providerWallet->error : "Wallet API interaction";
+                    $userReturnStake = WalletFacade::addBalance($userWalletToken, auth()->user()->uuid, $providerCurrencyInfo['code'], ($payloadStake), "[PLACE_BET][RETURN_STAKE] - Something went wrong: " . $error);
+
+                    if (empty($userReturnStake) || array_key_exists('error', $userReturnStake) || !array_key_exists('status_code', $userReturnStake) || $userReturnStake->status_code != 200) {
+                        throw new BadRequestException(trans('game.wallet-api.error.user'));
+                    }
+
+                    throw new BadRequestException(trans('game.wallet-api.error.prov'));
+                }
 
                 $updateProvider             = ProviderAccount::find($providerAccountId);
                 $updateProvider->updated_at = Carbon::now();
