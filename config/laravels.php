@@ -79,6 +79,12 @@ return [
             'pipe'     => 0,
             'enable'   => true
         ],
+        'wallet_token' => [
+            'class'    => \App\Processes\WalletToken::class,
+            'redirect' => false,
+            'pipe'     => 0,
+            'enable'   => true
+        ],
     ],
     'timer'                    => [
         'enable'        => env('LARAVELS_TIMER', false),
@@ -214,6 +220,7 @@ return [
                 ['name' => 'priority', 'type' => \Swoole\Table::TYPE_INT],
                 ['name' => 'is_enabled', 'type' => \Swoole\Table::TYPE_INT],
                 ['name' => 'currency_id', 'type' => \Swoole\Table::TYPE_INT],
+                ['name' => 'uuid', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 32],
             ],
         ],
         'sports'              => [ //key format [sId:$sportId] = [name = $sport]
@@ -402,6 +409,7 @@ return [
             'size'   => 10000,
             'column' => [ // KEY FORMAT: [userId:$userId]
                 ['name' => 'currency_id', 'type' => \Swoole\Table::TYPE_INT],
+                ['name' => 'wallet_token', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 32],
             ],
         ],
         'orderPayloads'            => [
@@ -491,6 +499,12 @@ return [
                 ['name' => 'sport_id', 'type' => \Swoole\Table::TYPE_INT],
                 ['name' => 'has_markets', 'type' => \Swoole\Table::TYPE_INT],
             ],
+        ],
+        'walletClients'               => [
+            "size"   => 64,
+            "column" => [
+                ["name" => "token", "type" => \Swoole\Table::TYPE_STRING, 'size' => 32],
+            ]
         ],
     ],
     'register_providers'       => [

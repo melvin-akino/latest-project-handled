@@ -7,6 +7,8 @@ use Illuminate\Support\Facades\Log;
 use Swoole\Http\Server;
 use Swoole\{Process, Coroutine};
 use Exception;
+use App\Services\WalletService;
+use Carbon\Carbon;
 
 class AccountConsume implements CustomProcessInterface
 {
@@ -30,6 +32,7 @@ class AccountConsume implements CustomProcessInterface
 
                 while (!self::$quit) {
                     $message = $kafkaConsumer->consume(0);
+
                     if ($message->err == RD_KAFKA_RESP_ERR_NO_ERROR) {
                         $payload = json_decode($message->payload);
 

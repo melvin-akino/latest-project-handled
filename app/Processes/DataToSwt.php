@@ -111,7 +111,7 @@ class DataToSwt implements CustomProcessInterface
                     'priority'          => $provider->priority,
                     'is_enabled'        => $provider->is_enabled,
                     'currency_id'       => $provider->currency_id,
-                    'punter_percentage' => $provider->punter_percentage,
+                    'punter_percentage' => $provider->punter_percentage
                 ]);
         }, $providers->toArray());
     }

@@ -6,6 +6,7 @@ use App\Models\{Currency, UserWallet, Order};
 use Illuminate\Support\Facades\Log;
 use Illuminate\Http\Request;
 use App\Services\WalletService;
+use App\Facades\WalletFacade;
 
 class WalletController extends Controller
 {
@@ -26,39 +27,25 @@ class WalletController extends Controller
             $profit_loss    = 0.00;
             $orders         = 0.00;
 
-            $getToken = $walletService->getAccessToken();
-            if ($getToken->status) {
-                $token      = $getToken->data->access_token;
-                $getBalance = $walletService->getBalance($token, $user->uuid, trim(strtoupper($currency->code)));
+            $token = app('swoole')->walletClientsTable['ml-users']['token'];
+            $getBalance = $walletService->getBalance($token, $user->uuid, trim(strtoupper($currency->code)));
 
-                if ($getBalance->status) {
-                    $balance     = $getBalance->data->balance;
-                    $profit_loss = Order::where('user_id', $userId)->sum('profit_loss');
-                    $orders      = Order::where('user_id', $userId)->whereIn('status', ['PENDING', 'SUCCESS'])->sum('stake');
+            if ($getBalance->status) {
+                $balance     = $getBalance->data->balance;
+                $profit_loss = Order::where('user_id', $userId)->sum('profit_loss');
+                $orders      = Order::where('user_id', $userId)->whereIn('status', ['PENDING', 'SUCCESS'])->sum('stake');
 
-                    return response()->json([
-                        'status'      => true,
-                        'status_code' => 200,
-                        'data'        => [
-                            'currency_symbol' => Currency::find(auth()->user()->currency_id)->symbol,
-                            'credit'          => (float) $balance,
-                            'profit_loss'     => (float) $profit_loss,
-                            'orders'          => (float) $orders,
+                return response()->json([
+                    'status'      => true,
+                    'status_code' => 200,
+                    'data'        => [
+                        'currency_symbol' => Currency::find(auth()->user()->currency_id)->symbol,
+                        'credit'          => (float) $balance,
+                        'profit_loss'     => (float) $profit_loss,
+                        'orders'          => (float) $orders,
 
-                        ],
-                    ]);
-                } else {
-                    if ($getBalance->status_code == 400) {  
-                        Log::error($getBalance->errors);
-                    } else {  
-                        Log::error($getBalance->error);
-                    }
-                    return response()->json([
-                        'status'      => false,
-                        'status_code' => 500,
-                        'message'     => trans('generic.internal-server-error')
-                    ], 500);
-                }
+                    ],
+                ]);
             } else {
                 if ($getBalance->status_code == 400) {  
                     Log::error($getBalance->errors);
