@@ -35,6 +35,14 @@ class EventsTransformationHandler
             if (env('APP_ENV') != "local") {
                 if (!Redis::exists('type:events:requestUID:' . $this->message->request_uid)) {
                     appLog('info', "Events Transformation ignored - Request UID is not from ML");
+                    $toLogs = [
+                        "class"       => "EventsTransformationHandler",
+                        "message"     => "Events Transformation ignored - Request UID is not from ML",
+                        "module"      => "HANDLER_ERROR",
+                        "status_code" => 400,
+                    ];
+                    monitorLog('monitor_handlers', 'error', $toLogs);
+
                     return;
                 }
             }
@@ -49,7 +57,14 @@ class EventsTransformationHandler
                 $swooleTS = SwooleHandler::getValue('eventScrapingTable', $timestampSwtId)['value'];
 
                 if ($swooleTS > $this->message->request_ts) {
-                    Log::info("Event Transformation ignored - Old Timestamp");
+                    $toLogs = [
+                        "class"       => "EventsTransformationHandler",
+                        "message"     => "Event Transformation ignored - Old Timestamp",
+                        "module"      => "HANDLER",
+                        "status_code" => 208,
+                    ];
+                    monitorLog('monitor_handlers', 'info', $toLogs);
+
                     return;
                 }
             }
@@ -67,7 +82,14 @@ class EventsTransformationHandler
              */
             $providerSwtId = "providerAlias:" . strtolower($this->message->data->provider);
             if (!SwooleHandler::exists('providersTable', $providerSwtId)) {
-                Log::info("Leagues Transformation ignored - Provider doesn't exist");
+                $toLogs = [
+                    "class"       => "EventsTransformationHandler",
+                    "message"     => "Leagues Transformation ignored - Provider doesn't exist",
+                    "module"      => "HANDLER_ERROR",
+                    "status_code" => 404,
+                ];
+                monitorLog('monitor_handlers', 'error', $toLogs);
+
                 return;
             } else {
                 $provider   = SwooleHandler::getValue('providersTable', $providerSwtId);
@@ -85,7 +107,14 @@ class EventsTransformationHandler
              */
             $sportSwtId = "sId:" . $this->message->data->sport;
             if (!SwooleHandler::exists('sportsTable', $sportSwtId)) {
-                Log::info("Events Transformation ignored - Sport doesn't exist");
+                $toLogs = [
+                    "class"       => "EventsTransformationHandler",
+                    "message"     => "Events Transformation ignored - Sport doesn't exist",
+                    "module"      => "HANDLER_ERROR",
+                    "status_code" => 404,
+                ];
+                monitorLog('monitor_handlers', 'error', $toLogs);
+
                 return;
             } else {
                 $sports  = SwooleHandler::getValue('sportsTable', $sportSwtId);
@@ -141,27 +170,39 @@ class EventsTransformationHandler
                 }
 
                 $activeEventsTable->set($activeEventsSwtId, ['events' => json_encode($activeEvents)]);
-                Log::info("For Removal Event - Processed");
+                $toLogs = [
+                    "class"       => "EventsTransformationHandler",
+                    "message"     => "For Removal Event - Processed",
+                    "module"      => "HANDLER",
+                    "status_code" => 200,
+                ];
+                monitorLog('monitor_handlers', 'info', $toLogs);
             }
 
             $endTime         = microtime(TRUE);
             $timeConsumption = $endTime - $startTime;
 
-            Log::channel('scraping-events')->info([
-                'request_uid'      => json_encode($this->message->request_uid),
-                'request_ts'       => json_encode($this->message->request_ts),
-                'offset'           => json_encode($this->offset),
-                'time_consumption' => json_encode($timeConsumption),
-                'events'           => json_encode($activeEvents),
-            ]);
+            $toLogs = [
+                "class"       => "EventsTransformationHandler",
+                "message"     => [
+                    'request_uid'      => json_encode($this->message->request_uid),
+                    'request_ts'       => json_encode($this->message->request_ts),
+                    'offset'           => json_encode($this->offset),
+                    'time_consumption' => json_encode($timeConsumption),
+                    'events'           => json_encode($activeEvents),
+                ],
+                "module"      => "HANDLER",
+                "status_code" => 200,
+            ];
+            monitorLog('monitor_handlers', 'info', $toLogs);
         } catch (Exception $e) {
-            Log::error(json_encode(
-                [
-                    'message' => $e->getMessage(),
-                    'line'    => $e->getLine(),
-                    'file'    => $e->getFile(),
-                ]
-            ));
+            $toLogs = [
+                "class"       => "EventsTransformationHandler",
+                "message"     => "Line " . $e->getLine() . " | " . $e->getMessage(),
+                "module"      => "HANDLER_ERROR",
+                "status_code" => $e->getCode(),
+            ];
+            monitorLog('monitor_handlers', 'error', $toLogs);
         }
     }
 }

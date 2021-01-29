@@ -22,11 +22,12 @@ class WsSelectedLeagues implements ShouldQueue
 
     public function handle()
     {
-        $server = app('swoole');
-        $fd = $server->wsTable->get('uid:' . $this->userId);
-        $providers = UserProviderConfiguration::getProviderIdList($this->userId);
-        $leagues = [];
+        $server              = app('swoole');
+        $fd                  = $server->wsTable->get('uid:' . $this->userId);
+        $providers           = UserProviderConfiguration::getProviderIdList($this->userId);
+        $leagues             = [];
         $userSelectedLeagues = UserSelectedLeague::getSelectedLeagueByUserId($this->userId, $this->sportId, $providers);
+
         array_map(function($userSelectedLeague) use (&$leagues) {
             $leagues[$userSelectedLeague->game_schedule][] = $userSelectedLeague->master_league_name;
         }, $userSelectedLeagues->toArray());
@@ -35,6 +36,16 @@ class WsSelectedLeagues implements ShouldQueue
             $server->push($fd['value'], json_encode([
                 'getSelectedLeagues' => $leagues
             ]));
+
+            $toLogs = [
+                "class"       => "WsSelectedLeagues",
+                "message"     => [
+                    'getSelectedLeagues' => $leagues
+                ],
+                "module"      => "JOB",
+                "status_code" => 200,
+            ];
+            monitorLog('monitor_jobs', 'info', $toLogs);
         }
     }
 }

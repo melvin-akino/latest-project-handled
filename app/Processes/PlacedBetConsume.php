@@ -19,7 +19,13 @@ class PlacedBetConsume implements CustomProcessInterface
     {
         try {
             if ($swoole->data2SwtTable->exist('data2Swt')) {
-                Log::info("Bet Consume Starts");
+                $toLogs = [
+                    "class"       => "PlacedBetConsume",
+                    "message"     => "Initiating...",
+                    "module"      => "PROCESS",
+                    "status_code" => 102,
+                ];
+                monitorLog('monitor_process', 'info', $toLogs);
 
                 $betTransformationHandler = app('BetTransformationHandler');
 
@@ -34,36 +40,55 @@ class PlacedBetConsume implements CustomProcessInterface
                         $payload = json_decode($message->payload);
 
                         if (empty($payload->data->status) || empty($payload->data->odds)) {
-                            Log::info("Bet Transformation ignored - Status Or Odds Not Found");
+                            $toLogs = [
+                                "class"       => "PlacedBetConsume",
+                                "message"     => "Bet Transformation ignored - Status Or Odds Not Found",
+                                "module"      => "PRODUCE_ERROR",
+                                "status_code" => 404,
+                            ];
+                            monitorLog('monitor_process', 'error', $toLogs);
+
                             if (env('CONSUMER_PRODUCER_LOG', false)) {
-                                Log::channel('kafkalog')->info(json_encode($message));
+                                $toLogs = [
+                                    "class"       => "PlacedBetConsume",
+                                    "message"     => $message,
+                                    "module"      => "PRODUCE_ERROR",
+                                    "status_code" => 206,
+                                ];
+                                monitorLog('kafkalog', 'info', $toLogs);
                             }
                             continue;
                         } else if (strpos($payload->data->reason, "Internal Error: Session Inactive")) {
-                            Log::info("Bet Transformation ignored - Internal error");
+                            $toLogs = [
+                                "class"       => "PlacedBetConsume",
+                                "message"     => "Bet Transformation ignored - Internal error",
+                                "module"      => "PRODUCE_ERROR",
+                                "status_code" => 400,
+                            ];
+                            monitorLog('monitor_process', 'error', $toLogs);
+
                             continue;
                         }
 
                         $betTransformationHandler->init($payload, $message->offset)->handle();
 
-                        if (env('CONSUMER_PRODUCER_LOG', false)) {
-                            Log::channel('kafkalog')->info(json_encode($message));
-                        }
                         Coroutine::sleep(0.01);
                         $kafkaConsumer->commitAsync($message);
+
                         continue;
                     }
+
                     Coroutine::sleep(0.01);
                 }
             }
         } catch (Exception $e) {
-
-            Log::error(json_encode([
-                'PlacedBetConsume' => [
-                    'message' => $e->getMessage(),
-                    'line'    => $e->getLine(),
-                ]
-            ]));
+            $toLogs = [
+                "class"       => "PlacedBetConsume",
+                "message"     => "Line " . $e->getLine() . " | " . $e->getMessage(),
+                "module"      => "PRODUCE_ERROR",
+                "status_code" => $e->getCode(),
+            ];
+            monitorLog('monitor_process', 'error', $toLogs);
         }
     }
 

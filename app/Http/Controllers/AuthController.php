@@ -152,7 +152,14 @@ class AuthController extends Controller
                 'token_type'   => 'Bearer',
             ], 200);
         } catch (Exception $e) {
-            Log::error($e->getMessage());
+            $toLogs = [
+                "class"       => "AuthController",
+                "message"     => trans('generic.internal-server-error'),
+                "module"      => "API_ERROR",
+                "status_code" => $e->getCode(),
+            ];
+            monitorLog('monitor_api', 'error', $toLogs);
+
             return response()->json([
                 'status'      => false,
                 'status_code' => 500,
@@ -181,7 +188,13 @@ class AuthController extends Controller
                 'message'       => trans('auth.logout.success'),
             ], 200);
         } catch (Exception $e) {
-            Log::error($e->getMessage());
+            $toLogs = [
+                "class"       => "AuthController",
+                "message"     => "Line " . $e->getLine() . " | " . $e->getMessage(),
+                "module"      => "API_ERROR",
+                "status_code" => $e->getCode(),
+            ];
+            monitorLog('monitor_api', 'error', $toLogs);
         }
     }
 
@@ -201,6 +214,14 @@ class AuthController extends Controller
                 ->first();
 
             if (!$user) {
+                $toLogs = [
+                    "class"       => "AuthController",
+                    "message"     => trans('auth.password_reset.email.404'),
+                    "module"      => "API_ERROR",
+                    "status_code" => 404,
+                ];
+                monitorLog('monitor_api', 'error', $toLogs);
+
                 return response()->json([
                     'status'        => false,
                     'status_code'   => 404,
@@ -209,6 +230,14 @@ class AuthController extends Controller
             }
 
             if ($user->status == 0) {
+                $toLogs = [
+                    "class"       => "AuthController",
+                    "message"     => trans('auth.login.451'),
+                    "module"      => "API_ERROR",
+                    "status_code" => 451,
+                ];
+                monitorLog('monitor_api', 'error', $toLogs);
+
                 return response()->json([
                     'status'      => false,
                     'status_code' => 451,
@@ -230,13 +259,27 @@ class AuthController extends Controller
                 );
             }
 
+            $toLogs = [
+                "class"       => "AuthController",
+                "message"     => trans('auth.password_reset.email.sent'),
+                "module"      => "API",
+                "status_code" => 200,
+            ];
+            monitorLog('monitor_api', 'info', $toLogs);
+
             return response()->json([
                 'status'            => true,
                 'status_code'       => 200,
                 'message'           => trans('auth.password_reset.email.sent'),
             ], 200);
         } catch (Exception $e) {
-            Log::error($e->getMessage());
+            $toLogs = [
+                "class"       => "AuthController",
+                "message"     => "Line " . $e->getLine() . " | " . $e->getMessage(),
+                "module"      => "API_ERROR",
+                "status_code" => $e->getCode(),
+            ];
+            monitorLog('monitor_api', 'error', $toLogs);
         }
     }
 
@@ -257,6 +300,14 @@ class AuthController extends Controller
                 ->first();
 
             if (!$passwordReset) {
+                $toLogs = [
+                    "class"       => "AuthController",
+                    "message"     => trans('auth.password_reset.token.404'),
+                    "module"      => "API_ERROR",
+                    "status_code" => 404,
+                ];
+                monitorLog('monitor_api', 'error', $toLogs);
+
                 return response()->json([
                     'status'        => false,
                     'status_code'   => 404,
@@ -265,6 +316,14 @@ class AuthController extends Controller
             }
 
             if (User::where('email', $passwordReset->email)->first()->status == 0) {
+                $toLogs = [
+                    "class"       => "AuthController",
+                    "message"     => trans('auth.login.451'),
+                    "module"      => "API_ERROR",
+                    "status_code" => 451,
+                ];
+                monitorLog('monitor_api', 'error', $toLogs);
+
                 return response()->json([
                     'status'      => false,
                     'status_code' => 451,
@@ -274,6 +333,14 @@ class AuthController extends Controller
 
             if (Carbon::parse($passwordReset->updated_at)->addMinutes(30)->isPast()) {
                 $passwordReset->delete();
+
+                $toLogs = [
+                    "class"       => "AuthController",
+                    "message"     => trans('auth.password_reset.token.404'),
+                    "module"      => "API_ERROR",
+                    "status_code" => 404,
+                ];
+                monitorLog('monitor_api', 'error', $toLogs);
 
                 return response()->json([
                     'status'        => false,
@@ -288,7 +355,13 @@ class AuthController extends Controller
                 'message'           => $passwordReset,
             ], 200);
         } catch (Exception $e) {
-            Log::error($e->getMessage());
+            $toLogs = [
+                "class"       => "AuthController",
+                "message"     => "Line " . $e->getLine() . " | " . $e->getMessage(),
+                "module"      => "API_ERROR",
+                "status_code" => $e->getCode(),
+            ];
+            monitorLog('monitor_api', 'error', $toLogs);
         }
     }
 
@@ -314,6 +387,14 @@ class AuthController extends Controller
             ])->first();
 
             if (!$passwordReset) {
+                $toLogs = [
+                    "class"       => "AuthController",
+                    "message"     => trans('auth.password_reset.token.404'),
+                    "module"      => "API_ERROR",
+                    "status_code" => 404,
+                ];
+                monitorLog('monitor_api', 'error', $toLogs);
+
                 return response()->json([
                     'status'        => false,
                     'status_code'   => 404,
@@ -325,6 +406,14 @@ class AuthController extends Controller
                 ->first();
 
             if (!$user) {
+                $toLogs = [
+                    "class"       => "AuthController",
+                    "message"     => trans('auth.password_reset.email.404'),
+                    "module"      => "API_ERROR",
+                    "status_code" => 404,
+                ];
+                monitorLog('monitor_api', 'error', $toLogs);
+
                 return response()->json([
                     'status'        => false,
                     'status_code'   => 404,
@@ -333,6 +422,14 @@ class AuthController extends Controller
             }
 
             if ($user->status == 0) {
+                $toLogs = [
+                    "class"       => "AuthController",
+                    "message"     => trans('auth.login.451'),
+                    "module"      => "API_ERROR",
+                    "status_code" => 451,
+                ];
+                monitorLog('monitor_api', 'error', $toLogs);
+
                 return response()->json([
                     'status'      => false,
                     'status_code' => 451,
@@ -347,13 +444,27 @@ class AuthController extends Controller
 
             $user->notify(new PasswordResetSuccess($user));
 
+            $toLogs = [
+                "class"       => "AuthController",
+                "message"     => "Password Reset Successful",
+                "module"      => "API",
+                "status_code" => 200,
+            ];
+            monitorLog('monitor_api', 'info', $toLogs);
+
             return response()->json([
                 'status'            => true,
                 'status_code'       => 200,
                 'message'           => trans('auth.password_reset.success'),
             ], 200);
         } catch (Exception $e) {
-            Log::error($e->getMessage());
+            $toLogs = [
+                "class"       => "AuthController",
+                "message"     => "Line " . $e->getLine() . " | " . $e->getMessage(),
+                "module"      => "API_ERROR",
+                "status_code" => $e->getCode(),
+            ];
+            monitorLog('monitor_api', 'error', $toLogs);
         }
     }
 }

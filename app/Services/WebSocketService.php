@@ -122,6 +122,14 @@ class WebSocketService implements WebSocketHandlerInterface
             }
         }
 
+        $toLogs = [
+            "class"       => "WebSocketService",
+            "message"     => "WebSocket Closed",
+            "module"      => "WS",
+            "status_code" => 200,
+        ];
+        monitorLog('monitor_ws', 'info', $toLogs);
+
         SwooleHandler::remove('wsTable', 'fd:' . $fd);
         SwooleHandler::remove('wsTable', 'uid:' . $userId);
     }
@@ -136,11 +144,18 @@ class WebSocketService implements WebSocketHandlerInterface
                 resolve(ClientRepository::class),
                 resolve('encrypter')
             );
-            $request    = HttpRequest::create('/');
+            $request = HttpRequest::create('/');
             $request->headers->set('Authorization', 'Bearer ' . $bearerToken);
             return $tokenguard->user($request);
         } catch (Exception $e) {
-            Log::error('Bearer Token is expired/invalid');
+            $toLogs = [
+                "class"       => "WebSocketService",
+                "message"     => "Bearer Token is expired/invalid",
+                "module"      => "WS_ERROR",
+                "status_code" => 400,
+            ];
+            monitorLog('monitor_ws', 'error', $toLogs);
+
             return 0;
         }
 
@@ -150,7 +165,13 @@ class WebSocketService implements WebSocketHandlerInterface
     {
         if (count($clientCommand) > 1) {
             $job::dispatch($user['value'], $clientCommand);
-            Log::debug("WS Job Dispatched");
+            $toLogs = [
+                "class"       => "WebSocketService",
+                "message"     => "WS Job Dispatched",
+                "module"      => "WS",
+                "status_code" => 200,
+            ];
+            monitorLog('monitor_ws', 'debug', $toLogs);
         } else {
             $job::dispatch($user['value']);
         }

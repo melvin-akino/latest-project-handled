@@ -20,7 +20,13 @@ class MinMaxConsume implements CustomProcessInterface
     {
         try {
             if ($swoole->data2SwtTable->exist('data2Swt')) {
-                Log::info("Min Max Consume Starts");
+                $toLogs = [
+                    "class"       => "MinMaxConsume",
+                    "message"     => "Initiating...",
+                    "module"      => "PROCESS",
+                    "status_code" => 102,
+                ];
+                monitorLog('monitor_process', 'info', $toLogs);
 
                 $minMaxTransformationHandler = app('MinMaxTransformationHandler');
 
@@ -31,11 +37,19 @@ class MinMaxConsume implements CustomProcessInterface
 
                 while (!self::$quit) {
                     $message = $kafkaConsumer->consume(0);
+
                     if ($message->err == RD_KAFKA_RESP_ERR_NO_ERROR) {
                         $payload = json_decode($message->payload);
 
                         if (empty($payload->data)) {
-                            Log::info("Min Max Transformation ignored - No Data Found");
+                            $toLogs = [
+                                "class"       => "MinMaxConsume",
+                                "message"     => "Min Max Transformation ignored - No Data Found",
+                                "module"      => "PRODUCE_ERROR",
+                                "status_code" => 404,
+                            ];
+                            monitorLog('monitor_process', 'error', $toLogs);
+
                             continue;
                         }
 
@@ -50,10 +64,24 @@ class MinMaxConsume implements CustomProcessInterface
                         if (!empty($payload->data->timestamp) && $doesMinMaxKeyExist &&
                             $swoole->minmaxMarketTable->get('minmax-market:' . $payload->data->market_id)['value'] >= $payload->data->timestamp
                         ) {
-                            Log::info("Min Max Transformation ignored - Same or Old Timestamp");
+                            $toLogs = [
+                                "class"       => "MinMaxConsume",
+                                "message"     => "Min Max Transformation ignored - Same or Old Timestamp",
+                                "module"      => "PRODUCE_ERROR",
+                                "status_code" => 208,
+                            ];
+                            monitorLog('monitor_process', 'error', $toLogs);
+
                             if (env('CONSUMER_PRODUCER_LOG', false)) {
-                                Log::channel('kafkalog')->info(json_encode($message));
+                                $toLogs = [
+                                    "class"       => "MinMaxConsume",
+                                    "message"     => $message,
+                                    "module"      => "PROCESS",
+                                    "status_code" => 206,
+                                ];
+                                monitorLog('kafkalog', 'info', $toLogs);
                             }
+
                             continue;
                         }
 
@@ -67,21 +95,33 @@ class MinMaxConsume implements CustomProcessInterface
 
                         PrometheusMatric::MakeMatrix('pull_market_id_total', 'Min-max  total number of  market id  received.',$payload->data->market_id);
 
-                        Log::info('Minmax calling Task Worker');
+                        $toLogs = [
+                            "class"       => "MinMaxConsume",
+                            "message"     => "Minmax calling Task Worker",
+                            "module"      => "PROCESS",
+                            "status_code" => 102,
+                        ];
+                        monitorLog('monitor_process', 'info', $toLogs);
+
                         $minMaxTransformationHandler->init($payload)->handle();
 
-                        if (env('CONSUMER_PRODUCER_LOG', false)) {
-                            Log::channel('kafkalog')->info(json_encode($message));
-                        }
                         Coroutine::sleep(0.01);
                         $kafkaConsumer->commitAsync($message);
+
                         continue;
                     }
+
                     Coroutine::sleep(0.01);
                 }
             }
         } catch (Exception $e) {
-            Log::error($e->getMessage());
+            $toLogs = [
+                "class"       => "MinMaxConsume",
+                "message"     => "Line " . $e->getLine() . " | " . $e->getMessage(),
+                "module"      => "PRODUCE_ERROR",
+                "status_code" => $e->getCode(),
+            ];
+            monitorLog('monitor_process', 'error', $toLogs);
         }
 
     }

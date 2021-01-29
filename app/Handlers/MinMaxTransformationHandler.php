@@ -13,16 +13,22 @@ class MinMaxTransformationHandler
 
     public function init($data)
     {
-        Log::info('Task: MinMax construct');
+        $toLogs = [
+            "class"       => "MinMaxTransformationHandler",
+            "message"     => "Initiating...",
+            "module"      => "HANDLER",
+            "status_code" => 102,
+        ];
+        monitorLog('monitor_handlers', 'info', $toLogs);
+
         $this->data = $data;
+
         return $this;
     }
 
     public function handle()
     {
-        Log::info('Task: MinMax handle');
-        $swoole = app('swoole');
-
+        $swoole                     = app('swoole');
         $topics                     = $swoole->topicTable;
         $minMaxRequests             = $swoole->minMaxRequestsTable;
         $wsTable                    = $swoole->wsTable;
@@ -38,6 +44,7 @@ class MinMaxTransformationHandler
             $minmaxMarketTable->set('minmax-market:' . $this->data->data->market_id, [
                 'value' => $this->data->data->timestamp
             ]);
+
             foreach ($minMaxRequests as $key => $row) {
                 $data = $this->data->data;
 
@@ -61,8 +68,6 @@ class MinMaxTransformationHandler
                                 }
 
                                 $minMaxRequests->del('mId:' . $data->market_id . ':memUID:' . $memUID);
-
-                                Log::info("MIN MAX Transformation - Message Found");
                             } else if ($this->data->message == 'onqueue') {
                                 $doesExist = false;
                                 foreach ($minmaxOnqueueRequestsTable as $key => $row) {
@@ -130,10 +135,10 @@ class MinMaxTransformationHandler
                                 }
 
                                 $maxBetDisplay = $missingCountConfiguration = SystemConfiguration::getSystemConfigurationValue('MAX_BET')->value;
-                                $maximum = floor((($data->maximum) * ($punterPercentage / 100)) * 100 ) / 100;
-                                $timeDiff    = time() - (int) $data->timestamp;
-                                $age         = ($timeDiff > 60) ? floor($timeDiff / 60) . 'm' : $timeDiff . 's';
-                                $transformed = [
+                                $maximum       = floor((($data->maximum) * ($punterPercentage / 100)) * 100 ) / 100;
+                                $timeDiff      = time() - (int) $data->timestamp;
+                                $age           = ($timeDiff > 60) ? floor($timeDiff / 60) . 'm' : $timeDiff . 's';
+                                $transformed   = [
                                     "sport_id"    => $data->sport,
                                     "provider_id" => $provTable->get($providerSwtId)['id'],
                                     "provider"    => strtoupper($data->provider),
@@ -179,8 +184,6 @@ class MinMaxTransformationHandler
                                     $transformed['max'] = ($max <= $maxBetDisplay) ? $max : $maxBetDisplay;
                                 }
 
-                                Log::info('Task: MinMax emitWS');
-
                                 SwooleHandler::setValue('minmaxDataTable', 'minmax-market:' . $memUID, [
                                     'min' => $data->minimum,
                                     'max' => $data->maximum,
@@ -195,20 +198,30 @@ class MinMaxTransformationHandler
                                         'getMinMax' => $transformed
                                     ]));
                                 }
-
-                                Log::info("MIN MAX Transformation - Transformed");
                             }
                         }
                     }
                 }
             }
         } catch (Exception $e) {
-            Log::error($e->getMessage());
+            $toLogs = [
+                "class"       => "MinMaxTransformationHandler",
+                "message"     => "Line " . $e->getLine() . " | " . $e->getMessage(),
+                "module"      => "HANDLER_ERROR",
+                "status_code" => $e->getCode(),
+            ];
+            monitorLog('monitor_handlers', 'error', $toLogs);
         }
     }
 
     public function finish()
     {
-        Log::info("Task: MinMax Done");
+        $toLogs = [
+            "class"       => "MinMaxTransformationHandler",
+            "message"     => "Transformed",
+            "module"      => "HANDLER",
+            "status_code" => 200,
+        ];
+        monitorLog('monitor_handlers', 'info', $toLogs);
     }
 }

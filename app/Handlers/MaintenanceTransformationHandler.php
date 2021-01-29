@@ -17,9 +17,16 @@ class MaintenanceTransformationHandler
      */
     public function init($data)
     {
-        Log::info('MAINTENANCE -- Construct');
+        $toLogs = [
+            "class"       => "MaintenanceTransformationHandler",
+            "message"     => "Initiating...",
+            "module"      => "HANDLER",
+            "status_code" => 102,
+        ];
+        monitorLog('monitor_handlers', 'info', $toLogs);
 
         $this->data = $data;
+
         return $this;
     }
 
@@ -36,7 +43,13 @@ class MaintenanceTransformationHandler
 
         try {
             if (!isset($this->data->command)) {
-                Log::error('MAINTENANCE -- Invalid Payload Command');
+                $toLogs = [
+                    "class"       => "MaintenanceTransformationHandler",
+                    "message"     => "Invalid Payload Command",
+                    "module"      => "HANDLER_ERROR",
+                    "status_code" => 400,
+                ];
+                monitorLog('monitor_handlers', 'error', $toLogs);
             }
 
             $shouldProcess = false;
@@ -74,12 +87,24 @@ class MaintenanceTransformationHandler
                 }
             }
         } catch (Exception $e) {
-            Log::error($e->getMessage());
+            $toLogs = [
+                "class"       => "MaintenanceTransformationHandler",
+                "message"     => "Line " . $e->getLine() . " | " . $e->getMessage(),
+                "module"      => "HANDLER_ERROR",
+                "status_code" => $e->getCode(),
+            ];
+            monitorLog('monitor_handlers', 'error', $toLogs);
         }
     }
 
     public function finish()
     {
-        Log::info("MAINTENANCE -- Done");
+        $toLogs = [
+            "class"       => "MaintenanceTransformationHandler",
+            "message"     => "Processed",
+            "module"      => "HANDLER",
+            "status_code" => 200,
+        ];
+        monitorLog('monitor_handlers', 'info', $toLogs);
     }
 }

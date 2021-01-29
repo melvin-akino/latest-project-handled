@@ -45,6 +45,14 @@ class SettingsController extends Controller
 
                 if (Hash::check($request->old_password, $currentPassword)) {
                     if (Hash::check($request->password, $currentPassword)) {
+                        $toLogs = [
+                            "class"       => "SettingsController",
+                            "message"     => trans('passwords.change.unique'),
+                            "module"      => "API_ERROR",
+                            "status_code" => 400,
+                        ];
+                        monitorLog('monitor_api', 'error', $toLogs);
+
                         return response()->json([
                             'status'      => false,
                             'status_code' => 400,
@@ -59,6 +67,14 @@ class SettingsController extends Controller
                     /** Notify Authenticated User via e-mail that there has been an update with their password */
                     $user->notify(new PasswordResetSuccess($user));
                 } else {
+                    $toLogs = [
+                        "class"       => "SettingsController",
+                        "message"     => trans('passwords.current.incorrect'),
+                        "module"      => "API_ERROR",
+                        "status_code" => 400,
+                    ];
+                    monitorLog('monitor_api', 'error', $toLogs);
+
                     return response()->json([
                         'status'      => false,
                         'status_code' => 400,
@@ -68,6 +84,14 @@ class SettingsController extends Controller
             } else if ($type == 'reset') {
                 $this->resetSettings();
             } else {
+                $toLogs = [
+                    "class"       => "SettingsController",
+                    "message"     => trans('generic.not-found'),
+                    "module"      => "API_ERROR",
+                    "status_code" => 404,
+                ];
+                monitorLog('monitor_api', 'error', $toLogs);
+
                 return response()->json([
                     'status'      => false,
                     'status_code' => 404,
@@ -76,6 +100,14 @@ class SettingsController extends Controller
             }
 
             if (!$response) {
+                $toLogs = [
+                    "class"       => "SettingsController",
+                    "message"     => trans('generic.bad-request'),
+                    "module"      => "API_ERROR",
+                    "status_code" => 400,
+                ];
+                monitorLog('monitor_api', 'error', $toLogs);
+
                 return response()->json([
                     'status'      => false,
                     'status_code' => 400,
@@ -83,13 +115,28 @@ class SettingsController extends Controller
                 ], 400);
             }
 
+            $toLogs = [
+                "class"       => "SettingsController",
+                "message"     => trans('notifications.save.success'),
+                "module"      => "API",
+                "status_code" => 200,
+            ];
+            monitorLog('monitor_api', 'info', $toLogs);
+
             return response()->json([
                 'status'      => true,
                 'status_code' => 200,
                 'message'     => trans('notifications.save.success')
             ], 200);
         } catch (Exception $e) {
-            Log::error($e->getMessage());
+            $toLogs = [
+                "class"       => "SettingsController",
+                "message"     => "Line " . $e->getLine() . " | " . $e->getMessage(),
+                "module"      => "API_ERROR",
+                "status_code" => $e->getCode(),
+            ];
+            monitorLog('monitor_api', 'error', $toLogs);
+
             return response()->json([
                 'status'      => false,
                 'status_code' => 500,
@@ -115,7 +162,14 @@ class SettingsController extends Controller
                 'data'        => $settings[$type],
             ]);
         } catch (Exception $e) {
-            Log::error($e->getMessage());
+            $toLogs = [
+                "class"       => "SettingsController",
+                "message"     => "Line " . $e->getLine() . " | " . $e->getMessage(),
+                "module"      => "API_ERROR",
+                "status_code" => $e->getCode(),
+            ];
+            monitorLog('monitor_api', 'error', $toLogs);
+
             return response()->json([
                 'status'      => false,
                 'status_code' => 500,
@@ -136,7 +190,14 @@ class SettingsController extends Controller
 
             return true;
         } catch (Exception $e) {
-            Log::error($e->getMessage());
+            $toLogs = [
+                "class"       => "SettingsController",
+                "message"     => "Line " . $e->getLine() . " | " . $e->getMessage(),
+                "module"      => "API_ERROR",
+                "status_code" => $e->getCode(),
+            ];
+            monitorLog('monitor_api', 'error', $toLogs);
+
             return false;
         }
     }

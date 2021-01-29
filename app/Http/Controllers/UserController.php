@@ -20,9 +20,9 @@ class UserController extends Controller
         try {
             return response()->json(
                 [
-                    'status'            => true,
-                    'status_code'       => 200,
-                    'data'              => $request->user()->only([
+                    'status'      => true,
+                    'status_code' => 200,
+                    'data'        => $request->user()->only([
                         'name',
                         'email',
                         'firstname',
@@ -39,7 +39,14 @@ class UserController extends Controller
                 ]
             );
         } catch (Exception $e) {
-            Log::error($e->getMessage());
+            $toLogs = [
+                "class"       => "UserController",
+                "message"     => "Line " . $e->getLine() . " | " . $e->getMessage(),
+                "module"      => "API_ERROR",
+                "status_code" => $e->getCode(),
+            ];
+            monitorLog('monitor_api', 'error', $toLogs);
+
             return response()->json([
                 'status'      => false,
                 'status_code' => 500,

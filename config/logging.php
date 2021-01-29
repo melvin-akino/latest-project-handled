@@ -95,10 +95,12 @@ return [
             'driver' => 'monolog',
             'handler' => NullHandler::class,
         ],
+
         'kafkalog' => [
             'driver' => 'single',
             'path' => '/tmp/consumer.logs',
         ],
+
         'kafkaproducelog' => [
             'driver' => 'single',
             'path' => '/tmp/producer.logs',
@@ -127,6 +129,48 @@ return [
             'path'   => storage_path('logs/bets.log'),
             'level'  => 'debug',
         ],
-    ],
 
+        // LOGS MONITORING
+        'monitor_bet_info' => [
+            'driver' => 'single',
+            'path'   => storage_path('logs/monitor/bet_info/laravel.log'),
+            'level'  => 'debug',
+        ],
+
+        'monitor_jobs' => [
+            'driver' => 'single',
+            'path'   => storage_path('logs/monitor/jobs/laravel.log'),
+            'level'  => 'debug',
+        ],
+
+        'monitor_tasks' => [
+            'driver' => 'single',
+            'path'   => storage_path('logs/monitor/tasks/laravel.log'),
+            'level'  => 'debug',
+        ],
+
+        'monitor_ws' => [
+            'driver' => 'single',
+            'path'   => storage_path('logs/monitor/ws/laravel.log'),
+            'level'  => 'debug',
+        ],
+
+        'monitor_handlers' => [
+            'driver' => 'single',
+            'path'   => storage_path('logs/monitor/handlers/laravel.log'),
+            'level'  => 'debug',
+        ],
+
+        'monitor_process' => [
+            'driver' => 'single',
+            'path'   => storage_path('logs/monitor/process/laravel.log'),
+            'level'  => 'debug',
+        ],
+
+        'monitor_api' => [
+            'driver' => 'single',
+            'path'   => storage_path('logs/monitor/api/laravel.log'),
+            'level'  => 'debug',
+        ],
+    ],
 ];
