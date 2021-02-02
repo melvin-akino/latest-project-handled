@@ -61,12 +61,12 @@ class WalletToken implements CustomProcessInterface
         $refreshToken      = self::$getAccessToken[$clientUsers]->data->refresh_token;
 
         $timestampNow = Carbon::now()->timestamp;
-        if (self::$countToExpiration + $expiresIn[$clientUsers] >= $timestampNow) {
+        if (self::$countToExpiration + $expiresIn[$clientUsers] <= $timestampNow) {
             $getRefreshToken   = WalletFacade::refreshToken($refreshToken);
             self::$countToExpiration = $timestampNow;
 
             if ($getRefreshToken->status) {
-                if (self::$countToExpiration + $getRefreshToken->data->expires_in >= $timestampNow) {
+                if (self::$countToExpiration + $getRefreshToken->data->expires_in <= $timestampNow) {
                     $getAccessToken = WalletFacade::getAccessToken('wallet');
 
                     $accessToken = $getAccessToken->data->access_token;
