@@ -543,25 +543,18 @@ class OrdersController extends Controller
                     $payloadStake = $prevStake < $row['max'] ? $prevStake : $row['max'];
                 }
 
-                /** TO DO: Wallet Balance Sufficiency Check */
-                $userWallet = UserWallet::where('user_id', auth()->user()->id);
-
-                if (!$userWallet->exists()) {
-                    $toLogs = [
-                        "class"       => "OrdersController",
-                        "message"     => trans('game.bet.errors.wallet_not_found'),
-                        "module"      => "API_ERROR",
-                        "status_code" => 404,
-                    ];
-                    monitorLog('monitor_api', 'error', $toLogs);
-
-                    throw new NotFoundException(trans('game.bet.errors.wallet_not_found'));
-                }
-
                 $walletToken = SwooleHandler::getValue('walletClientsTable', 'ml-users')['token'];
                 $userBalance = WalletFacade::getBalance($walletToken, auth()->user()->uuid, $userCurrencyInfo['code']);
 
                 if (empty($userBalance) || array_key_exists('error', $userBalance) || !array_key_exists('status_code', $userBalance) || $userBalance->status_code != 200) {
+                    $toLogs = [
+                        "class"       => "OrdersController",
+                        "message"     => trans('game.wallet-api.error.user'),
+                        "module"      => "API_ERROR",
+                        "status_code" => 404,
+                    ];
+                    monitorLog('monitor_api', 'error', $toLogs);
+                    
                     throw new BadRequestException(trans('game.wallet-api.error.user'));
                 }
 
