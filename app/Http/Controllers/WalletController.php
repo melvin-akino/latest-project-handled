@@ -48,7 +48,7 @@ class WalletController extends Controller
                 ]);
             } else {
                 if ($getBalance->status_code == 400) {  
-                    Log::error($getBalance->errors);
+                    Log::error((array) $getBalance->errors);
                 } else {  
                     Log::error($getBalance->error);
                 }
