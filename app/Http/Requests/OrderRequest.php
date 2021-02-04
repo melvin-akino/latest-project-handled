@@ -26,6 +26,7 @@ class OrderRequest extends FormRequest
     public function rules()
     {
         $path = $this->path();
+        $rules = [];
 
         if (!empty($this->input('created_from'))) {
             $rules['created_from'] = 'required|date';
