@@ -126,25 +126,6 @@ const mutations = {
             state.leagues[schedule] = state.leagues[schedule].filter(league => league.name != data.league)
         })
     },
-    UPDATE_LEAGUE_MATCH_COUNT: (state, data) => {
-        let isNotLeagueFound = true;
-        state.leagues[data.schedule].map(league => {
-            if(league.name == data.league) {
-                isNotLeagueFound = false;
-                if(data.hasOwnProperty('match_count')) {
-                    Vue.set(league, 'match_count', data.match_count)
-                } else {
-                    let match_count = state.eventsList.filter(event => event.league_name == data.league && event.game_schedule == data.schedule && !event.hasOwnProperty('watchlist')).length
-                    Vue.set(league, 'match_count', match_count)
-                }
-            }
-        })
-        if (isNotLeagueFound) {
-            commit('ADD_TO_LEAGUES', { schedule: data.schedule, league: data.league, match_count: 1 })
-            dispatch('trade/toggleLeague', { action: 'add', league_name: data.league, sport_id: state.selectedSport, schedule: data.schedule  })
-            commit('ADD_TO_SELECTED_LEAGUE', { schedule: data.schedule, league: data.league })
-        }
-    },
     CLEAR_LEAGUES: (state) => {
         Object.keys(state.leagues).map(schedule => {
             state.leagues[schedule] = []
@@ -516,7 +497,7 @@ const actions = {
                         commit('REMOVE_SELECTED_LEAGUE', {schedule: data.payload.game_schedule, league: data.payload.league_name })
                         commit('REMOVE_FROM_LEAGUE', {schedule: data.payload.game_schedule, league: data.payload.league_name })
                     } else {
-                        commit('UPDATE_LEAGUE_MATCH_COUNT', { schedule: data.payload.game_schedule, league: data.payload.league_name, match_count: leagueMatchCount })
+                        dispatch('updateLeagueMatchCount', { schedule: data.payload.game_schedule, league: data.payload.league_name, match_count: leagueMatchCount })
                     }
                 }
             }
@@ -579,6 +560,25 @@ const actions = {
         commit('SET_ACTIVE_POPUP', data)
         commit('SET_POPUP_ZINDEX')
     },
+    updateLeagueMatchCount({state, commit, dispatch}, data) {
+        let isNotLeagueFound = true;
+        state.leagues[data.schedule].map(league => {
+            if(league.name == data.league) {
+                isNotLeagueFound = false;
+                if(data.hasOwnProperty('match_count')) {
+                    Vue.set(league, 'match_count', data.match_count)
+                } else {
+                    let match_count = state.eventsList.filter(event => event.league_name == data.league && event.game_schedule == data.schedule && !event.hasOwnProperty('watchlist')).length
+                    Vue.set(league, 'match_count', match_count)
+                }
+            }
+        })
+        if (isNotLeagueFound) {
+            commit('ADD_TO_LEAGUES', { schedule: data.schedule, league: data.league, match_count: 1 })
+            dispatch('toggleLeague', { action: 'add', league_name: data.league, sport_id: state.selectedSport, schedule: data.schedule  })
+            commit('ADD_TO_SELECTED_LEAGUE', { schedule: data.schedule, league: data.league })
+        }
+    }
 }
 
 export default {

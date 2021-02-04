@@ -244,7 +244,7 @@ export default {
                             let leagueNames = this.leagues[watchlistEvent.game_schedule].map(league => league.name)
                             let leagueMatchCount = this.eventsList.filter(event => watchlistEvent.league_name == event.league_name && watchlistEvent.game_schedule == event.game_schedule && !event.hasOwnProperty('watchlist')).length
                             if(leagueNames.includes(watchlistEvent.league_name)) {
-                                this.$store.commit('trade/UPDATE_LEAGUE_MATCH_COUNT', { schedule: watchlistEvent.game_schedule, league: watchlistEvent.league_name, match_count: leagueMatchCount  })
+                                this.$store.dispatch('trade/updateLeagueMatchCount', { schedule: watchlistEvent.game_schedule, league: watchlistEvent.league_name, match_count: leagueMatchCount  })
                             } else {
                                 this.$store.commit('trade/ADD_TO_LEAGUES', { schedule: watchlistEvent.game_schedule, league: { name: watchlistEvent.league_name, match_count: leagueMatchCount } })
                             }
@@ -256,7 +256,7 @@ export default {
                         let leagueNames = this.leagues[payload.game_schedule].map(league => league.name)
                         if(leagueNames.includes(payload.league_name)) {
                             let leagueMatchCount = this.leagues[payload.game_schedule].filter(league => league.name == payload.league_name)[0].match_count
-                            this.$store.commit('trade/UPDATE_LEAGUE_MATCH_COUNT', { schedule: payload.game_schedule, league: payload.league_name, match_count: leagueMatchCount + 1 })
+                            this.$store.dispatch('trade/updateLeagueMatchCount', { schedule: payload.game_schedule, league: payload.league_name, match_count: leagueMatchCount + 1 })
                         } else {
                             let leagueMatchCount = this.eventsList.filter(event => event.league_name == payload.league_name && event.game_schedule == payload.game_schedule && !event.hasOwnProperty('watchlist')).length
                             this.$store.commit('trade/ADD_TO_LEAGUES', { schedule: payload.game_schedule, league: { name: payload.league_name, match_count: leagueMatchCount } })
