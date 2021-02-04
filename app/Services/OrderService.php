@@ -12,6 +12,7 @@ class OrderService
     {
         try
         {
+            $where[] = ['user_id', auth()->user()->id];
             $dups = [];
             //filter out failed orders by default
             $where[] = ['o.status', '<>', 'FAILED'];
