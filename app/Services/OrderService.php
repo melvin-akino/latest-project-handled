@@ -12,8 +12,9 @@ class OrderService
     {
         try
         {
-            $where[] = ['user_id', auth()->user()->id];
+            $where[] = ['o.user_id', auth()->user()->id];
             $dups = [];
+            $whereOr = [];
             //filter out failed orders by default
             $where[] = ['o.status', '<>', 'FAILED'];
             $whereDate = [];
@@ -49,6 +50,17 @@ class OrderService
                 $where[] = ['o.provider_account_id', $request->provider_account_id];
             }
 
+            if ($request->league)
+            {
+                $where[] = ['o.master_league_name', 'like', $request->league."%"];
+            }
+
+            if ($request->team)
+            {
+                $whereOr[] = ['o.master_team_home_name', 'like', $request->team."%"];
+                $whereOr[] = ['o.master_team_away_name', 'like', $request->team."%"];
+            }
+
             $data = DB::table('orders AS o')
                 ->join('sports AS s', 's.id', '=', 'o.sport_id')
                 ->join('provider_accounts AS pa', 'pa.id', '=', 'o.provider_account_id')
@@ -58,6 +70,7 @@ class OrderService
                 ->join('provider_account_orders AS pao', 'pao.order_log_id', '=', 'ol.id')
                 ->join('odd_types AS ot', 'ot.id', '=', 'o.odd_type_id')
                 ->where($where)
+                ->whereOr($whereOr)
                 ->orderBy('o.id', 'ASC')
                 ->orderBy('pao.order_log_id', 'DESC')
                 ->distinct()

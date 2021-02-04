@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Exceptions\{BadRequestException, NotFoundException};
-use App\Facades\{SwooleHandler, WalletFacade};
+use App\Facades\{SwooleHandler, WalletFacade, OrderFacade};
 use App\Jobs\KafkaPush;
 use App\Models\{
     Game,
@@ -24,7 +24,6 @@ use Illuminate\Support\{Facades\DB, Facades\Log, Str};
 use Carbon\Carbon;
 use SendLogData;
 use App\Http\Requests\OrderRequest;
-use App\Facades\OrderFacade;
 
 class OrdersController extends Controller
 {
@@ -1003,12 +1002,12 @@ class OrdersController extends Controller
         return bcadd($mt[1], $mt[0], 8);
     }
 
-    public function my_orders(OrderRequest $request)
+    public function myOrdersV2(OrderRequest $request)
     {
         return OrderFacade::getOrders($request);
     }
 
-    public function my_history(OrderRequest $request)
+    public function myHistory(OrderRequest $request)
     {
         return OrderFacade::getOrders($request);
     }
