@@ -24,6 +24,36 @@ class OrdersAllTest extends RegistrationTest
         $response->assertJson(['status_code' => 200]);
     }
 
+    public function myOrdersV2Test()
+    {
+        $this->initialUser();
+        $response = $this->withHeaders([
+            'X-Requested-With' => 'XMLHttpRequest',
+            'Authorization'    => 'Bearer ' . $this->loginJsonResponse->access_token
+        ])->json('GET', '/api/v1/orders/myOrdersV2', [
+            'created_from'  => Carbon::now(),
+            'created_to'    => Carbon::now()
+        ]);
+            $responseData = $response->getContent();
+            $response->assertStatus(200);
+
+    }
+
+    public function HistoryTest()
+    {
+        $this->initialUser();
+        $response = $this->withHeaders([
+            'X-Requested-With' => 'XMLHttpRequest',
+            'Authorization'    => 'Bearer ' . $this->loginJsonResponse->access_token
+        ])->json('GET', '/api/v1/orders/myHistory', [
+            'created_from'  => Carbon::now(),
+            'created_to'    => Carbon::now()
+        ]);
+            $responseData = $response->getContent();
+            $response->assertStatus(200);
+
+    }
+
     public function withInvalidTokenOrderTest() {
         $response = $this->get('/api/v1/orders/all', [
             'X-Requested-With' => 'XMLHttpRequest',
