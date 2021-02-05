@@ -1,239 +1,238 @@
 <template>
-    <div class="container mx-auto my-10">
-        <h3 class="text-xl">My Orders</h3>
-        <div class="h-full">
-            <v-client-table name="My Orders" :data="myorders" :columns="columns" :options="options" ref="ordersTable" @filter="getFilteredData">
-                <div slot="beforeTable" class="relative flex justify-end" v-if="myorders.length != 0">
-                    <span class="absolute totalPLlabel">Total P/L</span>
-                    <span class="absolute totalPL" v-adjust-total-pl-color="totalPL">{{wallet.currency_symbol}} {{totalPL | moneyFormat}}</span>
-                    <json-excel :data="toExport" :fields="exportFields" :name="filename">
-                        <span class="text-center py-1 cursor-pointer"><i class="fas fa-file-export" title="Export orders data."></i></span>
-                    </json-excel>
-                </div>
-                <div slot="bet_selection" slot-scope="props" v-html="props.row.bet_selection"></div>
-                <div slot="reason" slot-scope="props">
-                    <span class="text-xs" v-if="props.row.status == 'FAILED'">{{props.row.reason}}</span>
-                    <span class="text-sm" v-else>-</span>
-                </div>
-                <div slot="pl" slot-scope="props">
-                    <span :class="{'greenPL': props.row.status == 'WIN' || props.row.status == 'HALF WIN', 'redPL': props.row.status == 'LOSE' || props.row.status == 'HALF LOSE'}" >{{props.row.pl | formatPL}}</span>
-                </div>
-                <div slot="valid_stake" slot-scope="props">
-                    <span>{{ props.row.valid_stake | formatPL }}</span>
-                </div>
-                <div slot="score" slot-scope="props">
-                    <span class="text-sm">{{ props.row.settled != "" && props.row.score != "" ? props.row.score.replace(/\"/g, "") : "-" }}</span>
-                </div>
-                <div class="flex justify-start" slot="betData" slot-scope="props">
-                    <a href="#" @click.prevent="openBetMatrix(props.row.order_id, `${props.row.order_id}-betmatrix`)" class="text-center py-1 w-1/2" v-if="oddTypesWithSpreads.includes(props.row.odd_type_id) && !failedBetStatus.includes(props.row.status)"><i class="fas fa-chart-area" title="Bet Matrix"></i></a>
-                    <a href="#" @click.prevent="openOddsHistory(props.row.order_id, `${props.row.order_id}-orderlogs`)" class="text-center py-1 w-1/2" :class="{'ml-4': !oddTypesWithSpreads.includes(props.row.odd_type_id) || failedBetStatus.includes(props.row.status)}"><i class="fas fa-bars" title="Odds History"></i></a>
-                </div>
-            </v-client-table>
-            <order-data v-for="order in myorders" :key="order.order_id" :openedOddsHistory="openedOddsHistory" :openedBetMatrix="openedBetMatrix" @closeOddsHistory="closeOddsHistory" @closeBetMatrix="closeBetMatrix" :order="order"></order-data>
+    <div class="container-fluid px-10 mx-auto my-10">
+        <h1 class="text-2xl font-semibold">{{ ordersPage }}</h1>
+
+        <div class="h-full mt-4 rounded-md bg-white" style="box-shadow: inset 0px 0px 0px 2px rgba(0, 0, 0, 0.1);">
+            <div class="block h-full px-4 py-2">
+                <additional-filters :ordersPage="ordersPage" :totalPL="totalPL" :getWeekDates="getWeekDates" @sendToParent="getMyOrders"></additional-filters>
+            </div>
+
+            <div class="block h-full pt-4" style="padding: 1rem 0.125rem;">
+                <v-app>
+                    <v-main>
+                        <v-data-table :headers="headers" :items="myorders" :items-per-page="10" :group-by="groupedBy" :footer-props="{
+                                showFirstLastPage: true,
+                                firstIcon: 'mdi-arrow-collapse-left',
+                                lastIcon: 'mdi-arrow-collapse-right',
+                                prevIcon: 'mdi-minus',
+                                nextIcon: 'mdi-plus'}" class="bet-data">
+                            <template v-slot:[`group.header`]="{ group, toggle }">
+                                <td colspan="13" @click="toggle">{{ group }}</td>
+                            </template>
+
+                            <template v-slot:item="props">
+                                <tr :class="{'_green': greenStatus.includes(props.item.status), '_failed': redStatus.includes(props.item.status)}">
+                                    <td class="text-start">{{ props.item.bet_id }}</td>
+                                    <td class="text-center">{{ props.item.created }}</td>
+                                    <td class="text-start"><span v-html="props.item.bet_selection"></span></td>
+                                    <td class="text-center">{{ props.item.provider }}</td>
+                                    <td class="text-center"><span class="block text-right">{{ props.item.odds }}</span></td>
+                                    <td class="text-right">{{ props.item.stake }}</td>
+                                    <td class="text-right">{{ props.item.to_win }}</td>
+                                    <td class="text-center"><strong class="block text-center">{{ props.item.status }}</strong></td>
+                                    <td class="text-center"><span>{{ props.item.score.replace(/\"/g, "") }}</span></td>
+                                    <td class="text-right">{{ props.item.valid_stake }}</td>
+                                    <td class="text-right">{{ props.item.pl }}</td>
+                                    <td class="text-start">{{ props.item.reason }}</td>
+                                    <td class="text-right">
+                                        <a href="#" @click.prevent="openBetMatrix(props.item.order_id, `${props.item.order_id}-betmatrix`)"
+                                            class="betdata-btn text-center rounded-full py-2 px-3 hover:bg-gray-400 w-1/2"
+                                            v-if="oddTypesWithSpreads.includes(props.item.odd_type_id) && !failedBetStatus.includes(props.item.status)">
+                                                <i class="fas fa-chart-area" title="Bet Matrix"></i>
+                                        </a>
+                                        <a href="#" @click.prevent="openOddsHistory(props.item.order_id, `${props.item.order_id}-orderlogs`)"
+                                            class="betdata-btn text-center rounded-full py-2 px-3 hover:bg-gray-400 w-1/2"
+                                            :class="{'ml-4': !oddTypesWithSpreads.includes(props.item.odd_type_id) || failedBetStatus.includes(props.item.status)}">
+                                                <i class="fas fa-bars" title="Odds History"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                            </template>
+                        </v-data-table>
+                    </v-main>
+                </v-app>
+            </div>
         </div>
     </div>
 </template>
 
 <script>
-import Cookies from 'js-cookie'
-import OrderData from './OrderData'
-import _ from 'lodash'
-import JsonExcel from 'vue-json-excel'
-import { mapState } from 'vuex'
-import { twoDecimalPlacesFormat, moneyFormat } from '../../../helpers/numberFormat'
+    import Cookies from 'js-cookie'
+    import _ from 'lodash'
+    import JsonExcel from 'vue-json-excel'
+    import { mapState, mapActions } from 'vuex'
+    import OrderData from './OrderData'
+    import { twoDecimalPlacesFormat, moneyFormat } from '../../../helpers/numberFormat'
+    import AdditionalFilters from './AdditionalFilters'
+    import moment from 'moment-timezone'
 
-export default {
-    components: {
-        OrderData,
-        JsonExcel
-    },
-    data() {
-        return {
-            myorders: [],
-            columns: ['bet_id', 'created', 'bet_selection', 'provider', 'odds', 'stake', 'towin', 'status', 'reason', 'score', 'valid_stake', 'pl', 'betData'],
-            options: {
-                headings: {
-                    bet_id: 'Bet ID',
-                    bet_selection: 'Bet Selection',
-                    created: 'Transaction Date & Time',
-                    pl: 'Profit/Loss',
-                    towin: 'To Win',
-                    status: 'Status',
-                    score: 'Result',
-                    valid_stake: 'Valid Stake',
-                    betData: ''
-                },
-                columnsClasses: {
-                    bet_selection: 'betSelection',
-                    odds: 'alignRight',
-                    stake: 'alignRight',
-                    towin: 'towin',
-                    pl: 'alignRight',
-                    score: 'alignRight',
-                    valid_stake: 'alignRight',
-                    betData: 'betData'
-                },
-                sortable: ['bet_id', 'created', 'provider', 'odds', 'stake', 'towin', 'status','pl', 'valid_stake'],
-                rowClassCallback: row => {
-                    var row_class = '';
-                    switch (row.status) {
-                        case 'FAILED':
-                        case 'REJECTED':
-                        case 'CANCELLED':
-                        case 'ABNORMAL BET':
-                        case 'VOID':
-                            row_class = '_failed';
-                            break;
-                        case 'WIN':
-                        case 'HALF WIN':
-                        case 'PUSH':
-                        case 'REFUNDED':
-                            row_class = '_green';
-                            break;
-                        default:
-                            break;
-                    }
-                    return row_class;
-                }
-            },
-            openedOddsHistory: [],
-            openedBetMatrix: [],
-            oddTypesWithSpreads: [3, 4, 11, 12],
-            toExport: [],
-            exportFields: {
-                'Bet ID'                 : 'bet_id',
-                'Transaction Date & Time': 'created',
-                'Bet Selection'          : 'bet_selection',
-                'Provider'               : 'provider',
-                'Odds'                   : 'odds',
-                'Stake'                  : 'stake',
-                'To Win'                 : 'towin',
-                'Status'                 : 'status',
-                'Reason'                 : 'reason',
-                'Result'                 : 'score',
-                'Valid Stake'            : 'valid_stake',
-                'Profit/Loss'            : 'pl'
-            }
-        }
-    },
-    head: {
-        title() {
+    export default {
+        components: {
+            AdditionalFilters,
+            OrderData,
+            JsonExcel,
+        },
+        data() {
             return {
-                inner: 'My Orders'
-            }
-        }
-    },
-    mounted() {
-        this.getMyOrders()
-        this.$store.dispatch('trade/getWalletData')
-        this.$store.dispatch('settings/getDefaultGeneralSettings')
-    },
-    computed: {
-        ...mapState('trade', ['wallet', 'failedBetStatus']),
-        filename() {
-            let display_name = Cookies.get('display_name')
-            return `Multiline Orders (${display_name})`
-        },
-        totalPL() {
-            let pls = this.myorders.map(order => Number(order.pl.replace(',', '')))
-            return pls.reduce((firstPL, secondPL) => firstPL + secondPL, 0)
-        }
-    },
-    watch: {
-        myorders() {
-            this.toExport = this.myorders
-        }
-    },
-    methods: {
-        getMyOrders() {
-            let token = Cookies.get('mltoken')
-
-            axios.get(`v1/orders/all`, { headers: { 'Authorization': `Bearer ${token}` }})
-            .then(response => {
-                let orders = []
-                let formattedColumns = ['stake', 'towin', 'pl', 'valid_stake']
-                if (response.data.data != null) {
-                    response.data.data.orders.map(order => {
-                        let orderObj = {}
-                        Object.keys(order).map(key => {
-                            if(formattedColumns.includes(key)) {
-                                this.$set(orderObj, key, moneyFormat(Number(order[key])))
-                            } else if(key=='odds') {
-                                this.$set(orderObj, key, twoDecimalPlacesFormat(Number(order[key])))
-                            } else if(key=='score') {
-                                if(this.failedBetStatus.includes(order.status) || order.status == 'SUCCESS') {
-                                    this.$set(orderObj, key, "")
-                                } else{
-                                    this.$set(orderObj, key, `"${order[key]}"`)
-                                }
-                            } else {
-                                this.$set(orderObj, key, order[key])
-                            }
-                        })
-
-                        if(order.status == 'SUCCESS') {
-                            this.$set(orderObj, 'status', 'PLACED')
-                        }
-
-                        orders.push(orderObj)
-                    })
-                    this.myorders = orders
+                form: {
+                    group_by: 'date',
+                    search_by: '',
+                    search_keyword: '',
+                    date_from: moment().startOf('week').format('YYYY-MM-DD'),
+                    date_to: moment().endOf('week').format('YYYY-MM-DD')
+                },
+                headers: [
+                    { text: 'bet id', value: 'bet_id', align: 'start', },
+                    { text: 'transaction date & time', value: 'created', align: 'center' },
+                    { text: 'bet selection', value: 'bet_selection', align: 'start', sortable: false, },
+                    { text: 'provider', value: 'provider', align: 'center', sortable: false, },
+                    { text: 'odds', value: 'odds', align: 'center', },
+                    { text: 'stake', value: 'stake', align: 'center', },
+                    { text: 'towin', value: 'towin', align: 'center', },
+                    { text: 'status', value: 'status', align: 'center', },
+                    { text: 'score', value: 'score', align: 'center', sortable: false, },
+                    { text: 'valid stake', value: 'valid_stake', align: 'center', sortable: false, },
+                    { text: 'pl', value: 'pl', align: 'center', },
+                    { text: 'reason', value: 'reason', align: 'start', sortable: false, },
+                    { text: '', value: 'betData', align: 'end', sortable: false, },
+                ],
+                openedOddsHistory: [],
+                openedBetMatrix: [],
+                oddTypesWithSpreads: [3, 4, 11, 12],
+                toExport: [],
+                exportFields: {
+                    'Bet ID': 'bet_id',
+                    'Transaction Date & Time': 'created',
+                    'Bet Selection': 'bet_selection',
+                    'Provider': 'provider',
+                    'Odds': 'odds',
+                    'Stake': 'stake',
+                    'To Win': 'towin',
+                    'Status': 'status',
+                    'Result': 'score',
+                    'Valid Stake': 'valid_stake',
+                    'Profit/Loss': 'pl',
+                    'Reason': 'reason'
                 }
-            })
-            .catch(err => {
-                this.$store.dispatch('auth/checkIfTokenIsValid', err.response.data.status_code)
-            })
+            }
         },
-        getFilteredData() {
-            this.toExport = this.$refs.ordersTable.allFilteredData
+        head: {
+            title() {
+                return {
+                    inner: 'My Orders'
+                }
+            }
         },
-        openOddsHistory(id, data) {
-            this.openedOddsHistory.push(id)
-            this.$store.dispatch('trade/setActivePopup', data)
+        mounted() {
+            this.getMyOrders(this.form)
+            this.$store.dispatch('trade/getWalletData')
+            this.$store.dispatch('settings/getDefaultGeneralSettings')
         },
-        openBetMatrix(id, data) {
-            this.openedBetMatrix.push(id)
-            this.$store.dispatch('trade/setActivePopup', data)
+        updated() {
+            moment.tz.setDefault(this.defaultTimezone.name)
         },
-        closeOddsHistory(id) {
-            this.openedOddsHistory = this.openedOddsHistory.filter(oddHistory => oddHistory != id)
+        computed: {
+            ...mapState('trade', ['wallet', 'failedBetStatus']),
+            ...mapState('settings', ['defaultTimezone']),
+            ...mapState('orders', ['myorders', 'groupedBy']),
+            filename() {
+                let display_name = Cookies.get('display_name')
+
+                return `Multiline Orders (${display_name})`
+            },
+            totalPL() {
+                let pls = this.myorders.map(order => Number(order.pl.replace(',', '')))
+
+                return pls.reduce((firstPL, secondPL) => firstPL + secondPL, 0)
+            },
+            ordersPage() {
+                let page = this.$route.path
+
+                switch (page) {
+                    case "/orders":
+                        page = "My Orders"
+                    break;
+                    case "/history":
+                        page = "Bet History"
+                    break;
+                }
+
+                return page
+            },
+            greenStatus() {
+                return ['WIN', 'HALF WIN', 'PUSH', 'REFUNDED']
+            },
+            redStatus() {
+                return ['FAILED', 'REJECTED', 'CANCELLED', 'ABNORMAL BET', 'VOID']
+            },
+            getWeekDates() {
+                return {
+                    date_from: moment().startOf('week').format('YYYY-MM-DD'),
+                    date_to: moment().endOf('week').format('YYYY-MM-DD')
+                }
+            }
         },
-        closeBetMatrix(id) {
-            this.openedBetMatrix = this.openedBetMatrix.filter(betmatrix => betmatrix != id)
-        }
-    },
-    directives: {
-        adjustTotalPlColor: {
-            bind(el, binding, vnode) {
-                if(binding.value > 0) {
-                    el.classList.remove('redPL')
-                    el.classList.add('greenPL')
-                } else if(binding.value < 0) {
-                    el.classList.add('redPL')
-                    el.classList.remove('greenPL')
+        watch: {
+            myorders() {
+                this.toExport = this.myorders
+            }
+        },
+        methods: {
+            ...mapActions('orders', ['getMyOrders']),
+            getFilteredData() {
+                this.toExport = this.$refs.ordersTable.allFilteredData
+            },
+            openOddsHistory(id, data) {
+                this.openedOddsHistory.push(id)
+                this.$store.dispatch('trade/setActivePopup', data)
+            },
+            openBetMatrix(id, data) {
+                this.openedBetMatrix.push(id)
+                this.$store.dispatch('trade/setActivePopup', data)
+            },
+            closeOddsHistory(id) {
+                this.openedOddsHistory = this.openedOddsHistory.filter(oddHistory => oddHistory != id)
+            },
+            closeBetMatrix(id) {
+                this.openedBetMatrix = this.openedBetMatrix.filter(betmatrix => betmatrix != id)
+            }
+        },
+        directives: {
+            adjustTotalPlColor: {
+                bind(el, binding, vnode) {
+                    if(binding.value > 0) {
+                        el.classList.remove('redPL')
+                        el.classList.add('greenPL')
+                    } else if(binding.value < 0) {
+                        el.classList.add('redPL')
+                        el.classList.remove('greenPL')
+                    } else {
+                        el.classList.remove('redPL')
+                        el.classList.remove('greenPL')
+                    }
+                }
+            }
+        },
+        filters: {
+            moneyFormat,
+            formatPL(value) {
+                if(value == "0.00" || value=="0") {
+                    return "-"
                 } else {
-                    el.classList.remove('redPL')
-                    el.classList.remove('greenPL')
+                    return value
                 }
-            }
-        }
-    },
-    filters: {
-        moneyFormat,
-        formatPL(value) {
-            if(value == "0.00" || value=="0") {
-                return "-"
-            } else {
-                return value
             }
         }
     }
-}
 </script>
 
-<style>
+<style lang="scss">
     .alignRight {
         text-align: right;
+    }
+
+    .alignCenter {
+        text-align: center;
     }
 
     .towin {
@@ -249,41 +248,110 @@ export default {
         right: 138px;
     }
 
-    .totalPL {
-        font-weight: 600;
-        right: 62px;
-    }
-
     .greenPL {
-        color: #4cbb17;
+        color: #009788 !important;
     }
 
     .redPL {
-        color: #ff0000;
+        color: #F44236 !important;
     }
 
     .betSelection {
-        width: 208px;
+        width: 400px;
+    }
+
+    .provider {
+        width: 60px;
+    }
+
+    .score {
+        width: 60px;
+    }
+
+    .status {
+        width: 100px;
+
+        font-weight: 700;
+    }
+
+    .transactionDate {
+        width: 185px;
+    }
+
+    th.stakeValues {
+        text-align: center;
+    }
+
+    .stakeValues {
+        width: 100px;
     }
 
     .betData {
         width: 48px;
     }
 
-    ._green td:first-child {
-        box-shadow: inset 4px 0px 0px 0px #009E28;
-    }
-    ._failed td:first-child {
-        box-shadow: inset 4px 0px 0px 0px #FF2525;
-    }
-    ._failed td {
-        background: #ececec;
+    .betId {
+        width: 120px;
     }
 
-    ._failed td:nth-child(8) {
-        color: #FF2525;
+    button, input, select, textarea {
+        border-style: solid !important;
     }
-    ._green td:nth-child(8) {
-        color: #009E28;
+
+    .betdata-btn {
+        color: #444444 !important;
+    }
+
+    .v-data-table__wrapper {
+        tr.v-row-group__header th,
+        tr.v-row-group__header td {
+            background: #2D3748 !important;
+            color: #FFFFFF !important;
+            font-weight: bold;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        th, td {
+            padding: 0.75rem !important;
+
+            font-size: 0.7rem !important;
+        }
+
+        th {
+            background: #ED8936 !important;
+            color: #FFFFFF !important;
+            font-weight: bold;
+            text-shadow: 1px 1px 0px rgba(0, 0, 0, 0.5) !important;
+            text-transform: uppercase;
+        }
+    }
+
+    tr._failed {
+        td {
+            &:first-child {
+                box-shadow: inset 5px 0px 0px 0px #F44236 !important;
+            }
+
+            &:nth-child(8) {
+                color: #F44236 !important;
+            }
+        }
+    }
+
+    tr._green {
+        td {
+            &:first-child {
+                box-shadow: inset 5px 0px 0px 0px #009788 !important;
+            }
+
+            &:nth-child(8) {
+                color: #009788 !important;
+            }
+        }
+    }
+
+    .v-application--wrap {
+        min-height: auto !important;
     }
 </style>

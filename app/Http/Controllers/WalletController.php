@@ -2,11 +2,12 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\{Currency, UserWallet, Order};
+use App\Models\{Currency, Timezones, UserConfiguration, Order};
 use Illuminate\Support\Facades\Log;
 use Illuminate\Http\Request;
 use App\Services\WalletService;
 use App\Facades\WalletFacade;
+use Carbon\Carbon;
 
 class WalletController extends Controller
 {
@@ -19,37 +20,51 @@ class WalletController extends Controller
     {
 
         try {
-            $user           = auth()->user();
-            $userId         = $user->id;
-            $currencyId     = $user->currency_id;
-            $currency       = Currency::find($currencyId);
-            $balance        = 0.00;
-            $profit_loss    = 0.00;
-            $orders         = 0.00;
+            $user          = auth()->user();
+            $userId        = $user->id;
+            $currencyId    = $user->currency_id;
+            $currency      = Currency::find($currencyId);
+            $userTz        = "Etc/UTC";
+            $getUserConfig = UserConfiguration::getUserConfig($userId)
+                ->where('type', 'timezone')
+                ->first();
+
+            if (!is_null($getUserConfig)) {
+                $userTz = Timezones::find($getUserConfig->value)->name;
+            }
+
+            $balance     = 0.00;
+            $profit_loss = 0.00;
+            $orders      = 0.00;
+            $today       = Carbon::createFromFormat("Y-m-d", Carbon::now()->format("Y-m-d"), 'Etc/UTC')->setTimezone($userTz)->format("Y-m-d");
+            $yesterday   = Carbon::createFromFormat("Y-m-d", Carbon::now()->subDay(1)->format("Y-m-d"), 'Etc/UTC')->setTimezone($userTz)->format("Y-m-d");
 
             $token = app('swoole')->walletClientsTable['ml-users']['token'];
             $getBalance = $walletService->getBalance($token, $user->uuid, trim(strtoupper($currency->code)));
 
             if ($getBalance->status) {
-                $balance     = $getBalance->data->balance;
-                $profit_loss = Order::where('user_id', $userId)->sum('profit_loss');
-                $orders      = Order::where('user_id', $userId)->whereIn('status', ['PENDING', 'SUCCESS'])->sum('stake');
+                $balance      = $getBalance->data->balance;
+                $profit_loss  = Order::where('user_id', $userId)->sum('profit_loss');
+                $orders       = Order::where('user_id', $userId)->whereIn('status', ['PENDING', 'SUCCESS'])->sum('stake');
+                $todayPL      = Order::where('user_id', $userId)->whereBetween('created_at', [$today . " 00:00:00", $today . " 23:59:59"])->sum('profit_loss');
+                $ystrdyPL     = Order::where('user_id', $userId)->whereBetween('created_at', [$yesterday . " 00:00:00", $yesterday . " 23:59:59"])->sum('profit_loss');
 
                 return response()->json([
                     'status'      => true,
                     'status_code' => 200,
                     'data'        => [
                         'currency_symbol' => Currency::find(auth()->user()->currency_id)->symbol,
-                        'credit'          => (float) $balance,
-                        'profit_loss'     => (float) $profit_loss,
-                        'orders'          => (float) $orders,
-
+                        'credit'       => (float) $balance,
+                        'profit_loss'  => (float) $profit_loss,
+                        'orders'       => (float) $orders,
+                        'today_pl'     => (float) $todayPL,
+                        'yesterday_pl' => (float) $todayPL,
                     ],
                 ]);
             } else {
-                if ($getBalance->status_code == 400) {  
+                if ($getBalance->status_code == 400) {
                     Log::error((array) $getBalance->errors);
-                } else {  
+                } else {
                     Log::error($getBalance->error);
                 }
                 return response()->json([
