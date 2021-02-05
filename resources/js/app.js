@@ -12,7 +12,6 @@ import App from './components/App'
 //Global Libraries
 import '@fortawesome/fontawesome-free/css/all.css';
 import '@fortawesome/fontawesome-free/js/all.js';
-import 'material-design-icons-iconfont/dist/material-design-icons.css'
 import '@mdi/font/css/materialdesignicons.min.css';
 
 import Vuelidate from 'vuelidate'
