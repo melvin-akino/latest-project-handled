@@ -8,6 +8,7 @@
                 <div class="flex justify-start items-center w-1/2">
                     <router-link to="/" class="text-sm uppercase sm:px-4 px-6 hover:bg-orange-500 hover:text-white navlink">Trade</router-link>
                     <router-link to="/orders" class="text-sm uppercase ml-1 sm:px-4 px-6 hover:bg-orange-500 hover:text-white navlink">My Orders</router-link>
+                    <router-link to="/history" class="text-sm uppercase ml-1 sm:px-4 px-6 hover:bg-orange-500 hover:text-white navlink">Bet History</router-link>
                     <Search></Search>
                 </div>
                 <div class="flex justify-end items-center w-1/2">

@@ -28,6 +28,10 @@ const routes = [
         component: () => import('./components/views/orders')
     },
     {
+        path: '/history',
+        component: () => import('./components/views/orders')
+    },
+    {
         path: '/settings',
         component: () => import('./components/views/settings'),
         children: [
