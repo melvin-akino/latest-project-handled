@@ -58,10 +58,10 @@ const actions = {
                 commit('SET_MY_ORDERS', orders)
             })
             .catch(err => {
-                dispatch('auth/checkIfTokenIsValid', err.response.data.status_code)
+                dispatch('auth/checkIfTokenIsValid', err.response.data.status_code, { root: true })
                 commit('SET_MY_ORDERS', [])
             })
-    }
+    },
 }
 
 export default {

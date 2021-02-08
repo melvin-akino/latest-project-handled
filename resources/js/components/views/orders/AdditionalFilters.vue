@@ -55,18 +55,20 @@
         <!-- Grid: Additional History Filters -->
         <div class="col-span-1 px-2" v-if="ordersPage.includes('history')">
             <label class="font-bold text-sm uppercase" for="period">Search By</label><br />
-            <select class="w-full border border-gray-400 rounded-sm p-2 text-xs uppercase" v-model="form.search_by" id="peiod">
+            <select class="w-full border border-gray-400 rounded-sm p-2 text-xs uppercase" v-model="form.search_by" @change="populateSearch()">
                 <option value="league_names" selected>League Names</option>
                 <option value="team_names">Team Names</option>
             </select><br />
 
-            <label class="font-bold text-sm uppercase">Search</label><br />
-            <input class="w-full border border-gray-400 rounded-sm p-2 text-xs uppercase" v-model="form.search_keyword">
+            <label class="font-bold text-sm uppercase">Search Keyword</label><br />
+            <v-autocomplete class="w-full text-xs uppercase" v-model="form.search_keyword" :items="populateSearch()" height="40" outlined dense style="margin-top: -2px; font-size: 0.8rem;"></v-autocomplete>
+        </div>
 
+        <div class="col-span-1 px-2" v-if="ordersPage.includes('history')">
             <!-- Button Group -->
             <label class="font-bold text-sm uppercase">Export</label><br />
             <json-excel :data="toExport" :fields="exportFields" :name="filename">
-                <button class="w-auto border-2 border-gray-400 hover:border-green-600 hover:bg-green-600 hover:text-white rounded-full px-4 py-2 text-xs transition ease-in-out duration-100 select-none focus:outline-none tracking-wide">
+                <button class="w-auto mb-5 border-2 border-gray-400 hover:border-green-600 hover:bg-green-600 hover:text-white rounded-full px-4 py-2 text-xs transition ease-in-out duration-100 select-none focus:outline-none tracking-wide">
                     <i class="fas fa-download mr-2"></i> <strong>EXCEL</strong> (.xlsx)
                 </button>
             </json-excel>
@@ -76,12 +78,11 @@
         </div>
 
         <!-- Grid: Separator -->
-        <div class="col-span-2 px-2" v-if="ordersPage.includes('history')">&nbsp;</div>
-        <div class="col-span-3 px-2" v-if="!ordersPage.includes('history')">&nbsp;</div>
+        <div class="col-span-2 px-2" v-if="!ordersPage.includes('history')">&nbsp;</div>
 
         <!-- Grid: User Wallet Information -->
-        <div class="col-span-1 px-2 pt-6">
-            <table class="user-wallet-info w-full">
+        <div class="col-span-2 px-2 pt-6" align="right">
+            <table class="user-wallet-info" width="100%">
                 <tr>
                     <td>Credits</td>
                     <td>¥ &nbsp; <span class="totalPL" v-adjust-total-pl-color="wallet.credit">{{ wallet.credit | moneyFormat }}</span></td>
@@ -153,7 +154,7 @@
             moneyFormat
         },
         methods: {
-            ...mapActions('orders', ['getMyOrders']),
+            ...mapActions('orders', ['getMyOrders', 'getLeaguesList']),
             setFilterDates() {
                 let fromToDate = {
                     all: {
@@ -202,6 +203,21 @@
 
                 this.getMyOrders(this.form)
             },
+            getLeaguesList() {
+                //
+            },
+            getTeamsList() {
+                //
+            },
+            populateSearch() {
+                this.form.search_keyword = ""
+
+                if (this.form.search_by == "league_names") {
+                    return this.getLeaguesList()
+                } else if (this.form.search_by == "team_names") {
+                    return this.getTeamsList()
+                }
+            }
         },
         mounted() {
             this.setInitialVars()
@@ -225,7 +241,7 @@
             font-size: 0.8rem;
 
             &:first-child {
-                width: 30%;
+                width: 60%;
 
                 text-align: right;
                 text-transform: uppercase;
