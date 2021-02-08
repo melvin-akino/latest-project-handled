@@ -1,10 +1,10 @@
 <template>
     <div class="container-fluid px-10 mx-auto my-10">
-        <h1 class="text-2xl font-semibold">{{ ordersPage }}</h1>
+        <h1 class="text-2xl font-semibold">{{ pageTitle }}</h1>
 
         <div class="h-full mt-4 rounded-md bg-white" style="box-shadow: inset 0px 0px 0px 2px rgba(0, 0, 0, 0.1);">
             <div class="block h-full px-4 py-2">
-                <additional-filters :ordersPage="ordersPage" :totalPL="totalPL" :getWeekDates="getWeekDates" @sendToParent="getMyOrders"></additional-filters>
+                <additional-filters :ordersPage="ordersPage" :totalPL="totalPL"></additional-filters>
             </div>
 
             <div class="block h-full pt-4" style="padding: 1rem 0.125rem;">
@@ -28,9 +28,9 @@
                                     <td class="text-center">{{ props.item.provider }}</td>
                                     <td class="text-center"><span class="block text-right">{{ props.item.odds }}</span></td>
                                     <td class="text-right">{{ props.item.stake }}</td>
-                                    <td class="text-right">{{ props.item.to_win }}</td>
+                                    <td class="text-right">{{ props.item.towin }}</td>
                                     <td class="text-center"><strong class="block text-center">{{ props.item.status }}</strong></td>
-                                    <td class="text-center"><span>{{ props.item.score.replace(/\"/g, "") }}</span></td>
+                                    <td class="text-center"><span>{{ props.item.score }}</span></td>
                                     <td class="text-right">{{ props.item.valid_stake }}</td>
                                     <td class="text-right">{{ props.item.pl }}</td>
                                     <td class="text-start">{{ props.item.reason }}</td>
@@ -51,6 +51,13 @@
                         </v-data-table>
                     </v-main>
                 </v-app>
+
+                <order-data v-for="order in myorders"
+                    :key="order.order_id"
+                    :openedOddsHistory="openedOddsHistory"
+                    :openedBetMatrix="openedBetMatrix"
+                    @closeOddsHistory="closeOddsHistory"
+                    @closeBetMatrix="closeBetMatrix" :order="order"></order-data>
             </div>
         </div>
     </div>
@@ -78,8 +85,8 @@
                     group_by: 'date',
                     search_by: '',
                     search_keyword: '',
-                    date_from: moment().startOf('week').format('YYYY-MM-DD'),
-                    date_to: moment().endOf('week').format('YYYY-MM-DD')
+                    date_from: moment().startOf('isoweek').format('YYYY-MM-DD'),
+                    date_to: moment().endOf('isoweek').format('YYYY-MM-DD')
                 },
                 headers: [
                     { text: 'bet id', value: 'bet_id', align: 'start', },
@@ -88,7 +95,7 @@
                     { text: 'provider', value: 'provider', align: 'center', sortable: false, },
                     { text: 'odds', value: 'odds', align: 'center', },
                     { text: 'stake', value: 'stake', align: 'center', },
-                    { text: 'towin', value: 'towin', align: 'center', },
+                    { text: 'to win', value: 'towin', align: 'center', },
                     { text: 'status', value: 'status', align: 'center', },
                     { text: 'score', value: 'score', align: 'center', sortable: false, },
                     { text: 'valid stake', value: 'valid_stake', align: 'center', sortable: false, },
@@ -124,7 +131,7 @@
             }
         },
         mounted() {
-            this.getMyOrders(this.form)
+            // this.getMyOrders(this.form)
             this.$store.dispatch('trade/getWalletData')
             this.$store.dispatch('settings/getDefaultGeneralSettings')
         },
@@ -145,7 +152,7 @@
 
                 return pls.reduce((firstPL, secondPL) => firstPL + secondPL, 0)
             },
-            ordersPage() {
+            pageTitle() {
                 let page = this.$route.path
 
                 switch (page) {
@@ -159,17 +166,14 @@
 
                 return page
             },
+            ordersPage() {
+                return this.$route.path
+            },
             greenStatus() {
                 return ['WIN', 'HALF WIN', 'PUSH', 'REFUNDED']
             },
             redStatus() {
                 return ['FAILED', 'REJECTED', 'CANCELLED', 'ABNORMAL BET', 'VOID']
-            },
-            getWeekDates() {
-                return {
-                    date_from: moment().startOf('week').format('YYYY-MM-DD'),
-                    date_to: moment().endOf('week').format('YYYY-MM-DD')
-                }
             }
         },
         watch: {

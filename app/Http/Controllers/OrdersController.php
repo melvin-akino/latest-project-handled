@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Exceptions\{BadRequestException, NotFoundException};
-use App\Facades\{SwooleHandler, WalletFacade};
+use App\Facades\{SwooleHandler, WalletFacade, OrderFacade};
 use App\Jobs\KafkaPush;
 use App\Models\{
     Game,
@@ -23,6 +23,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\{Facades\DB, Facades\Log, Str};
 use Carbon\Carbon;
 use SendLogData;
+use App\Http\Requests\OrderRequest;
 
 class OrdersController extends Controller
 {
@@ -554,7 +555,7 @@ class OrdersController extends Controller
                         "status_code" => 404,
                     ];
                     monitorLog('monitor_api', 'error', $toLogs);
-                    
+
                     throw new BadRequestException(trans('game.wallet-api.error.user'));
                 }
 
@@ -999,5 +1000,15 @@ class OrdersController extends Controller
         $mt = explode(' ', microtime());
 
         return bcadd($mt[1], $mt[0], 8);
+    }
+
+    public function myOrdersV2(OrderRequest $request)
+    {
+        return OrderFacade::getOrders($request);
+    }
+
+    public function myHistory(OrderRequest $request)
+    {
+        return OrderFacade::getOrders($request);
     }
 }

@@ -19,16 +19,16 @@ const mutations = {
 
 const actions = {
     getMyOrders({commit, dispatch, rootState}, filters) {
-        axios.get(`v1/orders/all`, { params: filters, headers: { 'Authorization': `Bearer ${token}` }})
+        axios.get(`v1/orders/myOrdersV2`, { params: filters, headers: { 'Authorization': `Bearer ${token}` }})
             .then(response => {
                 let orders = []
                 let formattedColumns = ['stake', 'towin', 'pl', 'valid_stake']
-                let _filters = JSON.parse(response.data.data.filters)
+                let _filters = response.data.filters
 
                 commit('SET_GROUPED_BY', _filters.group_by)
 
-                if (response.data.data != null) {
-                    response.data.data.orders.map(order => {
+                if (response.data != null) {
+                    response.data.data.map(order => {
                         let orderObj = {}
 
                         Object.keys(order).map(key => {
@@ -59,7 +59,7 @@ const actions = {
             })
             .catch(err => {
                 console.log(err)
-                dispatch('auth/checkIfTokenIsValid', err.response.data.status_code)
+                dispatch('auth/checkIfTokenIsValid', err.data.status_code)
                 commit('SET_MY_ORDERS', [])
             })
     }
