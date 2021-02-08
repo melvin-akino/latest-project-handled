@@ -6,13 +6,13 @@
             <select v-model="form.period" class="w-full border border-gray-400 rounded-sm p-2 text-xs uppercase" @change="setFilterDates">
                 <template v-if="!ordersPage.includes('history')">
                     <option value="this_week">This Week</option>
+                </template>
+                <template v-else>
                     <option value="daily">Daily</option>
                     <option value="last_week">Last Week</option>
                     <option value="weekly">Weekly</option>
                     <option value="monthly">Monthly</option>
                     <option value="all">All</option>
-                </template>
-                <template v-else>
                 </template>
             </select><br />
 
