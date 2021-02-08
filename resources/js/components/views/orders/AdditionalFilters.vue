@@ -8,8 +8,8 @@
                     <option value="this_week">This Week</option>
                 </template>
                 <template v-else>
-                    <option value="daily">Daily</option>
                     <option value="last_week">Last Week</option>
+                    <option value="daily">Daily</option>
                     <option value="weekly">Weekly</option>
                     <option value="monthly">Monthly</option>
                     <option value="all">All</option>
@@ -42,22 +42,26 @@
             <br />
 
             <label class="font-bold text-sm uppercase" for="groupBy">Group By</label><br />
-            <select class="w-full border border-gray-400 rounded-sm p-2 text-xs uppercase" @change="getMyOrders(form)" v-model="form.group_by" id="groupBy">
+            <select class="w-full border border-gray-400 rounded-sm p-2 text-xs uppercase" v-model="form.group_by" id="groupBy">
                 <option value="date" selected>Date</option>
                 <option value="leaguename">League</option>
             </select>
+
+            <button @click="getMyOrders(form)" class="w-auto mt-4 border-2 border-gray-400 hover:border-orange-600 hover:bg-orange-600 hover:text-white rounded-full px-4 py-2 text-xs transition ease-in-out duration-100 select-none focus:outline-none tracking-wide">
+                <i class="fas fa-search mr-2"></i> <strong class="uppercase">Apply Filters</strong>
+            </button>
         </div>
 
         <!-- Grid: Additional History Filters -->
         <div class="col-span-1 px-2" v-if="ordersPage.includes('history')">
             <label class="font-bold text-sm uppercase" for="period">Search By</label><br />
-            <select class="w-full border border-gray-400 rounded-sm p-2 text-xs uppercase" @change="getMyOrders(form)" v-model="form.search_by" id="peiod">
+            <select class="w-full border border-gray-400 rounded-sm p-2 text-xs uppercase" v-model="form.search_by" id="peiod">
                 <option value="league_names" selected>League Names</option>
                 <option value="team_names">Team Names</option>
             </select><br />
 
             <label class="font-bold text-sm uppercase">Search</label><br />
-            <input class="w-full border border-gray-400 rounded-sm p-2 text-xs uppercase" @change="getMyOrders(form)" v-model="form.search_keyword">
+            <input class="w-full border border-gray-400 rounded-sm p-2 text-xs uppercase" v-model="form.search_keyword">
 
             <!-- Button Group -->
             <label class="font-bold text-sm uppercase">Export</label><br />
@@ -120,12 +124,12 @@
                     date_to: false
                 },
                 form: {
-                    period: this.ordersPage.includes('history') ? 'last_week' : 'this_week',
+                    period: '',
                     group_by: 'date',
                     search_by: '',
                     search_keyword: '',
-                    date_from: moment().startOf('isoweek').format('YYYY-MM-DD'),
-                    date_to: moment().endOf('isoweek').add(1, 'day').format('YYYY-MM-DD')
+                    date_from: '',
+                    date_to: ''
                 }
             }
         },
@@ -187,6 +191,19 @@
             },
         },
         mounted() {
+            // this.getMyOrders(this.form)
+        },
+        updated() {
+            if (this.ordersPage.includes('history')) {
+                this.form.period = 'last_week'
+                this.form.date_from = moment().startOf('isoweek').subtract(1, 'week').format('YYYY-MM-DD')
+                this.form.date_to = moment().endOf('isoweek').subtract(1, 'week').add(1, 'day').format('YYYY-MM-DD')
+            } else if (this.ordersPage.includes('orders')) {
+                this.form.period = 'this_week'
+                this.form.date_from = moment().startOf('isoweek').format('YYYY-MM-DD')
+                this.form.date_to = moment().endOf('isoweek').add(1, 'day').format('YYYY-MM-DD')
+            }
+
             this.getMyOrders(this.form)
         },
         props: ['totalPL', 'ordersPage'],

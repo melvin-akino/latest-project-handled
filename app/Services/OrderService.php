@@ -48,7 +48,7 @@ class OrderService
                 if (!empty($request->search_by)) {
                     switch ($request->search_by) {
                         case "league_names":
-                            $data = $data->where('o.master_league_name', 'ILIKE', trim(preg_replace('%', '^', $request->search_keyword)) . "%");
+                            $data = $data->where('o.master_league_name', 'ILIKE', trim(str_replace('%', '^', $request->search_keyword)) . "%");
                         break;
                         case "team_names":
                             $whereOr[] = ['o.master_team_home_name', 'ILIKE', $request->search_keyword . "%"];

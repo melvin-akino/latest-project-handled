@@ -27,7 +27,7 @@ const actions = {
 
                 commit('SET_GROUPED_BY', _filters.group_by)
 
-                if (response.data != null) {
+                if (response.data.data != null) {
                     response.data.data.map(order => {
                         let orderObj = {}
 
@@ -53,13 +53,12 @@ const actions = {
 
                         orders.push(orderObj)
                     })
-
-                    commit('SET_MY_ORDERS', orders)
                 }
+
+                commit('SET_MY_ORDERS', orders)
             })
             .catch(err => {
-                console.log(err)
-                dispatch('auth/checkIfTokenIsValid', err.data.status_code)
+                dispatch('auth/checkIfTokenIsValid', err.response.data.status_code)
                 commit('SET_MY_ORDERS', [])
             })
     }
