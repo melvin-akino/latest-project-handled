@@ -189,22 +189,27 @@
                     }
                 })
             },
+            setInitialVars() {
+                if (this.ordersPage.includes('history')) {
+                    this.form.period = 'last_week'
+                    this.form.date_from = moment().startOf('isoweek').subtract(1, 'week').format('YYYY-MM-DD')
+                    this.form.date_to = moment().endOf('isoweek').subtract(1, 'week').add(1, 'day').format('YYYY-MM-DD')
+                } else if (this.ordersPage.includes('orders')) {
+                    this.form.period = 'this_week'
+                    this.form.date_from = moment().startOf('isoweek').format('YYYY-MM-DD')
+                    this.form.date_to = moment().endOf('isoweek').add(1, 'day').format('YYYY-MM-DD')
+                }
+
+                this.getMyOrders(this.form)
+            },
         },
         mounted() {
-            // this.getMyOrders(this.form)
+            this.setInitialVars()
         },
-        updated() {
-            if (this.ordersPage.includes('history')) {
-                this.form.period = 'last_week'
-                this.form.date_from = moment().startOf('isoweek').subtract(1, 'week').format('YYYY-MM-DD')
-                this.form.date_to = moment().endOf('isoweek').subtract(1, 'week').add(1, 'day').format('YYYY-MM-DD')
-            } else if (this.ordersPage.includes('orders')) {
-                this.form.period = 'this_week'
-                this.form.date_from = moment().startOf('isoweek').format('YYYY-MM-DD')
-                this.form.date_to = moment().endOf('isoweek').add(1, 'day').format('YYYY-MM-DD')
+        watch: {
+            ordersPage() {
+                this.setInitialVars()
             }
-
-            this.getMyOrders(this.form)
         },
         props: ['totalPL', 'ordersPage'],
     }
