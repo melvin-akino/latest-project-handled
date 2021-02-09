@@ -143,7 +143,6 @@
                     date_from: '',
                     date_to: ''
                 },
-                oddTypesWithSpreads: [3, 4, 11, 12],
                 toExport: [],
                 exportFields: {
                     'Bet ID': 'bet_id',
