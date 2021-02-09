@@ -126,13 +126,11 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
 
                 /** Leagues Endpoints*/
                 Route::prefix('leagues')->group(function () {
-                    /** User Bet bar Management Route Endpoints */
                     Route::get('list', 'LeaguesController@list');
                 });
 
-                /** Leagues Endpoints*/
+                /** Teams Endpoints*/
                 Route::prefix('teams')->group(function () {
-                    /** User Bet bar Management Route Endpoints */
                     Route::get('list', 'TeamsController@list');
                 });
             });

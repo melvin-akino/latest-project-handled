@@ -109,6 +109,7 @@
 </template>
 
 <script>
+    import Cookies from 'js-cookie'
     import { mapState, mapActions } from 'vuex'
     import { twoDecimalPlacesFormat, moneyFormat } from '../../../helpers/numberFormat'
     import moment from 'moment-timezone'
@@ -204,10 +205,37 @@
                 this.getMyOrders(this.form)
             },
             getLeaguesList() {
-                //
+                let list = []
+                let token = Cookies.get('mltoken')
+
+                axios.get('v1/leagues/list', { headers: { 'Authorization': `Bearer ${ token }` } })
+                    .then(response => {
+                        if (response.data.data != null) {
+                            response.data.data.map(row => {
+                                list.push(row.name)
+                            })
+                        }
+
+                        console.log(list)
+                    })
+
+                console.log(list)
+                return ['qwe', 'asd', 'zxc']
             },
             getTeamsList() {
-                //
+                let _list = []
+                let _token = Cookies.get('mltoken')
+
+                axios.get('v1/teams/list', { headers: { 'Authorization': `Bearer ${ _token }` } })
+                    .then(response => {
+                        if (response.data.data != null) {
+                            response.data.data.map(row => {
+                                _list.push(row.name)
+                            })
+
+                            return _list
+                        }
+                    })
             },
             populateSearch() {
                 this.form.search_keyword = ""
