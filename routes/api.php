@@ -123,6 +123,18 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
                     /** Search Suggestions Route Endpoint */
                     Route::post('search', 'TradeController@postSearchSuggestions');
                 });
+
+                /** Leagues Endpoints*/
+                Route::prefix('leagues')->group(function () {
+                    /** User Bet bar Management Route Endpoints */
+                    Route::get('list', 'LeaguesController@list');
+                });
+
+                /** Leagues Endpoints*/
+                Route::prefix('teams')->group(function () {
+                    /** User Bet bar Management Route Endpoints */
+                    Route::get('list', 'TeamsController@list');
+                });
             });
         });
     });
