@@ -114,7 +114,6 @@
             }
         },
         mounted() {
-            // this.getMyOrders(this.form)
             this.$store.dispatch('trade/getWalletData')
             this.$store.dispatch('settings/getDefaultGeneralSettings')
         },
@@ -152,11 +151,6 @@
             },
             redStatus() {
                 return ['FAILED', 'REJECTED', 'CANCELLED', 'ABNORMAL BET', 'VOID']
-            }
-        },
-        watch: {
-            myorders() {
-                this.toExport = this.myorders
             }
         },
         methods: {
