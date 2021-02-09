@@ -66,7 +66,6 @@
 <script>
     import Cookies from 'js-cookie'
     import _ from 'lodash'
-    import JsonExcel from 'vue-json-excel'
     import { mapState, mapActions } from 'vuex'
     import OrderData from './OrderData'
     import { twoDecimalPlacesFormat, moneyFormat } from '../../../helpers/numberFormat'
@@ -77,7 +76,6 @@
         components: {
             AdditionalFilters,
             OrderData,
-            JsonExcel,
         },
         data() {
             return {
@@ -103,24 +101,9 @@
                     { text: 'reason', value: 'reason', align: 'start', sortable: false, },
                     { text: '', value: 'betData', align: 'end', sortable: false, },
                 ],
+                oddTypesWithSpreads: [3, 4, 11, 12],
                 openedOddsHistory: [],
                 openedBetMatrix: [],
-                oddTypesWithSpreads: [3, 4, 11, 12],
-                toExport: [],
-                exportFields: {
-                    'Bet ID': 'bet_id',
-                    'Transaction Date & Time': 'created',
-                    'Bet Selection': 'bet_selection',
-                    'Provider': 'provider',
-                    'Odds': 'odds',
-                    'Stake': 'stake',
-                    'To Win': 'towin',
-                    'Status': 'status',
-                    'Result': 'score',
-                    'Valid Stake': 'valid_stake',
-                    'Profit/Loss': 'pl',
-                    'Reason': 'reason'
-                }
             }
         },
         head: {
@@ -142,11 +125,6 @@
             ...mapState('trade', ['wallet', 'failedBetStatus']),
             ...mapState('settings', ['defaultTimezone']),
             ...mapState('orders', ['myorders', 'groupedBy']),
-            filename() {
-                let display_name = Cookies.get('display_name')
-
-                return `Multiline Orders (${display_name})`
-            },
             totalPL() {
                 let pls = this.myorders.map(order => Number(order.pl.replace(',', '')))
 

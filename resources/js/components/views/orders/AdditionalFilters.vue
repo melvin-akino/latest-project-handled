@@ -113,11 +113,20 @@
     import { mapState, mapActions } from 'vuex'
     import { twoDecimalPlacesFormat, moneyFormat } from '../../../helpers/numberFormat'
     import moment from 'moment-timezone'
+    import JsonExcel from 'vue-json-excel'
 
     export default {
+        components: {
+            JsonExcel,
+        },
         computed: {
             ...mapState('trade', ['wallet']),
             ...mapState('settings', ['defaultTimezone']),
+            filename() {
+                let display_name = Cookies.get('display_name')
+
+                return `Multiline Orders (${ display_name })`
+            },
         },
         data() {
             return {
@@ -133,6 +142,22 @@
                     search_keyword: '',
                     date_from: '',
                     date_to: ''
+                },
+                oddTypesWithSpreads: [3, 4, 11, 12],
+                toExport: [],
+                exportFields: {
+                    'Bet ID': 'bet_id',
+                    'Transaction Date & Time': 'created',
+                    'Bet Selection': 'bet_selection',
+                    'Provider': 'provider',
+                    'Odds': 'odds',
+                    'Stake': 'stake',
+                    'To Win': 'towin',
+                    'Status': 'status',
+                    'Result': 'score',
+                    'Valid Stake': 'valid_stake',
+                    'Profit/Loss': 'pl',
+                    'Reason': 'reason'
                 }
             }
         },
