@@ -61,7 +61,7 @@
             </select><br />
 
             <label class="font-bold text-sm uppercase">Search Keyword</label><br />
-            <v-autocomplete class="w-full text-xs uppercase" v-model="form.search_keyword" :items="populateSearch()" height="40" outlined dense style="margin-top: -2px; font-size: 0.8rem;"></v-autocomplete>
+            <v-autocomplete class="w-full text-xs uppercase" v-model="form.search_keyword" :items="search_keywords" height="40" outlined dense style="margin-top: -2px; font-size: 0.8rem;"></v-autocomplete>
         </div>
 
         <div class="col-span-1 px-2" v-if="ordersPage.includes('history')">
@@ -121,6 +121,7 @@
         },
         data() {
             return {
+                search_keywords: [],
                 menu: {
                     date_from: false,
                     date_to: false
@@ -205,35 +206,30 @@
                 this.getMyOrders(this.form)
             },
             getLeaguesList() {
-                let list = []
                 let token = Cookies.get('mltoken')
 
                 axios.get('v1/leagues/list', { headers: { 'Authorization': `Bearer ${ token }` } })
                     .then(response => {
                         if (response.data.data != null) {
+                            this.search_keywords = []
+
                             response.data.data.map(row => {
-                                list.push(row.name)
+                                this.search_keywords.push(row.name)
                             })
                         }
-
-                        console.log(list)
                     })
-
-                console.log(list)
-                return ['qwe', 'asd', 'zxc']
             },
             getTeamsList() {
-                let _list = []
-                let _token = Cookies.get('mltoken')
+                let token = Cookies.get('mltoken')
 
-                axios.get('v1/teams/list', { headers: { 'Authorization': `Bearer ${ _token }` } })
+                axios.get('v1/teams/list', { headers: { 'Authorization': `Bearer ${ token }` } })
                     .then(response => {
                         if (response.data.data != null) {
-                            response.data.data.map(row => {
-                                _list.push(row.name)
-                            })
+                            this.search_keywords = []
 
-                            return _list
+                            response.data.data.map(row => {
+                                this.search_keywords.push(row.name)
+                            })
                         }
                     })
             },
