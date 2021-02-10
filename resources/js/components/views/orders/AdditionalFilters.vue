@@ -25,7 +25,7 @@
                             style="padding-left: 3.25rem;"
                             v-model="form.date_from" readonly v-bind="attrs" v-on="on">
                     </template>
-                    <v-date-picker v-model="form.date_from" @input="menu.date_from = false" no-title></v-date-picker>
+                    <v-date-picker v-model="form.date_from" @change="form.period = null" @input="menu.date_from = false" no-title></v-date-picker>
                 </v-menu>
             </div>
             <div class="inline-block w-1/2" style="margin-left: -4px;">
@@ -36,7 +36,7 @@
                             style="padding-left: 3.25rem;"
                             v-model="form.date_to" readonly v-bind="attrs" v-on="on">
                     </template>
-                    <v-date-picker v-model="form.date_to" @input="menu.date_to = false" no-title></v-date-picker>
+                    <v-date-picker v-model="form.date_to" @change="form.period = null" @input="menu.date_to = false" no-title></v-date-picker>
                 </v-menu>
             </div>
             <br />
@@ -67,16 +67,19 @@
         <div class="col-span-1 px-2" v-if="ordersPage.includes('history')">
             <!-- Button Group -->
             <label class="font-bold text-sm uppercase">Export</label><br />
-            <json-excel :data="myorders" :fields="exportFields" :name="filename">
-                <button class="w-auto mb-5 border-2 border-gray-400 hover:border-green-600 hover:bg-green-600 hover:text-white rounded-full px-4 py-2 text-xs transition ease-in-out duration-100 select-none focus:outline-none tracking-wide">
-                    <i class="fas fa-download mr-2"></i> <strong>EXCEL</strong> (.xlsx)
-                </button>
-            </json-excel>
-            <json-csv :data="myorders" :name="filename">
-                <button class="w-auto border-2 border-gray-400 hover:border-blue-600 hover:bg-blue-600 hover:text-white rounded-full px-4 py-2 text-xs transition ease-in-out duration-100 select-none focus:outline-none tracking-wide">
-                    <i class="fas fa-download mr-2"></i> <strong>CSV FILE</strong> (.csv)
-                </button>
-            </json-csv>
+                <json-excel
+                    class="w-1/2 xl:w-1/2 lg:w-full md:w-full sm:w-full xs:w-full mb-5 border-2 border-gray-400 hover:border-green-600 hover:bg-green-600 hover:text-white rounded-full px-4 py-2 text-xs text-center transition ease-in-out duration-100 select-none focus:outline-none tracking-wide"
+                    :data="myorders" :fields="exportFields"
+                    :name="filename">
+                        <i class="fas fa-download mr-2"></i> <strong>EXCEL</strong> (.xlsx)
+                </json-excel>
+
+                <json-csv
+                    class="w-1/2 xl:w-1/2 lg:w-full md:w-full sm:w-full xs:w-full border-2 border-gray-400 hover:border-blue-600 hover:bg-blue-600 hover:text-white rounded-full px-4 py-2 text-xs text-center transition ease-in-out duration-100 select-none focus:outline-none tracking-wide"
+                    :data="myorders"
+                    :name="filename">
+                        <i class="fas fa-download mr-2"></i> <strong>CSV FILE</strong> (.csv)
+                </json-csv>
         </div>
 
         <!-- Grid: Separator -->
@@ -221,6 +224,9 @@
                 })
             },
             setInitialVars() {
+                this.form.search_by = ""
+                this.form.search_keyword = ""
+
                 if (this.ordersPage.includes('history')) {
                     this.form.period = 'last_week'
                     this.form.date_from = moment().startOf('isoweek').subtract(1, 'week').format('YYYY-MM-DD')

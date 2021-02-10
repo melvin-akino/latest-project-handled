@@ -25,7 +25,6 @@ class OrderService
 
             $dups    = [];
             $where[] = ['o.user_id', auth()->user()->id];
-            $whereOr = [];
             $data    = DB::table('orders AS o')
                 ->join('sports AS s', 's.id', '=', 'o.sport_id')
                 ->join('provider_accounts AS pa', 'pa.id', '=', 'o.provider_account_id')
@@ -51,14 +50,12 @@ class OrderService
                             $data = $data->where('o.master_league_name', 'ILIKE', trim(str_replace('%', '^', $request->search_keyword)) . "%");
                         break;
                         case "team_names":
-                            $whereOr[] = ['o.master_team_home_name', 'ILIKE', $request->search_keyword . "%"];
-                            $whereOr[] = ['o.master_team_away_name', 'ILIKE', $request->search_keyword . "%"];
+                            $data = $data->where(function ($query) use ($request) {
+                                $query->where('o.master_team_home_name', 'ILIKE', $request->search_keyword . "%")
+                                    ->orWhere('o.master_team_away_name', 'ILIKE', $request->search_keyword . "%");
+                            });
                         break;
                     }
-                }
-
-                if (!empty($whereOr)) {
-                    $data = $data->whereOr($whereOr);
                 }
             }
 
