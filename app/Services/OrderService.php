@@ -84,6 +84,7 @@ class OrderService
                     'o.master_league_name',
                     'o.master_team_home_name',
                     'o.master_team_away_name',
+                    'o.master_event_unique_id',
                     'pao.actual_stake',
                     'pao.actual_to_win',
                     'pao.actual_profit_loss',
@@ -100,11 +101,11 @@ class OrderService
                         'leaguename'    => $row->master_league_name,
                         'bet_id'        => $row->ml_bet_identifier,
                         'provider'      => $row->provider,
-                        'bet_selection' => $row->bet_selection,
+                        'bet_selection' => nl2br($row->bet_selection),
                         'created'       => $created,
                         'status'        => $row->status,
                         'stake'         => $row->stake,
-                        'valid_stake'   => $row->to_win ? abs($row->to_win) : 0,
+                        'valid_stake'   => $row->profit_loss ? abs($row->profit_loss) : 0,
                         'towin'         => $row->to_win,
                         'score'         => (string) $row->score_on_bet,
                         'pl'            => $row->profit_loss,
@@ -112,7 +113,8 @@ class OrderService
                         'betData'       => $row->reason,
                         'error_message' => $row->error,
                         'odds'          => $row->odds,
-                        'odds_label'    => $row->odd_label
+                        'odds_label'    => $row->odd_label,
+                        'event_id'     => $row->master_event_unique_id,
                     ];
 
                     $dups[] = $row->id;
