@@ -91,6 +91,8 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
                 /** Orders Route Endpoints */
                 Route::prefix('orders')->group(function () {
                     Route::get('all', 'OrdersController@myOrders');
+                    Route::get('myOrdersV2', 'OrdersController@myOrdersV2');
+                    Route::get('myHistory', 'OrdersController@myHistory');
                     Route::get('/{memUID}', 'OrdersController@getEventMarketsDetails');
                     Route::get('/{memUID}/logs', 'OrdersController@getEventMarketLogs');
                     Route::get('logs/{uid}', 'OrdersController@getBetSlipLogs');
@@ -98,6 +100,8 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
 
                     Route::post('bet', 'OrdersController@postPlaceBet')->middleware(['prometheusopenbet','prometheusurlog']);
                     Route::post('minmaxlog', 'OrdersController@receiveMinMaxLog');
+
+
                 });
 
                 /** Game Data Route Endpoints*/
@@ -122,13 +126,11 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
 
                 /** Leagues Endpoints*/
                 Route::prefix('leagues')->group(function () {
-                    /** User Bet bar Management Route Endpoints */
                     Route::get('list', 'LeaguesController@list');
                 });
 
-                /** Leagues Endpoints*/
+                /** Teams Endpoints*/
                 Route::prefix('teams')->group(function () {
-                    /** User Bet bar Management Route Endpoints */
                     Route::get('list', 'TeamsController@list');
                 });
             });
