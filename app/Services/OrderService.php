@@ -36,12 +36,12 @@ class OrderService
                 ->leftJoin('error_messages AS em', 'em.id', '=', 'o.provider_error_message_id');
 
             if (!empty($where)) {
-                $data        = $data->where($where);
-                $requestFrom = Carbon::createFromFormat("Y-m-d H:i:s", $request->date_from . " 12:00:00", 'Etc/UTC')->setTimezone($userTz)->format("Y-m-d H:i:s");
-                $requestTo   = Carbon::createFromFormat("Y-m-d H:i:s", $request->date_to . " 11:59:59", 'Etc/UTC')->setTimezone($userTz)->format("Y-m-d H:i:s");
+                $data = $data->where($where);
 
                 if (!empty($request->date_from)) {
-                    $data = $data->whereBetween('o.created_at', [ $requestFrom, $requestTo ]);
+                    $requestFrom = Carbon::createFromFormat("Y-m-d H:i:s", $request->date_from . " 12:00:00", 'Etc/UTC')->setTimezone($userTz)->format("Y-m-d H:i:s");
+                    $requestTo   = Carbon::createFromFormat("Y-m-d H:i:s", $request->date_to . " 11:59:59", 'Etc/UTC')->setTimezone($userTz)->format("Y-m-d H:i:s");
+                    $data        = $data->whereBetween('o.created_at', [ $requestFrom, $requestTo ]);
                 }
 
                 if (!empty($request->search_by)) {
