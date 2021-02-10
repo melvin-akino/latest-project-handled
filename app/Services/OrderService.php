@@ -64,6 +64,7 @@ class OrderService
                 ->distinct()
                 ->get([
                     'o.id',
+                    'o.odd_type_id',
                     'p.id as provider_id',
                     'p.alias as provider',
                     's.id as sport_id',
@@ -80,6 +81,7 @@ class OrderService
                     'o.stake',
                     'o.to_win',
                     'o.score_on_bet',
+                    'o.final_score',
                     'o.profit_loss',
                     'o.master_league_name',
                     'o.master_team_home_name',
@@ -95,26 +97,39 @@ class OrderService
 
             foreach ($data as $row) {
                 if (!in_array($row->id, $dups)) {
-                    $created        = Carbon::createFromFormat("Y-m-d H:i:s", $row->created_at, 'Etc/UTC')->setTimezone($userTz)->format("Y-m-d H:i:s");
+                    $created = Carbon::createFromFormat("Y-m-d H:i:s", $row->created_at, 'Etc/UTC')->setTimezone($userTz)->format("Y-m-d H:i:s");
+                    $settled = empty($myOrder->settled_date) ? "" : Carbon::createFromFormat("Y-m-d H:i:sO", $row->settled_date, 'Etc/UTC')->setTimezone($userTz)->format("Y-m-d H:i:s");
+
+                    if (!empty($row->settled_date) && !empty($row->final_score)) {
+                        $score = explode(' - ', $row->final_score);
+                    } else {
+                        $score = explode(" - ", $row->score_on_bet);
+                    }
+
                     $transactions[] = [
+                        'order_id'      => $row->id,
+                        'odd_type_id'   => $row->odd_type_id,
                         'date'          => date("F d, Y", strtotime($created)),
                         'leaguename'    => $row->master_league_name,
                         'bet_id'        => $row->ml_bet_identifier,
-                        'provider'      => $row->provider,
+                        'provider'      => strtoupper($row->provider),
                         'bet_selection' => nl2br($row->bet_selection),
                         'created'       => $created,
+                        'settled'       => $settled,
                         'status'        => $row->status,
                         'stake'         => $row->stake,
                         'valid_stake'   => $row->profit_loss ? abs($row->profit_loss) : 0,
                         'towin'         => $row->to_win,
                         'score'         => (string) $row->score_on_bet,
+                        'home_score'    => $score[0],
+                        'away_score'    => $score[1],
                         'pl'            => $row->profit_loss,
                         'reason'        => $row->reason,
                         'betData'       => $row->reason,
                         'error_message' => $row->error,
                         'odds'          => $row->odds,
-                        'odds_label'    => $row->odd_label,
-                        'event_id'     => $row->master_event_unique_id,
+                        'points'        => $row->odd_label,
+                        'event_id'      => $row->master_event_unique_id,
                     ];
 
                     $dups[] = $row->id;
