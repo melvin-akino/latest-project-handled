@@ -67,14 +67,16 @@
         <div class="col-span-1 px-2" v-if="ordersPage.includes('history')">
             <!-- Button Group -->
             <label class="font-bold text-sm uppercase">Export</label><br />
-            <json-excel :data="toExport" :fields="exportFields" :name="filename">
+            <json-excel :data="myorders" :fields="exportFields" :name="filename">
                 <button class="w-auto mb-5 border-2 border-gray-400 hover:border-green-600 hover:bg-green-600 hover:text-white rounded-full px-4 py-2 text-xs transition ease-in-out duration-100 select-none focus:outline-none tracking-wide">
                     <i class="fas fa-download mr-2"></i> <strong>EXCEL</strong> (.xlsx)
                 </button>
             </json-excel>
-            <button class="w-auto border-2 border-gray-400 hover:border-blue-600 hover:bg-blue-600 hover:text-white rounded-full px-4 py-2 text-xs transition ease-in-out duration-100 select-none focus:outline-none tracking-wide">
-                <i class="fas fa-download mr-2"></i> <strong>CSV FILE</strong> (.csv)
-            </button>
+            <json-csv :data="myorders" :name="filename">
+                <button class="w-auto border-2 border-gray-400 hover:border-blue-600 hover:bg-blue-600 hover:text-white rounded-full px-4 py-2 text-xs transition ease-in-out duration-100 select-none focus:outline-none tracking-wide">
+                    <i class="fas fa-download mr-2"></i> <strong>CSV FILE</strong> (.csv)
+                </button>
+            </json-csv>
         </div>
 
         <!-- Grid: Separator -->
@@ -114,14 +116,17 @@
     import { twoDecimalPlacesFormat, moneyFormat } from '../../../helpers/numberFormat'
     import moment from 'moment-timezone'
     import JsonExcel from 'vue-json-excel'
+    import JsonCsv from 'vue-json-csv'
 
     export default {
         components: {
             JsonExcel,
+            JsonCsv,
         },
         computed: {
             ...mapState('trade', ['wallet']),
             ...mapState('settings', ['defaultTimezone']),
+            ...mapState('orders', ['myorders']),
             filename() {
                 let display_name = Cookies.get('display_name')
 
@@ -143,7 +148,6 @@
                     date_from: '',
                     date_to: ''
                 },
-                toExport: [],
                 exportFields: {
                     'Bet ID': 'bet_id',
                     'Transaction Date & Time': 'created',
