@@ -63,6 +63,11 @@ class User extends Authenticatable
         return self::find($userId)->where('status', 1);
     }
 
+    public function currency()
+    {
+        return $this->hasOne(Currency::class, 'id', 'currency_id');
+    }
+
     public function wallet()
     {
         return $this->hasMany(UserWallet::class, 'user_id', 'id');
