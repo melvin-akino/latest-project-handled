@@ -94,7 +94,15 @@ class OrderService
 
             foreach ($data as $row) {
                 if (!in_array($row->id, $dups)) {
-                    $created        = Carbon::createFromFormat("Y-m-d H:i:s", $row->created_at, 'Etc/UTC')->setTimezone($userTz)->format("Y-m-d H:i:s");
+                    $created = Carbon::createFromFormat("Y-m-d H:i:s", $row->created_at, 'Etc/UTC')->setTimezone($userTz)->format("Y-m-d H:i:s");
+                    $settled = empty($row->settled_date) ? "" : Carbon::createFromFormat("Y-m-d H:i:sO", $row->settled_date, 'Etc/UTC')->setTimezone($userTz)->format("Y-m-d H:i:s");
+
+                    if (!empty($row->settled_date) && !empty($row->final_score)) {
+                        $score = explode(' - ', $row->final_score);
+                    } else {
+                        $score = explode(" - ", $row->score_on_bet);
+                    }
+
                     $transactions[] = [
                         'date'          => date("F d, Y", strtotime($created)),
                         'leaguename'    => $row->master_league_name,
