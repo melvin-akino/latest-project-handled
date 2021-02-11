@@ -64,6 +64,7 @@ class OrderService
                 ->distinct()
                 ->get([
                     'o.id',
+                    'o.odd_type_id',
                     'p.id as provider_id',
                     'p.alias as provider',
                     's.id as sport_id',
@@ -75,15 +76,18 @@ class OrderService
                     'o.bet_id',
                     'pa.username',
                     'o.created_at',
+                    'o.settled_date',
                     'o.reason',
                     'o.status',
                     'o.stake',
                     'o.to_win',
                     'o.score_on_bet',
+                    'o.final_score',
                     'o.profit_loss',
                     'o.master_league_name',
                     'o.master_team_home_name',
                     'o.master_team_away_name',
+                    'o.master_event_unique_id',
                     'pao.actual_stake',
                     'pao.actual_to_win',
                     'pao.actual_profit_loss',
@@ -104,23 +108,29 @@ class OrderService
                     }
 
                     $transactions[] = [
+                        'order_id'      => $row->id,
+                        'odd_type_id'   => $row->odd_type_id,
                         'date'          => date("F d, Y", strtotime($created)),
                         'leaguename'    => $row->master_league_name,
                         'bet_id'        => $row->ml_bet_identifier,
-                        'provider'      => $row->provider,
-                        'bet_selection' => $row->bet_selection,
+                        'provider'      => strtoupper($row->provider),
+                        'bet_selection' => nl2br($row->bet_selection),
                         'created'       => $created,
+                        'settled'       => $settled,
                         'status'        => $row->status,
                         'stake'         => $row->stake,
-                        'valid_stake'   => $row->to_win ? abs($row->to_win) : 0,
+                        'valid_stake'   => $row->profit_loss ? abs($row->profit_loss) : 0,
                         'towin'         => $row->to_win,
                         'score'         => (string) $row->score_on_bet,
+                        'home_score'    => $score[0],
+                        'away_score'    => $score[1],
                         'pl'            => $row->profit_loss,
                         'reason'        => $row->reason,
                         'betData'       => $row->reason,
                         'error_message' => $row->error,
                         'odds'          => $row->odds,
-                        'odds_label'    => $row->odd_label
+                        'points'        => $row->odd_label,
+                        'event_id'      => $row->master_event_unique_id,
                     ];
 
                     $dups[] = $row->id;
