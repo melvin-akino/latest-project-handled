@@ -30,7 +30,7 @@
                                     <td class="text-right">{{ props.item.stake }}</td>
                                     <td class="text-right">{{ props.item.towin }}</td>
                                     <td class="text-center"><strong class="block text-center">{{ props.item.status }}</strong></td>
-                                    <td class="text-center"><span>{{ props.item.score }}</span></td>
+                                    <td class="text-center"><span>{{ props.item.score.replace(/\"/g, '') }}</span></td>
                                     <td class="text-right">{{ props.item.valid_stake }}</td>
                                     <td class="text-right">{{ props.item.pl }}</td>
                                     <td class="text-start">{{ props.item.reason }}</td>
