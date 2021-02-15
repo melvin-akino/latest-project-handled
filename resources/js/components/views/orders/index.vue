@@ -1,8 +1,8 @@
 <template>
-    <div class="container-fluid px-10 mx-auto my-10">
+    <div class="container-fluid px-5 mx-auto my-10">
         <h1 class="text-2xl font-semibold">{{ pageTitle }}</h1>
 
-        <div class="h-full mt-4 rounded-md bg-white" style="box-shadow: inset 0px 0px 0px 2px rgba(0, 0, 0, 0.1);">
+        <div class="h-full mt-4 rounded-xl bg-white" style="box-shadow: inset 0px 0px 0px 2px rgba(0, 0, 0, 0.1);">
             <div class="block h-full px-4 py-2">
                 <additional-filters :ordersPage="ordersPage" :totalPL="totalPL"></additional-filters>
             </div>
@@ -12,12 +12,29 @@
                     <v-main>
                         <v-data-table :headers="headers" :items="myorders" :items-per-page="10" :group-by="groupedBy" :footer-props="{
                                 showFirstLastPage: true,
-                                firstIcon: 'mdi-arrow-collapse-left',
-                                lastIcon: 'mdi-arrow-collapse-right',
-                                prevIcon: 'mdi-minus',
-                                nextIcon: 'mdi-plus'}" class="bet-data">
+                                firstIcon: 'mdi-chevron-double-left',
+                                lastIcon: 'mdi-chevron-double-right',
+                                prevIcon: 'mdi-chevron-left',
+                                nextIcon: 'mdi-chevron-right'}"
+                                class="bet-data">
                             <template v-slot:[`group.header`]="{ group, toggle }">
                                 <td colspan="13" @click="toggle">{{ group }}</td>
+                            </template>
+
+                            <template v-slot:header.created="{ header }">
+                                <span v-html="header.text"></span>
+                            </template>
+
+                            <template v-slot:header.bet_selection="{ header }">
+                                <span v-html="header.text"></span>
+                            </template>
+
+                            <template v-slot:header.valid_stake="{ header }">
+                                <span v-html="header.text"></span>
+                            </template>
+
+                            <template v-slot:header.pl="{ header }">
+                                <span v-html="header.text"></span>
                             </template>
 
                             <template v-slot:item="props">
@@ -25,14 +42,14 @@
                                     <td class="text-start">{{ props.item.bet_id }}</td>
                                     <td class="text-center">{{ props.item.created }}</td>
                                     <td class="text-start"><span v-html="props.item.bet_selection"></span></td>
-                                    <td class="text-center">{{ props.item.provider }}</td>
-                                    <td class="text-center"><span class="block text-right">{{ props.item.odds }}</span></td>
+                                    <td class="text-center font-bold">{{ props.item.provider }}</td>
+                                    <td class="text-center"><strong class="block text-center">{{ props.item.status }}</strong></td>
+                                    <td class="text-center"><span class="block">{{ props.item.odds }}</span></td>
                                     <td class="text-right">{{ props.item.stake }}</td>
                                     <td class="text-right">{{ props.item.towin }}</td>
-                                    <td class="text-center"><strong class="block text-center">{{ props.item.status }}</strong></td>
-                                    <td class="text-center"><span>{{ props.item.score.replace(/\"/g, '') }}</span></td>
                                     <td class="text-right">{{ props.item.valid_stake }}</td>
                                     <td class="text-right">{{ props.item.pl }}</td>
+                                    <td class="text-center"><span>{{ props.item.score.replace(/\"/g, '') }}</span></td>
                                     <td class="text-start">{{ props.item.reason }}</td>
                                     <td class="text-right">
                                         <a href="#" @click.prevent="openBetMatrix(props.item.order_id, `${props.item.order_id}-betmatrix`)"
@@ -87,19 +104,19 @@
                     date_to: moment().endOf('isoweek').format('YYYY-MM-DD')
                 },
                 headers: [
-                    { text: 'bet id', value: 'bet_id', align: 'start', },
-                    { text: 'transaction date & time', value: 'created', align: 'center' },
-                    { text: 'bet selection', value: 'bet_selection', align: 'start', sortable: false, },
-                    { text: 'provider', value: 'provider', align: 'center', sortable: false, },
-                    { text: 'odds', value: 'odds', align: 'center', },
-                    { text: 'stake', value: 'stake', align: 'center', },
-                    { text: 'to win', value: 'towin', align: 'center', },
-                    { text: 'status', value: 'status', align: 'center', },
-                    { text: 'score', value: 'score', align: 'center', sortable: false, },
-                    { text: 'valid stake', value: 'valid_stake', align: 'center', sortable: false, },
-                    { text: 'pl', value: 'pl', align: 'center', },
+                    { text: 'bet id', value: 'bet_id', align: 'center', width: 130, },
+                    { text: 'transaction<br />date & time', value: 'created', align: 'center', width: 120, },
+                    { text: 'bet<br />selection', value: 'bet_selection', align: 'start', sortable: false, },
+                    { text: 'provider', value: 'provider', align: 'center', sortable: false, width: 50, },
+                    { text: 'status', value: 'status', align: 'center', width: 100, },
+                    { text: 'odds', value: 'odds', align: 'center', width: 70, },
+                    { text: 'stake', value: 'stake', align: 'end', class: 'h-amounts', width: 80, },
+                    { text: 'to win', value: 'towin', align: 'end', class: 'h-amounts', width: 80, },
+                    { text: 'valid<br />stake', value: 'valid_stake', align: 'end', class: 'h-amounts', sortable: false, width: 80, },
+                    { text: 'profit<br />loss', value: 'pl', align: 'end', class: 'h-amounts', width: 80, },
+                    { text: 'score', value: 'score', align: 'center', sortable: false, width: 70, },
                     { text: 'reason', value: 'reason', align: 'start', sortable: false, },
-                    { text: '', value: 'betData', align: 'end', sortable: false, },
+                    { text: '', value: 'betData', align: 'end', sortable: false, width: 100, },
                 ],
                 oddTypesWithSpreads: [3, 4, 11, 12],
                 openedOddsHistory: [],
@@ -203,6 +220,20 @@
 </script>
 
 <style lang="scss">
+    * {
+        font-family: "Assistant", sans-serif !important;
+    }
+
+    input, select, textarea {
+        background: #FFFFFF !important;
+    }
+
+    select {
+        appearance: auto !important;
+            -webkit-appearance: auto !important;
+            -moz-appearance: auto !important;
+    }
+
     .alignRight {
         text-align: right;
     }
@@ -225,11 +256,11 @@
     }
 
     .greenPL {
-        color: #009788 !important;
+        color: #009E28 !important;
     }
 
     .redPL {
-        color: #F44236 !important;
+        color: #FF2525 !important;
     }
 
     .betSelection {
@@ -278,6 +309,10 @@
         color: #444444 !important;
     }
 
+    .v-autocomplete i {
+        display: none !important;
+    }
+
     .v-data-table__wrapper {
         tr.v-row-group__header th,
         tr.v-row-group__header td {
@@ -289,28 +324,52 @@
         }
 
         th, td {
-            padding: 0.75rem !important;
+            padding: 0.5rem !important;
 
-            font-size: 0.7rem !important;
+            font-size: 0.8rem !important;
         }
 
         th {
             background: #ED8936 !important;
             color: #FFFFFF !important;
             font-weight: bold;
-            text-shadow: 1px 1px 0px rgba(0, 0, 0, 0.5) !important;
             text-transform: uppercase;
+            vertical-align: middle;
+
+            span {
+                display: inline-block;
+            }
+
+            &.sortable span {
+                margin-top: 1.5px;
+            }
+
+            i.v-icon {
+                // position: absolute !important;
+                // top: 0;
+                // margin-top: 15px;
+                // margin-left: 2.5px;
+                // float: right !important;
+
+                color: #FFFFFF !important;
+            }
+
+            // &.h-amounts {
+            //     i.v-icon {
+            //         margin-left: 1rem !important;
+            //     }
+            // }
         }
     }
 
     tr._failed {
         td {
             &:first-child {
-                box-shadow: inset 5px 0px 0px 0px #F44236 !important;
+                box-shadow: inset 5px 0px 0px 0px #FF2525 !important;
             }
 
-            &:nth-child(8) {
-                color: #F44236 !important;
+            &:nth-child(5) {
+                color: #FF2525 !important;
             }
         }
     }
@@ -318,11 +377,11 @@
     tr._green {
         td {
             &:first-child {
-                box-shadow: inset 5px 0px 0px 0px #009788 !important;
+                box-shadow: inset 5px 0px 0px 0px #009E28 !important;
             }
 
-            &:nth-child(8) {
-                color: #009788 !important;
+            &:nth-child(5) {
+                color: #009E28 !important;
             }
         }
     }

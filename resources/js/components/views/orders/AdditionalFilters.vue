@@ -2,7 +2,7 @@
     <div class="additional-filters grid grid-cols-5 content-center mt-2">
         <!-- Grid: Additional Filters -->
         <div class="col-span-1 px-2">
-            <label class="font-bold text-sm uppercase">Period</label><br />
+            <label class="font-bold text-xs uppercase">Period</label><br />
             <select v-model="form.period" class="w-full border border-gray-400 rounded-sm p-2 text-xs uppercase" @change="setFilterDates">
                 <template v-if="!ordersPage.includes('history')">
                     <option value="this_week">This Week</option>
@@ -10,19 +10,18 @@
                 <template v-else>
                     <option value="last_week">Last Week</option>
                     <option value="daily">Daily</option>
-                    <option value="weekly">Weekly</option>
                     <option value="monthly">Monthly</option>
                     <option value="all">All</option>
                 </template>
             </select><br />
 
-            <label class="font-bold text-sm uppercase">Date Covered</label><br />
+            <label class="font-bold text-xs uppercase">Date Covered</label><br />
             <div class="inline-block w-1/2">
                 <span class="bg-white rounded-sm p-1 absolute text-xs uppercase text-center bg-gray-400" style="margin-top: 5px; margin-left: 5px; width: 40px;">From</span>
-                <v-menu v-model="menu.date_from" :close-on-content-click="true" :nudge-right="40" transition="scale-transition" offset-y min-width="auto">
+                <v-menu :close-on-content-click="true" transition="scale-transition" offset-y min-width="auto">
                     <template v-slot:activator="{ on, attrs }">
                         <input class="w-full border border-gray-400 rounded-sm p-2 text-xs uppercase tracking-wide select-none"
-                            style="padding-left: 3.25rem;"
+                            style="padding-left: 3rem;"
                             v-model="form.date_from" readonly v-bind="attrs" v-on="on">
                     </template>
                     <v-date-picker v-model="form.date_from" @change="form.period = null" @input="menu.date_from = false" no-title></v-date-picker>
@@ -30,10 +29,10 @@
             </div>
             <div class="inline-block w-1/2" style="margin-left: -4px;">
                 <span class="bg-white rounded-sm p-1 absolute text-xs uppercase text-center bg-gray-400" style="margin-top: 5px; margin-left: 5px; width: 40px;">To</span>
-                <v-menu v-model="menu.date_to" :close-on-content-click="true" :nudge-right="40" transition="scale-transition" offset-y min-width="auto">
+                <v-menu :close-on-content-click="true" :nudge-right="170" transition="scale-transition" offset-y min-width="auto">
                     <template v-slot:activator="{ on, attrs }">
                         <input class="w-full border border-gray-400 rounded-sm p-2 text-xs uppercase tracking-wide select-none"
-                            style="padding-left: 3.25rem;"
+                            style="padding-left: 3rem;"
                             v-model="form.date_to" readonly v-bind="attrs" v-on="on">
                     </template>
                     <v-date-picker v-model="form.date_to" @change="form.period = null" @input="menu.date_to = false" no-title></v-date-picker>
@@ -41,7 +40,7 @@
             </div>
             <br />
 
-            <label class="font-bold text-sm uppercase" for="groupBy">Group By</label><br />
+            <label class="font-bold text-xs uppercase" for="groupBy">Group By</label><br />
             <select class="w-full border border-gray-400 rounded-sm p-2 text-xs uppercase" v-model="form.group_by" id="groupBy">
                 <option value="date" selected>Date</option>
                 <option value="leaguename">League</option>
@@ -54,19 +53,27 @@
 
         <!-- Grid: Additional History Filters -->
         <div class="col-span-1 px-2" v-if="ordersPage.includes('history')">
-            <label class="font-bold text-sm uppercase" for="period">Search By</label><br />
+            <label class="font-bold text-xs uppercase" for="period">Search By</label><br />
             <select class="w-full border border-gray-400 rounded-sm p-2 text-xs uppercase" v-model="form.search_by" @change="populateSearch()">
                 <option value="league_names" selected>League Names</option>
                 <option value="team_names">Team Names</option>
             </select><br />
 
-            <label class="font-bold text-sm uppercase">Search Keyword</label><br />
-            <v-autocomplete class="w-full text-xs uppercase" v-model="form.search_keyword" :items="search_keywords" height="40" outlined dense style="margin-top: -2px; font-size: 0.8rem;"></v-autocomplete>
+            <label class="font-bold text-xs uppercase">Search Keyword</label><br />
+            <v-autocomplete
+                class="w-full text-xs uppercase"
+                v-model="form.search_keyword"
+                :items="search_keywords"
+                height="38"
+                outlined
+                dense
+                hide-no-data
+                style="margin-top: -2px; font-size: 0.8rem;"></v-autocomplete>
         </div>
 
         <div class="col-span-1 px-2" v-if="ordersPage.includes('history')">
             <!-- Button Group -->
-            <label class="font-bold text-sm uppercase">Export</label><br />
+            <label class="font-bold text-xs uppercase">Export</label><br />
                 <json-excel
                     class="w-1/2 xl:w-1/2 lg:w-full md:w-full sm:w-full xs:w-full mb-5 border-2 border-gray-400 hover:border-green-600 hover:bg-green-600 hover:text-white rounded-full px-4 py-2 text-xs text-center transition ease-in-out duration-100 select-none focus:outline-none tracking-wide"
                     :data="myorders" :fields="exportFields"
@@ -134,6 +141,9 @@
                 let display_name = Cookies.get('display_name')
 
                 return `Multiline Orders (${ display_name })`
+            },
+            dateRangeText () {
+                return this.dates.join(' ~ ')
             },
         },
         data() {
@@ -222,6 +232,10 @@
                         this.form.date_to = fromToDate[key].date_to
                     }
                 })
+
+                this.form.search_by = ""
+                this.form.search_keyword = ""
+                this.search_keywords = []
             },
             setInitialVars() {
                 this.form.search_by = ""
@@ -316,11 +330,11 @@
         }
 
         .greenPL {
-            color: #46C7BB !important;
+            color: #009E28 !important;
         }
 
         .redPL {
-            color: #B31005 !important;
+            color: #FF2525 !important;
         }
     }
 </style>
