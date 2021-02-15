@@ -94,7 +94,7 @@
                 </tr>
                 <tr>
                     <td>Profit & Loss</td>
-                    <td>¥ &nbsp; <span class="totalPL" v-adjust-total-pl-color="totalPL">{{ totalPL | moneyFormat }}</span></td>
+                    <td>¥ &nbsp; <span class="totalPL" v-adjust-total-pl-color="wallet.credit">{{ wallet.profit_loss | moneyFormat }}</span></td>
                 </tr>
                 <tr>
                     <td>Open Orders</td>
