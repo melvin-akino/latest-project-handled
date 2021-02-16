@@ -60,7 +60,7 @@
             </select><br />
 
             <label class="font-bold text-xs uppercase">Search Keyword</label><br />
-            <v-autocomplete
+            <v-combobox
                 class="w-full text-xs uppercase"
                 v-model="form.search_keyword"
                 :items="search_keywords"
@@ -68,7 +68,8 @@
                 outlined
                 dense
                 hide-no-data
-                style="margin-top: -2px; font-size: 0.8rem;"></v-autocomplete>
+                @input.native="form.search_keyword = $event.target.value"
+                style="margin-top: -2px; font-size: 0.8rem;"></v-combobox>
         </div>
 
         <div class="col-span-1 px-2" v-if="ordersPage.includes('history')">
