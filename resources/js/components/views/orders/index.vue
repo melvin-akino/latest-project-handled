@@ -10,12 +10,21 @@
             <div class="block h-full pt-4" style="padding: 1rem 0.125rem;">
                 <v-app>
                     <v-main>
-                        <v-data-table :headers="headers" :items="myorders" :items-per-page="10" :group-by="groupedBy" :group-desc="true" :footer-props="{
-                                showFirstLastPage: true,
-                                firstIcon: 'mdi-chevron-double-left',
-                                lastIcon: 'mdi-chevron-double-right',
-                                prevIcon: 'mdi-chevron-left',
-                                nextIcon: 'mdi-chevron-right'}"
+                        <v-data-table
+                            :headers="headers"
+                            :items="myorders"
+                            :items-per-page="10"
+                            :group-by="groupedBy"
+                            :group-desc="true"
+                            :sort-by.sync="sortBy"
+                            :sort-desc.sync="sortDesc"
+                            :footer-props="{
+                                    showFirstLastPage: true,
+                                    firstIcon: 'mdi-chevron-double-left',
+                                    lastIcon: 'mdi-chevron-double-right',
+                                    prevIcon: 'mdi-chevron-left',
+                                    nextIcon: 'mdi-chevron-right'
+                                }"
                                 class="bet-data">
                             <template v-slot:[`group.header`]="{ group, toggle }">
                                 <td colspan="13" @click="toggle">{{ group }}</td>
@@ -96,6 +105,8 @@
         },
         data() {
             return {
+                sortBy: 'bet_id',
+                sortDesc: true,
                 form: {
                     group_by: 'date',
                     search_by: '',
