@@ -482,4 +482,14 @@ export default {
     overflow-x: hidden;
     overflow-y: auto;
 }
+
+.leaguePanel button {
+    &.text-red-600 {
+        color: rgba(229, 62, 62, var(--text-opacity)) !important;
+    }
+
+    &.text-orange-500 {
+        color: rgba(237, 137, 54, var(--text-opacity)) !important;
+    }
+}
 </style>
