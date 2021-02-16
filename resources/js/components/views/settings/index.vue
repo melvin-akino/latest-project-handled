@@ -137,17 +137,23 @@ export default {
 
 <style lang="scss">
     .settings {
-      input:not([disabled]), select, textarea {
-        background-color: #ffffff;
-        border-style: solid;
+      input:not([disabled]), select {
+        background-color: #ffffff !important;
+        border-style: solid !important;
+      }
+      select {
+        appearance: none !important;
+      }
+      input:disabled {
+        background: transparent !important;
       }
       button[type=submit] {
-        color: #ffffff;
+        color: #ffffff !important;
       }
       input[type=checkbox] {
         --bg-opacity: 1;
-        background-color: #cbd5e0;
-        background-color: rgba(203,213,224,var(--bg-opacity));
+        background-color: #cbd5e0 !important;
+        background-color: rgba(203,213,224,var(--bg-opacity)) !important;
       }
     }
 

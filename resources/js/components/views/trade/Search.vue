@@ -95,7 +95,13 @@ export default {
 }
 </script>
 
-<style>
+<style lang="scss">
+    .search {
+      input {
+        border-style: solid !important;
+      }
+    }
+
     .searchSuggestions {
         max-height: 245px;
         overflow-y: auto;
