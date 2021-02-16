@@ -4,18 +4,18 @@
             <h3 class="block text-gray-700 text-lg mb-2 font-bold uppercase">Login</h3>
             <form method="POST" @submit.prevent="login">
                 <div class="mb-4">
-                    <label class="block text-gray-700 text-sm mb-2 font-bold uppercase" for="email">
+                    <label class="absolute bg-white block text-sm ml-3 mb-2 px-3 font-bold uppercase" :class="{ 'text-red-600': $v.loginForm.email.$error, 'text-gray-700': !$v.loginForm.email.$error }" for="email">
                         <i class="far fa-user"></i> &nbsp; Email
                     </label>
-                    <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none" :class="{'border-red-600': $v.loginForm.email.$error}" id="email" type="text" placeholder="Email" v-model="$v.loginForm.email.$model" @keypress="clearLoginError">
+                    <input class="shadow appearance-none border border-gray-400 rounded w-full mt-3 py-4 px-3 text-gray-700 leading-tight focus:outline-none" :class="{'border-red-600': $v.loginForm.email.$error}" id="email" type="text" v-model="$v.loginForm.email.$model" @keypress="clearLoginError">
                     <span v-if="$v.loginForm.email.$dirty && !$v.loginForm.email.required" class="text-red-600 text-sm">Please type your email.</span>
                     <span v-if="$v.loginForm.email.$dirty && !$v.loginForm.email.email" class="text-red-600 text-sm">Please type a valid email.</span>
                 </div>
                 <div class="mb-4">
-                    <label class="block text-gray-700 text-sm font-bold mb-2 uppercase" for="password">
+                    <label class="absolute bg-white block text-sm ml-3 mb-2 px-3 font-bold uppercase" :class="{ 'text-red-600': $v.loginForm.password.$error, 'text-gray-700': !$v.loginForm.password.$error }" for="password">
                         <i class="fas fa-key"></i> &nbsp; Password
                     </label>
-                    <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none" :class="{'border-red-600': $v.loginForm.password.$error}" id="password" type="password" placeholder="Password" v-model="$v.loginForm.password.$model" @keypress="clearLoginError">
+                    <input class="shadow appearance-none border border-gray-400 rounded w-full mt-3 py-4 px-3 text-gray-700 leading-tight focus:outline-none" :class="{'border-red-600': $v.loginForm.password.$error}" id="password" type="password" v-model="$v.loginForm.password.$model" @keypress="clearLoginError">
                     <span v-if="$v.loginForm.password.$dirty && !$v.loginForm.password.required" class="text-red-600 text-sm">Please type your password.</span>
                 </div>
                 <div class="mb-2">
@@ -135,3 +135,14 @@ export default {
     }
 }
 </script>
+
+<style lang="scss">
+    input {
+        background: #FFFFFF;
+        border-style: solid;
+    }
+
+    .text-white {
+        color: #FFFFFF !important;
+    }
+</style>
