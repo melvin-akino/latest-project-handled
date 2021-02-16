@@ -27,7 +27,7 @@
                                 }"
                                 class="bet-data">
                             <template v-slot:[`group.header`]="{ group, toggle }">
-                                <td colspan="13" @click="toggle">{{ group }}</td>
+                                <td colspan="13" @click="toggle">{{ convertDate(group) }}</td>
                             </template>
 
                             <template v-slot:header.created="{ header }">
@@ -199,6 +199,9 @@
             },
             closeBetMatrix(id) {
                 this.openedBetMatrix = this.openedBetMatrix.filter(betmatrix => betmatrix != id)
+            },
+            convertDate(date) {
+                return moment(date).format('MMMM DD, YYYY')
             }
         },
         directives: {
