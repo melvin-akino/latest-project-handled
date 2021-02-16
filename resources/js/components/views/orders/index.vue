@@ -10,7 +10,7 @@
             <div class="block h-full pt-4" style="padding: 1rem 0.125rem;">
                 <v-app>
                     <v-main>
-                        <v-data-table :headers="headers" :items="myorders" :items-per-page="10" :group-by="groupedBy" :footer-props="{
+                        <v-data-table :headers="headers" :items="myorders" :items-per-page="10" :group-by="groupedBy" :group-desc="true" :footer-props="{
                                 showFirstLastPage: true,
                                 firstIcon: 'mdi-chevron-double-left',
                                 lastIcon: 'mdi-chevron-double-right',
