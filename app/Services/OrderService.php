@@ -41,7 +41,12 @@ class OrderService
                 if (!empty($request->date_from)) {
                     $requestFrom = Carbon::createFromFormat("Y-m-d H:i:s", $request->date_from . " 12:00:00", 'Etc/UTC')->setTimezone($userTz)->format("Y-m-d H:i:s");
                     $requestTo   = Carbon::createFromFormat("Y-m-d H:i:s", $request->date_to . " 11:59:59", 'Etc/UTC')->setTimezone($userTz)->format("Y-m-d H:i:s");
-                    $data        = $data->whereBetween('o.created_at', [ $requestFrom, $requestTo ]);
+
+                    if ($request->period == "daily") {
+                        $data = $data->whereBetween('o.created_at', [ $request->date_from . " 00:00:00", $request->date_from . " 23:59:59" ]);
+                    } else {
+                        $data = $data->whereBetween('o.created_at', [ $requestFrom, $requestTo ]);
+                    }
                 }
 
                 if (!empty($request->search_by)) {
