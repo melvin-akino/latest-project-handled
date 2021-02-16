@@ -5,8 +5,8 @@
             <p class="text-green-500 text-sm mb-2 font-bold">{{emailMessage}}</p>
             <form method="POST" @submit.prevent="sendEmailToResetPassword">
                 <div class="mb-4">
-                    <label for="email" class="block text-gray-700 text-sm mb-2 font-bold uppercase">Email</label>
-                    <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none text-sm" :class="{'border-red-600': $v.email.$error}" id="email" type="text" placeholder="Receive password reset link using your email." v-model="$v.email.$model" @keyup="clearMessages">
+                    <label for="email" class="absolute bg-white block text-sm ml-3 mb-2 px-3 font-bold uppercase" :class="{ 'text-red-600': $v.email.$error, 'text-gray-700': !$v.email.$error }">Email</label>
+                    <input class="shadow appearance-none border border-gray-400 rounded w-full mt-3 py-4 px-3 text-gray-700 leading-tight focus:outline-none text-sm" :class="{'border-red-600': $v.email.$error}" id="email" type="text" placeholder="Receive password reset link using your email." v-model="$v.email.$model" @keyup="clearMessages">
                     <span v-if="$v.email.$dirty && !$v.email.required" class="text-red-600 text-sm">Please type your email.</span>
                     <span v-if="$v.email.$dirty && !$v.email.email" class="text-red-600 text-sm">Please type a valid email.</span>
                 </div>
@@ -88,3 +88,14 @@ export default {
     }
 }
 </script>
+
+<style lang="scss">
+    input {
+        background: #FFFFFF;
+        border-style: solid;
+    }
+
+    .text-white {
+        color: #FFFFFF !important;
+    }
+</style>

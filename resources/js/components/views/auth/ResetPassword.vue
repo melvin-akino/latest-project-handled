@@ -4,15 +4,19 @@
             <form method="POST" @submit.prevent="resetPassword" v-if="!isResetPasswordSuccess">
                 <p class="text-gray-700 text-lg mb-2 font-bold uppercase">Reset Password</p>
                 <div class="mb-4">
-                    <label for="email" class="block text-gray-700 text-sm mb-2 font-bold uppercase">Email</label>
-                    <input id="email" type="email" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none hover:cursor-not-allowed" v-model="$v.resetPasswordForm.email.$model" disabled>
+                    <label for="email" class="absolute bg-white block text-sm ml-3 mb-2 px-3 font-bold uppercase">Email</label>
+                    <input id="email" type="email" class="shadow appearance-none border border-gray-400 rounded w-full mt-3 py-4 px-3 text-gray-700 leading-tight focus:outline-none hover:cursor-not-allowed" v-model="$v.resetPasswordForm.email.$model" disabled>
                     <span v-if="$v.resetPasswordForm.email.$dirty && !$v.resetPasswordForm.email.required" class="text-red-600 text-sm">Email is required.</span>
                     <span v-if="$v.resetPasswordForm.email.$dirty && !$v.resetPasswordForm.email.email" class="text-red-600 text-sm">Email must be valid.</span>
                 </div>
 
                 <div class="mb-4">
-                    <label for="password" class="block text-gray-700 text-sm mb-2 font-bold uppercase">New Password</label>
-                    <input id="password" type="password" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none" v-model="$v.resetPasswordForm.password.$model" @keyup="clearPasswordResetFormError">
+                    <label for="password" class="absolute bg-white block text-sm ml-3 mb-2 px-3 font-bold uppercase"
+                        :class="{ 'text-red-600': $v.resetPasswordForm.password.$error, 'text-black': !$v.resetPasswordForm.password.$error }">New Password</label>
+                    <input id="password" type="password" class="shadow appearance-none border border-gray-400 rounded w-full mt-3 py-4 px-3 text-gray-700 leading-tight focus:outline-none"
+                        :class="{ 'border-red-600': $v.resetPasswordForm.password.$error, 'border-gray-400': !$v.resetPasswordForm.password.$error }"
+                        v-model="$v.resetPasswordForm.password.$model"
+                        @keyup="clearPasswordResetFormError">
                     <span v-if="$v.resetPasswordForm.password.$dirty && !$v.resetPasswordForm.password.required" class="text-red-600 text-sm">Please type a new password.</span>
                     <span v-if="$v.resetPasswordForm.password.$dirty && !$v.resetPasswordForm.password.minLength" class="text-red-600 text-sm">Password must have a minimum of 6 characters.</span>
                     <span v-if="$v.resetPasswordForm.password.$dirty && !$v.resetPasswordForm.password.maxLength" class="text-red-600 text-sm">Password must have a maximum of 32 characters.</span>
@@ -20,8 +24,12 @@
                 </div>
 
                 <div class="mb-4">
-                    <label for="password_confirmation" class="block text-gray-700 text-sm mb-2 font-bold uppercase">Confirm New Password</label>
-                    <input id="password_confirmation" type="password" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none" v-model="$v.resetPasswordForm.password_confirmation.$model" @keyup="clearPasswordResetFormError">
+                    <label for="password_confirmation" class="absolute bg-white block text-sm ml-3 mb-2 px-3 font-bold uppercase"
+                        :class="{ 'text-red-600': $v.resetPasswordForm.password_confirmation.$error, 'text-black': !$v.resetPasswordForm.password_confirmation.$error }">Confirm New Password</label>
+                    <input id="password_confirmation" type="password" class="shadow appearance-none border border-gray-400 rounded w-full mt-3 py-4 px-3 text-gray-700 leading-tight focus:outline-none"
+                        :class="{ 'border-red-600': $v.resetPasswordForm.password_confirmation.$error, 'border-gray-400': !$v.resetPasswordForm.password_confirmation.$error }"
+                        v-model="$v.resetPasswordForm.password_confirmation.$model"
+                        @keyup="clearPasswordResetFormError">
                     <span v-if="$v.resetPasswordForm.password_confirmation.$dirty && !$v.resetPasswordForm.password_confirmation.sameAs" class="text-red-600 text-sm">Passwords do not match.</span>
                 </div>
 
@@ -96,3 +104,14 @@ export default {
     }
 }
 </script>
+
+<style lang="scss">
+    input {
+        background: #FFFFFF;
+        border-style: solid;
+    }
+
+    .text-white {
+        color: #FFFFFF !important;
+    }
+</style>
