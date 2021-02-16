@@ -46,7 +46,7 @@
                 <option value="leaguename">League</option>
             </select>
 
-            <button @click="getMyOrders(form)" class="w-auto mt-4 border-2 border-gray-400 hover:border-orange-600 hover:bg-orange-600 hover:text-white rounded-full px-4 py-2 text-xs transition ease-in-out duration-100 select-none focus:outline-none tracking-wide">
+            <button @click="getMyOrders(form)" class="w-auto mt-4 border-2 border-gray-400 hover:border-orange-600 hover:bg-orange-600 hover:text-white px-4 py-2 text-xs transition ease-in-out duration-100 select-none focus:outline-none tracking-wide">
                 <i class="fas fa-search mr-2"></i> <strong class="uppercase">Apply Filters</strong>
             </button>
         </div>
@@ -75,14 +75,14 @@
             <!-- Button Group -->
             <label class="font-bold text-xs uppercase">Export</label><br />
                 <json-excel
-                    class="w-1/2 xl:w-1/2 lg:w-full md:w-full sm:w-full xs:w-full mb-5 border-2 border-gray-400 hover:border-green-600 hover:bg-green-600 hover:text-white rounded-full px-4 py-2 text-xs text-center transition ease-in-out duration-100 select-none focus:outline-none tracking-wide"
+                    class="w-1/2 xl:w-1/2 lg:w-full md:w-full sm:w-full xs:w-full mb-5 border-2 border-gray-400 hover:border-green-600 hover:bg-green-600 hover:text-white px-4 py-2 text-xs text-center transition ease-in-out duration-100 select-none focus:outline-none tracking-wide"
                     :data="myorders" :fields="exportFields"
                     :name="filename">
                         <i class="fas fa-download mr-2"></i> <strong>EXCEL</strong> (.xlsx)
                 </json-excel>
 
                 <json-csv
-                    class="w-1/2 xl:w-1/2 lg:w-full md:w-full sm:w-full xs:w-full border-2 border-gray-400 hover:border-blue-600 hover:bg-blue-600 hover:text-white rounded-full px-4 py-2 text-xs text-center transition ease-in-out duration-100 select-none focus:outline-none tracking-wide"
+                    class="w-1/2 xl:w-1/2 lg:w-full md:w-full sm:w-full xs:w-full border-2 border-gray-400 hover:border-blue-600 hover:bg-blue-600 hover:text-white px-4 py-2 text-xs text-center transition ease-in-out duration-100 select-none focus:outline-none tracking-wide"
                     :data="myorders"
                     :name="filename">
                         <i class="fas fa-download mr-2"></i> <strong>CSV FILE</strong> (.csv)
