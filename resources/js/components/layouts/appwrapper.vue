@@ -97,6 +97,12 @@ export default {
         color: #ffffff;
     }
 
+    nav {
+        .username .dropdown a {
+            color: #FFFFFF !important;
+        }
+    }
+
     .navlink {
         padding-top: 22px;
         padding-bottom: 21px;
