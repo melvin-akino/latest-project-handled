@@ -135,7 +135,22 @@ export default {
 }
 </script>
 
-<style>
+<style lang="scss">
+    .settings {
+      input:not([disabled]), select, textarea {
+        background-color: #ffffff;
+        border-style: solid;
+      }
+      button[type=submit] {
+        color: #ffffff;
+      }
+      input[type=checkbox] {
+        --bg-opacity: 1;
+        background-color: #cbd5e0;
+        background-color: rgba(203,213,224,var(--bg-opacity));
+      }
+    }
+
     .swal2-styled.swal2-cancel {
         background-color: #ffffff;
         color: #aaa;
