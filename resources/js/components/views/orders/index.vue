@@ -234,7 +234,7 @@
 </script>
 
 <style lang="scss">
-    .orders * {
+    .orders *:not(i.material-icons) {
         font-family: "Assistant", sans-serif !important;
     }
 

@@ -105,23 +105,23 @@
                     <table class="user-wallet-info" width="100%">
                         <tr>
                             <td>Credits</td>
-                            <td>¥ &nbsp; <span class="totalPL" v-adjust-total-pl-color="wallet.credit">{{ wallet.credit | moneyFormat }}</span></td>
+                            <td>¥ &nbsp; <span class="totalPL" v-adjust-wallet-color="wallet.credit">{{ wallet.credit | moneyFormat }}</span></td>
                         </tr>
                         <tr>
                             <td>Profit & Loss</td>
-                            <td>¥ &nbsp; <span class="totalPL" v-adjust-total-pl-color="wallet.profit_loss">{{ wallet.profit_loss | moneyFormat }}</span></td>
+                            <td>¥ &nbsp; <span class="totalPL" v-adjust-wallet-color="wallet.profit_loss">{{ wallet.profit_loss | moneyFormat }}</span></td>
                         </tr>
                         <tr>
                             <td>Open Orders</td>
-                            <td>¥ &nbsp; <span class="totalPL" v-adjust-total-pl-color="wallet.orders">{{ wallet.orders | moneyFormat }}</span></td>
+                            <td>¥ &nbsp; <span class="totalPL" v-adjust-wallet-color="wallet.orders">{{ wallet.orders | moneyFormat }}</span></td>
                         </tr>
                         <tr>
                             <td>Today's PL</td>
-                            <td>¥ &nbsp; <span class="totalPL" v-adjust-total-pl-color="wallet.today_pl">{{ wallet.today_pl | moneyFormat }}</span></td>
+                            <td>¥ &nbsp; <span class="totalPL" v-adjust-wallet-color="wallet.today_pl">{{ wallet.today_pl | moneyFormat }}</span></td>
                         </tr>
                         <tr>
                             <td>Yesterday's PL</td>
-                            <td>¥ &nbsp; <span class="totalPL" v-adjust-total-pl-color="wallet.yesterday_pl">{{ wallet.yesterday_pl | moneyFormat }}</span></td>
+                            <td>¥ &nbsp; <span class="totalPL" v-adjust-wallet-color="wallet.yesterday_pl">{{ wallet.yesterday_pl | moneyFormat }}</span></td>
                         </tr>
                     </table>
                 </div>
@@ -186,18 +186,12 @@
             }
         },
         directives: {
-            adjustTotalPlColor: {
+            adjustWalletColor: {
+                bind(el, binding, vnode) {
+                    vnode.context.adjustWalletColor(el, binding, vnode)
+                },
                 componentUpdated(el, binding, vnode) {
-                    if(binding.value > 0) {
-                        el.classList.remove('redPL')
-                        el.classList.add('greenPL')
-                    } else if(binding.value < 0) {
-                        el.classList.add('redPL')
-                        el.classList.remove('greenPL')
-                    } else {
-                        el.classList.remove('redPL')
-                        el.classList.remove('greenPL')
-                    }
+                    vnode.context.adjustWalletColor(el, binding, vnode)
                 }
             },
             isDaily: {
@@ -234,6 +228,18 @@
         },
         methods: {
             ...mapActions('orders', ['getMyOrders', 'getLeaguesList']),
+            adjustWalletColor(el, binding, vnode) {
+                if(binding.value > 0) {
+                  el.classList.remove('redPL')
+                  el.classList.add('greenPL')
+              } else if(binding.value < 0) {
+                  el.classList.add('redPL')
+                  el.classList.remove('greenPL')
+              } else {
+                  el.classList.remove('redPL')
+                  el.classList.remove('greenPL')
+              }
+            },
             changeIsDaily() {
                 this.isDaily = this.form.period == 'daily' ? true : false
 
