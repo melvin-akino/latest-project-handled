@@ -38,9 +38,8 @@ class WalletController extends Controller
             $orders      = 0.00;
             $today       = Carbon::createFromFormat("Y-m-d", Carbon::now()->format("Y-m-d"), 'Etc/UTC')->setTimezone($userTz)->format("Y-m-d");
             $yesterday   = Carbon::createFromFormat("Y-m-d", Carbon::now()->subDay(1)->format("Y-m-d"), 'Etc/UTC')->setTimezone($userTz)->format("Y-m-d");
-
-            $token = app('swoole')->walletClientsTable['ml-users']['token'];
-            $getBalance = $walletService->getBalance($token, $user->uuid, trim(strtoupper($currency->code)));
+            $token       = app('swoole')->walletClientsTable['ml-users']['token'];
+            $getBalance  = $walletService->getBalance($token, $user->uuid, trim(strtoupper($currency->code)));
 
             if ($getBalance->status) {
                 $balance      = $getBalance->data->balance;
@@ -58,7 +57,7 @@ class WalletController extends Controller
                         'profit_loss'  => (float) $profit_loss,
                         'orders'       => (float) $orders,
                         'today_pl'     => (float) $todayPL,
-                        'yesterday_pl' => (float) $todayPL,
+                        'yesterday_pl' => (float) $ystrdyPL,
                     ],
                 ]);
             } else {

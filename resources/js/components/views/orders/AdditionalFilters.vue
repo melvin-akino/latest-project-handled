@@ -3,20 +3,21 @@
         <!-- Grid: Additional Filters -->
         <div class="col-span-1 px-2">
             <label class="font-bold text-xs uppercase">Period</label><br />
-            <select v-model="form.period" class="w-full border border-gray-400 rounded-sm p-2 text-xs uppercase" @change="setFilterDates">
+            <select v-model="form.period" class="w-full border border-gray-400 rounded-sm p-2 text-xs uppercase" ref="dd_period" v-is-daily="$refs.dd_period" @change="setFilterDates; changeIsDaily();">
                 <template v-if="!ordersPage.includes('history')">
                     <option value="this_week">This Week</option>
                 </template>
                 <template v-else>
                     <option value="last_week">Last Week</option>
                     <option value="daily">Daily</option>
+                    <option value="this_week">Weekly</option>
                     <option value="monthly">Monthly</option>
                     <option value="all">All</option>
                 </template>
             </select><br />
 
             <label class="font-bold text-xs uppercase">Date Covered</label><br />
-            <div class="inline-block w-1/2">
+            <div class="inline-block w-1/2" v-date-expand="isDaily">
                 <span class="bg-white rounded-sm p-1 absolute text-xs uppercase text-center bg-gray-400" style="margin-top: 5px; margin-left: 5px; width: 40px;">From</span>
                 <v-menu :close-on-content-click="true" transition="scale-transition" offset-y min-width="auto">
                     <template v-slot:activator="{ on, attrs }">
@@ -24,10 +25,10 @@
                             style="padding-left: 3rem;"
                             v-model="form.date_from" readonly v-bind="attrs" v-on="on">
                     </template>
-                    <v-date-picker v-model="form.date_from" @change="form.period = null" @input="menu.date_from = false" no-title></v-date-picker>
+                    <v-date-picker v-model="form.date_from" @input="menu.date_from = false" no-title></v-date-picker>
                 </v-menu>
             </div>
-            <div class="inline-block w-1/2" style="margin-left: -4px;">
+            <div class="inline-block w-1/2" style="margin-left: -4px;" v-hide="isDaily">
                 <span class="bg-white rounded-sm p-1 absolute text-xs uppercase text-center bg-gray-400" style="margin-top: 5px; margin-left: 5px; width: 40px;">To</span>
                 <v-menu :close-on-content-click="true" :nudge-right="170" transition="scale-transition" offset-y min-width="auto">
                     <template v-slot:activator="{ on, attrs }">
@@ -35,7 +36,7 @@
                             style="padding-left: 3rem;"
                             v-model="form.date_to" readonly v-bind="attrs" v-on="on">
                     </template>
-                    <v-date-picker v-model="form.date_to" @change="form.period = null" @input="menu.date_to = false" no-title></v-date-picker>
+                    <v-date-picker v-model="form.date_to" @input="menu.date_to = false" no-title></v-date-picker>
                 </v-menu>
             </div>
             <br />
@@ -147,6 +148,7 @@
         },
         data() {
             return {
+                isDaily: false,
                 search_keywords: [],
                 menu: {
                     date_from: false,
@@ -190,13 +192,46 @@
                         el.classList.remove('greenPL')
                     }
                 }
-            }
+            },
+            isDaily: {
+                componentUpdated(el, binding) {
+                    let _selected = el.options.selectedIndex
+                    let _value = el.children[_selected].value
+
+                    el.isDaily = _value == 'daily' ? true : false
+                }
+            },
+            hide: {
+                componentUpdated(el, binding) {
+                    if (binding.value) {
+                        el.classList.add('hidden')
+                    } else {
+                        el.classList.remove('hidden')
+                    }
+                }
+            },
+            dateExpand: {
+                componentUpdated(el, binding) {
+                    if (binding.value) {
+                        el.classList.remove('w-1/2')
+                        el.classList.add('w-full')
+                    } else {
+                        el.classList.remove('w-full')
+                        el.classList.add('w-1/2')
+                    }
+                }
+            },
         },
         filters: {
             moneyFormat
         },
         methods: {
             ...mapActions('orders', ['getMyOrders', 'getLeaguesList']),
+            changeIsDaily() {
+                this.isDaily = this.form.period == 'daily' ? true : false
+
+                console.log(this.isDaily)
+            },
             setFilterDates() {
                 let fromToDate = {
                     all: {
@@ -230,11 +265,13 @@
                         this.form.date_from = fromToDate[key].date_from
                         this.form.date_to = fromToDate[key].date_to
                     }
-                })
 
-                this.form.search_by = ""
-                this.form.search_keyword = ""
-                this.search_keywords = []
+                    if (this.form.period != 'daily') {
+                        this.form.search_by = ""
+                        this.form.search_keyword = ""
+                        this.search_keywords = []
+                    }
+                })
             },
             setInitialVars() {
                 this.form.search_by = ""
