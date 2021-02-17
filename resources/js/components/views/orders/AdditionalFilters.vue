@@ -1,5 +1,5 @@
 <template>
-    <div class="additional-filters grid grid-cols-5 content-center mt-2">
+    <div class="additional-filters grid grid-cols-4 content-center mt-2">
         <!-- Grid: Additional Filters -->
         <div class="col-span-1 px-2">
             <label class="font-bold text-xs uppercase">Period</label><br />
@@ -69,52 +69,53 @@
                 dense
                 hide-no-data
                 @input.native="form.search_keyword = $event.target.value"
-                style="margin-top: -2px; font-size: 0.8rem;"></v-combobox>
-        </div>
+                style="margin-top: -2px; margin-bottom: -29px; font-size: 0.8rem;"></v-combobox>
 
-        <div class="col-span-1 px-2" v-if="ordersPage.includes('history')">
-            <!-- Button Group -->
-            <label class="font-bold text-xs uppercase">Export</label><br />
+            <div class="" v-if="this.myorders.length > 0">
+                <!-- Button Group -->
+                <label class="font-bold text-xs uppercase">Export</label><br />
                 <json-excel
-                    class="w-1/2 xl:w-1/2 lg:w-full md:w-full sm:w-full xs:w-full mb-5 border-2 border-gray-400 hover:border-green-600 hover:bg-green-600 hover:text-white px-4 py-2 text-xs text-center transition ease-in-out duration-100 select-none focus:outline-none tracking-wide"
-                    :data="myorders" :fields="exportFields"
+                    class="inline-block border-2 border-gray-400 hover:border-orange-500 hover:bg-orange-500 hover:text-white px-4 py-2 text-xs text-center transition ease-in-out duration-100 select-none focus:outline-none cursor-pointer tracking-wide"
+                    :data="myorders"
+                    :fields="exportFields"
                     :name="filename">
                         <i class="fas fa-download mr-2"></i> <strong>EXCEL</strong> (.xlsx)
                 </json-excel>
 
                 <json-csv
-                    class="w-1/2 xl:w-1/2 lg:w-full md:w-full sm:w-full xs:w-full border-2 border-gray-400 hover:border-blue-600 hover:bg-blue-600 hover:text-white px-4 py-2 text-xs text-center transition ease-in-out duration-100 select-none focus:outline-none tracking-wide"
+                    class="inline-block border-2 border-gray-400 hover:border-orange-500 hover:bg-orange-500 hover:text-white px-4 py-2 text-xs text-center transition ease-in-out duration-100 select-none focus:outline-none cursor-pointer tracking-wide"
                     :data="myorders"
                     :name="filename">
                         <i class="fas fa-download mr-2"></i> <strong>CSV FILE</strong> (.csv)
                 </json-csv>
+            </div>
         </div>
 
         <!-- Grid: Separator -->
-        <div class="col-span-2 px-2" v-if="!ordersPage.includes('history')">&nbsp;</div>
+        <div :class="{ 'col-span-1 px-2': ordersPage.includes('history'), 'col-span-2 px-2': ordersPage.includes('orders') }">&nbsp;</div>
 
         <!-- Grid: User Wallet Information -->
-        <div class="col-span-2 px-2 pt-6" align="right">
+        <div class="col-span-1 px-2 pt-20" align="right" v-if="!ordersPage.includes('history')">
             <table class="user-wallet-info" width="100%">
                 <tr>
-                    <td>Credits</td>
                     <td>¥ &nbsp; <span class="totalPL" v-adjust-total-pl-color="wallet.credit">{{ wallet.credit | moneyFormat }}</span></td>
+                    <td>Credits</td>
                 </tr>
                 <tr>
-                    <td>Profit & Loss</td>
                     <td>¥ &nbsp; <span class="totalPL" v-adjust-total-pl-color="wallet.credit">{{ wallet.profit_loss | moneyFormat }}</span></td>
+                    <td>Profit & Loss</td>
                 </tr>
                 <tr>
-                    <td>Open Orders</td>
                     <td>¥ &nbsp; <span class="totalPL" v-adjust-total-pl-color="wallet.orders">{{ wallet.orders | moneyFormat }}</span></td>
+                    <td>Open Orders</td>
                 </tr>
                 <tr>
-                    <td>Today's PL</td>
                     <td>¥ &nbsp; <span class="totalPL" v-adjust-total-pl-color="wallet.today_pl">{{ wallet.today_pl | moneyFormat }}</span></td>
+                    <td>Today's PL</td>
                 </tr>
                 <tr>
-                    <td>Yesterday's PL</td>
                     <td>¥ &nbsp; <span class="totalPL" v-adjust-total-pl-color="wallet.yesterday_pl">{{ wallet.yesterday_pl | moneyFormat }}</span></td>
+                    <td>Yesterday's PL</td>
                 </tr>
             </table>
         </div>
@@ -142,9 +143,6 @@
                 let display_name = Cookies.get('display_name')
 
                 return `Multiline Orders (${ display_name })`
-            },
-            dateRangeText () {
-                return this.dates.join(' ~ ')
             },
         },
         data() {
@@ -290,7 +288,7 @@
                 } else if (this.form.search_by == "team_names") {
                     return this.getTeamsList()
                 }
-            }
+            },
         },
         mounted() {
             this.setInitialVars()
@@ -307,26 +305,27 @@
 <style lang="scss">
     .user-wallet-info {
         td {
-            padding: 0rem 0.25rem;
-            vertical-align: middle;
+            padding: 0rem 0.2rem;
+            vertical-align: bottom;
 
             color: #ABABAB;
             font-size: 0.8rem;
 
             &:first-child {
-                width: 60%;
-
                 text-align: right;
-                text-transform: uppercase;
-            }
-
-
-            &:last-child {
-                text-align: left;
 
                 color: #444444;
                 font-size: 1.2rem;
                 font-weight: bold !important;
+            }
+
+
+            &:last-child {
+                width: 100px;
+
+                font-style: italic;
+                text-align: left;
+                text-transform: uppercase;
             }
         }
 
