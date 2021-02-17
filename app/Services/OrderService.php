@@ -110,7 +110,7 @@ class OrderService
                     $transactions[] = [
                         'order_id'      => $row->id,
                         'odd_type_id'   => $row->odd_type_id,
-                        'date'          => date("F d, Y", strtotime($created)),
+                        'date'          => date("Y-m-d", strtotime($created)),
                         'leaguename'    => $row->master_league_name,
                         'bet_id'        => $row->ml_bet_identifier,
                         'provider'      => strtoupper($row->provider),

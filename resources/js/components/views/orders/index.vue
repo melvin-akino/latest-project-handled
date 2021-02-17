@@ -27,7 +27,7 @@
                                 }"
                                 class="bet-data">
                             <template v-slot:[`group.header`]="{ group, toggle }">
-                                <td colspan="13" @click="toggle">{{ group }}</td>
+                                <td colspan="13" @click="toggle">{{ convertDate(group) }}</td>
                             </template>
 
                             <template v-slot:header.created="{ header }">
@@ -116,7 +116,7 @@
                 },
                 headers: [
                     { text: 'bet id', value: 'bet_id', align: 'center', width: 130, },
-                    { text: 'transaction<br />date & time', value: 'created', align: 'center', width: 120, },
+                    { text: 'transaction<br />date & time', value: 'created', align: 'center', width: 130, },
                     { text: 'bet<br />selection', value: 'bet_selection', align: 'start', sortable: false, },
                     { text: 'provider', value: 'provider', align: 'center', sortable: false, width: 50, },
                     { text: 'status', value: 'status', align: 'center', width: 100, },
@@ -199,6 +199,9 @@
             },
             closeBetMatrix(id) {
                 this.openedBetMatrix = this.openedBetMatrix.filter(betmatrix => betmatrix != id)
+            },
+            convertDate(date) {
+                return moment(date).format('MMMM DD, YYYY')
             }
         },
         directives: {
@@ -356,20 +359,12 @@
             }
 
             i.v-icon {
-                // position: absolute !important;
-                // top: 0;
-                // margin-top: 15px;
-                // margin-left: 2.5px;
-                // float: right !important;
-
                 color: #FFFFFF !important;
             }
+        }
 
-            // &.h-amounts {
-            //     i.v-icon {
-            //         margin-left: 1rem !important;
-            //     }
-            // }
+        td {
+            font-size: 14px !important;
         }
     }
 
