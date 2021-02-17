@@ -200,8 +200,8 @@
             closeBetMatrix(id) {
                 this.openedBetMatrix = this.openedBetMatrix.filter(betmatrix => betmatrix != id)
             },
-            convertDate(date) {
-                return moment(date).format('MMMM DD, YYYY')
+            convertDate(data) {
+                return this.groupedBy == 'date' ? moment(data).format('MMMM DD, YYYY') : data
             }
         },
         directives: {
@@ -341,7 +341,7 @@
         th, td {
             padding: 0.5rem !important;
 
-            font-size: 0.8rem !important;
+            font-size: 14px !important;
         }
 
         th {
