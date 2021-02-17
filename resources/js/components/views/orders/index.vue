@@ -57,7 +57,7 @@
                                     <td class="text-right">{{ props.item.stake }}</td>
                                     <td class="text-right">{{ props.item.towin }}</td>
                                     <td class="text-right">{{ props.item.valid_stake }}</td>
-                                    <td class="text-right">{{ props.item.pl }}</td>
+                                    <td class="text-right" v-adjust-total-pl-color="props.item.pl">{{ props.item.pl }}</td>
                                     <td class="text-center"><span>{{ props.item.score.replace(/\"/g, '') }}</span></td>
                                     <td class="text-start">{{ props.item.reason }}</td>
                                     <td class="text-right">
@@ -202,23 +202,31 @@
             },
             convertDate(data) {
                 return this.groupedBy == 'date' ? moment(data).format('MMMM DD, YYYY') : data
+            },
+            adjustTotalPlColor(el, binding, vnode) {
+                let _value = parseFloat(binding.value)
+
+                if(_value > 0) {
+                    el.classList.remove('redPL')
+                    el.classList.add('greenPL')
+                } else if(_value == 0) {
+                    el.classList.remove('redPL')
+                    el.classList.remove('greenPL')
+                } else {
+                    el.classList.add('redPL')
+                    el.classList.remove('greenPL')
+                }
             }
         },
         directives: {
             adjustTotalPlColor: {
                 bind(el, binding, vnode) {
-                    if(binding.value > 0) {
-                        el.classList.remove('redPL')
-                        el.classList.add('greenPL')
-                    } else if(binding.value < 0) {
-                        el.classList.add('redPL')
-                        el.classList.remove('greenPL')
-                    } else {
-                        el.classList.remove('redPL')
-                        el.classList.remove('greenPL')
-                    }
+                    vnode.context.adjustTotalPlColor(el, binding, vnode)
+                },
+                componentUpdated(el, binding, vnode) {
+                    vnode.context.adjustTotalPlColor(el, binding, vnode)
                 }
-            }
+            },
         },
         filters: {
             moneyFormat,
