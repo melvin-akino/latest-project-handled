@@ -1,5 +1,5 @@
 <template>
-    <div class="betslip flex justify-center items-center">
+    <div class="betslip absolute flex justify-center items-center">
         <dialog-drag :title="'Bet Slip - '+market_id" :options="options" @close="closeBetSlip($vnode.key)" @mousedown.native="$store.dispatch('trade/setActivePopup', $vnode.key)" v-betslip="activePopup==$vnode.key">
             <div class="flex flex-col justify-center items-center w-full h-full absolute top-0 left-0 bg-gray-200 z-10" :class="{'hidden': !isLoadingMarketDetailsAndProviders}">
                 <span class="betSlipSpinner"><i class="fas fa-circle-notch fa-spin"></i></span>
