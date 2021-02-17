@@ -357,7 +357,7 @@
             color: #FFFFFF !important;
             font-weight: bold;
             text-transform: uppercase;
-            vertical-align: middle;
+            vertical-align: bottom;
 
             span {
                 display: inline-block;
