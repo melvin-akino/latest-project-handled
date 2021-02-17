@@ -16,8 +16,8 @@
                 </div>
             </div>
         </div>
-        <div class="flex justify-center items-center fixed w-full h-full top-0 left-0 modalWrapper z-40" v-if="showToggleColumnsModal">
-            <div class="bg-white w-64 p-8 modal">
+        <div class="flex justify-center items-center fixed w-full h-full top-0 left-0 modalWrapper z-40" @click="showToggleColumnsModal = false" v-if="showToggleColumnsModal">
+            <div class="bg-white w-64 p-8 modal" @click.stop>
                 <form @submit.prevent="saveColumns()">
                     <div class="mb-2" v-for="filteredColumn in filteredColumnsBySport" :key="filteredColumn.sport_odd_type_id">
                         <label class="block text-gray-700 text-sm mb-2 font-bold uppercase">
@@ -121,5 +121,9 @@ export default {
 
     .column {
         width: 90px;
+    }
+
+    .text-white {
+      color: #ffffff !important;
     }
 </style>

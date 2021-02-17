@@ -42,6 +42,7 @@
     -webkit-box-shadow:none;
     background:transparent;
     border:none;
+    border-style: none !important;
     box-shadow:none;
     color:#fff
 }

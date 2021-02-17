@@ -1,5 +1,5 @@
 <template>
-    <div class="container-fluid px-5 mx-auto my-10">
+    <div class="orders container-fluid px-5 mx-auto my-10">
         <h1 class="text-2xl font-semibold">{{ pageTitle }}</h1>
 
         <div class="h-full mt-4 rounded-xl bg-white" style="box-shadow: inset 0px 0px 0px 2px rgba(0, 0, 0, 0.1);">
@@ -231,7 +231,7 @@
 </script>
 
 <style lang="scss">
-    * {
+    .orders {
         font-family: "Assistant", sans-serif !important;
     }
 
