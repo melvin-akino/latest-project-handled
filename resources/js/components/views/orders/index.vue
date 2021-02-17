@@ -116,7 +116,7 @@
                 },
                 headers: [
                     { text: 'bet id', value: 'bet_id', align: 'center', width: 130, },
-                    { text: 'transaction<br />date & time', value: 'created', align: 'center', width: 130, },
+                    { text: 'transaction<br />date & time', value: 'created', align: 'center', width: 150, },
                     { text: 'bet<br />selection', value: 'bet_selection', align: 'start', sortable: false, },
                     { text: 'provider', value: 'provider', align: 'center', sortable: false, width: 50, },
                     { text: 'status', value: 'status', align: 'center', width: 100, },
@@ -337,10 +337,11 @@
             text-transform: uppercase;
         }
 
+        .v-row-group__header td,
         th, td {
             padding: 0.5rem !important;
 
-            font-size: 0.8rem !important;
+            font-size: 0.7rem !important;
         }
 
         th {

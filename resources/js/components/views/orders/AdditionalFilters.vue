@@ -3,7 +3,7 @@
         <!-- Grid: Additional Filters -->
         <div class="col-span-1 px-2">
             <label class="font-bold text-xs uppercase">Period</label><br />
-            <select v-model="form.period" class="w-full border border-gray-400 rounded-sm p-2 text-xs uppercase" ref="dd_period" v-is-daily="$refs.dd_period" @change="setFilterDates; changeIsDaily();">
+            <select v-model="form.period" class="w-full border border-gray-400 rounded-sm p-2 text-xs uppercase" ref="dd_period" v-is-daily="$refs.dd_period" @change="setFilterDates(); changeIsDaily();">
                 <template v-if="!ordersPage.includes('history')">
                     <option value="this_week">This Week</option>
                 </template>
@@ -23,9 +23,12 @@
                     <template v-slot:activator="{ on, attrs }">
                         <input class="w-full border border-gray-400 rounded-sm p-2 text-xs uppercase tracking-wide select-none"
                             style="padding-left: 3rem;"
-                            v-model="form.date_from" readonly v-bind="attrs" v-on="on">
+                            v-model="form.date_from"
+                            readonly
+                            v-bind="attrs"
+                            v-on="on">
                     </template>
-                    <v-date-picker v-model="form.date_from" @input="menu.date_from = false" no-title></v-date-picker>
+                    <v-date-picker v-model="form.date_from" @input="menu.date_from = false" width="250" no-title></v-date-picker>
                 </v-menu>
             </div>
             <div class="inline-block w-1/2" style="margin-left: -4px;" v-hide="isDaily">
@@ -36,7 +39,7 @@
                             style="padding-left: 3rem;"
                             v-model="form.date_to" readonly v-bind="attrs" v-on="on">
                     </template>
-                    <v-date-picker v-model="form.date_to" @input="menu.date_to = false" no-title></v-date-picker>
+                    <v-date-picker v-model="form.date_to" @input="menu.date_to = false" width="250" no-title></v-date-picker>
                 </v-menu>
             </div>
             <br />
