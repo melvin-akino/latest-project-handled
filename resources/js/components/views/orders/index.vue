@@ -15,17 +15,17 @@
                             :items="myorders"
                             :items-per-page="10"
                             :group-by="groupedBy"
-                            :group-desc="true"
+                            :group-desc.sync="groupDesc"
                             :sort-by.sync="sortBy"
                             :sort-desc.sync="sortDesc"
                             :footer-props="{
-                                    showFirstLastPage: true,
-                                    firstIcon: 'mdi-chevron-double-left',
-                                    lastIcon: 'mdi-chevron-double-right',
-                                    prevIcon: 'mdi-chevron-left',
-                                    nextIcon: 'mdi-chevron-right'
-                                }"
-                                class="bet-data">
+                                showFirstLastPage: true,
+                                firstIcon: 'mdi-chevron-double-left',
+                                lastIcon: 'mdi-chevron-double-right',
+                                prevIcon: 'mdi-chevron-left',
+                                nextIcon: 'mdi-chevron-right'
+                            }"
+                            class="bet-data">
                             <template v-slot:[`group.header`]="{ group, toggle }">
                                 <td colspan="13" @click="toggle">{{ convertDate(group) }}</td>
                             </template>
@@ -52,13 +52,13 @@
                                     <td class="text-center">{{ props.item.created }}</td>
                                     <td class="text-start"><span v-html="props.item.bet_selection"></span></td>
                                     <td class="text-center font-bold">{{ props.item.provider }}</td>
-                                    <td class="text-center"><strong class="block text-center">{{ props.item.status }}</strong></td>
                                     <td class="text-center"><span class="block">{{ props.item.odds }}</span></td>
                                     <td class="text-right">{{ props.item.stake }}</td>
                                     <td class="text-right">{{ props.item.towin }}</td>
+                                    <td class="text-center"><strong class="block text-center">{{ props.item.status }}</strong></td>
+                                    <td class="text-center"><span>{{ props.item.score.replace(/\"/g, '') }}</span></td>
                                     <td class="text-right">{{ props.item.valid_stake }}</td>
                                     <td class="text-right" v-adjust-total-pl-color="props.item.pl">{{ props.item.pl }}</td>
-                                    <td class="text-center"><span>{{ props.item.score.replace(/\"/g, '') }}</span></td>
                                     <td class="text-start">{{ props.item.reason }}</td>
                                     <td class="text-right">
                                         <a href="#" @click.prevent="openBetMatrix(props.item.order_id, `${props.item.order_id}-betmatrix`)"
@@ -116,16 +116,16 @@
                 },
                 headers: [
                     { text: 'bet id', value: 'bet_id', align: 'center', width: 130, },
-                    { text: 'transaction<br />date & time', value: 'created', align: 'center', width: 150, },
+                    { text: 'transaction<br />date & time', value: 'created', class: 'col-center', align: 'center', width: 150, },
                     { text: 'bet<br />selection', value: 'bet_selection', align: 'start', sortable: false, },
                     { text: 'provider', value: 'provider', align: 'center', sortable: false, width: 50, },
-                    { text: 'status', value: 'status', align: 'center', width: 100, },
-                    { text: 'odds', value: 'odds', align: 'center', width: 70, },
+                    { text: 'odds', value: 'odds', align: 'center', class: 'col-center', width: 70, },
                     { text: 'stake', value: 'stake', align: 'end', class: 'h-amounts', width: 80, },
                     { text: 'to win', value: 'towin', align: 'end', class: 'h-amounts', width: 80, },
+                    { text: 'status', value: 'status', align: 'center', class: 'col-center', width: 100, },
+                    { text: 'result', value: 'score', align: 'center', sortable: false, width: 70, },
                     { text: 'valid<br />stake', value: 'valid_stake', align: 'end', class: 'h-amounts', sortable: false, width: 80, },
                     { text: 'profit<br />loss', value: 'pl', align: 'end', class: 'h-amounts', width: 80, },
-                    { text: 'score', value: 'score', align: 'center', sortable: false, width: 70, },
                     { text: 'reason', value: 'reason', align: 'start', sortable: false, },
                     { text: '', value: 'betData', align: 'end', sortable: false, width: 100, },
                 ],
@@ -151,7 +151,7 @@
         computed: {
             ...mapState('trade', ['wallet', 'failedBetStatus']),
             ...mapState('settings', ['defaultTimezone']),
-            ...mapState('orders', ['myorders', 'groupedBy']),
+            ...mapState('orders', ['myorders', 'groupedBy', 'groupDesc']),
             totalPL() {
                 let pls = this.myorders.map(order => Number(order.pl.replace(',', '')))
 
@@ -383,7 +383,7 @@
                 box-shadow: inset 5px 0px 0px 0px #FF2525 !important;
             }
 
-            &:nth-child(5) {
+            &:nth-child(8) {
                 color: #FF2525 !important;
             }
         }
@@ -395,7 +395,7 @@
                 box-shadow: inset 5px 0px 0px 0px #009E28 !important;
             }
 
-            &:nth-child(5) {
+            &:nth-child(8) {
                 color: #009E28 !important;
             }
         }

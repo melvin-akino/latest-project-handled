@@ -101,7 +101,7 @@
                 <div :class="{ 'col-span-1 px-2': ordersPage.includes('history'), 'col-span-2 px-2': ordersPage.includes('orders') }">&nbsp;</div>
 
                 <!-- Grid: User Wallet Information -->
-                <div class="col-span-1 px-2 pt-20" align="right" v-if="!ordersPage.includes('history')">
+                <div class="col-span-1 px-2 pt-20" align="right">
                     <table class="user-wallet-info" width="100%">
                         <tr>
                             <td>Credits</td>
@@ -242,8 +242,6 @@
             },
             changeIsDaily() {
                 this.isDaily = this.form.period == 'daily' ? true : false
-
-                console.log(this.isDaily)
             },
             setFilterDates() {
                 let fromToDate = {
@@ -298,6 +296,7 @@
                     this.form.period = 'this_week'
                     this.form.date_from = moment().startOf('isoweek').format('YYYY-MM-DD')
                     this.form.date_to = moment().endOf('isoweek').add(1, 'day').format('YYYY-MM-DD')
+                    this.isDaily = false
                 }
 
                 this.getMyOrders(this.form)

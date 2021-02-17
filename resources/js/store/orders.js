@@ -6,6 +6,7 @@ const token = Cookies.get('mltoken')
 const state = {
     myorders: [],
     groupedBy: 'date',
+    groupDesc: true,
 }
 
 const mutations = {
@@ -14,7 +15,10 @@ const mutations = {
     },
     SET_GROUPED_BY: (state, group_by) => {
         state.groupedBy = group_by
-    }
+    },
+    SET_GROUP_SORT: (state, group_sort) => {
+        state.groupDesc = group_sort
+    },
 }
 
 const actions = {
@@ -24,8 +28,10 @@ const actions = {
                 let orders = []
                 let formattedColumns = ['stake', 'towin', 'pl', 'valid_stake']
                 let _filters = response.data.filters
+                let _sort = _filters.group_by == 'date' ? true : false
 
                 commit('SET_GROUPED_BY', _filters.group_by)
+                commit('SET_GROUP_SORT', _sort)
 
                 if (response.data.data != null) {
                     response.data.data.map(order => {
