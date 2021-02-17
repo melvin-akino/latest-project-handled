@@ -141,6 +141,11 @@ export default {
         background: #FFFFFF;
         border-style: solid;
     }
+        input:-webkit-autofill{
+            transition: background-color 5000s ease-in-out 0s;
+
+            -webkit-text-fill-color: #444444 !important;
+        }
 
     .text-white {
         color: #FFFFFF !important;
