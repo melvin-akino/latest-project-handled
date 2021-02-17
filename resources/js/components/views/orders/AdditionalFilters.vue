@@ -104,24 +104,24 @@
                 <div class="col-span-1 px-2 pt-20" align="right" v-if="!ordersPage.includes('history')">
                     <table class="user-wallet-info" width="100%">
                         <tr>
-                            <td>¥ &nbsp; <span class="totalPL" v-adjust-total-pl-color="wallet.credit">{{ wallet.credit | moneyFormat }}</span></td>
                             <td>Credits</td>
+                            <td>¥ &nbsp; <span class="totalPL" v-adjust-total-pl-color="wallet.credit">{{ wallet.credit | moneyFormat }}</span></td>
                         </tr>
                         <tr>
-                            <td>¥ &nbsp; <span class="totalPL" v-adjust-total-pl-color="wallet.profit_loss">{{ wallet.profit_loss | moneyFormat }}</span></td>
                             <td>Profit & Loss</td>
+                            <td>¥ &nbsp; <span class="totalPL" v-adjust-total-pl-color="wallet.profit_loss">{{ wallet.profit_loss | moneyFormat }}</span></td>
                         </tr>
                         <tr>
-                            <td>¥ &nbsp; <span class="totalPL" v-adjust-total-pl-color="wallet.orders">{{ wallet.orders | moneyFormat }}</span></td>
                             <td>Open Orders</td>
+                            <td>¥ &nbsp; <span class="totalPL" v-adjust-total-pl-color="wallet.orders">{{ wallet.orders | moneyFormat }}</span></td>
                         </tr>
                         <tr>
-                            <td>¥ &nbsp; <span class="totalPL" v-adjust-total-pl-color="wallet.today_pl">{{ wallet.today_pl | moneyFormat }}</span></td>
                             <td>Today's PL</td>
+                            <td>¥ &nbsp; <span class="totalPL" v-adjust-total-pl-color="wallet.today_pl">{{ wallet.today_pl | moneyFormat }}</span></td>
                         </tr>
                         <tr>
-                            <td>¥ &nbsp; <span class="totalPL" v-adjust-total-pl-color="wallet.yesterday_pl">{{ wallet.yesterday_pl | moneyFormat }}</span></td>
                             <td>Yesterday's PL</td>
+                            <td>¥ &nbsp; <span class="totalPL" v-adjust-total-pl-color="wallet.yesterday_pl">{{ wallet.yesterday_pl | moneyFormat }}</span></td>
                         </tr>
                     </table>
                 </div>
@@ -357,18 +357,18 @@
 
             &:first-child {
                 text-align: right;
-
-                color: #444444;
-                font-size: 1.2rem;
-                font-weight: bold !important;
+                text-transform: uppercase;
             }
 
 
             &:last-child {
-                width: 100px;
+                text-align: right;
+                width: 200px;
 
-                font-style: italic;
-                text-align: left;
+                color: #444444;
+                font-size: 1.2rem;
+                font-weight: bold !important;
+                text-align: right;
                 text-transform: uppercase;
             }
         }
