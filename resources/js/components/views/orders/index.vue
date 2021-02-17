@@ -234,7 +234,7 @@
 </script>
 
 <style lang="scss">
-    * {
+    .orders * {
         font-family: "Assistant", sans-serif !important;
     }
 
@@ -341,7 +341,7 @@
         th, td {
             padding: 0.5rem !important;
 
-            font-size: 0.7rem !important;
+            font-size: 0.8rem !important;
         }
 
         th {

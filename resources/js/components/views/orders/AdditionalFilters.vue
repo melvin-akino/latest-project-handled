@@ -108,7 +108,7 @@
                             <td>Credits</td>
                         </tr>
                         <tr>
-                            <td>¥ &nbsp; <span class="totalPL" v-adjust-total-pl-color="wallet.credit">{{ wallet.profit_loss | moneyFormat }}</span></td>
+                            <td>¥ &nbsp; <span class="totalPL" v-adjust-total-pl-color="wallet.profit_loss">{{ wallet.profit_loss | moneyFormat }}</span></td>
                             <td>Profit & Loss</td>
                         </tr>
                         <tr>
