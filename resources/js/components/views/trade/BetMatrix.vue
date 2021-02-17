@@ -312,7 +312,7 @@ export default {
 
     .white {
         background-color: #fefefe;
-        color: #000000
+        color: #000000 !important;
     }
 
     .result {
