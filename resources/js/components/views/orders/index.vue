@@ -234,7 +234,7 @@
 </script>
 
 <style lang="scss">
-    .orders {
+    * {
         font-family: "Assistant", sans-serif !important;
     }
 

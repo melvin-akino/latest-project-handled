@@ -1,129 +1,133 @@
 <template>
-    <div class="additional-filters grid grid-cols-4 content-center mt-2">
-        <!-- Grid: Additional Filters -->
-        <div class="col-span-1 px-2">
-            <label class="font-bold text-xs uppercase">Period</label><br />
-            <select v-model="form.period" class="w-full border border-gray-400 rounded-sm p-2 text-xs uppercase" ref="dd_period" v-is-daily="$refs.dd_period" @change="setFilterDates(); changeIsDaily();">
-                <template v-if="!ordersPage.includes('history')">
-                    <option value="this_week">This Week</option>
-                </template>
-                <template v-else>
-                    <option value="last_week">Last Week</option>
-                    <option value="daily">Daily</option>
-                    <option value="this_week">Weekly</option>
-                    <option value="monthly">Monthly</option>
-                    <option value="all">All</option>
-                </template>
-            </select><br />
+    <v-app>
+        <v-main>
+            <div class="additional-filters grid grid-cols-4 content-center mt-2">
+                <!-- Grid: Additional Filters -->
+                <div class="col-span-1 px-2">
+                    <label class="font-bold text-xs uppercase">Period</label><br />
+                    <select v-model="form.period" class="w-full border border-gray-400 rounded-sm p-2 text-xs uppercase" ref="dd_period" v-is-daily="$refs.dd_period" @change="setFilterDates(); changeIsDaily();">
+                        <template v-if="!ordersPage.includes('history')">
+                            <option value="this_week">This Week</option>
+                        </template>
+                        <template v-else>
+                            <option value="last_week">Last Week</option>
+                            <option value="daily">Daily</option>
+                            <option value="this_week">Weekly</option>
+                            <option value="monthly">Monthly</option>
+                            <option value="all">All</option>
+                        </template>
+                    </select><br />
 
-            <label class="font-bold text-xs uppercase">Date Covered</label><br />
-            <div class="inline-block w-1/2" v-date-expand="isDaily">
-                <span class="bg-white rounded-sm p-1 absolute text-xs uppercase text-center bg-gray-400" style="margin-top: 5px; margin-left: 5px; width: 40px;">From</span>
-                <v-menu :close-on-content-click="true" transition="scale-transition" offset-y min-width="auto">
-                    <template v-slot:activator="{ on, attrs }">
-                        <input class="w-full border border-gray-400 rounded-sm p-2 text-xs uppercase tracking-wide select-none"
-                            style="padding-left: 3rem;"
-                            v-model="form.date_from"
-                            readonly
-                            v-bind="attrs"
-                            v-on="on">
-                    </template>
-                    <v-date-picker v-model="form.date_from" @input="menu.date_from = false" width="250" no-title></v-date-picker>
-                </v-menu>
+                    <label class="font-bold text-xs uppercase">Date Covered</label><br />
+                    <div class="inline-block w-1/2" v-date-expand="isDaily">
+                        <span class="bg-white rounded-sm p-1 absolute text-xs uppercase text-center bg-gray-400" style="margin-top: 5px; margin-left: 5px; width: 40px;">From</span>
+                        <v-menu :close-on-content-click="true" transition="scale-transition" offset-y min-width="auto">
+                            <template v-slot:activator="{ on, attrs }">
+                                <input class="w-full border border-gray-400 rounded-sm p-2 text-xs uppercase tracking-wide select-none"
+                                    style="padding-left: 3rem;"
+                                    v-model="form.date_from"
+                                    readonly
+                                    v-bind="attrs"
+                                    v-on="on">
+                            </template>
+                            <v-date-picker v-model="form.date_from" @input="menu.date_from = false" width="250" no-title></v-date-picker>
+                        </v-menu>
+                    </div>
+                    <div class="inline-block w-1/2" style="margin-left: -4px;" v-hide="isDaily">
+                        <span class="bg-white rounded-sm p-1 absolute text-xs uppercase text-center bg-gray-400" style="margin-top: 5px; margin-left: 5px; width: 40px;">To</span>
+                        <v-menu :close-on-content-click="true" transition="scale-transition" offset-y min-width="auto">
+                            <template v-slot:activator="{ on, attrs }">
+                                <input class="w-full border border-gray-400 rounded-sm p-2 text-xs uppercase tracking-wide select-none"
+                                    style="padding-left: 3rem;"
+                                    v-model="form.date_to" readonly v-bind="attrs" v-on="on">
+                            </template>
+                            <v-date-picker v-model="form.date_to" @input="menu.date_to = false" width="250" no-title></v-date-picker>
+                        </v-menu>
+                    </div>
+                    <br />
+
+                    <label class="font-bold text-xs uppercase" for="groupBy">Group By</label><br />
+                    <select class="w-full border border-gray-400 rounded-sm p-2 text-xs uppercase" v-model="form.group_by" id="groupBy">
+                        <option value="date" selected>Date</option>
+                        <option value="leaguename">League</option>
+                    </select>
+
+                    <button @click="getMyOrders(form)" class="w-auto mt-4 border-2 border-gray-400 hover:border-orange-600 hover:bg-orange-600 hover:text-white px-4 py-2 text-xs transition ease-in-out duration-100 select-none focus:outline-none tracking-wide">
+                        <i class="fas fa-search mr-2"></i> <strong class="uppercase">Apply Filters</strong>
+                    </button>
+                </div>
+
+                <!-- Grid: Additional History Filters -->
+                <div class="col-span-1 px-2" v-if="ordersPage.includes('history')">
+                    <label class="font-bold text-xs uppercase" for="period">Search By</label><br />
+                    <select class="w-full border border-gray-400 rounded-sm p-2 text-xs uppercase" v-model="form.search_by" @change="populateSearch()">
+                        <option value="league_names" selected>League Names</option>
+                        <option value="team_names">Team Names</option>
+                    </select><br />
+
+                    <label class="font-bold text-xs uppercase">Search Keyword</label><br />
+                    <v-combobox
+                        class="w-full text-xs uppercase"
+                        v-model="form.search_keyword"
+                        :items="search_keywords"
+                        height="38"
+                        outlined
+                        dense
+                        hide-no-data
+                        @input.native="form.search_keyword = $event.target.value"
+                        style="margin-top: -2px; margin-bottom: -29px; font-size: 0.8rem;"></v-combobox>
+
+                    <div class="" v-if="this.myorders.length > 0">
+                        <!-- Button Group -->
+                        <label class="font-bold text-xs uppercase">Export</label><br />
+                        <json-excel
+                            class="inline-block border-2 border-gray-400 hover:border-orange-500 hover:bg-orange-500 hover:text-white px-4 py-2 text-xs text-center transition ease-in-out duration-100 select-none focus:outline-none cursor-pointer tracking-wide"
+                            :data="myorders"
+                            :fields="exportFields"
+                            :name="filename">
+                                <i class="fas fa-download mr-2"></i> <strong>EXCEL</strong> (.xlsx)
+                        </json-excel>
+
+                        <json-csv
+                            class="inline-block border-2 border-gray-400 hover:border-orange-500 hover:bg-orange-500 hover:text-white px-4 py-2 text-xs text-center transition ease-in-out duration-100 select-none focus:outline-none cursor-pointer tracking-wide"
+                            :data="myorders"
+                            :name="filename">
+                                <i class="fas fa-download mr-2"></i> <strong>CSV FILE</strong> (.csv)
+                        </json-csv>
+                    </div>
+                </div>
+
+                <!-- Grid: Separator -->
+                <div :class="{ 'col-span-1 px-2': ordersPage.includes('history'), 'col-span-2 px-2': ordersPage.includes('orders') }">&nbsp;</div>
+
+                <!-- Grid: User Wallet Information -->
+                <div class="col-span-1 px-2 pt-20" align="right" v-if="!ordersPage.includes('history')">
+                    <table class="user-wallet-info" width="100%">
+                        <tr>
+                            <td>¥ &nbsp; <span class="totalPL" v-adjust-total-pl-color="wallet.credit">{{ wallet.credit | moneyFormat }}</span></td>
+                            <td>Credits</td>
+                        </tr>
+                        <tr>
+                            <td>¥ &nbsp; <span class="totalPL" v-adjust-total-pl-color="wallet.credit">{{ wallet.profit_loss | moneyFormat }}</span></td>
+                            <td>Profit & Loss</td>
+                        </tr>
+                        <tr>
+                            <td>¥ &nbsp; <span class="totalPL" v-adjust-total-pl-color="wallet.orders">{{ wallet.orders | moneyFormat }}</span></td>
+                            <td>Open Orders</td>
+                        </tr>
+                        <tr>
+                            <td>¥ &nbsp; <span class="totalPL" v-adjust-total-pl-color="wallet.today_pl">{{ wallet.today_pl | moneyFormat }}</span></td>
+                            <td>Today's PL</td>
+                        </tr>
+                        <tr>
+                            <td>¥ &nbsp; <span class="totalPL" v-adjust-total-pl-color="wallet.yesterday_pl">{{ wallet.yesterday_pl | moneyFormat }}</span></td>
+                            <td>Yesterday's PL</td>
+                        </tr>
+                    </table>
+                </div>
             </div>
-            <div class="inline-block w-1/2" style="margin-left: -4px;" v-hide="isDaily">
-                <span class="bg-white rounded-sm p-1 absolute text-xs uppercase text-center bg-gray-400" style="margin-top: 5px; margin-left: 5px; width: 40px;">To</span>
-                <v-menu :close-on-content-click="true" :nudge-right="170" transition="scale-transition" offset-y min-width="auto">
-                    <template v-slot:activator="{ on, attrs }">
-                        <input class="w-full border border-gray-400 rounded-sm p-2 text-xs uppercase tracking-wide select-none"
-                            style="padding-left: 3rem;"
-                            v-model="form.date_to" readonly v-bind="attrs" v-on="on">
-                    </template>
-                    <v-date-picker v-model="form.date_to" @input="menu.date_to = false" width="250" no-title></v-date-picker>
-                </v-menu>
-            </div>
-            <br />
-
-            <label class="font-bold text-xs uppercase" for="groupBy">Group By</label><br />
-            <select class="w-full border border-gray-400 rounded-sm p-2 text-xs uppercase" v-model="form.group_by" id="groupBy">
-                <option value="date" selected>Date</option>
-                <option value="leaguename">League</option>
-            </select>
-
-            <button @click="getMyOrders(form)" class="w-auto mt-4 border-2 border-gray-400 hover:border-orange-600 hover:bg-orange-600 hover:text-white px-4 py-2 text-xs transition ease-in-out duration-100 select-none focus:outline-none tracking-wide">
-                <i class="fas fa-search mr-2"></i> <strong class="uppercase">Apply Filters</strong>
-            </button>
-        </div>
-
-        <!-- Grid: Additional History Filters -->
-        <div class="col-span-1 px-2" v-if="ordersPage.includes('history')">
-            <label class="font-bold text-xs uppercase" for="period">Search By</label><br />
-            <select class="w-full border border-gray-400 rounded-sm p-2 text-xs uppercase" v-model="form.search_by" @change="populateSearch()">
-                <option value="league_names" selected>League Names</option>
-                <option value="team_names">Team Names</option>
-            </select><br />
-
-            <label class="font-bold text-xs uppercase">Search Keyword</label><br />
-            <v-combobox
-                class="w-full text-xs uppercase"
-                v-model="form.search_keyword"
-                :items="search_keywords"
-                height="38"
-                outlined
-                dense
-                hide-no-data
-                @input.native="form.search_keyword = $event.target.value"
-                style="margin-top: -2px; margin-bottom: -29px; font-size: 0.8rem;"></v-combobox>
-
-            <div class="" v-if="this.myorders.length > 0">
-                <!-- Button Group -->
-                <label class="font-bold text-xs uppercase">Export</label><br />
-                <json-excel
-                    class="inline-block border-2 border-gray-400 hover:border-orange-500 hover:bg-orange-500 hover:text-white px-4 py-2 text-xs text-center transition ease-in-out duration-100 select-none focus:outline-none cursor-pointer tracking-wide"
-                    :data="myorders"
-                    :fields="exportFields"
-                    :name="filename">
-                        <i class="fas fa-download mr-2"></i> <strong>EXCEL</strong> (.xlsx)
-                </json-excel>
-
-                <json-csv
-                    class="inline-block border-2 border-gray-400 hover:border-orange-500 hover:bg-orange-500 hover:text-white px-4 py-2 text-xs text-center transition ease-in-out duration-100 select-none focus:outline-none cursor-pointer tracking-wide"
-                    :data="myorders"
-                    :name="filename">
-                        <i class="fas fa-download mr-2"></i> <strong>CSV FILE</strong> (.csv)
-                </json-csv>
-            </div>
-        </div>
-
-        <!-- Grid: Separator -->
-        <div :class="{ 'col-span-1 px-2': ordersPage.includes('history'), 'col-span-2 px-2': ordersPage.includes('orders') }">&nbsp;</div>
-
-        <!-- Grid: User Wallet Information -->
-        <div class="col-span-1 px-2 pt-20" align="right" v-if="!ordersPage.includes('history')">
-            <table class="user-wallet-info" width="100%">
-                <tr>
-                    <td>¥ &nbsp; <span class="totalPL" v-adjust-total-pl-color="wallet.credit">{{ wallet.credit | moneyFormat }}</span></td>
-                    <td>Credits</td>
-                </tr>
-                <tr>
-                    <td>¥ &nbsp; <span class="totalPL" v-adjust-total-pl-color="wallet.credit">{{ wallet.profit_loss | moneyFormat }}</span></td>
-                    <td>Profit & Loss</td>
-                </tr>
-                <tr>
-                    <td>¥ &nbsp; <span class="totalPL" v-adjust-total-pl-color="wallet.orders">{{ wallet.orders | moneyFormat }}</span></td>
-                    <td>Open Orders</td>
-                </tr>
-                <tr>
-                    <td>¥ &nbsp; <span class="totalPL" v-adjust-total-pl-color="wallet.today_pl">{{ wallet.today_pl | moneyFormat }}</span></td>
-                    <td>Today's PL</td>
-                </tr>
-                <tr>
-                    <td>¥ &nbsp; <span class="totalPL" v-adjust-total-pl-color="wallet.yesterday_pl">{{ wallet.yesterday_pl | moneyFormat }}</span></td>
-                    <td>Yesterday's PL</td>
-                </tr>
-            </table>
-        </div>
-    </div>
+        </v-main>
+    </v-app>
 </template>
 
 <script>
