@@ -337,7 +337,20 @@ export default {
 }
 </script>
 
-<style>
+<style lang="scss">
+    .betMatrixSimulator {
+      input:not([disabled]), select {
+        background-color: #ffffff !important;
+        border-style: solid !important;
+      }
+      select {
+        appearance: none !important;
+      }
+      button, button[type=submit] {
+        color: #ffffff !important;
+      }
+    }
+
     .ordersHeading {
         background-color: #ed8936;
         color: #ffffff;
@@ -366,6 +379,6 @@ export default {
 
     .white {
         background-color: #fefefe;
-        color: #000000
+        color: #000000 !important;
     }
 </style>

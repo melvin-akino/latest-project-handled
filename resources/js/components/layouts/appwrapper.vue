@@ -11,7 +11,7 @@
                     <router-link to="/history" class="text-sm uppercase ml-1 sm:px-4 px-6 hover:bg-orange-500 hover:text-white navlink">Bet History</router-link>
                     <Search></Search>
                 </div>
-                <div class="flex justify-end items-center w-1/3">
+                <div class="flex justify-end items-center w-1/2">
                     <p class="text-gray-600 text-sm capitalize">{{time}} | GMT {{defaultTimezone.timezone}} {{defaultTimezone.name}}</p>
                     <div class="username relative inline-block sm:px-4 px-6 navlink">
                         <a href="#" class="text-gray-700 text-sm uppercase ml-5 mr-5">{{display_name}} <span class="text-xs text-gray-700 font-normal"><i class="fas fa-chevron-down"></i></span></a>
