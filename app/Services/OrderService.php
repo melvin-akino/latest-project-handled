@@ -43,9 +43,9 @@ class OrderService
                     $requestTo   = Carbon::createFromFormat("Y-m-d H:i:s", $request->date_to . " 11:59:59", 'Etc/UTC')->setTimezone($userTz)->format("Y-m-d H:i:s");
 
                     if ($request->period == "daily") {
-                        $data = $data->whereBetween('o.created_at', [ $request->date_from . " 00:00:00", $request->date_from . " 23:59:59" ]);
+                        $data = $data->whereBetween(DB::raw("o.created_at AT TIME ZONE 'UTC' AT TIME ZONE '$userTz'"), [ $request->date_from . " 00:00:00", $request->date_from . " 23:59:59" ]);
                     } else {
-                        $data = $data->whereBetween('o.created_at', [ $requestFrom, $requestTo ]);
+                        $data = $data->whereBetween(DB::raw("o.created_at AT TIME ZONE 'UTC' AT TIME ZONE '$userTz'"), [ $requestFrom, $requestTo ]);
                     }
                 }
 
