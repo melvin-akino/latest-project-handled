@@ -2,7 +2,7 @@
 
 namespace App\Services;
 
-use App\Models\{Timezones, UserConfiguration};
+use App\Models\{OddType, Timezones, UserConfiguration};
 use App\Http\Requests\OrderRequest;
 use Illuminate\Support\Facades\{DB, Log};
 
@@ -98,8 +98,11 @@ class OrderService
                     'pao.actual_profit_loss',
                     'o.odds',
                     'o.odd_label',
-                    'em.error'
+                    'em.error',
+                    'o.market_flag',
                 ]);
+
+            $ouLabels = OddType::where('type', 'LIKE', '%OU%')->pluck('id')->toArray();
 
             foreach ($data as $row) {
                 if (!in_array($row->id, $dups)) {
@@ -112,6 +115,35 @@ class OrderService
                         $score = explode(" - ", $row->score_on_bet);
                     }
 
+                    if (strtoupper($row->market_flag) == "DRAW") {
+                        $teamname = "DRAW";
+                    } else {
+                        $objectKey = "master_team_" . strtolower($row->market_flag) . "_name";
+                        $teamname  = $row->{$objectKey};
+                    }
+
+                    if (in_array($row->odd_type_id, $ouLabels)) {
+                        $ou        = explode(' ', $row->odd_label)[0];
+                        $teamname  = $ou == "O" ? "Over" : "Under";
+                        $teamname .= " " . explode(' ', $row->odd_label)[1];
+                    }
+
+                    $origBetSelection = explode(PHP_EOL, $row->bet_selection);
+                    $betSelection     = implode("\n", [
+                        $row->master_team_home_name . " vs " . $row->master_team_away_name,
+                        $teamname . " @ " . $row->odds,
+                        end($origBetSelection),
+                    ]);
+
+                    if (in_array($row->odd_type_id, $ouLabels)) {
+                        $lastLineBetSelection = end($origBetSelection);
+                        $ouScore              = explode('(', $lastLineBetSelection);
+                        $betSelection         = implode("\n", [
+                            $row->master_team_home_name . " vs " . $row->master_team_away_name,
+                            $teamname . " @ " . $row->odds . " (" . $ouScore[1]
+                        ]);
+                    }
+
                     $transactions[] = [
                         'order_id'      => $row->id,
                         'odd_type_id'   => $row->odd_type_id,
@@ -119,7 +151,7 @@ class OrderService
                         'leaguename'    => $row->master_league_name,
                         'bet_id'        => $row->ml_bet_identifier,
                         'provider'      => strtoupper($row->provider),
-                        'bet_selection' => nl2br($row->bet_selection),
+                        'bet_selection' => nl2br($betSelection),
                         'created'       => $created,
                         'settled'       => $settled,
                         'status'        => $row->status,
