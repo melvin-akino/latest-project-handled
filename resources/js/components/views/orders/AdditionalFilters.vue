@@ -66,16 +66,18 @@
                     </select><br />
 
                     <label class="font-bold text-xs uppercase">Search Keyword</label><br />
-                    <v-combobox
-                        class="w-full text-xs uppercase"
-                        v-model="form.search_keyword"
-                        :items="search_keywords"
-                        height="38"
-                        outlined
-                        dense
-                        hide-no-data
-                        @input.native="form.search_keyword = $event.target.value"
-                        style="margin-top: -2px; margin-bottom: -29px; font-size: 0.8rem;"></v-combobox>
+                    <v-container>
+                        <v-combobox
+                            class="w-full text-xs uppercase"
+                            v-model="form.search_keyword"
+                            :items="search_keywords"
+                            height="38"
+                            outlined
+                            dense
+                            hide-no-data
+                            @keypress.native="form.search_keyword = $event.target.value"
+                            style="margin-top: -2px; margin-bottom: -29px; font-size: 0.8rem;"></v-combobox>
+                    </v-container>
 
                     <div class="" v-if="this.myorders.length > 0">
                         <!-- Button Group -->
