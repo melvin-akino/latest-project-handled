@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\{Currency, Timezones, UserConfiguration, Order};
-use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\{DB, Log};
 use Illuminate\Http\Request;
 use App\Services\WalletService;
 use App\Facades\WalletFacade;
@@ -42,11 +42,11 @@ class WalletController extends Controller
             $getBalance  = $walletService->getBalance($token, $user->uuid, trim(strtoupper($currency->code)));
 
             if ($getBalance->status) {
-                $balance      = $getBalance->data->balance;
-                $profit_loss  = Order::where('user_id', $userId)->sum('profit_loss');
-                $orders       = Order::where('user_id', $userId)->whereIn('status', ['PENDING', 'SUCCESS'])->sum('stake');
-                $todayPL      = Order::where('user_id', $userId)->whereBetween('created_at', [$today . " 00:00:00", $today . " 23:59:59"])->sum('profit_loss');
-                $ystrdyPL     = Order::where('user_id', $userId)->whereBetween('created_at', [$yesterday . " 00:00:00", $yesterday . " 23:59:59"])->sum('profit_loss');
+                $balance     = $getBalance->data->balance;
+                $profit_loss = Order::where('user_id', $userId)->sum('profit_loss');
+                $orders      = Order::where('user_id', $userId)->whereIn('status', ['PENDING', 'SUCCESS'])->sum('stake');
+                $todayPL     = Order::where('user_id', $userId)->whereBetween(DB::raw("created_at AT TIME ZONE 'UTC' AT TIME ZONE '$userTz'"), [$today . " 00:00:00", $today . " 23:59:59"])->sum('profit_loss');
+                $ystrdyPL    = Order::where('user_id', $userId)->whereBetween(DB::raw("created_at AT TIME ZONE 'UTC' AT TIME ZONE '$userTz'"), [$yesterday . " 00:00:00", $yesterday . " 23:59:59"])->sum('profit_loss');
 
                 return response()->json([
                     'status'      => true,
