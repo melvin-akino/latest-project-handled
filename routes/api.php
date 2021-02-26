@@ -94,7 +94,6 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
                     Route::get('myOrdersV2', 'OrdersController@myOrdersV2');
                     Route::get('myHistory', 'OrdersController@myHistory');
                     Route::get('/{memUID}', 'OrdersController@getEventMarketsDetails');
-                    Route::get('/{memUID}/logs', 'OrdersController@getEventMarketLogs');
                     Route::get('logs/{uid}', 'OrdersController@getBetSlipLogs');
                     Route::get('bet-matrix/{uid}', 'OrdersController@betMatrixOrders');
 
