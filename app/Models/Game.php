@@ -293,9 +293,15 @@ class Game extends Model
                      $join->on('me.id', 'mem.master_event_id');
                      $join->where('mem.is_main', true);
                  })
-                 ->join('events as e', 'e.master_event_id', 'me.id')
+                 ->join('event_groups AS eg', 'me.id', '=', 'eg.master_event_id')
+                 ->join('events as e', function ($join) {
+                    $join->on('eg.master_event_id', '=', 'e.master_event_id');
+                    $join->on('eg.event_id', '=', 'e.id');
+                 })
+                 ->join('event_market_groups AS emg', 'mem.id', '=', 'emg.master_event_market_id')
                  ->join('event_markets as em', function ($join) {
-                     $join->on('em.master_event_market_id', '=', 'mem.id');
+                     $join->on('emg.master_event_market_id', '=', 'mem.id');
+                     $join->on('em.id', '=', 'emg.event_market_id');
                      $join->on('em.event_id', '=', 'e.id');
                  })
                  ->leftJoin('master_leagues as ml', 'ml.id', 'me.master_league_id')
