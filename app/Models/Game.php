@@ -289,20 +289,18 @@ class Game extends Model
     {
         $maxMissingCount = SystemConfiguration::getSystemConfigurationValue('EVENT_VALID_MAX_MISSING_COUNT')->value;
         return DB::table('master_events as me')
-                 ->leftJoin('master_event_markets as mem', function($join) {
-                     $join->on('me.id', 'mem.master_event_id');
-                     $join->where('mem.is_main', true);
-                 })
                  ->join('event_groups AS eg', 'me.id', '=', 'eg.master_event_id')
                  ->join('events as e', function ($join) {
                     $join->on('eg.master_event_id', '=', 'e.master_event_id');
                     $join->on('eg.event_id', '=', 'e.id');
                  })
+                 ->leftJoin('master_event_markets as mem', 'me.id', '=', 'mem.master_event_id')
                  ->join('event_market_groups AS emg', 'mem.id', '=', 'emg.master_event_market_id')
                  ->join('event_markets as em', function ($join) {
                      $join->on('emg.master_event_market_id', '=', 'mem.id');
                      $join->on('em.id', '=', 'emg.event_market_id');
                      $join->on('em.event_id', '=', 'e.id');
+                     $join->where('em.is_main', true);
                  })
                  ->leftJoin('master_leagues as ml', 'ml.id', 'me.master_league_id')
                  ->leftJoin('master_teams as mth', 'mth.id', 'me.master_team_home_id')
