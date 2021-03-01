@@ -68,6 +68,7 @@ class Provider extends Model
             ->join('master_event_markets as mem', 'emg.master_event_market_id', 'mem.id')
             ->where('mem.master_event_market_unique_id', $memUID)
             ->whereNull('em.deleted_at')
+            ->distinct()
             ->pluck('em.provider_id');
     }
 

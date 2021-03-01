@@ -95,7 +95,8 @@ class Game extends Model
                      'mem.master_event_market_unique_id',
                      'em.odds',
                      'em.odd_label',
-                     'em.is_main'
+                     'em.is_main',
+                     'em.provider_id'
                  ]);
     }
 
