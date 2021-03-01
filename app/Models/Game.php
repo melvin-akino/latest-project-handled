@@ -69,6 +69,7 @@ class Game extends Model
     public static function getOtherMarketSpreadDetails(array $fields = [])
     {
         $maxMissingCount = SystemConfiguration::getSystemConfigurationValue('EVENT_VALID_MAX_MISSING_COUNT')->value;
+        $primaryProvider = SystemConfiguration::getSystemConfigurationValue('PRIMARY_PROVIDER')->value;
 
         return DB::table('master_events AS me')
                  ->leftJoin('event_groups AS eg', 'me.id', 'eg.master_event_id')
@@ -80,10 +81,11 @@ class Game extends Model
                      $join->on('em.event_id', 'e.id');
                   })
                  ->leftJoin('odd_types AS ot', 'em.odd_type_id', 'ot.id')
+                 ->join('providers as p', 'p.id', 'em.provider_id')
                  ->whereNull('me.deleted_at')
                  ->whereNull('em.deleted_at')
                  ->whereNull('e.deleted_at')
-                 ->whereIn('em.provider_id', $fields['providers'])
+                 ->where('p.alias', strtoupper($primaryProvider))
                  ->where('em.market_flag', $fields['market_flag'])
                  ->where('em.odd_type_id', $fields['odd_type_id'])
                  ->where('e.game_schedule', $fields['game_schedule'])
@@ -99,6 +101,8 @@ class Game extends Model
 
     public static function getmasterEventByMarketId(string $marketId)
     {
+        $primaryProvider = SystemConfiguration::getSystemConfigurationValue('PRIMARY_PROVIDER')->value;
+        
         return DB::table('master_events AS me')
                  ->leftJoin('master_leagues as ml', 'ml.id', 'me.master_league_id')
                  ->leftJoin('master_teams as mth', 'mth.id', 'me.master_team_home_id')
@@ -113,7 +117,9 @@ class Game extends Model
                      $join->on('sot.odd_type_id', '=', 'ot.id');
                      $join->on('sot.sport_id', '=', 'me.sport_id');
                  })
+                 ->join('providers as p', 'p.id', 'e.provider_id')
                  ->whereNull('me.deleted_at')
+                 ->where('p.alias', strtoupper($primaryProvider))
                  ->where('mem.master_event_market_unique_id', $marketId)
                  ->select([
                      'me.sport_id',

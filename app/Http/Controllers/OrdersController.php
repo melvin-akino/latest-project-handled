@@ -186,7 +186,7 @@ class OrdersController extends Controller
                 $userTz = Timezones::find($getUserConfig->value)->name;
             }
 
-            $masterEventMarket = MasterEventMarket::where('master_event_market_unique_id', $memUID);
+            $masterEventMarket = Order::getEventMarketBetSlipDetails($memUID);
 
             if (!$masterEventMarket->exists()) {
                 $toLogs = [
@@ -204,36 +204,9 @@ class OrdersController extends Controller
                 ], 404);
             }
 
-            $masterEventMarket = $masterEventMarket
-                                ->join('event_market_groups as emg', 'master_event_markets.id', 'emg.master_event_market_id')
-                                ->join('event_markets as em', 'emg.event_market_id', 'em.id')
-                                ->first([
-                                    'em.is_main',
-                                    'em.market_flag',
-                                    'em.odd_type_id',
-                                    'master_event_id'
-                                ]);
+            $masterEventMarket = $masterEventMarket->first();
 
-            $masterEvent = DB::table('master_events as me')
-                             ->where('me.id', $masterEventMarket->master_event_id)
-                             ->join('event_groups as eg', 'me.id', 'eg.master_event_id')
-                             ->join('events as e', 'eg.event_id', 'e.id')
-                             ->join('master_leagues as ml', 'ml.id', 'me.master_league_id')
-                             ->join('master_teams as ht', 'ht.id', 'me.master_team_home_id')
-                             ->join('master_teams as at', 'at.id', 'me.master_team_away_id')
-                             ->select([
-                                 'ml.name as league_name',
-                                 'ht.name as home_team_name',
-                                 'at.name as away_team_name',
-                                 'master_event_unique_id',
-                                 'e.game_schedule',
-                                 'e.ref_schedule',
-                                 'e.running_time',
-                                 'e.score',
-                                 'e.home_penalty',
-                                 'e.away_penalty',
-                                 'me.sport_id'
-                             ]);
+            $masterEvent = Order::getEventBetSlipDetails($masterEventMarket->master_event_id);
 
             if (!$masterEvent->exists()) {
                 $toLogs = [

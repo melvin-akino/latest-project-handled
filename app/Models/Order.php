@@ -178,4 +178,51 @@ class Order extends Model
                  ->select('p.alias')
                  ->first();
     }
+
+    public static function getEventMarketBetSlipDetails($memUID)
+    {
+        $primaryProvider = SystemConfiguration::getSystemConfigurationValue('PRIMARY_PROVIDER')->value;
+
+        return DB::table('master_event_markets as mem')
+                ->join('event_market_groups as emg', 'mem.id', 'emg.master_event_market_id')
+                ->join('event_markets as em', 'emg.event_market_id', 'em.id')
+                ->join('providers as p', 'p.id', 'em.provider_id')
+                ->where('master_event_market_unique_id', $memUID)
+                ->where('p.alias', strtoupper($primaryProvider))
+                ->select([
+                    'em.is_main',
+                    'em.market_flag',
+                    'em.odd_type_id',
+                    'master_event_id'
+                ]);
+    }
+
+    public static function getEventBetSlipDetails($masterEventId)
+    {
+        $primaryProvider = SystemConfiguration::getSystemConfigurationValue('PRIMARY_PROVIDER')->value;
+
+        return DB::table('master_events as me')
+                ->join('event_groups as eg', 'me.id', 'eg.master_event_id')
+                ->join('events as e', 'eg.event_id', 'e.id')
+                ->join('master_leagues as ml', 'ml.id', 'me.master_league_id')
+                ->join('master_teams as ht', 'ht.id', 'me.master_team_home_id')
+                ->join('master_teams as at', 'at.id', 'me.master_team_away_id')
+                ->join('providers as p', 'p.id', 'e.provider_id')
+                ->where('me.id', $masterEventId)
+                ->where('p.alias', strtoupper($primaryProvider))
+                ->select([
+                    'ml.name as league_name',
+                    'ht.name as home_team_name',
+                    'at.name as away_team_name',
+                    'master_event_unique_id',
+                    'e.game_schedule',
+                    'e.ref_schedule',
+                    'e.running_time',
+                    'e.score',
+                    'e.home_penalty',
+                    'e.away_penalty',
+                    'me.sport_id'
+                ]);
+
+    }
 }
