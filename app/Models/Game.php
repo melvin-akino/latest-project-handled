@@ -331,16 +331,16 @@ class Game extends Model
                 $query->select('master_event_id')->from('user_watchlist')->where('user_id', $userId);
             })
             ->where(function($query) use ($keyword) {
-                $query->where(DB::raw("CONCAT(NULLIF(ml.name, l.name), ' | ', NULLIF(mth.name, th.name), ' VS ', NULLIF(mta.name, ta.name))"), 'ILIKE', str_replace('%', '^', $keyword) . '%')
-                    ->orwhere(DB::raw("NULLIF(ml.name, l.name)"), 'ILIKE', str_replace('%', '^', $keyword) . '%')
-                    ->orwhere(DB::raw("NULLIF(mth.name, th.name)"), 'ILIKE', str_replace('%', '^', $keyword) . '%')
-                    ->orwhere(DB::raw("NULLIF(mta.name, ta.name)"), 'ILIKE', str_replace('%', '^', $keyword) . '%');
+                $query->where(DB::raw("CONCAT(COALESCE(ml.name, l.name), ' | ', COALESCE(mth.name, th.name), ' VS ', COALESCE(mta.name, ta.name))"), 'ILIKE', str_replace('%', '^', $keyword) . '%')
+                    ->orwhere(DB::raw("COALESCE(ml.name, l.name)"), 'ILIKE', str_replace('%', '^', $keyword) . '%')
+                    ->orwhere(DB::raw("COALESCE(mth.name, th.name)"), 'ILIKE', str_replace('%', '^', $keyword) . '%')
+                    ->orwhere(DB::raw("COALESCE(mta.name, ta.name)"), 'ILIKE', str_replace('%', '^', $keyword) . '%');
             })
             ->select([
                 DB::raw("'event' as type"),
                 'me.master_event_unique_id as data',
-                DB::raw("CONCAT(NULLIF(ml.name, l.name), ' | ', NULLIF(mth.name, th.name), ' VS ', NULLIF(mta.name, ta.name)) as label")
+                DB::raw("CONCAT(COALESCE(ml.name, l.name), ' | ', COALESCE(mth.name, th.name), ' VS ', COALESCE(mta.name, ta.name)) as label")
             ])
-            ->groupBy('me.master_event_unique_id', DB::raw('NULLIF(ml.name, l.name)'), DB::raw('NULLIF(mth.name, th.name)'), DB::raw('NULLIF(mta.name, ta.name)'));
+            ->groupBy('me.master_event_unique_id', DB::raw('COALESCE(ml.name, l.name)'), DB::raw('COALESCE(mth.name, th.name)'), DB::raw('COALESCE(mta.name, ta.name)'));
     }
 }
