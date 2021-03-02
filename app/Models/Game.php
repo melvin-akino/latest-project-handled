@@ -133,6 +133,7 @@ class Game extends Model
                      $join->on('sot.sport_id', '=', 'me.sport_id');
                  })
                  ->whereNull('me.deleted_at')
+                 ->where('e.provider_id', $primaryProvider)
                  ->where('em.provider_id', $primaryProvider)
                  ->where('mem.master_event_market_unique_id', $marketId)
                  ->select([
