@@ -31,16 +31,27 @@ class UserSelectedLeague extends Model
                  ->first();
     }
 
-    public static function getSelectedLeagueByUserId(int $userId, int $sportId, array $providers)
+    public static function getSelectedLeagueByUserId(int $userId, int $sportId)
     {
+        $primaryProvider = Provider::getIdFromAlias(SystemConfiguration::getSystemConfigurationValue('PRIMARY_PROVIDER')->value);
+
         return DB::table('user_selected_leagues as usl')
                  ->leftJoin('master_leagues as ml', 'ml.id', 'usl.master_league_id')
+                 ->leftJoin('league_groups AS lg', 'lg.master_league_id', 'ml.id')
+                 ->leftJoin('leagues AS l', function ($join) use($primaryProvider) {
+                    $join->on('l.id', 'lg.league_id');
+                    $join->where('l.provider_id', $primaryProvider);
+                 })
                  ->leftJoin('master_events as me', 'ml.id', 'me.master_league_id')
-                 ->leftJoin('events as e', 'me.id', 'e.master_event_id')
+                 ->leftJoin('event_groups as eg', 'me.id', 'eg.master_event_id')
+                 ->leftJoin('events as e', 'eg.event_id', 'e.id')
                  ->where('user_id', $userId)
                  ->where('usl.sport_id', $sportId)
-                 ->whereIn('e.provider_id', $providers)
-                 ->select('usl.game_schedule', 'ml.name as master_league_name')
+                 ->where('e.provider_id', $primaryProvider)
+                 ->select([
+                    'usl.game_schedule',
+                    DB::raw('COALESCE(ml.name, l.name) as master_league_name')
+                 ])
                  ->distinct()
                  ->get();
     }

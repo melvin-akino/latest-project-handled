@@ -316,19 +316,19 @@ class Game extends Model
             })
             ->leftJoin('master_leagues as ml', 'ml.id', 'me.master_league_id')
             ->leftJoin('league_groups AS lg', 'lg.master_league_id', 'ml.id')
-            ->leftJoin('leauges AS l', function ($join) {
+            ->leftJoin('leagues AS l', function ($join) use($primaryProvider) {
                 $join->on('l.id', '=', 'lg.league_id');
                 $join->where('l.provider_id', $primaryProvider);
             })
             ->leftJoin('master_teams as mth', 'mth.id', 'me.master_team_home_id')
             ->leftJoin('team_groups AS tgh', 'tgh.master_team_id', 'mth.id')
-            ->leftJoin('teams AS th', function ($join) {
+            ->leftJoin('teams AS th', function ($join) use($primaryProvider) {
                 $join->on('th.id', '=', 'tgh.team_id');
                 $join->where('th.provider_id', $primaryProvider);
             })
             ->leftJoin('master_teams as mta', 'mta.id', 'me.master_team_away_id')
             ->leftJoin('team_groups AS tga', 'tga.master_team_id', 'mta.id')
-            ->leftJoin('teams AS ta', function ($join) {
+            ->leftJoin('teams AS ta', function ($join) use($primaryProvider) {
                 $join->on('ta.id', '=', 'tga.team_id');
                 $join->where('ta.provider_id', $primaryProvider);
             })
