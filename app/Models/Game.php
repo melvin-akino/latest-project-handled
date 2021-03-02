@@ -288,38 +288,59 @@ class Game extends Model
     public static function getAvailableEvents(int $userId, string $keyword)
     {
         $maxMissingCount = SystemConfiguration::getSystemConfigurationValue('EVENT_VALID_MAX_MISSING_COUNT')->value;
+        $primaryProvider = Provider::getIdFromAlias(SystemConfiguration::getSystemConfigurationValue('PRIMARY_PROVIDER')->value);
+
         return DB::table('master_events as me')
-                 ->leftJoin('master_event_markets as mem', function($join) {
-                     $join->on('me.id', 'mem.master_event_id');
-                     $join->where('mem.is_main', true);
-                 })
-                 ->join('events as e', 'e.master_event_id', 'me.id')
-                 ->join('event_markets as em', function ($join) {
-                     $join->on('em.master_event_market_id', '=', 'mem.id');
-                     $join->on('em.event_id', '=', 'e.id');
-                 })
-                 ->leftJoin('master_leagues as ml', 'ml.id', 'me.master_league_id')
-                 ->leftJoin('master_teams as mth', 'mth.id', 'me.master_team_home_id')
-                 ->leftJoin('master_teams as mta', 'mta.id', 'me.master_team_away_id')
-                 ->whereNull('me.deleted_at')
-                 ->whereNull('e.deleted_at')
-                 ->whereNull('em.deleted_at')
-                 ->whereNull('ml.deleted_at')
-                 ->where('e.missing_count', '<=', $maxMissingCount)
-                 ->whereNotIn('me.id', function($query) use ($userId) {
-                     $query->select('master_event_id')->from('user_watchlist')->where('user_id', $userId);
-                 })
-                 ->where(function($query) use ($keyword) {
-                    $query->where(DB::raw("CONCAT(ml.name, ' | ', mth.name, ' VS ', mta.name)"), 'ILIKE', str_replace('%', '^', $keyword) . '%')
-                          ->orwhere("ml.name", 'ILIKE', str_replace('%', '^', $keyword) . '%')
-                          ->orwhere("mth.name", 'ILIKE', str_replace('%', '^', $keyword) . '%')
-                          ->orwhere("mta.name", 'ILIKE', str_replace('%', '^', $keyword) . '%');
-                })
-                 ->select([
-                     DB::raw("'event' as type"),
-                     'me.master_event_unique_id as data',
-                     DB::raw("CONCAT(ml.name, ' | ', mth.name, ' VS ', mta.name) as label")
-                 ])
-                 ->groupBy('me.master_event_unique_id', 'ml.name', 'mth.name', 'mta.name');
+            ->join('event_groups AS eg', 'me.id', '=', 'eg.master_event_id')
+            ->join('events as e', function ($join) {
+                $join->on('eg.master_event_id', '=', 'e.master_event_id');
+                $join->on('eg.event_id', '=', 'e.id');
+            })
+            ->leftJoin('master_event_markets as mem', 'me.id', '=', 'mem.master_event_id')
+            ->join('event_market_groups AS emg', 'mem.id', '=', 'emg.master_event_market_id')
+            ->join('event_markets as em', function ($join) {
+                $join->on('emg.master_event_market_id', '=', 'mem.id');
+                $join->on('em.id', '=', 'emg.event_market_id');
+                $join->on('em.event_id', '=', 'e.id');
+                $join->where('em.is_main', true);
+            })
+            ->leftJoin('master_leagues as ml', 'ml.id', 'me.master_league_id')
+            ->leftJoin('league_groups AS lg', 'lg.master_league_id', 'ml.id')
+            ->leftJoin('leauges AS l', function ($join) {
+                $join->on('l.id', '=', 'lg.league_id');
+                $join->where('l.provider_id', $primaryProvider);
+            })
+            ->leftJoin('master_teams as mth', 'mth.id', 'me.master_team_home_id')
+            ->leftJoin('team_groups AS tgh', 'tgh.master_team_id', 'mth.id')
+            ->leftJoin('teams AS th', function ($join) {
+                $join->on('th.id', '=', 'tgh.team_id');
+                $join->where('th.provider_id', $primaryProvider);
+            })
+            ->leftJoin('master_teams as mta', 'mta.id', 'me.master_team_away_id')
+            ->leftJoin('team_groups AS tga', 'tga.master_team_id', 'mta.id')
+            ->leftJoin('teams AS ta', function ($join) {
+                $join->on('ta.id', '=', 'tga.team_id');
+                $join->where('ta.provider_id', $primaryProvider);
+            })
+            ->whereNull('me.deleted_at')
+            ->whereNull('e.deleted_at')
+            ->whereNull('em.deleted_at')
+            ->whereNull('ml.deleted_at')
+            ->where('e.missing_count', '<=', $maxMissingCount)
+            ->whereNotIn('me.id', function($query) use ($userId) {
+                $query->select('master_event_id')->from('user_watchlist')->where('user_id', $userId);
+            })
+            ->where(function($query) use ($keyword) {
+                $query->where(DB::raw("CONCAT(COALESCE(ml.name, l.name), ' | ', COALESCE(mth.name, th.name), ' VS ', COALESCE(mta.name, ta.name))"), 'ILIKE', str_replace('%', '^', $keyword) . '%')
+                    ->orwhere(DB::raw("COALESCE(ml.name, l.name)"), 'ILIKE', str_replace('%', '^', $keyword) . '%')
+                    ->orwhere(DB::raw("COALESCE(mth.name, th.name)"), 'ILIKE', str_replace('%', '^', $keyword) . '%')
+                    ->orwhere(DB::raw("COALESCE(mta.name, ta.name)"), 'ILIKE', str_replace('%', '^', $keyword) . '%');
+            })
+            ->select([
+                DB::raw("'event' as type"),
+                'me.master_event_unique_id as data',
+                DB::raw("CONCAT(COALESCE(ml.name, l.name), ' | ', COALESCE(mth.name, th.name), ' VS ', COALESCE(mta.name, ta.name)) as label")
+            ])
+            ->groupBy('me.master_event_unique_id', DB::raw('COALESCE(ml.name, l.name)'), DB::raw('COALESCE(mth.name, th.name)'), DB::raw('COALESCE(mta.name, ta.name)'));
     }
 }
