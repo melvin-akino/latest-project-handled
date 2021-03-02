@@ -69,7 +69,7 @@ class Game extends Model
     public static function getOtherMarketSpreadDetails(array $fields = [])
     {
         $maxMissingCount = SystemConfiguration::getSystemConfigurationValue('EVENT_VALID_MAX_MISSING_COUNT')->value;
-        $primaryProvider = SystemConfiguration::getSystemConfigurationValue('PRIMARY_PROVIDER')->value;
+        $primaryProvider = Provider::getIdFromAlias(SystemConfiguration::getSystemConfigurationValue('PRIMARY_PROVIDER')->value);
 
         return DB::table('master_events AS me')
                  ->leftJoin('event_groups AS eg', 'me.id', 'eg.master_event_id')
@@ -81,11 +81,10 @@ class Game extends Model
                      $join->on('em.event_id', 'e.id');
                   })
                  ->leftJoin('odd_types AS ot', 'em.odd_type_id', 'ot.id')
-                 ->join('providers as p', 'p.id', 'em.provider_id')
                  ->whereNull('me.deleted_at')
                  ->whereNull('em.deleted_at')
                  ->whereNull('e.deleted_at')
-                 ->where('p.alias', strtoupper($primaryProvider))
+                 ->where('em.provider_id', $primaryProvider)
                  ->where('em.market_flag', $fields['market_flag'])
                  ->where('em.odd_type_id', $fields['odd_type_id'])
                  ->where('e.game_schedule', $fields['game_schedule'])
@@ -102,12 +101,27 @@ class Game extends Model
 
     public static function getmasterEventByMarketId(string $marketId)
     {
-        $primaryProvider = SystemConfiguration::getSystemConfigurationValue('PRIMARY_PROVIDER')->value;
-        
+        $primaryProvider = Provider::getIdFromAlias(SystemConfiguration::getSystemConfigurationValue('PRIMARY_PROVIDER')->value);
+
         return DB::table('master_events AS me')
                  ->leftJoin('master_leagues as ml', 'ml.id', 'me.master_league_id')
+                 ->leftJoin('league_groups as lg', 'ml.id', 'lg.master_league_id')
+                 ->leftJoin('leagues as l', function ($join) use($primaryProvider) {
+                    $join->on('l.id', 'lg.league_id');
+                    $join->where('l.provider_id', $primaryProvider);
+                 })
                  ->leftJoin('master_teams as mth', 'mth.id', 'me.master_team_home_id')
+                 ->leftJoin('team_groups AS tgh', 'tgh.master_team_id', 'mth.id')
+                 ->leftJoin('teams AS th', function ($join) use($primaryProvider) {
+                    $join->on('th.id', 'tgh.team_id');
+                    $join->where('th.provider_id', $primaryProvider);
+                 })
                  ->leftJoin('master_teams as mta', 'mta.id', 'me.master_team_away_id')
+                 ->leftJoin('team_groups AS tga', 'tga.master_team_id', 'mta.id')
+                 ->leftJoin('teams AS ta', function ($join) use($primaryProvider) {
+                    $join->on('ta.id', 'tga.team_id');
+                    $join->where('ta.provider_id', $primaryProvider);
+                 })
                  ->leftJoin('event_groups as eg', 'me.id', 'eg.master_event_id')
                  ->join('events as e', 'eg.event_id', 'e.id')
                  ->leftJoin('master_event_markets AS mem', 'me.id', 'mem.master_event_id')
@@ -118,16 +132,15 @@ class Game extends Model
                      $join->on('sot.odd_type_id', '=', 'ot.id');
                      $join->on('sot.sport_id', '=', 'me.sport_id');
                  })
-                 ->join('providers as p', 'p.id', 'e.provider_id')
                  ->whereNull('me.deleted_at')
-                 ->where('p.alias', strtoupper($primaryProvider))
+                 ->where('em.provider_id', $primaryProvider)
                  ->where('mem.master_event_market_unique_id', $marketId)
                  ->select([
                      'me.sport_id',
                      'me.master_event_unique_id',
-                     'ml.name as master_league_name',
-                     'mth.name as master_home_team_name',
-                     'mta.name as master_away_team_name',
+                     DB::raw('COALESCE(ml.name, l.name) as master_league_name'),
+                     DB::raw('COALESCE(mth.name, th.name) as master_home_team_name'),
+                     DB::raw('COALESCE(mta.name, ta.name) as master_away_team_name'),
                      'e.game_schedule',
                      'e.running_time',
                      'e.score',
