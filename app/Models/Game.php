@@ -69,60 +69,86 @@ class Game extends Model
     public static function getOtherMarketSpreadDetails(array $fields = [])
     {
         $maxMissingCount = SystemConfiguration::getSystemConfigurationValue('EVENT_VALID_MAX_MISSING_COUNT')->value;
+        $primaryProvider = Provider::getIdFromAlias(SystemConfiguration::getSystemConfigurationValue('PRIMARY_PROVIDER')->value);
 
         return DB::table('master_events AS me')
-                 ->leftJoin('events AS e', 'e.master_event_id', '=', 'me.id')
-                 ->leftJoin('master_event_markets AS mem', 'mem.master_event_id', '=', 'me.id')
-                 ->leftJoin('odd_types AS ot', 'mem.odd_type_id', '=', 'ot.id')
-                 ->leftJoin('event_markets AS em', function ($join) {
-                     $join->on('em.master_event_market_id', '=', 'mem.id');
-                     $join->on('em.event_id', '=', 'e.id');
-                 })
+                 ->leftJoin('event_groups AS eg', 'me.id', 'eg.master_event_id')
+                 ->join('events as e', 'eg.event_id', 'e.id')
+                 ->leftJoin('master_event_markets AS mem', 'mem.master_event_id', 'me.id')
+                 ->leftJoin('event_market_groups as emg', 'mem.id', 'emg.master_event_market_id')
+                 ->join('event_markets AS em', function ($join) {
+                     $join->on('emg.event_market_id', 'em.id');
+                     $join->on('em.event_id', 'e.id');
+                  })
+                 ->leftJoin('odd_types AS ot', 'em.odd_type_id', 'ot.id')
                  ->whereNull('me.deleted_at')
                  ->whereNull('em.deleted_at')
                  ->whereNull('e.deleted_at')
-                 ->whereIn('em.provider_id', $fields['providers'])
+                 ->where('em.provider_id', $primaryProvider)
                  ->where('em.market_flag', $fields['market_flag'])
-                 ->where('mem.odd_type_id', $fields['odd_type_id'])
-                 ->where('me.game_schedule', $fields['game_schedule'])
-                 ->where('e.master_event_id', $fields['master_event_id'])
+                 ->where('em.odd_type_id', $fields['odd_type_id'])
+                 ->where('e.game_schedule', $fields['game_schedule'])
+                 ->where('eg.master_event_id', $fields['master_event_id'])
                  ->where('e.missing_count', '<=', $maxMissingCount)
                  ->get([
                      'mem.master_event_market_unique_id',
                      'em.odds',
                      'em.odd_label',
-                     'em.is_main'
+                     'em.is_main',
+                     'em.provider_id'
                  ]);
     }
 
     public static function getmasterEventByMarketId(string $marketId)
     {
+        $primaryProvider = Provider::getIdFromAlias(SystemConfiguration::getSystemConfigurationValue('PRIMARY_PROVIDER')->value);
+
         return DB::table('master_events AS me')
                  ->leftJoin('master_leagues as ml', 'ml.id', 'me.master_league_id')
+                 ->leftJoin('league_groups as lg', 'ml.id', 'lg.master_league_id')
+                 ->leftJoin('leagues as l', function ($join) use($primaryProvider) {
+                    $join->on('l.id', 'lg.league_id');
+                    $join->where('l.provider_id', $primaryProvider);
+                 })
                  ->leftJoin('master_teams as mth', 'mth.id', 'me.master_team_home_id')
+                 ->leftJoin('team_groups AS tgh', 'tgh.master_team_id', 'mth.id')
+                 ->leftJoin('teams AS th', function ($join) use($primaryProvider) {
+                    $join->on('th.id', 'tgh.team_id');
+                    $join->where('th.provider_id', $primaryProvider);
+                 })
                  ->leftJoin('master_teams as mta', 'mta.id', 'me.master_team_away_id')
+                 ->leftJoin('team_groups AS tga', 'tga.master_team_id', 'mta.id')
+                 ->leftJoin('teams AS ta', function ($join) use($primaryProvider) {
+                    $join->on('ta.id', 'tga.team_id');
+                    $join->where('ta.provider_id', $primaryProvider);
+                 })
+                 ->leftJoin('event_groups as eg', 'me.id', 'eg.master_event_id')
+                 ->join('events as e', 'eg.event_id', 'e.id')
                  ->leftJoin('master_event_markets AS mem', 'me.id', 'mem.master_event_id')
-                 ->leftJoin('event_markets AS em', 'em.master_event_market_id', 'mem.id')
-                 ->leftJoin('odd_types AS ot', 'ot.id', 'mem.odd_type_id')
+                 ->leftJoin('event_market_groups as emg', 'mem.id', 'emg.master_event_market_id')
+                 ->join('event_markets AS em', 'emg.event_market_id', 'em.id')
+                 ->leftJoin('odd_types AS ot', 'ot.id', 'em.odd_type_id')
                  ->leftJoin('sport_odd_type as sot', function ($join) {
                      $join->on('sot.odd_type_id', '=', 'ot.id');
                      $join->on('sot.sport_id', '=', 'me.sport_id');
                  })
                  ->whereNull('me.deleted_at')
+                 ->where('e.provider_id', $primaryProvider)
+                 ->where('em.provider_id', $primaryProvider)
                  ->where('mem.master_event_market_unique_id', $marketId)
                  ->select([
                      'me.sport_id',
                      'me.master_event_unique_id',
-                     'ml.name as master_league_name',
-                     'mth.name as master_home_team_name',
-                     'mta.name as master_away_team_name',
-                     'me.game_schedule',
-                     'me.running_time',
-                     'me.score',
+                     DB::raw('COALESCE(ml.name, l.name) as master_league_name'),
+                     DB::raw('COALESCE(mth.name, th.name) as master_home_team_name'),
+                     DB::raw('COALESCE(mta.name, ta.name) as master_away_team_name'),
+                     'e.game_schedule',
+                     'e.running_time',
+                     'e.score',
                      'mem.master_event_market_unique_id',
-                     'mem.is_main',
-                     'mem.market_flag',
-                     'mem.odd_type_id',
+                     'em.is_main',
+                     'em.market_flag',
+                     'em.odd_type_id',
                      'em.bet_identifier',
                      'em.provider_id',
                      'em.odds',
@@ -130,22 +156,6 @@ class Game extends Model
                      'sot.name AS column_type',
                  ])
                  ->first();
-    }
-
-    public static function getBetSlipLogs(int $userId, string $memUID)
-    {
-        $subquery = DB::table('bet_slip_logs')
-                      ->where('memuid', $memUID)
-                      ->whereIn('user_id', [0, $userId])
-                      ->selectRaw('DISTINCT ON (odds) *')
-                      ->orderBy('odds', 'desc')
-                      ->orderBy('timestamp', 'desc');
-
-        return DB::table(DB::raw("({$subquery->toSql()}) as bsl"))
-                 ->mergeBindings($subquery)
-                 ->orderBy('timestamp', 'desc')
-                 ->limit(20)
-                 ->get();
     }
 
     public static function getSelectedLeagueEvents(int $userId, int $sportId)

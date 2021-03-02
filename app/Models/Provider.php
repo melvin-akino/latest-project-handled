@@ -64,9 +64,11 @@ class Provider extends Model
     public static function getProvidersByMemUID(string $memUID)
     {
         return DB::table('event_markets as em')
-            ->join('master_event_markets as mem', 'mem.id', 'em.master_event_market_id')
+            ->join('event_market_groups as emg', 'em.id', 'emg.event_market_id')
+            ->join('master_event_markets as mem', 'emg.master_event_market_id', 'mem.id')
             ->where('mem.master_event_market_unique_id', $memUID)
             ->whereNull('em.deleted_at')
+            ->distinct()
             ->pluck('em.provider_id');
     }
 
