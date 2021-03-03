@@ -20,7 +20,7 @@
 
                     <label class="font-bold text-xs uppercase">Date Covered</label><br />
                     <div class="inline-block w-1/2" v-date-expand="isDaily">
-                        <span class="bg-white rounded-sm p-1 absolute text-xs uppercase text-center bg-gray-400" style="margin-top: 5px; margin-left: 5px; width: 40px;">From</span>
+                        <span class="bg-white rounded-sm p-1 absolute text-xs uppercase text-center bg-gray-400" style="margin-top: 5px; margin-left: 5px; width: 40px;">{{ fromLabel }}</span>
                         <v-menu :close-on-content-click="true" transition="scale-transition" offset-y min-width="auto">
                             <template v-slot:activator="{ on, attrs }">
                                 <input class="w-full border border-gray-400 rounded-sm p-2 text-xs uppercase tracking-wide select-none"
@@ -158,6 +158,7 @@
         data() {
             return {
                 isDaily: false,
+                fromLabel: 'From',
                 search_keywords: [],
                 menu: {
                     date_from: false,
@@ -244,6 +245,7 @@
             },
             changeIsDaily() {
                 this.isDaily = this.form.period == 'daily' ? true : false
+                this.fromLabel = this.form.period == 'daily' ? 'Date' : 'From'
             },
             setFilterDates() {
                 let fromToDate = {
