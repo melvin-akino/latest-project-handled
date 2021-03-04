@@ -13,7 +13,6 @@ class Provider extends Model
         'name',
         'alias',
         'punter_percentage',
-        'priority',
         'is_enabled'
     ];
 

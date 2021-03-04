@@ -18,7 +18,6 @@ class UserProviderConfiguration extends Model
         'user_id',
         'punter_percentage',
         'active',
-        'priority'
     ];
 
     /** NEW APPROACH */
