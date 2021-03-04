@@ -41,7 +41,6 @@ class ResourceController extends Controller
             $providers = Provider::getActiveProviders()->get([
                 'id',
                 'alias',
-                'priority'
             ]);
 
             return response()->json([

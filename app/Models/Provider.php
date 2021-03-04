@@ -24,18 +24,17 @@ class Provider extends Model
 
     public static function getActiveProviders()
     {
-        return self::where('is_enabled', true)
-                   ->orderBy('priority', 'asc');
+        return self::where('is_enabled', true);
     }
 
     public static function getAllProviders()
     {
-        return self::orderBy('priority', 'asc')->orderBy('id', 'asc')->get()->toArray();
+        return self::orderBy('id', 'asc')->get()->toArray();
     }
 
     public static function getLatestPriority()
     {
-        return self::orderBy('priority', 'desc')->get()->first();
+        return self::get()->first();
     }
 
     public static function getIdFromAlias($alias)
@@ -45,20 +44,6 @@ class Provider extends Model
         if ($query->exists()) {
             return $query->first()->id;
         }
-    }
-
-    public static function getMostPriorityProvider(int $userId)
-    {
-        $userProvider = UserProviderConfiguration::where('user_id', $userId)
-                                                 ->join('providers', 'provider_id', 'providers.id');
-        if ($userProvider->exists()) {
-            $userProvider = $userProvider->where('active', true)->orderBy('priority', 'ASC');
-            $providerId   = $userProvider->first()->provider_id;
-        } else {
-            $userProvider = self::where('is_enabled', true)->orderBy('priority', 'ASC');
-            $providerId   = $userProvider->first()->id;
-        }
-        return $providerId;
     }
 
     public static function getProvidersByMemUID(string $memUID)
