@@ -18,7 +18,6 @@ class UserProviderConfiguration extends Model
         'user_id',
         'punter_percentage',
         'active',
-        'priority'
     ];
 
     /** NEW APPROACH */
@@ -108,9 +107,9 @@ class UserProviderConfiguration extends Model
         $userProvider = self::where('user_id', $userId)
                          ->join('providers as p', 'provider_id', 'p.id');
         if ($userProvider->exists()) {
-            $userProvider = $userProvider->where('active', true)->where('p.is_enabled', true)->orderBy('priority', 'ASC')->pluck('provider_id')->toArray();
+            $userProvider = $userProvider->where('active', true)->where('p.is_enabled', true)->pluck('provider_id')->toArray();
         } else {
-            $userProvider = Provider::where('is_enabled', true)->orderBy('priority', 'ASC')->pluck('id')->toArray();
+            $userProvider = Provider::where('is_enabled', true)->pluck('id')->toArray();
         }
         return $userProvider;
     }
