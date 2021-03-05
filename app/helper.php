@@ -487,14 +487,14 @@ if (!function_exists('eventTransformation')) {
 
             if (empty($data[$transformed->master_event_unique_id]['home'])) {
                 $data[$transformed->master_event_unique_id]['home'] = [
-                    'name'    => $transformed->master_home_team_name,
+                    'name'    => $transformed->master_team_home_name,
                     'score'   => empty($transformed->score) ? '' : array_values(explode(' - ', $transformed->score))[0],
                     'redcard' => $transformed->home_penalty
                 ];
             }
             if (empty($data[$transformed->master_event_unique_id]['away'])) {
                 $data[$transformed->master_event_unique_id]['away'] = [
-                    'name'    => $transformed->master_away_team_name,
+                    'name'    => $transformed->master_team_away_name,
                     'score'   => empty($transformed->score) ? '' : array_values(explode(' - ', $transformed->score))[1],
                     'redcard' => $transformed->home_penalty
                 ];

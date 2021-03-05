@@ -41,7 +41,7 @@ class MasterEventMarket extends Model
                 ->whereNull('me.deleted_at')
                 ->whereNull('ml.deleted_at')
                 ->where('ml.id', $masterLeagueId)
-                ->where('me.game_schedule', $schedule)
+                ->where('e.game_schedule', $schedule)
                 ->where('me.sport_id', $sportId)
                 ->select('mem.master_event_market_unique_id', 'me.master_event_unique_id')
                 ->get()
