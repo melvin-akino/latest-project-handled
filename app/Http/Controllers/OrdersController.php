@@ -550,10 +550,10 @@ class OrdersController extends Controller
                 $payload['exchange_rate']    = $exchangeRate['exchange_rate'];
                 $incrementIds['payload'][]   = $payload;
 
-                $teamname = $query->market_flag == "HOME" ? $query->master_home_team_name : $query->master_away_team_name;
+                $teamname = $query->market_flag == "HOME" ? $query->master_team_home_name : $query->master_team_away_name;
 
                 $betSelection = implode("\n", [
-                    $query->master_home_team_name . " vs " . $query->master_away_team_name,
+                    $query->master_team_home_name . " vs " . $query->master_team_away_name,
                     $teamname . " @ " . number_format($row['price'], 2),
                     $query->column_type . " " . $query->odd_label . "(" . $query->score . ")",
                 ]);
@@ -592,8 +592,8 @@ class OrdersController extends Controller
                     'odd_type_id'                   => $query->odd_type_id,
                     'market_flag'                   => $query->market_flag,
                     'master_league_name'            => $query->master_league_name,
-                    'master_team_home_name'         => $query->master_home_team_name,
-                    'master_team_away_name'         => $query->master_away_team_name
+                    'master_team_home_name'         => $query->master_team_home_name,
+                    'master_team_away_name'         => $query->master_team_away_name
                 ];
 
                 $_exchangeRate = [
