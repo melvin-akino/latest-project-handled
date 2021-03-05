@@ -145,7 +145,6 @@ class MinMaxTransformationHandler
                                     "min"         => $data->minimum,
                                     "max"         => ($maximum <= $maxBetDisplay) ? $maximum : $maxBetDisplay,
                                     "price"       => (double) $data->odds,
-                                    "priority"    => $provTable->get($providerSwtId)['priority'],
                                     'market_id'   => $memUID,
                                     'age'         => $age,
                                     'message'     => ''

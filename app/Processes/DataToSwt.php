@@ -101,14 +101,13 @@ class DataToSwt implements CustomProcessInterface
 
     private static function db2SwtProviders(Server $swoole)
     {
-        $providers      = DB::table('providers')->orderBy('priority', 'asc')->get();
+        $providers      = DB::table('providers')->get();
         $providersTable = $swoole->providersTable;
         array_map(function ($provider) use ($providersTable) {
             $providersTable->set('providerAlias:' . strtolower($provider->alias),
                 [
                     'id'                => $provider->id,
                     'alias'             => $provider->alias,
-                    'priority'          => $provider->priority,
                     'is_enabled'        => $provider->is_enabled,
                     'currency_id'       => $provider->currency_id,
                     'punter_percentage' => $provider->punter_percentage
