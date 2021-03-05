@@ -353,7 +353,7 @@ class DataToSwt implements CustomProcessInterface
                 'provider_id'       => $userConfig->provider_id,
                 'active'            => $userConfig->active,
                 'punter_percentage' => $userConfig->punter_percentage,
-            ];
+            ]);
         }, $userProviderConfig->toArray());
     }
 
