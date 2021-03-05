@@ -34,7 +34,7 @@ class EventMarket extends Model
                 ->leftJoin('master_events as me', 'me.id', 'e.master_event_id')
                 ->leftJoin('master_event_markets as mem', 'mem.id', 'em.master_event_market_id')
                 ->where('mem.master_event_market_unique_id',$memUID)
-                ->select('em.bet_identifier', 'p.alias', 'e.sport_id', 'me.game_schedule', 'e.event_identifier', 'em.odds')
+                ->select('em.bet_identifier', 'p.alias', 'e.sport_id', 'e.game_schedule', 'e.event_identifier', 'em.odds')
                 ->distinct()
                 ->get();
     }

@@ -152,7 +152,7 @@ class DataToSwt implements CustomProcessInterface
         $teamsTable = $swoole->teamsTable;
         $teams      = DB::table('master_teams as mt')
             ->join('team_groups AS tg', 'tg.master_team_id', 'mt.id')
-            ->join('teams as t', 't.team_id', 'tg.team_id')
+            ->join('teams as t', 't.id', 'tg.team_id')
             ->select([
                 'mt.id',
                 't.name as team_name',
@@ -367,7 +367,7 @@ class DataToSwt implements CustomProcessInterface
             ->where('e.missing_count', '<=', $maxMissingCount)
             ->select([
                 'e.*',
-                'me.game_schedule'
+                'e.game_schedule'
             ])
             ->get();
 
