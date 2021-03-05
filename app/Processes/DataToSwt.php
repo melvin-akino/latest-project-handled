@@ -200,7 +200,7 @@ class DataToSwt implements CustomProcessInterface
 
     private static function db2SwtEventRecords(Server $swoole)
     {
-        $eventRecords = DB::table('trade_window AS tw')
+        $eventRecords = DB::table('trade_window')
             ->orderBy('sport_id')
             ->orderBy('provider_id')
             ->orderBy('event_identifier')
