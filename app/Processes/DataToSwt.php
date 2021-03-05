@@ -200,77 +200,11 @@ class DataToSwt implements CustomProcessInterface
 
     private static function db2SwtEventRecords(Server $swoole)
     {
-        $primaryProvider = Provider::getIdFromAlias(SystemConfiguration::getSystemConfigurationValue('PRIMARY_PROVIDER')->value);
-
-        $eventRecords = DB::table('master_leagues as ml')
-            ->leftJoin('sports as s', 's.id', 'ml.sport_id')
-            ->leftJoin('master_events as me', 'me.master_league_id', 'ml.id')
-            ->join('event_groups AS eg', 'eg.master_event_id', 'me.id')
-            ->join('events as e', function ($join) use ($primaryProvider) {
-                $join->on('e.master_event_id', '=', 'me.id');
-                $join->on('e.id', 'eg.event_id');
-                $join->where('e.provider_id', $primaryProvider);
-            })
-            ->leftJoin('master_teams as mth', 'mth.id', 'me.master_team_home_id')
-            ->join('team_groups AS tgh', 'tgh.master_team_id', 'mth.id')
-            ->join('teams AS th', function ($join) use ($primaryProvider) {
-                $join->on('th.id', '=', 'tgh.team_id');
-                $join->where('th.provider_id', $primaryProvider);
-            })
-            ->leftJoin('master_teams as mta', 'mta.id', 'me.master_team_away_id')
-            ->join('team_groups AS tga', 'tga.master_team_id', 'mta.id')
-            ->join('teams AS ta', function ($join) use ($primaryProvider) {
-                $join->on('ta.id', '=', 'tga.team_id');
-                $join->where('ta.provider_id', $primaryProvider);
-            })
-            ->leftJoin('master_event_markets as mem', 'mem.master_event_id', 'me.id')
-            ->join('event_market_groups AS emg', 'emg.master_event_market_id', 'mem.id')
-            ->join('event_markets as em', function ($join) use ($primaryProvider) {
-                $join->on('em.id', 'emg.event_market_id');
-                $join->on('em.master_event_market_id', '=', 'emg.master_event_market_id');
-                $join->where('em.provider_id', $primaryProvider);
-            })
-            ->leftJoin('providers as p', 'p.id', 'em.provider_id')
-            ->leftJoin('odd_types as ot', 'ot.id', 'mem.odd_type_id')
-            ->whereNull('me.deleted_at')
-            ->whereNull('e.deleted_at')
-            ->whereNull('ml.deleted_at')
-            ->select([
-                'ml.sport_id',
-                'ml.id as master_league_id',
-                DB::raw('COALESCE(ml.name, l.name) as master_league_name'),
-                DB::raw('COALESCE(mth.name, th.name) as master_team_home_name'),
-                DB::raw('COALESCE(mta.name, ta.name) as master_team_away_name'),
-                's.sport',
-                'e.master_event_id',
-                'me.master_event_unique_id',
-                'mem.master_event_market_unique_id',
-                'e.ref_schedule',
-                'e.game_schedule',
-                'e.score',
-                'e.running_time',
-                'e.home_penalty',
-                'e.away_penalty',
-                'em.odd_type_id',
-                'em.is_main',
-                'em.market_flag',
-                'ot.type',
-                'em.odds',
-                'em.odd_label',
-                'e.provider_id',
-                'e.team_home_id',
-                'e.team_away_id',
-                'e.league_id',
-                'em.bet_identifier',
-                'p.alias',
-                'e.event_identifier',
-                'em.market_event_identifier',
-                'e.missing_count'
-            ])
-            ->orderBy('ml.sport_id')
-            ->orderBy('e.provider_id')
-            ->orderBy('e.event_identifier')
-            ->orderBy('em.is_main', 'DESC')
+        $eventRecords = DB::table('trade_window AS tw')
+            ->orderBy('sport_id')
+            ->orderBy('provider_id')
+            ->orderBy('event_identifier')
+            ->orderBy('is_main', 'DESC')
             ->get();
 
         $events = [];
