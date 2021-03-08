@@ -40,9 +40,10 @@ class Game extends Model
         $maxMissingCount = SystemConfiguration::getSystemConfigurationValue('EVENT_VALID_MAX_MISSING_COUNT')->value;
 
         return DB::table('master_events as me')
-                 ->leftJoin('events as e', 'e.master_event_id', 'me.id')
+                 ->leftJoin('event_groups as eg', 'eg.master_event_id', 'me.id')
+                 ->leftJoin('events as e', 'eg.event_id', 'e.id')
                  ->leftJoin('providers as p', 'p.id', 'e.provider_id')
-                 ->where('e.master_event_id', $masterEventId)
+                 ->where('eg.master_event_id', $masterEventId)
                  ->whereNull('me.deleted_at')
                  ->whereNull('e.deleted_at')
                  ->where('e.missing_count', '<=', $maxMissingCount)
@@ -278,14 +279,10 @@ class Game extends Model
         $maxMissingCount = SystemConfiguration::getSystemConfigurationValue('EVENT_VALID_MAX_MISSING_COUNT')->value;
         return DB::table('master_events as me')
                  ->join('events as e', 'e.master_event_id', 'me.id')
-                 ->leftJoin('master_event_markets as mem', function($join) {
-                     $join->on('me.id', 'mem.master_event_id');
-                     $join->where('mem.is_main', false);
-                 })
                  ->join('event_markets as em', function($join) {
-                     $join->on('em.master_event_market_id', 'mem.id');
-                     $join->where('em.is_main', false);
-                 })
+                    $join->on('em.event_id', 'e.id');
+                    $join->where('em.is_main', false);
+                })
                  ->where('me.master_event_unique_id', $uid)
                  ->whereIn('em.provider_id', $userProviderIds)
                  ->whereNull('e.deleted_at')
