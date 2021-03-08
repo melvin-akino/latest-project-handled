@@ -15,7 +15,7 @@ use App\Models\{
     UserProviderConfiguration,
     OddType
 };
-use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\{DB, Log};
 use Illuminate\Http\Request;
 use Exception;
 use Carbon\Carbon;
@@ -327,11 +327,13 @@ class TradeController extends Controller
                 $checkTable->delete();
 
                 if (empty($_SERVER['_PHPUNIT'])) {
-
-                    $previouslySelectedEvents = MasterEvent::where('master_league_id', $masterLeague->id)
-                                                           ->where('game_schedule', $request->schedule)
-                                                           ->where('sport_id', $request->sport_id)
-                                                           ->get();
+                    $previouslySelectedEvents = DB::table('master_events AS me')
+                        ->join('event_groups AS eg', 'eg.master_event_id', 'me.id')
+                        ->join('events AS e', 'e.id', 'eg.event_id')
+                        ->where('me.master_league_id', $masterLeague->id)
+                        ->where('me.sport_id', $request->sport_id)
+                        ->where('e.game_schedule', $request->schedule)
+                        ->get();
 
                     foreach ($previouslySelectedEvents as $events) {
                         $topicTable = SwooleHandler::table('topicTable');
