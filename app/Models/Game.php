@@ -164,15 +164,17 @@ class Game extends Model
         $maxMissingCount = SystemConfiguration::getSystemConfigurationValue('EVENT_VALID_MAX_MISSING_COUNT')->value;
 
         return DB::table('trade_window as tw')
-                 ->leftJoin('user_selected_leagues AS sl', 'tw.league_id', 'sl.master_league_id')
-                 ->where('sl.game_schedule', DB::raw('tw.game_schedule'))
-                 ->where('sl.user_id', $userId)
-                 ->where('tw.missing_count', '<=', $maxMissingCount)
-                 ->whereNotIn('master_event_id', function ($query) use ($userId) {
-                     $query->select('master_event_id')->from('user_watchlist')->where('user_id', $userId);
-                 })
-                 ->where('tw.sport_id', $sportId)
-                 ->get();
+            ->leftJoin('user_selected_leagues AS sl', function ($join) {
+                $join->on('tw.master_league_id', '=', 'sl.master_league_id');
+                $join->where('sl.game_schedule', 'tw.game_schedule');
+            })
+            ->where('sl.user_id', $userId)
+            ->where('tw.missing_count', '<=', $maxMissingCount)
+            ->whereNotIn('master_event_id', function ($query) use ($userId) {
+                $query->select('master_event_id')->from('user_watchlist')->where('user_id', $userId);
+            })
+            ->where('tw.sport_id', $sportId)
+            ->get();
     }
 
     public static function getWatchlistEvents(int $userId, int $sportId)
@@ -196,13 +198,11 @@ class Game extends Model
                  ->join('master_teams as mth', 'mth.id', 'me.master_team_home_id')
                  ->join('master_teams as mta', 'mta.id', 'me.master_team_away_id')
                  ->join('sports as s', 's.id', 'me.sport_id')
-                 ->leftJoin('master_event_markets as mem', function($join) {
-                     $join->on('me.id', 'mem.master_event_id');
-                     $join->where('mem.is_main', false);
-                 })
+                 ->leftJoin('master_event_markets as mem', 'me.id', 'mem.master_event_id')
                  ->leftJoin('event_markets as em', function ($join) {
                      $join->on('em.master_event_market_id', '=', 'mem.id');
                      $join->on('em.event_id', '=', 'e.id');
+                     $join->where('em.is_main', false);
                  })
                  ->join('providers as p', 'p.id', 'em.provider_id')
                  ->join('odd_types as ot', 'ot.id', 'mem.odd_type_id')
@@ -250,14 +250,12 @@ class Game extends Model
                  ->join('events as e', 'e.master_event_id', 'me.id')
                  ->leftJoin('master_teams as mth', 'mth.id', 'me.master_team_home_id')
                  ->leftJoin('master_teams as mta', 'mta.id', 'me.master_team_away_id')
-                 ->leftJoin('master_event_markets as mem', function($join) {
-                     $join->on('me.id', 'mem.master_event_id');
-                     $join->where('mem.is_main', true);
-                 })
+                 ->leftJoin('master_event_markets as mem', 'me.id', 'mem.master_event_id')
                  ->leftJoin('odd_types as ot', 'ot.id', 'mem.odd_type_id')
                  ->join('event_markets as em', function ($join) {
                      $join->on('em.master_event_market_id', '=', 'mem.id');
                      $join->on('em.event_id', '=', 'e.id');
+                     $join->where('em.is_main', true);
                  })
                  ->leftJoin('providers as p', 'p.id', 'em.provider_id')
                  ->select('ml.sport_id', 'ml.name as master_league_name', 'ml.id as league_id', 's.sport', 'e.master_event_id',
@@ -279,6 +277,7 @@ class Game extends Model
         $maxMissingCount = SystemConfiguration::getSystemConfigurationValue('EVENT_VALID_MAX_MISSING_COUNT')->value;
         return DB::table('master_events as me')
                  ->join('events as e', 'e.master_event_id', 'me.id')
+                 ->leftJoin('master_event_markets as mem', 'me.id', 'mem.master_event_id')
                  ->join('event_markets as em', function($join) {
                     $join->on('em.event_id', 'e.id');
                     $join->where('em.is_main', false);

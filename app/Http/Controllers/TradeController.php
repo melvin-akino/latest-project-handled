@@ -331,8 +331,8 @@ class TradeController extends Controller
                         ->join('event_groups AS eg', 'eg.master_event_id', 'me.id')
                         ->join('events AS e', 'e.id', 'eg.event_id')
                         ->where('me.master_league_id', $masterLeague->id)
-                        ->where('me.sport_id', $request->sport_id)
                         ->where('e.game_schedule', $request->schedule)
+                        ->where('me.sport_id', $request->sport_id)
                         ->get();
 
                     foreach ($previouslySelectedEvents as $events) {

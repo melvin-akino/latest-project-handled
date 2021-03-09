@@ -34,7 +34,7 @@ class WsEvents implements ShouldQueue
         $fd          = SwooleHandler::getValue('wsTable', 'uid:' . $userId);
         try {
             $topicTable   = SwooleHandler::table('topicTable');
-            $masterLeague = MasterLeague::where('name', $this->masterLeagueName)->first();
+            $masterLeague = MasterLeague::getLeagueNameDetails($this->masterLeagueName)->first();
 
             if (count($this->params) > 3) {
                 $meUID       = $this->params[3];
