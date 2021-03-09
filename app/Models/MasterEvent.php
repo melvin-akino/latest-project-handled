@@ -17,12 +17,6 @@ class MasterEvent extends Model
         'master_league_id',
         'master_team_home_id',
         'master_team_away_id',
-        'ref_schedule',
-        'game_schedule',
-        'score',
-        'running_time',
-        'home_penalty',
-        'away_penalty',
         'deleted_at'
     ];
 

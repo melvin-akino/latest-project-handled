@@ -67,4 +67,12 @@ class MasterLeague extends Model
     {
         return DB::table('master_leagues')->where('name', $league)->first();
     }
+
+    public static function getLeagueNameDetails(string $league)
+    {
+        return DB::table('master_leagues AS ml')
+            ->join('league_groups AS lg', 'lg.master_league_id', 'ml.id')
+            ->join('leagues AS l', 'l.id', 'lg.league_id')
+            ->where(DB::raw('COALESCE(ml.name, l.name)'), $league);
+    }
 }
