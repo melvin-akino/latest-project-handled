@@ -697,7 +697,7 @@ export default {
                         .then(response => {
                             this.isBetSuccessful = true
                             this.orderMessage = response.data.data
-                            this.$store.dispatch('trade/getBetbarData')
+                            this.$store.dispatch('trade/getBetbarData', this.market_id)
                             this.$store.commit('trade/TOGGLE_BETBAR', true)
                             this.$store.dispatch('trade/getWalletData')
 
