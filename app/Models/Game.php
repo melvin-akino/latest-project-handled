@@ -164,10 +164,7 @@ class Game extends Model
         $maxMissingCount = SystemConfiguration::getSystemConfigurationValue('EVENT_VALID_MAX_MISSING_COUNT')->value;
 
         return DB::table('trade_window as tw')
-            ->leftJoin('user_selected_leagues AS sl', function ($join) {
-                $join->on('tw.master_league_id', '=', 'sl.master_league_id');
-                $join->where('sl.game_schedule', 'tw.game_schedule');
-            })
+            ->leftJoin('user_selected_leagues AS sl', 'tw.master_league_id', 'sl.master_league_id')
             ->where('sl.user_id', $userId)
             ->where('tw.missing_count', '<=', $maxMissingCount)
             ->whereNotIn('master_event_id', function ($query) use ($userId) {
