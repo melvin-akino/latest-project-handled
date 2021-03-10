@@ -445,7 +445,7 @@ export default {
             let settingsConfig = await this.$store.dispatch('settings/getUserSettingsConfig', 'bookies')
             this.disabledBookies = settingsConfig.disabled_bookies
             let enabledBookies = this.bookies.filter(bookie => !this.disabledBookies.includes(bookie.id))
-            enabledBookies.map(bookie => this.minMaxProviders.push({ provider_id: bookie.id, provider: bookie.alias, min: null, max: null, price: null, priority: bookie.priority, age: null, hasMarketData: false }))
+            enabledBookies.map(bookie => this.minMaxProviders.push({ provider_id: bookie.id, provider: bookie.alias, min: null, max: null, price: null, age: null, hasMarketData: false }))
             this.isLoadingMarketDetailsAndProviders = false
             this.minmax(this.market_id)
         },
@@ -510,7 +510,6 @@ export default {
                                 provider.min = Number(twoDecimalPlacesFormat(minmax.min)) || null
                                 provider.max = Number(twoDecimalPlacesFormat(minmax.max)) || null
                                 provider.price = Number(twoDecimalPlacesFormat(minmax.price)) || null
-                                provider.priority = Number(minmax.priority) || provider.priority
                                 provider.age = minmax.age || null
                                 provider.hasMarketData = hasMarketData
                             }
@@ -630,27 +629,27 @@ export default {
                             greaterThanOrEqualThanPriceArray.push(minmax)
                         }
                     })
-                    let sortedByPriorityArray = greaterThanOrEqualThanPriceArray.sort((a, b) => (a.priority > b.priority) ? 1 : -1)
-                    sortedByPriorityArray.map(sortedByPriority => {
-                        if(this.orderForm.stake > sortedByPriority.max) {
-                            if(this.wallet.credit >= sortedByPriority.max) {
-                                this.orderForm.stake = twoDecimalPlacesFormat(this.orderForm.stake - sortedByPriority.max)
-                                this.orderForm.markets.push(sortedByPriority)
+                    let sortedByPriceArray = greaterThanOrEqualThanPriceArray.sort((a, b) => (a.price > b.price) ? 1 : -1)
+                    sortedByPriceArray.map(sortedByPrice => {
+                        if(this.orderForm.stake > sortedByPrice.max) {
+                            if(this.wallet.credit >= sortedByPrice.max) {
+                                this.orderForm.stake = twoDecimalPlacesFormat(this.orderForm.stake - sortedByPrice.max)
+                                this.orderForm.markets.push(sortedByPrice)
                                 this.orderMessage = ''
                             } else {
                                 this.orderMessage = 'Insufficient wallet balance.'
                                 this.isBetSuccessful = false
                             }
-                        } else if(this.orderForm.stake <= sortedByPriority.max && this.orderForm.stake >= sortedByPriority.min) {
+                        } else if(this.orderForm.stake <= sortedByPrice.max && this.orderForm.stake >= sortedByPrice.min) {
                             if(this.wallet.credit >= this.orderForm.stake) {
                                 this.orderForm.stake = 0
-                                this.orderForm.markets.push(sortedByPriority)
+                                this.orderForm.markets.push(sortedByPrice)
                                 this.orderMessage = ''
                             } else {
                                 this.orderMessage = 'Insufficient wallet balance.'
                                 this.isBetSuccessful = false
                             }
-                        } else if(this.orderForm.stake < sortedByPriority.min && this.orderForm.stake != 0) {
+                        } else if(this.orderForm.stake < sortedByPrice.min && this.orderForm.stake != 0) {
                             this.orderMessage = 'Stake lower than minimum stake or cannot proceed to next provider.'
                             this.isBetSuccessful = false
                         }
@@ -663,28 +662,26 @@ export default {
                         }
                     })
                     let bestPricesArray = this.minMaxData.filter(minmax => minmax.price == Math.max(...greaterThanOrEqualThanPriceArray))
-                    let bestPricesPriorityArray = bestPricesArray.map(bestPrices => bestPrices.priority)
-                    let mostPriorityArray = bestPricesArray.filter(bestPrices => bestPrices.priority == Math.min(...bestPricesPriorityArray))
-                    mostPriorityArray.map(mostPriority => {
-                        if(this.orderForm.stake > mostPriority.max) {
-                            if(this.wallet.credit >= mostPriority.max) {
-                                this.orderForm.stake = twoDecimalPlacesFormat(this.orderForm.stake - mostPriority.max)
-                                this.orderForm.markets = mostPriorityArray
+                    bestPricesArray.map(bestPrice => {
+                        if(this.orderForm.stake > bestPrice.max) {
+                            if(this.wallet.credit >= bestPrice.max) {
+                                this.orderForm.stake = twoDecimalPlacesFormat(this.orderForm.stake - bestPrice.max)
+                                this.orderForm.markets = bestPricesArray
                                 this.orderMessage = ''
                             } else {
                                 this.orderMessage = 'Insufficient wallet balance.'
                                 this.isBetSuccessful = false
                             }
-                        } else if(this.orderForm.stake <= mostPriority.max && this.orderForm.stake >= mostPriority.min) {
+                        } else if(this.orderForm.stake <= bestPrice.max && this.orderForm.stake >= bestPrice.min) {
                             if(this.wallet.credit >= this.orderForm.stake) {
                                 this.orderForm.stake = 0
-                                this.orderForm.markets = mostPriorityArray
+                                this.orderForm.markets = bestPricesArray
                                 this.orderMessage = ''
                             } else {
                                 this.orderMessage = 'Insufficient wallet balance.'
                                 this.isBetSuccessful = false
                             }
-                        } else if(this.orderForm.stake < mostPriority.min && this.orderForm.stake != 0) {
+                        } else if(this.orderForm.stake < bestPrice.min && this.orderForm.stake != 0) {
                             this.orderMessage = 'Stake lower than minimum stake.'
                             this.isBetSuccessful = false
                         }
