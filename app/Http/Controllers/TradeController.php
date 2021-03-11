@@ -138,7 +138,7 @@ class TradeController extends Controller
 
             switch ($request->type) {
                 case 'league':
-                    $leagueId = MasterLeague::getIdByName($request->data);
+                    $leagueId = MasterLeague::getLeagueDetailsByName($request->data)->id;
 
                     if ($leagueId) {
                         $masterEventUniqueIds = MasterEvent::getActiveEvents('master_league_id', '=', $leagueId)

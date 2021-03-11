@@ -21,15 +21,23 @@ class MasterLeague extends Model
         'updated_at'
     ];
 
-    public static function getIdByName($name)
+    public static function getLeagueDetailsByName($name)
     {
-        $query = self::where('name', $name);
+        $query = DB::table('master_leagues as ml')
+                    ->join('league_groups as lg', 'lg.master_league_id', 'ml.id')
+                    ->join('leagues as l', 'l.id', 'lg.league_id')
+                    ->where('ml.name', $name)
+                    ->orWhere('l.name', $name)
+                    ->select([
+                        'ml.id as id',
+                        DB::raw('COALESCE(ml.name, l.name) as name')
+                    ]);
 
         if ($query->count() == 0) {
             return false;
         }
 
-        return $query->first()->id;
+        return $query->first();
     }
 
     public static function getLeaguesBySportAndGameSchedule(int $sportId, int $userId, array $userProviderIds, string $gameSchedule, string $keyword = null)
@@ -61,11 +69,6 @@ class MasterLeague extends Model
                 return $query->where('master_league_name', 'ILIKE', str_replace('%', '^', $keyword) . '%');
             })
             ->groupBy('master_league_name');
-    }
-
-    public static function getLeagueDetailsByName(string $league)
-    {
-        return DB::table('master_leagues')->where('name', $league)->first();
     }
 
     public static function getLeagueNameDetails(string $league)
