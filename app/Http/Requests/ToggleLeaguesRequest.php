@@ -5,7 +5,7 @@ namespace App\Http\Requests;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Validation\ValidationException;
-
+use App\Models\{MasterLeague, League};
 class ToggleLeaguesRequest extends FormRequest
 {
     /**
@@ -26,7 +26,14 @@ class ToggleLeaguesRequest extends FormRequest
     public function rules()
     {
         return [
-            'league_name' => 'required|exists:master_leagues,name',
+            'league_name' => [ 'required', function($attribute, $value, $fail) {
+                    $masterLeagueExists = MasterLeague::where('name', $value)->exists();
+                    $leagueExists = League::where('name', $value)->exists();
+                    if(empty($masterLeagueExists) && empty($leagueExists)) {
+                        return $fail($attribute." does not exist.");
+                    }
+                }
+            ],
             'schedule'    => 'required',
             'sport_id'    => 'required|exists:sports,id'
         ];
