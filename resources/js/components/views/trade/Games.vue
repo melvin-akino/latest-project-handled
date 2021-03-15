@@ -377,6 +377,10 @@ export default {
     background-color: #8B0000;
 }
 
+.isn:hover, .provider.isn {
+    background-color: #3651ed;
+}
+
 .pin:hover, .provider.pin {
     background-color: #ed8936;
 }
