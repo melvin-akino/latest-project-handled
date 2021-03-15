@@ -23,7 +23,7 @@ class Game extends Model
         $maxMissingCount = SystemConfiguration::getSystemConfigurationValue('EVENT_VALID_MAX_MISSING_COUNT')->value;
 
         return DB::table('trade_window')
-                 ->where('league_id', $masterLeagueId)
+                 ->where('master_league_id', $masterLeagueId)
                  ->where('game_schedule', $schedule)
                  ->where('missing_count', '<=', $maxMissingCount)
                  ->where('is_main', true)
@@ -72,7 +72,7 @@ class Game extends Model
     public static function getOtherMarketSpreadDetails(array $fields = [])
     {
         $maxMissingCount = SystemConfiguration::getSystemConfigurationValue('EVENT_VALID_MAX_MISSING_COUNT')->value;
-        $primaryProvider = Provider::getIdFromAlias(SystemConfiguration::getSystemConfigurationValue('PRIMARY_PROVIDER')->value);
+        // $primaryProvider = Provider::getIdFromAlias(SystemConfiguration::getSystemConfigurationValue('PRIMARY_PROVIDER')->value);
 
         return DB::table('master_events AS me')
                  ->leftJoin('event_groups AS eg', 'me.id', 'eg.master_event_id')
@@ -87,7 +87,7 @@ class Game extends Model
                  ->whereNull('me.deleted_at')
                  ->whereNull('em.deleted_at')
                  ->whereNull('e.deleted_at')
-                 ->where('em.provider_id', $primaryProvider)
+                 // ->where('em.provider_id', $primaryProvider)
                  ->where('em.market_flag', $fields['market_flag'])
                  ->where('em.odd_type_id', $fields['odd_type_id'])
                  ->where('e.game_schedule', $fields['game_schedule'])
