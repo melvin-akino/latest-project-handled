@@ -606,7 +606,7 @@ class OrdersController extends Controller
                 $orderLogsId    = $orderCreation['order_logs']->id;
                 $reason         = "[PLACE_BET][BET PENDING] - transaction for order id " . $orderCreation['orders']->id;
 
-                $userWalletTransaction = userWalletTransaction(auth()->user()->uuid, 'PLACE_BET', ($payloadStake), $providerCurrencyInfo['code'], $orderLogsId, $reason);
+                $userWalletTransaction = userWalletTransaction(auth()->user()->uuid, 'PLACE_BET', ($payloadStake), $userCurrencyInfo['code'], $orderLogsId, $reason);
 
                 if (!$userWalletTransaction) {
                     throw new BadRequestException(trans('game.wallet-api.error.user'));
