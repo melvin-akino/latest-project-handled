@@ -481,7 +481,7 @@ class OrdersController extends Controller
                     throw new BadRequestException(trans('game.bet.errors.insufficient'));
                 }
 
-                $query = Game::getmasterEventByMarketId($request->market_id);
+                $query = Game::getMasterEventByMarketId($request->market_id, $row['provider_id']);
 
                 if (!$query) {
                     $toLogs = [
