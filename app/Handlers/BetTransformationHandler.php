@@ -145,14 +145,6 @@ class BetTransformationHandler
                         if ($order->status == strtoupper(self::STATUS_SUCCESS)) {
                             return;
                         }
-
-                        UserWallet::makeTransaction(
-                            $order->user_id,
-                            $order->stake,
-                            $user->wallet()->first()->currency_id,
-                            $source->id,
-                            'Credit'
-                        );
                     }
 
                     if ($status == strtoupper(self::STATUS_SUCCESS)) {
