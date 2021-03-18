@@ -102,7 +102,7 @@ class Game extends Model
                  ]);
     }
 
-    public static function getmasterEventByMarketId(string $marketId)
+    public static function getMasterEventByMarketId(string $marketId, $providerId)
     {
         $primaryProvider = Provider::getIdFromAlias(SystemConfiguration::getSystemConfigurationValue('PRIMARY_PROVIDER')->value);
 
@@ -137,7 +137,7 @@ class Game extends Model
                  })
                  ->whereNull('me.deleted_at')
                  ->where('e.provider_id', $primaryProvider)
-                 ->where('em.provider_id', $primaryProvider)
+                 ->where('em.provider_id', $providerId)
                  ->where('mem.master_event_market_unique_id', $marketId)
                  ->select([
                      'me.sport_id',
