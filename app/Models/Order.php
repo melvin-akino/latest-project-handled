@@ -181,13 +181,10 @@ class Order extends Model
 
     public static function getEventMarketBetSlipDetails($memUID)
     {
-        $primaryProvider = Provider::getIdFromAlias(SystemConfiguration::getSystemConfigurationValue('PRIMARY_PROVIDER')->value);
-
         return DB::table('master_event_markets as mem')
                 ->join('event_market_groups as emg', 'mem.id', 'emg.master_event_market_id')
                 ->join('event_markets as em', 'emg.event_market_id', 'em.id')
                 ->where('master_event_market_unique_id', $memUID)
-                ->where('em.provider_id', $primaryProvider)
                 ->select([
                     'em.is_main',
                     'em.market_flag',
