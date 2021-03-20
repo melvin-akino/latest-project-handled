@@ -107,9 +107,9 @@ class OrderService
                     $settled = empty($row->settled_date) ? "" : Carbon::createFromFormat("Y-m-d H:i:sO", $row->settled_date, 'Etc/UTC')->setTimezone($userTz)->format("Y-m-d H:i:s");
 
                     if (!empty($row->settled_date) && !empty($row->final_score)) {
-                        $score = explode(' - ', $row->final_score);
+                        $score = array_map('trim', explode('-', $row->final_score));
                     } else {
-                        $score = explode(" - ", $row->score_on_bet);
+                        $score = array_map('trim', explode('-', $row->score_on_bet));
                     }
 
                     $transactions[] = [
