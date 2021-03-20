@@ -93,6 +93,7 @@ class Game extends Model
                  ->where('e.game_schedule', $fields['game_schedule'])
                  ->where('eg.master_event_id', $fields['master_event_id'])
                  ->where('e.missing_count', '<=', $maxMissingCount)
+                 ->orderBy('em.odds', 'DESC')
                  ->get([
                      'mem.master_event_market_unique_id',
                      'em.odds',
