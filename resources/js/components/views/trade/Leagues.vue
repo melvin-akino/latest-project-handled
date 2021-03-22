@@ -31,7 +31,7 @@ export default {
         }
     },
     computed: {
-        ...mapState('trade', ['selectedLeagues', 'selectedLeagueSchedMode', 'selectedSport', 'events', 'leagues', 'isLoadingLeagues']),
+        ...mapState('trade', ['leagues', 'selectedLeagues', 'selectedLeagueSchedMode', 'selectedSport', 'events', 'leagues', 'isLoadingLeagues']),
         ...mapGetters('trade', ['displayedLeagues']),
         checkIfLeaguesIsEmpty() {
             if(!_.isEmpty(this.leagues)) {
@@ -53,9 +53,15 @@ export default {
                         Object.keys(getSelectedLeagues).map(schedule => {
                             let selectedLeagues = this.selectedLeagues[schedule]
                             let newSelectedLeagues = getSelectedLeagues[schedule]
+                            let leagueNames = this.leagues[schedule].map(league => league.name)
                             newSelectedLeagues.map(league => {
                                 if(!selectedLeagues.includes(league)) {
-                                    this.$store.commit('trade/ADD_TO_SELECTED_LEAGUE', { schedule: schedule, league: league })
+                                    if(leagueNames.includes(league)) {
+                                        this.$store.commit('trade/ADD_TO_SELECTED_LEAGUE', { schedule: schedule, league: league })
+                                    } else {
+                                        this.$store.commit('trade/REMOVE_SELECTED_LEAGUE', { schedule: schedule, league: league })
+                                        this.$store.dispatch('trade/toggleLeague', { action: 'remove', league_name: league, sport_id: this.selectedSport, schedule: schedule  })
+                                    }
                                 }
                             })
                         })
