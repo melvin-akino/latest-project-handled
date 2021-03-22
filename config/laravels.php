@@ -257,7 +257,7 @@ return [
             ],
         ],
         'teams'               => [ //key format ['pId:$providerId:id:$id] = [id = $teamId, team_name = $teamName]
-            'size'   => 20000,
+            'size'   => 50000,
             'column' => [
                 ['name' => 'id', 'type' => \Swoole\Table::TYPE_INT],
                 ['name' => 'team_name', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 100],
