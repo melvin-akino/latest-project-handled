@@ -30,20 +30,6 @@ class LeaguesTransformationHandler
 
             $swoole = $this->swoole;
 
-            if (env('APP_ENV') != "local") {
-                if (!Redis::exists('type:events:requestUID:' . $this->message->request_uid)) {
-                    $toLogs = [
-                        "class"       => "LeaguesTransformationHandler",
-                        "message"     => "Leagues Transformation ignored - Request UID is not from ML",
-                        "module"      => "HANDLER_ERROR",
-                        "status_code" => 400,
-                    ];
-                    monitorLog('monitor_handlers', 'error', $toLogs);
-
-                    return;
-                }
-            }
-
             /**
              * PROVIDERS Swoole Table
              *
@@ -91,8 +77,13 @@ class LeaguesTransformationHandler
                 $sportId = $sports['id'];
             }
 
-            $leagues = (array) $this->message->data->leagues;
-            $unusedMasterLeagues = MasterLeague::whereNotIn('name', $leagues)->pluck('name')->toArray();
+            $leagues   = (array) $this->message->data->leagues;
+            $leagueIds = DB::table('league_groups')
+                ->whereIn('league_id', League::getIdByName($leagues, true))
+                ->select('master_league_id')
+                ->pluck('master_league_id');
+
+            $unusedMasterLeagues = MasterLeague::whereNotIn('id', $leagueIds)->pluck('name')->toArray();
             UserSelectedLeague::removeByMasterLeagueNamesAndSchedule($unusedMasterLeagues, $this->message->data->schedule);
             foreach (SwooleHandler::table('userSelectedLeaguesTable') as $key => $userSelectedLeague) {
                 if (in_array($userSelectedLeague['league_name'], $unusedMasterLeagues) &&
