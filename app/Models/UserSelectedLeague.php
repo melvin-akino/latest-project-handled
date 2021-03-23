@@ -48,6 +48,7 @@ class UserSelectedLeague extends Model
                  ->where('user_id', $userId)
                  ->where('usl.sport_id', $sportId)
                  ->where('e.provider_id', $primaryProvider)
+                 ->whereNull('e.deleted_at')
                  ->select([
                     'usl.game_schedule',
                     DB::raw('COALESCE(ml.name, l.name) as master_league_name')
