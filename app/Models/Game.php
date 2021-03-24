@@ -105,24 +105,16 @@ class Game extends Model
 
     public static function getMasterEventByMarketId(string $marketId, $providerId)
     {
-        $primaryProvider = Provider::getIdFromAlias(SystemConfiguration::getSystemConfigurationValue('PRIMARY_PROVIDER')->value);
-
         return DB::table('master_events AS me')
             ->leftJoin('master_leagues as ml', 'ml.id', 'me.master_league_id')
             ->leftJoin('league_groups as lg', 'ml.id', 'lg.master_league_id')
-            ->leftJoin('leagues as l', function ($join) use ($primaryProvider) {
-                $join->on('l.id', 'lg.league_id');
-            })
+            ->leftJoin('leagues as l', 'l.id', 'lg.league_id')
             ->leftJoin('master_teams as mth', 'mth.id', 'me.master_team_home_id')
             ->leftJoin('team_groups AS tgh', 'tgh.master_team_id', 'mth.id')
-            ->leftJoin('teams AS th', function ($join) use ($primaryProvider) {
-                $join->on('th.id', 'tgh.team_id');
-            })
+            ->leftJoin('teams AS th', 'th.id', 'tgh.team_id')
             ->leftJoin('master_teams as mta', 'mta.id', 'me.master_team_away_id')
             ->leftJoin('team_groups AS tga', 'tga.master_team_id', 'mta.id')
-            ->leftJoin('teams AS ta', function ($join) use ($primaryProvider) {
-                $join->on('ta.id', 'tga.team_id');
-            })
+            ->leftJoin('teams AS ta', 'ta.id', 'tga.team_id')
             ->leftJoin('event_groups as eg', 'me.id', 'eg.master_event_id')
             ->join('events as e', 'eg.event_id', 'e.id')
             ->leftJoin('master_event_markets AS mem', 'me.id', 'mem.master_event_id')
