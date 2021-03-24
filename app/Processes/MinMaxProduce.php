@@ -82,7 +82,7 @@ class MinMaxProduce implements CustomProcessInterface
                                         'Min-max  total number of  market id  pushed .', $minMaxRequest['market_id']);
 
 
-                                    if (!$minmaxOnqueueExist) {
+                                    // if (!$minmaxOnqueueExist) {
                                         kafkaPush(
                                             strtolower($minMaxRequest['provider']) . env('KAFKA_SCRAPE_MINMAX_REQUEST_POSTFIX', '_minmax_req'),
                                             $payload,
@@ -98,7 +98,7 @@ class MinMaxProduce implements CustomProcessInterface
                                             "status_code" => 200,
                                         ];
                                         monitorLog('monitor_process', 'info', $toLogs);
-                                    }
+                                    // }
                                 }
                             }
                         }
