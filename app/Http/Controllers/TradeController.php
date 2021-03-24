@@ -234,11 +234,11 @@ class TradeController extends Controller
             $userProviderIds = UserProviderConfiguration::getProviderIdList(auth()->user()->id);
 
             foreach ($dataSchedule as $key => $sched) {
-                $leaguesQuery = MasterLeague::getLeaguesBySportAndGameSchedule($data['default_sport'], auth()->user()->id, $userProviderIds, $key)->get();
+                $ActiveleaguesWithActiveEvents = MasterLeague::getSideBarLeaguesBySportAndGameSchedule($data['default_sport'], auth()->user()->id, $key);
 
-                foreach ($leaguesQuery as $league) {
-                    $dataSchedule[$key][$league->master_league_name] = [
-                        'name'        => $league->master_league_name,
+                foreach ($ActiveleaguesWithActiveEvents as $league) {
+                    $dataSchedule[$key][$league->name] = [
+                        'name'        => $league->name,
                         'match_count' => $league->match_count
                     ];
                 }
