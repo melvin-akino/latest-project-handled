@@ -189,6 +189,12 @@ class MinMaxTransformationHandler
                                     'ts'  => getMilliseconds()
                                 ]);
 
+                                SwooleHandler::setValue('minmaxDataTable', 'minmax-market:' . $data->market_id, [
+                                    'min' => $data->minimum,
+                                    'max' => $data->maximum,
+                                    'ts'  => getMilliseconds()
+                                ]);
+
                                 EventMarket::updateProviderEventMarketsByMemUIDWithOdds($memUID, $transformed['price']);
 
                                 if ($swoole->isEstablished($fd['value'])) {
