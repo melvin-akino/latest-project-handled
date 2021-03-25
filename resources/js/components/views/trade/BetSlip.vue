@@ -85,7 +85,7 @@
                                 <span class="text-sm">{{displayedAveragePrice | twoDecimalPlacesFormat}}</span>
                             </div>
                             <div class="flex justify-between items-center py-2">
-                                <span class="text-sm">Towin</span>
+                                <span class="text-sm">To Win</span>
                                 <span class="text-sm">{{towin | moneyFormat}}</span>
                             </div>
                         </div>
