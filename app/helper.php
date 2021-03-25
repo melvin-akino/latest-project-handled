@@ -34,7 +34,9 @@ use App\Models\{
     Timezones,
     UserProviderConfiguration,
     EventScore,
-    WalletLedger
+    WalletLedger,
+    SystemConfiguration,
+    Provider
 };
 use App\Models\CRM\OrderTransaction;
 use App\User;
@@ -424,6 +426,8 @@ if (!function_exists('ordersCreation')) {
 if (!function_exists('eventTransformation')) {
     function eventTransformation($transformed, $userId, $topicTable, $type = 'selected', $otherMarketDetails = [], $singleEvent = false)
     {
+        $primaryProviderId = Provider::getIdFromAlias(SystemConfiguration::getSystemConfigurationValue('PRIMARY_PROVIDER')->value);
+
         $data     = [];
         $result   = [];
         $userBets = Order::getOrdersByUserId($userId);
@@ -518,6 +522,8 @@ if (!function_exists('eventTransformation')) {
                             $data[$transformed->master_event_unique_id]['market_odds']['main'][$transformed->type][$transformed->market_flag]['points'] = "";
                         }
                     }
+
+                    $data[$transformed->master_event_unique_id]['market_odds']['main'][$transformed->type][$transformed->market_flag]['from_primary_provider'] = ($primaryProviderId == $transformed->provider_id);
                 }
 
                 if ($otherMarketDetails && $transformed->master_event_unique_id == $otherMarketDetails['meUID']) {
@@ -536,7 +542,8 @@ if (!function_exists('eventTransformation')) {
                                 'odd_type'                => $otherTransformed->type,
                                 'market_flag'             => $otherTransformed->market_flag,
                                 'market_event_identifier' => $otherTransformed->market_event_identifier,
-                                'provider_alias'          => $otherTransformed->alias
+                                'provider_alias'          => $otherTransformed->alias,
+                                'provider_id'             => $otherTransformed->provider_id
                             ];
                         }
                     }, $otherTransformed->toArray());
@@ -545,22 +552,37 @@ if (!function_exists('eventTransformation')) {
                     $otherValues = [];
                     foreach ($otherData as $masterEventIdentifier) {
                         foreach ($masterEventIdentifier as $k => $d) {
-                            if (empty($otherValues[$d['odd_type'] . $d['market_flag'] . $d['points']])) {
-                                $otherResult[$d['market_event_identifier']][$d['odd_type']][$d['market_flag']] = [
-                                    'market_id'      => $d['market_id'],
-                                    'odds'           => $d['odds'],
-                                    'points'         => $d['points'],
-                                    'provider_alias' => $d['provider_alias']
-                                ];
-                                $otherValues[$d['odd_type'] . $d['market_flag'] . $d['points']]                = $d['market_event_identifier'];
+                            if (
+                                $d['provider_id'] == $primaryProviderId &&
+                                !empty($data[$transformed->master_event_unique_id]) &&
+                                !empty($data[$transformed->master_event_unique_id]['market_odds']) &&
+                                !empty($data[$transformed->master_event_unique_id]['market_odds']['main']) &&
+                                !empty($data[$transformed->master_event_unique_id]['market_odds']['main'][$d['odd_type']]) &&
+                                !empty($data[$transformed->master_event_unique_id]['market_odds']['main'][$d['odd_type']][$d['market_flag']]) &&
+                                !$data[$transformed->master_event_unique_id]['market_odds']['main'][$d['odd_type']][$d['market_flag']]['from_primary_provider']
+                            ) {
+                                if ($data[$transformed->master_event_unique_id]['market_odds']['main'][$d['odd_type']][$d['market_flag']]['odds'] < (double) $transformed->odds) {
+                                    $data[$transformed->master_event_unique_id]['market_odds']['main'][$d['odd_type']][$d['market_flag']]['odds'] = $d['odds'];
+                                    $data[$transformed->master_event_unique_id]['market_odds']['main'][$d['odd_type']][$d['market_flag']]['provider_alias'] = $d['provider_alias'];
+                                }
                             } else {
-                                $key = $otherValues[$d['odd_type'] . $d['market_flag'] . $d['points']];
-                                if (
-                                    !empty($otherResult[$key][$d['odd_type']]) &&
-                                    $otherResult[$key][$d['odd_type']][$d['market_flag']]['market_id'] == $d['market_id'] &&
-                                    $otherResult[$key][$d['odd_type']][$d['market_flag']]['odds'] < $d['odds']
-                                ) {
-                                    $otherResult[$key][$d['odd_type']][$d['market_flag']]['odds'] = $d['odds'];
+                                if (empty($otherValues[$d['odd_type'] . $d['market_flag'] . $d['points']])) {
+                                    $otherResult[$d['market_event_identifier']][$d['odd_type']][$d['market_flag']] = [
+                                        'market_id'      => $d['market_id'],
+                                        'odds'           => $d['odds'],
+                                        'points'         => $d['points'],
+                                        'provider_alias' => $d['provider_alias']
+                                    ];
+                                    $otherValues[$d['odd_type'] . $d['market_flag'] . $d['points']]                = $d['market_event_identifier'];
+                                } else {
+                                    $key = $otherValues[$d['odd_type'] . $d['market_flag'] . $d['points']];
+                                    if (
+                                        !empty($otherResult[$key][$d['odd_type']]) &&
+                                        $otherResult[$key][$d['odd_type']][$d['market_flag']]['market_id'] == $d['market_id'] &&
+                                        $otherResult[$key][$d['odd_type']][$d['market_flag']]['odds'] < $d['odds']
+                                    ) {
+                                        $otherResult[$key][$d['odd_type']][$d['market_flag']]['odds'] = $d['odds'];
+                                    }
                                 }
                             }
                         }

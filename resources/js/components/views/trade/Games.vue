@@ -155,37 +155,19 @@ export default {
     },
     methods: {
         toggleOtherMarkets(game) {
-            let token = Cookies.get('mltoken')
-            axios.get(`v1/trade/other-markets/${game.uid}`, { headers: { 'Authorization': `Bearer ${token}` }})
-                .then(response => {
-                    if(!_.isEmpty(response.data.data)) {
-                        this.eventsList.map(event => {
-                            if(game.uid == event.uid) {
-                                if('other' in event.market_odds) {
-                                    this.$delete(event.market_odds, 'other')
-                                } else {
-                                    this.$set(event.market_odds, 'other', response.data.data)
-                                }
-                            }
-                        })
+            this.eventsList.map(event => {
+                if(game.uid == event.uid) {
+                    if('other' in event.market_odds) {
+                        this.$delete(event.market_odds, 'other')
                     } else {
-                        this.eventsList.map(event => {
-                            if(game.uid == event.uid) {
-                                if('other' in event.market_odds) {
-                                    this.$delete(event.market_odds, 'other')
-                                }
-                            }
-                        })
-                        game.has_other_markets = false
-                        Swal.fire({
-                            icon: 'warning',
-                            text: 'No other markets available for that event.'
-                        })
+                        if(game.hasOwnProperty('watchlist')) {
+                            this.$socket.send(`getWatchlist_${game.uid}_withOtherMarket`)
+                        } else {
+                            this.$socket.send(`getEvents_${game.league_name}_${game.game_schedule}_${game.uid}_withOtherMarket`)
+                        }
                     }
-                })
-                .catch(err => {
-                    this.$store.dispatch('auth/checkIfTokenIsValid', err.response.data.status_code)
-                })
+                }
+            });
         },
         openBetSlip(odd, game, marketType, eventIdentifier) {
             this.$store.commit('trade/OPEN_BETSLIP', { odd, game, marketType, eventIdentifier })
