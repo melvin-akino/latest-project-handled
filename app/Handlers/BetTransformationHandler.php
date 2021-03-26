@@ -66,17 +66,15 @@ class BetTransformationHandler
                     $status         = $this->message->data->status != self::STATUS_PENDING ? strtoupper($this->message->data->status) : strtoupper(self::STATUS_SUCCESS);
                     $errorMessageId = providerErrorMapping($this->message->data->reason);
 
-                    if (!empty($this->message->data->odds)) {
-                        $order = Order::updateOrCreate([
-                            'id' => $messageOrderId
-                        ], [
-                            'bet_id'                    => $this->message->data->bet_id,
-                            'reason'                    => $this->message->data->reason,
-                            'status'                    => $status,
-                            'odds'                      => $this->message->data->odds,
-                            'provider_error_message_id' => $errorMessageId
-                        ]);
-                    }
+                    $order = Order::updateOrCreate([
+                        'id' => $messageOrderId
+                    ], [
+                        'bet_id'                    => $this->message->data->bet_id,
+                        'reason'                    => $this->message->data->reason,
+                        'status'                    => $status,
+                        'odds'                      => empty($this->message->data->odds) ? (float) 0.00 : $this->message->data->odds,
+                        'provider_error_message_id' => $errorMessageId
+                    ]);
 
                     if ($status != strtoupper(self::STATUS_FAILED)) {
                         ProviderAccount::find($order->provider_account_id)->update([
