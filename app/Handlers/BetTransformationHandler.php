@@ -169,19 +169,6 @@ class BetTransformationHandler
 
                     SwooleHandler::setColumnValue('ordersTable', 'orderId:' . $messageOrderId, 'bet_id', $this->message->data->bet_id);
                     SwooleHandler::setColumnValue('ordersTable', 'orderId:' . $messageOrderId, 'status', $status);
-                } else {
-                    $toLogs = [
-                        "class"       => "BetTransformationHandler",
-                        "message"     => json_encode([
-                            'qwe' => "No Order Data Found",
-                            'asd' => $this->message,
-                        ]),
-                        "module"      => "HANDLER_ERROR",
-                        "status_code" => 404,
-                    ];
-                    monitorLog('monitor_handlers', 'error', $toLogs);
-
-                    return;
                 }
             }
 
