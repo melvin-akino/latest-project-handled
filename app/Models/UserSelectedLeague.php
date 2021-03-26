@@ -40,7 +40,6 @@ class UserSelectedLeague extends Model
                  ->leftJoin('league_groups AS lg', 'lg.master_league_id', 'ml.id')
                  ->leftJoin('leagues AS l', function ($join) use($primaryProvider) {
                     $join->on('l.id', 'lg.league_id');
-                    $join->where('l.provider_id', $primaryProvider);
                  })
                  ->leftJoin('master_events as me', 'ml.id', 'me.master_league_id')
                  ->leftJoin('event_groups as eg', 'me.id', 'eg.master_event_id')
@@ -48,6 +47,7 @@ class UserSelectedLeague extends Model
                  ->where('user_id', $userId)
                  ->where('usl.sport_id', $sportId)
                  ->where('e.provider_id', $primaryProvider)
+                 ->where('l.provider_id', $primaryProvider)
                  ->whereNull('e.deleted_at')
                  ->select([
                     'usl.game_schedule',

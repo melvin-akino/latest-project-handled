@@ -54,8 +54,9 @@ class MasterLeague extends Model
         AND me.id NOT IN (SELECT master_event_id FROM user_watchlist as uw WHERE uw.user_id = :user_id)
         AND provider_id = :provider_id
         AND l.sport_id = :sport_id) as sidebar_leagues
-        GROUP BY name";
-        
+        GROUP BY name
+        ORDER BY name";
+
         return DB::select($sql, [
             'game_schedule' => $gameSchedule,
             'user_id'       => $userId,
