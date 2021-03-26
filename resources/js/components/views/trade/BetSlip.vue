@@ -36,7 +36,7 @@
                             <div class="text-white uppercase font-bold p-2 bg-orange-500 w-full text-center">{{market_details.odd_type}}</div>
                             <div class="relative flex justify-center items-center p-2" v-if="spreads.length != 0">
                                 <a href="#" class="previousPoint absolute m-1 w-12 text-center text-gray-800" @click="previousPoint" v-show="points != displayedSpreads[0].points && displayedSpreads.length > 2"><i class="fas fa-chevron-left"></i></a>
-                                <a href="#" class="m-1 w-16 text-center text-sm" :class="[spread.market_id == market_id ? 'text-white bg-orange-500 px-1 py-1' : 'text-gray-800']" v-for="(spread, index) in displayedSpreads" :key="index" @click="changePoint(spread.points, spread.market_id, spread.odds)">{{spread.points}}</a>
+                                <a href="#" class="m-1 w-16 text-center text-sm" :class="[(spread.points == points) || (spread.market_id == market_id) ? 'text-white bg-orange-500 px-1 py-1' : 'text-gray-800']" v-for="(spread, index) in displayedSpreads" :key="index" @click="changePoint(spread.points, spread.market_id, spread.odds)">{{spread.points}}</a>
                                 <a href="#" class="nextPoint absolute m-1 w-12 text-center text-gray-800" @click="nextPoint" v-show="points != displayedSpreads[displayedSpreads.length - 1].points && displayedSpreads.length > 2"><i class="fas fa-chevron-right"></i></a>
                             </div>
                         </div>
@@ -302,13 +302,16 @@ export default {
         },
         spreads() {
             let points = []
+
             if(!_.isEmpty(this.market_details)) {
                 let odd_type = this.market_details.odd_type
                 let market_flag = this.market_details.market_flag
+
                 if(this.odd_details.game.hasOwnProperty('market_odds')) {
                     if(this.odd_details.game.market_odds.main.hasOwnProperty(odd_type) && this.odd_details.game.market_odds.main[odd_type].hasOwnProperty(market_flag)) {
                         points.push(this.odd_details.game.market_odds.main[odd_type][market_flag])
                     }
+
                     if(this.odd_details.game.market_odds.hasOwnProperty('other')) {
                         Object.keys(this.odd_details.game.market_odds.other).map(key => {
                             if(this.odd_details.game.market_odds.other[key].hasOwnProperty(odd_type) && this.odd_details.game.market_odds.other[key][odd_type].hasOwnProperty(market_flag)) {
@@ -317,15 +320,18 @@ export default {
                         })
                     }
                 }
+
                 if(this.market_details.spreads.length != 0 && this.odd_details.game.has_other_markets) {
                     this.market_details.spreads.map(spread => {
                         points.map(point => {
-                            if(spread.market_id == point.market_id) {
+                            if((spread.market_id == point.market_id) || (spread.points == point.points)) {
+                                this.$set(spread, 'market_id', point.market_id)
                                 this.$set(spread, 'points', point.points)
                                 this.$set(spread, 'odds', point.odds)
                             }
                         })
                     })
+
                     return this.market_details.spreads
                 } else {
                     return points
