@@ -4,7 +4,7 @@ namespace App\Handlers;
 
 use App\Facades\SwooleHandler;
 use App\Jobs\WsSelectedLeagues;
-use App\Models\{MasterLeague, SystemConfiguration, UserSelectedLeague};
+use App\Models\{League, MasterLeague, SystemConfiguration, UserSelectedLeague};
 use Exception;
 use Illuminate\Support\Facades\{Log, DB, Redis};
 
