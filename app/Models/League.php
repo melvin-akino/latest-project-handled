@@ -28,10 +28,6 @@ class League extends Model
         if ($isArray) {
             $query = self::whereIn('name', $name);
 
-            if ($query->count() == 0) {
-                return false;
-            }
-
             return $query->pluck('id');
         } else {
             $query = self::where('name', $name);

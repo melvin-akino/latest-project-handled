@@ -4,7 +4,7 @@ namespace App\Handlers;
 
 use App\Facades\SwooleHandler;
 use App\Jobs\WsSelectedLeagues;
-use App\Models\{MasterLeague, SystemConfiguration, UserSelectedLeague};
+use App\Models\{League, MasterLeague, SystemConfiguration, UserSelectedLeague};
 use Exception;
 use Illuminate\Support\Facades\{Log, DB, Redis};
 
@@ -77,7 +77,7 @@ class LeaguesTransformationHandler
                 $sportId = $sports['id'];
             }
 
-            $leagues   = (array) $this->message->data->leagues;
+            $leagues = (array) $this->message->data->leagues;
             $leagueIds = DB::table('league_groups')
                 ->whereIn('league_id', League::getIdByName($leagues, true))
                 ->select('master_league_id')
@@ -99,14 +99,6 @@ class LeaguesTransformationHandler
                 SwooleHandler::setValue('updateLeaguesTable', 'leagueCount:' . $this->message->data->schedule, ['value' => count($leagues)]);
                 SwooleHandler::setValue('updateLeaguesTable', 'updateLeagues', ['value' => 1]);
             }
-
-
-//            foreach (SwooleHandler::table('wsTable') as $key => $row) {
-//                if (strpos($key, 'uid:') === 0 && $swoole->isEstablished($row['value'])) {
-//                    $userId = substr($key, strlen('uid:'));
-//                    WsSelectedLeagues::dispatch($userId, [1 => $sportId]);
-//                }
-//            }
 
             $endTime         = microtime(TRUE);
             $timeConsumption = $endTime - $startTime;
