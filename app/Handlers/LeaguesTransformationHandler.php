@@ -77,7 +77,20 @@ class LeaguesTransformationHandler
                 $sportId = $sports['id'];
             }
 
-            $leagues   = (array) $this->message->data->leagues;
+            $leagues = (array) $this->message->data->leagues;
+
+            if (empty($leagues)) {
+                $toLogs = [
+                    "class"       => "LeaguesTransformationHandler",
+                    "message"     => 'Payload received has no Leagues. Ending Transformation Handler...',
+                    "module"      => "HANDLER_ERROR",
+                    "status_code" => 404,
+                ];
+                monitorLog('monitor_handlers', 'error', $toLogs);
+
+                return;
+            }
+
             $leagueIds = DB::table('league_groups')
                 ->whereIn('league_id', League::getIdByName($leagues, true))
                 ->select('master_league_id')
@@ -99,14 +112,6 @@ class LeaguesTransformationHandler
                 SwooleHandler::setValue('updateLeaguesTable', 'leagueCount:' . $this->message->data->schedule, ['value' => count($leagues)]);
                 SwooleHandler::setValue('updateLeaguesTable', 'updateLeagues', ['value' => 1]);
             }
-
-
-//            foreach (SwooleHandler::table('wsTable') as $key => $row) {
-//                if (strpos($key, 'uid:') === 0 && $swoole->isEstablished($row['value'])) {
-//                    $userId = substr($key, strlen('uid:'));
-//                    WsSelectedLeagues::dispatch($userId, [1 => $sportId]);
-//                }
-//            }
 
             $endTime         = microtime(TRUE);
             $timeConsumption = $endTime - $startTime;
