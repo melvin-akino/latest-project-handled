@@ -78,19 +78,6 @@ class LeaguesTransformationHandler
             }
 
             $leagues = (array) $this->message->data->leagues;
-
-            if (empty($leagues)) {
-                $toLogs = [
-                    "class"       => "LeaguesTransformationHandler",
-                    "message"     => 'Payload received has no Leagues. Ending Transformation Handler...',
-                    "module"      => "HANDLER_ERROR",
-                    "status_code" => 404,
-                ];
-                monitorLog('monitor_handlers', 'error', $toLogs);
-
-                return;
-            }
-
             $leagueIds = DB::table('league_groups')
                 ->whereIn('league_id', League::getIdByName($leagues, true))
                 ->select('master_league_id')
