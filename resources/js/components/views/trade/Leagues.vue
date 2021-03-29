@@ -85,6 +85,11 @@ export default {
                             }
                         })
                     }
+                } else if (getSocketKey(response.data) === 'getSidebarLeagues') {
+                    let getSidebarLeagues = getSocketValue(response.data, 'getSidebarLeagues')
+                    Object.keys(getSidebarLeagues).map(schedule => {
+                        this.$store.commit('trade/SET_LEAGUES_BY_SCHEDULE', { schedule: schedule, leagues: getSidebarLeagues[schedule] })
+                    })
                 }
             }
         },
