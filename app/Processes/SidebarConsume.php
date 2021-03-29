@@ -8,6 +8,7 @@ use Swoole\Http\Server;
 use Swoole\{Process, Coroutine};
 use Exception;
 use App\Facades\SwooleHandler;
+use App\Models\UserWatchlist;
 
 class SidebarConsume implements CustomProcessInterface
 {
@@ -39,10 +40,41 @@ class SidebarConsume implements CustomProcessInterface
                     if ($message->err == RD_KAFKA_RESP_ERR_NO_ERROR) {
                         $payload = json_decode($message->payload);
 
+                        $gameSchedule = null;
+                        $sidebarLeagues = null;
+                        foreach ($payload->data as $schedule => $leagues) {
+                            $gameSchedule = $schedule;
+                            $sidebarLeagues = (array) $leagues;
+                        }
+
+                        if (is_null($gameSchedule) || is_null($sidebarLeagues)) {
+                            Log::info("Invalid payload");
+                            continue;
+                        }
+
                         $wsTable = SwooleHandler::table('wsTable');
+                        $watchlist = UserWatchlist::getAllLeagueCountByUser();
                         foreach ($wsTable as $key => $row) {
                             if (strpos($key, 'uid:') === 0 && $swoole->isEstablished($row['value'])) {
-                                $swoole->push($row['value'], json_encode(['getSidebarLeagues' => $payload->data]));
+                                $userId = substr($key, strlen('uid:'));
+                                $userSidebar = $sidebarLeagues;
+                                foreach ($watchlist as $wl) {
+                                    if ($userId == $wl->user_id && $gameSchedule == $wl->game_schedule) {
+                                        foreach ($userSidebar as $k => $usl) {
+                                            if ($usl->master_league_id == $wl->master_league_id) {
+                                                $userSidebar[$k]->match_count = (int) $userSidebar[$k]->match_count - 1;
+                                            } 
+
+                                            if ($userSidebar[$k]->match_count <= 0) {
+                                                unset($userSidebar[$k]->match_count);
+                                            }
+                                        }
+                                    };
+                                }
+
+                                $swoole->push($row['value'], json_encode(['getSidebarLeagues' => [
+                                    $gameSchedule => $userSidebar
+                                ]]));
                             }
                         }
 
