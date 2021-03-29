@@ -503,13 +503,13 @@ class OrdersController extends Controller
                 if ($payloadStake < $row['min']) {
                     $toLogs = [
                         "class"       => "OrdersController",
-                        "message"     => trans('generic.bad-request'),
+                        "message"     => trans('game.bet.errors.not-enough-min-stake'),
                         "module"      => "API_ERROR",
                         "status_code" => 400,
                     ];
                     monitorLog('monitor_api', 'error', $toLogs);
 
-                    throw new BadRequestException(trans('generic.bad-request'));
+                    throw new BadRequestException(trans('game.bet.errors.not-enough-min-stake'));
                 }
 
                 $orderId = uniqid();
