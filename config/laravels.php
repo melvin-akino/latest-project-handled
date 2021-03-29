@@ -91,6 +91,13 @@ return [
             'pipe'     => 0,
             'enable'   => true
         ],
+        'sidebar_consume' => [
+            'class'    => \App\Processes\SidebarConsume::class,
+            'redirect' => false,
+            'pipe'     => 0,
+            'enable'   => true
+        ],
+        
     ],
     'timer'                    => [
         'enable'        => env('LARAVELS_TIMER', false),
