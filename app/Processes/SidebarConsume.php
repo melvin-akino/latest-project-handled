@@ -66,7 +66,7 @@ class SidebarConsume implements CustomProcessInterface
                                             } 
 
                                             if ($userSidebar[$k]->match_count <= 0) {
-                                                unset($userSidebar[$k]->match_count);
+                                                unset($userSidebar[$k]);
                                             }
                                         }
                                     };
