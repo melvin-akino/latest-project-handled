@@ -62,7 +62,7 @@ class SidebarConsume implements CustomProcessInterface
                                     if ($userId == $wl->user_id && $gameSchedule == $wl->game_schedule) {
                                         foreach ($userSidebar as $k => $usl) {
                                             if ($usl->master_league_id == $wl->master_league_id) {
-                                                $userSidebar[$k]->match_count = (int) $userSidebar[$k]->match_count - 1;
+                                                $userSidebar[$k]->match_count = (int) $userSidebar[$k]->match_count - $wl->match_count;
                                             } 
 
                                             if ($userSidebar[$k]->match_count <= 0) {
