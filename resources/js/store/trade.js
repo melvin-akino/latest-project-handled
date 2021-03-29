@@ -107,6 +107,9 @@ const mutations = {
     SET_LEAGUES: (state, leagues) => {
         state.leagues = leagues
     },
+    SET_LEAGUES_BY_SCHEDULE: (state, data) => {
+        state.leagues[data.schedule] = data.leagues
+    },
     CHANGE_LEAGUE_SCHED_MODE: (state, data) => {
         state.selectedLeagueSchedMode = data
     },
