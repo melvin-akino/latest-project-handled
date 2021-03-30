@@ -34,7 +34,9 @@ use App\Models\{
     Timezones,
     UserProviderConfiguration,
     EventScore,
-    WalletLedger
+    WalletLedger,
+    SystemConfiguration,
+    Provider
 };
 use App\Models\CRM\OrderTransaction;
 use App\User;
@@ -424,6 +426,8 @@ if (!function_exists('ordersCreation')) {
 if (!function_exists('eventTransformation')) {
     function eventTransformation($transformed, $userId, $topicTable, $type = 'selected', $otherMarketDetails = [], $singleEvent = false)
     {
+        $primaryProviderId = Provider::getIdFromAlias(SystemConfiguration::getSystemConfigurationValue('PRIMARY_PROVIDER')->value);
+
         $data     = [];
         $result   = [];
         $userBets = Order::getOrdersByUserId($userId);
@@ -462,7 +466,6 @@ if (!function_exists('eventTransformation')) {
             }
 
             if (empty($data[$transformed->master_event_unique_id])) {
-//            if (empty($transformed->odd_type_id)) {
                 $providersOfEvents    = Game::providersOfEvents($transformed->master_event_id, $userProviderIds)->get();
                 $eventHasOtherMarkets = Game::checkIfHasOtherMarkets($transformed->master_event_unique_id, $userProviderIds);
 
@@ -487,14 +490,14 @@ if (!function_exists('eventTransformation')) {
 
             if (empty($data[$transformed->master_event_unique_id]['home'])) {
                 $data[$transformed->master_event_unique_id]['home'] = [
-                    'name'    => $transformed->master_home_team_name,
+                    'name'    => $transformed->master_team_home_name,
                     'score'   => empty($transformed->score) ? '' : array_values(explode(' - ', $transformed->score))[0],
                     'redcard' => $transformed->home_penalty
                 ];
             }
             if (empty($data[$transformed->master_event_unique_id]['away'])) {
                 $data[$transformed->master_event_unique_id]['away'] = [
-                    'name'    => $transformed->master_away_team_name,
+                    'name'    => $transformed->master_team_away_name,
                     'score'   => empty($transformed->score) ? '' : array_values(explode(' - ', $transformed->score))[1],
                     'redcard' => $transformed->home_penalty
                 ];
@@ -537,7 +540,8 @@ if (!function_exists('eventTransformation')) {
                                 'odd_type'                => $otherTransformed->type,
                                 'market_flag'             => $otherTransformed->market_flag,
                                 'market_event_identifier' => $otherTransformed->market_event_identifier,
-                                'provider_alias'          => $otherTransformed->alias
+                                'provider_alias'          => $otherTransformed->alias,
+                                'provider_id'             => $otherTransformed->provider_id
                             ];
                         }
                     }, $otherTransformed->toArray());

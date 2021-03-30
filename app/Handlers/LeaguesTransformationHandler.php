@@ -4,7 +4,7 @@ namespace App\Handlers;
 
 use App\Facades\SwooleHandler;
 use App\Jobs\WsSelectedLeagues;
-use App\Models\{MasterLeague, SystemConfiguration, UserSelectedLeague};
+use App\Models\{League, MasterLeague, SystemConfiguration, UserSelectedLeague};
 use Exception;
 use Illuminate\Support\Facades\{Log, DB, Redis};
 
@@ -29,20 +29,6 @@ class LeaguesTransformationHandler
             $startTime = microtime(TRUE);
 
             $swoole = $this->swoole;
-
-            if (env('APP_ENV') != "local") {
-                if (!Redis::exists('type:events:requestUID:' . $this->message->request_uid)) {
-                    $toLogs = [
-                        "class"       => "LeaguesTransformationHandler",
-                        "message"     => "Leagues Transformation ignored - Request UID is not from ML",
-                        "module"      => "HANDLER_ERROR",
-                        "status_code" => 400,
-                    ];
-                    monitorLog('monitor_handlers', 'error', $toLogs);
-
-                    return;
-                }
-            }
 
             /**
              * PROVIDERS Swoole Table
@@ -92,7 +78,12 @@ class LeaguesTransformationHandler
             }
 
             $leagues = (array) $this->message->data->leagues;
-            $unusedMasterLeagues = MasterLeague::whereNotIn('name', $leagues)->pluck('name')->toArray();
+            $leagueIds = DB::table('league_groups')
+                ->whereIn('league_id', League::getIdByName($leagues, true))
+                ->select('master_league_id')
+                ->pluck('master_league_id');
+
+            $unusedMasterLeagues = MasterLeague::whereNotIn('id', $leagueIds)->pluck('name')->toArray();
             UserSelectedLeague::removeByMasterLeagueNamesAndSchedule($unusedMasterLeagues, $this->message->data->schedule);
             foreach (SwooleHandler::table('userSelectedLeaguesTable') as $key => $userSelectedLeague) {
                 if (in_array($userSelectedLeague['league_name'], $unusedMasterLeagues) &&
@@ -108,14 +99,6 @@ class LeaguesTransformationHandler
                 SwooleHandler::setValue('updateLeaguesTable', 'leagueCount:' . $this->message->data->schedule, ['value' => count($leagues)]);
                 SwooleHandler::setValue('updateLeaguesTable', 'updateLeagues', ['value' => 1]);
             }
-
-
-//            foreach (SwooleHandler::table('wsTable') as $key => $row) {
-//                if (strpos($key, 'uid:') === 0 && $swoole->isEstablished($row['value'])) {
-//                    $userId = substr($key, strlen('uid:'));
-//                    WsSelectedLeagues::dispatch($userId, [1 => $sportId]);
-//                }
-//            }
 
             $endTime         = microtime(TRUE);
             $timeConsumption = $endTime - $startTime;

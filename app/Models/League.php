@@ -23,14 +23,20 @@ class League extends Model
         'updated_at'
     ];
 
-    public static function getIdByName($name)
+    public static function getIdByName($name, bool $isArray = false)
     {
-        $query = self::where('name', $name);
+        if ($isArray) {
+            $query = self::whereIn('name', $name);
 
-        if ($query->count() == 0) {
-            return false;
+            return $query->pluck('id');
+        } else {
+            $query = self::where('name', $name);
+
+            if ($query->count() == 0) {
+                return false;
+            }
+
+            return $query->first()->id;
         }
-
-        return $query->first()->id;
     }
 }

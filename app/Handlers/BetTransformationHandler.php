@@ -72,7 +72,7 @@ class BetTransformationHandler
                         'bet_id'                    => $this->message->data->bet_id,
                         'reason'                    => $this->message->data->reason,
                         'status'                    => $status,
-                        'odds'                      => $this->message->data->odds,
+                        'odds'                      => empty($this->message->data->odds) ? (float) 0.00 : $this->message->data->odds,
                         'provider_error_message_id' => $errorMessageId
                     ]);
 
@@ -145,14 +145,6 @@ class BetTransformationHandler
                         if ($order->status == strtoupper(self::STATUS_SUCCESS)) {
                             return;
                         }
-
-                        UserWallet::makeTransaction(
-                            $order->user_id,
-                            $order->stake,
-                            $user->wallet()->first()->currency_id,
-                            $source->id,
-                            'Credit'
-                        );
                     }
 
                     if ($status == strtoupper(self::STATUS_SUCCESS)) {

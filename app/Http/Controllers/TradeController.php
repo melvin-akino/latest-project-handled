@@ -15,7 +15,7 @@ use App\Models\{
     UserProviderConfiguration,
     OddType
 };
-use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\{DB, Log};
 use Illuminate\Http\Request;
 use Exception;
 use Carbon\Carbon;
@@ -138,7 +138,7 @@ class TradeController extends Controller
 
             switch ($request->type) {
                 case 'league':
-                    $leagueId = MasterLeague::getIdByName($request->data);
+                    $leagueId = MasterLeague::getLeagueDetailsByName($request->data)->id;
 
                     if ($leagueId) {
                         $masterEventUniqueIds = MasterEvent::getActiveEvents('master_league_id', '=', $leagueId)
@@ -234,11 +234,11 @@ class TradeController extends Controller
             $userProviderIds = UserProviderConfiguration::getProviderIdList(auth()->user()->id);
 
             foreach ($dataSchedule as $key => $sched) {
-                $leaguesQuery = MasterLeague::getLeaguesBySportAndGameSchedule($data['default_sport'], auth()->user()->id, $userProviderIds, $key)->get();
+                $ActiveleaguesWithActiveEvents = MasterLeague::getSideBarLeaguesBySportAndGameSchedule($data['default_sport'], auth()->user()->id, $key);
 
-                foreach ($leaguesQuery as $league) {
-                    $dataSchedule[$key][$league->master_league_name] = [
-                        'name'        => $league->master_league_name,
+                foreach ($ActiveleaguesWithActiveEvents as $league) {
+                    $dataSchedule[$key][$league->name] = [
+                        'name'        => $league->name,
                         'match_count' => $league->match_count
                     ];
                 }
@@ -327,11 +327,13 @@ class TradeController extends Controller
                 $checkTable->delete();
 
                 if (empty($_SERVER['_PHPUNIT'])) {
-
-                    $previouslySelectedEvents = MasterEvent::where('master_league_id', $masterLeague->id)
-                                                           ->where('game_schedule', $request->schedule)
-                                                           ->where('sport_id', $request->sport_id)
-                                                           ->get();
+                    $previouslySelectedEvents = DB::table('master_events AS me')
+                        ->join('event_groups AS eg', 'eg.master_event_id', 'me.id')
+                        ->join('events AS e', 'e.id', 'eg.event_id')
+                        ->where('me.master_league_id', $masterLeague->id)
+                        ->where('e.game_schedule', $request->schedule)
+                        ->where('me.sport_id', $request->sport_id)
+                        ->get();
 
                     foreach ($previouslySelectedEvents as $events) {
                         $topicTable = SwooleHandler::table('topicTable');

@@ -107,6 +107,9 @@ const mutations = {
     SET_LEAGUES: (state, leagues) => {
         state.leagues = leagues
     },
+    SET_LEAGUES_BY_SCHEDULE: (state, data) => {
+        state.leagues[data.schedule] = data.leagues
+    },
     CHANGE_LEAGUE_SCHED_MODE: (state, data) => {
         state.selectedLeagueSchedMode = data
     },
@@ -430,12 +433,19 @@ const actions = {
         }
         dispatch('getTradeWindowData')
     },
-    getBetbarData({commit, state, dispatch}) {
+    getBetbarData({commit, state, dispatch}, market_id = null) {
         return axios.get('v1/trade/betbar', { headers: { 'Authorization': `Bearer ${token}` }})
             .then(response => {
                 commit('SET_BETS', response.data.data)
                 if(state.bets.length != 0) {
                     commit('TOGGLE_BETBAR', true)
+                }
+
+                if(market_id) {
+                    let betToUpdate = state.bets.filter(bet => bet.market_id == market_id && !state.failedBetStatus.includes(bet.status))
+                    if(betToUpdate.length != 0) {
+                        commit('SHOW_BET_MATRIX_IN_BETSLIP', { market_id: market_id, has_bet: true })
+                    }
                 }
             })
             .catch(err => {

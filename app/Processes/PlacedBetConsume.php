@@ -39,7 +39,7 @@ class PlacedBetConsume implements CustomProcessInterface
                     if ($message->err == RD_KAFKA_RESP_ERR_NO_ERROR) {
                         $payload = json_decode($message->payload);
 
-                        if (empty($payload->data->status) || empty($payload->data->odds)) {
+                        if (empty($payload->data->status)) {
                             $toLogs = [
                                 "class"       => "PlacedBetConsume",
                                 "message"     => "Bet Transformation ignored - Status Or Odds Not Found",

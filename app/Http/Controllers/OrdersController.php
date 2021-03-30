@@ -24,6 +24,7 @@ use Illuminate\Support\{Facades\DB, Facades\Log, Str};
 use Carbon\Carbon;
 use SendLogData;
 use App\Http\Requests\OrderRequest;
+use Exception;
 
 class OrdersController extends Controller
 {
@@ -185,7 +186,7 @@ class OrdersController extends Controller
                 $userTz = Timezones::find($getUserConfig->value)->name;
             }
 
-            $masterEventMarket = MasterEventMarket::where('master_event_market_unique_id', $memUID);
+            $masterEventMarket = Order::getEventMarketBetSlipDetails($memUID);
 
             if (!$masterEventMarket->exists()) {
                 $toLogs = [
@@ -203,31 +204,9 @@ class OrdersController extends Controller
                 ], 404);
             }
 
-            $masterEventMarket = $masterEventMarket->first([
-                'is_main',
-                'market_flag',
-                'odd_type_id',
-                'master_event_id'
-            ]);
+            $masterEventMarket = $masterEventMarket->first();
 
-            $masterEvent = DB::table('master_events as me')
-                             ->where('me.id', $masterEventMarket->master_event_id)
-                             ->join('master_leagues as ml', 'ml.id', 'me.master_league_id')
-                             ->join('master_teams as ht', 'ht.id', 'me.master_team_home_id')
-                             ->join('master_teams as at', 'at.id', 'me.master_team_away_id')
-                             ->select([
-                                 'ml.name as league_name',
-                                 'ht.name as home_team_name',
-                                 'at.name as away_team_name',
-                                 'master_event_unique_id',
-                                 'game_schedule',
-                                 'ref_schedule',
-                                 'running_time',
-                                 'score',
-                                 'home_penalty',
-                                 'away_penalty',
-                                 'me.sport_id'
-                             ]);
+            $masterEvent = Order::getEventBetSlipDetails($masterEventMarket->master_event_id);
 
             if (!$masterEvent->exists()) {
                 $toLogs = [
@@ -263,10 +242,11 @@ class OrdersController extends Controller
                     if (!in_array($row->odd_label, $duplicateHandler)) {
                         $duplicateHandler[] = $row->odd_label;
                         $spreads[]          = [
-                            'market_id' => $row->master_event_market_unique_id,
-                            'odds'      => $row->odds,
-                            'points'    => $row->odd_label,
-                            'is_main'   => $row->is_main
+                            'market_id'   => $row->master_event_market_unique_id,
+                            'odds'        => $row->odds,
+                            'points'      => $row->odd_label,
+                            'is_main'     => $row->is_main,
+                            'provider_id' => $row->provider_id
                         ];
                     }
                 }
@@ -311,76 +291,6 @@ class OrdersController extends Controller
                 'providers'     => Provider::getProvidersByMemUID($memUID),
                 'user_status'   => auth()->user()->status
             ];
-
-            return response()->json([
-                'status'      => true,
-                'status_code' => 200,
-                'data'        => $data
-            ], 200);
-        } catch (Exception $e) {
-            $toLogs = [
-                "class"       => "OrdersController",
-                "message"     => "Line " . $e->getLine() . " | " . $e->getMessage(),
-                "module"      => "API_ERROR",
-                "status_code" => $e->getCode(),
-            ];
-            monitorLog('monitor_api', 'error', $toLogs);
-
-            return response()->json([
-                'status'      => false,
-                'status_code' => 500,
-                'message'     => trans('generic.internal-server-error')
-            ], 500);
-        }
-    }
-
-    /**
-     * Get Event Market Logs to keep track on every updates
-     * the market offers
-     *
-     * @param string $memUID
-     * @return json
-     */
-    public function getEventMarketLogs(string $memUID)
-    {
-        try {
-            $data = [];
-
-            $providers = Provider::getActiveProviders()->get([
-                'id',
-                'alias'
-            ]);
-
-            $masterEventMarket = MasterEventMarket::where('master_event_market_unique_id', $memUID);
-
-            if (!$masterEventMarket->exists()) {
-                $toLogs = [
-                    "class"       => "OrdersController",
-                    "message"     => trans('generic.not-found'),
-                    "module"      => "API_ERROR",
-                    "status_code" => 404,
-                ];
-                monitorLog('monitor_api', 'error', $toLogs);
-
-                return response()->json([
-                    'status'      => false,
-                    'status_code' => 404,
-                    'message'     => trans('generic.not-found')
-                ], 404);
-            }
-
-            $masterEventMarket = $masterEventMarket->first();
-
-            $eventLogs = MasterEventMarketLog::where('master_event_market_id', $masterEventMarket->id)
-                                             ->orderBy('created_at', 'asc')
-                                             ->get()
-                                             ->toArray();
-
-            foreach ($providers as $provider) {
-                $data[$provider->alias] = array_filter($eventLogs, function ($row) use ($provider) {
-                    return $row['provider_id'] == $provider->id;
-                });
-            }
 
             return response()->json([
                 'status'      => true,
@@ -571,7 +481,7 @@ class OrdersController extends Controller
                     throw new BadRequestException(trans('game.bet.errors.insufficient'));
                 }
 
-                $query = Game::getmasterEventByMarketId($request->market_id);
+                $query = Game::getMasterEventByMarketId($request->market_id, $row['provider_id']);
 
                 if (!$query) {
                     $toLogs = [
@@ -593,31 +503,36 @@ class OrdersController extends Controller
                 if ($payloadStake < $row['min']) {
                     $toLogs = [
                         "class"       => "OrdersController",
-                        "message"     => trans('generic.bad-request'),
+                        "message"     => trans('game.bet.errors.not-enough-min-stake'),
                         "module"      => "API_ERROR",
                         "status_code" => 400,
                     ];
                     monitorLog('monitor_api', 'error', $toLogs);
 
-                    throw new BadRequestException(trans('generic.bad-request'));
+                    throw new BadRequestException(trans('game.bet.errors.not-enough-min-stake'));
                 }
 
                 $orderId = uniqid();
 
                 /** ROUNDING UP TO NEAREST 50 */
                 $ceil  = ceil($actualStake);
-                $last2 = (int) substr($ceil, -2);
 
-                if (($last2 > 0) && ($last2 <= 50)) {
-                    $actualStake = substr($ceil, 0, -2) . '50';
-                } else if ($last2 == 0) {
+                if ($row['provider'] == 'HG') {
+                    $last2 = (int) substr($ceil, -2);
+
+                    if (($last2 > 0) && ($last2 <= 50)) {
+                        $actualStake = substr($ceil, 0, -2) . '50';
+                    } else if ($last2 == 0) {
+                        $actualStake = $ceil;
+                    } else if ($last2 > 50) {
+                        $actualStake  = (int) substr($ceil, 0, -2) + 1;
+                        $actualStake .= '00';
+                    }
+                } else {
                     $actualStake = $ceil;
-                } else if ($last2 > 50) {
-                    $actualStake  = (int) substr($ceil, 0, -2) + 1;
-                    $actualStake .= '00';
                 }
 
-                $minmaxData = SwooleHandler::getValue('minmaxDataTable', 'minmax-market:' . $request->market_id);
+                $minmaxData = SwooleHandler::getValue('minmaxDataTable', 'minmax-market:' . $query->bet_identifier);
 
                 if ((float) $minmaxData['max'] < (float) $actualStake && $minmaxData) {
                     $actualStake = $minmaxData['max'];
@@ -640,10 +555,10 @@ class OrdersController extends Controller
                 $payload['exchange_rate']    = $exchangeRate['exchange_rate'];
                 $incrementIds['payload'][]   = $payload;
 
-                $teamname = $query->market_flag == "HOME" ? $query->master_home_team_name : $query->master_away_team_name;
+                $teamname = $query->market_flag == "HOME" ? $query->master_team_home_name : $query->master_team_away_name;
 
                 $betSelection = implode("\n", [
-                    $query->master_home_team_name . " vs " . $query->master_away_team_name,
+                    $query->master_team_home_name . " vs " . $query->master_team_away_name,
                     $teamname . " @ " . number_format($row['price'], 2),
                     $query->column_type . " " . $query->odd_label . "(" . $query->score . ")",
                 ]);
@@ -682,8 +597,8 @@ class OrdersController extends Controller
                     'odd_type_id'                   => $query->odd_type_id,
                     'market_flag'                   => $query->market_flag,
                     'master_league_name'            => $query->master_league_name,
-                    'master_team_home_name'         => $query->master_home_team_name,
-                    'master_team_away_name'         => $query->master_away_team_name
+                    'master_team_home_name'         => $query->master_team_home_name,
+                    'master_team_away_name'         => $query->master_team_away_name
                 ];
 
                 $_exchangeRate = [
@@ -696,7 +611,7 @@ class OrdersController extends Controller
                 $orderLogsId    = $orderCreation['order_logs']->id;
                 $reason         = "[PLACE_BET][BET PENDING] - transaction for order id " . $orderCreation['orders']->id;
 
-                $userWalletTransaction = userWalletTransaction(auth()->user()->uuid, 'PLACE_BET', ($payloadStake), $providerCurrencyInfo['code'], $orderLogsId, $reason);
+                $userWalletTransaction = userWalletTransaction(auth()->user()->uuid, 'PLACE_BET', ($payloadStake), $userCurrencyInfo['code'], $orderLogsId, $reason);
 
                 if (!$userWalletTransaction) {
                     throw new BadRequestException(trans('game.wallet-api.error.user'));

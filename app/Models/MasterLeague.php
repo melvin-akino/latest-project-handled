@@ -21,15 +21,49 @@ class MasterLeague extends Model
         'updated_at'
     ];
 
-    public static function getIdByName($name)
+    public static function getLeagueDetailsByName($name)
     {
-        $query = self::where('name', $name);
+        $query = DB::table('master_leagues as ml')
+                    ->join('league_groups as lg', 'lg.master_league_id', 'ml.id')
+                    ->join('leagues as l', 'l.id', 'lg.league_id')
+                    ->where('ml.name', $name)
+                    ->orWhere('l.name', $name)
+                    ->select([
+                        'ml.id as id',
+                        DB::raw('COALESCE(ml.name, l.name) as name')
+                    ]);
 
         if ($query->count() == 0) {
             return false;
         }
 
-        return $query->first()->id;
+        return $query->first();
+    }
+
+    public static function getSideBarLeaguesBySportAndGameSchedule(int $sportId, int $userId, string $gameSchedule)
+    {
+        $primaryProviderId = Provider::getIdFromAlias(SystemConfiguration::getSystemConfigurationValue('PRIMARY_PROVIDER')->value);
+        $maxMissingCount = SystemConfiguration::getSystemConfigurationValue('EVENT_VALID_MAX_MISSING_COUNT')->value;
+
+        $sql = "SELECT name, COUNT(name) AS match_count FROM (SELECT COALESCE(ml.name, l.name) as name FROM master_leagues as ml
+        JOIN league_groups as lg ON lg.master_league_id = ml.id
+        JOIN leagues as l ON lg.league_id = l.id
+        JOIN master_events as me ON me.master_league_id = ml.id
+        JOIN event_groups as eg ON eg.master_event_id = me.id
+        WHERE EXISTS (SELECT 1 FROM events as e WHERE e.id = eg.event_id AND e.deleted_at is null AND game_schedule = :game_schedule AND provider_id = :provider_id AND missing_count <= :missing_count)
+        AND me.id NOT IN (SELECT master_event_id FROM user_watchlist as uw WHERE uw.user_id = :user_id)
+        AND provider_id = :provider_id
+        AND l.sport_id = :sport_id) as sidebar_leagues
+        GROUP BY name
+        ORDER BY name";
+
+        return DB::select($sql, [
+            'game_schedule' => $gameSchedule,
+            'user_id'       => $userId,
+            'sport_id'      => $sportId,
+            'missing_count' => $maxMissingCount,
+            'provider_id'   => $primaryProviderId
+        ]);
     }
 
     public static function getLeaguesBySportAndGameSchedule(int $sportId, int $userId, array $userProviderIds, string $gameSchedule, string $keyword = null)
@@ -63,8 +97,11 @@ class MasterLeague extends Model
             ->groupBy('master_league_name');
     }
 
-    public static function getLeagueDetailsByName(string $league)
+    public static function getLeagueNameDetails(string $league)
     {
-        return DB::table('master_leagues')->where('name', $league)->first();
+        return DB::table('master_leagues AS ml')
+            ->join('league_groups AS lg', 'lg.master_league_id', 'ml.id')
+            ->join('leagues AS l', 'l.id', 'lg.league_id')
+            ->where(DB::raw('COALESCE(ml.name, l.name)'), $league);
     }
 }

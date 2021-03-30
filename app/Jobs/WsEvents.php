@@ -34,12 +34,12 @@ class WsEvents implements ShouldQueue
         $fd          = SwooleHandler::getValue('wsTable', 'uid:' . $userId);
         try {
             $topicTable   = SwooleHandler::table('topicTable');
-            $masterLeague = MasterLeague::where('name', $this->masterLeagueName)->first();
+            $masterLeague = MasterLeague::getLeagueNameDetails($this->masterLeagueName)->first();
 
             if (count($this->params) > 3) {
                 $meUID       = $this->params[3];
                 $singleEvent = true;
-                $gameDetails = Game::getGameDetails($masterLeague->id, $this->schedule, $userId, $meUID);
+                $gameDetails = Game::getGameDetails($masterLeague->master_league_id, $this->schedule, $userId, $meUID);
                 if (count($this->params) > 4) {
                     $otherTransformed   = Game::getOtherMarketsByMemUID($meUID);
                     $otherMarketDetails = [
@@ -51,7 +51,7 @@ class WsEvents implements ShouldQueue
                     $data = eventTransformation($gameDetails, $userId, $topicTable, 'socket', [], $singleEvent);
                 }
             } else {
-                $gameDetails = Game::getGameDetails($masterLeague->id, $this->schedule, $userId);
+                $gameDetails = Game::getGameDetails($masterLeague->master_league_id, $this->schedule, $userId);
                 $data        = eventTransformation($gameDetails, $userId, $topicTable, 'socket');
             }
 

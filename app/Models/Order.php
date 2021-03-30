@@ -178,4 +178,60 @@ class Order extends Model
                  ->select('p.alias')
                  ->first();
     }
+
+    public static function getEventMarketBetSlipDetails($memUID)
+    {
+        return DB::table('master_event_markets as mem')
+                ->join('event_market_groups as emg', 'mem.id', 'emg.master_event_market_id')
+                ->join('event_markets as em', 'emg.event_market_id', 'em.id')
+                ->where('master_event_market_unique_id', $memUID)
+                ->select([
+                    'em.is_main',
+                    'em.market_flag',
+                    'em.odd_type_id',
+                    'master_event_id'
+                ]);
+    }
+
+    public static function getEventBetSlipDetails($masterEventId)
+    {
+        $primaryProvider = Provider::getIdFromAlias(SystemConfiguration::getSystemConfigurationValue('PRIMARY_PROVIDER')->value);
+
+        return DB::table('master_events as me')
+                ->join('event_groups as eg', 'me.id', 'eg.master_event_id')
+                ->join('events as e', 'eg.event_id', 'e.id')
+                ->join('master_leagues as ml', 'ml.id', 'me.master_league_id')
+                ->join('league_groups as lg', 'ml.id', 'lg.master_league_id')
+                ->join('leagues as l', function ($join) use($primaryProvider) {
+                    $join->on('l.id', 'lg.league_id');
+                    $join->where('l.provider_id', $primaryProvider);
+                })
+                ->join('master_teams as ht', 'ht.id', 'me.master_team_home_id')
+                ->join('team_groups AS tgh', 'tgh.master_team_id', 'ht.id')
+                ->join('teams AS th', function ($join) use($primaryProvider) {
+                    $join->on('th.id','tgh.team_id');
+                    $join->where('th.provider_id', $primaryProvider);
+                })
+                ->join('master_teams as at', 'at.id', 'me.master_team_away_id')
+                ->join('team_groups AS tga', 'tga.master_team_id', 'at.id')
+                ->join('teams AS ta', function ($join) use($primaryProvider) {
+                    $join->on('ta.id','tga.team_id');
+                    $join->where('ta.provider_id', $primaryProvider);
+                })
+                ->where('me.id', $masterEventId)
+                ->select([
+                    DB::raw('COALESCE(ml.name, l.name) as league_name'),
+                    DB::raw('COALESCE(ht.name, th.name) as home_team_name'),
+                    DB::raw('COALESCE(at.name, ta.name) as away_team_name'),
+                    'master_event_unique_id',
+                    'e.game_schedule',
+                    'e.ref_schedule',
+                    'e.running_time',
+                    'e.score',
+                    'e.home_penalty',
+                    'e.away_penalty',
+                    'me.sport_id'
+                ]);
+
+    }
 }

@@ -16,6 +16,7 @@ return [
             'no_bookmaker'          => "Bookmaker not found",
             'type_has_been_changed' => ":type has been changed. Please refresh the bet slip",
             'place-bet-event-ended' => "Match already ended. Please close this Bet Slip.",
+            'not-enough-min-stake'  => "Stake lower than minimum stake or cannot proceed to next provider.",
         ],
     ],
     'bet_slip_logs' => [

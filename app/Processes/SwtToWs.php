@@ -28,10 +28,6 @@ class SwtToWs implements CustomProcessInterface
                     self::getEventScored($swoole);
                     self::getEventScoredWithOdds($swoole);
 
-                    if ($i % 15 == 0) {
-                        self::getUpdatedLeagues();
-                    }
-
                     if ($i % 5 == 0) {
                         self::getInActiveEvents($swoole);
                         self::getForBetBarRemoval($swoole);
