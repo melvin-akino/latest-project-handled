@@ -73,7 +73,7 @@ class SidebarConsume implements CustomProcessInterface
                                 }
 
                                 $swoole->push($row['value'], json_encode(['getSidebarLeagues' => [
-                                    $gameSchedule => $userSidebar
+                                    $gameSchedule => array_values($userSidebar)
                                 ]]));
                             }
                         }
