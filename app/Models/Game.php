@@ -293,9 +293,9 @@ class Game extends Model
         $maxMissingCount = SystemConfiguration::getSystemConfigurationValue('EVENT_VALID_MAX_MISSING_COUNT')->value;
         $primaryProvider = Provider::getIdFromAlias(SystemConfiguration::getSystemConfigurationValue('PRIMARY_PROVIDER')->value);
 
-        return DB::table('trade_window as tw')
-            ->where('tw.missing_count', '<=', $maxMissingCount)
-            ->whereNotIn('tw.master_event_id', function($query) use ($userId) {
+        return DB::table('trade_window')
+            ->where('missing_count', '<=', $maxMissingCount)
+            ->whereNotIn('master_event_id', function($query) use ($userId) {
                 $query->select('master_event_id')->from('user_watchlist')->where('user_id', $userId);
             })
             ->where(function($query) use ($keyword) {
