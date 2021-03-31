@@ -178,15 +178,15 @@ class MinMaxTransformationHandler
                                         $exchangeRate = $exchangeRatesTable->get($erSwtId)['exchange_rate'];
                                     }
 
+                                    $transformed['min'] = ceil(($data->minimum * $exchangeRate) * 100 ) / 100;
+
                                     if ($data->minimum == $data->maximum) {
-                                        $transformed['min'] = floor(($data->minimum * $exchangeRate) * 100 ) / 100;
-                                        $max                = floor(($data->maximum * $exchangeRate) * 100 ) / 100;
-                                        $transformed['max'] = ($max <= $maxBetDisplay) ? $max : $maxBetDisplay;
+                                        $max = $transformed['min'];
                                     } else {
-                                        $transformed['min'] = ceil(($data->minimum * $exchangeRate) * 100 ) / 100;
-                                        $max                = floor((($data->maximum * $exchangeRate) * ($punterPercentage / 100)) * 100) / 100;
-                                        $transformed['max'] = ($max <= $maxBetDisplay) ? $max : $maxBetDisplay;
+                                        $max = floor((($data->maximum * $exchangeRate) * ($punterPercentage / 100)) * 100) / 100;
                                     }
+
+                                    $transformed['max'] = ($max <= $maxBetDisplay) ? $max : $maxBetDisplay;
                                 }
 
                                 SwooleHandler::setValue('minmaxDataTable', 'minmax-market:' . $memUID, [
