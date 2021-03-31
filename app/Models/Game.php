@@ -300,9 +300,9 @@ class Game extends Model
             })
             ->where(function($query) use ($keyword) {
                 $query->where(DB::raw("CONCAT(master_league_name, ' | ', master_team_home_name, ' VS ', master_team_away_name)"), 'ILIKE', str_replace('%', '^', $keyword) . '%')
-                    ->orwhere('master_league_name', 'ILIKE', str_replace('%', '^', $keyword) . '%')
-                    ->orwhere('master_team_home_name', 'ILIKE', str_replace('%', '^', $keyword) . '%')
-                    ->orwhere('master_team_away_name', 'ILIKE', str_replace('%', '^', $keyword) . '%');
+                    ->orWhere('master_league_name', 'ILIKE', str_replace('%', '^', $keyword) . '%')
+                    ->orWhere('master_team_home_name', 'ILIKE', str_replace('%', '^', $keyword) . '%')
+                    ->orWhere('master_team_away_name', 'ILIKE', str_replace('%', '^', $keyword) . '%');
             })
             ->select([
                 DB::raw("'event' as type"),
