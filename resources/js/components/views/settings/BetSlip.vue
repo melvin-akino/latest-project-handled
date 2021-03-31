@@ -111,7 +111,7 @@ export default {
                 })
             })
             .catch(err => {
-                this.$store.dispatch('auth/checkIfTokenIsValid', err.response.data.status_code)
+                this.$store.dispatch('auth/checkIfTokenIsValid', err.response.status)
             })
         },
         toggleBetSlipSettings(isActive, key) {
@@ -141,7 +141,7 @@ export default {
                 })
             })
             .catch(err => {
-                this.$store.dispatch('auth/checkIfTokenIsValid', err.response.data.status_code)
+                this.$store.dispatch('auth/checkIfTokenIsValid', err.response.status)
             })
         }
     }

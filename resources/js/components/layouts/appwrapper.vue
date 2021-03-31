@@ -80,7 +80,7 @@ export default {
                     this.time = ''
                 }
             } catch(err) {
-                this.$store.dispatch('auth/checkIfTokenIsValid', err.response.data.status_code)
+                this.$store.dispatch('auth/checkIfTokenIsValid', err.response.status)
             }
         },
         logout() {

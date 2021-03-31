@@ -316,7 +316,7 @@ const actions = {
             state.oddsTypeBySport = state.filteredColumnsBySport.filter(column => !rootState.settings.disabledBetColumns.includes(column.sport_odd_type_id)).map(column => column.type)
             state.checkedColumns = state.columnsToDisplay.map(column => column.sport_odd_type_id)
         } catch(err) {
-            dispatch('auth/checkIfTokenIsValid', err.response.data.status_code,  { root: true })
+            dispatch('auth/checkIfTokenIsValid', err.response.status,  { root: true })
         }
     },
     getBookies({commit, dispatch}) {
@@ -325,7 +325,7 @@ const actions = {
                 commit('SET_BOOKIES', response.data.data)
             })
             .catch(err => {
-                dispatch('auth/checkIfTokenIsValid', err.response.data.status_code, { root: true })
+                dispatch('auth/checkIfTokenIsValid', err.response.status, { root: true })
             })
     },
     getSports({commit, dispatch}) {
@@ -335,7 +335,7 @@ const actions = {
                 commit('SET_SELECTED_SPORT', response.data.default_sport)
             })
             .catch(err => {
-                dispatch('auth/checkIfTokenIsValid', err.response.data.status_code, { root: true })
+                dispatch('auth/checkIfTokenIsValid', err.response.status, { root: true })
             })
     },
     getInitialLeagues({commit, dispatch, state}, updatedLeagues = false) {
@@ -381,7 +381,7 @@ const actions = {
                 commit('SET_IS_LOADING_LEAGUES', false)
             })
             .catch(err => {
-                dispatch('auth/checkIfTokenIsValid', err.response.data.status_code, { root: true })
+                dispatch('auth/checkIfTokenIsValid', err.response.status, { root: true })
             })
     },
     getInitialEvents({commit, dispatch, state}) {
@@ -403,12 +403,9 @@ const actions = {
                 commit('SET_IS_LOADING_EVENTS', false)
             })
             .catch(err => {
-                if(err.response.data.status_code != 500) {
-                    dispatch('auth/checkIfTokenIsValid', err.response.data.status_code, { root: true })
-                } else {
-                    commit('SET_IS_LOADING_EVENTS', false)
-                    commit('SET_EVENTS_ERROR', true)
-                }
+                dispatch('auth/checkIfTokenIsValid', err.response.status, { root: true })
+                commit('SET_IS_LOADING_EVENTS', false)
+                commit('SET_EVENTS_ERROR', true)
             })
     },
     async getTradeWindowData({dispatch}) {
@@ -449,7 +446,7 @@ const actions = {
                 }
             })
             .catch(err => {
-                dispatch('auth/checkIfTokenIsValid', err.response.data.status_code, { root: true })
+                dispatch('auth/checkIfTokenIsValid', err.response.status, { root: true })
             })
     },
     getOrders() {
@@ -463,7 +460,7 @@ const actions = {
                 commit('SET_WALLET', response.data.data)
             })
             .catch(err => {
-                dispatch('auth/checkIfTokenIsValid', err.response.data.status_code, { root: true })
+                dispatch('auth/checkIfTokenIsValid', err.response.status, { root: true })
             })
     },
     async getTradePageSettings({dispatch, commit}) {
@@ -478,7 +475,7 @@ const actions = {
     toggleLeague({dispatch}, data) {
         axios.post(`v1/trade/leagues/toggle/${data.action}`, { league_name: data.league_name, sport_id: data.sport_id, schedule: data.schedule}, { headers: { 'Authorization': `Bearer ${token}` } })
             .catch(err => {
-                dispatch('auth/checkIfTokenIsValid', err.response.data.status_code, { root: true })
+                dispatch('auth/checkIfTokenIsValid', err.response.status, { root: true })
             })
     },
     toggleLeagueByName({dispatch}, data) {
@@ -512,7 +509,7 @@ const actions = {
                 }
             }
         } catch(err) {
-            dispatch('auth/checkIfTokenIsValid', err.response.data.status_code, { root: true })
+            dispatch('auth/checkIfTokenIsValid', err.response.status, { root: true })
         }
     },
     getOrderLogs({dispatch}, event_id) {
@@ -522,7 +519,7 @@ const actions = {
                     resolve(response.data.data)
                 })
                 .catch(err => {
-                    dispatch('auth/checkIfTokenIsValid', err.response.data.status_code,  { root: true })
+                    dispatch('auth/checkIfTokenIsValid', err.response.status,  { root: true })
                     reject(err)
                 })
         })

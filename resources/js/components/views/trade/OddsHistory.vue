@@ -70,7 +70,7 @@ export default {
                 this.orderLogsPrompt = ''
             } catch(err) {
                 this.isLoadingOrderLogs = false
-                if(err.response.data.status_code == 504) {
+                if(err.response.status == 504) {
                     this.orderLogsPrompt = 'Cannot display order logs.'
                 } else {
                     this.orderLogsPrompt = 'There was an error.'

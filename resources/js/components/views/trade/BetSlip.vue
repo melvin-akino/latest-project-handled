@@ -373,7 +373,6 @@ export default {
             } else {
                 this.hasNewOddsInTradeWindow = false
             }
-            this.getMarketDetails(false, false)
         },
         tradeWindowPoints(value) {
             this.points = value
@@ -441,7 +440,7 @@ export default {
                     this.$store.commit('trade/SHOW_BET_MATRIX_IN_BETSLIP', { market_id: this.market_id, has_bet: response.data.data.has_bets })
                 })
                 .catch(err => {
-                    this.$store.dispatch('auth/checkIfTokenIsValid', err.response.data.status_code)
+                    this.$store.dispatch('auth/checkIfTokenIsValid', err.response.status)
                 })
         },
         openBetMatrix(data) {
@@ -721,9 +720,7 @@ export default {
                             if(this.orderMessage == '') {
                                 this.orderMessage = err.response.data.message
                             }
-                            if(err.response.data.status_code != 404) {
-                                this.$store.dispatch('auth/checkIfTokenIsValid', err.response.data.status_code)
-                            }
+                            this.$store.dispatch('auth/checkIfTokenIsValid', err.response.status)
                         })
                 } else {
                     this.isPlacingOrder = false

@@ -59,9 +59,9 @@ class Handler extends ExceptionHandler
         if (auth()->guard('api')) {
             return response()->json([
                 'status'      => false,
-                'status_code' => 404,
-                'message'     => trans('generic.not-found')
-            ], 404);
+                'status_code' => 401,
+                'message'     => trans('generic.unauthenticated')
+            ], 401);
         }
     }
 }
