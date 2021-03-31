@@ -63,7 +63,7 @@ export default {
             axios.get('v1/user/settings/bet-columns', { headers: { 'Authorization': `Bearer ${token}` }})
             .then(response => this.disabledBetColumns = response.data.data.disabled_columns)
             .catch(err => {
-                this.$store.dispatch('auth/checkIfTokenIsValid', err.response.data.status_code)
+                this.$store.dispatch('auth/checkIfTokenIsValid', err.response.status)
             })
         },
         getBetColumns() {
@@ -75,7 +75,7 @@ export default {
                 response.data.data.filter(column => column.sport_id === 1).map(column => this.columnsToDisplay = column.odds)
             })
             .catch(err => {
-                this.$store.dispatch('auth/checkIfTokenIsValid', err.response.data.status_code)
+                this.$store.dispatch('auth/checkIfTokenIsValid', err.response.status)
             })
         },
         saveChanges() {
@@ -96,7 +96,7 @@ export default {
                 })
             })
             .catch(err => {
-                this.$store.dispatch('auth/checkIfTokenIsValid', err.response.data.status_code)
+                this.$store.dispatch('auth/checkIfTokenIsValid', err.response.status)
             })
         }
     }

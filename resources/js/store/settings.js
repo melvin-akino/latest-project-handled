@@ -36,7 +36,7 @@ const actions = {
             })
             .catch(err => {
                 reject(err)
-                dispatch('auth/checkIfTokenIsValid', err.response.data.status_code, { root: true })
+                dispatch('auth/checkIfTokenIsValid', err.response.status, { root: true })
             })
         })
     },
@@ -50,7 +50,7 @@ const actions = {
             commit('SET_DEFAULT_PRICE_FORMAT', defaultPriceFormat.alias)
             return { defaultTimezone,  defaultPriceFormat}
         } catch(err) {
-            dispatch('auth/checkIfTokenIsValid', err.response.data.status_code, { root: true })
+            dispatch('auth/checkIfTokenIsValid', err.response.status, { root: true })
         }
     }
 }
