@@ -158,7 +158,7 @@ export default {
                 this.profileSettingsForm = response.data.data
             })
             .catch(err => {
-                this.$store.dispatch('auth/checkIfTokenIsValid', err.response.data.status_code)
+                this.$store.dispatch('auth/checkIfTokenIsValid', err.response.status)
             })
         },
         saveChanges() {
@@ -183,7 +183,7 @@ export default {
                 })
             })
             .catch(err => {
-                this.$store.dispatch('auth/checkIfTokenIsValid', err.response.data.status_code)
+                this.$store.dispatch('auth/checkIfTokenIsValid', err.response.status)
                 this.profileSettingsFormError = err.response.data.errors
                 Swal.fire({
                     icon: 'error',
@@ -217,8 +217,8 @@ export default {
             })
             .catch(err => {
                 this.isChangingPassword = false
-                this.$store.dispatch('auth/checkIfTokenIsValid', err.response.data.status_code)
-                if(err.response.data.status_code === 422) {
+                this.$store.dispatch('auth/checkIfTokenIsValid', err.response.status)
+                if(err.response.status === 422) {
                     this.profileSettingsFormError = err.response.data.errors
                 }
                 Swal.fire({

@@ -7,5 +7,6 @@ return [
     'unauthorized'          => 'Unauthorized',
     'db-transaction-error'  => 'DB Transaction error',
     'not-found'             => 'Not Found',
-    'bad-request'           => 'Bad Request'
+    'bad-request'           => 'Bad Request',
+    'unauthenticated'       => 'Unauthenticated'
 ];

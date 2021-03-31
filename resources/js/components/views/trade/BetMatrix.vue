@@ -109,7 +109,7 @@ export default {
                 this.generateBetMatrix()
             })
             .catch(err => {
-                this.$store.dispatch('auth/checkIfTokenIsValid', err.response.data.status_code)
+                this.$store.dispatch('auth/checkIfTokenIsValid', err.response.status)
             })
         },
         computeHomeDifference(points, home_score_on_bet, away_score_on_bet, home_team_counter, away_team_counter) {

@@ -44,7 +44,7 @@ export default {
             axios.get('v1/bookies', { headers: { 'Authorization': `Bearer ${token}` }})
             .then(response => this.bookies = response.data.data)
             .catch(err => {
-                this.$store.dispatch('auth/checkIfTokenIsValid', err.response.data.status_code)
+                this.$store.dispatch('auth/checkIfTokenIsValid', err.response.status)
             })
         },
         getUserConfig() {
@@ -53,7 +53,7 @@ export default {
             axios.get('v1/user/settings/bookies', { headers: { 'Authorization': `Bearer ${token}` }})
             .then(response => this.disabledBookies = response.data.data.disabled_bookies)
             .catch(err => {
-                this.$store.dispatch('auth/checkIfTokenIsValid', err.response.data.status_code)
+                this.$store.dispatch('auth/checkIfTokenIsValid', err.response.status)
             })
         },
         saveChanges() {
@@ -79,7 +79,7 @@ export default {
                     })
                 })
                 .catch(err => {
-                    this.$store.dispatch('auth/checkIfTokenIsValid', err.response.data.status_code)
+                    this.$store.dispatch('auth/checkIfTokenIsValid', err.response.status)
                 })
             }
         }
