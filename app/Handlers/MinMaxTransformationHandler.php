@@ -179,7 +179,13 @@ class MinMaxTransformationHandler
                                     }
 
                                     $transformed['min'] = ceil(($data->minimum * $exchangeRate) * 100 ) / 100;
-                                    $max = floor((($data->maximum * $exchangeRate) * ($punterPercentage / 100)) * 100) / 100;
+
+                                    if ($data->minimum == $data->maximum) {
+                                        $max = $transformed['min'];
+                                    } else {
+                                        $max = floor((($data->maximum * $exchangeRate) * ($punterPercentage / 100)) * 100) / 100;
+                                    }
+
                                     $transformed['max'] = ($max <= $maxBetDisplay) ? $max : $maxBetDisplay;
                                 }
 
