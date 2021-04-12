@@ -28,6 +28,7 @@ const state = {
     eventsList: [],
     openedBetSlips: [],
     bookies: [],
+    primaryProvider: null,
     bets: [],
     tradePageSettings: {},
     betSlipSettings: {},
@@ -191,7 +192,11 @@ const mutations = {
                 }
             })
         } else {
-            state.eventsList.push(newEvent)
+            let newEventProviders = newEvent.with_providers.map(provider => provider.id)
+            let primaryProvider = state.primaryProvider.id
+            if(newEventProviders.includes(primaryProvider)) {
+                state.eventsList.push(newEvent)
+            }
         }
     },
     REMOVE_FROM_EVENT_LIST: (state, data) => {
@@ -261,6 +266,9 @@ const mutations = {
     SET_BOOKIES: (state, bookies) => {
         state.bookies = bookies
     },
+    SET_PRIMARY_PROVIDER: (state, primaryProvider) => {
+        state.primaryProvider = primaryProvider
+    },
     SET_BETS: (state, bets) => {
         state.bets = bets
     },
@@ -323,6 +331,7 @@ const actions = {
         return axios.get('v1/bookies', { headers: { 'Authorization': `Bearer ${token}` }})
             .then(response => {
                 commit('SET_BOOKIES', response.data.data)
+                commit('SET_PRIMARY_PROVIDER', response.data.data.filter(provider => provider.is_primary)[0])
             })
             .catch(err => {
                 dispatch('auth/checkIfTokenIsValid', err.response.status, { root: true })
@@ -411,6 +420,7 @@ const actions = {
     async getTradeWindowData({dispatch}) {
         await dispatch('getSports')
         await dispatch('getBetColumns', state.selectedSport)
+        await dispatch('getBookies')
         await dispatch('getInitialLeagues')
         await dispatch('getInitialEvents')
         await dispatch('getBetbarData')

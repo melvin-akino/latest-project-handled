@@ -452,7 +452,6 @@ export default {
             this.$store.dispatch('trade/setActivePopup', data)
         },
         async setMinMaxProviders() {
-            await this.$store.dispatch('trade/getBookies')
             let settingsConfig = await this.$store.dispatch('settings/getUserSettingsConfig', 'bookies')
             this.disabledBookies = settingsConfig.disabled_bookies
             let enabledBookies = this.bookies.filter(bookie => !this.disabledBookies.includes(bookie.id))
