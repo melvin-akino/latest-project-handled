@@ -33,10 +33,7 @@ class UserProviderConfiguration extends Model
 
             foreach ($providers as $provider) {
                 $active = true;
-                $punter = strtolower($provider['alias']) == "hg" ? 45 : 100; // special case for HG Provider
-
-                // Logic for modifying punter percentage per user
-                // $punter = another value;
+                $punter = $provider['punter_percentage'];
 
                 if (!empty($request)) {
                     if (in_array($provider['id'], $requestProviders)) {
