@@ -105,6 +105,17 @@ export default {
                                 }
                             }
                         })
+                        let leagueNames = this.leagues[schedule].map(league => league.name)
+                        let newLeagueNames = getSidebarLeagues[schedule].map(league => league.name)
+                        leagueNames.map(league => {
+                            if(!newLeagueNames.includes(league)) {
+                                if(this.selectedLeagues[schedule].includes(league)) {
+                                    this.$store.commit('trade/REMOVE_SELECTED_LEAGUE', { schedule: schedule, league: league })
+                                    this.$store.dispatch('trade/toggleLeague', { action: 'remove', league_name: league, sport_id: this.selectedSport, schedule: schedule  })
+                                }
+                                this.$store.commit('trade/REMOVE_FROM_EVENT_LIST', { league_name: league, game_schedule: schedule })
+                            }
+                        })
                         this.$store.commit('trade/SET_LEAGUES_BY_SCHEDULE', { schedule: schedule, leagues: getSidebarLeagues[schedule] })
                     })
                 }
