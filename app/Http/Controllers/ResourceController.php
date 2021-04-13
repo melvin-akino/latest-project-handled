@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Support\Facades\Log;
-use App\Models\{Provider, Timezones};
+use App\Models\{Provider, Timezones, SystemConfiguration};
 use Exception;
 
 class ResourceController extends Controller
@@ -43,10 +43,22 @@ class ResourceController extends Controller
                 'alias',
             ]);
 
+            $primaryProvider = Provider::getIdFromAlias(SystemConfiguration::getSystemConfigurationValue('PRIMARY_PROVIDER')->value);
+
+            $data = [];
+
+            foreach($providers as $provider) {
+                $data[] = [
+                    'id'         => $provider->id,
+                    'alias'      => $provider->alias,
+                    'is_primary' => $primaryProvider == $provider->id
+                ];
+            }
+
             return response()->json([
                 'status'      => true,
                 'status_code' => 200,
-                'data'        => $providers
+                'data'        => $data
             ], 200);
         } catch (Exception $e) {
             $toLogs = [
