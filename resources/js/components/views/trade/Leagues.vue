@@ -31,7 +31,7 @@ export default {
         }
     },
     computed: {
-        ...mapState('trade', ['leagues', 'selectedLeagues', 'selectedLeagueSchedMode', 'selectedSport', 'events', 'leagues', 'isLoadingLeagues']),
+        ...mapState('trade', ['leagues', 'selectedLeagues', 'selectedLeagueSchedMode', 'selectedSport', 'isLoadingLeagues', 'eventsList']),
         ...mapGetters('trade', ['displayedLeagues']),
         checkIfLeaguesIsEmpty() {
             if(!_.isEmpty(this.leagues)) {
