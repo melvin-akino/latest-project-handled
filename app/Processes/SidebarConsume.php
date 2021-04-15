@@ -42,7 +42,7 @@ class SidebarConsume implements CustomProcessInterface
 
                         $gameSchedule = null;
                         $sidebarLeagues = null;
-                        foreach ($payload->data as $schedule => $leagues) {
+                        foreach ($payload->data->sidebar as $schedule => $leagues) {
                             $gameSchedule = $schedule;
                             $sidebarLeagues = (array) $leagues;
                         }
