@@ -33,30 +33,34 @@ class UserProviderConfiguration extends Model
 
             foreach ($providers as $provider) {
                 $active = true;
+                $punter = $provider['punter_percentage'];
+
                 if (!empty($request)) {
                     if (in_array($provider['id'], $requestProviders)) {
                         $requestProviderKey = array_search($provider['id'], $requestProviders);
                         $active = $request[$requestProviderKey]['active'];
                         self::updateOrCreate(
                             [
-                                'user_id' => auth()->user()->id,
+                                'user_id'     => auth()->user()->id,
                                 'provider_id' => $request[$requestProviderKey]['provider_id'],
                             ],
                             [
-                                'active' => $active,
-                                'updated_at' => Carbon::now()
+                                'active'            => $active,
+                                'punter_percentage' => $punter,
+                                'updated_at'        => Carbon::now()
                             ]
                         );
                     }
                 } else {
                     self::updateOrCreate(
                         [
-                            'user_id' => auth()->user()->id,
+                            'user_id'     => auth()->user()->id,
                             'provider_id' => $provider['id'],
                         ],
                         [
-                            'active' => $active,
-                            'updated_at' => Carbon::now()
+                            'active'            => $active,
+                            'punter_percentage' => $punter,
+                            'updated_at'        => Carbon::now()
                         ]
                     );
                 }
