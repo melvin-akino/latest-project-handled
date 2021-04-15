@@ -41,7 +41,7 @@ class WsEvents implements ShouldQueue
                 $singleEvent = true;
                 $gameDetails = Game::getGameDetails($masterLeague->master_league_id, $this->schedule, $userId, $meUID);
                 if (count($this->params) > 4) {
-                    $otherTransformed   = Game::getOtherMarketsByMemUID($meUID);
+                    $otherTransformed   = Game::getOtherMarketsByMasterEventId($meUID);
                     $otherMarketDetails = [
                         'meUID'       => $meUID,
                         'transformed' => $otherTransformed
