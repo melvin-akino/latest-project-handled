@@ -435,7 +435,7 @@ class TradeController extends Controller
     public function getEventOtherMarkets($meUID, Request $request)
     {
         try {
-            $transformed     = Game:: getOtherMarketsByMemUID($meUID);
+            $transformed     = Game:: getOtherMarketsByMasterEventId($meUID);
             $userProviderIds = UserProviderConfiguration::getProviderIdList(auth()->user()->id);
 
             $data = [];

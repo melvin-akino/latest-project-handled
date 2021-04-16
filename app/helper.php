@@ -506,14 +506,10 @@ if (!function_exists('eventTransformation')) {
             if (!empty($transformed->type)) {
                 if (
                     empty($data[$transformed->master_event_unique_id]['market_odds']['main'][$transformed->type][$transformed->market_flag]) ||
-                    ($data[$transformed->master_event_unique_id]['market_odds']['main'][$transformed->type][$transformed->market_flag]['market_id'] == $transformed->master_event_market_unique_id &&
-                        $data[$transformed->master_event_unique_id]['market_odds']['main'][$transformed->type][$transformed->market_flag]['odds'] < (double) $transformed->odds)
+                    $data[$transformed->master_event_unique_id]['market_odds']['main'][$transformed->type][$transformed->market_flag]['odds'] < (double) $transformed->odds
                 ) {
-                    $data[$transformed->master_event_unique_id]['market_odds']['main'][$transformed->type][$transformed->market_flag] = [
-                        'odds'           => !empty($transformed->master_event_market_unique_id) && empty($transformed->is_market_empty) ? (double) $transformed->odds : "",
-                        'market_id'      => !empty($transformed->master_event_market_unique_id) && empty($transformed->is_market_empty) ? $transformed->master_event_market_unique_id : "",
-                        'provider_alias' => $transformed->alias
-                    ];
+                    $data[$transformed->master_event_unique_id]['market_odds']['main'][$transformed->type][$transformed->market_flag]['odds']           = !empty($transformed->master_event_market_unique_id) && empty($transformed->is_market_empty) ? (double) $transformed->odds : "";
+                    $data[$transformed->master_event_unique_id]['market_odds']['main'][$transformed->type][$transformed->market_flag]['provider_alias'] = $transformed->alias;
 
                     if (!empty($transformed->odd_label)) {
                         if (empty($transformed->is_market_empty)) {
@@ -522,6 +518,19 @@ if (!function_exists('eventTransformation')) {
                             $data[$transformed->master_event_unique_id]['market_odds']['main'][$transformed->type][$transformed->market_flag]['points'] = "";
                         }
                     }
+                }
+
+                if (
+                    empty($data[$transformed->master_event_unique_id]['market_odds']['main'][$transformed->type][$transformed->market_flag]['market_id']) ||
+                    (
+                        !empty($data[$transformed->master_event_unique_id]['market_odds']['main'][$transformed->type][$transformed->market_flag]['market_id']) && 
+                        $transformed->provider_id == $primaryProviderId
+                    )
+                    
+                ) {
+                    $data[$transformed->master_event_unique_id]['market_odds']['main'][$transformed->type][$transformed->market_flag]['mem_uid_from_provider'] = $transformed->provider_id;
+                    $data[$transformed->master_event_unique_id]['market_odds']['main'][$transformed->type][$transformed->market_flag]['market_id'] = !empty($transformed->master_event_market_unique_id) && empty($transformed->is_market_empty) ? $transformed->master_event_market_unique_id : "";
+
                 }
 
                 if ($otherMarketDetails && $transformed->master_event_unique_id == $otherMarketDetails['meUID']) {
@@ -551,21 +560,33 @@ if (!function_exists('eventTransformation')) {
                     foreach ($otherData as $masterEventIdentifier) {
                         foreach ($masterEventIdentifier as $k => $d) {
                             if (empty($otherValues[$d['odd_type'] . $d['market_flag'] . $d['points']])) {
-                                $otherResult[$d['market_event_identifier']][$d['odd_type']][$d['market_flag']] = [
-                                    'market_id'      => $d['market_id'],
-                                    'odds'           => $d['odds'],
-                                    'points'         => $d['points'],
-                                    'provider_alias' => $d['provider_alias']
-                                ];
-                                $otherValues[$d['odd_type'] . $d['market_flag'] . $d['points']]                = $d['market_event_identifier'];
-                            } else {
+                                $otherResult[$d['market_event_identifier']][$d['odd_type']][$d['market_flag']]['market_id']             = $d['market_id'];
+                                $otherResult[$d['market_event_identifier']][$d['odd_type']][$d['market_flag']]['mem_uid_from_provider'] = $d['provider_id'];
+                                
+                                $otherResult[$d['market_event_identifier']][$d['odd_type']][$d['market_flag']]['points']                = $d['points'];
+                                $otherResult[$d['market_event_identifier']][$d['odd_type']][$d['market_flag']]['provider_alias']        = $d['provider_alias'];
+                                $otherResult[$d['market_event_identifier']][$d['odd_type']][$d['market_flag']]['odds']                  = $d['odds'];
+                                $otherValues[$d['odd_type'] . $d['market_flag'] . $d['points']]                                         = $d['market_event_identifier'];
+                            }
+                            
+                            else {
                                 $key = $otherValues[$d['odd_type'] . $d['market_flag'] . $d['points']];
                                 if (
-                                    !empty($otherResult[$key][$d['odd_type']]) &&
-                                    $otherResult[$key][$d['odd_type']][$d['market_flag']]['market_id'] == $d['market_id'] &&
+                                    !empty($otherResult[$key][$d['odd_type']][$d['market_flag']]) &&
                                     $otherResult[$key][$d['odd_type']][$d['market_flag']]['odds'] < $d['odds']
                                 ) {
                                     $otherResult[$key][$d['odd_type']][$d['market_flag']]['odds'] = $d['odds'];
+                                }
+
+                                if (
+                                    empty($otherResult[$key][$d['odd_type']][$d['market_flag']]['market_id']) ||
+                                    (
+                                        !empty($otherResult[$key][$d['odd_type']][$d['market_flag']]['market_id']) &&
+                                        $d['provider_id'] == $primaryProviderId
+                                    )   
+                                ) {
+                                    $otherResult[$key][$d['odd_type']][$d['market_flag']]['market_id'] = $d['market_id'];
+                                    $otherResult[$key][$d['odd_type']][$d['market_flag']]['mem_uid_from_provider'] = $d['provider_id'];
                                 }
                             }
                         }

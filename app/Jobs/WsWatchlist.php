@@ -40,7 +40,7 @@ class WsWatchlist implements ShouldQueue
                     $singleEvent = true;
 
                     if (count($params) > 2) {
-                        $otherTransformed   = Game::getOtherMarketsByMemUID($eventUID);
+                        $otherTransformed   = Game::getOtherMarketsByMasterEventId($eventUID);
                         $otherMarketDetails = [
                             'meUID'       => $eventUID,
                             'transformed' => $otherTransformed
