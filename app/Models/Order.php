@@ -10,7 +10,6 @@ class Order extends Model
     protected $table = "orders";
 
     protected $fillable = [
-        'master_event_market_id',
         'user_id',
         'market_id',
         'status',
