@@ -118,9 +118,7 @@ class Game extends Model
             ->leftJoin('teams AS ta', 'ta.id', 'tga.team_id')
             ->leftJoin('event_groups as eg', 'me.id', 'eg.master_event_id')
             ->join('events as e', 'eg.event_id', 'e.id')
-            ->leftJoin('master_event_markets AS mem', 'me.id', 'mem.master_event_id')
-            ->leftJoin('event_market_groups as emg', 'mem.id', 'emg.master_event_market_id')
-            ->join('event_markets AS em', 'emg.event_market_id', 'em.id')
+            ->join('event_markets AS em', 'em.event_id', 'e.id')
             ->leftJoin('odd_types AS ot', 'ot.id', 'em.odd_type_id')
             ->leftJoin('sport_odd_type as sot', function ($join) {
                 $join->on('sot.odd_type_id', '=', 'ot.id');
@@ -128,7 +126,7 @@ class Game extends Model
             })
             ->whereNull('me.deleted_at')
             ->where('em.provider_id', $providerId)
-            ->where('mem.master_event_market_unique_id', $marketId)
+            ->where('em.mem_uid', $marketId)
             ->select([
                 'me.sport_id',
                 'me.master_event_unique_id',
@@ -138,7 +136,7 @@ class Game extends Model
                 'e.game_schedule',
                 'e.running_time',
                 'e.score',
-                'mem.master_event_market_unique_id',
+                'em.mem_uid',
                 'em.is_main',
                 'em.market_flag',
                 'em.odd_type_id',

@@ -7,7 +7,7 @@ use App\Facades\{SwooleHandler, WalletFacade, OrderFacade};
 use App\Jobs\KafkaPush;
 use App\Models\{
     Game,
-    MasterEventMarket,
+    EventMarket,
     MasterEventMarketLog,
     OddType,
     Provider,
@@ -580,10 +580,10 @@ class OrdersController extends Controller
 
                 $providerAccountUserName = $providerAccount->username;
                 $providerAccountId       = $providerAccount->id;
-                $masterEventMarket       = MasterEventMarket::where('master_event_market_unique_id', $request->market_id)->first();
+                $eventMarket             = EventMarket::where('mem_uid', $request->market_id)->first();
 
                 $_orderData = [
-                    'master_event_market_id'        => $masterEventMarket->id,
+                    'master_event_market_id'        => $eventMarket->id,
                     'master_event_unique_id'        => $query->master_event_unique_id,
                     'master_event_market_unique_id' => $request->market_id,
                     'market_id'                     => $query->bet_identifier,
