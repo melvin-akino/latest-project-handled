@@ -83,12 +83,7 @@ class Game extends Model
         return DB::table('master_events AS me')
                  ->leftJoin('event_groups AS eg', 'me.id', 'eg.master_event_id')
                  ->join('events as e', 'eg.event_id', 'e.id')
-                 ->leftJoin('master_event_markets AS mem', 'mem.master_event_id', 'me.id')
-                 ->leftJoin('event_market_groups as emg', 'mem.id', 'emg.master_event_market_id')
-                 ->join('event_markets AS em', function ($join) {
-                     $join->on('emg.event_market_id', 'em.id');
-                     $join->on('em.event_id', 'e.id');
-                  })
+                 ->join('event_markets AS em', 'em.event_id', 'e.id')
                  ->leftJoin('odd_types AS ot', 'em.odd_type_id', 'ot.id')
                  ->whereNull('me.deleted_at')
                  ->whereNull('em.deleted_at')
@@ -101,7 +96,7 @@ class Game extends Model
                  ->where('e.missing_count', '<=', $maxMissingCount)
                  ->orderBy('em.odds', 'DESC')
                  ->get([
-                     'mem.master_event_market_unique_id',
+                     'em.mem_uid',
                      'em.odds',
                      'em.odd_label',
                      'em.is_main',

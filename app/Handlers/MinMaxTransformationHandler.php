@@ -56,6 +56,7 @@ class MinMaxTransformationHandler
                             $userId        = explode(':', $_key)[1];
                             $fd            = $wsTable->get('uid:' . $userId);
                             $providerSwtId = "providerAlias:" . $data->provider;
+
                             if (!empty($this->data->message) && $this->data->message != 'onqueue') {
                                 if ($swoole->isEstablished($fd['value'])) {
                                     $swoole->push($fd['value'], json_encode([
@@ -76,12 +77,15 @@ class MinMaxTransformationHandler
                                         break;
                                     }
                                 }
+
                                 if (!$doesExist) {
                                     $minmaxOnqueueRequestsTable->set('min-max-' . $data->market_id, ['onqueue' => true]);
                                 }
+
                                 continue;
                             } else {
                                 $minmaxOnqueueRequestsTable->del('min-max-' . $data->market_id);
+
                                 $userCurrency = [
                                     'id'   => 1,
                                     'code' => "CNY",
@@ -118,11 +122,12 @@ class MinMaxTransformationHandler
                                     $punterPercentage       = $provTable->get($providerSwtId)['punter_percentage'];
                                 }
 
-                                $doesExist         = false;
                                 $userProviderSwtId = implode(':', [
                                     "userId" . $userId,
                                     "pId:" . $provTable->get($providerSwtId)['id'],
                                 ]);
+
+                                $doesExist = false;
                                 foreach ($userProviderConfigTable as $k => $v) {
                                     if ($k == $userProviderSwtId) {
                                         $doesExist = true;
@@ -174,6 +179,7 @@ class MinMaxTransformationHandler
                                             break;
                                         }
                                     }
+
                                     if ($doesExist) {
                                         $exchangeRate = $exchangeRatesTable->get($erSwtId)['exchange_rate'];
                                     }
@@ -201,7 +207,7 @@ class MinMaxTransformationHandler
                                     'ts'  => getMilliseconds()
                                 ]);
 
-                                EventMarket::updateProviderEventMarketsByMemUIDWithOdds($memUID, $transformed['price']);
+                                EventMarket::updateProviderEventMarketsByMemUIDWithOdds($data->market_id, $transformed['price']);
 
                                 if ($swoole->isEstablished($fd['value'])) {
                                     $minMaxRequests['mId:' . $data->market_id . ':memUID:' . $memUID]['odds'] = $transformed['price'];

@@ -44,7 +44,6 @@ class MinMaxProduce implements CustomProcessInterface
                         $minmaxTime++;
 
                         if (!empty($systemConfigurationsTimers)) {
-
                             foreach ($minMaxRequestsTable as $minMaxRequest) {
                                 $minmaxOnqueueExist = false;
                                 foreach ($minmaxOnqueueRequestsTable as $key => $row) {

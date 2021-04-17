@@ -242,7 +242,7 @@ class OrdersController extends Controller
                     if (!in_array($row->odd_label, $duplicateHandler)) {
                         $duplicateHandler[] = $row->odd_label;
                         $spreads[]          = [
-                            'market_id'   => $row->master_event_market_unique_id,
+                            'market_id'   => $row->mem_uid,
                             'odds'        => $row->odds,
                             'points'      => $row->odd_label,
                             'is_main'     => $row->is_main,
