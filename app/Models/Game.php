@@ -128,7 +128,10 @@ class Game extends Model
                 $join->on('sot.sport_id', '=', 'me.sport_id');
             })
             ->whereNull('me.deleted_at')
-            ->whereIn('e.id', $eventIds)
+            ->whereIn('em.event_id', $eventIds)
+            ->where('em.market_flag', $event->market_flag)
+            ->where('em.odd_type_id', $event->odd_type_id)
+            ->where('em.odd_label', $event->odd_label)
             ->where('em.provider_id', $providerId)
             ->select([
                 'me.sport_id',
