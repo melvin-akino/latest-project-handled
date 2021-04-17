@@ -31,7 +31,7 @@ class WsMinMax implements ShouldQueue
             $eventMarkets = EventMarket::getEventMarketByMemUID($this->master_event_market_unique_id);
 
             if ($eventMarkets) {
-                foreach ($eventMarkets as $eventMarket) {
+                foreach ($eventMarkets AS $eventMarket) {
                     $doesExist = false;
                     foreach ($topicTable as $topic) {
                         if ($topic['topic_name'] == 'min-max-' . $eventMarket->bet_identifier &&
@@ -40,6 +40,7 @@ class WsMinMax implements ShouldQueue
                             break;
                         }
                     }
+
                     if (!$doesExist) {
                         $topicTable->set('userId:' . $this->userId . ':unique:' . uniqid(), [
                             'user_id'    => $this->userId,
@@ -56,6 +57,7 @@ class WsMinMax implements ShouldQueue
                         'odds'      => $eventMarket->odds,
                         'memUID'    => $this->master_event_market_unique_id
                     ];
+
                     $minMaxRequestsTable->set('mId:' . $eventMarket->bet_identifier . ':memUID:' . $this->master_event_market_unique_id, $minMaxRequestsPayload);
 
                     SendLogData::MinMax('requestminmax', json_encode($minMaxRequestsPayload));

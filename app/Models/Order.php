@@ -181,16 +181,17 @@ class Order extends Model
 
     public static function getEventMarketBetSlipDetails($memUID)
     {
-        return DB::table('master_event_markets as mem')
-                ->join('event_market_groups as emg', 'mem.id', 'emg.master_event_market_id')
-                ->join('event_markets as em', 'emg.event_market_id', 'em.id')
-                ->where('master_event_market_unique_id', $memUID)
-                ->select([
-                    'em.is_main',
-                    'em.market_flag',
-                    'em.odd_type_id',
-                    'master_event_id'
-                ]);
+        return DB::table('event_markets AS em')
+            ->join('events AS e', 'e.id', 'em.event_id')
+            ->join('event_groups AS eg', 'eg.event_id', 'e.id')
+            ->join('master_events AS me', 'me.id', 'eg.master_event_id')
+            ->where('em.mem_uid', $memUID)
+            ->select([
+                'em.is_main',
+                'em.market_flag',
+                'em.odd_type_id',
+                'me.id AS master_event_id'
+            ]);
     }
 
     public static function getEventBetSlipDetails($masterEventId)
@@ -232,6 +233,5 @@ class Order extends Model
                     'e.away_penalty',
                     'me.sport_id'
                 ]);
-
     }
 }
