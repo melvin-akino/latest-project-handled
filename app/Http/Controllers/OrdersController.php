@@ -584,7 +584,7 @@ class OrdersController extends Controller
 
                 $_orderData = [
                     'master_event_market_id'        => $eventMarket->id,
-                    'master_event_unique_id'        => $eventMarket->mem_uid,
+                    'master_event_unique_id'        => $query->master_event_unique_id,
                     'master_event_market_unique_id' => $query->mem_uid,
                     'market_id'                     => $query->bet_identifier,
                     'odds'                          => $row['price'],
