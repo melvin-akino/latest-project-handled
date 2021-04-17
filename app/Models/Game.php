@@ -106,7 +106,10 @@ class Game extends Model
 
     public static function getMasterEventByMarketId(string $marketId, $providerId)
     {
-        return DB::table('master_events AS me')
+        $event         = DB::table('event_markets')->where('mem_uid', $marketId)->first();
+        $masterEventId = DB::table('event_groups')->select('master_event_id')->where('event_id', $event->event_id)->first();
+        $eventIds      = DB::table('event_groups')->where('master_event_id', $masterEventId->master_event_id)->pluck('event_id');
+        $query         = DB::table('master_events AS me')
             ->leftJoin('master_leagues as ml', 'ml.id', 'me.master_league_id')
             ->leftJoin('league_groups as lg', 'ml.id', 'lg.master_league_id')
             ->leftJoin('leagues as l', 'l.id', 'lg.league_id')
@@ -118,17 +121,18 @@ class Game extends Model
             ->leftJoin('teams AS ta', 'ta.id', 'tga.team_id')
             ->leftJoin('event_groups as eg', 'me.id', 'eg.master_event_id')
             ->join('events as e', 'eg.event_id', 'e.id')
-            ->leftJoin('master_event_markets AS mem', 'me.id', 'mem.master_event_id')
-            ->leftJoin('event_market_groups as emg', 'mem.id', 'emg.master_event_market_id')
-            ->join('event_markets AS em', 'emg.event_market_id', 'em.id')
+            ->join('event_markets AS em', 'em.event_id', 'e.id')
             ->leftJoin('odd_types AS ot', 'ot.id', 'em.odd_type_id')
             ->leftJoin('sport_odd_type as sot', function ($join) {
                 $join->on('sot.odd_type_id', '=', 'ot.id');
                 $join->on('sot.sport_id', '=', 'me.sport_id');
             })
             ->whereNull('me.deleted_at')
+            ->whereIn('em.event_id', $eventIds)
+            ->where('em.market_flag', $event->market_flag)
+            ->where('em.odd_type_id', $event->odd_type_id)
+            ->where('em.odd_label', $event->odd_label)
             ->where('em.provider_id', $providerId)
-            ->where('mem.master_event_market_unique_id', $marketId)
             ->select([
                 'me.sport_id',
                 'me.master_event_unique_id',
@@ -138,7 +142,7 @@ class Game extends Model
                 'e.game_schedule',
                 'e.running_time',
                 'e.score',
-                'mem.master_event_market_unique_id',
+                'em.mem_uid',
                 'em.is_main',
                 'em.market_flag',
                 'em.odd_type_id',
@@ -149,6 +153,8 @@ class Game extends Model
                 'sot.name AS column_type',
             ])
             ->first();
+
+        return $query;
     }
 
     public static function getSelectedLeagueEvents(int $userId, int $sportId)
