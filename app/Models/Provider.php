@@ -52,6 +52,9 @@ class Provider extends Model
         $eventIds      = DB::table('event_groups')->where('master_event_id', $masterEventId->master_event_id)->pluck('event_id');
         $query         = DB::table('event_markets')
             ->whereIn('event_id', $eventIds)
+            ->where('market_flag', $event->market_flag)
+            ->where('odd_type_id', $event->odd_type_id)
+            ->where('odd_label', $event->odd_label)
             ->whereNull('deleted_at')
             ->pluck('provider_id');
 
