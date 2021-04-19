@@ -7,7 +7,7 @@ use App\Facades\{SwooleHandler, WalletFacade, OrderFacade};
 use App\Jobs\KafkaPush;
 use App\Models\{
     Game,
-    MasterEventMarket,
+    EventMarket,
     MasterEventMarketLog,
     OddType,
     Provider,
@@ -242,7 +242,7 @@ class OrdersController extends Controller
                     if (!in_array($row->odd_label, $duplicateHandler)) {
                         $duplicateHandler[] = $row->odd_label;
                         $spreads[]          = [
-                            'market_id'   => $row->master_event_market_unique_id,
+                            'market_id'   => $row->mem_uid,
                             'odds'        => $row->odds,
                             'points'      => $row->odd_label,
                             'is_main'     => $row->is_main,
@@ -580,12 +580,12 @@ class OrdersController extends Controller
 
                 $providerAccountUserName = $providerAccount->username;
                 $providerAccountId       = $providerAccount->id;
-                $masterEventMarket       = MasterEventMarket::where('master_event_market_unique_id', $request->market_id)->first();
+                $eventMarket             = EventMarket::where('mem_uid', $query->mem_uid)->first();
 
                 $_orderData = [
-                    'master_event_market_id'        => $masterEventMarket->id,
+                    'master_event_market_id'        => $eventMarket->id,
                     'master_event_unique_id'        => $query->master_event_unique_id,
-                    'master_event_market_unique_id' => $request->market_id,
+                    'master_event_market_unique_id' => $query->mem_uid,
                     'market_id'                     => $query->bet_identifier,
                     'odds'                          => $row['price'],
                     'odd_label'                     => $query->odd_label,
