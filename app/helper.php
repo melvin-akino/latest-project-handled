@@ -348,7 +348,7 @@ if (!function_exists('getMilliseconds')) {
  * @param int $sportId
  * @param int $providerId
  * @param int $providerAccountId
- * @param array $orderData ['master_event_market_id', 'market_id', 'odds', 'odd_label', 'stake', 'actual_stake', 'score', 'expiry', 'bet_selection']
+ * @param array $orderData ['market_id', 'odds', 'odd_label', 'stake', 'actual_stake', 'score', 'expiry', 'bet_selection']
  * @param array $exchangeRate ['id', 'exchange_rate']
  * @param string $mlBetId
  * @return void
@@ -360,7 +360,6 @@ if (!function_exists('ordersCreation')) {
     {
         $order = Order::create([
             'user_id'                       => $userId,
-            'master_event_market_id'        => $orderData['master_event_market_id'],
             'master_event_unique_id'        => $orderData['master_event_unique_id'],
             'master_event_market_unique_id' => $orderData['master_event_market_unique_id'],
             'market_id'                     => $orderData['market_id'],
