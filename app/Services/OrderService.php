@@ -137,10 +137,11 @@ class OrderService
 
                     if (in_array($row->odd_type_id, $ouLabels)) {
                         $lastLineBetSelection = end($origBetSelection);
+                        $betPeriod            = strpos($lastLineBetSelection, "FT") !== false ? "FT " : (strpos($lastLineBetSelection, "HT") !== false ? "HT " : "");
                         $ouScore              = explode('(', $lastLineBetSelection);
                         $betSelection         = implode("\n", [
                             $row->master_team_home_name . " vs " . $row->master_team_away_name,
-                            $teamname . " @ " . $row->odds . " (" . $ouScore[1]
+                            $betPeriod . $teamname . " @ " . $row->odds . " (" . $ouScore[1],
                         ]);
                     }
 
