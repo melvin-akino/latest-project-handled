@@ -31,7 +31,7 @@ export default {
         }
     },
     computed: {
-        ...mapState('trade', ['leagues', 'selectedLeagues', 'selectedLeagueSchedMode', 'selectedSport', 'events', 'leagues', 'isLoadingLeagues']),
+        ...mapState('trade', ['leagues', 'selectedLeagues', 'selectedLeagueSchedMode', 'selectedSport', 'isLoadingLeagues', 'eventsList']),
         ...mapGetters('trade', ['displayedLeagues']),
         checkIfLeaguesIsEmpty() {
             if(!_.isEmpty(this.leagues)) {
@@ -88,6 +88,34 @@ export default {
                 } else if (getSocketKey(response.data) === 'getSidebarLeagues') {
                     let getSidebarLeagues = getSocketValue(response.data, 'getSidebarLeagues')
                     Object.keys(getSidebarLeagues).map(schedule => {
+                        this.$socket.send('getWatchlist')
+                        this.selectedLeagues[schedule].map(league => {
+                            this.$socket.send(`getEvents_${league}_${schedule}`)
+                        })
+                        this.eventsList.map(event => {
+                            if(event.hasOwnProperty('market_odds') && event.game_schedule == schedule) {
+                                if(event.hasOwnProperty('watchlist')) {
+                                    if(event.market_odds.hasOwnProperty('other')) {
+                                        this.$socket.send(`getWatchlist_${event.uid}_withOtherMarket`)
+                                    }
+                                } else {
+                                    if(event.market_odds.hasOwnProperty('other')) {
+                                        this.$socket.send(`getEvents_${event.league_name}_${event.game_schedule}_${event.uid}_withOtherMarket`)
+                                    }
+                                }
+                            }
+                        })
+                        let leagueNames = this.leagues[schedule].map(league => league.name)
+                        let newLeagueNames = getSidebarLeagues[schedule].map(league => league.name)
+                        leagueNames.map(league => {
+                            if(!newLeagueNames.includes(league)) {
+                                if(this.selectedLeagues[schedule].includes(league)) {
+                                    this.$store.commit('trade/REMOVE_SELECTED_LEAGUE', { schedule: schedule, league: league })
+                                    this.$store.dispatch('trade/toggleLeague', { action: 'remove', league_name: league, sport_id: this.selectedSport, schedule: schedule  })
+                                }
+                                this.$store.commit('trade/REMOVE_FROM_EVENT_LIST', { league_name: league, game_schedule: schedule })
+                            }
+                        })
                         this.$store.commit('trade/SET_LEAGUES_BY_SCHEDULE', { schedule: schedule, leagues: getSidebarLeagues[schedule] })
                     })
                 }

@@ -13,7 +13,6 @@ class EventMarket extends Model
     protected $table = "event_markets";
 
     protected $fillable = [
-        'master_event_market_id',
         'event_id',
         'odd_type_id',
         'odds',

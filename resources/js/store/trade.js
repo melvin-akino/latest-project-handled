@@ -351,27 +351,6 @@ const actions = {
         return axios.get('v1/trade/leagues', { headers: { 'Authorization': `Bearer ${token}` }})
             .then(response => {
                 if(response.data.sport_id == state.selectedSport) {
-                    if(updatedLeagues) {
-                        state.eventsList.map(event => {
-                            if(event.hasOwnProperty('market_odds')) {
-                                if(event.hasOwnProperty('watchlist')) {
-                                    if(event.market_odds.hasOwnProperty('other')) {
-                                        Vue.prototype.$socket.send(`getWatchlist_${event.uid}_withOtherMarket`)
-                                    }
-                                } else {
-                                    if(event.market_odds.hasOwnProperty('other')) {
-                                        Vue.prototype.$socket.send(`getEvents_${event.league_name}_${event.game_schedule}_${event.uid}_withOtherMarket`)
-                                    }
-                                }
-                            }
-                        })
-                        Vue.prototype.$socket.send('getWatchlist')
-                        Object.keys(state.selectedLeagues).map(schedule => {
-                            state.selectedLeagues[schedule].map(league => {
-                                Vue.prototype.$socket.send(`getEvents_${league}_${schedule}`)
-                            })
-                        })
-                    }
                     Object.keys(state.leagues).map(schedule => {
                         let leagueNames = state.leagues[schedule].map(league => league.name)
                         let newLeagueNames = response.data.data[schedule].map(league => league.name)
