@@ -326,6 +326,23 @@ return [
                 ['name' => 'master_event_unique_id', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 30]
             ],
         ],
+        'providerEvents'              => [ //key format [$eventIdentifier]
+            'size'   => 10,
+            'column' => [
+                ['name' => 'event_identifier', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 30],
+                ['name' => 'master_event_unique_id', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 30]
+            ],
+        ],
+        'providerEventMarkets'              => [ //key format [$betIdentifier.$oddType.$marketFlag.$oddPoints]
+            'size'   => 100,
+            'column' => [
+                ['name' => 'mem_uid', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 100],
+                ['name' => 'bet_identifier', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 30],
+                ['name' => 'type', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 50],
+                ['name' => 'market_flag', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 5],
+                ['name' => 'points', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 10]
+            ],
+        ],
         'eventMarkets'        => [ //key format [pId:$providerId:meUID:$meUID:betIdentifier:$betIdentifier] = [id = $id, ...]
             'size'   => env('SWT_MAX_SIZE', 102400),
             'column' => [
