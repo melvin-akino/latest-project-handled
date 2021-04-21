@@ -35,9 +35,6 @@ class EventsTransformationHandler
             $topicTable                = SwooleHandler::table('topicTable');
             $providerEventMarketsTable = SwooleHandler::table('providerEventMarketsTable');
 
-            var_dump("Count before event process");
-            var_dump($providerEventMarketsTable->count());
-
             if (env('APP_ENV') != "local") {
                 if (!Redis::exists('type:events:requestUID:' . $this->message->request_uid)) {
                     appLog('info', "Events Transformation ignored - Request UID is not from ML");
@@ -165,13 +162,12 @@ class EventsTransformationHandler
 
                             if (SwooleHandler::exists('eventRecordsTable', $eventTableKey)) {
                                 SwooleHandler::remove('eventRecordsTable', $eventTableKey);
-                                
-
+                                Log::info("Deleting provider event markets for eventIdentifier" . $eventIdentifier);
                                 foreach ($providerEventMarketsTable as $key => $eventMarket) {
-                                    $eventIdentifierLength = strlen("eventIdentifier");
-                                    $eventIdentifierPos    = strpos($key, 'eventIdentifier') ;
-                                    $marketEventIdentifier = substr($key, $eventIdentifierLength + $eventIdentifierPos);
+                                    $marketEventIdentifierArray = explode(":", $key);
+                                    $marketEventIdentifier = $marketEventIdentifierArray[0];
                                     if ($eventIdentifier == $marketEventIdentifier) {
+                                        Log::info("Deleting provider event markets" . $key);
                                         $providerEventMarketsTable->del($key);
                                     }
                                 }

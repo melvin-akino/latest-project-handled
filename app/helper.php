@@ -526,8 +526,8 @@ if (!function_exists('eventTransformation')) {
                         }
                     }
 
-                    if (!SwooleHandler::exists('providerEventMarketsTable', $transformed->event_identifier . $transformed->type . $transformed->market_flag . $transformed->odd_label)) {
-                        SwooleHandler::setValue('providerEventMarketsTable', $transformed->event_identifier . $transformed->type . $transformed->market_flag . $transformed->odd_label, [
+                    if (!SwooleHandler::exists('providerEventMarketsTable', $transformed->event_identifier . ":" . $transformed->type . $transformed->market_flag . $transformed->odd_label)) {
+                        SwooleHandler::setValue('providerEventMarketsTable', $transformed->event_identifier . ":" . $transformed->type . $transformed->market_flag . $transformed->odd_label, [
                             'bet_identifier' => $transformed->bet_identifier,
                             'type'           => $transformed->type,
                             'market_flag'    => $transformed->market_flag,
@@ -535,8 +535,8 @@ if (!function_exists('eventTransformation')) {
                             'mem_uid'        => $transformed->master_event_market_unique_id
                         ]);
 
-                        Log::debug($transformed->event_identifier . $transformed->type . $transformed->market_flag . $transformed->odd_label);
-                        Log::debug((array) SwooleHandler::getValue('providerEventMarketsTable', $transformed->event_identifier . $transformed->type . $transformed->market_flag . $transformed->odd_label));
+                        Log::debug($transformed->event_identifier . ":" . $transformed->type . $transformed->market_flag . $transformed->odd_label);
+                        Log::debug((array) SwooleHandler::getValue('providerEventMarketsTable', $transformed->event_identifier . ":" . $transformed->type . $transformed->market_flag . $transformed->odd_label));
                     }
                 }
 
@@ -550,11 +550,11 @@ if (!function_exists('eventTransformation')) {
                 ) {
                     $data[$transformed->master_event_unique_id]['market_odds']['main'][$transformed->type][$transformed->market_flag]['mem_uid_from_provider'] = $transformed->provider_id;
                     $data[$transformed->master_event_unique_id]['market_odds']['main'][$transformed->type][$transformed->market_flag]['market_id'] = !empty($transformed->master_event_market_unique_id) && empty($transformed->is_market_empty) ? $transformed->master_event_market_unique_id : "";
-                    if (SwooleHandler::exists('providerEventMarketsTable', $transformed->event_identifier . $transformed->type . $transformed->market_flag . $transformed->odd_label)) {
-                        SwooleHandler::setColumnValue('providerEventMarketsTable', $transformed->event_identifier . $transformed->type . $transformed->market_flag . $transformed->odd_label, 'mem_uid', $data[$transformed->master_event_unique_id]['market_odds']['main'][$transformed->type][$transformed->market_flag]['market_id']);
+                    if (SwooleHandler::exists('providerEventMarketsTable', $transformed->event_identifier . ":" . $transformed->type . $transformed->market_flag . $transformed->odd_label)) {
+                        SwooleHandler::setColumnValue('providerEventMarketsTable', $transformed->event_identifier . ":" . $transformed->type . $transformed->market_flag . $transformed->odd_label, 'mem_uid', $data[$transformed->master_event_unique_id]['market_odds']['main'][$transformed->type][$transformed->market_flag]['market_id']);
                         
                         Log::debug($transformed->event_identifier . $transformed->type . $transformed->market_flag . $transformed->odd_label);
-                        Log::debug((array) SwooleHandler::getValue('providerEventMarketsTable', $transformed->event_identifier . $transformed->type . $transformed->market_flag . $transformed->odd_label));
+                        Log::debug((array) SwooleHandler::getValue('providerEventMarketsTable', $transformed->event_identifier . ":" . $transformed->type . $transformed->market_flag . $transformed->odd_label));
                     }
                 }
 
@@ -595,8 +595,8 @@ if (!function_exists('eventTransformation')) {
                                 $otherResult[$d['market_event_identifier']][$d['odd_type']][$d['market_flag']]['odds']                  = $d['odds'];
                                 $otherValues[$d['odd_type'] . $d['market_flag'] . $d['points']]                                         = $d['market_event_identifier'];
 
-                                if (!SwooleHandler::exists('providerEventMarketsTable', $d['event_identifier'] . $d['odd_type'] . $d['market_flag'] . $d['points'])) {
-                                    SwooleHandler::setValue('providerEventMarketsTable', $d['event_identifier'] . $d['odd_type'] . $d['market_flag'] . $d['points'], [
+                                if (!SwooleHandler::exists('providerEventMarketsTable', $d['event_identifier'] . ":" . $d['odd_type'] . $d['market_flag'] . $d['points'])) {
+                                    SwooleHandler::setValue('providerEventMarketsTable', $d['event_identifier'] . ":" . $d['odd_type'] . $d['market_flag'] . $d['points'], [
                                         'bet_identifier' => $d['bet_identifier'],
                                         'type'           => $d['odd_type'],
                                         'market_flag'    => $d['market_flag'],
@@ -605,7 +605,7 @@ if (!function_exists('eventTransformation')) {
                                     ]);
 
                                     Log::debug($d['event_identifier'] . $d['odd_type'] . $d['market_flag'] . $d['points']);
-                                    Log::debug((array) SwooleHandler::getValue('providerEventMarketsTable', $d['event_identifier'] . $d['odd_type'] . $d['market_flag'] . $d['points']));
+                                    Log::debug((array) SwooleHandler::getValue('providerEventMarketsTable', $d['event_identifier'] . ":" . $d['odd_type'] . $d['market_flag'] . $d['points']));
                                 }
                             }
                             
@@ -628,11 +628,11 @@ if (!function_exists('eventTransformation')) {
                                     $otherResult[$key][$d['odd_type']][$d['market_flag']]['market_id'] = $d['market_id'];
                                     $otherResult[$key][$d['odd_type']][$d['market_flag']]['mem_uid_from_provider'] = $d['provider_id'];
 
-                                    if (SwooleHandler::exists('providerEventMarketsTable', $d['event_identifier'] . $d['odd_type'] . $d['market_flag'] . $d['points'])) {
-                                        SwooleHandler::setColumnValue('providerEventMarketsTable', $d['event_identifier'] . $d['odd_type'] . $d['market_flag'] . $d['points'], 'mem_uid', $d['market_id']);
+                                    if (SwooleHandler::exists('providerEventMarketsTable', $d['event_identifier'] . ":" . $d['odd_type'] . $d['market_flag'] . $d['points'])) {
+                                        SwooleHandler::setColumnValue('providerEventMarketsTable', $d['event_identifier'] . ":" . $d['odd_type'] . $d['market_flag'] . $d['points'], 'mem_uid', $d['market_id']);
                                     
                                         Log::debug($d['event_identifier'] . $d['odd_type'] . $d['market_flag'] . $d['points']);
-                                        Log::debug((array) SwooleHandler::getValue('providerEventMarketsTable', $d['event_identifier'] . $d['odd_type'] . $d['market_flag'] . $d['points']));
+                                        Log::debug((array) SwooleHandler::getValue('providerEventMarketsTable', $d['event_identifier'] . ":" . $d['odd_type'] . $d['market_flag'] . $d['points']));
                                     }
                                 }
                             }

@@ -327,14 +327,14 @@ return [
             ],
         ],
         'providerEvents'              => [ //key format [$eventIdentifier]
-            'size'   => 10,
+            'size'   => 10000,
             'column' => [
                 ['name' => 'event_identifier', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 30],
                 ['name' => 'master_event_unique_id', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 30]
             ],
         ],
-        'providerEventMarkets'              => [ //key format [$betIdentifier.$oddType.$marketFlag.$oddPoints]
-            'size'   => 100,
+        'providerEventMarkets'              => [ //key format [$betIdentifier.":".$oddType.$marketFlag.$oddPoints]
+            'size'   => 20000,
             'column' => [
                 ['name' => 'mem_uid', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 100],
                 ['name' => 'bet_identifier', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 30],

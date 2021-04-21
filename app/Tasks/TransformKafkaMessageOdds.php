@@ -104,6 +104,7 @@ class TransformKafkaMessageOdds extends Task
                 'sport_id'       => $sportId
             ];
 
+            $updatedOdds = [];
             if ($eventRecord) {
                 $mlEventRecord = SwooleHandler::getValue('mlEventsTable', implode(':', [
                     $sportId,
@@ -230,8 +231,8 @@ class TransformKafkaMessageOdds extends Task
                                 }
 
                                 $memUID = null;
-                                if (SwooleHandler::exists('providerEventMarketsTable', $this->message->data->events[0]->eventId . $marketOdd->oddsType . $indicator . $points)) {
-                                    $memUID = SwooleHandler::getValue('providerEventMarketsTable',$this->message->data->events[0]->eventId . $marketOdd->oddsType . $indicator . $points)['mem_uid'];
+                                if (SwooleHandler::exists('providerEventMarketsTable', $this->message->data->events[0]->eventId . ":" . $marketOdd->oddsType . $indicator . $points)) {
+                                    $memUID = SwooleHandler::getValue('providerEventMarketsTable',$this->message->data->events[0]->eventId . ":" . $marketOdd->oddsType . $indicator . $points)['mem_uid'];
                                 }
 
                                 if (!empty($memUID)) {
@@ -329,8 +330,8 @@ class TransformKafkaMessageOdds extends Task
                             $getEvents['market_odds']['main'][$marketOdds->oddsType][$indicator]['points'] = $points;
 
                             $memUID = null;
-                            if (SwooleHandler::exists('providerEventMarketsTable', $this->message->data->events[0]->eventId . $marketOdds->oddsType . $indicator . $points)) {
-                                $memUID = SwooleHandler::getValue('providerEventMarketsTable',$this->message->data->events[0]->eventId . $marketOdds->oddsType . $indicator . $points)['mem_uid'];
+                            if (SwooleHandler::exists('providerEventMarketsTable', $this->message->data->events[0]->eventId . ":" . $marketOdds->oddsType . $indicator . $points)) {
+                                $memUID = SwooleHandler::getValue('providerEventMarketsTable',$this->message->data->events[0]->eventId . ":" . $marketOdds->oddsType . $indicator . $points)['mem_uid'];
                             }
 
                             $getEvents['market_odds']['main'][$marketOdds->oddsType][$indicator]['market_id']      = $memUID;
@@ -358,8 +359,6 @@ class TransformKafkaMessageOdds extends Task
                     }
                 }
             }
-
-            var_dump($updatedOdds);
 
             SwooleHandler::setValue('eventsInfoTable', "eventsInfo:" . $uid, [
                 'value' => json_encode([
