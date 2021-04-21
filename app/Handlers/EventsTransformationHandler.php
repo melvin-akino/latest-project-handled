@@ -26,11 +26,14 @@ class EventsTransformationHandler
     public function handle()
     {
         try {
+            
+
             $startTime                 = microtime(TRUE);
             $activeEventsTable         = SwooleHandler::table('activeEventsTable');
             $missingCountConfiguration = $this->missingCountConfiguration;
             $activeEvents              = $this->message->data->event_ids;
             $topicTable                = SwooleHandler::table('topicTable');
+            $providerEventMarketsTable = SwooleHandler::table('providerEventMarketsTable');
 
             if (env('APP_ENV') != "local") {
                 if (!Redis::exists('type:events:requestUID:' . $this->message->request_uid)) {
@@ -144,7 +147,6 @@ class EventsTransformationHandler
                         if ($missingCount >= $missingCountConfiguration->value) {
                             $inactiveEvent = [
                                 'uid'           => $event['master_event_unique_id'],
-                                'league_name'   => $event['master_league_name'],
                                 'game_schedule' => $event['game_schedule']
                             ];
 
@@ -160,6 +162,16 @@ class EventsTransformationHandler
 
                             if (SwooleHandler::exists('eventRecordsTable', $eventTableKey)) {
                                 SwooleHandler::remove('eventRecordsTable', $eventTableKey);
+                                Log::info("Deleting provider event markets for eventIdentifier" . $eventIdentifier);
+                                foreach ($providerEventMarketsTable as $key => $eventMarket) {
+                                    $marketEventIdentifierArray = explode(":", $key);
+                                    $marketEventIdentifier = $marketEventIdentifierArray[0];
+                                    if ($eventIdentifier == $marketEventIdentifier) {
+                                        Log::info("Deleting provider event markets" . $key);
+                                        $providerEventMarketsTable->del($key);
+                                    }
+                                }
+
                             }
 
                             SwooleHandler::setColumnValue('eventRecordsTable', $eventTableKey, 'missing_count', $missingCount);
@@ -178,6 +190,9 @@ class EventsTransformationHandler
                 ];
                 monitorLog('monitor_handlers', 'info', $toLogs);
             }
+
+            var_dump("Count after event process");
+            var_dump($providerEventMarketsTable->count());
 
             $endTime         = microtime(TRUE);
             $timeConsumption = $endTime - $startTime;
