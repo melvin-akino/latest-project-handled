@@ -475,6 +475,11 @@ if (!function_exists('eventTransformation')) {
                 $providersOfEvents    = Game::providersOfEvents($transformed->master_event_id, $userProviderIds)->get();
                 $eventHasOtherMarkets = Game::checkIfHasOtherMarkets($transformed->master_event_unique_id, $userProviderIds);
 
+                $providerIds = array_map(function($x){ return $x->id; }, $providersOfEvents->toArray());
+                if (!in_array($primaryProviderId, $providerIds)) {
+                        continue;
+                }
+
                 $data[$transformed->master_event_unique_id]["uid"]               = $transformed->master_event_unique_id;
                 $data[$transformed->master_event_unique_id]['sport_id']          = $transformed->sport_id;
                 $data[$transformed->master_event_unique_id]['sport']             = $transformed->sport;
