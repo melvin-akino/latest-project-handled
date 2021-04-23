@@ -558,13 +558,13 @@ if (!function_exists('eventTransformation')) {
                     )
                     
                 ) {
-                    if (in_array($transformed->type, [3, 11]) && 
+                    if (in_array($transformed->odd_type_id, [3, 11]) && 
                         $data[$transformed->master_event_unique_id]['market_odds']['main'][$transformed->type][$oppositeFlag[$transformed->market_flag]]['points'] != $transformed->odd_label * -1
                     ) {
                         break;
                     }
 
-                    if (in_array($transformed->type, [4, 12]) && 
+                    if (in_array($transformed->odd_type_id, [4, 12]) && 
                         substr($data[$transformed->master_event_unique_id]['market_odds']['main'][$transformed->type][$oppositeFlag[$transformed->market_flag]]['points'], 1) != substr($transformed->odd_label, 1)
                     ) {
                         break;
