@@ -550,6 +550,7 @@ if (!function_exists('eventTransformation')) {
                     (
                         !empty($data[$transformed->master_event_unique_id]['market_odds']['main'][$transformed->type][$transformed->market_flag]['market_id']) && 
                         $transformed->provider_id == $primaryProviderId &&
+                        !empty($data[$transformed->master_event_unique_id]['market_odds']['main'][$transformed->type][$transformed->market_flag]['market_common']) &&
                         $data[$transformed->master_event_unique_id]['market_odds']['main'][$transformed->type][$transformed->market_flag]['market_common'] == $transformed->market_common
                     )
                     
