@@ -427,6 +427,11 @@ if (!function_exists('eventTransformation')) {
     {
         $primaryProviderId = Provider::getIdFromAlias(SystemConfiguration::getSystemConfigurationValue('PRIMARY_PROVIDER')->value);
 
+        $oppositeFlag = [
+            'HOME' => 'AWAY',
+            'AWAY' => 'HOME',
+            'DRAW' => 'DRAW'
+        ];
         $data     = [];
         $result   = [];
         $userBets = Order::getOrdersByUserId($userId);
@@ -549,12 +554,21 @@ if (!function_exists('eventTransformation')) {
                     empty($data[$transformed->master_event_unique_id]['market_odds']['main'][$transformed->type][$transformed->market_flag]['market_id']) ||
                     (
                         !empty($data[$transformed->master_event_unique_id]['market_odds']['main'][$transformed->type][$transformed->market_flag]['market_id']) && 
-                        $transformed->provider_id == $primaryProviderId &&
-                        !empty($data[$transformed->master_event_unique_id]['market_odds']['main'][$transformed->type][$transformed->market_flag]['market_common']) &&
-                        $data[$transformed->master_event_unique_id]['market_odds']['main'][$transformed->type][$transformed->market_flag]['market_common'] == $transformed->market_common
+                        $transformed->provider_id == $primaryProviderId
                     )
                     
                 ) {
+                    if (in_array($transformed->type, [3, 11]) && 
+                        $data[$transformed->master_event_unique_id]['market_odds']['main'][$transformed->type][$oppositeFlag[$transformed->market_flag]]['points'] != $transformed->odd_label * -1
+                    ) {
+                        break;
+                    }
+
+                    if (in_array($transformed->type, [4, 12]) && 
+                        substr($data[$transformed->master_event_unique_id]['market_odds']['main'][$transformed->type][$oppositeFlag[$transformed->market_flag]]['points'], 1) != substr($transformed->odd_label, 1)
+                    ) {
+                        break;
+                    }
                     $data[$transformed->master_event_unique_id]['market_odds']['main'][$transformed->type][$transformed->market_flag]['mem_uid_from_provider'] = $transformed->provider_id;
                     $data[$transformed->master_event_unique_id]['market_odds']['main'][$transformed->type][$transformed->market_flag]['market_id'] = !empty($transformed->master_event_market_unique_id) && empty($transformed->is_market_empty) ? $transformed->master_event_market_unique_id : "";
                     if (SwooleHandler::exists('providerEventMarketsTable', $transformed->event_identifier . ":" . $transformed->type . $transformed->market_flag . $transformed->odd_label)) {
