@@ -36,6 +36,7 @@ class Game extends Model
                  ->whereNotIn('master_event_id', function ($query) use ($userId) {
                      $query->select('master_event_id')->from('user_watchlist')->where('user_id', $userId);
                  })
+                 ->select('*', DB::raw('CONCAT(type, market_flag, odd_label) as market_common'))
                  ->get();
     }
 
