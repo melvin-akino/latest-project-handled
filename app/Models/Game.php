@@ -36,6 +36,7 @@ class Game extends Model
                  ->whereNotIn('master_event_id', function ($query) use ($userId) {
                      $query->select('master_event_id')->from('user_watchlist')->where('user_id', $userId);
                  })
+                 ->select('*', DB::raw('CONCAT(type, market_flag, odd_label) as market_common'))
                  ->get();
     }
 
@@ -72,6 +73,7 @@ class Game extends Model
                  ->when($eventId, function ($query, $eventId) {
                      return $query->where('uw.master_event_id', $eventId);
                  })
+                 ->select('*', DB::raw('CONCAT(type, market_flag, odd_label) as market_common'))
                  ->get();
     }
 
@@ -176,6 +178,7 @@ class Game extends Model
                 $query->select('master_event_id')->from('user_watchlist')->where('user_id', $userId);
             })
             ->where('tw.sport_id', $sportId)
+            ->select('*', DB::raw('CONCAT(type, market_flag, odd_label) as market_common'))
             ->get();
     }
 
@@ -192,6 +195,7 @@ class Game extends Model
                     $query->where('is_main', true)
                         ->orWhereNull('is_main');
                 })
+                ->select('*', DB::raw('CONCAT(type, market_flag, odd_label) as market_common'))
                  ->get();
     }
 
@@ -203,6 +207,7 @@ class Game extends Model
                 ->where('master_event_unique_id', $masterEventId)
                 ->where('missing_count', '<=', $maxMissingCount)
                 ->where('is_main', false)
+                ->select('*', DB::raw('CONCAT(type, market_flag, odd_label) as market_common'))
                 ->get();
     }
 
