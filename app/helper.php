@@ -477,7 +477,7 @@ if (!function_exists('eventTransformation')) {
             }
 
             if (empty($data[$transformed->master_event_unique_id])) {
-                $providersOfEvents    = Game::providersOfEvents($transformed->master_event_id, $userProviderIds)->get();
+                $providersOfEvents    = Game::providersOfEvents($transformed->master_event_id, $userProviderIds, $transformed->game_schedule)->get();
                 $eventHasOtherMarkets = Game::checkIfHasOtherMarkets($transformed->master_event_unique_id, $userProviderIds);
 
                 $providerIds = array_map(function($x){ return $x->id; }, $providersOfEvents->toArray());
@@ -561,9 +561,6 @@ if (!function_exists('eventTransformation')) {
                             'points'         => $transformed->odd_label,
                             'mem_uid'        => $transformed->master_event_market_unique_id
                         ]);
-
-                        Log::debug($transformed->event_identifier . ":" . $transformed->type . $transformed->market_flag . $transformed->odd_label);
-                        Log::debug((array) SwooleHandler::getValue('providerEventMarketsTable', $transformed->event_identifier . ":" . $transformed->type . $transformed->market_flag . $transformed->odd_label));
                     }
                 }
 
@@ -579,9 +576,6 @@ if (!function_exists('eventTransformation')) {
                     $data[$transformed->master_event_unique_id]['market_odds']['main'][$transformed->type][$transformed->market_flag]['market_id'] = !empty($transformed->master_event_market_unique_id) && empty($transformed->is_market_empty) ? $transformed->master_event_market_unique_id : "";
                     if (SwooleHandler::exists('providerEventMarketsTable', $transformed->event_identifier . ":" . $transformed->type . $transformed->market_flag . $transformed->odd_label)) {
                         SwooleHandler::setColumnValue('providerEventMarketsTable', $transformed->event_identifier . ":" . $transformed->type . $transformed->market_flag . $transformed->odd_label, 'mem_uid', $data[$transformed->master_event_unique_id]['market_odds']['main'][$transformed->type][$transformed->market_flag]['market_id']);
-                        
-                        Log::debug($transformed->event_identifier . $transformed->type . $transformed->market_flag . $transformed->odd_label);
-                        Log::debug((array) SwooleHandler::getValue('providerEventMarketsTable', $transformed->event_identifier . ":" . $transformed->type . $transformed->market_flag . $transformed->odd_label));
                     }
                 }
 
@@ -630,9 +624,6 @@ if (!function_exists('eventTransformation')) {
                                         'points'         => $d['points'],
                                         'mem_uid'        => $d['market_id']
                                     ]);
-
-                                    Log::debug($d['event_identifier'] . $d['odd_type'] . $d['market_flag'] . $d['points']);
-                                    Log::debug((array) SwooleHandler::getValue('providerEventMarketsTable', $d['event_identifier'] . ":" . $d['odd_type'] . $d['market_flag'] . $d['points']));
                                 }
                             }
                             
@@ -657,9 +648,6 @@ if (!function_exists('eventTransformation')) {
 
                                     if (SwooleHandler::exists('providerEventMarketsTable', $d['event_identifier'] . ":" . $d['odd_type'] . $d['market_flag'] . $d['points'])) {
                                         SwooleHandler::setColumnValue('providerEventMarketsTable', $d['event_identifier'] . ":" . $d['odd_type'] . $d['market_flag'] . $d['points'], 'mem_uid', $d['market_id']);
-                                    
-                                        Log::debug($d['event_identifier'] . $d['odd_type'] . $d['market_flag'] . $d['points']);
-                                        Log::debug((array) SwooleHandler::getValue('providerEventMarketsTable', $d['event_identifier'] . ":" . $d['odd_type'] . $d['market_flag'] . $d['points']));
                                     }
                                 }
                             }
