@@ -61,27 +61,6 @@ class Game extends Model
                  ->distinct();
     }
 
-    public static function providersOfEventsByUid($masterEventUniqueId, array $userProviderIds, string $schedule = null)
-    {
-        $maxMissingCount = SystemConfiguration::getSystemConfigurationValue('EVENT_VALID_MAX_MISSING_COUNT')->value;
-
-        return DB::table('master_events as me')
-                 ->leftJoin('event_groups as eg', 'eg.master_event_id', 'me.id')
-                 ->leftJoin('events as e', 'eg.event_id', 'e.id')
-                 ->leftJoin('providers as p', 'p.id', 'e.provider_id')
-                 ->where('eg.master_event_unique_id', $masterEventUniqueId)
-                 ->whereNull('me.deleted_at')
-                 ->whereNull('e.deleted_at')
-                 ->where('e.missing_count', '<=', $maxMissingCount)
-                 ->where('p.is_enabled', true)
-                 ->whereIn('p.id', $userProviderIds)
-                 ->when($schedule, function ($query, $schedule) {
-                    return $query->where('game_schedule', $schedule);
-                 })
-                 ->select('p.id', 'p.alias as provider')
-                 ->distinct();
-    }
-
     public static function getWatchlistGameDetails(int $userId, int $eventId = null)
     {
         $maxMissingCount = SystemConfiguration::getSystemConfigurationValue('EVENT_VALID_MAX_MISSING_COUNT')->value;
