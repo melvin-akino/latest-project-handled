@@ -50,22 +50,10 @@ class ResourceController extends Controller
                     ) AS is_primary")
                 ]);
 
-            $primaryProvider = Provider::getIdFromAlias(SystemConfiguration::getSystemConfigurationValue('PRIMARY_PROVIDER')->value);
-
-            $data = [];
-
-            foreach($providers as $provider) {
-                $data[] = [
-                    'id'         => $provider->id,
-                    'alias'      => $provider->alias,
-                    'is_primary' => $primaryProvider == $provider->id
-                ];
-            }
-
             return response()->json([
                 'status'      => true,
                 'status_code' => 200,
-                'data'        => $data
+                'data'        => $providers
             ], 200);
         } catch (Exception $e) {
             $toLogs = [
