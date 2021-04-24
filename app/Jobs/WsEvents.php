@@ -60,7 +60,7 @@ class WsEvents implements ShouldQueue
         } catch (Exception $e) {
             $toLogs = [
                 "class"       => "WsEvents",
-                "message"     => "Line " . $e->getLine() . " | " . $e->getMessage(),
+                "message"     => "Line " . $e->getLine() . " | " . $e->getMessage() . " | " . $e->getFile(),
                 "module"      => "JOB_ERROR",
                 "status_code" => $e->getCode(),
             ];

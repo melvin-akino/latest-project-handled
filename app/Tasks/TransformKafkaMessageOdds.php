@@ -60,6 +60,11 @@ class TransformKafkaMessageOdds extends Task
                 'master_team_away_name' => $multiTeam['away']['name']
                 ) = $parameters;
 
+            if (!SwooleHandler::exists('providerEventsTable', $this->message->data->events[0]->eventId)) {
+                Log::info("Transformation ignored - event is not yet recorded or not in a current trade window display");
+                return;
+            }
+
             /**
              * EVENTS (MASTER) Swoole Table
              *
@@ -99,6 +104,7 @@ class TransformKafkaMessageOdds extends Task
                 'sport_id'       => $sportId
             ];
 
+            $updatedOdds = [];
             if ($eventRecord) {
                 $mlEventRecord = SwooleHandler::getValue('mlEventsTable', implode(':', [
                     $sportId,
@@ -224,20 +230,9 @@ class TransformKafkaMessageOdds extends Task
                                     $getEvents['market_odds']['main'][$marketOdd->oddsType][$indicator]['provider_alias'] = strtoupper($this->message->data->provider);
                                 }
 
-                                $marketPointsRedis       = 'marketPoints:' . $marketSelection->market_id;
-                                $marketPointsOffsetRedis = 'offsetMarketPoints:' . $marketSelection->market_id;
-                                if (
-                                    !Redis::exists($marketPointsOffsetRedis) ||
-                                    (int) Redis::get($marketPointsOffsetRedis) < (int) $this->offset
-                                ) {
-                                    Redis::set($marketPointsOffsetRedis, $this->offset);
-                                    Redis::set($marketPointsRedis, $points);
-
-                                    Redis::expire($marketPointsOffsetRedis, self::REDIS_TTL);
-                                    Redis::expire($marketPointsRedis, self::REDIS_TTL);
-                                    $memUID = $oddRecord['memUID'];
-                                } else {
-                                    $memUID = Redis::get($marketSelection->market_id);
+                                $memUID = null;
+                                if (SwooleHandler::exists('providerEventMarketsTable', $this->message->data->events[0]->eventId . ":" . $marketOdd->oddsType . $indicator . $points)) {
+                                    $memUID = SwooleHandler::getValue('providerEventMarketsTable',$this->message->data->events[0]->eventId . ":" . $marketOdd->oddsType . $indicator . $points)['mem_uid'];
                                 }
 
                                 if (!empty($memUID)) {
@@ -334,26 +329,9 @@ class TransformKafkaMessageOdds extends Task
 
                             $getEvents['market_odds']['main'][$marketOdds->oddsType][$indicator]['points'] = $points;
 
-                            if (!Redis::exists($marketSelection->market_id)) {
-                                $memUID = md5($this->offset . uniqid(rand(10000, 99999), true) . $indicator . $marketSelection->market_id, '');
-                                Redis::set($marketSelection->market_id, $memUID);
-
-                                Redis::expire($marketSelection->market_id, self::REDIS_TTL);
-                            } else {
-                                $memUID = Redis::get($marketSelection->market_id);
-                            }
-
-                            $marketPointsRedis       = 'marketPoints:' . $marketSelection->market_id;
-                            $marketPointsOffsetRedis = 'offsetMarketPoints:' . $marketSelection->market_id;
-                            if (
-                                !Redis::exists($marketPointsOffsetRedis) ||
-                                (int) Redis::get($marketPointsOffsetRedis) < (int) $this->offset
-                            ) {
-                                Redis::set($marketPointsOffsetRedis, $this->offset);
-                                Redis::set($marketPointsRedis, $points);
-
-                                Redis::expire($marketPointsOffsetRedis, self::REDIS_TTL);
-                                Redis::expire($marketPointsRedis, self::REDIS_TTL);
+                            $memUID = null;
+                            if (SwooleHandler::exists('providerEventMarketsTable', $this->message->data->events[0]->eventId . ":" . $marketOdds->oddsType . $indicator . $points)) {
+                                $memUID = SwooleHandler::getValue('providerEventMarketsTable',$this->message->data->events[0]->eventId . ":" . $marketOdds->oddsType . $indicator . $points)['mem_uid'];
                             }
 
                             $getEvents['market_odds']['main'][$marketOdds->oddsType][$indicator]['market_id']      = $memUID;
@@ -366,6 +344,17 @@ class TransformKafkaMessageOdds extends Task
                                 'odds'        => $odds,
                                 'memUID'      => $memUID
                             ]);
+
+                            if (!empty($memUID)) {
+                                $oddsUpdated = [
+                                    'market_id' => $memUID,
+                                    'odds'      => $odds,
+                                ];
+                                if (!empty($points)) {
+                                    $oddsUpdated['points'] = $points;
+                                }
+                                $updatedOdds[] = $oddsUpdated;
+                            }
                         }
                     }
                 }

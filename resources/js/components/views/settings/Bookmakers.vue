@@ -3,9 +3,10 @@
         <form @submit.prevent="saveChanges">
             <div class="mb-12" v-for="bookie in bookies" :key="bookie.id">
                 <label class="text-sm relative flex items-center">
-                    <input type="checkbox" class="appearance-none shadow border border-gray-400 bg-gray-400 rounded-full h-3 w-12 mr-4 focus:outline-none" :value="bookie.id" v-model="disabledBookies">
+                    <input type="checkbox" class="appearance-none shadow border border-gray-400 bg-gray-400 rounded-full h-3 w-12 mr-4 focus:outline-none" :disabled="bookie.is_primary == true" :value="bookie.id" v-model="disabledBookies">
                     <span class="absolute shadow shadow-lg w-6 h-6 rounded-full" :class="[!disabledBookies.includes(bookie.id) ? 'on-switch bg-orange-500' : 'bg-white left-0']"></span>
                     <span>{{bookie.alias}}</span>
+                    <span v-if="bookie.is_primary == true" class="py-1 px-2 ml-2 rounded bg-orange-500 text-white">PRIMARY</span>
                 </label>
             </div>
             <div class="mt-4">
@@ -42,19 +43,19 @@ export default {
             let token = Cookies.get('mltoken')
 
             axios.get('v1/bookies', { headers: { 'Authorization': `Bearer ${token}` }})
-            .then(response => this.bookies = response.data.data)
-            .catch(err => {
-                this.$store.dispatch('auth/checkIfTokenIsValid', err.response.status)
-            })
+                .then(response => this.bookies = response.data.data)
+                .catch(err => {
+                    this.$store.dispatch('auth/checkIfTokenIsValid', err.response.status)
+                })
         },
         getUserConfig() {
             let token = Cookies.get('mltoken')
 
             axios.get('v1/user/settings/bookies', { headers: { 'Authorization': `Bearer ${token}` }})
-            .then(response => this.disabledBookies = response.data.data.disabled_bookies)
-            .catch(err => {
-                this.$store.dispatch('auth/checkIfTokenIsValid', err.response.status)
-            })
+                .then(response => this.disabledBookies = response.data.data.disabled_bookies)
+                .catch(err => {
+                    this.$store.dispatch('auth/checkIfTokenIsValid', err.response.status)
+                })
         },
         saveChanges() {
             if(this.bookies.length == this.disabledBookies.length) {
@@ -72,15 +73,15 @@ export default {
                 })
 
                 axios.post('/v1/user/settings/bookies', data, { headers: { 'Authorization': `Bearer ${token}` } })
-                .then(response => {
-                    Swal.fire({
-                        icon: 'success',
-                        text: response.data.message
+                    .then(response => {
+                        Swal.fire({
+                            icon: 'success',
+                            text: response.data.message
+                        })
                     })
-                })
-                .catch(err => {
-                    this.$store.dispatch('auth/checkIfTokenIsValid', err.response.status)
-                })
+                    .catch(err => {
+                        this.$store.dispatch('auth/checkIfTokenIsValid', err.response.status)
+                    })
             }
         }
     }
@@ -88,7 +89,7 @@ export default {
 </script>
 
 <style>
-    .on-switch{
+    .on-switch {
         left: 24px;
     }
 </style>

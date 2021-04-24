@@ -427,6 +427,11 @@ if (!function_exists('eventTransformation')) {
     {
         $primaryProviderId = Provider::getIdFromAlias(SystemConfiguration::getSystemConfigurationValue('PRIMARY_PROVIDER')->value);
 
+        $oppositeFlag = [
+            'HOME' => 'AWAY',
+            'AWAY' => 'HOME',
+            'DRAW' => 'DRAW'
+        ];
         $data     = [];
         $result   = [];
         $userBets = Order::getOrdersByUserId($userId);
@@ -464,9 +469,21 @@ if (!function_exists('eventTransformation')) {
                 $groupIndex  = $refSchedule->format('[H:i:s]') . ' ' . $transformed->master_league_name;
             }
 
+            if (!SwooleHandler::exists('providerEventsTable', $transformed->event_identifier)) {
+                SwooleHandler::setValue('providerEventsTable', $transformed->event_identifier, [
+                    'event_identifier'       => $transformed->event_identifier,
+                    'master_event_unique_id' => $transformed->master_event_unique_id
+                ]);
+            }
+
             if (empty($data[$transformed->master_event_unique_id])) {
-                $providersOfEvents    = Game::providersOfEvents($transformed->master_event_id, $userProviderIds)->get();
+                $providersOfEvents    = Game::providersOfEvents($transformed->master_event_id, $userProviderIds, $transformed->game_schedule)->get();
                 $eventHasOtherMarkets = Game::checkIfHasOtherMarkets($transformed->master_event_unique_id, $userProviderIds);
+
+                $providerIds = array_map(function($x){ return $x->id; }, $providersOfEvents->toArray());
+                if (!in_array($primaryProviderId, $providerIds)) {
+                        continue;
+                }
 
                 $data[$transformed->master_event_unique_id]["uid"]               = $transformed->master_event_unique_id;
                 $data[$transformed->master_event_unique_id]['sport_id']          = $transformed->sport_id;
@@ -507,8 +524,26 @@ if (!function_exists('eventTransformation')) {
                     empty($data[$transformed->master_event_unique_id]['market_odds']['main'][$transformed->type][$transformed->market_flag]) ||
                     $data[$transformed->master_event_unique_id]['market_odds']['main'][$transformed->type][$transformed->market_flag]['odds'] < (double) $transformed->odds
                 ) {
+
+                    if (in_array($transformed->odd_type_id, [3, 11]) &&
+                        !empty($data[$transformed->master_event_unique_id]['market_odds']['main'][$transformed->type][$oppositeFlag[$transformed->market_flag]]['points']) &&
+                        ($data[$transformed->master_event_unique_id]['market_odds']['main'][$transformed->type][$oppositeFlag[$transformed->market_flag]]['points']) != floatval($transformed->odd_label * -1)
+                    ) {
+                        Log::info("Skip if not the same points for comparison for " . $transformed->market_common . " for master event unique id " . $transformed->master_event_unique_id);
+                        continue;
+                    }
+
+                    if (in_array($transformed->odd_type_id, [4, 12]) &&
+                        !empty($data[$transformed->master_event_unique_id]['market_odds']['main'][$transformed->type][$oppositeFlag[$transformed->market_flag]]['points']) &&
+                        substr($data[$transformed->master_event_unique_id]['market_odds']['main'][$transformed->type][$oppositeFlag[$transformed->market_flag]]['points'], 1) != substr($transformed->odd_label, 1)
+                    ) {
+                        Log::info("Skip if not the same points for comparison for " . $transformed->market_common . " for master event unique id " . $transformed->master_event_unique_id);
+                        continue;
+                    }
+
                     $data[$transformed->master_event_unique_id]['market_odds']['main'][$transformed->type][$transformed->market_flag]['odds']           = !empty($transformed->master_event_market_unique_id) && empty($transformed->is_market_empty) ? (double) $transformed->odds : "";
                     $data[$transformed->master_event_unique_id]['market_odds']['main'][$transformed->type][$transformed->market_flag]['provider_alias'] = $transformed->alias;
+                    $data[$transformed->master_event_unique_id]['market_odds']['main'][$transformed->type][$transformed->market_flag]['market_common']  = $transformed->market_common;
 
                     if (!empty($transformed->odd_label)) {
                         if (empty($transformed->is_market_empty)) {
@@ -516,6 +551,16 @@ if (!function_exists('eventTransformation')) {
                         } else {
                             $data[$transformed->master_event_unique_id]['market_odds']['main'][$transformed->type][$transformed->market_flag]['points'] = "";
                         }
+                    }
+
+                    if (!SwooleHandler::exists('providerEventMarketsTable', $transformed->event_identifier . ":" . $transformed->type . $transformed->market_flag . $transformed->odd_label)) {
+                        SwooleHandler::setValue('providerEventMarketsTable', $transformed->event_identifier . ":" . $transformed->type . $transformed->market_flag . $transformed->odd_label, [
+                            'bet_identifier' => $transformed->bet_identifier,
+                            'type'           => $transformed->type,
+                            'market_flag'    => $transformed->market_flag,
+                            'points'         => $transformed->odd_label,
+                            'mem_uid'        => $transformed->master_event_market_unique_id
+                        ]);
                     }
                 }
 
@@ -529,7 +574,9 @@ if (!function_exists('eventTransformation')) {
                 ) {
                     $data[$transformed->master_event_unique_id]['market_odds']['main'][$transformed->type][$transformed->market_flag]['mem_uid_from_provider'] = $transformed->provider_id;
                     $data[$transformed->master_event_unique_id]['market_odds']['main'][$transformed->type][$transformed->market_flag]['market_id'] = !empty($transformed->master_event_market_unique_id) && empty($transformed->is_market_empty) ? $transformed->master_event_market_unique_id : "";
-
+                    if (SwooleHandler::exists('providerEventMarketsTable', $transformed->event_identifier . ":" . $transformed->type . $transformed->market_flag . $transformed->odd_label)) {
+                        SwooleHandler::setColumnValue('providerEventMarketsTable', $transformed->event_identifier . ":" . $transformed->type . $transformed->market_flag . $transformed->odd_label, 'mem_uid', $data[$transformed->master_event_unique_id]['market_odds']['main'][$transformed->type][$transformed->market_flag]['market_id']);
+                    }
                 }
 
                 if ($otherMarketDetails && $transformed->master_event_unique_id == $otherMarketDetails['meUID']) {
@@ -549,7 +596,9 @@ if (!function_exists('eventTransformation')) {
                                 'market_flag'             => $otherTransformed->market_flag,
                                 'market_event_identifier' => $otherTransformed->market_event_identifier,
                                 'provider_alias'          => $otherTransformed->alias,
-                                'provider_id'             => $otherTransformed->provider_id
+                                'provider_id'             => $otherTransformed->provider_id,
+                                'bet_identifier'          => $otherTransformed->bet_identifier,
+                                'event_identifier'        => $otherTransformed->event_identifier
                             ];
                         }
                     }, $otherTransformed->toArray());
@@ -566,6 +615,16 @@ if (!function_exists('eventTransformation')) {
                                 $otherResult[$d['market_event_identifier']][$d['odd_type']][$d['market_flag']]['provider_alias']        = $d['provider_alias'];
                                 $otherResult[$d['market_event_identifier']][$d['odd_type']][$d['market_flag']]['odds']                  = $d['odds'];
                                 $otherValues[$d['odd_type'] . $d['market_flag'] . $d['points']]                                         = $d['market_event_identifier'];
+
+                                if (!SwooleHandler::exists('providerEventMarketsTable', $d['event_identifier'] . ":" . $d['odd_type'] . $d['market_flag'] . $d['points'])) {
+                                    SwooleHandler::setValue('providerEventMarketsTable', $d['event_identifier'] . ":" . $d['odd_type'] . $d['market_flag'] . $d['points'], [
+                                        'bet_identifier' => $d['bet_identifier'],
+                                        'type'           => $d['odd_type'],
+                                        'market_flag'    => $d['market_flag'],
+                                        'points'         => $d['points'],
+                                        'mem_uid'        => $d['market_id']
+                                    ]);
+                                }
                             }
                             
                             else {
@@ -586,6 +645,10 @@ if (!function_exists('eventTransformation')) {
                                 ) {
                                     $otherResult[$key][$d['odd_type']][$d['market_flag']]['market_id'] = $d['market_id'];
                                     $otherResult[$key][$d['odd_type']][$d['market_flag']]['mem_uid_from_provider'] = $d['provider_id'];
+
+                                    if (SwooleHandler::exists('providerEventMarketsTable', $d['event_identifier'] . ":" . $d['odd_type'] . $d['market_flag'] . $d['points'])) {
+                                        SwooleHandler::setColumnValue('providerEventMarketsTable', $d['event_identifier'] . ":" . $d['odd_type'] . $d['market_flag'] . $d['points'], 'mem_uid', $d['market_id']);
+                                    }
                                 }
                             }
                         }
