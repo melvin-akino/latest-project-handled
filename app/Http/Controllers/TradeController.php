@@ -402,7 +402,7 @@ class TradeController extends Controller
                         foreach ($userSelected as $key => $schedule) {
                             foreach ($schedule as $k => $league) {
                                 foreach ($league as $event) {
-                                    $providersOfEvents    = Game::providersOfEventsByUid($event->master_event_unique_id, $userProviderIds, $schedule)->get();
+                                    $providersOfEvents    = Game::providersOfEventsByUid($event->uid, $userProviderIds, $schedule)->get();
 
                                     $providerIds = array_map(function($x){ return $x->id; }, $providersOfEvents->toArray());
                                     if (!in_array($primaryProviderId, $providerIds)) {
