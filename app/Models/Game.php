@@ -61,7 +61,7 @@ class Game extends Model
                  ->distinct();
     }
 
-    public static function providersOfEventsByUid(int $masterEventUniqueId, array $userProviderIds, string $schedule = null)
+    public static function providersOfEventsByUid($masterEventUniqueId, array $userProviderIds, string $schedule = null)
     {
         $maxMissingCount = SystemConfiguration::getSystemConfigurationValue('EVENT_VALID_MAX_MISSING_COUNT')->value;
 
