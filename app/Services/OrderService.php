@@ -33,7 +33,8 @@ class OrderService
                 ->join('order_logs AS ol', 'ol.order_id', '=', 'o.id')
                 ->join('provider_account_orders AS pao', 'pao.order_log_id', '=', 'ol.id')
                 ->join('odd_types AS ot', 'ot.id', '=', 'o.odd_type_id')
-                ->leftJoin('error_messages AS em', 'em.id', '=', 'o.provider_error_message_id');
+                ->leftJoin('provider_error_messages as pem', 'pem.id','=', 'o.provider_error_message_id' )
+                ->leftJoin('error_messages AS em', 'em.id', '=', 'pem.error_message_id');
 
             if (!empty($where)) {
                 $data = $data->where($where);
