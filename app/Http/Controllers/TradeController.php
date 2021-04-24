@@ -396,7 +396,7 @@ class TradeController extends Controller
                     }
                 } else {
                     $transformed  = Game::getSelectedLeagueEvents($userId, $default['default_sport']);
-                    $userSelected = eventTransformation($transformed, $userId, $topicTable, 'selected');
+                    $userSelected = eventTransformation($transformed, $userId, $topicTable, 'selected', [], false);
                     if (!empty($userSelected)) {
                         foreach ($userSelected as $key => $schedule) {
                             foreach ($schedule as $k => $league) {

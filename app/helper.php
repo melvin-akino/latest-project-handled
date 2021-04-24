@@ -423,7 +423,7 @@ if (!function_exists('ordersCreation')) {
 }
 
 if (!function_exists('eventTransformation')) {
-    function eventTransformation($transformed, $userId, $topicTable, $type = 'selected', $otherMarketDetails = [], $singleEvent = false)
+    function eventTransformation($transformed, $userId, $topicTable, $type = 'selected', $otherMarketDetails = [], $singleEvent = false, $schedule = null)
     {
         $primaryProviderId = Provider::getIdFromAlias(SystemConfiguration::getSystemConfigurationValue('PRIMARY_PROVIDER')->value);
 
@@ -477,7 +477,7 @@ if (!function_exists('eventTransformation')) {
             }
 
             if (empty($data[$transformed->master_event_unique_id])) {
-                $providersOfEvents    = Game::providersOfEvents($transformed->master_event_id, $userProviderIds)->get();
+                $providersOfEvents    = Game::providersOfEvents($transformed->master_event_id, $userProviderIds, $schedule)->get();
                 $eventHasOtherMarkets = Game::checkIfHasOtherMarkets($transformed->master_event_unique_id, $userProviderIds);
 
                 $providerIds = array_map(function($x){ return $x->id; }, $providersOfEvents->toArray());

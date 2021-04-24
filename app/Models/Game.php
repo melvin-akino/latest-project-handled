@@ -40,7 +40,7 @@ class Game extends Model
                  ->get();
     }
 
-    public static function providersOfEvents(int $masterEventId, array $userProviderIds)
+    public static function providersOfEvents(int $masterEventId, array $userProviderIds, string $schedule = null)
     {
         $maxMissingCount = SystemConfiguration::getSystemConfigurationValue('EVENT_VALID_MAX_MISSING_COUNT')->value;
 
@@ -54,6 +54,9 @@ class Game extends Model
                  ->where('e.missing_count', '<=', $maxMissingCount)
                  ->where('p.is_enabled', true)
                  ->whereIn('p.id', $userProviderIds)
+                 ->when($schedule, function ($query, $schedule) {
+                    return $query->where('game_schedule', $schedule);
+                 })
                  ->select('p.id', 'p.alias as provider')
                  ->distinct();
     }
