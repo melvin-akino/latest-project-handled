@@ -395,12 +395,22 @@ class TradeController extends Controller
                         }
                     }
                 } else {
+                    $userProviderIds = UserProviderConfiguration::getProviderIdList($userId);
                     $transformed  = Game::getSelectedLeagueEvents($userId, $default['default_sport']);
                     $userSelected = eventTransformation($transformed, $userId, $topicTable, 'selected', [], false);
                     if (!empty($userSelected)) {
                         foreach ($userSelected as $key => $schedule) {
                             foreach ($schedule as $k => $league) {
-                                $userSelectedData[$key][$k] = array_values($userSelected[$key][$k]);
+                                foreach ($league as $event) {
+                                    $providersOfEvents    = Game::providersOfEventsByUid($event->master_event_unique_id, $userProviderIds, $schedule)->get();
+
+                                    $providerIds = array_map(function($x){ return $x->id; }, $providersOfEvents->toArray());
+                                    if (!in_array($primaryProviderId, $providerIds)) {
+                                            continue;
+                                    }
+                                    $userSelectedData[$key][$k][] = $event;
+                                }
+                                
                             }
                         }
                     }
