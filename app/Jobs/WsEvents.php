@@ -48,7 +48,7 @@ class WsEvents implements ShouldQueue
                     ];
                     $data               = eventTransformation($gameDetails, $userId, $topicTable, 'socket', $otherMarketDetails, $singleEvent, $this->schedule);
                 } else {
-                    $data = eventTransformation($gameDetails, $userId, $topicTable, 'socket', [], $singleEvent);
+                    $data = eventTransformation($gameDetails, $userId, $topicTable, 'socket', [], $singleEvent, $this->schedule);
                 }
             } else {
                 $gameDetails = Game::getGameDetails($masterLeague->master_league_id, $this->schedule, $userId);

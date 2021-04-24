@@ -477,7 +477,7 @@ if (!function_exists('eventTransformation')) {
             }
 
             if (empty($data[$transformed->master_event_unique_id])) {
-                $providersOfEvents    = Game::providersOfEvents($transformed->master_event_id, $userProviderIds, $schedule)->get();
+                $providersOfEvents    = Game::providersOfEvents($transformed->master_event_id, $userProviderIds, $transformed->schedule)->get();
                 $eventHasOtherMarkets = Game::checkIfHasOtherMarkets($transformed->master_event_unique_id, $userProviderIds);
 
                 $providerIds = array_map(function($x){ return $x->id; }, $providersOfEvents->toArray());
