@@ -59,7 +59,7 @@
                                     <td class="text-center"><span>{{ props.item.score.replace(/\"/g, '') }}</span></td>
                                     <td class="text-right">{{ props.item.valid_stake }}</td>
                                     <td class="text-right" v-adjust-total-pl-color="props.item.pl">{{ props.item.pl }}</td>
-                                    <td class="text-start">{{ props.item.reason }}</td>
+                                    <td class="text-start">{{ props.item.error_message ? props.item.error_message : props.item.reason }}</td>
                                     <td class="text-right">
                                         <a href="#" @click.prevent="openBetMatrix(props.item.order_id, `${props.item.order_id}-betmatrix`)"
                                             class="betdata-btn text-center rounded-full py-2 px-3 hover:bg-gray-400 w-1/2"

@@ -47,13 +47,17 @@ class Provider extends Model
 
     public static function getProvidersByMemUID(string $memUID)
     {
-        return DB::table('event_markets as em')
-            ->join('event_market_groups as emg', 'em.id', 'emg.event_market_id')
-            ->join('master_event_markets as mem', 'emg.master_event_market_id', 'mem.id')
-            ->where('mem.master_event_market_unique_id', $memUID)
-            ->whereNull('em.deleted_at')
-            ->distinct()
-            ->pluck('em.provider_id');
-    }
+        $event         = DB::table('event_markets')->where('mem_uid', $memUID)->first();
+        $masterEventId = DB::table('event_groups')->select('master_event_id')->where('event_id', $event->event_id)->first();
+        $eventIds      = DB::table('event_groups')->where('master_event_id', $masterEventId->master_event_id)->pluck('event_id');
+        $query         = DB::table('event_markets')
+            ->whereIn('event_id', $eventIds)
+            ->where('market_flag', $event->market_flag)
+            ->where('odd_type_id', $event->odd_type_id)
+            ->where('odd_label', $event->odd_label)
+            ->whereNull('deleted_at')
+            ->pluck('provider_id');
 
+        return $query;
+    }
 }

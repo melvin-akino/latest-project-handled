@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\{DB, Log};
 use App\Models\{Provider, Timezones};
 use Exception;
 
@@ -38,10 +38,17 @@ class ResourceController extends Controller
     public function getProviders()
     {
         try {
-            $providers = Provider::getActiveProviders()->get([
-                'id',
-                'alias',
-            ]);
+            $providers = Provider::getActiveProviders()
+                ->get([
+                    'id',
+                    'alias',
+                    DB::raw("(
+                        CASE
+                            WHEN alias = (SELECT UPPER(\"value\") FROM system_configurations WHERE \"type\" = 'PRIMARY_PROVIDER')::text THEN true
+                            WHEN alias != (SELECT UPPER(\"value\") FROM system_configurations WHERE \"type\" = 'PRIMARY_PROVIDER')::text THEN false
+                        END
+                    ) AS is_primary")
+                ]);
 
             return response()->json([
                 'status'      => true,

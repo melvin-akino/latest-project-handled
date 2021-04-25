@@ -41,7 +41,7 @@ class WsEvents implements ShouldQueue
                 $singleEvent = true;
                 $gameDetails = Game::getGameDetails($masterLeague->master_league_id, $this->schedule, $userId, $meUID);
                 if (count($this->params) > 4) {
-                    $otherTransformed   = Game::getOtherMarketsByMemUID($meUID);
+                    $otherTransformed   = Game::getOtherMarketsByMasterEventId($meUID);
                     $otherMarketDetails = [
                         'meUID'       => $meUID,
                         'transformed' => $otherTransformed
@@ -60,7 +60,7 @@ class WsEvents implements ShouldQueue
         } catch (Exception $e) {
             $toLogs = [
                 "class"       => "WsEvents",
-                "message"     => "Line " . $e->getLine() . " | " . $e->getMessage(),
+                "message"     => "Line " . $e->getLine() . " | " . $e->getMessage() . " | " . $e->getFile(),
                 "module"      => "JOB_ERROR",
                 "status_code" => $e->getCode(),
             ];

@@ -42,7 +42,7 @@ class SidebarConsume implements CustomProcessInterface
 
                         $gameSchedule = null;
                         $sidebarLeagues = null;
-                        foreach ($payload->data as $schedule => $leagues) {
+                        foreach ($payload->data->sidebar as $schedule => $leagues) {
                             $gameSchedule = $schedule;
                             $sidebarLeagues = (array) $leagues;
                         }
@@ -72,9 +72,12 @@ class SidebarConsume implements CustomProcessInterface
                                     };
                                 }
 
-                                $swoole->push($row['value'], json_encode(['getSidebarLeagues' => [
-                                    $gameSchedule => array_values($userSidebar)
-                                ]]));
+                                $userSport = getUserDefault($userId, 'sport');
+                                if ($userSport['default_sport'] == $payload->data->sport_id) {
+                                    $swoole->push($row['value'], json_encode(['getSidebarLeagues' => [
+                                        $gameSchedule => array_values($userSidebar)
+                                    ]]));
+                                }
                             }
                         }
 

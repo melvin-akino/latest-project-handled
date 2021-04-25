@@ -13,7 +13,6 @@ class EventMarket extends Model
     protected $table = "event_markets";
 
     protected $fillable = [
-        'master_event_market_id',
         'event_id',
         'odd_type_id',
         'odds',
@@ -28,17 +27,22 @@ class EventMarket extends Model
 
     public static function getEventMarketByMemUID(string $memUID)
     {
-        return DB::table('event_markets as em')
-                ->leftJoin('providers as p', 'p.id', 'em.provider_id')
-                ->leftJoin('events as e', 'e.id', 'em.event_id')
-                ->leftJoin('event_groups as eg', 'eg.event_id', 'e.id')
-                ->leftJoin('master_events as me', 'me.id', 'eg.master_event_id')
-                ->leftJoin('event_market_groups as emg', 'emg.event_market_id', 'em.id')
-                ->leftJoin('master_event_markets as mem', 'mem.id', 'emg.master_event_market_id')
-                ->where('mem.master_event_market_unique_id',$memUID)
-                ->select('em.bet_identifier', 'p.alias', 'e.sport_id', 'e.game_schedule', 'e.event_identifier', 'em.odds')
-                ->distinct()
-                ->get();
+        $event         = DB::table('event_markets')->where('mem_uid', $memUID)->first();
+        $masterEventId = DB::table('event_groups')->select('master_event_id')->where('event_id', $event->event_id)->first();
+        $eventIds      = DB::table('event_groups')->where('master_event_id', $masterEventId->master_event_id)->pluck('event_id');
+        $query         = DB::table('event_markets as em')
+            ->leftJoin('providers as p', 'p.id', 'em.provider_id')
+            ->leftJoin('events as e', 'e.id', 'em.event_id')
+            ->leftJoin('event_groups as eg', 'eg.event_id', 'e.id')
+            ->leftJoin('master_events as me', 'me.id', 'eg.master_event_id')
+            ->whereIn('em.event_id', $eventIds)
+            ->where('em.market_flag', $event->market_flag)
+            ->where('em.odd_type_id', $event->odd_type_id)
+            ->where('em.odd_label', $event->odd_label)
+            ->select('em.bet_identifier', 'p.alias', 'e.sport_id', 'e.game_schedule', 'e.event_identifier', 'em.odds', 'em.mem_uid')
+            ->get();
+
+        return $query;
     }
 
     public static function getProviderEventMarketsByMemUID(string $memUID)
@@ -107,11 +111,10 @@ class EventMarket extends Model
         DB::update($sql);
     }
 
-    public static function updateProviderEventMarketsByMemUIDWithOdds(string $memUID, $odds)
+    public static function updateProviderEventMarketsByMemUIDWithOdds(string $betID, $odds)
     {
-        return DB::table('event_markets as em')
-                 ->leftJoin('master_event_markets as mem', 'mem.id', 'em.master_event_market_id')
-                 ->where('mem.master_event_market_unique_id', $memUID)
-                 ->update(['em.odds' => $odds]);
+        return DB::table('event_markets AS em')
+            ->where('bet_identifier', $betID)
+            ->update([ 'em.odds' => $odds ]);
     }
 }
