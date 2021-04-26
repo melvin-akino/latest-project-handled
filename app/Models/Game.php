@@ -111,7 +111,8 @@ class Game extends Model
 
     public static function getMasterEventByMarketId(string $marketId, $providerId)
     {
-        $event         = DB::table('event_markets')->where('mem_uid', $marketId)->first();
+        $event         = DB::table('event_markets')->where('mem_uid', $marketId)
+                            ->join('events', 'event_markets.event_id', 'events.id')->first();
         $masterEventId = DB::table('event_groups')->select('master_event_id')->where('event_id', $event->event_id)->first();
         $eventIds      = DB::table('event_groups')->where('master_event_id', $masterEventId->master_event_id)->pluck('event_id');
         $query         = DB::table('master_events AS me')
@@ -138,6 +139,7 @@ class Game extends Model
             ->where('em.odd_type_id', $event->odd_type_id)
             ->where('em.odd_label', $event->odd_label)
             ->where('em.provider_id', $providerId)
+            ->where('e.game_schedule', $event->game_schedule)
             ->select([
                 'me.sport_id',
                 'me.master_event_unique_id',
@@ -252,10 +254,8 @@ class Game extends Model
         return DB::table('master_events as me')
                  ->join('event_groups as eg', 'me.id', 'eg.master_event_id')
                  ->join('events as e', 'eg.event_id', 'e.id')
-                 ->leftJoin('master_event_markets as mem', 'me.id', 'mem.master_event_id')
-                 ->join('event_market_groups as emg', 'mem.id', 'emg.master_event_market_id')
                  ->join('event_markets as em', function($join) {
-                    $join->on('em.id', 'emg.event_market_id');
+                    $join->on('e.id', 'em.event_id');
                     $join->where('em.is_main', false);
                 })
                  ->where('me.master_event_unique_id', $uid)
