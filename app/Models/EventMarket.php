@@ -40,7 +40,7 @@ class EventMarket extends Model
             ->where('em.market_flag', $event->market_flag)
             ->where('em.odd_type_id', $event->odd_type_id)
             ->where('em.odd_label', $event->odd_label)
-            ->where('e.game_scjedule', $event->game_schedule)
+            ->where('e.game_schedule', $event->game_schedule)
             ->select('em.bet_identifier', 'p.alias', 'e.sport_id', 'e.game_schedule', 'e.event_identifier', 'em.odds', 'em.mem_uid')
             ->get();
 
