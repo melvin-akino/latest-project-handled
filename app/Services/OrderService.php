@@ -71,6 +71,7 @@ class OrderService
                 ->get([
                     'o.id',
                     'o.odd_type_id',
+                    'ot.type as odd_type',
                     'p.id as provider_id',
                     'p.alias as provider',
                     's.id as sport_id',
@@ -110,6 +111,7 @@ class OrderService
                     $created = Carbon::createFromFormat("Y-m-d H:i:s", $row->created_at, 'Etc/UTC')->setTimezone($userTz)->format("Y-m-d H:i:s");
                     $settled = empty($row->settled_date) ? "" : Carbon::createFromFormat("Y-m-d H:i:sO", $row->settled_date, 'Etc/UTC')->setTimezone($userTz)->format("Y-m-d H:i:s");
 
+                    $scorePrefix = strpos($row->odd_type, 'HT ') == 0 ? 'HT ' : 'FT ';
                     if (!empty($row->settled_date) && !empty($row->final_score)) {
                         $score = array_map('trim', explode('-', $row->final_score));
                     } else {
@@ -160,7 +162,7 @@ class OrderService
                         'stake'         => $row->stake,
                         'valid_stake'   => $row->profit_loss ? abs($row->profit_loss) : 0,
                         'towin'         => $row->to_win,
-                        'score'         => (string) $score[0] . " - " . $score[1],
+                        'score'         => $scorePrefix . (string) $score[0] . " - " . $score[1],
                         'home_score'    => $score[0],
                         'away_score'    => $score[1],
                         'pl'            => (string) $row->profit_loss,
