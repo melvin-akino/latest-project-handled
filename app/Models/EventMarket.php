@@ -27,7 +27,8 @@ class EventMarket extends Model
 
     public static function getEventMarketByMemUID(string $memUID)
     {
-        $event         = DB::table('event_markets')->where('mem_uid', $memUID)->first();
+        $event         = DB::table('event_markets')->where('mem_uid', $memUID)
+                            ->join('events', 'event_markets.event_id', 'events.id')->first();
         $masterEventId = DB::table('event_groups')->select('master_event_id')->where('event_id', $event->event_id)->first();
         $eventIds      = DB::table('event_groups')->where('master_event_id', $masterEventId->master_event_id)->pluck('event_id');
         $query         = DB::table('event_markets as em')
@@ -39,6 +40,7 @@ class EventMarket extends Model
             ->where('em.market_flag', $event->market_flag)
             ->where('em.odd_type_id', $event->odd_type_id)
             ->where('em.odd_label', $event->odd_label)
+            ->where('e.game_scjedule', $event->game_schedule)
             ->select('em.bet_identifier', 'p.alias', 'e.sport_id', 'e.game_schedule', 'e.event_identifier', 'em.odds', 'em.mem_uid')
             ->get();
 
