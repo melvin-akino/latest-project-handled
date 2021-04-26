@@ -111,7 +111,8 @@ class Game extends Model
 
     public static function getMasterEventByMarketId(string $marketId, $providerId)
     {
-        $event         = DB::table('event_markets')->where('mem_uid', $marketId)->first();
+        $event         = DB::table('event_markets')->where('mem_uid', $marketId)
+                            ->join('events', 'event_markets.event_id', 'events.id')->first();
         $masterEventId = DB::table('event_groups')->select('master_event_id')->where('event_id', $event->event_id)->first();
         $eventIds      = DB::table('event_groups')->where('master_event_id', $masterEventId->master_event_id)->pluck('event_id');
         $query         = DB::table('master_events AS me')
@@ -138,6 +139,7 @@ class Game extends Model
             ->where('em.odd_type_id', $event->odd_type_id)
             ->where('em.odd_label', $event->odd_label)
             ->where('em.provider_id', $providerId)
+            ->where('e.game_schedule', $event->game_schedule)
             ->select([
                 'me.sport_id',
                 'me.master_event_unique_id',
