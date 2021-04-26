@@ -522,12 +522,24 @@ if (!function_exists('eventTransformation')) {
             if (!empty($transformed->type)) {
                 if (
                     empty($data[$transformed->master_event_unique_id]['market_odds']['main'][$transformed->type][$transformed->market_flag]) ||
-                    $data[$transformed->master_event_unique_id]['market_odds']['main'][$transformed->type][$transformed->market_flag]['odds'] < (double) $transformed->odds
+                    $data[$transformed->master_event_unique_id]['market_odds']['main'][$transformed->type][$transformed->market_flag]['odds'] < (double) $transformed->odds ||
+                    $transformed->provider_id == $primaryProviderId
                 ) {
+                    if (in_array($transformed->odd_type_id, [3, 11]))
+                    {
+                        if (!empty($data[$transformed->master_event_unique_id]['market_odds']['main'][$transformed->type][$oppositeFlag[$transformed->market_flag]]['points']) &&
+                            abs($data[$transformed->master_event_unique_id]['market_odds']['main'][$transformed->type][$oppositeFlag[$transformed->market_flag]]['points']) != abs($transformed->odd_label) &&
+                            $transformed->provider_id != $primaryProviderId
+                        ) {
+                            Log::info("Skip if not the same points for comparison for " . $transformed->market_common . " for master event unique id " . $transformed->master_event_unique_id);
+                            continue;
+                        }
+                    }
 
                     if (in_array($transformed->odd_type_id, [3, 11]) &&
-                        !empty($data[$transformed->master_event_unique_id]['market_odds']['main'][$transformed->type][$oppositeFlag[$transformed->market_flag]]['points']) &&
-                        ($data[$transformed->master_event_unique_id]['market_odds']['main'][$transformed->type][$oppositeFlag[$transformed->market_flag]]['points']) != floatval($transformed->odd_label * -1)
+                        !empty($data[$transformed->master_event_unique_id]['market_odds']['main'][$transformed->type][$transformed->market_flag]['points']) &&
+                        ($data[$transformed->master_event_unique_id]['market_odds']['main'][$transformed->type][$transformed->market_flag]['points']) != ($transformed->odd_label) &&
+                        $transformed->provider_id != $primaryProviderId
                     ) {
                         Log::info("Skip if not the same points for comparison for " . $transformed->market_common . " for master event unique id " . $transformed->master_event_unique_id);
                         continue;
@@ -535,8 +547,18 @@ if (!function_exists('eventTransformation')) {
 
                     if (in_array($transformed->odd_type_id, [4, 12]) &&
                         !empty($data[$transformed->master_event_unique_id]['market_odds']['main'][$transformed->type][$oppositeFlag[$transformed->market_flag]]['points']) &&
-                        substr($data[$transformed->master_event_unique_id]['market_odds']['main'][$transformed->type][$oppositeFlag[$transformed->market_flag]]['points'], 1) != substr($transformed->odd_label, 1)
-                    ) {
+                        substr($data[$transformed->master_event_unique_id]['market_odds']['main'][$transformed->type][$oppositeFlag[$transformed->market_flag]]['points'], 1) != substr($transformed->odd_label, 1) &&
+                        $transformed->provider_id != $primaryProviderId
+                        ) {
+                        Log::info("Skip if not the same points for comparison for " . $transformed->market_common . " for master event unique id " . $transformed->master_event_unique_id);
+                        continue;
+                    }
+
+                    if (in_array($transformed->odd_type_id, [4, 12]) &&
+                        !empty($data[$transformed->master_event_unique_id]['market_odds']['main'][$transformed->type][$transformed->market_flag]['points']) &&
+                        substr($data[$transformed->master_event_unique_id]['market_odds']['main'][$transformed->type][$transformed->market_flag]['points'], 1) != substr($transformed->odd_label, 1) &&
+                        $transformed->provider_id != $primaryProviderId
+                        ) {
                         Log::info("Skip if not the same points for comparison for " . $transformed->market_common . " for master event unique id " . $transformed->master_event_unique_id);
                         continue;
                     }

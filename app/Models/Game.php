@@ -254,10 +254,8 @@ class Game extends Model
         return DB::table('master_events as me')
                  ->join('event_groups as eg', 'me.id', 'eg.master_event_id')
                  ->join('events as e', 'eg.event_id', 'e.id')
-                 ->leftJoin('master_event_markets as mem', 'me.id', 'mem.master_event_id')
-                 ->join('event_market_groups as emg', 'mem.id', 'emg.master_event_market_id')
                  ->join('event_markets as em', function($join) {
-                    $join->on('em.id', 'emg.event_market_id');
+                    $join->on('e.id', 'em.event_id');
                     $join->where('em.is_main', false);
                 })
                  ->where('me.master_event_unique_id', $uid)
