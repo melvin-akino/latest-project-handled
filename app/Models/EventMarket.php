@@ -47,10 +47,8 @@ class EventMarket extends Model
 
     public static function getProviderEventMarketsByMemUID(string $memUID)
     {
-        return DB::table('event_markets as em')
-                 ->join('event_market_groups as emg', 'emg.event_market_id', 'em.id')
-                 ->join('master_event_markets as mem', 'mem.id', 'emg.master_event_market_id')
-                 ->where('mem.master_event_market_unique_id', $memUID)
+        return DB::table('event_markets')
+                 ->where('mem_uid', $memUID)
                  ->distinct()
                  ->first();
     }
