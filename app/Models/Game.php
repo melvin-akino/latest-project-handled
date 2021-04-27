@@ -221,10 +221,6 @@ class Game extends Model
                     ->where('missing_count', '<=', $maxMissingCount)
                     ->where('provider_id', '!=', $primaryProvider)
                     ->select('*', DB::raw('CONCAT(type, market_flag, odd_label) as market_common'));
-                
-
-        Log::debug($secondaryOtherMarkets
-        ->union($primaryOtherMarkets)->toSql());
 
         return $secondaryOtherMarkets
                     ->union($primaryOtherMarkets)
