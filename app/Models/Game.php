@@ -3,7 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\{DB, Log};
 
 class Game extends Model
 {
@@ -207,13 +207,28 @@ class Game extends Model
     public static function getOtherMarketsByMasterEventId(string $masterEventId)
     {
         $maxMissingCount = SystemConfiguration::getSystemConfigurationValue('EVENT_VALID_MAX_MISSING_COUNT')->value;
+        $primaryProvider = Provider::getIdFromAlias(SystemConfiguration::getSystemConfigurationValue('PRIMARY_PROVIDER')->value);
 
-        return DB::table('trade_window')
+        $primaryOtherMarkets = DB::table('trade_window')
                 ->where('master_event_unique_id', $masterEventId)
                 ->where('missing_count', '<=', $maxMissingCount)
                 ->where('is_main', false)
-                ->select('*', DB::raw('CONCAT(type, market_flag, odd_label) as market_common'))
-                ->get();
+                ->where('provider_id', $primaryProvider)
+                ->select('*', DB::raw('CONCAT(type, market_flag, odd_label) as market_common'));           
+
+        $secondaryOtherMarkets = DB::table('trade_window')
+                    ->where('master_event_unique_id', $masterEventId)
+                    ->where('missing_count', '<=', $maxMissingCount)
+                    ->where('provider_id', '!=', $primaryProvider)
+                    ->select('*', DB::raw('CONCAT(type, market_flag, odd_label) as market_common'));
+                
+
+        Log::debug($secondaryOtherMarkets
+        ->union($primaryOtherMarkets)->toSql());
+
+        return $secondaryOtherMarkets
+                    ->union($primaryOtherMarkets)
+                    ->get();
     }
 
     public static function getGameDetailsByMeId(int $masterEventId)
