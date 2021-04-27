@@ -604,7 +604,11 @@ if (!function_exists('eventTransformation')) {
                 if ($otherMarketDetails && $transformed->master_event_unique_id == $otherMarketDetails['meUID']) {
                     $otherTransformed = $otherMarketDetails['transformed'];
                     $otherData        = [];
-                    array_map(function ($otherTransformed) use (&$otherData, $userProviderIds) {
+                    array_map(function ($otherTransformed) use (&$otherData, $userProviderIds, $data) {
+                        if ($data[$otherTransformed->market_event_identifier]['market_odds']['main'][$otherTransformed->type][$otherTransformed->market_flag]['points'] == $otherTransformed->odd_label) {
+                            return $otherTransformed;
+                        }
+
                         if (!in_array($otherTransformed->provider_id, $userProviderIds)) {
                             return $otherTransformed;
                         }
