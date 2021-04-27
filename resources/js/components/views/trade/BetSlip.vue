@@ -336,7 +336,11 @@ export default {
                         })
                     })
 
-                    return moveToFirstElement(this.market_details.spreads, 'market_id', this.odd_details.odd.market_id)
+                    if(this.odd_details.game.market_odds.hasOwnProperty('other')) {
+                        return moveToFirstElement(points, 'market_id', this.odd_details.odd.market_id)
+                    } else {
+                        return moveToFirstElement(this.market_details.spreads, 'market_id', this.odd_details.odd.market_id)
+                    }
                 } else {
                     return points
                 }
@@ -537,6 +541,13 @@ export default {
                                 provider.hasMarketData = hasMarketData
                             }
                         })
+
+                        let selectedMinMaxPrices = this.minMaxData.map(minmax => minmax.price)
+                        if(this.minMaxData.length > 1) {
+                            this.inputPrice = Math.min(...selectedMinMaxPrices)
+                        } else {
+                            this.inputPrice = Math.max(...selectedMinMaxPrices)
+                        }
                     }
                 }
             }
@@ -552,7 +563,6 @@ export default {
                     } else {
                         this.minMaxData = this.minMaxData.filter(provider => provider.provider_id != minmax.provider_id)
                         this.selectedProviders = this.selectedProviders.filter(provider => provider != minmax.provider_id)
-                        this.inputPrice = null
                         this.isEventNotAvailable = true
                         this.updateMinMaxData(minmax, false)
                     }
