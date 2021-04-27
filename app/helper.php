@@ -606,8 +606,8 @@ if (!function_exists('eventTransformation')) {
                     $otherData        = [];
                     array_map(function ($otherTransformed) use (&$otherData, $userProviderIds, $data) {
                         if (
-                            !empty($data[$otherMarketDetails['meUID']]['market_odds']['main'][$otherTransformed->type][$otherTransformed->market_flag]['points']) &&
-                            $data[$otherMarketDetails['meUID']]['market_odds']['main'][$otherTransformed->type][$otherTransformed->market_flag]['points'] == $otherTransformed->odd_label) {
+                            !empty($data[$otherTransformed['meUID']]['market_odds']['main'][$otherTransformed->type][$otherTransformed->market_flag]['points']) &&
+                            $data[$otherTransformed['meUID']]['market_odds']['main'][$otherTransformed->type][$otherTransformed->market_flag]['points'] == $otherTransformed->odd_label) {
                             return $otherTransformed;
                         }
 
