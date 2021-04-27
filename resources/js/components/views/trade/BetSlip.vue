@@ -60,8 +60,8 @@
                                 <a href="#" @click.prevent="updatePrice(minmax.price)" class="w-1/5 text-sm font-bold underline text-center" v-if="minmax.hasMarketData && !underMaintenanceProviders.includes(minmax.provider.toLowerCase())">{{minmax.price | twoDecimalPlacesFormat}}</a>
                                 <span class="w-1/5 text-sm text-center" v-if="minmax.hasMarketData && !underMaintenanceProviders.includes(minmax.provider.toLowerCase())">{{minmax.age}}</span>
                                 <div class="text-sm text-center" v-if="!minmax.hasMarketData && !underMaintenanceProviders.includes(minmax.provider.toLowerCase())">
-                                    <div v-show="market_details.providers.includes(minmax.provider_id) && !isEventNotAvailable && odd_details.odd.market_id">Retrieving Market<span class="pl-1"><i class="fas fa-circle-notch fa-spin"></i></span></div>
-                                    <div v-show="!market_details.providers.includes(minmax.provider_id) || isEventNotAvailable || !odd_details.odd.market_id">
+                                    <div v-show="market_details.providers.includes(minmax.provider_id) && !isEventNotAvailable && odd_details.odd.market_id && isRetrievingMarket">Retrieving Market<span class="pl-1"><i class="fas fa-circle-notch fa-spin"></i></span></div>
+                                    <div v-show="!market_details.providers.includes(minmax.provider_id) || isEventNotAvailable || !odd_details.odd.market_id || !isRetrievingMarket">
                                         <span v-if="hasNewOddsInTradeWindow">This market is now unavailable please refresh the bet slip</span>
                                         <span v-else>No Market Available</span>
                                     </div>
@@ -206,7 +206,9 @@ export default {
             endPointIndex: 5,
             isEventNotAvailable: null,
             minMaxUpdateCounter: 0,
-            hasNewOddsInTradeWindow: false
+            hasNewOddsInTradeWindow: false,
+            displayedSpreads: [],
+            isRetrievingMarket: true
         }
     },
     validations: {
@@ -334,16 +336,10 @@ export default {
                         })
                     })
 
-                    return this.market_details.spreads
+                    return moveToFirstElement(this.market_details.spreads, 'market_id', this.odd_details.odd.market_id)
                 } else {
                     return points
                 }
-            }
-        },
-        displayedSpreads() {
-            if(!_.isEmpty(this.spreads)) {
-                let spreads = moveToFirstElement(this.spreads, 'market_id', this.odd_details.odd.market_id)
-                return spreads.slice(this.startPointIndex, this.endPointIndex)
             }
         }
     },
@@ -377,11 +373,22 @@ export default {
         tradeWindowPoints(value) {
             this.points = value
             this.getMarketDetails(false, false)
+        },
+        spreads: {
+            deep: true,
+            handler(value) {
+                if(value.length != 0) {
+                    this.displaySpreadsByFive()
+                }
+            }
         }
     },
     mounted() {
         this.getMarketDetails()
         this.$store.dispatch('trade/getBetSlipSettings')
+        setInterval(() => {
+            this.isRetrievingMarket = false
+        }, 10000)
     },
     methods: {
         getTradeWindowData(key) {
@@ -460,6 +467,11 @@ export default {
             this.isLoadingMarketDetailsAndProviders = false
             this.minmax(this.market_id)
         },
+        displaySpreadsByFive() {
+            if(!_.isEmpty(this.spreads)) {
+                this.displayedSpreads = this.spreads.slice(this.startPointIndex, this.endPointIndex)
+            }
+        },
         changePoint(points, market_id, odds) {
             this.emptyMinMax(this.market_id)
             this.points = points
@@ -473,11 +485,11 @@ export default {
         },
         previousPoint() {
             if(this.activePointIndex != 0) {
-                let previousSpread = this.displayedSpreads[this.activePointIndex - 1]
+                let previousSpread = this.spreads[this.activePointIndex - 1]
                 this.changePoint(previousSpread.points, previousSpread.market_id, previousSpread.odds)
             }
 
-            if(this.displayedSpreads.length > 5) {
+            if(this.spreads.length > 5) {
                 if(this.startPointIndex !== 0) {
                     this.startPointIndex = this.startPointIndex - 1;
                     this.endPointIndex = this.endPointIndex - 1;
@@ -486,13 +498,13 @@ export default {
             }
         },
         nextPoint() {
-            if(this.activePointIndex != (this.displayedSpreads.length - 1)) {
-                let nextSpread = this.displayedSpreads[this.activePointIndex + 1]
+            if(this.activePointIndex != (this.spreads.length - 1)) {
+                let nextSpread = this.spreads[this.activePointIndex + 1]
                 this.changePoint(nextSpread.points, nextSpread.market_id, nextSpread.odds)
             }
 
-            if(this.displayedSpreads.length > 5) {
-                if(this.endPointIndex !== this.displayedSpreads.length && this.displayedSpreads[0].points != this.displayedSpreads[this.displayedSpreads.length - 5].points) {
+            if(this.spreads.length > 5) {
+                if(this.endPointIndex !== this.spreads.length && this.spreads[0].points != this.spreads[this.spreads.length - 5].points) {
                     this.startPointIndex = this.startPointIndex + 1;
                     this.endPointIndex = this.endPointIndex + 1;
                     this.displaySpreadsByFive();
