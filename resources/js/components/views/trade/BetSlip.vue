@@ -206,7 +206,8 @@ export default {
             endPointIndex: 5,
             isEventNotAvailable: null,
             minMaxUpdateCounter: 0,
-            hasNewOddsInTradeWindow: false
+            hasNewOddsInTradeWindow: false,
+            displayedSpreads: []
         }
     },
     validations: {
@@ -334,16 +335,10 @@ export default {
                         })
                     })
 
-                    return this.market_details.spreads
+                    return moveToFirstElement(this.market_details.spreads, 'market_id', this.odd_details.odd.market_id)
                 } else {
                     return points
                 }
-            }
-        },
-        displayedSpreads() {
-            if(!_.isEmpty(this.spreads)) {
-                let spreads = moveToFirstElement(this.spreads, 'market_id', this.odd_details.odd.market_id)
-                return spreads.slice(this.startPointIndex, this.endPointIndex)
             }
         }
     },
@@ -377,6 +372,14 @@ export default {
         tradeWindowPoints(value) {
             this.points = value
             this.getMarketDetails(false, false)
+        },
+        spreads: {
+            deep: true,
+            handler(value) {
+                if(value.length != 0) {
+                    this.displaySpreadsByFive()
+                }
+            }
         }
     },
     mounted() {
@@ -460,6 +463,11 @@ export default {
             this.isLoadingMarketDetailsAndProviders = false
             this.minmax(this.market_id)
         },
+        displaySpreadsByFive() {
+            if(!_.isEmpty(this.spreads)) {
+                this.displayedSpreads = this.spreads.slice(this.startPointIndex, this.endPointIndex)
+            }
+        },
         changePoint(points, market_id, odds) {
             this.emptyMinMax(this.market_id)
             this.points = points
@@ -473,11 +481,11 @@ export default {
         },
         previousPoint() {
             if(this.activePointIndex != 0) {
-                let previousSpread = this.displayedSpreads[this.activePointIndex - 1]
+                let previousSpread = this.spreads[this.activePointIndex - 1]
                 this.changePoint(previousSpread.points, previousSpread.market_id, previousSpread.odds)
             }
 
-            if(this.displayedSpreads.length > 5) {
+            if(this.spreads.length > 5) {
                 if(this.startPointIndex !== 0) {
                     this.startPointIndex = this.startPointIndex - 1;
                     this.endPointIndex = this.endPointIndex - 1;
@@ -486,13 +494,13 @@ export default {
             }
         },
         nextPoint() {
-            if(this.activePointIndex != (this.displayedSpreads.length - 1)) {
-                let nextSpread = this.displayedSpreads[this.activePointIndex + 1]
+            if(this.activePointIndex != (this.spreads.length - 1)) {
+                let nextSpread = this.spreads[this.activePointIndex + 1]
                 this.changePoint(nextSpread.points, nextSpread.market_id, nextSpread.odds)
             }
 
-            if(this.displayedSpreads.length > 5) {
-                if(this.endPointIndex !== this.displayedSpreads.length && this.displayedSpreads[0].points != this.displayedSpreads[this.displayedSpreads.length - 5].points) {
+            if(this.spreads.length > 5) {
+                if(this.endPointIndex !== this.spreads.length && this.spreads[0].points != this.spreads[this.spreads.length - 5].points) {
                     this.startPointIndex = this.startPointIndex + 1;
                     this.endPointIndex = this.endPointIndex + 1;
                     this.displaySpreadsByFive();
