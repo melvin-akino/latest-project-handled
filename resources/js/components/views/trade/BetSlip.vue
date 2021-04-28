@@ -35,9 +35,7 @@
                         <div class="flex flex-col items-center bg-white shadow-xl mb-2" v-if="oddTypesWithSpreads.includes(market_details.odd_type)">
                             <div class="text-white uppercase font-bold p-2 bg-orange-500 w-full text-center">{{market_details.odd_type}}</div>
                             <div class="relative flex justify-center items-center p-2" v-if="spreads.length != 0">
-                                <a href="#" class="previousPoint absolute m-1 w-12 text-center text-gray-800" @click="previousPoint" v-show="points != displayedSpreads[0].points && displayedSpreads.length > 2"><i class="fas fa-chevron-left"></i></a>
-                                <a href="#" class="m-1 w-16 text-center text-sm" :class="[spread.market_id == market_id ? 'text-white bg-orange-500 px-1 py-1' : 'text-gray-800']" v-for="(spread, index) in displayedSpreads" :key="index" @click="changePoint(spread.points, spread.market_id, spread.odds)">{{spread.points}}</a>
-                                <a href="#" class="nextPoint absolute m-1 w-12 text-center text-gray-800" @click="nextPoint" v-show="points != displayedSpreads[displayedSpreads.length - 1].points && displayedSpreads.length > 2"><i class="fas fa-chevron-right"></i></a>
+                                <a href="#" class="m-1 w-16 text-center text-sm" :class="[spread.market_id == market_id ? 'text-white bg-orange-500 px-1 py-1' : 'text-gray-800']" v-for="(spread, index) in spreads" :key="index" @click="changePoint(spread.points, spread.market_id, spread.odds)">{{spread.points}}</a>
                             </div>
                         </div>
                         <div class="flex flex-col bg-white shadow-xl">
@@ -207,7 +205,6 @@ export default {
             isEventNotAvailable: null,
             minMaxUpdateCounter: 0,
             hasNewOddsInTradeWindow: false,
-            displayedSpreads: [],
             isRetrievingMarket: true
         }
     },
@@ -220,11 +217,6 @@ export default {
     computed: {
         ...mapState('trade', ['activePopup', 'popupZIndex', 'bookies', 'betSlipSettings', 'wallet', 'underMaintenanceProviders']),
         ...mapState('settings', ['defaultPriceFormat']),
-        activePointIndex() {
-            if(!_.isEmpty(this.displayedSpreads)) {
-                return this.displayedSpreads.findIndex(spread => spread.points == this.points)
-            }
-        },
         lowestMin() {
             if(!_.isEmpty(this.minMaxData)) {
                 let minValues = this.minMaxData.filter(minmax => minmax.min != null).map(minmax => minmax.min)
@@ -336,7 +328,11 @@ export default {
                         })
                     })
 
-                    return moveToFirstElement(this.market_details.spreads, 'market_id', this.odd_details.odd.market_id)
+                    if(this.odd_details.game.market_odds.hasOwnProperty('other')) {
+                        return moveToFirstElement(points, 'market_id', this.odd_details.odd.market_id)
+                    } else {
+                        return moveToFirstElement(this.market_details.spreads, 'market_id', this.odd_details.odd.market_id)
+                    }
                 } else {
                     return points
                 }
@@ -373,14 +369,6 @@ export default {
         tradeWindowPoints(value) {
             this.points = value
             this.getMarketDetails(false, false)
-        },
-        spreads: {
-            deep: true,
-            handler(value) {
-                if(value.length != 0) {
-                    this.displaySpreadsByFive()
-                }
-            }
         }
     },
     mounted() {
@@ -467,11 +455,6 @@ export default {
             this.isLoadingMarketDetailsAndProviders = false
             this.minmax(this.market_id)
         },
-        displaySpreadsByFive() {
-            if(!_.isEmpty(this.spreads)) {
-                this.displayedSpreads = this.spreads.slice(this.startPointIndex, this.endPointIndex)
-            }
-        },
         changePoint(points, market_id, odds) {
             this.emptyMinMax(this.market_id)
             this.points = points
@@ -482,34 +465,6 @@ export default {
             this.minMaxUpdateCounter = 0
             this.isEventNotAvailable = false
             this.clearOrderMessage()
-        },
-        previousPoint() {
-            if(this.activePointIndex != 0) {
-                let previousSpread = this.spreads[this.activePointIndex - 1]
-                this.changePoint(previousSpread.points, previousSpread.market_id, previousSpread.odds)
-            }
-
-            if(this.spreads.length > 5) {
-                if(this.startPointIndex !== 0) {
-                    this.startPointIndex = this.startPointIndex - 1;
-                    this.endPointIndex = this.endPointIndex - 1;
-                    this.displaySpreadsByFive();
-                }
-            }
-        },
-        nextPoint() {
-            if(this.activePointIndex != (this.spreads.length - 1)) {
-                let nextSpread = this.spreads[this.activePointIndex + 1]
-                this.changePoint(nextSpread.points, nextSpread.market_id, nextSpread.odds)
-            }
-
-            if(this.spreads.length > 5) {
-                if(this.endPointIndex !== this.spreads.length && this.spreads[0].points != this.spreads[this.spreads.length - 5].points) {
-                    this.startPointIndex = this.startPointIndex + 1;
-                    this.endPointIndex = this.endPointIndex + 1;
-                    this.displaySpreadsByFive();
-                }
-            }
         },
         sendMinMax(market_id) {
             return new Promise((resolve) => {
@@ -537,6 +492,13 @@ export default {
                                 provider.hasMarketData = hasMarketData
                             }
                         })
+
+                        let selectedMinMaxPrices = this.minMaxData.map(minmax => minmax.price)
+                        if(this.minMaxData.length > 1) {
+                            this.inputPrice = Math.min(...selectedMinMaxPrices)
+                        } else {
+                            this.inputPrice = Math.max(...selectedMinMaxPrices)
+                        }
                     }
                 }
             }
@@ -552,7 +514,6 @@ export default {
                     } else {
                         this.minMaxData = this.minMaxData.filter(provider => provider.provider_id != minmax.provider_id)
                         this.selectedProviders = this.selectedProviders.filter(provider => provider != minmax.provider_id)
-                        this.inputPrice = null
                         this.isEventNotAvailable = true
                         this.updateMinMaxData(minmax, false)
                     }
