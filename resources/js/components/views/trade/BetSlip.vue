@@ -494,10 +494,12 @@ export default {
                         })
 
                         let selectedMinMaxPrices = this.minMaxData.filter(minmax => minmax.price != null).map(minmax => minmax.price)
-                        if(this.minMaxData.length > 1) {
-                            this.inputPrice = twoDecimalPlacesFormat(Math.min(...selectedMinMaxPrices))
-                        } else {
-                            this.inputPrice = twoDecimalPlacesFormat(Math.max(...selectedMinMaxPrices))
+                        if(selectedMinMaxPrices.length != 0) {
+                            if(this.minMaxData.length > 1) {
+                                this.inputPrice = twoDecimalPlacesFormat(Math.min(...selectedMinMaxPrices))
+                            } else {
+                                this.inputPrice = twoDecimalPlacesFormat(Math.max(...selectedMinMaxPrices))
+                            }
                         }
                     }
                 }
