@@ -36,6 +36,7 @@ class EventMarket extends Model
             ->leftJoin('events as e', 'e.id', 'em.event_id')
             ->leftJoin('event_groups as eg', 'eg.event_id', 'e.id')
             ->leftJoin('master_events as me', 'me.id', 'eg.master_event_id')
+            ->whereNull('em.deleted_at')
             ->whereIn('em.event_id', $eventIds)
             ->where('em.market_flag', $event->market_flag)
             ->where('em.odd_type_id', $event->odd_type_id)
