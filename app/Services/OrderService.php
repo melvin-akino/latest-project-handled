@@ -111,7 +111,7 @@ class OrderService
                     $created = Carbon::createFromFormat("Y-m-d H:i:s", $row->created_at, 'Etc/UTC')->setTimezone($userTz)->format("Y-m-d H:i:s");
                     $settled = empty($row->settled_date) ? "" : Carbon::createFromFormat("Y-m-d H:i:sO", $row->settled_date, 'Etc/UTC')->setTimezone($userTz)->format("Y-m-d H:i:s");
 
-                    $scorePrefix = strpos($row->odd_type, 'HT ') == 0 ? 'HT ' : 'FT ';
+                    $scorePrefix = strpos($row->odd_type, 'HT ') !== false ? 'HT ' : 'FT ';
                     if (!empty($row->settled_date) && !empty($row->final_score)) {
                         $score = array_map('trim', explode('-', $row->final_score));
                     } else {
