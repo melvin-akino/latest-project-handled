@@ -349,12 +349,12 @@ export default {
                     if(minMaxPrices.length > 0) {
                         this.inputPrice = twoDecimalPlacesFormat(Math.max(...minMaxPrices))
                         this.minMaxData = value.filter(minmax => minmax.price == Math.max(...minMaxPrices) && !this.underMaintenanceProviders.includes(minmax.provider.toLowerCase()))
-                        this.selectedProviders = this.minMaxData.map(minmax => minmax.provider_id)
+                        this.selectedProviders = this.minMaxData.filter(minmax => minmax.price != null).map(minmax => minmax.provider_id)
                     }
                 }
 
                 if(!_.isEmpty(this.minMaxData)) {
-                    let selectedMinmaxDataPrices = this.minMaxData.map(minmax => minmax.price)
+                    let selectedMinmaxDataPrices = this.minMaxData.filter(minmax => minmax.price != null).map(minmax => minmax.price)
                     this.inputPrice = twoDecimalPlacesFormat(Math.min(...selectedMinmaxDataPrices))
                 }
             }
@@ -493,11 +493,13 @@ export default {
                             }
                         })
 
-                        let selectedMinMaxPrices = this.minMaxData.map(minmax => minmax.price)
-                        if(this.minMaxData.length > 1) {
-                            this.inputPrice = Math.min(...selectedMinMaxPrices)
-                        } else {
-                            this.inputPrice = Math.max(...selectedMinMaxPrices)
+                        let selectedMinMaxPrices = this.minMaxData.filter(minmax => minmax.price != null).map(minmax => minmax.price)
+                        if(selectedMinMaxPrices.length != 0) {
+                            if(this.minMaxData.length > 1) {
+                                this.inputPrice = twoDecimalPlacesFormat(Math.min(...selectedMinMaxPrices))
+                            } else {
+                                this.inputPrice = twoDecimalPlacesFormat(Math.max(...selectedMinMaxPrices))
+                            }
                         }
                     }
                 }
@@ -580,7 +582,7 @@ export default {
             }
 
             if(this.minMaxData.length != 0) {
-                let minmaxPrices = this.minMaxData.map(minmax => minmax.price)
+                let minmaxPrices = this.minMaxData.filter(minmax => minmax.price != null).map(minmax => minmax.price)
                 this.inputPrice = twoDecimalPlacesFormat(Math.min(...minmaxPrices))
             } else {
                 this.inputPrice = null
