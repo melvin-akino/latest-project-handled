@@ -7,6 +7,7 @@ use JsonException;
 use App\Models\{Currency, Provider};
 use App\Exceptions\BadRequestException;
 use App\Facades\{SwooleHandler, WalletFacade};
+use Illuminate\Support\Facades\Log;
 use Illuminate\Database\Eloquent\{Model, SoftDeletes};
 
 class ProviderAccount extends Model
@@ -88,6 +89,9 @@ class ProviderAccount extends Model
                 $excludeAccounts   = [];
                 $reservedAccounts  = [];
 
+                Log::info("Account Candidates - All that have enough credits");
+                Log::info(json_encode($accountCandidates));
+
                 if ($betRules->count() != 0) {
                     foreach ($betRules as $rule) {
                         array_push($excludeAccounts, $rule->provider_account_id);
@@ -98,6 +102,9 @@ class ProviderAccount extends Model
                     $reservedAccounts   = array_slice($accountCandidates, -1 * ((int) $count));
                     $accountCandidates  = array_slice($accountCandidates, 0, count($accountCandidates) - (int) $count);
                 }
+
+                Log::info("Account Candidates - All that are not reserved to the opposing team");
+                Log::info(json_encode($accountCandidates));
 
                 $accountFinalCandidates = [];
                 if (count($excludeAccounts) != 0) {
@@ -112,6 +119,9 @@ class ProviderAccount extends Model
                         }
                     }
 
+                    Log::info("Account Candidates - All that are used for the opposing team");
+                    Log::info(json_encode($accountFinalCandidates));
+
                     if (empty($accountFinalCandidates) && !empty($accountCandidates)) {
                         $accountFinalCandidates[0] = end($accountCandidates);
                     }
@@ -122,6 +132,9 @@ class ProviderAccount extends Model
                 usort($accountFinalCandidates, function ($a, $b) {
                     return $b['credits'] <=> $a['credits'];
                 });
+
+                Log::info("Account Candidates - Final candidates");
+                Log::info(json_encode($accountFinalCandidates));
 
                 if (count($accountFinalCandidates) > 0) {
                     $finalProvider = (object) $accountFinalCandidates[0]; //$query->first();
