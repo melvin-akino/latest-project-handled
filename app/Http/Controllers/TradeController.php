@@ -43,6 +43,7 @@ class TradeController extends Controller
 
             $betBarData = Order::getBetBarData(auth()->user()->id);
             $ouLabels   = OddType::where('type', 'LIKE', '%OU%')->pluck('id')->toArray();
+            $oeLabels   = OddType::where('type', 'LIKE', '%OE%')->pluck('id')->toArray();
             $data       = [];
             foreach ($betBarData as $betData) {
                 $proceed = false;
@@ -65,10 +66,14 @@ class TradeController extends Controller
                         $currentScore = $betData->current_score;
                     }
 
-                    $ou = "";
+                    $betTeam = "";
                     if (in_array($betData->odd_type_id, $ouLabels)) {
-                        $ou = explode(' ', $betData->odd_label);
-                        $ou = $ou[0] == "O" ? "Over " . $ou[1] : "Under " . $ou[1];
+                        $betTeam = explode(' ', $betData->odd_label);
+                        $betTeam = $betTeam[0] == "O" ? "Over " . $betTeam[1] : "Under " . $betTeam[1];
+                    }
+
+                    if (in_array($betData->odd_type_id, $oeLabels)) {
+                        $betTeam = $betData->odd_label == "O" ? "Odd" : "Even";
                     }
 
                     $score = explode(" - ", $currentScore);
@@ -89,7 +94,7 @@ class TradeController extends Controller
                             $betData->stake,
                             $betData->odd_label,
                             $betData->market_flag == 'HOME' ? $betData->master_team_home_name : $betData->master_team_away_name,
-                            $ou
+                            $betTeam
                         ],
                         'home_score'     => $score[0],
                         'away_score'     => $score[1],
