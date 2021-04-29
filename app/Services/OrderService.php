@@ -105,6 +105,7 @@ class OrderService
                 ]);
 
             $ouLabels = OddType::where('type', 'LIKE', '%OU%')->pluck('id')->toArray();
+            $oeLabels = OddType::where('type', 'LIKE', '%OE%')->pluck('id')->toArray();
 
             foreach ($data as $row) {
                 if (!in_array($row->id, $dups)) {
@@ -131,6 +132,10 @@ class OrderService
                         $teamname .= " " . explode(' ', $row->odd_label)[1];
                     }
 
+                    if (in_array($row->odd_type_id, $oeLabels)) {
+                        $teamname  = $row->odd_label == "O" ? "Odd" : "Even";
+                    }
+
                     $origBetSelection = explode(PHP_EOL, $row->bet_selection);
                     $betSelection     = implode("\n", [
                         $row->master_team_home_name . " vs " . $row->master_team_away_name,
@@ -138,13 +143,13 @@ class OrderService
                         end($origBetSelection),
                     ]);
 
-                    if (in_array($row->odd_type_id, $ouLabels)) {
+                    if (in_array($row->odd_type_id, $ouLabels) || in_array($row->odd_type_id, $oeLabels)) {
                         $lastLineBetSelection = end($origBetSelection);
                         $betPeriod            = strpos($lastLineBetSelection, "FT") !== false ? "FT " : (strpos($lastLineBetSelection, "HT") !== false ? "HT " : "");
-                        $ouScore              = explode('(', $lastLineBetSelection);
+                        $betSelectionScore    = explode('(', $lastLineBetSelection);
                         $betSelection         = implode("\n", [
                             $row->master_team_home_name . " vs " . $row->master_team_away_name,
-                            $betPeriod . $teamname . " @ " . $row->odds . " (" . $ouScore[1],
+                            $betPeriod . $teamname . " @ " . $row->odds . " (" . $betSelectionScore[1],
                         ]);
                     }
 
