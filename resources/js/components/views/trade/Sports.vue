@@ -46,7 +46,7 @@ export default {
         ...mapState('trade', ['sports', 'selectedSport', 'selectedLeagues']),
         sportsList() {
             if(this.isSportsListOpen) {
-                return moveToFirstElement(this.sports, 'id', this.selectedSport)
+                return moveToFirstElement(this.sports, 'id', null, this.selectedSport)
             } else {
                 return this.sports.filter(sport => sport.id == this.selectedSport)
             }
