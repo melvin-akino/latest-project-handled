@@ -21,8 +21,13 @@ const sortByObjectProperty = (array, property, equalValueProperty = null) => {
     }
 }
 
-const moveToFirstElement = (array, property, itemToCheck) => {
+const moveToFirstElement = (array, property, sortProperty = null, itemToCheck) => {
     let newArray = array.filter(item => item[property] != itemToCheck)
+    if(sortProperty) {
+        newArray = array.filter(item => item[property] != itemToCheck).sort((a,b) => (a[sortProperty] > b[sortProperty]) ? 1 : -1 )
+    } else {
+        newArray = array.filter(item => item[property] != itemToCheck)
+    }
     let elementToGoFirst = array.filter(item => item[property] == itemToCheck)[0]
     if(elementToGoFirst) {
         newArray.unshift(elementToGoFirst)
