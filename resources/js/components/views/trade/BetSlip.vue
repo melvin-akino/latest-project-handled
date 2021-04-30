@@ -374,9 +374,6 @@ export default {
     mounted() {
         this.getMarketDetails()
         this.$store.dispatch('trade/getBetSlipSettings')
-        setInterval(() => {
-            this.isRetrievingMarket = false
-        }, 10000)
     },
     methods: {
         getTradeWindowData(key) {
@@ -465,6 +462,7 @@ export default {
             this.minMaxUpdateCounter = 0
             this.isEventNotAvailable = false
             this.clearOrderMessage()
+            this.reloadSpread()
         },
         sendMinMax(market_id) {
             return new Promise((resolve) => {
