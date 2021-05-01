@@ -419,7 +419,7 @@ export default {
                 .then(response => {
                     this.market_details = response.data.data
                     this.formattedRefSchedule = response.data.data.ref_schedule.split(' ')
-                    this.points = this.tradeWindowPoints
+                    this.points = this.points ?? this.tradeWindowPoints
                     if(updatedPoints) {
                         if (setMinMaxProviders) {
                             this.setMinMaxProviders()
