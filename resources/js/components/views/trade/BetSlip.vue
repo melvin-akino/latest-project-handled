@@ -174,7 +174,7 @@ export default {
             market_details: {},
             formattedRefSchedule: [],
             inputPrice: null || twoDecimalPlacesFormat(this.odd_details.odd.odds),
-            points: null,
+            points: null || this.odd_details.odd.points,
             market_id: this.odd_details.odd.market_id,
             orderForm: {
                 stake: '',
@@ -419,7 +419,6 @@ export default {
                 .then(response => {
                     this.market_details = response.data.data
                     this.formattedRefSchedule = response.data.data.ref_schedule.split(' ')
-                    this.points = this.points ?? this.tradeWindowPoints
                     if(updatedPoints) {
                         if (setMinMaxProviders) {
                             this.setMinMaxProviders()
@@ -453,7 +452,6 @@ export default {
         },
         changePoint(points, market_id, odds) {
             this.emptyMinMax(this.market_id)
-            this.points = points
             this.market_id = market_id
             this.inputPrice = twoDecimalPlacesFormat(Number(odds))
             this.minmax(market_id)
@@ -462,6 +460,7 @@ export default {
             this.isEventNotAvailable = false
             this.clearOrderMessage()
             this.getMarketDetails(false, false)
+            this.points = points
         },
         sendMinMax(market_id) {
             return new Promise((resolve) => {
