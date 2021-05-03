@@ -38,13 +38,13 @@ class SidebarConsume implements CustomProcessInterface
                     $message = $kafkaConsumer->consume(0);
 
                     if ($message->err == RD_KAFKA_RESP_ERR_NO_ERROR) {
-                        $payload = json_decode($message->payload);
+                        $payload = json_decode($message->payload, true);
 
                         $gameSchedule = null;
                         $sidebarLeagues = null;
-                        foreach ($payload->data->sidebar as $schedule => $leagues) {
-                            $gameSchedule = $schedule;
-                            $sidebarLeagues = (array) $leagues;
+                        foreach ($payload['data']['sidebar'] as $schedule => $leagues) {
+                            $gameSchedule   = $schedule;
+                            $sidebarLeagues = $leagues;
                         }
 
                         if (is_null($gameSchedule) || is_null($sidebarLeagues)) {
@@ -61,11 +61,11 @@ class SidebarConsume implements CustomProcessInterface
                                 foreach ($watchlist as $wl) {
                                     if ($userId == $wl->user_id && $gameSchedule == $wl->game_schedule) {
                                         foreach ($userSidebar as $k => $usl) {
-                                            if ($usl->master_league_id == $wl->master_league_id) {
-                                                $userSidebar[$k]->match_count = (int) $userSidebar[$k]->match_count - $wl->match_count;
+                                            if ($usl['master_league_id'] == $wl->master_league_id) {
+                                                $userSidebar[$k]['match_count'] = (int) $userSidebar[$k]['match_count'] - $wl->match_count;
                                             } 
 
-                                            if ($userSidebar[$k]->match_count <= 0) {
+                                            if ($userSidebar[$k]['match_count'] <= 0) {
                                                 unset($userSidebar[$k]);
                                             }
                                         }
@@ -73,7 +73,7 @@ class SidebarConsume implements CustomProcessInterface
                                 }
 
                                 $userSport = getUserDefault($userId, 'sport');
-                                if ($userSport['default_sport'] == $payload->data->sport_id) {
+                                if ($userSport['default_sport'] == $payload['data']['sport_id']) {
                                     $swoole->push($row['value'], json_encode(['getSidebarLeagues' => [
                                         $gameSchedule => array_values($userSidebar)
                                     ]]));
