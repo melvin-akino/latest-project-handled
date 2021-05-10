@@ -30,6 +30,8 @@ class ProviderBet extends Model
     public static function getProviderBets(int $userBetId)
     {
         return self::join('providers as p' , 'p.id', 'provider_bets.provider_id')
+                ->leftJoin('provider_error_messages as pem', 'pem.id', 'provider_bets.provider_error_message_id')
+                ->leftJoin('error_messages as em', 'em.id', 'pem.error_message_id')
                 ->where('user_bet_id', $userBetId)
                 ->select([
                     'provider_bets.id',
@@ -41,7 +43,10 @@ class ProviderBet extends Model
                     'to_win',
                     'provider_bets.status',
                     'profit_loss as pl',
-                    'provider_bets.created_at'
+                    'provider_bets.created_at',
+                    'reason',
+                    'provider_error_message_id',
+                    'em.error as error_message'
                 ])
                 ->get();
     }
