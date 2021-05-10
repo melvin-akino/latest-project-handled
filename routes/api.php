@@ -98,6 +98,7 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
                     Route::get('bet-matrix/{uid}', 'OrdersController@betMatrixOrders');
 
                     Route::post('bet', 'OrdersController@postPlaceBet')->middleware(['prometheusopenbet','prometheusurlog']);
+                    Route::post('placebet', 'OrdersController@postPlaceBet');
                     Route::post('minmaxlog', 'OrdersController@receiveMinMaxLog');
 
 

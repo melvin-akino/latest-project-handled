@@ -314,6 +314,168 @@ class OrdersController extends Controller
         }
     }
 
+    public function bet(Request $request)
+    {
+        try {
+            DB::beginTransaction();
+
+            $swoole                = app('swoole');
+            $userProviderConfigSWT = $swoole->userProviderConfigTable;
+            $providersSWT          = $swoole->providersTable;
+
+            $betType      = $request->has('betType') ?? 'FAST_BET';
+            $stake        = $request->has('stake') ?? 0;
+            $orderExpiry  = $request->has('orderExpiry') ?? 30;
+            $marketId     = $request->has('market_id') ?? '';
+            $betLimit     = $request->has('bet_limit') ?? 0;
+            $betByMarkets = $request->has('markets') ?? [];
+
+            $mlBetId        = generateMLBetIdentifier();
+            $colMinusOne    = OddType::whereIn('type', ['1X2', 'HT 1X2', 'OE'])->pluck('id')->toArray();
+            $userId         = auth()->user()->id;
+            $userCurrencyId = auth()->user()->currency_id;
+            $userUuid       = auth()->user()->uuid;
+            $prevStake      = 0;
+            $walletToken    = SwooleHandler::getValue('walletClientsTable', 'ml-users')['token'];
+
+            $userCurrencyCode = Currency::find($userCurrencyId);
+            $userBalance      = WalletFacade::getBalance($walletToken, $userUuid, $userCurrencyCode->code);
+
+            if (empty($userBalance) || array_key_exists('error', $userBalance) || !array_key_exists('status_code', $userBalance) || $userBalance->status_code != 200) {
+                $toLogs = [
+                    "class"       => "OrdersController",
+                    "message"     => trans('game.wallet-api.error.user'),
+                    "module"      => "API_ERROR",
+                    "status_code" => 404,
+                ];
+                monitorLog('monitor_api', 'error', $toLogs);
+
+                throw new BadRequestException(trans('game.wallet-api.error.user'));
+            }
+
+            if ($userBalance->data->balance < $stake) {
+                $toLogs = [
+                    "class"       => "OrdersController",
+                    "message"     => trans('game.bet.errors.insufficient'),
+                    "module"      => "API_ERROR",
+                    "status_code" => 400,
+                ];
+                monitorLog('monitor_api', 'error', $toLogs);
+
+                throw new BadRequestException(trans('game.bet.errors.insufficient'));
+            }
+
+            foreach ($betByMarkets as $betByMarket) {
+                $userProviderPercentage = -1;
+                $userProviderConfigKey  = implode(':', [
+                    "userId:" . $userId,
+                    "pId:" . $betByMarket['provider_id'],
+                ]);
+
+                if ($userProviderConfigSWT->exists($userProviderConfigKey)) {
+                    if (!$userProviderConfigSWT[$userProviderConfigKey]['active']) {
+                        continue;
+                    } else {
+                        $userProviderPercentage = $userProviderConfigSWT[$userProviderConfigKey]['punter_percentage'];
+                    }
+                }
+
+                $providerKey  = "providerAlias:" . strtolower($betByMarket['provider']);
+                $providerInfo = [
+                    'alias'             => $providersSWT[$providerKey]['alias'],
+                    'currency_id'       => $providersSWT[$providerKey]['currency_id'],
+                    'is_enabled'        => $providersSWT[$providerKey]['is_enabled'],
+                    'punter_percentage' => $providersSWT[$providerKey]['punter_percentage']
+                ];
+
+                $userCurrencyInfo = [
+                    'id'   => $userCurrencyId,
+                    'code' => $currenciesSWT['currencyId:' . $userCurrencyId]['code'] ?? 'CNY'
+                ];
+
+                $providerCurrencyInfo = [
+                    'id'   => $providerInfo['currency_id'],
+                    'code' => $currenciesSWT['currencyId:' . $providerInfo['currency_id']]['code'] ?? 'CNY'
+                ];
+
+                $exchangeRatesKey = implode(":", [
+                    "from:" . $userCurrencyInfo['code'],
+                    "to:" . $providerCurrencyInfo['code'],
+                ]);
+
+                $exchangeRate = [
+                    'id'            => $exchangeRatesSWT[$exchangeRatesKey]['id'],
+                    'exchange_rate' => $exchangeRatesSWT[$exchangeRatesKey]['exchange_rate'],
+                ];
+
+                $percentage = $userProviderPercentage >= 0 ? $userProviderPercentage : $providerInfo['punter_percentage'];
+
+                $eventMarketData = Game::getMasterEventByMarketId($marketId, $betByMarket['provider_id']);
+                if (!$eventMarketData) {
+                    $toLogs = [
+                        "class"       => "OrdersController",
+                        "message"     => trans('game.bet.errors.place-bet-event-ended'),
+                        "module"      => "API_ERROR",
+                        "status_code" => 404,
+                    ];
+                    monitorLog('monitor_api', 'error', $toLogs);
+
+                    throw new NotFoundException(trans('game.bet.errors.place-bet-event-ended'));
+                }
+
+                // if ($prevStake == 0) {
+                //     $payloadStake = $stake < $betByMarket['max'] ? $stake : $betByMarket['max'];
+                // } else {
+                //     $payloadStake = $prevStake < $betByMarket['max'] ? $prevStake : $betByMarket['max'];
+                // }
+
+                // if ($payloadStake < $betByMarket['min']) {
+                //     $toLogs = [
+                //         "class"       => "OrdersController",
+                //         "message"     => trans('game.bet.errors.not-enough-min-stake'),
+                //         "module"      => "API_ERROR",
+                //         "status_code" => 400,
+                //     ];
+                //     monitorLog('monitor_api', 'error', $toLogs);
+
+                //     throw new BadRequestException(trans('game.bet.errors.not-enough-min-stake'));
+                // }
+
+                /**
+                 * @TODO Create the user bet record
+                 * @TODO Split stake based on provider max bet
+                 * @TODO pass the split stakes to queueing service
+                 */
+
+                
+
+                 /**
+                  * @TODO Create the user bet record
+                  */
+
+                /**
+                 * @TODO Split the stake based on providers max bet
+                 */
+                do {
+                    $providerStake = ($stake - $betLimit > 0) ? $betLimit : $stake;
+                    $stake         = ($betLimit <= $stake - $betLimit) ? $betLimit : $stake - $betLimit;
+
+                    
+                    $betData = [
+
+                    ];
+                    $orderCreation  = betCreation($userId, $eventMarketData->sport_id, $betByMarket['provider_id'], $betData, $exchangeRate, $mlBetId, $colMinusOne);
+                } while ($stake > $betLimit);
+
+                //$actualStake = ($payloadStake * $exchangeRate['exchange_rate']) / ($percentage / 100);
+            }
+
+            DB::commit();
+        } catch (Exception $e) {
+            DB::rollback();
+        }
+    }
+
     public function postPlaceBet(Request $request)
     {
         try {
