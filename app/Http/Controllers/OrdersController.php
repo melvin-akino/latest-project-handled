@@ -17,7 +17,8 @@ use App\Models\{
     Order,
     Timezones,
     UserWallet,
-    ProviderAccount
+    ProviderAccount,
+    ProviderBet
 };
 use Illuminate\Http\Request;
 use Illuminate\Support\{Facades\DB, Facades\Log, Str};
@@ -923,5 +924,32 @@ class OrdersController extends Controller
     public function myHistory(OrderRequest $request)
     {
         return OrderFacade::getOrders($request);
+    }
+
+    public function getProviderBets(int $userBetId)
+    {
+        try {
+            $providerBets = ProviderBet::getProviderBets($userBetId);
+
+            return response()->json([
+                'status' => true,
+                'status_code' => 200,
+                'data' => $providerBets
+            ]);
+        } catch (Exception $e) {
+            $toLogs = [
+                "class"       => "OrdersController",
+                "message"     => "Line " . $e->getLine() . " | " . $e->getMessage(),
+                "module"      => "API_ERROR",
+                "status_code" => $e->getCode(),
+            ];
+            monitorLog('monitor_api', 'error', $toLogs);
+
+            return response()->json([
+                'status'      => false,
+                'status_code' => 500,
+                'message'     => trans('generic.internal-server-error')
+            ], 500);
+        }
     }
 }
