@@ -69,12 +69,12 @@
                                     <td class="text-right">{{ props.item.valid_stake }}</td>
                                     <td class="text-right" v-adjust-total-pl-color="props.item.pl">{{ props.item.pl }}</td>
                                     <td class="text-right">
-                                        <a href="#" @click.prevent="openBetMatrix(props.item.order_id, `${props.item.order_id}-betmatrix`)"
+                                        <a href="#" @click.prevent="openBetMatrix(props.item.order_id, `${props.item.order_id}-betmatrix`)" @click.stop
                                             class="betdata-btn text-center rounded-full py-2 px-3 hover:bg-gray-400 w-1/2"
                                             v-if="oddTypesWithSpreads.includes(props.item.odd_type_id) && !failedBetStatus.includes(props.item.status)">
                                                 <i class="fas fa-chart-area" title="Bet Matrix"></i>
                                         </a>
-                                        <a href="#" @click.prevent="openOddsHistory(props.item.order_id, `${props.item.order_id}-orderlogs`)"
+                                        <a href="#" @click.prevent="openOddsHistory(props.item.order_id, `${props.item.order_id}-orderlogs`)" @click.stop
                                             class="betdata-btn text-center rounded-full py-2 px-3 hover:bg-gray-400 w-1/2"
                                             :class="{'ml-4': !oddTypesWithSpreads.includes(props.item.odd_type_id) || failedBetStatus.includes(props.item.status)}">
                                                 <i class="fas fa-bars" title="Odds History"></i>
