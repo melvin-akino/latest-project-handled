@@ -951,6 +951,7 @@ class OrdersController extends Controller
                     'odds'        => $providerBet->odds,
                     'towin'       => $providerBet->to_win,
                     'status'      => $providerBet->status,
+                    'valid_stake' => !empty($providerBet->pl) ? abs($providerBet->pl) : 0,
                     'pl'          => $providerBet->pl,
                     'reason'      => !empty($providerBet->provider_error_message_id) ? $providerBet->error_message : $providerBet->reason,
                     'created'     => Carbon::createFromFormat("Y-m-d H:i:s", $providerBet->created_at, 'Etc/UTC')->setTimezone($userTz)->format("Y-m-d H:i:s")
