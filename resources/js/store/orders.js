@@ -19,6 +19,13 @@ const mutations = {
     SET_GROUP_SORT: (state, group_sort) => {
         state.groupDesc = group_sort
     },
+    SET_PROVIDER_BETS_FOR_ORDER: (state, data) => {
+        state.myorders.map(order => {
+            if(order.order_id == data.order_id) {
+                Vue.set(order, 'provider_bets', data.provider_bets)
+            }
+        })
+    }
 }
 
 const actions = {
@@ -68,6 +75,35 @@ const actions = {
                 commit('SET_MY_ORDERS', [])
             })
     },
+    getProviderBets({commit, dispatch}, order_id) {
+        axios.get(`v1/orders/provider-bets/${order_id}`, { headers: { 'Authorization': `Bearer ${token}` }})
+            .then(response => {
+                let data = []
+                let formattedColumns = ['stake', 'towin', 'pl', 'valid_stake']
+                if (response.data.data != null) {
+                    response.data.data.map(bet => {
+                        let obj = {}
+                        Object.keys(bet).map(key => {
+                            if(formattedColumns.includes(key)) {
+                                Vue.set(obj, key, moneyFormat(Number(bet[key])))
+                            } else if(key=='odds') {
+                                Vue.set(obj, key, twoDecimalPlacesFormat(Number(bet[key])))
+                            }  else {
+                                Vue.set(obj, key, bet[key])
+                            }
+                        })
+                        if(bet.status == 'SUCCESS') {
+                            Vue.set(obj, 'status', 'PLACED')
+                        }
+                        data.push(obj)
+                    })
+                }
+                commit('SET_PROVIDER_BETS_FOR_ORDER', { order_id, provider_bets: data })
+            })
+            .catch(err => {
+                dispatch('auth/checkIfTokenIsValid', err.response.status, { root: true })
+            })
+    }
 }
 
 export default {

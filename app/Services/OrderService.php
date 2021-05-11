@@ -24,17 +24,10 @@ class OrderService
             }
 
             $dups    = [];
-            $where[] = ['o.user_id', auth()->user()->id];
-            $data    = DB::table('orders AS o')
-                ->join('sports AS s', 's.id', '=', 'o.sport_id')
-                ->join('provider_accounts AS pa', 'pa.id', '=', 'o.provider_account_id')
-                ->join('providers AS p', 'p.id', '=', 'pa.provider_id')
-                ->join('users AS u', 'u.id', '=', 'o.user_id')
-                ->join('order_logs AS ol', 'ol.order_id', '=', 'o.id')
-                ->join('provider_account_orders AS pao', 'pao.order_log_id', '=', 'ol.id')
-                ->join('odd_types AS ot', 'ot.id', '=', 'o.odd_type_id')
-                ->leftJoin('provider_error_messages as pem', 'pem.id','=', 'o.provider_error_message_id' )
-                ->leftJoin('error_messages AS em', 'em.id', '=', 'pem.error_message_id');
+            $where[] = ['ub.user_id', auth()->user()->id];
+            $data    = DB::table('user_bets AS ub')
+                ->join('odd_types AS ot', 'ot.id', '=', 'ub.odd_type_id')
+                ->join('sport_odd_type as sot', 'ot.id', 'sot.odd_type_id');
 
             if (!empty($where)) {
                 $data = $data->where($where);
@@ -44,64 +37,50 @@ class OrderService
                     $requestTo   = Carbon::createFromFormat("Y-m-d", $request->date_to, 'Etc/UTC')->setTimezone($userTz)->format("Y-m-d") . " 11:59:59";
 
                     if ($request->period == "daily") {
-                        $data = $data->whereBetween(DB::raw("o.created_at AT TIME ZONE 'UTC' AT TIME ZONE '$userTz'"), [ $request->date_from . " 00:00:00", $request->date_from . " 23:59:59" ]);
+                        $data = $data->whereBetween(DB::raw("ub.created_at AT TIME ZONE 'UTC' AT TIME ZONE '$userTz'"), [ $request->date_from . " 00:00:00", $request->date_from . " 23:59:59" ]);
                     } else {
-                        $data = $data->whereBetween(DB::raw("o.created_at AT TIME ZONE 'UTC' AT TIME ZONE '$userTz'"), [ $requestFrom, $requestTo ]);
+                        $data = $data->whereBetween(DB::raw("ub.created_at AT TIME ZONE 'UTC' AT TIME ZONE '$userTz'"), [ $requestFrom, $requestTo ]);
                     }
                 }
 
                 if (!empty($request->search_by)) {
                     switch ($request->search_by) {
                         case "league_names":
-                            $data = $data->where('o.master_league_name', 'ILIKE', trim(str_replace('%', '^', $request->search_keyword)) . "%");
+                            $data = $data->where('ub.master_league_name', 'ILIKE', trim(str_replace('%', '^', $request->search_keyword)) . "%");
                         break;
                         case "team_names":
                             $data = $data->where(function ($query) use ($request) {
-                                $query->where('o.master_team_home_name', 'ILIKE', $request->search_keyword . "%")
-                                    ->orWhere('o.master_team_away_name', 'ILIKE', $request->search_keyword . "%");
+                                $query->where('ub.master_team_home_name', 'ILIKE', $request->search_keyword . "%")
+                                    ->orWhere('ub.master_team_away_name', 'ILIKE', $request->search_keyword . "%");
                             });
                         break;
                     }
                 }
             }
 
-            $data = $data->orderBy('o.id', 'ASC')
-                ->orderBy('pao.order_log_id', 'DESC')
+            $data = $data->orderBy('ub.id', 'ASC')
                 ->distinct()
                 ->get([
-                    'o.id',
-                    'o.odd_type_id',
+                    'ub.id',
+                    'ml_bet_identifier',
+                    'ub.created_at',
+                    'master_event_unique_id',
+                    'mem_uid',
+                    'master_league_name',
+                    'master_team_home_name',
+                    'master_team_away_name',
+                    'market_flag',
+                    'ub.odd_type_id',
                     'ot.type as odd_type',
-                    'p.id as provider_id',
-                    'p.alias as provider',
-                    's.id as sport_id',
-                    's.sport',
-                    'o.bet_selection',
-                    'pao.order_log_id',
-                    'u.email',
-                    'o.ml_bet_identifier',
-                    'o.bet_id',
-                    'pa.username',
-                    'o.created_at',
-                    'o.settled_date',
-                    'o.reason',
-                    'o.status',
-                    'o.stake',
-                    'o.to_win',
-                    'o.score_on_bet',
-                    'o.final_score',
-                    'o.profit_loss',
-                    'o.master_league_name',
-                    'o.master_team_home_name',
-                    'o.master_team_away_name',
-                    'o.master_event_unique_id',
-                    'pao.actual_stake',
-                    'pao.actual_to_win',
-                    'pao.actual_profit_loss',
-                    'o.odds',
-                    'o.odd_label',
-                    'em.error',
-                    'o.market_flag',
+                    'sot.name as column_type',
+                    'stake',
+                    'odds',
+                    'odds_label',
+                    'status',
+                    'score_on_bet',
+                    'final_score',
+                    DB::raw('(SELECT SUM(to_win) FROM provider_bets WHERE user_bet_id = ub.id) as to_win'),
+                    DB::raw('(SELECT SUM(profit_loss) FROM provider_bets WHERE user_bet_id = ub.id) as profit_loss'),
                 ]);
 
             $ouLabels = OddType::where('type', 'LIKE', '%OU%')->pluck('id')->toArray();
@@ -110,10 +89,9 @@ class OrderService
             foreach ($data as $row) {
                 if (!in_array($row->id, $dups)) {
                     $created = Carbon::createFromFormat("Y-m-d H:i:s", $row->created_at, 'Etc/UTC')->setTimezone($userTz)->format("Y-m-d H:i:s");
-                    $settled = empty($row->settled_date) ? "" : Carbon::createFromFormat("Y-m-d H:i:sO", $row->settled_date, 'Etc/UTC')->setTimezone($userTz)->format("Y-m-d H:i:s");
 
                     $scorePrefix = strpos($row->odd_type, 'HT ') !== false ? 'HT ' : 'FT ';
-                    if (!empty($row->settled_date) && !empty($row->final_score)) {
+                    if (!empty($row->final_score)) {
                         $score = array_map('trim', explode('-', $row->final_score));
                     } else {
                         $score = array_map('trim', explode('-', $row->score_on_bet));
@@ -127,29 +105,26 @@ class OrderService
                     }
 
                     if (in_array($row->odd_type_id, $ouLabels)) {
-                        $ou        = explode(' ', $row->odd_label)[0];
+                        $ou        = explode(' ', $row->odds_label)[0];
                         $teamname  = $ou == "O" ? "Over" : "Under";
-                        $teamname .= " " . explode(' ', $row->odd_label)[1];
+                        $teamname .= " " . explode(' ', $row->odds_label)[1];
                     }
 
                     if (in_array($row->odd_type_id, $oeLabels)) {
-                        $teamname  = $row->odd_label == "O" ? "Odd" : "Even";
+                        $teamname  = $row->odds_label == "O" ? "Odd" : "Even";
                     }
 
-                    $origBetSelection = explode(PHP_EOL, $row->bet_selection);
                     $betSelection     = implode("\n", [
                         $row->master_team_home_name . " vs " . $row->master_team_away_name,
                         $teamname . " @ " . $row->odds,
-                        end($origBetSelection),
+                        $row->column_type. " ". $row->odds_label ."(" . $row->score_on_bet .")"
                     ]);
 
                     if (in_array($row->odd_type_id, $ouLabels) || in_array($row->odd_type_id, $oeLabels)) {
-                        $lastLineBetSelection = end($origBetSelection);
-                        $betPeriod            = strpos($lastLineBetSelection, "FT") !== false ? "FT " : (strpos($lastLineBetSelection, "HT") !== false ? "HT " : "");
-                        $betSelectionScore    = explode('(', $lastLineBetSelection);
+                        $betPeriod            = strpos($row->column_type, "FT") !== false ? "FT " : (strpos($row->column_type, "HT") !== false ? "HT " : "");
                         $betSelection         = implode("\n", [
                             $row->master_team_home_name . " vs " . $row->master_team_away_name,
-                            $betPeriod . $teamname . " @ " . $row->odds . " (" . $betSelectionScore[1],
+                            $betPeriod . $teamname . " @ " . $row->odds ."(" . $row->score_on_bet .")"
                         ]);
                     }
 
@@ -159,10 +134,8 @@ class OrderService
                         'date'          => date("Y-m-d", strtotime($created)),
                         'leaguename'    => $row->master_league_name,
                         'bet_id'        => $row->ml_bet_identifier,
-                        'provider'      => strtoupper($row->provider),
                         'bet_selection' => nl2br($betSelection),
                         'created'       => $created,
-                        'settled'       => $settled,
                         'status'        => $row->status,
                         'stake'         => $row->stake,
                         'valid_stake'   => $row->profit_loss ? abs($row->profit_loss) : 0,
@@ -171,12 +144,10 @@ class OrderService
                         'home_score'    => $score[0],
                         'away_score'    => $score[1],
                         'pl'            => (string) $row->profit_loss,
-                        'reason'        => $row->reason,
-                        'betData'       => $row->reason,
-                        'error_message' => $row->error,
                         'odds'          => $row->odds,
-                        'points'        => $row->odd_label,
+                        'points'        => $row->odds_label,
                         'event_id'      => $row->master_event_unique_id,
+                        'market_id'     => $row->mem_uid
                     ];
 
                     $dups[] = $row->id;
