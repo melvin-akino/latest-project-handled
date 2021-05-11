@@ -64,7 +64,7 @@
                                     <td class="text-right">{{ props.item.stake }}</td>
                                     <td class="text-center"><span class="block">{{ props.item.odds }}</span></td>
                                     <td class="text-right">{{ props.item.towin }}</td>
-                                    <td class="text-center font-bold">{{ props.item.status }}</td>
+                                    <td class="text-center font-bold status">{{ props.item.status }}</td>
                                     <td class="text-center"><span>{{ props.item.score.replace(/\"/g, '') }}</span></td>
                                     <td class="text-right">{{ props.item.valid_stake }}</td>
                                     <td class="text-right" v-adjust-total-pl-color="props.item.pl">{{ props.item.pl }}</td>
@@ -96,16 +96,16 @@
                                         <th class="text-right">Profit Loss</th>
                                         <th colspan="2" class="text-start">Reason</th>
                                     </tr>
-                                    <tr :rowspan="headers.length" v-for="bet in item.provider_bets" :key="bet.id">
+                                    <tr :class="{'_green': greenStatus.includes(item.status), '_failed': redStatus.includes(item.status)}" :rowspan="headers.length" v-for="bet in item.provider_bets" :key="bet.id">
                                         <td colspan="2" class="text-center">{{bet.bet_id}}</td>
                                         <td class="text-center">{{bet.created}}</td>
                                         <td class="text-start font-bold">{{bet.provider}}</td>
                                         <td class="text-right">{{bet.stake}}</td>
                                         <td class="text-center">{{bet.odds}}</td>
                                         <td class="text-right">{{bet.towin}}</td>
-                                        <td class="text-center font-bold">{{bet.status}}</td>
+                                        <td class="text-center font-bold status">{{bet.status}}</td>
                                         <td class="text-right">{{bet.valid_stake}}</td>
-                                        <td class="text-right">{{bet.pl}}</td>
+                                        <td class="text-right" v-adjust-total-pl-color="item.pl">{{bet.pl}}</td>
                                         <td colspan="2" class="text-start">{{bet.reason}}</td>
                                     </tr>
                                 </template>
@@ -413,7 +413,7 @@
                 box-shadow: inset 5px 0px 0px 0px #FF2525 !important;
             }
 
-            &:nth-child(8) {
+            &.status {
                 color: #FF2525 !important;
             }
         }
@@ -425,7 +425,7 @@
                 box-shadow: inset 5px 0px 0px 0px #009E28 !important;
             }
 
-            &:nth-child(8) {
+            &.status {
                 color: #009E28 !important;
             }
         }
