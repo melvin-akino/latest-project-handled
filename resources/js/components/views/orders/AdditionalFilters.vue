@@ -74,6 +74,7 @@
                         outlined
                         dense
                         hide-no-data
+                        clearable
                         @keypress.native="form.search_keyword = $event.target.value"
                         style="margin-top: -2px; margin-bottom: -29px; font-size: 0.8rem;"></v-combobox>
 
@@ -387,5 +388,11 @@
         .redPL {
             color: #FF2525 !important;
         }
+    }
+
+    .v-input__icon--clear button {
+        position: absolute !important;
+        right: 3px;
+        font-size: 15px !important;
     }
 </style>
