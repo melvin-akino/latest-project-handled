@@ -66,18 +66,16 @@
                     </select><br />
 
                     <label class="font-bold text-xs uppercase">Search Keyword</label><br />
-                    <v-container>
-                        <v-combobox
-                            class="w-full text-xs uppercase"
-                            v-model="form.search_keyword"
-                            :items="search_keywords"
-                            height="38"
-                            outlined
-                            dense
-                            hide-no-data
-                            @keypress.native="form.search_keyword = $event.target.value"
-                            style="margin-top: -2px; margin-bottom: -29px; font-size: 0.8rem;"></v-combobox>
-                    </v-container>
+                    <v-combobox
+                        class="w-full text-xs uppercase"
+                        v-model="form.search_keyword"
+                        :items="search_keywords"
+                        height="38"
+                        outlined
+                        dense
+                        hide-no-data
+                        @keypress.native="form.search_keyword = $event.target.value"
+                        style="margin-top: -2px; margin-bottom: -29px; font-size: 0.8rem;"></v-combobox>
 
                     <div class="" v-if="this.myorders.length > 0">
                         <!-- Button Group -->
@@ -135,7 +133,7 @@
 <script>
     import Cookies from 'js-cookie'
     import { mapState, mapActions } from 'vuex'
-    import { twoDecimalPlacesFormat, moneyFormat } from '../../../helpers/numberFormat'
+    import { moneyFormat } from '../../../helpers/numberFormat'
     import moment from 'moment-timezone'
     import JsonExcel from 'vue-json-excel'
     import JsonCsv from 'vue-json-csv'
