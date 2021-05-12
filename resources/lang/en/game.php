@@ -18,6 +18,7 @@ return [
             'place-bet-event-ended' => "Match already ended. Please close this Bet Slip.",
             'not-enough-min-stake'  => "Stake lower than minimum stake or cannot proceed to next provider.",
         ],
+        'empty-market' => "Your Orders are empty! Please select at least one (1) market.",
     ],
     'bet_slip_logs' => [
         'order_placed' => "Order Placed",

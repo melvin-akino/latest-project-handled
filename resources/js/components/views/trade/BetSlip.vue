@@ -600,7 +600,8 @@ export default {
                     betType: this.orderForm.betType,
                     stake: this.orderForm.stake,
                     orderExpiry: this.orderForm.orderExpiry,
-                    market_id: this.market_id
+                    market_id: this.market_id,
+                    odds: this.inputPrice
                 }
 
                 if(this.orderForm.betType == 'FAST_BET') {
