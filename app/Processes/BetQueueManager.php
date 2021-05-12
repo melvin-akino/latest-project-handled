@@ -19,7 +19,7 @@ class BetQueueManager implements CustomProcessInterface
     public static function callback(Server $swoole, Process $process)
     {
         $minMaxData = $swoole->minMaxDataTable;
-        $minMaxRequest $swoole->minMaxRequestsTable;
+        $minMaxRequest = $swoole->minMaxRequestsTable;
 
         $walletToken = SwooleHandler::getValue('walletClientsTable', 'ml-users')['token'];
 
@@ -135,7 +135,7 @@ class BetQueueManager implements CustomProcessInterface
 
 
                                 //Create provider Bets
-                                ProviderBet::firstOrCreate([
+                                $providerBet = ProviderBet::firstOrCreate([
                                     'user_bet_id' => $userBet->id,
                                     'provider_id' => $provider->id,
                                     'provider_account_id' => $providerAccountId,
@@ -150,6 +150,11 @@ class BetQueueManager implements CustomProcessInterface
                                     'settled_date' => null,
                                     'created_at' => Carbon::now(),
                                     'updated_at' => null
+                                ]);
+
+                                ProviderBetLog::create([
+                                    'provider_bet_id' => $providerBet->id,
+                                    'status' => 'PENDING'
                                 ]);
                             }
                             
