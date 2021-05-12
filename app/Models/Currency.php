@@ -19,4 +19,26 @@ class Currency extends Model
         'created_at',
         'updated_at',
     ];
+
+    public static function getIdByCode(string $code)
+    {
+        $query = self::where('code', $code);
+
+        if ($query->count() == 0) {
+            return false;
+        }
+
+        return $query->first()->id;
+    }
+
+    public static function getCodeById(int $id)
+    {
+        $query = self::where('id', $id);
+
+        if ($query->count() == 0) {
+            return false;
+        }
+
+        return $query->first()->code;
+    }
 }

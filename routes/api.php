@@ -97,11 +97,9 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
                     Route::get('logs/{uid}', 'OrdersController@getBetSlipLogs');
                     Route::get('bet-matrix/{uid}', 'OrdersController@betMatrixOrders');
 
-                    Route::post('bet', 'OrdersController@postPlaceBet')->middleware(['prometheusopenbet','prometheusurlog']);
-                    Route::post('placebet', 'OrdersController@postPlaceBet');
+                    Route::post('old/bet', 'OrdersController@postPlaceBet')->middleware(['prometheusopenbet','prometheusurlog']);
+                    Route::post('bet', 'OrdersController@bet');
                     Route::post('minmaxlog', 'OrdersController@receiveMinMaxLog');
-
-
                 });
 
                 /** Game Data Route Endpoints*/
