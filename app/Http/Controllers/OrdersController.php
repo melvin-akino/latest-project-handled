@@ -363,9 +363,10 @@ class OrdersController extends Controller
                 throw new BadRequestException(trans('game.bet.errors.insufficient'));
             }
 
-            $eventMarketData = Game::getMasterEventByMarketId($request->market_id, $request->markets[0]['provider_id']);
+            $eventMarketData      = Game::getMasterEventByMarketId($request->market_id, $request->markets[0]['provider_id']);
+            $providerCurrencyInfo = Currency::find(Provider::find($request->markets[0]['provider_id'])->currency_id);
 
-            UserBet::create([
+            $placeBet = UserBet::create([
                 'user_id'                => auth()->user()->id,
                 'sport_id'               => $eventMarketData->sport_id,
                 'odd_type_id'            => $eventMarketData->odd_type_id,
@@ -386,6 +387,9 @@ class OrdersController extends Controller
                 'master_team_away_name'  => $eventMarketData->master_team_away_name,
                 'market_providers'       => implode(',', array_column($request->markets, 'provider_id')),
             ]);
+
+            $userWalletToken = SwooleHandler::getValue('walletClientsTable', 'ml-users')['token'];
+            $userPlaceBet    = WalletFacade::addBalance($userWalletToken, auth()->user()->uuid, trim($providerCurrencyInfo->code), ($request->stake), "[PLACE_BET][BET_PENDING] - transaction for user bet id " . $placeBet->id;);
 
             DB::commit();
         } catch (BadRequestException $e) {
