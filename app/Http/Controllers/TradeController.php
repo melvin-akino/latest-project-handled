@@ -41,7 +41,6 @@ class TradeController extends Controller
                 $userTz = Timezones::find($getUserConfig->value)->name;
             }
 
-            // $betBarData = Order::getBetBarData(auth()->user()->id);
             $betBarData = DB::table('bet_bar_v2')->where('user_id', auth()->user()->id)->get();
             $ouLabels   = OddType::where('type', 'LIKE', '%OU%')->pluck('id')->toArray();
             $oeLabels   = OddType::where('type', 'LIKE', '%OE%')->pluck('id')->toArray();
@@ -81,14 +80,14 @@ class TradeController extends Controller
 
                     $userBetBar = DB::table('bet_bar_v2')
                         ->where('user_id', auth()->user()->id)
-                        ->where('user_bet_id', $orderId)
+                        ->where('user_bet_id', $betData->user_bet_id)
                         ->pluck([
                             'sum',
                             'status',
                         ]);
 
                     $data[] = [
-                        "bet_id"       => $orderId,
+                        "bet_id"       => $betData->user_bet_id,
                         'odd_type_id'  => $betData->odd_type_id,
                         'league_name'  => $betData->master_league_name,
                         'home'         => $betData->master_team_home_name,
