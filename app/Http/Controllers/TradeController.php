@@ -80,7 +80,7 @@ class TradeController extends Controller
                     $score = array_map('trim', explode('-', $currentScore));
 
                     $userBetBar = DB::table('bet_bar_v2')
-                        ->where('user_id', $userId)
+                        ->where('user_id', auth()->user()->id)
                         ->where('user_bet_id', $orderId)
                         ->pluck([
                             'sum',
