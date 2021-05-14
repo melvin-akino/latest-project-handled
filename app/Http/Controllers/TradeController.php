@@ -77,29 +77,39 @@ class TradeController extends Controller
                         $betTeam = $betData->odds_label == "O" ? "Odd" : "Even";
                     }
 
-                    $score = explode(" - ", $currentScore);
+                    $score = array_map('trim', explode('-', $currentScore));
+
+                    $userBetBar = DB::table('bet_bar_v2')
+                        ->where('user_id', $userId)
+                        ->where('user_bet_id', $orderId)
+                        ->pluck([
+                            'sum',
+                            'status',
+                        ]);
 
                     $data[] = [
-                        'user_bet_id'  => $betData->user_bet_id,
-                        'event_id'     => $betData->master_event_unique_id,
-                        'market_id'    => $betData->mem_uid,
+                        "bet_id"       => $orderId,
                         'odd_type_id'  => $betData->odd_type_id,
                         'league_name'  => $betData->master_league_name,
                         'home'         => $betData->master_team_home_name,
                         'away'         => $betData->master_team_away_name,
                         'bet_info'     => [
-                            $betData->market_flag,
-                            $betData->odd_type,
-                            $betData->odds,
-                            $betData->stake,
-                            $betData->odds_label,
-                            $betData->market_flag == 'HOME' ? $betData->master_team_home_name : $betData->master_team_away_name,
-                            $betTeam
+                            'market_flag'  => $betData->market_flag,
+                            'betting_team' => $betTeam,
+                            'odds'         => $betData->odds,
+                            'odd_type'     => $betData->odd_type,
+                            'odd_label'    => $betData->odds_label,
+                            'stake'        => $betData->stake,
                         ],
-                        'home_score'   => $score[0],
-                        'away_score'   => $score[1],
-                        'score_on_bet' => $betData->score_on_bet,
-                        'status'       => $betData->status,
+                        'score_on_bet' => [
+                            'home' => $score[0],
+                            'away' => $score[1]
+                        ],
+                        'bet_status'   => [
+                            "placed" => !array_key_exists('SUCCESS', $userBetBar) ? null : number_format($userBetBar['SUCCESS'], 2, ',', '.'),
+                            "queued" => !array_key_exists('PENDING', $userBetBar) ? null : number_format($userBetBar['PENDING'], 2, ',', '.'),
+                            "failed" => !array_key_exists('FAILED', $userBetBar) ? null : number_format($userBetBar['FAILED'], 2, ',', '.'),
+                        ],
                         'created_at'   => Carbon::createFromFormat("Y-m-d H:i:s", $betData->created_at, 'Etc/UTC')->setTimezone($userTz)->format("Y-m-d H:i:s"),
                     ];
                 }
