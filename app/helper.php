@@ -810,17 +810,15 @@ if (!function_exists('orderStatus')) {
             $userBetBar = DB::table('bet_bar_v2')
                 ->where('user_id', $userId)
                 ->where('user_bet_id', $orderId)
-                ->pluck([
-                    'sum',
-                    'status',
-                ]);
+                ->pluck('sum', 'status')
+                ->toArray();
 
             $getOrderStatus = [
                 'bet_id'     => $orderId,
                 'bet_status' => [
-                    "placed" => !array_key_exists('SUCCESS', $userBetBar) ? null : number_format($userBetBar['SUCCESS'], 2, ',', '.'),
-                    "queued" => !array_key_exists('PENDING', $userBetBar) ? null : number_format($userBetBar['PENDING'], 2, ',', '.'),
-                    "failed" => !array_key_exists('FAILED', $userBetBar) ? null : number_format($userBetBar['FAILED'], 2, ',', '.'),
+                    "placed" => array_key_exists('SUCCESS', $userBetBar) ? number_format($userBetBar['SUCCESS'], 2, '.', ',') : null,
+                    "queued" => array_key_exists('PENDING', $userBetBar) ? number_format($userBetBar['PENDING'], 2, '.', ',') : null,
+                    "failed" => array_key_exists('FAILED', $userBetBar) ? number_format($userBetBar['FAILED'], 2, '.', ',') : null,
                 ],
             ];
 
