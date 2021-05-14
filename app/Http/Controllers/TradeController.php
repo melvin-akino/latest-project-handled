@@ -92,6 +92,8 @@ class TradeController extends Controller
                             'league_name'  => $betData->master_league_name,
                             'home'         => $betData->master_team_home_name,
                             'away'         => $betData->master_team_away_name,
+                            'event_id'     => $betData->master_event_unique_id,
+                            'market_id'    => $betData->mem_uid,
                             'bet_info'     => [
                                 'market_flag'  => $betData->market_flag,
                                 'betting_team' => $betTeam,
