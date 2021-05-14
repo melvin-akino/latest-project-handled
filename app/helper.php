@@ -801,20 +801,32 @@ if (!function_exists('providerErrorMapping')) {
 
 
 if (!function_exists('orderStatus')) {
-    function orderStatus($userId, $orderId, $status, $odds, $expiry, $createdAt)
+    function orderStatus($userId, $orderId, $expiry, $createdAt)
     {
         $swoole = app('swoole');
 
         if ($swoole->wsTable->exists('uid:' . $userId)) {
-            $fd = $swoole->wsTable->get('uid:' . $userId);
+            $fd         = $swoole->wsTable->get('uid:' . $userId);
+            $userBetBar = DB::table('bet_bar_v2')
+                ->where('user_id', $userId)
+                ->where('user_bet_id', $orderId)
+                ->pluck([
+                    'sum',
+                    'status',
+                ]);
+
+            $getOrderStatus = [
+                'bet_id'     => $orderId,
+                'bet_status' => [
+                    "placed" => !array_key_exists('SUCCESS', $test) ? null : number_format($userBetBar['SUCCESS'], 2, ',', '.'),
+                    "queued" => !array_key_exists('PENDING', $test) ? null : number_format($userBetBar['PENDING'], 2, ',', '.'),
+                    "failed" => !array_key_exists('FAILED', $test) ? null : number_format($userBetBar['FAILED'], 2, ',', '.'),
+                ],
+            ];
 
             if ($swoole->isEstablished($fd['value'])) {
                 $swoole->push($fd['value'], json_encode([
-                    'getOrderStatus' => [
-                        'order_id' => $orderId,
-                        'status'   => $status,
-                        'odds'     => $odds
-                    ]
+                    'getOrderStatus' => $getOrderStatus
                 ]));
             } else {
                 $requestId = (string) Str::uuid();
@@ -828,11 +840,7 @@ if (!function_exists('orderStatus')) {
                     'user_id' => $userId,
                     'retry'   => 1,
                     'payload' => [
-                        'getOrderStatus' => [
-                            'order_id' => $orderId,
-                            'status'   => $status,
-                            'odds'     => $odds
-                        ]
+                        'getOrderStatus' => $getOrderStatus
                     ]
                 ];
 
@@ -843,6 +851,7 @@ if (!function_exists('orderStatus')) {
                 'FAILED',
                 'CANCELLED',
             ];
+
             if (in_array(strtoupper($status), $forBetBarRemoval)) {
                 if (time() - strtotime($createdAt) > $expiry) {
                     SwooleHandler::setValue('topicTable', 'userId:' . $userId . ':unique:' . uniqid(), [
