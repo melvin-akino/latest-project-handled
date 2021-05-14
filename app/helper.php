@@ -818,9 +818,9 @@ if (!function_exists('orderStatus')) {
             $getOrderStatus = [
                 'bet_id'     => $orderId,
                 'bet_status' => [
-                    "placed" => !array_key_exists('SUCCESS', $test) ? null : number_format($userBetBar['SUCCESS'], 2, ',', '.'),
-                    "queued" => !array_key_exists('PENDING', $test) ? null : number_format($userBetBar['PENDING'], 2, ',', '.'),
-                    "failed" => !array_key_exists('FAILED', $test) ? null : number_format($userBetBar['FAILED'], 2, ',', '.'),
+                    "placed" => !array_key_exists('SUCCESS', $userBetBar) ? null : number_format($userBetBar['SUCCESS'], 2, ',', '.'),
+                    "queued" => !array_key_exists('PENDING', $userBetBar) ? null : number_format($userBetBar['PENDING'], 2, ',', '.'),
+                    "failed" => !array_key_exists('FAILED', $userBetBar) ? null : number_format($userBetBar['FAILED'], 2, ',', '.'),
                 ],
             ];
 
