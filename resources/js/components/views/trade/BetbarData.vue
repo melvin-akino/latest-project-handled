@@ -9,8 +9,8 @@
             <p v-if="bet.bet_info.betting_team">{{ bet.bet_info.betting_team }} {{ defaultPriceFormat }} ({{ bet.score_on_bet.home }} - {{ bet.score_on_bet.away }})</p>
             <p v-else>{{ bet.bet_info.market_flag == 'HOME' ? bet.home : bet.away }} {{ bet.bet_info.odd_type }} {{ defaultPriceFormat }} {{ bet.bet_info.odds_label }} ({{bet.score_on_bet.home}} - {{bet.score_on_bet.away}})</p>
         </div>
-        <div class="flex items-center w-7/12 py-1 px-3 parent-bet-bar">
-            <div v-for="(stake, status) in status" :key="status" class="flex items-center justify-center h-8 child-bet-bar" :class="status" :style="`width:${statusWidth(status)}; margin-right: 1px;`">
+        <div class="flex items-center w-7/12 py-1 px-3">
+            <div v-for="(stake, status) in status" :key="status" class="flex items-center justify-center h-8" :class="status" :style="`width:${statusWidth(status)}; margin-right: 1px;`">
                 <span class="uppercase font-semibold">{{ statusRename(status) }}</span> <span class="px-2">-</span> {{stake}}
             </div>
         </div>
@@ -104,15 +104,3 @@ export default {
     }
 }
 </script>
-
-<style lang="scss">
-    .parent-bet-bar {
-        .child-bet-bar:first-child {
-            border-radius: 5px 0px 0px 5px;
-        }
-
-        .child-bet-bar:last-child {
-            border-radius: 0px 5px 5px 0px;
-        }
-    }
-</style>
