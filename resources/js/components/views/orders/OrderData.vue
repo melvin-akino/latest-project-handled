@@ -27,16 +27,8 @@ export default {
         ...mapState('trade', ['wallet']),
         analysisData() {
             return {
-                stake: this.order.stake,
-                points: this.order.points,
-                price: this.order.odds,
                 home_score: this.order.home_score,
                 away_score: this.order.away_score,
-                odd_type: this.order.odd_type_id ,
-                created_at: this.order.created,
-                bet_team: this.order.bet_team,
-                price_format: this.defaultPriceFormat,
-                currency_symbol: this.wallet.currency_symbol
             }
         }
     },

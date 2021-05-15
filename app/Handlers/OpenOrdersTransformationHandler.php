@@ -14,7 +14,12 @@ use App\Models\{
     OddType,
     WalletLedger,
     ProviderAccount,
-    Currency
+    Currency,
+    Provider,
+    ProviderBet,
+    ProviderBetLog,
+    ProviderBetTransaction,
+    BetWalletTransaction
 };
 use Carbon\Carbon;
 use Exception;
@@ -59,16 +64,15 @@ class OpenOrdersTransformationHandler
                 if (!in_array(strtoupper($orderTable['status']), ['SUCCESS', 'PENDING'])) {
                     continue;
                 }
+
                 $orderId        = substr($_key, strlen('orderId:'));
                 $expiry         = $orderTable['orderExpiry'];
-                $orderData      = Order::find($orderId);
-                $userWallet     = UserWallet::where('user_id', $orderData->user_id)->first();
+                $orderData      = ProviderBet::find($orderId);
+                $userWallet     = UserWallet::where('user_id', $orderTable['user_id'])->first();
                 $sourceId       = Source::where('source_name', 'LIKE', 'PLACE_BET')->first();
-                $userId         = $orderData->user_id;
-                $orderLogsId    = 0;
+                $betLogId       = 0;
                 $walletLedgerId = 0;
                 $credit         = 0;
-                $reason         = "";
 
                 if (!empty($openOrders)) {
                     foreach ($openOrders as $order) {
@@ -80,33 +84,20 @@ class OpenOrdersTransformationHandler
                         if ($orderTable['bet_id'] == $betId) {
                             if (strtoupper($order->status) != strtoupper($orderData->status)) {
                                 $ordersTable[$_key]['status'] = strtoupper($order->status);
-                                $reason                       = $order->reason;
-                                $betSelectionArray            = explode("\n", $orderData->bet_selection);
-                                $betSelectionTeamOddsArray    = explode('@ ', $betSelectionArray[1]);
-                                $updatedOrderOdds             = $betSelectionTeamOddsArray[0] . '@ ' . number_format($order->odds, 2);
-                                $betSelection                 = implode("\n", [$betSelectionArray[0], $updatedOrderOdds, $betSelectionArray[2]]);
 
-                                Order::where('id', $orderId)->update([
+                                $providerBet = ProviderBet::where('id', $orderId);
+                                $providerBet->update([
                                     'provider_account_id' => ProviderAccount::getUsernameId($orderTable['username']),
                                     'status'              => strtoupper($order->status),
                                     'odds'                => $order->odds,
-                                    'reason'              => $reason,
-                                    'bet_selection'       => $betSelection,
+                                    'reason'              => $order->reason,
                                     'to_win'              => !in_array($orderData->odd_type_id, $colMinusOne) ? $orderData->stake * $order->odds : $orderData->stake * ($order->odds - 1),
                                     'bet_id'              => $betId
                                 ]);
 
-                                $orderLogs = OrderLogs::create([
-                                    'provider_id'   => $orderData->provider_id,
-                                    'sport_id'      => $orderData->sport_id,
-                                    'bet_id'        => $betId,
-                                    'bet_selection' => $betSelection,
-                                    'status'        => strtoupper($order->status),
-                                    'user_id'       => $userId,
-                                    'reason'        => $reason,
-                                    'profit_loss'   => 0.00,
-                                    'order_id'      => $orderId,
-                                    'settled_date'  => $orderData->settled_date
+                                $betLog = ProviderBetLog::create([
+                                    'provider_bet_id' => $providerBet->id,
+                                    'status'          => strtoupper($order->status),
                                 ]);
 
                                 $toLogs = [
@@ -118,15 +109,16 @@ class OpenOrdersTransformationHandler
                                 ];
                                 monitorLog('monitor_bet_info', 'info', $toLogs);
 
-                                $orderLogsId = $orderLogs->id;
+                                $betLogId = $betLog->id;
 
-                                ProviderAccountOrder::create([
-                                    'order_log_id'       => $orderLogsId,
+                                ProviderBetTransaction::create([
+                                    'order_log_id'       => $betLogId,
                                     'exchange_rate_id'   => $exchangeRate->id,
                                     'actual_stake'       => $stake,
                                     'actual_to_win'      => !in_array($orderData->odd_type_id, $colMinusOne) ? $stake * $order->odds : $stake * ($order->odds - 1),
                                     'actual_profit_loss' => 0.00,
                                     'exchange_rate'      => $exchangeRate->exchange_rate,
+                                    'punter_percentage'  => Provider::find($order->provider_id)->punter_percentage,
                                 ]);
 
                                 if (in_array(strtoupper($order->status), [
@@ -136,7 +128,7 @@ class OpenOrdersTransformationHandler
                                     $credit             = $orderData->stake;
                                     $walletClientsTable = app('swoole')->walletClientsTable;
                                     $userToken          = $walletClientsTable['ml-users']['token'];
-                                    $user               = User::find($userId);
+                                    $user               = User::find($orderTable['user_id']);
                                     $currency           = Currency::find($providerCurrency);
                                     $creditReason       = "[RETURN_STAKE][BET FAILED/CANCELLED] - transaction for order id " . $orderId;
                                     $addBalance         = WalletFacade::addBalance($userToken, $user->uuid, $currency->code, $credit, $creditReason);
@@ -148,7 +140,7 @@ class OpenOrdersTransformationHandler
                                     }
                                 }
 
-                                orderStatus($userId, $orderId, strtoupper($order->status), $order->odds, $expiry, $orderTable['created_at']);
+                                orderStatus($orderTable['user_id'], $orderId, $expiry, $orderTable['created_at']);
 
                                 if (in_array(strtoupper($order->status), [
                                     'FAILED',
@@ -159,14 +151,14 @@ class OpenOrdersTransformationHandler
                             }
                         }
 
-                        OrderTransaction::create([
-                            'order_logs_id'       => $orderLogsId,
-                            'user_id'             => $userId,
+                        BetWalletTransaction::create([
+                            'provider_bet_log_id' => $betLogId,
+                            'user_id'             => $orderTable['user_id'],
                             'source_id'           => $sourceId->id,
                             'currency_id'         => $providerCurrency,
                             'wallet_ledger_id'    => $walletLedgerId,
                             'provider_account_id' => ProviderAccount::getUsernameId($orderTable['username']),
-                            'reason'              => $reason,
+                            'reason'              => $order->reason,
                             'amount'              => $credit
                         ]);
                     }

@@ -4,8 +4,17 @@ namespace App\Handlers;
 
 use App\Facades\{WalletFacade, SwooleHandler};
 use App\User;
-use App\Models\{OddType, Order, ProviderAccount, OrderLogs, ProviderAccountOrder, UserWallet, Source};
-
+use App\Models\{OddType,
+    Order,
+    ProviderAccount,
+    OrderLogs,
+    ProviderAccountOrder,
+    UserWallet,
+    Source,
+    ProviderBet,
+    ProviderBetLog,
+    ProviderBetTransaction
+};
 use Carbon\Carbon;
 use Exception;
 use Illuminate\Support\Facades\{DB, Log};
@@ -48,7 +57,7 @@ class BetTransformationHandler
             $colMinusOne     = OddType::whereIn('type', ['1X2', 'HT 1X2', 'OE'])->pluck('id')->toArray();
             $requestUIDArray = explode('-', $this->message->request_uid);
             $messageOrderId  = end($requestUIDArray);
-            $orderData       = Order::find($messageOrderId);
+            $orderData       = ProviderBet::find($messageOrderId);
 
             if ($this->message->data->status == self::STATUS_RECEIVED) {
                 if (time() - strtotime($orderData->created_at) > 60) {
@@ -66,7 +75,7 @@ class BetTransformationHandler
                     $status         = $this->message->data->status != self::STATUS_PENDING ? strtoupper($this->message->data->status) : strtoupper(self::STATUS_SUCCESS);
                     $errorMessageId = providerErrorMapping($this->message->data->reason);
 
-                    $order = Order::updateOrCreate([
+                    $order = ProviderBet::updateOrCreate([
                         'id' => $messageOrderId
                     ], [
                         'bet_id'                    => $this->message->data->bet_id,
@@ -81,45 +90,28 @@ class BetTransformationHandler
                             'updated_at' => Carbon::now()
                         ]);
 
-                        $betSelectionArray         = explode("\n", $order->bet_selection);
-                        $betSelectionTeamOddsArray = explode('@ ', $betSelectionArray[1]);
-                        $updatedOrderOdds          = $betSelectionTeamOddsArray[0] . '@ ' . number_format($order->odds, 2);
-                        $order->bet_selection      = implode("\n", [
-                            $betSelectionArray[0],
-                            $updatedOrderOdds,
-                            $betSelectionArray[2]
-                        ]);
-
                         $order->to_win = !in_array($order->odd_type_id, $colMinusOne) ? $order->stake * $this->message->data->odds : $order->stake * ($this->message->data->odds - 1);
                         $order->save();
 
-                        $orderLogData         = OrderLogs::where('order_id', $orderData->id)->orderBy('id', 'desc')->first();
-                        $providerAccountOrder = ProviderAccountOrder::where('order_log_id', $orderLogData->id)->orderBy('id', 'desc')->first();
+                        $orderLogData   = ProviderBetLog::where('provider_bet_id', $orderData->id)->orderBy('id', 'desc')->first();
+                        $transaction    = ProviderBetTransaction::where('provider_bet_id', $orderLogData->id)->orderBy('id', 'desc')->first();
+                        $actualStake    = $transaction->actual_stake;
+                        $exchangeRate   = $transaction->exchange_rate;
+                        $exchangeRateId = $transaction->exchange_rate_id;
 
-                        $actualStake    = $providerAccountOrder->actual_stake;
-                        $exchangeRate   = $providerAccountOrder->exchange_rate;
-                        $exchangeRateId = $providerAccountOrder->exchange_rate_id;
-
-                        $orderLogs = OrderLogs::create([
-                            'provider_id'   => $order->provider_id,
-                            'sport_id'      => $order->sport_id,
-                            'bet_id'        => $this->message->data->bet_id,
-                            'bet_selection' => $order->bet_selection,
-                            'status'        => $status,
-                            'user_id'       => $order->user_id,
-                            'reason'        => $this->message->data->reason,
-                            'profit_loss'   => $order->profit_loss,
-                            'order_id'      => $order->id,
-                            'settled_date'  => null,
+                        $orderLogs = ProviderBetLog::create([
+                            'provider_bet_id' => $orderData->id,
+                            'status'          => $status,
                         ]);
 
-                        ProviderAccountOrder::create([
+                        ProviderBetTransaction::create([
                             'order_log_id'       => $orderLogs->id,
                             'exchange_rate_id'   => $exchangeRateId,
                             'actual_stake'       => $actualStake,
                             'actual_to_win'      => !in_array($order->odd_type_id, $colMinusOne) ? $actualStake * $order->odds : $actualStake * ($order->odds - 1),
                             'actual_profit_loss' => 0.00,
                             'exchange_rate'      => $exchangeRate,
+                            'punter_percentage'  => Provider::find($order->provider_id)->punter_percentage,
                         ]);
                     } else {
                         $source       = Source::where('source_name', 'LIKE', 'RETURN_STAKE')->first();
@@ -129,17 +121,9 @@ class BetTransformationHandler
                         $reason       = "[RETURN_STAKE][BET FAILED/CANCELLED] - transaction for order id " . $order->id;
                         $userBalance  = WalletFacade::addBalance($walletToken, $user->uuid, trim(strtoupper($currencyCode)), $order->stake, $reason);
 
-                        $orderLogs  = OrderLogs::create([
-                            'provider_id'   => $order->provider_id,
-                            'sport_id'      => $order->sport_id,
-                            'bet_id'        => $this->message->data->bet_id,
-                            'bet_selection' => $order->bet_selection,
-                            'status'        => $status,
-                            'user_id'       => $order->user_id,
-                            'reason'        => $this->message->data->reason,
-                            'profit_loss'   => $order->profit_loss,
-                            'order_id'      => $order->id,
-                            'settled_date'  => null,
+                        $orderLogs = ProviderBetLog::create([
+                            'provider_bet_id' => $orderData->id,
+                            'status'          => $status,
                         ]);
 
                         if ($order->status == strtoupper(self::STATUS_SUCCESS)) {
@@ -152,16 +136,14 @@ class BetTransformationHandler
                     }
 
                     orderStatus(
-                        $orderData->user_id,
+                        $order->user_id,
                         $orderId,
-                        $status,
-                        $this->message->data->odds,
                         $orderData->orderExpiry,
                         $orderData->created_at
                     );
 
                     $topics->set('unique:' . uniqid(), [
-                        'user_id'    => $orderData->user_id,
+                        'user_id'    => $order->user_id,
                         'topic_name' => 'open-order-' . $this->message->data->bet_id
                     ]);
 
@@ -177,6 +159,7 @@ class BetTransformationHandler
                 "message"     => "Processed (open-order-" . $this->message->data->bet_id . ")",
                 "module"      => "HANDLER",
                 "status_code" => 200,
+                "payload"     => $this->message,
             ];
             monitorLog('monitor_handlers', 'info', $toLogs);
         } catch (Exception $e) {
@@ -185,6 +168,7 @@ class BetTransformationHandler
                 "message"     => "Line " . $e->getLine() . " | " . $e->getMessage(),
                 "module"      => "HANDLER_ERROR",
                 "status_code" => $e->getCode(),
+                "payload"     => $this->message,
             ];
             monitorLog('monitor_handlers', 'error', $toLogs);
 

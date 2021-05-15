@@ -406,6 +406,7 @@ return [
                 ['name' => 'created_at', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 50],
                 ['name' => 'bet_id', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 50],
                 ['name' => 'status', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 20],
+                ['name' => 'user_id', 'type' => \Swoole\Table::TYPE_INT],
             ],
         ],
         'minMaxRequests'      => [

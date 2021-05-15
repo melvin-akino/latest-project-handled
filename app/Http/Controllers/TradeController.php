@@ -41,67 +41,81 @@ class TradeController extends Controller
                 $userTz = Timezones::find($getUserConfig->value)->name;
             }
 
-            $betBarData = Order::getBetBarData(auth()->user()->id);
-            $ouLabels   = OddType::where('type', 'LIKE', '%OU%')->pluck('id')->toArray();
-            $oeLabels   = OddType::where('type', 'LIKE', '%OE%')->pluck('id')->toArray();
-            $data       = [];
+            $betBarData   = DB::table('bet_bar_v2')->where('user_id', auth()->user()->id)->get();
+            $ouLabels     = OddType::where('type', 'LIKE', '%OU%')->pluck('id')->toArray();
+            $oeLabels     = OddType::where('type', 'LIKE', '%OE%')->pluck('id')->toArray();
+            $data         = [];
+            $noDuplicates = [];
             foreach ($betBarData as $betData) {
-                $proceed = false;
-                if ($betData->status != 'FAILED') {
-                    $proceed = true;
-                } else {
-                    $currentTime = Carbon::now()->toDateTimeString();
-                    $expireTime  = Carbon::parse($betData->created_at)->addSeconds($betData->order_expiry)->toDateTimeString();
-                    if ($currentTime <= $expireTime) {
+                if (!in_array($betData->user_bet_id, $noDuplicates)) {
+                    $proceed = false;
+                    if (strtoupper($betData->status) != 'FAILED') {
                         $proceed = true;
                     } else {
-                        $proceed = false;
-                    }
-                }
-
-                if ($proceed) {
-                    if (empty($betData->current_score)) {
-                        $currentScore = "0 - 0";
-                    } else {
-                        $currentScore = $betData->current_score;
+                        $currentTime = Carbon::now()->toDateTimeString();
+                        $expireTime  = Carbon::parse($betData->created_at)->addSeconds($betData->order_expiry)->toDateTimeString();
+                        if ($currentTime <= $expireTime) {
+                            $proceed = true;
+                        } else {
+                            $proceed = false;
+                        }
                     }
 
-                    $betTeam = "";
-                    if (in_array($betData->odd_type_id, $ouLabels)) {
-                        $betTeam = explode(' ', $betData->odd_label);
-                        $betTeam = $betTeam[0] == "O" ? "Over " . $betTeam[1] : "Under " . $betTeam[1];
+                    if ($proceed) {
+                        if (empty($betData->score_on_bet)) {
+                            $currentScore = "0 - 0";
+                        } else {
+                            $currentScore = $betData->score_on_bet;
+                        }
+
+                        $betTeam = "";
+                        if (in_array($betData->odd_type_id, $ouLabels)) {
+                            $betTeam = explode(' ', $betData->odds_label);
+                            $betTeam = $betTeam[0] == "O" ? "Over " . $betTeam[1] : "Under " . $betTeam[1];
+                        }
+
+                        if (in_array($betData->odd_type_id, $oeLabels)) {
+                            $betTeam = $betData->odds_label == "O" ? "Odd" : "Even";
+                        }
+
+                        $score = array_map('trim', explode('-', $currentScore));
+
+                        $userBetBar = DB::table('bet_bar_v2')
+                            ->where('user_id', auth()->user()->id)
+                            ->where('user_bet_id', $betData->user_bet_id)
+                            ->pluck('sum', 'status')
+                            ->toArray();
+
+                        $data[] = [
+                            "bet_id"       => $betData->user_bet_id,
+                            'odd_type_id'  => $betData->odd_type_id,
+                            'league_name'  => $betData->master_league_name,
+                            'home'         => $betData->master_team_home_name,
+                            'away'         => $betData->master_team_away_name,
+                            'event_id'     => $betData->master_event_unique_id,
+                            'market_id'    => $betData->mem_uid,
+                            'bet_info'     => [
+                                'market_flag'  => $betData->market_flag,
+                                'betting_team' => $betTeam,
+                                'odds'         => $betData->odds,
+                                'odd_type'     => $betData->odd_type,
+                                'odds_label'    => $betData->odds_label,
+                                'stake'        => $betData->stake,
+                            ],
+                            'score_on_bet' => [
+                                'home' => $score[0],
+                                'away' => $score[1]
+                            ],
+                            'bet_status'   => [
+                                "placed" => array_key_exists('SUCCESS', $userBetBar) ? number_format($userBetBar['SUCCESS'], 2, '.', ',') : null,
+                                "queued" => array_key_exists('PENDING', $userBetBar) ? number_format($userBetBar['PENDING'], 2, '.', ',') : null,
+                                "failed" => array_key_exists('FAILED', $userBetBar) ? number_format($userBetBar['FAILED'], 2, '.', ',') : null,
+                            ],
+                            'created_at'   => Carbon::createFromFormat("Y-m-d H:i:s", $betData->created_at, 'Etc/UTC')->setTimezone($userTz)->format("Y-m-d H:i:s"),
+                        ];
+
+                        $noDuplicates[] = $betData->user_bet_id;
                     }
-
-                    if (in_array($betData->odd_type_id, $oeLabels)) {
-                        $betTeam = $betData->odd_label == "O" ? "Odd" : "Even";
-                    }
-
-                    $score = explode(" - ", $currentScore);
-
-                    $data[] = [
-                        'order_id'       => $betData->order_id,
-                        'provider_alias' => $betData->alias,
-                        'event_id'       => $betData->master_event_unique_id,
-                        'market_id'      => $betData->master_event_market_unique_id,
-                        'odd_type_id'    => $betData->odd_type_id,
-                        'league_name'    => $betData->master_league_name,
-                        'home'           => $betData->master_team_home_name,
-                        'away'           => $betData->master_team_away_name,
-                        'bet_info'       => [
-                            $betData->market_flag,
-                            $betData->name,
-                            $betData->odds,
-                            $betData->stake,
-                            $betData->odd_label,
-                            $betData->market_flag == 'HOME' ? $betData->master_team_home_name : $betData->master_team_away_name,
-                            $betTeam
-                        ],
-                        'home_score'     => $score[0],
-                        'away_score'     => $score[1],
-                        'score_on_bet'   => $betData->score_on_bet,
-                        'status'         => $betData->status,
-                        'created_at'     => Carbon::createFromFormat("Y-m-d H:i:s", $betData->created_at, 'Etc/UTC')->setTimezone($userTz)->format("Y-m-d H:i:s"),
-                    ];
                 }
             }
 
