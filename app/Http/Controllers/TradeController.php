@@ -99,7 +99,7 @@ class TradeController extends Controller
                                 'betting_team' => $betTeam,
                                 'odds'         => $betData->odds,
                                 'odd_type'     => $betData->odd_type,
-                                'odd_label'    => $betData->odds_label,
+                                'odds_label'    => $betData->odds_label,
                                 'stake'        => $betData->stake,
                             ],
                             'score_on_bet' => [
