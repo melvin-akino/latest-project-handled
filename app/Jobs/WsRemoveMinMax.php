@@ -36,8 +36,6 @@ class WsRemoveMinMax implements ShouldQueue
             if ($eventMarket) {
                 foreach ($minMaxRequestsTable as $minMaxReqkey => $minMaxRequest) {
                     if ($this->master_event_market_unique_id == $minMaxRequest['memUID']) {
-                        $provider = strtolower($minMaxRequest['provider']);
-
                         foreach ($topicTable as $key => $topic) {
                             if ($topic['topic_name'] == 'min-max-' . $minMaxRequest['market_id'] && $topic['user_id'] == $this->userId) {
                                 $topicTable->del($key);
@@ -52,6 +50,8 @@ class WsRemoveMinMax implements ShouldQueue
                                 break;
                             }
                         }
+
+                        SwooleHandler::decCtr('minMaxRequestsTable', $this->master_event_market_unique_id . ":" . strtolower($minMaxRequest['provider']));
 
                         if ($noSubscription) {
                             $minMaxRequestsTable->del($minMaxReqkey);
@@ -70,8 +70,6 @@ class WsRemoveMinMax implements ShouldQueue
                             'status' => true
                         ]
                     ]));
-
-                    SwooleHandler::decCtr('minMaxRequestsTable', $this->master_event_market_unique_id . ":" . $provider);
                 }
 
                 $toLogs = [
