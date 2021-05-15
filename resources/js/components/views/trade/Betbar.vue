@@ -66,7 +66,7 @@ export default {
     }
 
     .openBetBar {
-        height: 192px !important;
+        height: 300px !important;
     }
     .placed {
         background-color: #15b474;
