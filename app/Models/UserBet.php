@@ -8,7 +8,7 @@ use Spatie\Activitylog\Contracts\Activity;
 
 class UserBet extends Model
 {
-    use LogsActivity;
+    // use LogsActivity;
 
     protected $table = 'user_bets';
 
@@ -39,7 +39,7 @@ class UserBet extends Model
     public static function getPending()
     {
         return self::join('users as u', 'u.id', 'user_bets.user_id')
-                ->where('status', 'PENDING')
+                ->where('user_bets.status', 'PENDING')
                 ->select('user_bets.*', 'u.is_vip')
                 ->get();
     }

@@ -18,6 +18,7 @@ use App\Models\{
     BetWalletTransaction,
     ProviderBetTransaction
 };
+use Carbon\Carbon;
 use Exception;
 
 class BetQueueManager implements CustomProcessInterface
@@ -31,7 +32,7 @@ class BetQueueManager implements CustomProcessInterface
     {
         if ($swoole->data2SwtTable->exist('data2Swt')) {
             $minMaxData = $swoole->minmaxDataTable;
-            $minMaxRequest = $swoole->minMaxRequestsTable;
+            $minMaxRequests = $swoole->minMaxRequestsTable;
 
             $walletToken = SwooleHandler::getValue('walletClientsTable', 'ml-users')['token'];
 
@@ -42,10 +43,12 @@ class BetQueueManager implements CustomProcessInterface
 
                 if (!SwooleHandler::exists('walletClientsTable', 'ml-users')) {
                     usleep(1000000);
+                    echo "Empty Wallet User\n";
                     continue;
                 }
 
                 try {
+                    echo "begin\n";
                     DB::beginTransaction();
 
                     $userBets = UserBet::getPending();
@@ -60,6 +63,10 @@ class BetQueueManager implements CustomProcessInterface
                                         $minMaxRequest->decr(1);
                                     }
                                 }
+                                /**
+                                 * @TODO update user bet to status PENDING/DONE
+                                 */
+                                echo "Skip since bet expires\n";
                                 continue;
                             }
                             
@@ -73,9 +80,11 @@ class BetQueueManager implements CustomProcessInterface
                             $marketId = null;
 
                             $marketProviders = explode(',', $userBet->market_providers);
+
                             foreach ($marketProviders as $marketProvider) {
                                 $provider = Provider::find($marketProvider);
                                 $minMaxKey = $userBet->mem_uid . ':' . strtolower($provider->alias);
+                                var_dump($minMaxKey);
                                 if ($minMaxData->exists($minMaxKey)) {
                                     
                                     if (is_null($minOdds)) {
@@ -102,12 +111,14 @@ class BetQueueManager implements CustomProcessInterface
                             }
 
                             if (is_null($worstProvider)) {
+                                echo "No Worst Provider\n";
                                 continue;
                             }
 
                             // Skip when there's an existing PENDING bet
                             $providerBetPendings = ProviderBet::getPending($userBet);
                             if ($providerBetPendings->count() > 0) {
+                                echo "Skip since there's pending bet\n";
                                 continue;
                             }
 
@@ -128,6 +139,7 @@ class BetQueueManager implements CustomProcessInterface
                                 } else {
                                     $provider = Provider::getIdFromAlias($bestProvider);
                                     if (!$provider) {
+                                        echo "Invalid bet provider\n";
                                         continue;
                                     }
 
@@ -152,6 +164,7 @@ class BetQueueManager implements CustomProcessInterface
 
                                     if ($userProviderConfigSWT->exists($userProviderConfigKey)) {
                                         if (!$userProviderConfigSWT[$userProviderConfigKey]['active']) {
+                                            echo "no active user provider config\n";
                                             continue;
                                         } else {
                                             $userProviderPercentage = $userProviderConfigSWT[$userProviderConfigKey]['punter_percentage'];
@@ -274,6 +287,12 @@ class BetQueueManager implements CustomProcessInterface
                     DB::commit();
                 } catch (Exception $e) {
                     DB::rollback();
+
+                    var_dump([
+                        'line' => $e->getLine(),
+                        'msg' => $e->getMessage(),
+                        'file' => $e->getFile()
+                    ]);
 
                     $toLogs = [
                         "class"       => "BetQueueManager",
