@@ -97,6 +97,12 @@ return [
             'pipe'     => 0,
             'enable'   => true
         ],
+        'bet_queue_manager' => [
+            'class'    => \App\Processes\BetQueueManager::class,
+            'redirect' => false,
+            'pipe'     => 0,
+            'enable'   => true
+        ],
         
     ],
     'timer'                    => [
