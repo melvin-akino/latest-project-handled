@@ -403,6 +403,14 @@ class OrdersController extends Controller
                 ]);
 
                 DB::commit();
+
+                return response()->json([
+                    'status'      => true,
+                    'status_code' => 200,
+                    'data'        => trans('game.bet.fast-bet.success'),
+                    'order_id'    => $placeBet->id,
+                    'created_at'  => Carbon::parse($placeBet->created_at)->toDateTimeString()
+                ], $returnCode);
             }
         } catch (BadRequestException $e) {
             DB::rollback();
