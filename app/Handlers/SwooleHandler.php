@@ -69,29 +69,17 @@ class SwooleHandler
 
     public static function incCtr($swooleTable, $key)
     {
-        if (self::$swoole->{$swooleTable}->exists($key)) {
-            return self::$swoole->{$swooleTable}->incr($key, 'ctr', 1);
-        } else {
-            return self::$swoole->{$swooleTable}->set($key, [
-
-            ]);
-        }
+        return self::$swoole->{$swooleTable}->incr($key, 'ctr', 1);
     }
 
     public static function decCtr($swooleTable, $key)
     {
-        if (self::$swoole->{$swooleTable}->exists($key)) {
-            $ctr = self::$swoole->{$swooleTable}[$key]['ctr'];
+        $ctr = self::$swoole->{$swooleTable}[$key]['ctr'];
 
-            if ($ctr <= 1) {
-                return self::$swoole->{$swooleTable}->del($key);
-            } else {
-                return self::$swoole->{$swooleTable}->decr($key, 'ctr', 1);
-            }
+        if ($ctr <= 0) {
+            return self::$swoole->{$swooleTable}->del($key);
         } else {
-            return self::$swoole->{$swooleTable}->set($key, [
-
-            ]);
+            return self::$swoole->{$swooleTable}->decr($key, 'ctr', 1);
         }
     }
 }
