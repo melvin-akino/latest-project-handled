@@ -20,7 +20,8 @@ use App\Models\{
     UserWallet,
     ProviderAccount,
     Currency,
-    UserBet
+    UserBet,
+    ProviderBet
 };
 use Illuminate\Http\Request;
 use Illuminate\Support\{Facades\DB, Facades\Log, Str};
@@ -1030,5 +1031,59 @@ class OrdersController extends Controller
     public function myHistory(OrderRequest $request)
     {
         return OrderFacade::getOrders($request);
+    }
+
+    public function getProviderBets(int $userBetId)
+    {
+        try {
+            $userTz        = "Etc/UTC";
+            $getUserConfig = UserConfiguration::getUserConfig(auth()->user()->id)
+                ->where('type', 'timezone')
+                ->first();
+
+            if (!is_null($getUserConfig)) {
+                $userTz = Timezones::find($getUserConfig->value)->name;
+            }
+
+            $providerBets = ProviderBet::getProviderBets($userBetId);
+            $data = [];
+
+            foreach($providerBets as $providerBet) {
+                $data[] = [
+                    'id'          => $providerBet->id,
+                    'user_bet_id' => $providerBet->user_bet_id,
+                    'bet_id'      => $providerBet->bet_id,
+                    'provider'    => $providerBet->provider,
+                    'stake'       => $providerBet->stake,
+                    'odds'        => $providerBet->odds,
+                    'towin'       => $providerBet->to_win,
+                    'status'      => $providerBet->status,
+                    'valid_stake' => !empty($providerBet->pl) ? abs($providerBet->pl) : 0,
+                    'pl'          => $providerBet->pl,
+                    'reason'      => !empty($providerBet->provider_error_message_id) ? $providerBet->error_message : $providerBet->reason,
+                    'created'     => Carbon::createFromFormat("Y-m-d H:i:s", $providerBet->created_at, 'Etc/UTC')->setTimezone($userTz)->format("Y-m-d H:i:s")
+                ];
+            }
+
+            return response()->json([
+                'status'      => true,
+                'status_code' => 200,
+                'data'        => $data
+            ]);
+        } catch (Exception $e) {
+            $toLogs = [
+                "class"       => "OrdersController",
+                "message"     => "Line " . $e->getLine() . " | " . $e->getMessage(),
+                "module"      => "API_ERROR",
+                "status_code" => $e->getCode(),
+            ];
+            monitorLog('monitor_api', 'error', $toLogs);
+
+            return response()->json([
+                'status'      => false,
+                'status_code' => 500,
+                'message'     => trans('generic.internal-server-error')
+            ], 500);
+        }
     }
 }

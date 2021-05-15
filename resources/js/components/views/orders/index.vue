@@ -15,9 +15,13 @@
                             :items="myorders"
                             :items-per-page="10"
                             :group-by="groupedBy"
-                            :group-desc.sync="groupDesc"
+                            :group-desc="groupDesc"
                             :sort-by.sync="sortBy"
                             :sort-desc.sync="sortDesc"
+                            item-key="order_id"
+                            show-expand
+                            single-expand
+                            @item-expanded="showProviderBets"
                             :footer-props="{
                                 showFirstLastPage: true,
                                 firstIcon: 'mdi-chevron-double-left',
@@ -30,49 +34,81 @@
                                 <td colspan="13" @click="toggle">{{ convertDate(group) }}</td>
                             </template>
 
-                            <template v-slot:header.created="{ header }">
+                            <template v-slot:[`header.created`]="{ header }">
                                 <span v-html="header.text"></span>
                             </template>
 
-                            <template v-slot:header.bet_selection="{ header }">
+                            <template v-slot:[`header.bet_selection`]="{ header }">
                                 <span v-html="header.text"></span>
                             </template>
 
-                            <template v-slot:header.valid_stake="{ header }">
+                            <template v-slot:[`header.valid_stake`]="{ header }">
                                 <span v-html="header.text"></span>
                             </template>
 
-                            <template v-slot:header.pl="{ header }">
+                            <template v-slot:[`header.pl`]="{ header }">
                                 <span v-html="header.text"></span>
                             </template>
 
                             <template v-slot:item="props">
-                                <tr :class="{'_green': greenStatus.includes(props.item.status), '_failed': redStatus.includes(props.item.status)}">
+                                <tr :class="{'_green': greenStatus.includes(props.item.status), '_failed': redStatus.includes(props.item.status)}" @click="props.expand(!props.isExpanded)">
+                                    <td>
+                                        <v-btn icon small>
+                                            <v-icon small v-if="props.isExpanded">mdi-chevron-up</v-icon>
+                                            <v-icon small v-else>mdi-chevron-down</v-icon>
+                                        </v-btn>
+                                    </td>
                                     <td class="text-start">{{ props.item.bet_id }}</td>
                                     <td class="text-center">{{ props.item.created }}</td>
                                     <td class="text-start"><span v-html="props.item.bet_selection"></span></td>
-                                    <td class="text-center font-bold">{{ props.item.provider }}</td>
-                                    <td class="text-center"><span class="block">{{ props.item.odds }}</span></td>
                                     <td class="text-right">{{ props.item.stake }}</td>
+                                    <td class="text-center"><span class="block">{{ props.item.odds }}</span></td>
                                     <td class="text-right">{{ props.item.towin }}</td>
-                                    <td class="text-center"><strong class="block text-center">{{ props.item.status }}</strong></td>
+                                    <td class="text-center font-bold status">{{ props.item.status }}</td>
                                     <td class="text-center"><span>{{ props.item.score.replace(/\"/g, '') }}</span></td>
                                     <td class="text-right">{{ props.item.valid_stake }}</td>
                                     <td class="text-right" v-adjust-total-pl-color="props.item.pl">{{ props.item.pl }}</td>
-                                    <td class="text-start">{{ props.item.error_message ? props.item.error_message : props.item.reason }}</td>
                                     <td class="text-right">
-                                        <a href="#" @click.prevent="openBetMatrix(props.item.order_id, `${props.item.order_id}-betmatrix`)"
+                                        <a href="#" @click.prevent="openBetMatrix(props.item.order_id, `${props.item.order_id}-betmatrix`)" @click.stop
                                             class="betdata-btn text-center rounded-full py-2 px-3 hover:bg-gray-400 w-1/2"
                                             v-if="oddTypesWithSpreads.includes(props.item.odd_type_id) && !failedBetStatus.includes(props.item.status)">
                                                 <i class="fas fa-chart-area" title="Bet Matrix"></i>
                                         </a>
-                                        <a href="#" @click.prevent="openOddsHistory(props.item.order_id, `${props.item.order_id}-orderlogs`)"
+                                        <a href="#" @click.prevent="openOddsHistory(props.item.order_id, `${props.item.order_id}-orderlogs`)" @click.stop
                                             class="betdata-btn text-center rounded-full py-2 px-3 hover:bg-gray-400 w-1/2"
                                             :class="{'ml-4': !oddTypesWithSpreads.includes(props.item.odd_type_id) || failedBetStatus.includes(props.item.status)}">
                                                 <i class="fas fa-bars" title="Odds History"></i>
                                         </a>
                                     </td>
                                 </tr>
+                            </template>
+                            <template v-slot:expanded-item="{ headers, item }">
+                                <template v-if="item.hasOwnProperty('provider_bets')">
+                                    <tr :rowspan="headers.length">
+                                        <th colspan="2" class="text-center">Bet ID</th>
+                                        <th class="text-center">Post Date</th>
+                                        <th class="text-start">Provider</th>
+                                        <th class="text-right">Stake</th>
+                                        <th class="text-center">Odds</th>
+                                        <th class="text-right">To Win</th>
+                                        <th class="text-center">Status</th>
+                                        <th class="text-right">Valid Stake</th>
+                                        <th class="text-right">Profit Loss</th>
+                                        <th colspan="2" class="text-start">Reason</th>
+                                    </tr>
+                                    <tr :class="{'_green': greenStatus.includes(item.status), '_failed': redStatus.includes(item.status)}" :rowspan="headers.length" v-for="bet in item.provider_bets" :key="bet.id">
+                                        <td colspan="2" class="text-center">{{bet.bet_id}}</td>
+                                        <td class="text-center">{{bet.created}}</td>
+                                        <td class="text-start font-bold">{{bet.provider}}</td>
+                                        <td class="text-right">{{bet.stake}}</td>
+                                        <td class="text-center">{{bet.odds}}</td>
+                                        <td class="text-right">{{bet.towin}}</td>
+                                        <td class="text-center font-bold status">{{bet.status}}</td>
+                                        <td class="text-right">{{bet.valid_stake}}</td>
+                                        <td class="text-right" v-adjust-total-pl-color="item.pl">{{bet.pl}}</td>
+                                        <td colspan="2" class="text-start">{{bet.reason}}</td>
+                                    </tr>
+                                </template>
                             </template>
                         </v-data-table>
                     </v-main>
@@ -90,11 +126,9 @@
 </template>
 
 <script>
-    import Cookies from 'js-cookie'
     import _ from 'lodash'
     import { mapState, mapActions } from 'vuex'
     import OrderData from './OrderData'
-    import { twoDecimalPlacesFormat, moneyFormat } from '../../../helpers/numberFormat'
     import AdditionalFilters from './AdditionalFilters'
     import moment from 'moment-timezone'
 
@@ -115,18 +149,17 @@
                     date_to: moment().endOf('isoweek').format('YYYY-MM-DD')
                 },
                 headers: [
+                    { text: '', value: 'data-table-expand' },
                     { text: 'bet id', value: 'bet_id', align: 'center', width: 130, },
-                    { text: 'transaction<br />date & time', value: 'created', class: 'col-center', align: 'center', width: 150, },
+                    { text: 'transaction<br />date & time', value: 'created', class: 'col-center', align: 'center' },
                     { text: 'bet<br />selection', value: 'bet_selection', align: 'start', sortable: false, },
-                    { text: 'provider', value: 'provider', align: 'center', sortable: false, width: 50, },
-                    { text: 'odds', value: 'odds', align: 'center', class: 'col-center', width: 70, },
                     { text: 'stake', value: 'stake', align: 'end', class: 'h-amounts', width: 80, },
+                    { text: 'odds', value: 'odds', align: 'center', class: 'col-center', width: 70, },
                     { text: 'to win', value: 'towin', align: 'end', class: 'h-amounts', width: 80, },
                     { text: 'status', value: 'status', align: 'center', class: 'col-center', width: 100, },
                     { text: 'result', value: 'score', align: 'center', sortable: false, width: 70, },
                     { text: 'valid<br />stake', value: 'valid_stake', align: 'end', class: 'h-amounts', sortable: false, width: 80, },
                     { text: 'profit<br />loss', value: 'pl', align: 'end', class: 'h-amounts', width: 80, },
-                    { text: 'reason', value: 'reason', align: 'start', sortable: false, },
                     { text: '', value: 'betData', align: 'end', sortable: false, width: 100, },
                 ],
                 oddTypesWithSpreads: [3, 4, 11, 12],
@@ -182,10 +215,7 @@
             }
         },
         methods: {
-            ...mapActions('orders', ['getMyOrders']),
-            getFilteredData() {
-                this.toExport = this.$refs.ordersTable.allFilteredData
-            },
+            ...mapActions('orders', ['getMyOrders', 'getProviderBets']),
             openOddsHistory(id, data) {
                 this.openedOddsHistory.push(id)
                 this.$store.dispatch('trade/setActivePopup', data)
@@ -216,6 +246,12 @@
                     el.classList.add('redPL')
                     el.classList.remove('greenPL')
                 }
+            },
+            showProviderBets(data) {
+                let { item, value } = data
+                if(value) {
+                    this.getProviderBets(item.order_id)
+                }
             }
         },
         directives: {
@@ -227,16 +263,6 @@
                     vnode.context.adjustTotalPlColor(el, binding, vnode)
                 }
             },
-        },
-        filters: {
-            moneyFormat,
-            formatPL(value) {
-                if(value == "0.00" || value=="0") {
-                    return "-"
-                } else {
-                    return value
-                }
-            }
         }
     }
 </script>
@@ -377,13 +403,17 @@
         }
     }
 
+    tr {
+        cursor: pointer;
+    }
+
     tr._failed {
         td {
             &:first-child {
                 box-shadow: inset 5px 0px 0px 0px #FF2525 !important;
             }
 
-            &:nth-child(8) {
+            &.status {
                 color: #FF2525 !important;
             }
         }
@@ -395,7 +425,7 @@
                 box-shadow: inset 5px 0px 0px 0px #009E28 !important;
             }
 
-            &:nth-child(8) {
+            &.status {
                 color: #009E28 !important;
             }
         }
