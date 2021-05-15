@@ -43,20 +43,10 @@ export default {
                 if(getSocketKey(response.data) === 'getOrderStatus') {
                     let orderStatus = getSocketValue(response.data, 'getOrderStatus')
                     this.bets.map(bet => {
-                        if(bet.order_id == orderStatus.order_id) {
-                            this.$set(bet, 'status', orderStatus.status)
-                            this.$set(bet, 'bet_info', [
-                                bet.bet_info[0],
-                                bet.bet_info[1],
-                                orderStatus.odds,
-                                bet.bet_info[3],
-                                bet.bet_info[4],
-                                bet.bet_info[5],
-                                bet.bet_info[6],
-                            ])
-                            if(!this.failedBetStatus.includes(orderStatus.status)) {
-                                this.$store.commit('trade/SHOW_BET_MATRIX_IN_BETSLIP', { market_id: bet.market_id, has_bet: true })
-                            }
+                        if(bet.bet_id == orderStatus.bet_id) {
+                            Object.keys(orderStatus.bet_status).map(key => {
+                                this.$set(bet.bet_status, key, orderStatus.bet_status[key])
+                            })
                             this.$store.dispatch('trade/getWalletData')
                         }
                     })
@@ -78,15 +68,15 @@ export default {
     .openBetBar {
         height: 300px !important;
     }
-    .success {
-        background-color: #5cb85c;
+    .placed {
+        background-color: #15b474;
     }
 
     .failed {
-        background-color: #d9534f;
+        background-color: #b43515;
     }
 
-    .processing {
-        background-color: #0275d8;
+    .queued {
+        background-color: #2e8ce1;
     }
 </style>

@@ -2,10 +2,11 @@
 
 namespace App\Jobs;
 
+use App\Facades\SwooleHandler;
+use App\Models\EventMarket;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Support\Facades\{DB, Log};
-use App\Models\EventMarket;
 use Exception;
 
 class WsRemoveMinMax implements ShouldQueue
@@ -28,12 +29,15 @@ class WsRemoveMinMax implements ShouldQueue
             $minmaxDataTable     = $server->minmaxDataTable;
             $minmaxMarketTable   = $server->minmaxMarketTable;
             $minmaxPayloadTable  = $server->minmaxPayloadTable;
+            $provider            = "";
 
             $eventMarket = EventMarket::getProviderEventMarketsByMemUID($this->master_event_market_unique_id);
 
             if ($eventMarket) {
                 foreach ($minMaxRequestsTable as $minMaxReqkey => $minMaxRequest) {
                     if ($this->master_event_market_unique_id == $minMaxRequest['memUID']) {
+                        $provider = strtolower($minMaxRequest['provider']);
+
                         foreach ($topicTable as $key => $topic) {
                             if ($topic['topic_name'] == 'min-max-' . $minMaxRequest['market_id'] && $topic['user_id'] == $this->userId) {
                                 $topicTable->del($key);
@@ -58,6 +62,7 @@ class WsRemoveMinMax implements ShouldQueue
                         $minmaxPayloadTable->del('minmax-payload:' . $minMaxRequest['market_id']);
                     }
                 }
+
                 $fd = $wsTable->get('uid:' . $this->userId);
                 if ($server->isEstablished($fd['value'])) {
                     $server->push($fd['value'], json_encode([
@@ -65,6 +70,8 @@ class WsRemoveMinMax implements ShouldQueue
                             'status' => true
                         ]
                     ]));
+
+                    SwooleHandler::decCtr('minMaxRequestsTable', $this->master_event_market_unique_id . ":" . $provider);
                 }
 
                 $toLogs = [

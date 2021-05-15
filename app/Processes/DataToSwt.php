@@ -419,13 +419,13 @@ class DataToSwt implements CustomProcessInterface
             ->join('user_bets AS ub', 'ub.id', 'pb.user_bet_id')
             ->join('provider_accounts AS pa', 'pb.provider_account_id', '=', 'pa.id')
             ->select([
-                'o.id',
-                'o.status',
-                'o.created_at',
-                'o.bet_id',
-                'o.order_expiry',
+                'pb.id',
+                'pb.status',
+                'pb.created_at',
+                'pb.bet_id',
+                'ub.order_expiry',
                 'pa.username',
-                'o.user_id'
+                'ub.user_id'
             ])
             ->get();
 
@@ -436,6 +436,7 @@ class DataToSwt implements CustomProcessInterface
                 'orderExpiry' => $order->order_expiry,
                 'username'    => $order->username,
                 'status'      => $order->status,
+                'user_id'     => $order->user_id,
             ]);
 
             $topicsId = implode(':', [
@@ -456,7 +457,7 @@ class DataToSwt implements CustomProcessInterface
                     'order_expiry' => (int) $order->order_expiry
                 ]);
             }
-        }, $orders->toArray());
+        }, $bets->toArray());
     }
 
     private static function db2SwtExchangeRates(Server $swoole)
