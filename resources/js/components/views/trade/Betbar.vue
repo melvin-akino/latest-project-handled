@@ -76,7 +76,7 @@ export default {
     }
 
     .openBetBar {
-        height: 192px !important;
+        height: 300px !important;
     }
     .success {
         background-color: #5cb85c;
