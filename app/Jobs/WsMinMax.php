@@ -55,10 +55,11 @@ class WsMinMax implements ShouldQueue
                         'schedule'  => $eventMarket->game_schedule,
                         'event_id'  => $eventMarket->event_identifier,
                         'odds'      => $eventMarket->odds,
-                        'memUID'    => $this->master_event_market_unique_id
+                        'memUID'    => $this->master_event_market_unique_id,
+                        'ctr'       => 0,
                     ];
 
-                    $minMaxRequestsTable->set('mId:' . $eventMarket->bet_identifier . ':memUID:' . $this->master_event_market_unique_id, $minMaxRequestsPayload);
+                    $minMaxRequestsTable->set($this->master_event_market_unique_id . ":" . strtolower($eventMarket->alias), $minMaxRequestsPayload);
 
                     SendLogData::MinMax('requestminmax', json_encode($minMaxRequestsPayload));
 

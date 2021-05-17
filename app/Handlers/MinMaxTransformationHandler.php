@@ -68,7 +68,7 @@ class MinMaxTransformationHandler
                                     ]));
                                 }
 
-                                $minMaxRequests->del('mId:' . $data->market_id . ':memUID:' . $memUID);
+                                $minMaxRequests->del($memUID . ":" . strtolower($data->provider));
                             } else if ($this->data->message == 'onqueue') {
                                 $doesExist = false;
                                 foreach ($minmaxOnqueueRequestsTable as $key => $row) {
@@ -210,7 +210,10 @@ class MinMaxTransformationHandler
                                 EventMarket::updateProviderEventMarketsByMemUIDWithOdds($data->market_id, $transformed['price']);
 
                                 if ($swoole->isEstablished($fd['value'])) {
-                                    $minMaxRequests['mId:' . $data->market_id . ':memUID:' . $memUID]['odds'] = $transformed['price'];
+                                    $minMaxRequests[$memUID . ":" . strtolower($data->provider)]['odds'] = $transformed['price'];
+
+                                    SwooleHandler::incCtr('minMaxRequestsTable', $memUID . ":" . strtolower($data->provider));
+
                                     $swoole->push($fd['value'], json_encode([
                                         'getMinMax' => $transformed
                                     ]));

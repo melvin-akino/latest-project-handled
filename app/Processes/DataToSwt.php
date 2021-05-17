@@ -417,7 +417,7 @@ class DataToSwt implements CustomProcessInterface
         $topicsTable = $swoole->topicTable;
         $bets        = DB::table('provider_bets AS pb')
             ->join('user_bets AS ub', 'ub.id', 'pb.user_bet_id')
-            ->join('provider_accounts AS pa', 'o.provider_account_id', '=', 'pa.id')
+            ->join('provider_accounts AS pa', 'pb.provider_account_id', '=', 'pa.id')
             ->select([
                 'pb.id',
                 'pb.status',

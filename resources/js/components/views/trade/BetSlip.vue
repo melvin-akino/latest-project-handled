@@ -612,7 +612,7 @@ export default {
                             greaterThanOrEqualThanPriceArray.push(minmax)
                         }
                     })
-                    let sortedByPriceArray = greaterThanOrEqualThanPriceArray.sort((a, b) => (a.price > b.price) ? 1 : -1)
+                    let sortedByPriceArray = greaterThanOrEqualThanPriceArray.sort((a, b) => (a.price < b.price) ? 1 : -1)
                     sortedByPriceArray.map(sortedByPrice => {
                         if(this.orderForm.stake > sortedByPrice.max) {
                             if(this.wallet.credit >= sortedByPrice.max) {

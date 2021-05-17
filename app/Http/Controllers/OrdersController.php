@@ -364,31 +364,57 @@ class OrdersController extends Controller
                 throw new BadRequestException(trans('game.bet.errors.insufficient'));
             }
 
-            $eventMarketData = Game::getMasterEventByMarketId($request->market_id, $request->markets[0]['provider_id']);
+            $eventMarketData      = Game::getMasterEventByMarketId($request->market_id, $request->markets[0]['provider_id']);
+            $providerCurrencyInfo = Currency::find(Provider::find($request->markets[0]['provider_id'])->currency_id);
+            $userWalletToken      = SwooleHandler::getValue('walletClientsTable', 'ml-users')['token'];
+            $userPlaceBet         = WalletFacade::subtractBalance($userWalletToken, auth()->user()->uuid, trim($providerCurrencyInfo->code), ($request->stake), "[PLACE_BET][BET_PENDING] - Placing Bet " . $mlBetId);
 
-            UserBet::create([
-                'user_id'                => auth()->user()->id,
-                'sport_id'               => $eventMarketData->sport_id,
-                'odd_type_id'            => $eventMarketData->odd_type_id,
-                'market_id'              => explode('-', $eventMarketData->master_event_unique_id)[3],
-                'status'                 => "PENDING",
-                'odds'                   => $request->odds,
-                'stake'                  => $request->stake,
-                'market_flag'            => $eventMarketData->market_flag,
-                'order_expiry'           => $request->orderExpiry,
-                'odds_label'             => $eventMarketData->odd_label,
-                'ml_bet_identifier'      => $mlBetId,
-                'score_on_bet'           => $eventMarketData->score,
-                'final_score'            => null,
-                'mem_uid'                => $request->market_id,
-                'master_event_unique_id' => $eventMarketData->master_event_unique_id,
-                'master_league_name'     => $eventMarketData->master_league_name,
-                'master_team_home_name'  => $eventMarketData->master_team_home_name,
-                'master_team_away_name'  => $eventMarketData->master_team_away_name,
-                'market_providers'       => implode(',', array_column($request->markets, 'provider_id')),
-            ]);
+            if (empty($userPlaceBet) || array_key_exists('error', $userPlaceBet) || !array_key_exists('status_code', $userPlaceBet) || $userPlaceBet->status_code != 200) {
+                $toLogs = [
+                    "class"       => "OrdersController",
+                    "message"     => trans('game.wallet-api.error.user'),
+                    "module"      => "API_ERROR",
+                    "status_code" => 404,
+                    "data"        => $userPlaceBet,
+                ];
+                monitorLog('monitor_api', 'error', $toLogs);
 
-            DB::commit();
+                throw new BadRequestException(trans('game.wallet-api.error.user'));
+            } else {
+                $placeBet = UserBet::create([
+                    'user_id'                => auth()->user()->id,
+                    'sport_id'               => $eventMarketData->sport_id,
+                    'odd_type_id'            => $eventMarketData->odd_type_id,
+                    'market_id'              => explode('-', $eventMarketData->master_event_unique_id)[3],
+                    'status'                 => "PENDING",
+                    'odds'                   => $request->odds,
+                    'stake'                  => $request->stake,
+                    'market_flag'            => $eventMarketData->market_flag,
+                    'order_expiry'           => $request->orderExpiry,
+                    'odds_label'             => $eventMarketData->odd_label,
+                    'ml_bet_identifier'      => $mlBetId,
+                    'score_on_bet'           => $eventMarketData->score,
+                    'final_score'            => null,
+                    'mem_uid'                => $request->market_id,
+                    'master_event_unique_id' => $eventMarketData->master_event_unique_id,
+                    'master_league_name'     => $eventMarketData->master_league_name,
+                    'master_team_home_name'  => $eventMarketData->master_team_home_name,
+                    'master_team_away_name'  => $eventMarketData->master_team_away_name,
+                    'market_providers'       => implode(',', array_column($request->markets, 'provider_id')),
+                ]);
+
+                DB::commit();
+
+                SwooleHandler::incCtr('minMaxRequestsTable', $request->market_id . ":" . strtolower($request->markets[0]['provider']));
+
+                return response()->json([
+                    'status'      => true,
+                    'status_code' => 200,
+                    'data'        => trans('game.bet.fast-bet.success'),
+                    'order_id'    => $placeBet->id,
+                    'created_at'  => Carbon::parse($placeBet->created_at)->toDateTimeString()
+                ], $returnCode);
+            }
         } catch (BadRequestException $e) {
             DB::rollback();
             $toLogs = [

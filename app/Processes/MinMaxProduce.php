@@ -45,13 +45,13 @@ class MinMaxProduce implements CustomProcessInterface
 
                         if (!empty($systemConfigurationsTimers)) {
                             foreach ($minMaxRequestsTable as $minMaxRequest) {
-                                $minmaxOnqueueExist = false;
-                                foreach ($minmaxOnqueueRequestsTable as $key => $row) {
-                                    if (strpos($key, 'min-max-' . $minMaxRequest['market_id']) === 0) {
-                                        $minmaxOnqueueExist = true;
-                                        break;
-                                    }
-                                }
+                                // $minmaxOnqueueExist = false;
+                                // foreach ($minmaxOnqueueRequestsTable as $key => $row) {
+                                //     if (strpos($key, 'min-max-' . $minMaxRequest['market_id']) === 0) {
+                                //         $minmaxOnqueueExist = true;
+                                //         break;
+                                //     }
+                                // }
 
                                 $requestId = (string) Str::uuid();
                                 $requestTs = getMilliseconds();

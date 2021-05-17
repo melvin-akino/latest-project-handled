@@ -70,12 +70,8 @@ export default {
             },
             matrix_table: [],
             matrix_data: {
-                stake: Number(this.analysisData.stake),
-                price: Number(this.analysisData.price),
                 home_score: Number(this.analysisData.home_score),
                 away_score: Number(this.analysisData.away_score),
-                points: convertPointAsNumeric(this.analysisData.points, this.analysisData.odd_type),
-                created_at: this.analysisData.created_at
             },
             matrix_orders_list: [],
             matrix_orders: [],

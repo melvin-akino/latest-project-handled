@@ -1,29 +1,25 @@
 <template>
-    <div class="flex border-b text-white text-sm">
-        <div class="w-3/12 py-1 px-3">{{bet.league_name}}</div>
-        <div class="w-5/12 py-1 px-3">{{bet.home}} vs {{bet.away}}</div>
-        <div class="w-3/12 py-1 px-3">{{bet.created_at}}</div>
-        <div class="w-3/12 py-1 px-3">
-            <span v-if="bet.bet_info[6] === '' && bet.bet_info[0] === 'HOME'">{{bet.home}}</span>
-            <span v-if="bet.bet_info[6] === '' && bet.bet_info[0] === 'AWAY'">{{bet.away}}</span>
-            <span v-if="bet.bet_info[6] === '' && bet.bet_info[0] === 'DRAW'">Draw</span>
-            <span v-if="bet.bet_info[6] != ''">{{ bet.bet_info[6] }}</span>
+    <div class="flex items-center border-b text-white text-sm">
+        <div class="w-2/12 py-1 px-3">{{ bet.created_at }}</div>
+        <div class="w-4/12 py-1 px-3">
+            <p>{{ bet.league_name }}</p>
+            <p>{{ bet.home }} vs {{ bet.away }}</p>
         </div>
-        <div class="w-3/12 py-1 px-3" v-if="bet.bet_info[6] == ''">
-            {{bet.bet_info[1]}} {{defaultPriceFormat}} {{oddTypesWithBetMatrix.includes(bet.odd_type_id) ? bet.bet_info[4] : ''}} {{ `(${bet.score_on_bet})` }}
+        <div class="w-4/12 py-1 px-3">
+            <p v-if="bet.bet_info.betting_team">{{ bet.bet_info.betting_team }} {{ defaultPriceFormat }} ({{ bet.score_on_bet.home }} - {{ bet.score_on_bet.away }})</p>
+            <p v-else>{{ bet.bet_info.market_flag == 'HOME' ? bet.home : bet.away }} {{ bet.bet_info.odd_type }} {{ defaultPriceFormat }} {{ bet.bet_info.odds_label }} ({{bet.score_on_bet.home}} - {{bet.score_on_bet.away}})</p>
         </div>
-        <div class="w-3/12 py-1 px-3" v-if="bet.bet_info[6] != ''">
-            {{ bet.bet_info[1].indexOf("FT") >= 0 ? "FT " : (bet.bet_info[1].indexOf("HT") >= 0 ? "HT " : "") }}{{ bet.bet_info[6] }} {{ defaultPriceFormat }} {{ `(${bet.score_on_bet})` }}
+        <div class="flex items-center w-7/12 py-1 px-3">
+            <div v-for="(stake, status) in status" :key="status" class="flex items-center justify-center h-8" :class="status" :style="`width:${statusWidth(status)}; margin-right: 1px;`">
+                <span class="uppercase font-semibold">{{ statusRename(status) }}</span> <span class="px-2">-</span> {{stake}}
+            </div>
         </div>
-        <div class="w-4/12 py-1 text-center" :class="{'success': bet.status==='SUCCESS', 'failed': bet.status==='FAILED', 'processing': bet.status==='PENDING'}">
-            {{bet.provider_alias}} - {{Number(bet.bet_info[3]) | moneyFormat}}@{{Number(bet.bet_info[2]) | twoDecimalPlacesFormat}} - {{ bet.status == 'SUCCESS' ? 'PLACED' : bet.status }}
+        <div class="w-1/12 py-1 px-3">
+            <a href="#" @click.prevent="openBetMatrix(`${bet.order_id}-betmatrix`)" class="text-center py-1 w-1/2 mr-1" title="Bet Matrix" v-if="oddTypesWithBetMatrix.includes(bet.odd_type_id) && !failedBetStatus.includes(bet.status)"><i class="fas fa-chart-area"></i></a>
+            <a href="#" @click.prevent="openOddsHistory(`${bet.order_id}-orderlogs`)" class="text-center py-1 w-1/2 mr-1" :class="{'ml-5': !oddTypesWithBetMatrix.includes(bet.odd_type_id) || failedBetStatus.includes(bet.status)}" title="Odds History"><i class="fas fa-bars"></i></a>
         </div>
-        <div class="flex items-center w-20 px-1">
-            <a href="#" @click.prevent="openBetMatrix(`${bet.order_id}-betmatrix`)" class="text-center py-1 w-1/2" title="Bet Matrix" v-if="oddTypesWithBetMatrix.includes(bet.odd_type_id) && !failedBetStatus.includes(bet.status)"><i class="fas fa-chart-area"></i></a>
-            <a href="#" @click.prevent="openOddsHistory(`${bet.order_id}-orderlogs`)" class="text-center py-1 w-1/2" :class="{'ml-5': !oddTypesWithBetMatrix.includes(bet.odd_type_id) || failedBetStatus.includes(bet.status)}" title="Odds History"><i class="fas fa-bars"></i></a>
-        </div>
-        <odds-history v-if="showOddsHistory" @close="closeOddsHistory" :market_id="bet.market_id" :event_id="bet.event_id" :key="`${bet.order_id}-orderlogs`"></odds-history>
-        <bet-matrix v-if="showBetMatrix" @close="closeBetMatrix" :market_id="bet.market_id" :analysis-data="analysisData" :event_id="bet.event_id" :key="`${bet.order_id}-betmatrix`"></bet-matrix>
+        <odds-history v-if="showOddsHistory" @close="closeOddsHistory" :market_id="bet.market_id" :event_id="bet.event_id" :key="`${bet.bet_id}-orderlogs`"></odds-history>
+        <bet-matrix v-if="showBetMatrix" @close="closeBetMatrix" :market_id="bet.market_id" :analysis-data="analysisData" :event_id="bet.event_id" :key="`${bet.bet_id}-betmatrix`"></bet-matrix>
     </div>
 </template>
 
@@ -51,17 +47,18 @@ export default {
         ...mapState('trade', ['wallet', 'failedBetStatus']),
         analysisData() {
             return {
-                stake: Number(this.bet.bet_info[3]).toFixed(2),
-                points: this.bet.bet_info[4],
-                price:  this.bet.bet_info[2],
-                home_score:  this.bet.home_score,
-                away_score:  this.bet.away_score,
-                odd_type: this.bet.odd_type_id,
-                created_at: this.bet.created_at,
-                bet_team: this.bet.bet_info[5],
-                price_format: this.defaultPriceFormat,
-                currency_symbol: this.wallet.currency_symbol
+                home_score:  this.bet.score_on_bet.home,
+                away_score:  this.bet.score_on_bet.away,
             }
+        },
+        status() {
+            let data = {}
+            Object.keys(this.bet.bet_status).map(key => {
+                if(this.bet.bet_status[key]) {
+                    this.$set(data, key, this.bet.bet_status[key])
+                }
+            })
+            return data
         }
     },
     methods: {
@@ -78,6 +75,27 @@ export default {
         },
         closeBetMatrix() {
             this.showBetMatrix = false
+        },
+        statusWidth(status) {
+            let statusLength = Object.keys(this.status).length
+            if(statusLength == 1) {
+                return '100%'
+            } else {
+                if(status == 'placed') {
+                    return '60%'
+                } else {
+                    return '40%'
+                }
+            }
+        },
+        statusRename(status) {
+            let statusOverride = {
+                placed: "PLACED",
+                queued: "ON QUEUE",
+                failed: "FAILED"
+            }
+
+            return statusOverride[status]
         }
     },
     filters: {

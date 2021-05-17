@@ -11,6 +11,7 @@ use App\Models\{OddType,
     ProviderAccountOrder,
     UserWallet,
     Source,
+    UserBet,
     ProviderBet,
     ProviderBetLog,
     ProviderBetTransaction
@@ -58,6 +59,7 @@ class BetTransformationHandler
             $requestUIDArray = explode('-', $this->message->request_uid);
             $messageOrderId  = end($requestUIDArray);
             $orderData       = ProviderBet::find($messageOrderId);
+            $memUID          = UserBet::find($orderData->user_bet_id)->mem_uid;
 
             if ($this->message->data->status == self::STATUS_RECEIVED) {
                 if (time() - strtotime($orderData->created_at) > 60) {
@@ -153,6 +155,8 @@ class BetTransformationHandler
             }
 
             DB::commit();
+
+            SwooleHandler::decCtr('minMaxRequestsTable', $memUID . ":" . strtolower($this->message->data->provider));
 
             $toLogs = [
                 "class"       => "BetTransformationHandler",
