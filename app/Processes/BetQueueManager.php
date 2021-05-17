@@ -10,7 +10,6 @@ use App\Facades\SwooleHandler;
 use App\Models\{
     Provider,
     ProviderAccount,
-    User,
     UserBet,
     OddType,
     ProviderBet,
@@ -18,6 +17,7 @@ use App\Models\{
     BetWalletTransaction,
     ProviderBetTransaction
 };
+use App\User;
 use Carbon\Carbon;
 use Exception;
 
@@ -40,6 +40,7 @@ class BetQueueManager implements CustomProcessInterface
             $colMinusOne    = OddType::whereIn('type', ['1X2', 'HT 1X2', 'OE'])->pluck('id')->toArray();
 
             while(true) {
+                usleep(5000000);
 
                 if (!SwooleHandler::exists('walletClientsTable', 'ml-users')) {
                     usleep(1000000);
@@ -60,7 +61,7 @@ class BetQueueManager implements CustomProcessInterface
                             if ($currentTime > $expireTime) {
                                 foreach ($minMaxRequests as $key => $minMaxRequest) {
                                     if (strpos($key, $userBet->mem_uid) !== false) {
-                                        $minMaxRequest->decr(1);
+                                        $minMaxRequest->decr($key, 'counter');
                                     }
                                 }
                                 /**
@@ -81,9 +82,16 @@ class BetQueueManager implements CustomProcessInterface
 
                             $marketProviders = explode(',', $userBet->market_providers);
 
+                            foreach ($minMaxData AS $key => $test) {
+                                var_dump($key);
+                            }
+
+                            echo "=========";
+
                             foreach ($marketProviders as $marketProvider) {
                                 $provider = Provider::find($marketProvider);
-                                $minMaxKey = $userBet->mem_uid . ':' . strtolower($provider->alias);
+                                # $minMaxKey = $userBet->mem_uid . ':' . strtolower($provider->alias);
+                                $minMaxKey = "minmax-market:" . $userBet->mem_uid;
                                 var_dump($minMaxKey);
                                 if ($minMaxData->exists($minMaxKey)) {
                                     
@@ -102,7 +110,7 @@ class BetQueueManager implements CustomProcessInterface
                                         }
                                     }
 
-                                    if ($minOods > $minMaxData[$minMaxKey]['odds']) {
+                                    if ($minOdds > $minMaxData[$minMaxKey]['odds']) {
                                         $maxOdds = $minMaxData[$minMaxKey]['odds'];
                                         $minBet = $minMaxData[$minMaxKey]['max'];
                                         $worstProvider = strtolower($provider->alias);
@@ -124,7 +132,7 @@ class BetQueueManager implements CustomProcessInterface
 
 
                             $providerTotalBets = ProviderBet::getTotalStake($userBet);
-                            if ($providerTotalBets->totalStake == $userBet->stake) {
+                            if ($providerTotalBets == $userBet->stake) {
                                 UserBet::where('id', $userBet->id)->update([
                                     'status' => 'PLACED'
                                 ]);
@@ -137,13 +145,13 @@ class BetQueueManager implements CustomProcessInterface
                                         // Send the request to kafka again
                                     }
                                 } else {
-                                    $provider = Provider::getIdFromAlias($bestProvider);
+                                    $provider = Provider::where('alias', strtoupper($bestProvider))->first();
                                     if (!$provider) {
                                         echo "Invalid bet provider\n";
                                         continue;
                                     }
 
-                                    $availableStake = $userBet->stake - $providerTotalBets->totalStake;
+                                    $availableStake = $userBet->stake - $providerTotalBets;
                                     $stake = $availableStake > $maxBet ? $maxBet : $availableStake;
                                     // $actualStake = self::actualStake($stake, $userBet, $provider);
 
@@ -175,6 +183,11 @@ class BetQueueManager implements CustomProcessInterface
                                         'id'   => $user->currency_id,
                                         'code' => $currenciesSWT['currencyId:' . $user->currency_id]['code'],
                                     ];
+
+                                    $providerCurrencyInfo = [
+                                        'id'   => $provider->currency_id,
+                                        'code' => $currenciesSWT['currencyId:' . $provider->currency_id]['code']
+                                    ];
                                     
                                     $exchangeRatesKey = implode(":", [
                                         "from:" . $userCurrencyInfo['code'],
@@ -187,12 +200,12 @@ class BetQueueManager implements CustomProcessInterface
 
                                     $percentage = $userProviderPercentage >= 0 ? $userProviderPercentage : $provider->punter_percentage;
                                     
-                                    $actualStake = ($payloadStake * $exchangeRate['exchange_rate']) / ($percentage / 100);
+                                    $actualStake = ($stake * $exchangeRate['exchange_rate']) / ($percentage / 100);
                                     if ($request->betType == "BEST_PRICE") {
                                         $prevStake = $request->stake - $row['max'];
                                     }
 
-                                    if ($payloadStake < $row['min']) {
+                                    if ($stake < $row['min']) {
                                         $toLogs = [
                                             "class"       => "OrdersController",
                                             "message"     => trans('game.bet.errors.not-enough-min-stake'),

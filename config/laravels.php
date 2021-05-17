@@ -199,6 +199,7 @@ return [
             'column' => [// Define the columns
                 ['name' => 'min', 'type' => \Swoole\Table::TYPE_FLOAT],
                 ['name' => 'max', 'type' => \Swoole\Table::TYPE_FLOAT],
+                ['name' => 'odds', 'type' => \Swoole\Table::TYPE_FLOAT],
                 ['name' => 'ts', 'type' => \Swoole\Table::TYPE_STRING,  'size' => 30],
             ],
         ],
