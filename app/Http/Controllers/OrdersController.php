@@ -450,6 +450,11 @@ class OrdersController extends Controller
                     return $odds['price'];
                 }, $request->markets);
 
+                \Log::channel('monitor_api')->debug(json_encode([
+                    'qwe' => $minMaxOddsArray,
+                    'asd' => $request->markets,
+                ]));
+
                 $placeBet = UserBet::create([
                     'user_id'                => auth()->user()->id,
                     'sport_id'               => $eventMarketData->sport_id,
