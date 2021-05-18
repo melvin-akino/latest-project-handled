@@ -25,6 +25,7 @@ class BlockedLine extends Model
             ->where('odd_type_id', $oddType)
             ->where('points', $points)
             ->select('line')
-            ->pluck();
+            ->pluck('line')
+            ->toArray();
     }
 }

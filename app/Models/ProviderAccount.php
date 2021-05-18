@@ -192,11 +192,10 @@ class ProviderAccount extends Model
         $type     = $isVIP ? "BET_VIP" : "BET_NORMAL";
         $provider = Provider::find($providerId);
         $currency = Currency::find($provider->currency_id);
-
         //First let's get the list of blocked_lines for this bet we are trying to assign an account to
         $blockedLines = BlockedLine::getBlockedLines($eventId, $oddType, $points);
 
-        $query    = self::whereIn('provider_id', $providerId)
+        $query    = self::where('provider_id', $providerId)
             ->where('is_enabled', true)
             ->where('type', $type)
             ->whereNotIn('line', array_merge($blockedLines, $usedLines));
