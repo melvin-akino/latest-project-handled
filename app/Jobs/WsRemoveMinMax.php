@@ -54,7 +54,6 @@ class WsRemoveMinMax implements ShouldQueue
                         SwooleHandler::decCtr('minMaxRequestsTable', $this->master_event_market_unique_id . ":" . strtolower($minMaxRequest['provider']));
 
                         if ($noSubscription) {
-                            $minMaxRequestsTable->del($minMaxReqkey);
                             $minmaxDataTable->del('minmax-market:' . $minMaxRequest['memUID']);
                             $minmaxDataTable->del('minmax-market:' . $minMaxRequest['market_id']);
                         }

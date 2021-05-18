@@ -103,7 +103,7 @@ class WebSocketService implements WebSocketHandlerInterface
         $forRemovalOfMinmaxSubscriptions = array_diff($userMinmaxSubscriptions, $otherUserMinmaxSubscriptions);
         foreach ($server->minMaxRequestsTable as $key => $ws) {
             if (in_array($ws['market_id'], $forRemovalOfMinmaxSubscriptions)) {
-                SwooleHandler::remove('minMaxRequestsTable', $key);
+                SwooleHandler::decCtr('minMaxRequestsTable', $ws['market_id'] . ":" . strtolower($ws['provider']));
                 SwooleHandler::remove('minmaxDataTable', $ws['memUID']);
                 SwooleHandler::remove('minmaxDataTable', $ws['market_id']);
             }

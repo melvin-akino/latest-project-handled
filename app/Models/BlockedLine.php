@@ -19,4 +19,13 @@ class BlockedLine extends Model
         'created_at',
         'updated_at',
     ];
+
+    public static function getBlockedLines($eventId, $oddType, $points) {
+        return self::where('event_id', $eventId)
+            ->where('odd_type_id', $oddType)
+            ->where('points', $points)
+            ->select('line')
+            ->pluck('line')
+            ->toArray();
+    }
 }

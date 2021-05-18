@@ -4,7 +4,7 @@ namespace App\Models;
 
 use Carbon\Carbon;
 use JsonException;
-use App\Models\{Currency, Provider};
+use App\Models\{Currency, Provider, BlockedLine};
 use App\Exceptions\BadRequestException;
 use App\Facades\{SwooleHandler, WalletFacade};
 use Illuminate\Support\Facades\Log;
@@ -173,20 +173,38 @@ class ProviderAccount extends Model
         }
     }
 
-
-    public static function getAssignedAccount($providerId, $stake, $isVIP, $eventId, $oddType, $marketFlag, $token)
+    public static function assignbetAccount($providerId, $stake, $eventId, $oddType, $points, $marketFlag, $isVIP, $usedLines)
     {
+        //Pick a betting account passing all default parameters
+        $account = self::pickBettingAccount($providerId, $stake, $eventId, $oddType, $points, $marketFlag, $isVIP, $usedLines);
+
+        //Reuse all used lines should the result is empty from the previous call
+        if (empty($account)) {
+            $account = self::pickBettingAccount($providerId, $stake, $eventId, $oddType, $points, $marketFlag, $isVIP, []);
+        }
+
+        return $account;
+    }
+
+    private static function pickBettingAccount($providerId, $stake, $eventId, $oddType, $points, $marketFlag, $isVIP, $usedLines)
+    {
+
         $type     = $isVIP ? "BET_VIP" : "BET_NORMAL";
         $provider = Provider::find($providerId);
         $currency = Currency::find($provider->currency_id);
+        //First let's get the list of blocked_lines for this bet we are trying to assign an account to
+        $blockedLines = BlockedLine::getBlockedLines($eventId, $oddType, $points);
+
         $query    = self::where('provider_id', $providerId)
             ->where('is_enabled', true)
-            ->where('type', $type);
+            ->where('type', $type)
+            ->whereNotIn('line', array_merge($blockedLines, $usedLines));
 
         if ($query->pluck('uuid')->count() == 0) {
             return null;
         } else {
             $marketFlag = strtoupper($marketFlag);
+            $token   = SwooleHandler::getValue('walletClientsTable', trim(strtolower($provider['alias'])) . '-users')['token'];
 
             if ($marketFlag != 'DRAW') {
                 $notAllowed = $marketFlag == 'HOME' ? "AWAY" : "HOME";

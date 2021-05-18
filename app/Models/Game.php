@@ -147,6 +147,7 @@ class Game extends Model
                 DB::raw('COALESCE(ml.name, l.name) as master_league_name'),
                 DB::raw('COALESCE(mth.name, th.name) as master_team_home_name'),
                 DB::raw('COALESCE(mta.name, ta.name) as master_team_away_name'),
+                'e.id AS event_id',
                 'e.game_schedule',
                 'e.running_time',
                 'e.score',
