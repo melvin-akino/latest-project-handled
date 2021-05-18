@@ -454,7 +454,6 @@ class OrdersController extends Controller
                     'user_id'                => auth()->user()->id,
                     'sport_id'               => $eventMarketData->sport_id,
                     'odd_type_id'            => $eventMarketData->odd_type_id,
-                    'market_id'              => explode('-', $eventMarketData->master_event_unique_id)[3],
                     'status'                 => "PENDING",
                     'odds'                   => $request->odds,
                     'stake'                  => $request->stake,
