@@ -47,26 +47,39 @@ class ProviderBet extends Model
                     ->get();
     }
 
-    public static function getProviderBets(int $userBetId)
+    public static function getProviderBets(int $userBetId = null, string $memUID = null)
     {
         return self::join('providers as p' , 'p.id', 'provider_bets.provider_id')
             ->leftJoin('provider_error_messages as pem', 'pem.id', 'provider_bets.provider_error_message_id')
             ->leftJoin('error_messages as em', 'em.id', 'pem.error_message_id')
-            ->where('user_bet_id', $userBetId)
+            ->join('user_bets as ub', 'ub.id', 'provider_bets.user_bet_id')
+            ->when($userBetId, function($query) use($userBetId) {
+                return $query->where('user_bet_id', $userBetId);
+            })
+            ->when($memUID, function($query) use($memUID) {
+                return $query->where('ub.mem_uid', $memUID);
+            })
             ->select([
                 'provider_bets.id',
                 'user_bet_id',
                 'bet_id',
                 'p.alias as provider',
-                'stake',
-                'odds',
+                'provider_bets.stake',
+                'provider_bets.odds',
+                'ub.odds_label',
                 'to_win',
                 'provider_bets.status',
                 'profit_loss as pl',
                 'provider_bets.created_at',
                 'reason',
                 'provider_error_message_id',
-                'em.error as error_message'
+                'em.error as error_message',
+                'ub.market_flag',
+                'ub.score_on_bet',
+                'ub.master_team_home_name',
+                'ub.master_team_away_name',
+                'ub.master_event_unique_id',
+                'ub.mem_uid'
             ])
             ->get();
     }

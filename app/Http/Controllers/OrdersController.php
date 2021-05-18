@@ -919,7 +919,7 @@ class OrdersController extends Controller
         }
     }
 
-    public function getBetSlipLogs(string $uid)
+    public function getOrderLogs(string $memUID)
     {
         try {
             $userTz        = "Etc/UTC";
@@ -929,17 +929,19 @@ class OrdersController extends Controller
             if (!is_null($getUserConfig)) {
                 $userTz = Timezones::find($getUserConfig->value)->name;
             }
-            $orders = Order::getOrdersByEvent($uid)->get();
+            $logs = ProviderBet::getProviderBets(null, $memUID);
             $data   = [];
-            foreach ($orders as $order) {
+            foreach ($logs as $log) {
                 $data[] = [
-                    'order_id'      => $order->id,
-                    'odds'          => $order->odds,
-                    'odd_type_name' => $order->sport_odd_type_name,
-                    'bet_team'      => $order->market_flag,
-                    'provider'      => $order->provider,
-                    'status'        => $order->status,
-                    'created_at'    => Carbon::createFromFormat("Y-m-d H:i:s", $order->created_at, 'Etc/UTC')->setTimezone($userTz)->format("Y-m-d H:i:s"),
+                    'order_id'      => $log->id,
+                    'stake'         => number_format($log->stake, 2, '.', ','),
+                    'odds'          => $log->odds,
+                    'odds_label'    => $log->odds_label,
+                    'bet_team'      => $log->market_flag == 'HOME' ? $log->master_team_home_name : $log->master_team_away_name,
+                    'score'         => $log->score_on_bet,
+                    'provider'      => $log->provider,
+                    'status'        => $log->status,
+                    'created_at'    => Carbon::createFromFormat("Y-m-d H:i:s", $log->created_at, 'Etc/UTC')->setTimezone($userTz)->format("Y-m-d H:i:s"),
                 ];
             }
             return response()->json([

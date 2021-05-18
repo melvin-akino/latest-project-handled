@@ -491,9 +491,9 @@ const actions = {
             dispatch('auth/checkIfTokenIsValid', err.response.status, { root: true })
         }
     },
-    getOrderLogs({dispatch}, event_id) {
+    getOrderLogs({dispatch}, market_id) {
         return new Promise((resolve, reject) => {
-            axios.get(`v1/orders/logs/${event_id}`, { headers: { 'Authorization': `Bearer ${token}` }})
+            axios.get(`v1/orders/logs/${market_id}`, { headers: { 'Authorization': `Bearer ${token}` }})
                 .then(response => {
                     resolve(response.data.data)
                 })

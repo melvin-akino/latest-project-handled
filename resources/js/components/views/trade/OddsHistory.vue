@@ -2,9 +2,9 @@
     <div class="oddsHistory text-sm">
         <dialog-drag title="Order Logs" :options="options" @close="$emit('close')" @mousedown.native="$store.dispatch('trade/setActivePopup', $vnode.key)" v-order-logs="activePopup==$vnode.key">
             <div class="flex flex-col">
-                <div class="bg-gray-800 w-full p-2">
+                <div class="bg-gray-800 w-full px-2">
                     <div class="container mx-auto">
-                        <p class="text-white">Order logs for Event: {{event_id}}</p>
+                        <p class="text-white">Order logs for Market ID: {{market_id}}</p>
                     </div>
                 </div>
                 <div class="flex flex-col orderLogs">
@@ -15,10 +15,14 @@
                     </div>
                     <div v-else>
                         <div v-if="logs.length != 0">
-                            <div class="flex px-3 my-1 text-gray-700" v-for="(log, index) in logs" :key="index">
-                                <div class="w-1/4">{{log.created_at}}</div>
-                                <div class="w-1/4"><span class="font-bold">{{log.odd_type_name}}</span> ({{log.bet_team}})</div>
-                                <div class="w-2/4">Order Placed to <span class="font-bold">{{log.provider}}</span>: {{log.odds}} - {{log.status == 'SUCCESS' ? 'PLACED' : log.status}}</div>
+                            <div class="flex px-3 my-2 text-gray-700" v-for="(log, index) in logs" :key="index">
+                                <div class="w-2/6">{{log.created_at}}</div>
+                                <div class="w-2/6">
+                                  <p>{{log.bet_team}} {{log.odds_label}} ({{defaultPriceFormat}}, {{log.score}})</p>
+                                  <p>{{log.stake}} @ {{log.odds}}</p>
+                                </div>
+                                <div class="w-1/6 text-right">{{log.provider}}</div>
+                                <div class="w-1/6 text-right"><span class="font-bold">{{statusRename(log.status)}}</span></div>
                             </div>
                         </div>
                         <div class="flex justify-center items-center p-2" v-else>
@@ -53,7 +57,8 @@ export default {
         }
     },
     computed: {
-        ...mapState('trade', ['activePopup', 'popupZIndex'])
+        ...mapState('trade', ['activePopup', 'popupZIndex']),
+        ...mapState('settings', ['defaultPriceFormat']),
     },
     mounted() {
         this.getOrderLogs()
@@ -63,8 +68,7 @@ export default {
             try {
                 this.isLoadingOrderLogs = true
                 this.orderLogsPrompt = 'Loading order logs'
-                let orderLogs = await this.$store.dispatch('trade/getOrderLogs', this.event_id)
-                this.logs = orderLogs.reverse()
+                this.logs = await this.$store.dispatch('trade/getOrderLogs', this.market_id)
                 this.isLoadingOrderLogs = false
                 this.retrievedOrderLogs = true
                 this.orderLogsPrompt = ''
@@ -75,6 +79,22 @@ export default {
                 } else {
                     this.orderLogsPrompt = 'There was an error.'
                 }
+            }
+        },
+        statusRename(status) {
+            let betStatus = status.toLowerCase()
+            let statusOverride = {
+                success: "PLACED",
+                pending: "ON QUEUE",
+                failed:  "FAILED"
+            }
+
+            let statusOverrideKeys = Object.keys(statusOverride)
+
+            if(statusOverrideKeys.includes(betStatus)) {
+                return statusOverride[betStatus]
+            } else {
+                return status
             }
         }
     },
