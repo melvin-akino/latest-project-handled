@@ -338,6 +338,7 @@ class OrdersController extends Controller
                 throw new BadRequestException(trans('game.bet.empty-market'));
             }
 
+            $swoole                = app('swoole');
             $currenciesSWT         = $swoole->currenciesTable;
             $exchangeRatesSWT      = $swoole->exchangeRatesTable;
             $providersSWT          = $swoole->providersTable;
