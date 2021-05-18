@@ -214,8 +214,6 @@ class MinMaxTransformationHandler
                                 if ($swoole->isEstablished($fd['value'])) {
                                     $minMaxRequests[$memUID . ":" . strtolower($data->provider)]['odds'] = $transformed['price'];
 
-                                    SwooleHandler::incCtr('minMaxRequestsTable', $memUID . ":" . strtolower($data->provider));
-
                                     $swoole->push($fd['value'], json_encode([
                                         'getMinMax' => $transformed
                                     ]));

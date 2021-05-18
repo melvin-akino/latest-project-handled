@@ -56,10 +56,14 @@ class WsMinMax implements ShouldQueue
                         'event_id'  => $eventMarket->event_identifier,
                         'odds'      => $eventMarket->odds,
                         'memUID'    => $this->master_event_market_unique_id,
-                        'ctr'       => 0,
+                        'counter'   => 1,
                     ];
 
-                    $minMaxRequestsTable->set($this->master_event_market_unique_id . ":" . strtolower($eventMarket->alias), $minMaxRequestsPayload);
+                    if (!$minMaxRequestsTable->exists($this->master_event_market_unique_id . ":" . strtolower($eventMarket->alias))) {
+                        $minMaxRequestsTable->set($this->master_event_market_unique_id . ":" . strtolower($eventMarket->alias), $minMaxRequestsPayload);
+                    } else {
+                        SwooleHandler::incCtr('minMaxRequestsTable', $this->master_event_market_unique_id . ":" . strtolower($eventMarket->alias));
+                    }
 
                     SendLogData::MinMax('requestminmax', json_encode($minMaxRequestsPayload));
 
