@@ -33,6 +33,13 @@ class ProviderBet extends Model
         return self::where('user_bet_id', $userBet->id)->sum('stake');
     }
 
+    public static function getTotalPlacedStake(UserBet $userBet)
+    {
+        return self::where('user_bet_id', $userBet->id)
+                    ->whereNotIn('status', ['QUEUE', 'PENDING', 'FAILED'])
+                    ->sum('stake');
+    }
+
     public static function getQueue(UserBet $userBet)
     {
         return self::where('user_bet_id', $userBet->id)
