@@ -172,5 +172,10 @@ return [
             'path'   => storage_path('logs/monitor/api/laravel.log'),
             'level'  => 'debug',
         ],
+        'bet_queue' => [
+            'driver' => 'single',
+            'path'   => storage_path('logs/monitor/api/bet-queue.log'),
+            'level'  => 'debug',
+        ],
     ],
 ];

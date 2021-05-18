@@ -34,31 +34,22 @@ class BetQueueManager implements CustomProcessInterface
             $minMaxData = $swoole->minmaxDataTable;
             $minMaxRequests = $swoole->minMaxRequestsTable;
 
-            $walletToken = SwooleHandler::getValue('walletClientsTable', 'ml-users')['token'];
-
-            $providers = Provider::getActiveProviders();
-            $colMinusOne    = OddType::whereIn('type', ['1X2', 'HT 1X2', 'OE'])->pluck('id')->toArray();
-
             while(true) {
                 usleep(5000000);
 
-                if (!SwooleHandler::exists('walletClientsTable', 'ml-users')) {
-                    usleep(1000000);
-                    echo "Empty Wallet User\n";
-                    continue;
-                }
-
                 try {
-                    echo "begin\n";
+                    echo "Initializing queue...\n";
+                    Log::channel('bet_queue')->info("Initializing queue...");
                     DB::beginTransaction();
 
                     $userBets = UserBet::getPending();
                     if ($userBets->count() > 0) {
+                        echo "Processing Pending User Bets\n";
                         foreach ($userBets as $userBet) {
                             // Skip when User Bet Expires and decrement minmax swt counter
-                            $currentTime = Carbon::now()->toDateTimeString();
-                            $expireTime  = Carbon::parse($userBet->created_at)->addSeconds($userBet->order_expiry)->toDateTimeString();
-                            if ($currentTime > $expireTime) {
+                            $currentTime = Carbon::now();
+                            $expireTime  = Carbon::createFromFormat("Y-m-d H:i:s", $userBet->created_at);
+                            if ($currentTime->diffInSeconds($expireTime) > $userBet->order_expiry) {
                                 foreach ($minMaxRequests as $key => $minMaxRequest) {
                                     if (strpos($key, $userBet->mem_uid) !== false) {
                                         $minMaxRequest->decr($key, 'counter');
@@ -67,231 +58,245 @@ class BetQueueManager implements CustomProcessInterface
                                 /**
                                  * @TODO update user bet to status PENDING/DONE
                                  */
-                                echo "Skip since bet expires\n";
+                                echo "User bet expired: " . $userBet->ml_bet_identifier . "\n";
+                                Log::channel('bet_queue')->info([
+                                    'msg' => 'Bet already expired',
+                                    'data' => $userBet->ml_bet_identifier
+                                ]);
                                 continue;
                             }
                             
                             // Skip when there's no minmax
-                            $minOdds = null;
-                            $maxOdds = 0;
-                            $minBet = null;
-                            $maxBet = 0;
+                            $minOdds       = null;
+                            $maxOdds       = 0;
+                            $minBet        = null;
+                            $maxBet        = 0;
                             $worstProvider = null;
-                            $bestProvider = null;
-                            $marketId = null;
+                            $bestProvider  = null;
+                            $marketId      = null;
 
                             $marketProviders = explode(',', $userBet->market_providers);
-
-                            foreach ($minMaxData AS $key => $test) {
-                                var_dump($key);
-                            }
-
-                            echo "=========";
-
                             foreach ($marketProviders as $marketProvider) {
                                 $provider = Provider::find($marketProvider);
-                                # $minMaxKey = $userBet->mem_uid . ':' . strtolower($provider->alias);
                                 $minMaxKey = "minmax-market:" . $userBet->mem_uid;
-                                var_dump($minMaxKey);
                                 if ($minMaxData->exists($minMaxKey)) {
-                                    
                                     if (is_null($minOdds)) {
-                                        $minOdds = $minMaxData[$minMaxKey]['odds'];
-                                        $minBet = $minMaxData[$minMaxKey]['max'];
+                                        $minOdds       = $minMaxData[$minMaxKey]['odds'];
+                                        $minBet        = $minMaxData[$minMaxKey]['max'];
                                         $worstProvider = strtolower($provider->alias);
                                     }
 
                                     if ($maxOdds <= $minMaxData[$minMaxKey]['odds']) {
                                         $maxOdds = $minMaxData[$minMaxKey]['odds'];
                                         if ($maxBet < $minMaxData[$minMaxKey]['max']) {
-                                            $maxBet = $minMaxData[$minMaxKey]['max'];
+                                            $maxBet       = $minMaxData[$minMaxKey]['max'];
                                             $bestProvider = strtolower($provider->alias);
-                                            $marketId = $minMaxData[$minMaxKey]['market_id'];
+                                            $marketId     = $minMaxData[$minMaxKey]['market_id'];
                                         }
                                     }
 
                                     if ($minOdds > $minMaxData[$minMaxKey]['odds']) {
-                                        $maxOdds = $minMaxData[$minMaxKey]['odds'];
-                                        $minBet = $minMaxData[$minMaxKey]['max'];
+                                        $maxOdds       = $minMaxData[$minMaxKey]['odds'];
+                                        $minBet        = $minMaxData[$minMaxKey]['max'];
                                         $worstProvider = strtolower($provider->alias);
                                     }
+                                } else {
+                                    echo "SWT minMaxData Key doesn't exist {$minMaxKey}\n";
+                                    Log::channel('bet_queue')->info([
+                                        'msg' => "SWT minMaxData Key doesn't exist",
+                                        'key' => $minMaxKey
+                                    ]);
                                 }
                             }
 
                             if (is_null($worstProvider)) {
-                                echo "No Worst Provider\n";
+                                echo "No updated minmax for {$userBet->ml_bet_identifier}\n";
+                                Log::channel('bet_queue')->info([
+                                    'msg' => 'No updated minmax',
+                                    'data' => (array) $userBet
+                                ]);
                                 continue;
                             }
 
                             // Skip when there's an existing PENDING bet
-                            $providerBetPendings = ProviderBet::getPending($userBet);
-                            if ($providerBetPendings->count() > 0) {
-                                echo "Skip since there's pending bet\n";
-                                continue;
-                            }
+                            // $providerBetPendings = ProviderBet::getPending($userBet);
+                            // if ($providerBetPendings->count() > 0) {
+                            //     echo "Skip since there's pending bet\n";
+                            //     continue;
+                            // }
 
 
                             $providerTotalBets = ProviderBet::getTotalStake($userBet);
                             if ($providerTotalBets == $userBet->stake) {
-                                UserBet::where('id', $userBet->id)->update([
-                                    'status' => 'PLACED'
-                                ]);
+                                /**
+                                 * @TODO check for any queue provider bets
+                                 * add blocked lines 
+                                 * assign new account
+                                 * skip if no new account 
+                                 * retry queue provider bet and send to kafka
+                                 */
                             } else {
-                                $providerBetQueues = ProviderBet::getQueue($userBet);
-                                if ($providerBetQueues->count() > 0) {
-                                    foreach ($providerBetQueues as $providerBetQueue) {
-                                        // Assign new provider account to existing record
-                                        // Set status back to PENDING
-                                        // Send the request to kafka again
-                                    }
-                                } else {
-                                    $provider = Provider::where('alias', strtoupper($bestProvider))->first();
-                                    if (!$provider) {
-                                        echo "Invalid bet provider\n";
-                                        continue;
-                                    }
+                                /**
+                                 * @TODO create new bet from the remaining bets
+                                 */
 
-                                    $availableStake = $userBet->stake - $providerTotalBets;
-                                    $stake = $availableStake > $maxBet ? $maxBet : $availableStake;
-                                    // $actualStake = self::actualStake($stake, $userBet, $provider);
 
-                                    /**
-                                     * Computing actual stake
-                                     */
-                                    $user = User::find($userBet->user_id);
 
-                                    $exchangeRatesSWT      = $swoole->exchangeRatesTable;
-                                    $currenciesSWT         = $swoole->currenciesTable;
-                                    $userProviderConfigSWT = $swoole->userProviderConfigTable;
+                                // $providerBetQueues = ProviderBet::getQueue($userBet);
+                                // if ($providerBetQueues->count() > 0) {
+                                //     foreach ($providerBetQueues as $providerBetQueue) {
+                                //         // Assign new provider account to existing record
+                                //         // Set status back to PENDING
+                                //         // Send the request to kafka again
+                                //     }
+                                // } else {
+                                //     $provider = Provider::where('alias', strtoupper($bestProvider))->first();
+                                //     if (!$provider) {
+                                //         echo "Invalid bet provider\n";
+                                //         continue;
+                                //     }
 
-                                    $userProviderPercentage = -1;
-                                    $userProviderConfigKey  = implode(':', [
-                                        "userId:" . $userBet->user_id,
-                                        "pId:" . $provider->id,
-                                    ]);
+                                //     $availableStake = $userBet->stake - $providerTotalBets;
+                                //     $stake = $availableStake > $maxBet ? $maxBet : $availableStake;
+                                //     // $actualStake = self::actualStake($stake, $userBet, $provider);
 
-                                    if ($userProviderConfigSWT->exists($userProviderConfigKey)) {
-                                        if (!$userProviderConfigSWT[$userProviderConfigKey]['active']) {
-                                            echo "no active user provider config\n";
-                                            continue;
-                                        } else {
-                                            $userProviderPercentage = $userProviderConfigSWT[$userProviderConfigKey]['punter_percentage'];
-                                        }
-                                    }
+                                //     /**
+                                //      * Computing actual stake
+                                //      */
+                                //     $user = User::find($userBet->user_id);
 
-                                    $userCurrencyInfo = [
-                                        'id'   => $user->currency_id,
-                                        'code' => $currenciesSWT['currencyId:' . $user->currency_id]['code'],
-                                    ];
+                                //     $exchangeRatesSWT      = $swoole->exchangeRatesTable;
+                                //     $currenciesSWT         = $swoole->currenciesTable;
+                                //     $userProviderConfigSWT = $swoole->userProviderConfigTable;
 
-                                    $providerCurrencyInfo = [
-                                        'id'   => $provider->currency_id,
-                                        'code' => $currenciesSWT['currencyId:' . $provider->currency_id]['code']
-                                    ];
+                                //     $userProviderPercentage = -1;
+                                //     $userProviderConfigKey  = implode(':', [
+                                //         "userId:" . $userBet->user_id,
+                                //         "pId:" . $provider->id,
+                                //     ]);
+
+                                //     if ($userProviderConfigSWT->exists($userProviderConfigKey)) {
+                                //         if (!$userProviderConfigSWT[$userProviderConfigKey]['active']) {
+                                //             echo "no active user provider config\n";
+                                //             continue;
+                                //         } else {
+                                //             $userProviderPercentage = $userProviderConfigSWT[$userProviderConfigKey]['punter_percentage'];
+                                //         }
+                                //     }
+
+                                //     $userCurrencyInfo = [
+                                //         'id'   => $user->currency_id,
+                                //         'code' => $currenciesSWT['currencyId:' . $user->currency_id]['code'],
+                                //     ];
+
+                                //     $providerCurrencyInfo = [
+                                //         'id'   => $provider->currency_id,
+                                //         'code' => $currenciesSWT['currencyId:' . $provider->currency_id]['code']
+                                //     ];
                                     
-                                    $exchangeRatesKey = implode(":", [
-                                        "from:" . $userCurrencyInfo['code'],
-                                        "to:" . $providerCurrencyInfo['code'],
-                                    ]);
-                                    $exchangeRate = [
-                                        'id'            => $exchangeRatesSWT[$exchangeRatesKey]['id'],
-                                        'exchange_rate' => $exchangeRatesSWT[$exchangeRatesKey]['exchange_rate'],
-                                    ];
+                                //     $exchangeRatesKey = implode(":", [
+                                //         "from:" . $userCurrencyInfo['code'],
+                                //         "to:" . $providerCurrencyInfo['code'],
+                                //     ]);
+                                //     $exchangeRate = [
+                                //         'id'            => $exchangeRatesSWT[$exchangeRatesKey]['id'],
+                                //         'exchange_rate' => $exchangeRatesSWT[$exchangeRatesKey]['exchange_rate'],
+                                //     ];
 
-                                    $percentage = $userProviderPercentage >= 0 ? $userProviderPercentage : $provider->punter_percentage;
+                                //     $percentage = $userProviderPercentage >= 0 ? $userProviderPercentage : $provider->punter_percentage;
                                     
-                                    $actualStake = ($stake * $exchangeRate['exchange_rate']) / ($percentage / 100);
-                                    if ($request->betType == "BEST_PRICE") {
-                                        $prevStake = $request->stake - $row['max'];
-                                    }
+                                //     $actualStake = ($stake * $exchangeRate['exchange_rate']) / ($percentage / 100);
+                                //     if ($request->betType == "BEST_PRICE") {
+                                //         $prevStake = $request->stake - $row['max'];
+                                //     }
 
-                                    if ($stake < $row['min']) {
-                                        $toLogs = [
-                                            "class"       => "OrdersController",
-                                            "message"     => trans('game.bet.errors.not-enough-min-stake'),
-                                            "module"      => "API_ERROR",
-                                            "status_code" => 400,
-                                        ];
-                                        monitorLog('monitor_api', 'error', $toLogs);
+                                //     if ($stake < $row['min']) {
+                                //         $toLogs = [
+                                //             "class"       => "OrdersController",
+                                //             "message"     => trans('game.bet.errors.not-enough-min-stake'),
+                                //             "module"      => "API_ERROR",
+                                //             "status_code" => 400,
+                                //         ];
+                                //         monitorLog('monitor_api', 'error', $toLogs);
 
-                                        throw new BadRequestException(trans('game.bet.errors.not-enough-min-stake'));
-                                    }
+                                //         throw new BadRequestException(trans('game.bet.errors.not-enough-min-stake'));
+                                //     }
 
-                                    $orderId = uniqid();
+                                //     $orderId = uniqid();
 
-                                    /** ROUNDING UP TO NEAREST 50 */
-                                    $ceil  = ceil($actualStake);
+                                //     /** ROUNDING UP TO NEAREST 50 */
+                                //     $ceil  = ceil($actualStake);
 
-                                    if ($row['provider'] == 'HG') {
-                                        $last2 = (int) substr($ceil, -2);
+                                //     if ($row['provider'] == 'HG') {
+                                //         $last2 = (int) substr($ceil, -2);
 
-                                        if (($last2 > 0) && ($last2 <= 50)) {
-                                            $actualStake = substr($ceil, 0, -2) . '50';
-                                        } else if ($last2 == 0) {
-                                            $actualStake = $ceil;
-                                        } else if ($last2 > 50) {
-                                            $actualStake  = (int) substr($ceil, 0, -2) + 1;
-                                            $actualStake .= '00';
-                                        }
-                                    } else {
-                                        $actualStake = $ceil;
-                                    }
+                                //         if (($last2 > 0) && ($last2 <= 50)) {
+                                //             $actualStake = substr($ceil, 0, -2) . '50';
+                                //         } else if ($last2 == 0) {
+                                //             $actualStake = $ceil;
+                                //         } else if ($last2 > 50) {
+                                //             $actualStake  = (int) substr($ceil, 0, -2) + 1;
+                                //             $actualStake .= '00';
+                                //         }
+                                //     } else {
+                                //         $actualStake = $ceil;
+                                //     }
 
-                                    //check if event is still active
-                                    $event = Event::getByMarketId($marketId);
-                                    if (!$event) {
-                                        continue;
-                                    }
+                                //     //check if event is still active
+                                //     $event = Event::getByMarketId($marketId);
+                                //     if (!$event) {
+                                //         continue;
+                                //     }
 
-                                    // get provider account
-                                    $blockedProviderAccounts = Redis::hGetAll('userBetId:' . $userBetId);
-                                    $providerAccountId = ProviderAccount::getAssignedAccount($provider->id, $stake, $userBet->is_vip, $event->id, $userBet->odd_type_id, $userBet->market_flag, $walletToken, $blockedProviderAccounts);
+                                //     // get provider account
+                                //     $blockedProviderAccounts = Redis::hGetAll('userBetId:' . $userBetId);
+                                //     $providerAccountId = ProviderAccount::getAssignedAccount($provider->id, $stake, $userBet->is_vip, $event->id, $userBet->odd_type_id, $userBet->market_flag, $walletToken, $blockedProviderAccounts);
 
 
-                                    //Create provider Bets
-                                    $providerBet = ProviderBet::firstOrCreate([
-                                        'user_bet_id' => $userBet->id,
-                                        'provider_id' => $provider->id,
-                                        'provider_account_id' => $providerAccountId,
-                                        'provider_error_message_id' => null,
-                                        'status' => 'PENDING',
-                                        'bet_id' => null,
-                                        'odds' => $maxOdds,
-                                        'stake' => $stake,
-                                        'to_win' => !in_array($userBet->odd_type_id, $colMinusOne) ? $stake * $maxOdds : $stake * ($maxOdds - 1),
-                                        'profit_loss' => null,
-                                        'reason' => null,
-                                        'settled_date' => null,
-                                        'created_at' => Carbon::now(),
-                                        'updated_at' => null
-                                    ]);
+                                //     //Create provider Bets
+                                //     $providerBet = ProviderBet::firstOrCreate([
+                                //         'user_bet_id' => $userBet->id,
+                                //         'provider_id' => $provider->id,
+                                //         'provider_account_id' => $providerAccountId,
+                                //         'provider_error_message_id' => null,
+                                //         'status' => 'PENDING',
+                                //         'bet_id' => null,
+                                //         'odds' => $maxOdds,
+                                //         'stake' => $stake,
+                                //         'to_win' => !in_array($userBet->odd_type_id, $colMinusOne) ? $stake * $maxOdds : $stake * ($maxOdds - 1),
+                                //         'profit_loss' => null,
+                                //         'reason' => null,
+                                //         'settled_date' => null,
+                                //         'created_at' => Carbon::now(),
+                                //         'updated_at' => null
+                                //     ]);
 
-                                    $providerBetLog = ProviderBetLog::create([
-                                        'provider_bet_id' => $providerBet->id,
-                                        'status' => 'PENDING'
-                                    ]);
+                                //     $providerBetLog = ProviderBetLog::create([
+                                //         'provider_bet_id' => $providerBet->id,
+                                //         'status' => 'PENDING'
+                                //     ]);
 
-                                    $providerBetTransactions = ProviderBetTransaction::create([
-                                        'provider_bet_id' => $providerBet->id,
-                                        'exchange_rate_id' => $exchangeRate['id'],
-                                        'actual_stake' => $actualStake,
-                                        'actual_to_win' => !in_array($userBet->odd_type_id, $colMinusOne) ? $actualStake * $maxOdds : $actualStake * ($maxOdds - 1),
-                                        'actual_profit_loss' => null,
-                                        'punter_percentage' => $percentage,
-                                        'exchange_rate' => $exchangeRate['exchange_rate']
-                                    ]);
+                                //     $providerBetTransactions = ProviderBetTransaction::create([
+                                //         'provider_bet_id' => $providerBet->id,
+                                //         'exchange_rate_id' => $exchangeRate['id'],
+                                //         'actual_stake' => $actualStake,
+                                //         'actual_to_win' => !in_array($userBet->odd_type_id, $colMinusOne) ? $actualStake * $maxOdds : $actualStake * ($maxOdds - 1),
+                                //         'actual_profit_loss' => null,
+                                //         'punter_percentage' => $percentage,
+                                //         'exchange_rate' => $exchangeRate['exchange_rate']
+                                //     ]);
 
-                                    $betWalletTransaction = BetWalletTransaction::create([
-                                        'provider_bet_log_id' => $providerBetLog->id,
-                                        'user_id' => $user->id,
-                                        'source_id' => 9,
-                                        'currency_id' => $provider->currency_id,
-                                        'wallet_ledger_id' => $walletLedger->id,
-                                        'provider_account_id' => $providerAccountId,
-                                        'reason' => 'Placed Bet',
-                                        'amount' => $actualStake
-                                    ]);
-                                }
+                                //     $betWalletTransaction = BetWalletTransaction::create([
+                                //         'provider_bet_log_id' => $providerBetLog->id,
+                                //         'user_id' => $user->id,
+                                //         'source_id' => 9,
+                                //         'currency_id' => $provider->currency_id,
+                                //         'wallet_ledger_id' => $walletLedger->id,
+                                //         'provider_account_id' => $providerAccountId,
+                                //         'reason' => 'Placed Bet',
+                                //         'amount' => $actualStake
+                                //     ]);
+                                // }
                                 
                             }
                         }
