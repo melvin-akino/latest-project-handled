@@ -380,9 +380,7 @@ class OrdersController extends Controller
             ]);
 
             if ($userProviderConfigSWT->exists($userProviderConfigKey)) {
-                if (!$userProviderConfigSWT[$userProviderConfigKey]['active']) {
-                    continue;
-                } else {
+                if ($userProviderConfigSWT[$userProviderConfigKey]['active']) {
                     $userProviderPercentage = $userProviderConfigSWT[$userProviderConfigKey]['punter_percentage'];
                 }
             }
