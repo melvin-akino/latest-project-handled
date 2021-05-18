@@ -22,6 +22,7 @@ class ProviderBet extends Model
         'reason',
         'settled_date',
         'game_schedule',
+        'market_id',
         'created_at',
         'updated_at',
     ];
