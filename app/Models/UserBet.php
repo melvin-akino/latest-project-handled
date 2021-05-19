@@ -32,6 +32,8 @@ class UserBet extends Model
         'master_team_home_name',
         'master_team_away_name',
         'market_providers',
+        'min_odds',
+        'max_odds',
         'created_at',
         'updated_at',
     ];
@@ -64,6 +66,8 @@ class UserBet extends Model
         'master_team_home_name',
         'master_team_away_name',
         'market_providers',
+        'min_odds',
+        'max_odds',
     ];
 
     protected static $logOnlyDirty = true;

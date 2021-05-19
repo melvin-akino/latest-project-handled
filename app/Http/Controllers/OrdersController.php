@@ -21,7 +21,11 @@ use App\Models\{
     ProviderAccount,
     Currency,
     UserBet,
-    ProviderBet
+    ProviderBet,
+    ProviderBetLog,
+    ProviderBetTransaction,
+    BetWalletTransaction,
+    Source
 };
 use Illuminate\Http\Request;
 use Illuminate\Support\{Facades\DB, Facades\Log, Str};
@@ -319,6 +323,10 @@ class OrdersController extends Controller
 
     public function bet(PlaceBetRequest $request)
     {
+        $walletAmount     = 0;
+        $provCurrencyCode = "";
+        $userWalletToken  = SwooleHandler::getValue('walletClientsTable', 'ml-users')['token'];
+
         try {
             DB::beginTransaction();
 
@@ -333,6 +341,12 @@ class OrdersController extends Controller
 
                 throw new BadRequestException(trans('game.bet.empty-market'));
             }
+
+            $swoole                = app('swoole');
+            $currenciesSWT         = $swoole->currenciesTable;
+            $exchangeRatesSWT      = $swoole->exchangeRatesTable;
+            $providersSWT          = $swoole->providersTable;
+            $userProviderConfigSWT = $swoole->userProviderConfigTable;
 
             $mlBetId          = generateMLBetIdentifier();
             $userCurrencyId   = auth()->user()->currency_id;
@@ -364,10 +378,66 @@ class OrdersController extends Controller
                 throw new BadRequestException(trans('game.bet.errors.insufficient'));
             }
 
+            $userProviderPercentage = -1;
+            $userProviderConfigKey  = implode(':', [
+                "userId:" . auth()->user()->id,
+                "pId:" . $request->markets[0]['provider_id'],
+            ]);
+
+            if ($userProviderConfigSWT->exists($userProviderConfigKey)) {
+                if ($userProviderConfigSWT[$userProviderConfigKey]['active']) {
+                    $userProviderPercentage = $userProviderConfigSWT[$userProviderConfigKey]['punter_percentage'];
+                }
+            }
+
+            $providerKey  = "providerAlias:" . strtolower($request->markets[0]['provider']);
+            $providerInfo = [
+                'alias'             => $providersSWT[$providerKey]['alias'],
+                'currency_id'       => $providersSWT[$providerKey]['currency_id'],
+                'is_enabled'        => $providersSWT[$providerKey]['is_enabled'],
+                'punter_percentage' => $providersSWT[$providerKey]['punter_percentage']
+            ];
+
+            $userCurrencyInfo = [];
+            foreach ($currenciesSWT as $_key => $_row) {
+                if (strpos($_key, 'currencyId:' . auth()->user()->currency_id) !== false) {
+                    $userCurrencyInfo = [
+                        'id'   => auth()->user()->currency_id,
+                        'code' => $currenciesSWT[$_key]['code'],
+                    ];
+
+                    break;
+                }
+            }
+
+            $providerCurrencyInfo = [];
+            foreach ($currenciesSWT as $_key => $_row) {
+                if (strpos($_key, 'currencyId:' . $providerInfo['currency_id']) !== false) {
+                    $providerCurrencyInfo = [
+                        'id'   => $providerInfo['currency_id'],
+                        'code' => $currenciesSWT[$_key]['code']
+                    ];
+
+                    break;
+                }
+            }
+
+            $exchangeRatesKey = implode(":", [
+                "from:" . $userCurrencyInfo['code'],
+                "to:" . $providerCurrencyInfo['code'],
+            ]);
+
+            $exchangeRate = [
+                'id'            => $exchangeRatesSWT[$exchangeRatesKey]['id'],
+                'exchange_rate' => $exchangeRatesSWT[$exchangeRatesKey]['exchange_rate'],
+            ];
+
+            $percentage           = $userProviderPercentage >= 0 ? $userProviderPercentage : $providerInfo['punter_percentage'];
             $eventMarketData      = Game::getMasterEventByMarketId($request->market_id, $request->markets[0]['provider_id']);
             $providerCurrencyInfo = Currency::find(Provider::find($request->markets[0]['provider_id'])->currency_id);
-            $userWalletToken      = SwooleHandler::getValue('walletClientsTable', 'ml-users')['token'];
             $userPlaceBet         = WalletFacade::subtractBalance($userWalletToken, auth()->user()->uuid, trim($providerCurrencyInfo->code), ($request->stake), "[PLACE_BET][BET_PENDING] - Placing Bet " . $mlBetId);
+            $walletAmount         = $request->stake;
+            $provCurrencyCode     = trim($providerCurrencyInfo->code);
 
             if (empty($userPlaceBet) || array_key_exists('error', $userPlaceBet) || !array_key_exists('status_code', $userPlaceBet) || $userPlaceBet->status_code != 200) {
                 $toLogs = [
@@ -381,11 +451,14 @@ class OrdersController extends Controller
 
                 throw new BadRequestException(trans('game.wallet-api.error.user'));
             } else {
+                $minMaxOddsArray = array_map(function ($odds) {
+                    return $odds['price'];
+                }, $request->markets);
+
                 $placeBet = UserBet::create([
                     'user_id'                => auth()->user()->id,
                     'sport_id'               => $eventMarketData->sport_id,
                     'odd_type_id'            => $eventMarketData->odd_type_id,
-                    'market_id'              => explode('-', $eventMarketData->master_event_unique_id)[3],
                     'status'                 => "PENDING",
                     'odds'                   => $request->odds,
                     'stake'                  => $request->stake,
@@ -401,7 +474,111 @@ class OrdersController extends Controller
                     'master_team_home_name'  => $eventMarketData->master_team_home_name,
                     'master_team_away_name'  => $eventMarketData->master_team_away_name,
                     'market_providers'       => implode(',', array_column($request->markets, 'provider_id')),
+                    'min_odds'               => min($minMaxOddsArray),
+                    'max_odds'               => max($minMaxOddsArray),
                 ]);
+
+                $split = self::splitStake($request->stake, $request->markets[0]['min'], $request->markets[0]['max']);
+                $lines = [];
+
+                foreach ($split AS $row) {
+                    $assignedAccount = ProviderAccount::assignbetAccount($request->markets[0]['provider_id'], $request->stake, $eventMarketData->event_id, $eventMarketData->odd_type_id, $eventMarketData->odd_label, $eventMarketData->market_flag, auth()->user()->is_vip, $lines);
+
+                    if (!is_null($assignedAccount)) {
+                        $lines[] = $assignedAccount->line;
+                    }
+
+                    $actualStake = ($row * $exchangeRate['exchange_rate']) / ($percentage / 100);
+                    $ceil        = ceil($actualStake);
+
+                    if ($row['provider'] == 'HG') {
+                        $last2 = (int) substr($ceil, -2);
+
+                        if (($last2 > 0) && ($last2 <= 50)) {
+                            $actualStake = substr($ceil, 0, -2) . '50';
+                        } else if ($last2 == 0) {
+                            $actualStake = $ceil;
+                        } else if ($last2 > 50) {
+                            $actualStake  = (int) substr($ceil, 0, -2) + 1;
+                            $actualStake .= '00';
+                        }
+                    } else {
+                        $actualStake = $ceil;
+                    }
+
+                    $providerBet = ProviderBet::create([
+                        'user_bet_id'               => $placeBet->id,
+                        'provider_id'               => $request->markets[0]['provider_id'],
+                        'provider_account_id'       => is_null($assignedAccount) ? null : $assignedAccount->id,
+                        'provider_error_message_id' => null,
+                        'status'                    => "PENDING",
+                        'bet_id'                    => null,
+                        'odds'                      => $request->odds,
+                        'stake'                     => $row,
+                        'to_win'                    => $request->odds * $row,
+                        'profit_loss'               => null,
+                        'reason'                    => null,
+                        'settled_date'              => null,
+                        'game_schedule'             => $eventMarketData->game_schedule,
+                        'market_id'                 => $eventMarketData->bet_identifier,
+                    ]);
+
+                    $providerBetLog = ProviderBetLog::create([
+                        'provider_bet_id' => $providerBet->id,
+                        'status'          => "PENDING",
+                    ]);
+
+                    ProviderBetTransaction::create([
+                        'provider_bet_id'    => $providerBet->id,
+                        'exchange_rate_id'   => $exchangeRate['id'],
+                        'actual_stake'       => $actualStake,
+                        'actual_to_win'      => $actualStake * $request->odds,
+                        'actual_profit_loss' => null,
+                        'exchange_rate'      => $exchangeRate['exchange_rate'],
+                        'punter_percentage'  => $percentage,
+                    ]);
+
+                    BetWalletTransaction::create([
+                        'provider_bet_log_id' => $providerBetLog->id,
+                        'user_id'             => auth()->user()->id,
+                        'source_id'           => Source::getIdByName('PLACE_BET'),
+                        'currency_id'         => auth()->user()->currency_id,
+                        'wallet_ledger_id'    => $userPlaceBet->data->id,
+                        'provider_account_id' => is_null($assignedAccount) ? null : $assignedAccount->id,
+                        'reason'              => "Placed Bet",
+                        'amount'              => $row,
+                    ]);
+
+                    $requestId = Str::uuid() . "-" . $providerBet->id;
+                    $requestTs = self::milliseconds();
+                    $payload   = [
+                        'request_uid' => $requestId,
+                        'request_ts'  => $requestTs,
+                        'sub_command' => 'place',
+                        'command'     => 'bet'
+                    ];
+
+                    $payload['data'] = [
+                        'provider'         => strtolower($request->markets[0]['provider']),
+                        'sport'            => $eventMarketData->sport_id,
+                        'stake'            => $actualStake,
+                        'odds'             => $request->odds,
+                        'market_id'        => $eventMarketData->bet_identifier,
+                        'event_id'         => explode('-', $eventMarketData->master_event_unique_id)[3],
+                        'score'            => $eventMarketData->score,
+                        'username'         => is_null($assignedAccount) ? null : $assignedAccount->username,
+                        'created_at'       => $providerBet->created_at,
+                        'orderExpiry'      => $request->orderExpiry,
+                        'exchange_rate_id' => $exchangeRate['id'],
+                        'exchange_rate'    => $exchangeRate['exchange_rate'],
+                    ];
+
+                    KafkaPush::dispatch(
+                        strtolower($request->markets[0]['provider']) . env('KAFKA_SCRAPE_ORDER_REQUEST_POSTFIX', '_bet_req'),
+                        $payload,
+                        $requestId
+                    );
+                }
 
                 DB::commit();
 
@@ -413,10 +590,13 @@ class OrdersController extends Controller
                     'data'        => trans('game.bet.fast-bet.success'),
                     'order_id'    => $placeBet->id,
                     'created_at'  => Carbon::parse($placeBet->created_at)->toDateTimeString()
-                ], $returnCode);
+                ], 200);
             }
         } catch (BadRequestException $e) {
             DB::rollback();
+
+            $userReturnStake = WalletFacade::addBalance($userWalletToken, auth()->user()->uuid, $provCurrencyCode, ($walletAmount), "[PLACE_BET][RETURN_STAKE] - Something went wrong: " . $e);
+
             $toLogs = [
                 "class"       => "OrdersController.bet",
                 "message"     => "Line " . $e->getLine() . " | " . $e->getMessage(),
@@ -432,6 +612,9 @@ class OrdersController extends Controller
             ], 400);
         } catch (Exception $e) {
             DB::rollback();
+
+            $userReturnStake = WalletFacade::addBalance($userWalletToken, auth()->user()->uuid, $provCurrencyCode, ($walletAmount), "[PLACE_BET][RETURN_STAKE] - Something went wrong: " . $e);
+
             $toLogs = [
                 "class"       => "OrdersController.bet",
                 "message"     => "Line " . $e->getLine() . " | " . $e->getMessage(),
@@ -446,6 +629,26 @@ class OrdersController extends Controller
                 'message'     => trans('generic.internal-server-error')
             ], 500);
         }
+    }
+
+    private static function splitStake($userStake, $min, $max)
+    {
+        $userStake = (double) str_replace(',', '', $userStake);
+        $min       = (double) str_replace(',', '', $min);
+        $max       = (double) str_replace(',', '', $max);
+        $array     = [];
+
+        do {
+            if ($userStake >= $min) {
+                $stake      = min($userStake, $max);
+                $array[]    = $stake;
+                $userStake -= $stake;
+            } else {
+                break;  
+            }
+        } while ($userStake > 0);
+
+        return $array;
     }
 
     public function postPlaceBet(Request $request)

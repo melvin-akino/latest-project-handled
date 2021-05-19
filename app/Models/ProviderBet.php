@@ -21,9 +21,8 @@ class ProviderBet extends Model
         'profit_loss',
         'reason',
         'settled_date',
-        'min',
-        'max',
         'game_schedule',
+        'market_id',
         'created_at',
         'updated_at',
     ];

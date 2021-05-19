@@ -195,26 +195,29 @@ class MinMaxTransformationHandler
                                     $transformed['max'] = ($max <= $maxBetDisplay) ? $max : $maxBetDisplay;
                                 }
 
-                                SwooleHandler::setValue('minmaxDataTable', 'minmax-market:' . $memUID, [
-                                    'min'  => $data->minimum,
-                                    'max'  => $data->maximum,
-                                    'odds' => (double) $data->odds,
-                                    'ts'   => getMilliseconds()
-                                ]);
+                                // SwooleHandler::setValue('minmaxDataTable', 'minmax-market:' . $memUID, [
+                                //     'min'       => $data->minimum,
+                                //     'max'       => $data->maximum,
+                                //     'odds'      => (double) $data->odds,
+                                //     'market_id' => $data->market_id,
+                                //     "provider"  => strtoupper($data->provider),
+                                //     'ts'        => getMilliseconds()
+                                // ]);
 
                                 SwooleHandler::setValue('minmaxDataTable', 'minmax-market:' . $data->market_id, [
-                                    'min'  => $data->minimum,
-                                    'max'  => $data->maximum,
-                                    'odds' => (double) $data->odds,
-                                    'ts'   => getMilliseconds()
+                                    'min'       => $data->minimum,
+                                    'max'       => $data->maximum,
+                                    'odds'      => (double) $data->odds,
+                                    'market_id' => $data->market_id,
+                                    'mem_uid'   => $memUID,
+                                    "provider"  => strtoupper($data->provider),
+                                    'ts'        => getMilliseconds()
                                 ]);
 
                                 EventMarket::updateProviderEventMarketsByMemUIDWithOdds($data->market_id, $transformed['price']);
 
                                 if ($swoole->isEstablished($fd['value'])) {
                                     $minMaxRequests[$memUID . ":" . strtolower($data->provider)]['odds'] = $transformed['price'];
-
-                                    SwooleHandler::incCtr('minMaxRequestsTable', $memUID . ":" . strtolower($data->provider));
 
                                     $swoole->push($fd['value'], json_encode([
                                         'getMinMax' => $transformed
