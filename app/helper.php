@@ -809,13 +809,13 @@ if (!function_exists('orderStatus')) {
             $fd               = $swoole->wsTable->get('uid:' . $userId);
             $query            = DB::table('bet_bar_v2')->where('user_id', $userId)->where('user_bet_id', $orderId);
             $userBetBarStatus = $query->select('status')->first();
-            $userBetBarArray  = $userBetBar->pluck('sum', 'status')->toArray();
+            $userBetBarArray  = $query->pluck('sum', 'status')->toArray();
             $getOrderStatus   = [
                 'bet_id'     => $orderId,
                 'bet_status' => [
-                    "placed" => array_key_exists('SUCCESS', $userBetBar) ? number_format($userBetBar['SUCCESS'], 2, '.', ',') : null,
-                    "queued" => array_key_exists('PENDING', $userBetBar) ? number_format($userBetBar['PENDING'], 2, '.', ',') : null,
-                    "failed" => array_key_exists('FAILED', $userBetBar) ? number_format($userBetBar['FAILED'], 2, '.', ',') : null,
+                    "placed" => array_key_exists('SUCCESS', $userBetBarArray) ? number_format($userBetBarArray['SUCCESS'], 2, '.', ',') : null,
+                    "queued" => array_key_exists('PENDING', $userBetBarArray) ? number_format($userBetBarArray['PENDING'], 2, '.', ',') : null,
+                    "failed" => array_key_exists('FAILED', $userBetBarArray) ? number_format($userBetBarArray['FAILED'], 2, '.', ',') : null,
                 ],
             ];
 
