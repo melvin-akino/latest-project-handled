@@ -806,19 +806,14 @@ if (!function_exists('orderStatus')) {
         $swoole = app('swoole');
 
         if ($swoole->wsTable->exists('uid:' . $userId)) {
-            $fd         = $swoole->wsTable->get('uid:' . $userId);
-            $userBetBar = DB::table('bet_bar_v2')
-                ->where('user_id', $userId)
-                ->where('user_bet_id', $orderId)
-                ->pluck('sum', 'status')
-                ->toArray();
-
-            $getOrderStatus = [
+            $fd               = $swoole->wsTable->get('uid:' . $userId);
+            $userBetBarArray  = DB::table('bet_bar_v2')->where('user_id', $userId)->where('user_bet_id', $orderId)->pluck('sum', 'status')->toArray();
+            $getOrderStatus   = [
                 'bet_id'     => $orderId,
                 'bet_status' => [
-                    "placed" => array_key_exists('SUCCESS', $userBetBar) ? number_format($userBetBar['SUCCESS'], 2, '.', ',') : null,
-                    "queued" => array_key_exists('PENDING', $userBetBar) ? number_format($userBetBar['PENDING'], 2, '.', ',') : null,
-                    "failed" => array_key_exists('FAILED', $userBetBar) ? number_format($userBetBar['FAILED'], 2, '.', ',') : null,
+                    "placed" => array_key_exists('SUCCESS', $userBetBarArray) ? number_format($userBetBarArray['SUCCESS'], 2, '.', ',') : null,
+                    "queued" => array_key_exists('PENDING', $userBetBarArray) ? number_format($userBetBarArray['PENDING'], 2, '.', ',') : null,
+                    "failed" => array_key_exists('FAILED', $userBetBarArray) ? number_format($userBetBarArray['FAILED'], 2, '.', ',') : null,
                 ],
             ];
 
@@ -850,7 +845,14 @@ if (!function_exists('orderStatus')) {
                 'CANCELLED',
             ];
 
-            if (in_array(strtoupper($status), $forBetBarRemoval)) {
+            $forRemoval = true;
+            foreach (array_keys($userBetBarArray) AS $statuses) {
+                if (!in_array(trim(strtoupper($statuses)), $forBetBarRemoval)) {
+                    $forRemoval = false;
+                }
+            }
+
+            if ($forRemoval) {
                 if (time() - strtotime($createdAt) > $expiry) {
                     SwooleHandler::setValue('topicTable', 'userId:' . $userId . ':unique:' . uniqid(), [
                         'user_id'    => $userId,

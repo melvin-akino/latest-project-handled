@@ -21,12 +21,37 @@ class ProviderBet extends Model
         'profit_loss',
         'reason',
         'settled_date',
-        'min',
-        'max',
         'game_schedule',
+        'market_id',
         'created_at',
         'updated_at',
     ];
+
+    public static function getTotalStake(UserBet $userBet)
+    {
+        return self::where('user_bet_id', $userBet->id)->sum('stake');
+    }
+
+    public static function getTotalPlacedStake(UserBet $userBet)
+    {
+        return self::where('user_bet_id', $userBet->id)
+                    ->whereNotIn('status', ['QUEUE', 'PENDING', 'FAILED'])
+                    ->sum('stake');
+    }
+
+    public static function getQueue(UserBet $userBet)
+    {
+        return self::where('user_bet_id', $userBet->id)
+                    ->where('status', 'QUEUE')
+                    ->get();
+    }
+
+    public static function getPending(UserBet $userBet)
+    {
+        return self::where('user_bet_id', $userBet->id)
+                    ->where('status', 'PENDING')
+                    ->get();
+    }
 
     public static function getProviderBets(int $userBetId = null, string $memUID = null)
     {

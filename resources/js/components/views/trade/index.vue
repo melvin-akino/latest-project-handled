@@ -405,14 +405,14 @@ export default {
         adjustSidebarHeight: {
             bind(el, binding, vnode) {
                 if(binding.value) {
-                    el.style.height = 'calc(100vh - 256px)'
+                    el.style.height = 'calc(100vh - 365px)'
                 } else {
                     el.style.height = 'calc(100vh - 104px)'
                 }
             },
             update(el, binding, vnode) {
                 if(binding.value) {
-                    el.style.height = 'calc(100vh - 256px)'
+                    el.style.height = 'calc(100vh - 365px)'
                 } else {
                     el.style.height = 'calc(100vh - 104px)'
                 }
@@ -421,14 +421,14 @@ export default {
         adjustGameWindowHeight: {
             bind(el, binding, vnode) {
                 if(binding.value) {
-                    el.style.height = 'calc(100vh - 320px)'
+                    el.style.height = 'calc(100vh - 425px)'
                 } else {
                     el.style.height = 'calc(100vh - 168px)'
                 }
             },
             update(el, binding, vnode) {
                 if(binding.value) {
-                    el.style.height = 'calc(100vh - 320px)'
+                    el.style.height = 'calc(100vh - 425px)'
                 } else {
                     el.style.height = 'calc(100vh - 168px)'
                 }

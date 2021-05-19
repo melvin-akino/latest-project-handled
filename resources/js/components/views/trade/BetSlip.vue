@@ -600,7 +600,8 @@ export default {
                     betType: this.orderForm.betType,
                     stake: this.orderForm.stake,
                     orderExpiry: this.orderForm.orderExpiry,
-                    market_id: this.market_id
+                    market_id: this.market_id,
+                    odds: this.inputPrice
                 }
 
                 if(this.orderForm.betType == 'FAST_BET') {
@@ -611,11 +612,11 @@ export default {
                             greaterThanOrEqualThanPriceArray.push(minmax)
                         }
                     })
-                    let sortedByPriceArray = greaterThanOrEqualThanPriceArray.sort((a, b) => (a.price > b.price) ? 1 : -1)
+                    let sortedByPriceArray = greaterThanOrEqualThanPriceArray.sort((a, b) => (a.price < b.price) ? 1 : -1)
                     sortedByPriceArray.map(sortedByPrice => {
                         if(this.orderForm.stake > sortedByPrice.max) {
                             if(this.wallet.credit >= sortedByPrice.max) {
-                                this.orderForm.stake = twoDecimalPlacesFormat(this.orderForm.stake - sortedByPrice.max)
+                                this.orderForm.stake = 0
                                 this.orderForm.markets.push(sortedByPrice)
                                 this.orderMessage = ''
                             } else {

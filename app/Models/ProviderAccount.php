@@ -205,7 +205,6 @@ class ProviderAccount extends Model
             return null;
         } else {
             $marketFlag = strtoupper($marketFlag);
-
             $token   = SwooleHandler::getValue('walletClientsTable', trim(strtolower($provider['alias'])) . '-users')['token'];
 
             if ($marketFlag != 'DRAW') {

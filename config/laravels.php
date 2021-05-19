@@ -97,6 +97,12 @@ return [
             'pipe'     => 0,
             'enable'   => true
         ],
+        'bet_queue_manager' => [
+            'class'    => \App\Processes\BetQueueManager::class,
+            'redirect' => false,
+            'pipe'     => 0,
+            'enable'   => true
+        ],
         
     ],
     'timer'                    => [
@@ -193,6 +199,10 @@ return [
             'column' => [// Define the columns
                 ['name' => 'min', 'type' => \Swoole\Table::TYPE_FLOAT],
                 ['name' => 'max', 'type' => \Swoole\Table::TYPE_FLOAT],
+                ['name' => 'odds', 'type' => \Swoole\Table::TYPE_FLOAT],
+                ['name' => 'market_id', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 30],
+                ['name' => 'mem_uid', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 100],
+                ['name' => 'provider', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 20],
                 ['name' => 'ts', 'type' => \Swoole\Table::TYPE_STRING,  'size' => 30],
             ],
         ],
@@ -419,6 +429,7 @@ return [
                 ['name' => 'event_id', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 30],
                 ['name' => 'odds', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 20],
                 ['name' => 'memUID', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 100],
+                ['name' => 'counter', 'type' => \Swoole\Table::TYPE_INT],
             ],
         ],
         'exchangeRates'       => [

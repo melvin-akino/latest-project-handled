@@ -66,4 +66,20 @@ class SwooleHandler
     {
         return self::$swoole->{$swooleTable};
     }
+
+    public static function incCtr($swooleTable, $key)
+    {
+        self::$swoole->{$swooleTable}->incr($key, 'counter', 1);
+    }
+
+    public static function decCtr($swooleTable, $key)
+    {
+        self::$swoole->{$swooleTable}->decr($key, 'counter', 1);
+        
+        $ctr = self::$swoole->{$swooleTable}[$key]['counter'];
+
+        if ($ctr <= 0) {
+           self::$swoole->{$swooleTable}->del($key);
+        }
+    }
 }
