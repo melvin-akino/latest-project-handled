@@ -483,9 +483,13 @@ class OrdersController extends Controller
 
                 foreach ($split AS $row) {
                     $assignedAccount = ProviderAccount::assignbetAccount($request->markets[0]['provider_id'], $request->stake, $eventMarketData->event_id, $eventMarketData->odd_type_id, $eventMarketData->odd_label, $eventMarketData->market_flag, auth()->user()->is_vip, $lines);
-                    $lines[]         = is_null($assignedAccount) ? null : $assignedAccount->line;
-                    $actualStake     = ($row * $exchangeRate['exchange_rate']) / ($percentage / 100);
-                    $ceil            = ceil($actualStake);
+
+                    if (!is_null($assignedAccount)) {
+                        $lines[] = $assignedAccount->line;
+                    }
+
+                    $actualStake = ($row * $exchangeRate['exchange_rate']) / ($percentage / 100);
+                    $ceil        = ceil($actualStake);
 
                     if ($row['provider'] == 'HG') {
                         $last2 = (int) substr($ceil, -2);
