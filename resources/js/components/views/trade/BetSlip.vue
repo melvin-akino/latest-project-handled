@@ -616,7 +616,7 @@ export default {
                     sortedByPriceArray.map(sortedByPrice => {
                         if(this.orderForm.stake > sortedByPrice.max) {
                             if(this.wallet.credit >= sortedByPrice.max) {
-                                this.orderForm.stake = twoDecimalPlacesFormat(this.orderForm.stake - sortedByPrice.max)
+                                this.orderForm.stake = 0
                                 this.orderForm.markets.push(sortedByPrice)
                                 this.orderMessage = ''
                             } else {

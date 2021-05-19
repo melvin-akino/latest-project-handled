@@ -133,7 +133,7 @@ class BetTransformationHandler
 
                     orderStatus(
                         $userBet->user_id,
-                        $orderId,
+                        $orderData->user_bet_id,
                         $orderData->orderExpiry,
                         $orderData->created_at
                     );
