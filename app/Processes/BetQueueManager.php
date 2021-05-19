@@ -48,18 +48,23 @@ class BetQueueManager implements CustomProcessInterface
                     if ($userBets->count() > 0) {
                         echo "Processing Pending User Bets\n";
                         foreach ($userBets as $userBet) {
+                            $marketProviders = explode(',', $userBet->market_providers);
                             // Skip when User Bet Expires and decrement minmax swt counter
                             $currentTime = Carbon::now();
                             $expireTime  = Carbon::createFromFormat("Y-m-d H:i:s", $userBet->created_at);
                             if ($currentTime->diffInSeconds($expireTime) > $userBet->order_expiry) {
                                 foreach ($minMaxRequests as $key => $minMaxRequest) {
                                     if (strpos($key, $userBet->mem_uid) !== false) {
-                                        $minMaxRequest->decr($key, 'counter');
+                                        foreach ($marketProviders as $marketProvider) {
+                                            $provider = Provider::find($marketProvider);
+                                            SwooleHandler::decCtr('minMaxRequestsTable', $userBet->mem_uid . ":" . strtolower($provider->alias));
+                                        }
                                     }
                                 }
-                                /**
-                                 * @TODO update user bet to status PENDING/DONE
-                                 */
+                                $userBet = UserBet::find($userBet->id);
+                                $userBet->status = 'DONE';
+                                $userBet->save();
+
                                 echo "User bet expired: " . $userBet->ml_bet_identifier . "\n";
                                 Log::channel('bet_queue')->info([
                                     'msg' => 'Bet already expired',
