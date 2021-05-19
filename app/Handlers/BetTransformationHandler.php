@@ -108,6 +108,7 @@ class BetTransformationHandler
                         ]);
 
                         ProviderBetTransaction::create([
+                            'provider_bet_id'    => $orderData->id,
                             'order_log_id'       => $orderLogs->id,
                             'exchange_rate_id'   => $exchangeRateId,
                             'actual_stake'       => $actualStake,
