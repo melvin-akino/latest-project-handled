@@ -555,7 +555,7 @@ class OrdersController extends Controller
                     ];
 
                     $payload['data'] = [
-                        'provider'         => $request->markets[0]['provider_id'],
+                        'provider'         => strtolower($request->markets[0]['provider']),
                         'sport'            => $eventMarketData->sport_id,
                         'stake'            => $actualStake,
                         'odds'             => $request->odds,
