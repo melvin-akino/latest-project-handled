@@ -806,14 +806,11 @@ if (!function_exists('orderStatus')) {
         $swoole = app('swoole');
 
         if ($swoole->wsTable->exists('uid:' . $userId)) {
-            $fd         = $swoole->wsTable->get('uid:' . $userId);
-            $userBetBar = DB::table('bet_bar_v2')
-                ->where('user_id', $userId)
-                ->where('user_bet_id', $orderId)
-                ->pluck('sum', 'status')
-                ->toArray();
-
-            $getOrderStatus = [
+            $fd               = $swoole->wsTable->get('uid:' . $userId);
+            $query            = DB::table('bet_bar_v2')->where('user_id', $userId)->where('user_bet_id', $orderId);
+            $userBetBarStatus = $query->select('status')->first();
+            $userBetBarArray  = $userBetBar->pluck('sum', 'status')->toArray();
+            $getOrderStatus   = [
                 'bet_id'     => $orderId,
                 'bet_status' => [
                     "placed" => array_key_exists('SUCCESS', $userBetBar) ? number_format($userBetBar['SUCCESS'], 2, '.', ',') : null,
@@ -850,7 +847,7 @@ if (!function_exists('orderStatus')) {
                 'CANCELLED',
             ];
 
-            if (in_array(strtoupper($status), $forBetBarRemoval)) {
+            if (in_array(strtoupper($userBetBarStatus), $forBetBarRemoval)) {
                 if (time() - strtotime($createdAt) > $expiry) {
                     SwooleHandler::setValue('topicTable', 'userId:' . $userId . ':unique:' . uniqid(), [
                         'user_id'    => $userId,
