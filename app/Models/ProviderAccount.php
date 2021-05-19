@@ -180,6 +180,7 @@ class ProviderAccount extends Model
 
         //Reuse all used lines should the result is empty from the previous call
         if (empty($account)) {
+            Log::info("There is no more available provider accounts for betting this event_id: $eventId | odd_type: $oddType | points: $points | market_flag: $marketFlag. Trying to exclude the following lines: " . implode(",",$usedLines) . " and try to re-use them.");
             $account = self::pickBettingAccount($providerId, $stake, $eventId, $oddType, $points, $marketFlag, $isVIP, []);
         }
 
@@ -300,14 +301,21 @@ class ProviderAccount extends Model
                         ]);
                     }
 
+                    //Log it here
+                    Log::info("This is the selected provider account: ". $finalProvider->username . " | line: " . $finalProvider->line ." for this event_id: ". $eventId . " | odd_type_id: " . $oddType . " | points: " . $points . " | market_flag: " . $marketFlag);
+
                     return $finalProvider;
                 } else {
                     return null;
                 }
             } else {
                 $query->orderBy('updated_at', 'ASC');
+                $assignedProviderAccount = $query->first();
 
-                return $query->first();
+                //Log it here
+                Log::info("This is the selected provider account: ". $assignedProviderAccount->username . " | line: " . $assignedProviderAccount->line ." for this event_id: ". $eventId . " | odd_type_id: " . $oddType . " | points: " . $points . " | market_flag: " . $marketFlag);
+
+                return $assignedProviderAccount;
             }
         }
     }
