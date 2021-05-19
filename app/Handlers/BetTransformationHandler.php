@@ -14,7 +14,8 @@ use App\Models\{OddType,
     UserBet,
     ProviderBet,
     ProviderBetLog,
-    ProviderBetTransaction
+    ProviderBetTransaction,
+    Provider
 };
 use Carbon\Carbon;
 use Exception;
@@ -59,7 +60,7 @@ class BetTransformationHandler
             $requestUIDArray = explode('-', $this->message->request_uid);
             $messageOrderId  = end($requestUIDArray);
             $orderData       = ProviderBet::find($messageOrderId);
-            $memUID          = UserBet::find($orderData->user_bet_id)->mem_uid;
+            $userBet         = UserBet::find($orderData->user_bet_id);
 
             if ($this->message->data->status == self::STATUS_RECEIVED) {
                 if (time() - strtotime($orderData->created_at) > 60) {
@@ -96,7 +97,7 @@ class BetTransformationHandler
                         $order->save();
 
                         $orderLogData   = ProviderBetLog::where('provider_bet_id', $orderData->id)->orderBy('id', 'desc')->first();
-                        $transaction    = ProviderBetTransaction::where('provider_bet_id', $orderLogData->id)->orderBy('id', 'desc')->first();
+                        $transaction    = ProviderBetTransaction::where('provider_bet_id', $orderData->id)->orderBy('id', 'desc')->first();
                         $actualStake    = $transaction->actual_stake;
                         $exchangeRate   = $transaction->exchange_rate;
                         $exchangeRateId = $transaction->exchange_rate_id;
@@ -107,6 +108,7 @@ class BetTransformationHandler
                         ]);
 
                         ProviderBetTransaction::create([
+                            'provider_bet_id'    => $orderData->id,
                             'order_log_id'       => $orderLogs->id,
                             'exchange_rate_id'   => $exchangeRateId,
                             'actual_stake'       => $actualStake,
@@ -118,7 +120,7 @@ class BetTransformationHandler
                     } else {
                         $source       = Source::where('source_name', 'LIKE', 'RETURN_STAKE')->first();
                         $walletToken  = SwooleHandler::getValue('walletClientsTable', 'ml-users')['token'];
-                        $user         = User::find($order->user_id);
+                        $user         = User::find($userBet->user_id);
                         $currencyCode = $user->currency()->first()->code;
                         $reason       = "[RETURN_STAKE][BET FAILED/CANCELLED] - transaction for order id " . $order->id;
                         $userBalance  = WalletFacade::addBalance($walletToken, $user->uuid, trim(strtoupper($currencyCode)), $order->stake, $reason);
@@ -138,14 +140,14 @@ class BetTransformationHandler
                     }
 
                     orderStatus(
-                        $order->user_id,
+                        $userBet->user_id,
                         $orderId,
                         $orderData->orderExpiry,
                         $orderData->created_at
                     );
 
                     $topics->set('unique:' . uniqid(), [
-                        'user_id'    => $order->user_id,
+                        'user_id'    => $userBet->user_id,
                         'topic_name' => 'open-order-' . $this->message->data->bet_id
                     ]);
 
@@ -156,7 +158,7 @@ class BetTransformationHandler
 
             DB::commit();
 
-            SwooleHandler::decCtr('minMaxRequestsTable', $memUID . ":" . strtolower($this->message->data->provider));
+            SwooleHandler::decCtr('minMaxRequestsTable', $userBet->mem_uid . ":" . strtolower($this->message->data->provider));
 
             $toLogs = [
                 "class"       => "BetTransformationHandler",
