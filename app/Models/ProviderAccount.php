@@ -180,6 +180,7 @@ class ProviderAccount extends Model
 
         //Reuse all used lines should the result is empty from the previous call
         if (empty($account)) {
+            Log::info("There is no more available provider accounts for betting this event_id: $eventId | odd_type: $oddType | points: $points | market_flag: $marketFlag. Trying to exclude the following lines: " . implode(",",$usedLines) . " and try to re-use them.");
             $account = self::pickBettingAccount($providerId, $stake, $eventId, $oddType, $points, $marketFlag, $isVIP, []);
         }
 
