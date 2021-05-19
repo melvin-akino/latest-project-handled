@@ -174,7 +174,7 @@ return [
         ],
         'bet_queue' => [
             'driver' => 'single',
-            'path'   => storage_path('logs/monitor/api/bet-queue.log'),
+            'path'   => storage_path('logs/bet-queue.log'),
             'level'  => 'debug',
         ],
     ],
