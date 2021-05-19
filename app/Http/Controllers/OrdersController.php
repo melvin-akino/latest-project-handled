@@ -570,7 +570,7 @@ class OrdersController extends Controller
                     ];
 
                     KafkaPush::dispatch(
-                        $request->markets[0]['provider_id'] . env('KAFKA_SCRAPE_ORDER_REQUEST_POSTFIX', '_bet_req'),
+                        strtolower($request->markets[0]['provider']) . env('KAFKA_SCRAPE_ORDER_REQUEST_POSTFIX', '_bet_req'),
                         $payload,
                         $requestId
                     );
