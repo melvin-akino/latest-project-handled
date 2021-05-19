@@ -300,6 +300,9 @@ class ProviderAccount extends Model
                             'not_allowed_ground'  => $notAllowed
                         ]);
                     }
+                    //Log it here
+                    Log::info("This is the selected provider account for this event_id: ". $eventId . " | odd_type_id: " . $oddType . " | points: " . $points . " | market_flag: " . $marketFlag);
+                    Log::info(json_encode((array) $finalProvider));
 
                     return $finalProvider;
                 } else {
@@ -307,8 +310,12 @@ class ProviderAccount extends Model
                 }
             } else {
                 $query->orderBy('updated_at', 'ASC');
-
-                return $query->first();
+                $assignedProviderAccount = $query->first();
+                //Log it here
+                //Log it here
+                Log::info("This is the selected provider account for this event_id: ". $eventId . " | odd_type_id: " . $oddType . " | points: " . $points . " | market_flag: " . $marketFlag);
+                Log::info(json_encode((array) $assignedProviderAccount));
+                return $assignedProviderAccount;
             }
         }
     }
