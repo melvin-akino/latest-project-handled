@@ -41,6 +41,12 @@ class Events extends Model
 
     public static function getByMarketId($marketId)
     {
+        var_dump(DB::table('events as e')
+        ->join('event_markets as em', 'em.event_id', 'e.id')
+        ->where('em.bet_identifier', $marketId)
+        ->whereNull('e.deleted_at')
+        ->whereNull('em.deleted_at')
+        ->select('e.*')->toSql());
         return DB::table('events as e')
             ->join('event_markets as em', 'em.event_id', 'e.id')
             ->where('em.bet_identifier', $marketId)

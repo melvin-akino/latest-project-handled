@@ -16,7 +16,8 @@ use App\Models\{
     ProviderBetLog,
     BetWalletTransaction,
     ProviderBetTransaction,
-    Blockedline
+    Blockedline,
+    Events
 };
 use App\User;
 use Carbon\Carbon;
@@ -85,7 +86,29 @@ class BetQueueManager implements CustomProcessInterface
                             $marketProviders = explode(',', $userBet->market_providers);
                             foreach ($marketProviders as $marketProvider) {
                                 $provider = Provider::find($marketProvider);
-                                $minMaxKey = "minmax-market:" . $userBet->mem_uid;
+
+                                $marketId = null;
+                                var_dump($minMaxData->count());
+                                foreach ($minMaxData as $minMax) {
+                                    if ($minMax['mem_uid'] == $userBet->mem_uid &&
+                                        $minMax['provider'] == strtoupper($provider->alias)
+                                    ) {
+                                        $marketId = $minMax['market_id'];
+                                        break;
+                                    }
+                                }
+
+                                if (empty($marketId)) {
+                                    echo "No available market for provider " . $provider->alias . " : " . $userBet->ml_bet_identifier . "\n";
+                                    Log::channel('bet_queue')->info([
+                                        'msg' => "No available market for provider " . $provider->alias,
+                                        'data' => $userBet->ml_bet_identifier
+                                    ]);
+                                    continue 2; 
+                                }
+
+
+                                $minMaxKey = "minmax-market:" . $marketId;
                                 if ($minMaxData->exists($minMaxKey)) {
                                     if (is_null($minOdds)) {
                                         $minOdds       = $minMaxData[$minMaxKey]['odds'];
@@ -99,6 +122,9 @@ class BetQueueManager implements CustomProcessInterface
                                             $maxBet       = $minMaxData[$minMaxKey]['max'];
                                             $bestProvider = strtolower($provider->alias);
                                             $marketId     = $minMaxData[$minMaxKey]['market_id'];
+                                            var_dump($minMaxData->count());
+                                            var_dump($minMaxKey);
+                                            var_dump($minMaxData[$minMaxKey]);
                                         }
                                     }
 
@@ -126,7 +152,7 @@ class BetQueueManager implements CustomProcessInterface
                             }
 
                             $providerTotalPlacedBets = ProviderBet::getTotalPlacedStake($userBet);
-                            if ($providerTotalPlacedBets == $userBet->stake) {
+                            if ($providerTotalPlacedBets == $userBet->stake) {echo "a";
                                 foreach ($minMaxRequests as $key => $minMaxRequest) {
                                     if (strpos($key, $userBet->mem_uid) !== false) {
                                         $minMaxRequest->decr($key, 'counter');
@@ -146,15 +172,17 @@ class BetQueueManager implements CustomProcessInterface
                              * skip if no new account 
                              * retry queue provider bet and send to kafka
                              */
+                            echo "b";
                             $providerBetQueues = ProviderBet::getQueue($userBet);
-                            if ($providerBetQueues->count() > 0) {
-                                foreach ($providerBetQueues as $providerBetQueue) {
+                            if ($providerBetQueues->count() > 0) {echo "c";
+                                foreach ($providerBetQueues as $providerBetQueue) {echo "d";
                                     $providerBet = ProviderBet::find($providerBetQueue->id);
-                                    if (!empty($providerBetQueue->provider_account_id)) {
-                                        $event = Event::getByMarketId($marketId);
-                                        if (!$event) {
-                                            continue 2;
-                                        }
+                                    var_dump($marketId);
+                                    $event = Events::getByMarketId($marketId);
+                                    if (!$event) {echo "e";
+                                        continue 2;
+                                    }
+                                    if (!empty($providerBetQueue->provider_account_id)) {echo "f";
                                         BlockedLine::updateOrCreate([
                                             'event_id'    => $event->id,
                                             'odd_type_id' => $userBet->odd_type_id,
@@ -167,7 +195,7 @@ class BetQueueManager implements CustomProcessInterface
                                                                     ->orderBy('id', 'DESC')
                                                                     ->first();
 
-                                    if ($providerBetTransaction) {
+                                    if ($providerBetTransaction) {echo "grrrr";
                                         $providerBet->status = 'PENDING';
                                         $providerBet->save();
 
@@ -176,6 +204,15 @@ class BetQueueManager implements CustomProcessInterface
                                             'status'          => 'PENDING'
                                         ]);
 
+                                        var_dump([
+                                            'provider_bet_id'    => $providerBet->id,
+                                            'exchange_rate_id'   => $providerBetTransaction->exchange_rate_id,
+                                            'actual_stake'       => $providerBetTransaction->actual_stake,
+                                            'actual_to_win'      => !in_array($userBet->odd_type_id, $colMinusOne) ? $providerBetTransaction->actual_stake * $providerBet->odds : $providerBetTransaction->actual_stake * ($providerBet->odds - 1),
+                                            'actual_profit_loss' => 0.0,
+                                            'punter_percentage'  => $providerBetTransaction->punter_percentage,
+                                            'exchange_rate'      => $providerBetTransaction->exchange_rate
+                                        ]); 
                                     
                                         $providerBetTransactions = ProviderBetTransaction::create([
                                             'provider_bet_id'    => $providerBet->id,
@@ -191,8 +228,9 @@ class BetQueueManager implements CustomProcessInterface
                                     /**
                                      * Assign new provider account
                                      */
-                                    $providerAccount = ProviderAccount::getAssignedAccount($providerId, $providerBetTransaction->actual_stake, $userBet->is_vip, $event->id, $userBet->odd_type_id, $userBet->market_flag);
-                                    if (empty($providerAccount)) {
+                                    $provider = Provider::where('alias', strtoupper($bestProvider))->first();
+                                    $providerAccount = ProviderAccount::getAssignedAccount($provider->id, $providerBetTransaction->actual_stake, $userBet->is_vip, $event->id, $userBet->odd_type_id, $userBet->market_flag);
+                                    if (empty($providerAccount)) {echo "h";
                                         echo "No provider account assigned for provider bet id  {$providerBetQueue->id}\n";
                                         Log::channel('bet_queue')->info([
                                             'msg' => 'No provider account assigned',
@@ -200,7 +238,7 @@ class BetQueueManager implements CustomProcessInterface
                                         ]);
                                         continue;
                                     }
-                                    
+                                    echo "i";
                                     /**
                                      * Send bet request to kafka
                                      */
@@ -224,6 +262,7 @@ class BetQueueManager implements CustomProcessInterface
                                         'username'         => $providerAccount->username
                                     ];
 
+                                    echo "j";
                                     KafkaPush::dispatch(
                                         $bestProvider . env('KAFKA_SCRAPE_ORDER_REQUEST_POSTFIX', '_bet_req'),
                                         $payload,

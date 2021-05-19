@@ -63,15 +63,7 @@ class BetTransformationHandler
             $userBet         = UserBet::find($orderData->user_bet_id);
 
             if ($this->message->data->status == self::STATUS_RECEIVED) {
-                if (time() - strtotime($orderData->created_at) > 60) {
-                    $orderData->status     = 'FAILED';
-                    $orderData->reason     = 'Expired';
-                    $orderData->updated_at = Carbon::now();
-                    $orderData->save();
-
-                    $orderSWTKey = 'orderId:' . $messageOrderId;
-                    SwooleHandler::setColumnValue('ordersTable', $orderSWTKey, 'status', 'FAILED');
-                }
+                SwooleHandler::decCtr('minMaxRequestsTable', $userBet->mem_uid . ":" . strtolower($this->message->data->provider));
             } else {
                 if ($orderData) {
                     $orderId        = $orderData->id;
@@ -157,8 +149,6 @@ class BetTransformationHandler
             }
 
             DB::commit();
-
-            SwooleHandler::decCtr('minMaxRequestsTable', $userBet->mem_uid . ":" . strtolower($this->message->data->provider));
 
             $toLogs = [
                 "class"       => "BetTransformationHandler",
