@@ -14,7 +14,8 @@ use App\Models\{OddType,
     UserBet,
     ProviderBet,
     ProviderBetLog,
-    ProviderBetTransaction
+    ProviderBetTransaction,
+    Provider
 };
 use Carbon\Carbon;
 use Exception;
