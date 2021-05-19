@@ -96,7 +96,7 @@ class BetTransformationHandler
                         $order->save();
 
                         $orderLogData   = ProviderBetLog::where('provider_bet_id', $orderData->id)->orderBy('id', 'desc')->first();
-                        $transaction    = ProviderBetTransaction::where('provider_bet_id', $orderLogData->id)->orderBy('id', 'desc')->first();
+                        $transaction    = ProviderBetTransaction::where('provider_bet_id', $orderData->id)->orderBy('id', 'desc')->first();
                         $actualStake    = $transaction->actual_stake;
                         $exchangeRate   = $transaction->exchange_rate;
                         $exchangeRateId = $transaction->exchange_rate_id;
