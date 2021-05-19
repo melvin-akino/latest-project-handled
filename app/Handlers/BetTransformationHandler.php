@@ -140,14 +140,14 @@ class BetTransformationHandler
                     }
 
                     orderStatus(
-                        $order->user_id,
+                        $userBet->user_id,
                         $orderId,
                         $orderData->orderExpiry,
                         $orderData->created_at
                     );
 
                     $topics->set('unique:' . uniqid(), [
-                        'user_id'    => $order->user_id,
+                        'user_id'    => $userBet->user_id,
                         'topic_name' => 'open-order-' . $this->message->data->bet_id
                     ]);
 
