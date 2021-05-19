@@ -394,7 +394,6 @@ const actions = {
         await dispatch('getInitialEvents')
         await dispatch('getBetbarData')
         Vue.prototype.$socket.send(`getSelectedLeagues_${state.selectedSport}`)
-        dispatch('getOrders')
     },
     async loadTradeWindow({dispatch, commit}) {
         if(Cookies.get('under_maintenance')) {
@@ -427,11 +426,6 @@ const actions = {
             .catch(err => {
                 dispatch('auth/checkIfTokenIsValid', err.response.status, { root: true })
             })
-    },
-    getOrders() {
-        state.bets.map(bet => {
-            Vue.prototype.$socket.send(`getOrder_${bet.order_id}`)
-        })
     },
     getWalletData({commit, dispatch}) {
         axios.get('v1/user/wallet', { headers: { 'Authorization': `Bearer ${token}` }})
