@@ -488,10 +488,11 @@ class OrdersController extends Controller
                         $lines[] = $assignedAccount->line;
                     }
 
-                    $actualStake = ($row * $exchangeRate['exchange_rate']) / ($percentage / 100);
+                    $row        *= $exchangeRate['exchange_rate'];
+                    $actualStake = $row / ($percentage / 100);
                     $ceil        = ceil($actualStake);
 
-                    if ($row['provider'] == 'HG') {
+                    if (strtoupper($request->markets[0]['provider']) == 'HG') {
                         $last2 = (int) substr($ceil, -2);
 
                         if (($last2 > 0) && ($last2 <= 50)) {
