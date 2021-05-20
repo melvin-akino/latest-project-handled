@@ -43,10 +43,24 @@ class WalletController extends Controller
 
             if ($getBalance->status) {
                 $balance     = $getBalance->data->balance;
-                $profit_loss = Order::where('user_id', $userId)->sum('profit_loss');
-                $orders      = Order::where('user_id', $userId)->whereIn('status', ['PENDING', 'SUCCESS'])->sum('stake');
-                $todayPL     = Order::where('user_id', $userId)->whereBetween(DB::raw("created_at AT TIME ZONE 'UTC' AT TIME ZONE '$userTz'"), [$today . " 00:00:00", $today . " 23:59:59"])->sum('profit_loss');
-                $ystrdyPL    = Order::where('user_id', $userId)->whereBetween(DB::raw("created_at AT TIME ZONE 'UTC' AT TIME ZONE '$userTz'"), [$yesterday . " 00:00:00", $yesterday . " 23:59:59"])->sum('profit_loss');
+                $profit_loss = DB::table('user_bets as ub')
+                                    ->join('provider_bets as pb', 'pb.user_bet_id', 'ub.id')
+                                    ->where('user_id', $userId)->sum('profit_loss');
+                $orders      = DB::table('user_bets as ub')
+                                    ->join('provider_bets as pb', 'pb.user_bet_id', 'ub.id')
+                                    ->where('user_id', $userId)
+                                    ->whereIn('pb.status', ['PENDING', 'SUCCESS'])
+                                    ->sum('pb.stake');
+                $todayPL     = DB::table('user_bets as ub')
+                                ->join('provider_bets as pb', 'pb.user_bet_id', 'ub.id')
+                                ->where('user_id', $userId)
+                                ->whereBetween(DB::raw("pb.created_at AT TIME ZONE 'UTC' AT TIME ZONE '$userTz'"), [$today . " 00:00:00", $today . " 23:59:59"])
+                                ->sum('profit_loss');
+                $ystrdyPL    = DB::table('user_bets as ub')
+                                ->join('provider_bets as pb', 'pb.user_bet_id', 'ub.id')
+                                ->where('user_id', $userId)
+                                ->whereBetween(DB::raw("pb.created_at AT TIME ZONE 'UTC' AT TIME ZONE '$userTz'"), [$yesterday . " 00:00:00", $yesterday . " 23:59:59"])
+                                ->sum('profit_loss');
 
                 return response()->json([
                     'status'      => true,
