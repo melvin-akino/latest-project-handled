@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\{DB, Log, Redis};
 use Illuminate\Support\Str;
 use Swoole\Http\Server;
 use Swoole\{Process, Coroutine};
-use App\Facades\SwooleHandler;
+use App\Facades\{SwooleHandler, WalletFacade};
 use App\Models\{
     Provider,
     ProviderAccount,
@@ -46,6 +46,8 @@ class BetQueueManager implements CustomProcessInterface
                     Log::channel('bet_queue')->info("Initializing queue...");
                     DB::beginTransaction();
 
+                    $walletToken = SwooleHandler::getValue('walletClientsTable', 'ml-users')['token'];
+
                     $userBets = UserBet::getPending();
                     if ($userBets->count() > 0) {
                         echo "Processing Pending User Bets\n";
@@ -63,6 +65,29 @@ class BetQueueManager implements CustomProcessInterface
                                         }
                                     }
                                 }
+
+                                $providerBetQueues = ProviderBet::getQueue($userBet);
+                                if ($providerBetQueues->count() > 0) {
+                                    foreach ($providerBetQueues as $providerBetQueue) {
+                                        $providerBet = ProviderBet::find($providerBetQueue->id);
+                                        ProviderBet::where('id', $providerBetQueue->id)->update([
+                                            'status' => 'UNPLACED'
+                                        ]);
+
+                                        ProviderBetLog::create([
+                                            'provider_bet_id' => $providerBet->id,
+                                            'status'          => 'UNPLACED'
+                                        ]);
+
+                                        $user = DB::table('users as u')
+                                            ->join('currency as c', 'u.currency_id', 'c.id')
+                                            ->where('u.id', $userBet->user_id)
+                                            ->first();
+
+                                        $userBalance = WalletFacade::addBalance($walletToken, $user->uuid, trim(strtoupper($user->code)), $providerBet->stake, "[RETURN_STAKE] - transaction for provider bet id " . $providerBet->id);
+                                    }
+                                }
+
                                 $userBet = UserBet::find($userBet->id);
                                 $userBet->status = 'DONE';
                                 $userBet->save();
