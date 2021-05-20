@@ -482,7 +482,7 @@ class OrdersController extends Controller
                 $lines = [];
 
                 foreach ($split AS $row) {
-                    $convertedStake *= $exchangeRate['exchange_rate'];
+                    $convertedStake  = $row * $exchangeRate['exchange_rate'];
                     $actualStake     = $convertedStake / ($percentage / 100);
                     $ceil            = ceil($actualStake);
 
