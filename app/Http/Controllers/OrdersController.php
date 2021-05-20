@@ -596,7 +596,7 @@ class OrdersController extends Controller
         } catch (BadRequestException $e) {
             DB::rollback();
 
-            $userReturnStake = WalletFacade::addBalance($userWalletToken, auth()->user()->uuid, $provCurrencyCode, ($walletAmount), "[PLACE_BET][RETURN_STAKE] - Something went wrong: " . $e);
+            $userReturnStake = WalletFacade::addBalance($userWalletToken, auth()->user()->uuid, $provCurrencyCode, ($walletAmount), "[PLACE_BET][RETURN_STAKE] - Something went wrong.");
 
             $toLogs = [
                 "class"       => "OrdersController.bet",
@@ -614,7 +614,7 @@ class OrdersController extends Controller
         } catch (Exception $e) {
             DB::rollback();
 
-            $userReturnStake = WalletFacade::addBalance($userWalletToken, auth()->user()->uuid, $provCurrencyCode, ($walletAmount), "[PLACE_BET][RETURN_STAKE] - Something went wrong: " . $e);
+            $userReturnStake = WalletFacade::addBalance($userWalletToken, auth()->user()->uuid, $provCurrencyCode, ($walletAmount), "[PLACE_BET][RETURN_STAKE] - Something went wrong.");
 
             $toLogs = [
                 "class"       => "OrdersController.bet",
