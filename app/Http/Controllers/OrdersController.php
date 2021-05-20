@@ -273,7 +273,7 @@ class OrdersController extends Controller
                 ], 404);
             }
 
-            $eventBets = Order::getOrdersByEvent($masterEvent->master_event_unique_id, true)->count();
+            $eventBets = UserBet::getUserBetsByEvent($masterEvent->master_event_unique_id)->count();
 
             $hasBets = false;
             if ($eventBets > 0) {
@@ -1182,7 +1182,7 @@ class OrdersController extends Controller
                 $userTz = Timezones::find($getUserConfig->value)->name;
             }
 
-            $orders   = Order::getOrdersByEvent($uid, true)->get();
+            $orders   = UserBet::getUserBetsByEvent($uid)->get();
             $ouLabels = OddType::where('type', 'ILIKE', '%OU%')->pluck('id')->toArray();
 
             $data = [];
