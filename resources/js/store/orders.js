@@ -49,12 +49,6 @@ const actions = {
                                 Vue.set(orderObj, key, moneyFormat(Number(order[key])))
                             } else if(key=='odds') {
                                 Vue.set(orderObj, key, twoDecimalPlacesFormat(Number(order[key])))
-                            } else if(key=='score') {
-                                if(rootState.trade.failedBetStatus.includes(order.status) || order.status == 'SUCCESS') {
-                                    Vue.set(orderObj, key, "")
-                                } else{
-                                    Vue.set(orderObj, key, `"${order[key]}"`)
-                                }
                             } else {
                                 Vue.set(orderObj, key, order[key])
                             }
