@@ -432,12 +432,12 @@ class OrdersController extends Controller
                 'exchange_rate' => $exchangeRatesSWT[$exchangeRatesKey]['exchange_rate'],
             ];
 
-            $walletAmount         = $request->stake * $excahngeRate['exchange_rate'];
+            $walletAmount         = $request->stake * $exchangeRate['exchange_rate'];
             $percentage           = $userProviderPercentage >= 0 ? $userProviderPercentage : $providerInfo['punter_percentage'];
             $eventMarketData      = Game::getMasterEventByMarketId($request->market_id, $request->markets[0]['provider_id']);
             $providerCurrencyInfo = Currency::find(Provider::find($request->markets[0]['provider_id'])->currency_id);
-            $userPlaceBet         = WalletFacade::subtractBalance($userWalletToken, auth()->user()->uuid, trim($providerCurrencyInfo->code), ($walletAmount), "[PLACE_BET][BET_PENDING] - Placing Bet " . $mlBetId);
-            $provCurrencyCode     = trim($providerCurrencyInfo->code);
+            $provCurrencyCode     = trim($providerCurrencyInfo['code']);
+            $userPlaceBet         = WalletFacade::subtractBalance($userWalletToken, auth()->user()->uuid, trim($provCurrencyCode), ($walletAmount), "[PLACE_BET][BET_PENDING] - Placing Bet " . $mlBetId);
 
             if (empty($userPlaceBet) || array_key_exists('error', $userPlaceBet) || !array_key_exists('status_code', $userPlaceBet) || $userPlaceBet->status_code != 200) {
                 $toLogs = [
@@ -482,7 +482,7 @@ class OrdersController extends Controller
                 $lines = [];
 
                 foreach ($split AS $row) {
-                    $convertedStake *= $exchangeRate['exchange_rate'];
+                    $convertedStake  = $row * $exchangeRate['exchange_rate'];
                     $actualStake     = $convertedStake / ($percentage / 100);
                     $ceil            = ceil($actualStake);
 
@@ -596,7 +596,7 @@ class OrdersController extends Controller
         } catch (BadRequestException $e) {
             DB::rollback();
 
-            $userReturnStake = WalletFacade::addBalance($userWalletToken, auth()->user()->uuid, $provCurrencyCode, ($walletAmount), "[PLACE_BET][RETURN_STAKE] - Something went wrong: " . $e);
+            $userReturnStake = WalletFacade::addBalance($userWalletToken, auth()->user()->uuid, $provCurrencyCode, ($walletAmount), "[PLACE_BET][RETURN_STAKE] - Something went wrong.");
 
             $toLogs = [
                 "class"       => "OrdersController.bet",
@@ -614,7 +614,7 @@ class OrdersController extends Controller
         } catch (Exception $e) {
             DB::rollback();
 
-            $userReturnStake = WalletFacade::addBalance($userWalletToken, auth()->user()->uuid, $provCurrencyCode, ($walletAmount), "[PLACE_BET][RETURN_STAKE] - Something went wrong: " . $e);
+            $userReturnStake = WalletFacade::addBalance($userWalletToken, auth()->user()->uuid, $provCurrencyCode, ($walletAmount), "[PLACE_BET][RETURN_STAKE] - Something went wrong.");
 
             $toLogs = [
                 "class"       => "OrdersController.bet",

@@ -97,7 +97,6 @@ class PlacedBetConsume implements CustomProcessInterface
                             "message"     => $message->err,
                             "module"      => "PRODUCE_ERROR",
                             "status_code" => $e->getCode(),
-                            "payload"     => $payload,
                         ];
                         monitorLog('monitor_process', 'error', $toLogs);
                     }
