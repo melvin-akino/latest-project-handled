@@ -19,14 +19,6 @@ class PlacedBetConsume implements CustomProcessInterface
     {
         try {
             if ($swoole->data2SwtTable->exist('data2Swt')) {
-                $toLogs = [
-                    "class"       => "PlacedBetConsume",
-                    "message"     => "Initiating...",
-                    "module"      => "PROCESS",
-                    "status_code" => 102,
-                ];
-                monitorLog('monitor_process', 'info', $toLogs);
-
                 $betTransformationHandler = app('BetTransformationHandler');
 
                 $kafkaConsumer = app('KafkaConsumer');
@@ -38,6 +30,15 @@ class PlacedBetConsume implements CustomProcessInterface
                     $message = $kafkaConsumer->consume(0);
                     if ($message->err == RD_KAFKA_RESP_ERR_NO_ERROR) {
                         $payload = json_decode($message->payload);
+
+                        $toLogs = [
+                            "class"       => "PlacedBetConsume",
+                            "message"     => "Initiating...",
+                            "module"      => "PROCESS",
+                            "status_code" => 102,
+                            "payload"     => $payload,
+                        ];
+                        monitorLog('monitor_process', 'info', $toLogs);
 
                         if (empty($payload->data->status)) {
                             $toLogs = [
@@ -72,13 +73,13 @@ class PlacedBetConsume implements CustomProcessInterface
 
                         $betTransformationHandler->init($payload, $message->offset)->handle();
 
-                        Coroutine::sleep(0.01);
+                        Coroutine::sleep(0.05);
                         $kafkaConsumer->commitAsync($message);
 
                         continue;
                     }
 
-                    Coroutine::sleep(0.01);
+                    Coroutine::sleep(0.05);
                 }
             }
         } catch (Exception $e) {
