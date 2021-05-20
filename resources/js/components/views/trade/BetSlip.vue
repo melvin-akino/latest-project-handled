@@ -104,7 +104,7 @@
                             <label class="text-sm">Order Expiry</label>
                             <div class="relative w-40">
                                 <select class="shadow appearance-none border rounded text-sm w-full py-1 px-3 text-gray-700 leading-tight focus:outline-none" v-model="orderForm.orderExpiry" @change="clearOrderMessage">
-                                    <option value="30">Now</option>
+                                    <option value="30">30 secs</option>
                                     <option value="120">2 mins</option>
                                     <option value="300">5 mins</option>
                                     <option value="600">10 mins</option>
