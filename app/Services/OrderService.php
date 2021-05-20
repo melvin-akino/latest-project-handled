@@ -140,7 +140,7 @@ class OrderService
                         'stake'         => $row->stake,
                         'valid_stake'   => $row->profit_loss ? abs($row->profit_loss) : 0,
                         'towin'         => $row->to_win,
-                        'score'         => $scorePrefix . (string) $score[0] . " - " . $score[1],
+                        'score'         => !empty($row->final_score) ? $scorePrefix . (string) $score[0] . " - " . $score[1] : "",
                         'home_score'    => $score[0],
                         'away_score'    => $score[1],
                         'pl'            => (string) $row->profit_loss,
