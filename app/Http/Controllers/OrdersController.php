@@ -432,7 +432,7 @@ class OrdersController extends Controller
                 'exchange_rate' => $exchangeRatesSWT[$exchangeRatesKey]['exchange_rate'],
             ];
 
-            $walletAmount         = $request->stake * $excahngeRate['exchange_rate'];
+            $walletAmount         = $request->stake * $exchangeRate['exchange_rate'];
             $percentage           = $userProviderPercentage >= 0 ? $userProviderPercentage : $providerInfo['punter_percentage'];
             $eventMarketData      = Game::getMasterEventByMarketId($request->market_id, $request->markets[0]['provider_id']);
             $providerCurrencyInfo = Currency::find(Provider::find($request->markets[0]['provider_id'])->currency_id);
