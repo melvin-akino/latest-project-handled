@@ -73,14 +73,14 @@ class OrderService
                     'ub.odd_type_id',
                     'ot.type as odd_type',
                     'sot.name as column_type',
-                    'stake',
+                    DB::raw("(SELECT SUM(stake) FROM provider_bets WHERE user_bet_id = ub.id AND status NOT IN ('PENDING', 'FAILED', 'CANCELLED', 'REJECTED', 'VOID', 'ABNORMAL BET', 'REFUNDED')) as stake"),
                     'odds',
                     'odds_label',
                     'status',
                     'score_on_bet',
                     'final_score',
-                    DB::raw('(SELECT SUM(to_win) FROM provider_bets WHERE user_bet_id = ub.id) as to_win'),
-                    DB::raw('(SELECT SUM(profit_loss) FROM provider_bets WHERE user_bet_id = ub.id) as profit_loss'),
+                    DB::raw("(SELECT SUM(to_win) FROM provider_bets WHERE user_bet_id = ub.id AND status NOT IN ('PENDING', 'FAILED', 'CANCELLED', 'REJECTED', 'VOID', 'ABNORMAL BET', 'REFUNDED')) as to_win"),
+                    DB::raw("(SELECT SUM(profit_loss) FROM provider_bets WHERE user_bet_id = ub.id) as profit_loss"),
                 ]);
 
             $ouLabels = OddType::where('type', 'LIKE', '%OU%')->pluck('id')->toArray();
