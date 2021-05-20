@@ -436,8 +436,8 @@ class OrdersController extends Controller
             $percentage           = $userProviderPercentage >= 0 ? $userProviderPercentage : $providerInfo['punter_percentage'];
             $eventMarketData      = Game::getMasterEventByMarketId($request->market_id, $request->markets[0]['provider_id']);
             $providerCurrencyInfo = Currency::find(Provider::find($request->markets[0]['provider_id'])->currency_id);
-            $userPlaceBet         = WalletFacade::subtractBalance($userWalletToken, auth()->user()->uuid, trim($providerCurrencyInfo->code), ($walletAmount), "[PLACE_BET][BET_PENDING] - Placing Bet " . $mlBetId);
-            $provCurrencyCode     = trim($providerCurrencyInfo->code);
+            $provCurrencyCode     = trim($providerCurrencyInfo['code']);
+            $userPlaceBet         = WalletFacade::subtractBalance($userWalletToken, auth()->user()->uuid, trim($provCurrencyCode), ($walletAmount), "[PLACE_BET][BET_PENDING] - Placing Bet " . $mlBetId);
 
             if (empty($userPlaceBet) || array_key_exists('error', $userPlaceBet) || !array_key_exists('status_code', $userPlaceBet) || $userPlaceBet->status_code != 200) {
                 $toLogs = [
