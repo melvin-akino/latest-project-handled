@@ -433,6 +433,11 @@ class OrdersController extends Controller
 
             $lines       = [];
             $split       = self::splitStake($request->stake, $request->markets);
+            \Log::channel('monitor_api')->debug(json_encode([
+                'qwe' => $split,
+                'asd' => $request->stake,
+                'zxc' => $request->markets,
+            ]));
             $totalPlaced = array_filter(array_map(function ($map) {
                 if ($map['place']) {
                     return $map;
@@ -652,7 +657,7 @@ class OrdersController extends Controller
         }
     }
 
-    private static function splitStake ($userStake, $markets)
+    private static function splitStake($userStake, $markets)
     {
         $userStake    = (double) str_replace(',', '', $userStake);
         $returnArray  = [];
