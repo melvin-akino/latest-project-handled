@@ -612,31 +612,16 @@ export default {
                             greaterThanOrEqualThanPriceArray.push(minmax)
                         }
                     })
+
                     let sortedByPriceArray = greaterThanOrEqualThanPriceArray.sort((a, b) => (a.price < b.price) ? 1 : -1)
-                    sortedByPriceArray.map(sortedByPrice => {
-                        if(this.orderForm.stake > sortedByPrice.max) {
-                            if(this.wallet.credit >= sortedByPrice.max) {
-                                this.orderForm.stake = 0
-                                this.orderForm.markets.push(sortedByPrice)
-                                this.orderMessage = ''
-                            } else {
-                                this.orderMessage = 'Insufficient wallet balance.'
-                                this.isBetSuccessful = false
-                            }
-                        } else if(this.orderForm.stake <= sortedByPrice.max && this.orderForm.stake >= sortedByPrice.min) {
-                            if(this.wallet.credit >= this.orderForm.stake) {
-                                this.orderForm.stake = 0
-                                this.orderForm.markets.push(sortedByPrice)
-                                this.orderMessage = ''
-                            } else {
-                                this.orderMessage = 'Insufficient wallet balance.'
-                                this.isBetSuccessful = false
-                            }
-                        } else if(this.orderForm.stake < sortedByPrice.min && this.orderForm.stake != 0) {
-                            this.orderMessage = 'Stake lower than minimum stake or cannot proceed to next provider.'
-                            this.isBetSuccessful = false
-                        }
-                    })
+
+                    if(this.orderForm.stake > this.wallet.credit) {
+                        this.orderMessage = 'Insufficient wallet balance.'
+                        this.isBetSuccessful = false
+                    } else {
+                        this.orderForm.stake = 0
+                        this.orderForm.markets = sortedByPriceArray
+                    }
                 } else if(this.orderForm.betType == 'BEST_PRICE') {
                     let greaterThanOrEqualThanPriceArray = []
                     this.minMaxData.map(minmax => {
