@@ -478,6 +478,9 @@ class OrdersController extends Controller
             ]);
 
             foreach ($split AS $row) {
+                \Log::channel('monitor_api')->debug(json_encode([
+                    'rty' => $row,
+                ]));
                 $convertedStake  = $row['stake'] * $exchangeRate['exchange_rate'];
                 $actualStake     = $convertedStake / ($percentage / 100);
                 $ceil            = ceil($actualStake);
