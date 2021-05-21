@@ -348,7 +348,6 @@ class OrdersController extends Controller
             $providersSWT          = $swoole->providersTable;
             $userProviderConfigSWT = $swoole->userProviderConfigTable;
 
-            $mlBetId          = generateMLBetIdentifier();
             $userCurrencyId   = auth()->user()->currency_id;
             $walletToken      = SwooleHandler::getValue('walletClientsTable', 'ml-users')['token'];
             $userCurrencyCode = Currency::find($userCurrencyId);
@@ -437,7 +436,7 @@ class OrdersController extends Controller
             $eventMarketData      = Game::getMasterEventByMarketId($request->market_id, $request->markets[0]['provider_id']);
             $providerCurrencyInfo = Currency::find(Provider::find($request->markets[0]['provider_id'])->currency_id);
             $provCurrencyCode     = trim($providerCurrencyInfo['code']);
-            $userPlaceBet         = WalletFacade::subtractBalance($userWalletToken, auth()->user()->uuid, trim($provCurrencyCode), ($walletAmount), "[PLACE_BET][BET_PENDING] - Placing Bet " . $mlBetId);
+            $userPlaceBet         = WalletFacade::subtractBalance($userWalletToken, auth()->user()->uuid, trim($provCurrencyCode), ($walletAmount), "[PLACE_BET][BET_PENDING] - Placed Bet " . $provCurrencyCode . " " . $walletAmount);
 
             if (empty($userPlaceBet) || array_key_exists('error', $userPlaceBet) || !array_key_exists('status_code', $userPlaceBet) || $userPlaceBet->status_code != 200) {
                 $toLogs = [
@@ -465,7 +464,7 @@ class OrdersController extends Controller
                     'market_flag'            => $eventMarketData->market_flag,
                     'order_expiry'           => $request->orderExpiry,
                     'odds_label'             => $eventMarketData->odd_label,
-                    'ml_bet_identifier'      => $mlBetId,
+                    'ml_bet_identifier'      => generateMLBetIdentifier(),
                     'score_on_bet'           => $eventMarketData->score,
                     'final_score'            => null,
                     'mem_uid'                => $request->market_id,
