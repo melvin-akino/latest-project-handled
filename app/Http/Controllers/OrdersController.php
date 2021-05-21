@@ -431,7 +431,16 @@ class OrdersController extends Controller
                 'exchange_rate' => $exchangeRatesSWT[$exchangeRatesKey]['exchange_rate'],
             ];
 
-            $walletAmount         = $request->stake * $exchangeRate['exchange_rate'];
+            $lines       = [];
+            $split       = self::splitStake($request->stake, $request->markets);
+            $totalPlaced = array_filter(array_map(function ($map) {
+                if ($map['place']) {
+                    return $map;
+                }
+            }, $split));
+
+            $totalPlacedStake     = array_sum(array_column($totalPlaced, 'stake'));
+            $walletAmount         = $totalPlacedStake * $exchangeRate['exchange_rate'];
             $percentage           = $userProviderPercentage >= 0 ? $userProviderPercentage : $providerInfo['punter_percentage'];
             $eventMarketData      = Game::getMasterEventByMarketId($request->market_id, $request->markets[0]['provider_id']);
             $providerCurrencyInfo = Currency::find(Provider::find($request->markets[0]['provider_id'])->currency_id);
@@ -446,7 +455,7 @@ class OrdersController extends Controller
                 'odd_type_id'            => $eventMarketData->odd_type_id,
                 'status'                 => "PENDING",
                 'odds'                   => $request->odds,
-                'stake'                  => $request->stake,
+                'stake'                  => $totalPlacedStake,
                 'market_flag'            => $eventMarketData->market_flag,
                 'order_expiry'           => $request->orderExpiry,
                 'odds_label'             => $eventMarketData->odd_label,
@@ -462,9 +471,6 @@ class OrdersController extends Controller
                 'min_odds'               => min($minMaxOddsArray),
                 'max_odds'               => max($minMaxOddsArray),
             ]);
-
-            $split = self::splitStake($request->stake, $request->markets);
-            $lines = [];
 
             foreach ($split AS $row) {
                 $convertedStake  = $row['stake'] * $exchangeRate['exchange_rate'];
