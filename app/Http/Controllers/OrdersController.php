@@ -478,15 +478,15 @@ class OrdersController extends Controller
                     'max_odds'               => max($minMaxOddsArray),
                 ]);
 
-                $split = self::splitStake($request->stake, $request->markets[0]['min'], $request->markets[0]['max']);
+                $split = self::splitStake($request->stake, $request->markets);
                 $lines = [];
 
                 foreach ($split AS $row) {
-                    $convertedStake  = $row * $exchangeRate['exchange_rate'];
+                    $convertedStake  = $row['stake'] * $exchangeRate['exchange_rate'];
                     $actualStake     = $convertedStake / ($percentage / 100);
                     $ceil            = ceil($actualStake);
 
-                    if (strtoupper($request->markets[0]['provider']) == 'HG') {
+                    if (strtoupper($row['provider']) == 'HG') {
                         $last2 = (int) substr($ceil, -2);
 
                         if (($last2 > 0) && ($last2 <= 50)) {
@@ -501,7 +501,7 @@ class OrdersController extends Controller
                         $actualStake = $ceil;
                     }
 
-                    $assignedAccount = ProviderAccount::assignbetAccount($request->markets[0]['provider_id'], $actualStake, $eventMarketData->event_id, $eventMarketData->odd_type_id, $eventMarketData->odd_label, $eventMarketData->market_flag, auth()->user()->is_vip, $lines);
+                    $assignedAccount = ProviderAccount::assignbetAccount($row['provider_id'], $actualStake, $eventMarketData->event_id, $eventMarketData->odd_type_id, $eventMarketData->odd_label, $eventMarketData->market_flag, auth()->user()->is_vip, $lines);
 
                     if (!is_null($assignedAccount)) {
                         $lines[] = $assignedAccount->line;
@@ -509,14 +509,14 @@ class OrdersController extends Controller
 
                     $providerBet = ProviderBet::create([
                         'user_bet_id'               => $placeBet->id,
-                        'provider_id'               => $request->markets[0]['provider_id'],
+                        'provider_id'               => $row['provider_id'],
                         'provider_account_id'       => is_null($assignedAccount) ? null : $assignedAccount->id,
                         'provider_error_message_id' => null,
                         'status'                    => "PENDING",
                         'bet_id'                    => null,
                         'odds'                      => $request->odds,
-                        'stake'                     => $row,
-                        'to_win'                    => $request->odds * $row,
+                        'stake'                     => $row['stake'],
+                        'to_win'                    => $request->odds * $row['stake'],
                         'profit_loss'               => null,
                         'reason'                    => null,
                         'settled_date'              => null,
@@ -547,7 +547,7 @@ class OrdersController extends Controller
                         'wallet_ledger_id'    => $userPlaceBet->data->id,
                         'provider_account_id' => is_null($assignedAccount) ? null : $assignedAccount->id,
                         'reason'              => "Placed Bet",
-                        'amount'              => $row,
+                        'amount'              => $row['stake'],
                     ]);
 
                     $requestId = Str::uuid() . "-" . $providerBet->id;
@@ -560,7 +560,7 @@ class OrdersController extends Controller
                     ];
 
                     $payload['data'] = [
-                        'provider'         => strtolower($request->markets[0]['provider']),
+                        'provider'         => strtolower($row['provider']),
                         'sport'            => $eventMarketData->sport_id,
                         'stake'            => $actualStake,
                         'odds'             => $request->odds,
@@ -575,7 +575,7 @@ class OrdersController extends Controller
                     ];
 
                     KafkaPush::dispatch(
-                        strtolower($request->markets[0]['provider']) . env('KAFKA_SCRAPE_ORDER_REQUEST_POSTFIX', '_bet_req'),
+                        strtolower($row['provider']) . env('KAFKA_SCRAPE_ORDER_REQUEST_POSTFIX', '_bet_req'),
                         $payload,
                         $requestId
                     );
@@ -632,24 +632,39 @@ class OrdersController extends Controller
         }
     }
 
-    private static function splitStake($userStake, $min, $max)
+    private static function splitStake($userStake, $markets)
     {
-        $userStake = (double) str_replace(',', '', $userStake);
-        $min       = (double) str_replace(',', '', $min);
-        $max       = (double) str_replace(',', '', $max);
-        $array     = [];
+        $userStake    = (double) str_replace(',', '', $userStake);
+        $returnArray  = [];
+        $marketPrices = max(array_column($markets, 'price'));
+        $useMarkets   = array_filter(array_map(function ($map) use ($marketPrices) {
+            if ($map['price'] >= $marketPrices) {
+                return $map;
+            }
+        }, $markets));
 
         do {
-            if ($userStake >= $min) {
-                $stake      = min($userStake, $max);
-                $array[]    = $stake;
-                $userStake -= $stake;
-            } else {
-                break;  
+            foreach ($useMarkets AS $row) {
+                $row['min'] = (double) str_replace(',', '', $row['min']);
+                $row['max'] = (double) str_replace(',', '', $row['max']);
+
+                if ($userStake >= $row['min']) {
+                    $stake         = min($userStake, $row['max']);
+                    $returnArray[] = [
+                        'provider'    => $row['provider'],
+                        'provider_id' => $row['provider_id'],
+                        'stake'       => $stake,
+                    ];
+
+                    $userStake -= $stake;
+                } else {
+                    break;  
+                }
             }
+
         } while ($userStake > 0);
 
-        return $array;
+        return $returnArray;
     }
 
     public function postPlaceBet(Request $request)
