@@ -580,7 +580,7 @@ class OrdersController extends Controller
                             $requestId
                         );
                     } else {
-                        $unplacedBet = WalletFacade::addBalance($userWalletToken, auth()->user()->uuid, trim($provCurrencyCode), ($walletAmount), "[PLACE_BET][RETURN_STAKE] - Unplaced Bet Stake: " . trim($provCurrencyCode) . " " . $row['stake']);
+                        $unplacedBet = WalletFacade::addBalance($userWalletToken, auth()->user()->uuid, trim($provCurrencyCode), ($row['stake']), "[PLACE_BET][RETURN_STAKE] - Unplaced Bet Stake: " . trim($provCurrencyCode) . " " . $row['stake']);
 
                         if (empty($unplacedBet) || array_key_exists('error', $unplacedBet) || !array_key_exists('status_code', $unplacedBet) || $unplacedBet->status_code != 200) {
                             $toLogs = [
