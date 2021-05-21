@@ -431,21 +431,9 @@ class OrdersController extends Controller
                 'exchange_rate' => $exchangeRatesSWT[$exchangeRatesKey]['exchange_rate'],
             ];
 
-            $lines       = [];
-            $split       = self::splitStake($request->stake, $request->markets);
-            \Log::channel('monitor_api')->debug(json_encode([
-                'qwe' => $split,
-                'asd' => $request->stake,
-                'zxc' => $request->markets,
-            ]));
-            $totalPlaced = array_filter(array_map(function ($map) {
-                if ($map['place']) {
-                    return $map;
-                }
-            }, $split));
-
-            $totalPlacedStake     = array_sum(array_column($totalPlaced, 'stake'));
-            $walletAmount         = $totalPlacedStake * $exchangeRate['exchange_rate'];
+            $lines                = [];
+            $split                = self::splitStake($request->stake, $request->markets);
+            $walletAmount         = $request->stake * $exchangeRate['exchange_rate'];
             $percentage           = $userProviderPercentage >= 0 ? $userProviderPercentage : $providerInfo['punter_percentage'];
             $eventMarketData      = Game::getMasterEventByMarketId($request->market_id, $request->markets[0]['provider_id']);
             $providerCurrencyInfo = Currency::find(Provider::find($request->markets[0]['provider_id'])->currency_id);
@@ -460,7 +448,7 @@ class OrdersController extends Controller
                 'odd_type_id'            => $eventMarketData->odd_type_id,
                 'status'                 => "PENDING",
                 'odds'                   => $request->odds,
-                'stake'                  => $totalPlacedStake,
+                'stake'                  => $request->stake,
                 'market_flag'            => $eventMarketData->market_flag,
                 'order_expiry'           => $request->orderExpiry,
                 'odds_label'             => $eventMarketData->odd_label,
@@ -478,26 +466,25 @@ class OrdersController extends Controller
             ]);
 
             foreach ($split AS $row) {
-                \Log::channel('monitor_api')->debug(json_encode([
-                    'rty' => $row,
-                ]));
-                $convertedStake  = $row['stake'] * $exchangeRate['exchange_rate'];
-                $actualStake     = $convertedStake / ($percentage / 100);
-                $ceil            = ceil($actualStake);
+                if ($row['place']) {
+                    $convertedStake  = $row['stake'] * $exchangeRate['exchange_rate'];
+                    $actualStake     = $convertedStake / ($percentage / 100);
+                    $ceil            = ceil($actualStake);
 
-                if (strtoupper($row['provider']) == 'HG') {
-                    $last2 = (int) substr($ceil, -2);
+                    if (strtoupper($row['provider']) == 'HG') {
+                        $last2 = (int) substr($ceil, -2);
 
-                    if (($last2 > 0) && ($last2 <= 50)) {
-                        $actualStake = substr($ceil, 0, -2) . '50';
-                    } else if ($last2 == 0) {
+                        if (($last2 > 0) && ($last2 <= 50)) {
+                            $actualStake = substr($ceil, 0, -2) . '50';
+                        } else if ($last2 == 0) {
+                            $actualStake = $ceil;
+                        } else if ($last2 > 50) {
+                            $actualStake  = (int) substr($ceil, 0, -2) + 1;
+                            $actualStake .= '00';
+                        }
+                    } else {
                         $actualStake = $ceil;
-                    } else if ($last2 > 50) {
-                        $actualStake  = (int) substr($ceil, 0, -2) + 1;
-                        $actualStake .= '00';
                     }
-                } else {
-                    $actualStake = $ceil;
                 }
 
                 $assignedAccount = $row['place'] ? ProviderAccount::assignbetAccount($row['provider_id'], $actualStake, $eventMarketData->event_id, $eventMarketData->odd_type_id, $eventMarketData->odd_label, $eventMarketData->market_flag, auth()->user()->is_vip, $lines) : null;
@@ -517,7 +504,7 @@ class OrdersController extends Controller
                     'stake'                     => $row['stake'],
                     'to_win'                    => $request->odds * $row['stake'],
                     'profit_loss'               => null,
-                    'reason'                    => null,
+                    'reason'                    => $row['place'] ? null : "The remaining amount did not reach the Market Minimum Value.",
                     'settled_date'              => null,
                     'game_schedule'             => $eventMarketData->game_schedule,
                     'market_id'                 => $eventMarketData->bet_identifier,
@@ -528,17 +515,17 @@ class OrdersController extends Controller
                     'status'          => $row['place'] ? "PENDING" : "UNPLACED",
                 ]);
 
-                ProviderBetTransaction::create([
-                    'provider_bet_id'    => $providerBet->id,
-                    'exchange_rate_id'   => $exchangeRate['id'],
-                    'actual_stake'       => $actualStake,
-                    'actual_to_win'      => $actualStake * $request->odds,
-                    'actual_profit_loss' => null,
-                    'exchange_rate'      => $exchangeRate['exchange_rate'],
-                    'punter_percentage'  => $percentage,
-                ]);
-
                 if ($row['place']) {
+                    ProviderBetTransaction::create([
+                        'provider_bet_id'    => $providerBet->id,
+                        'exchange_rate_id'   => $exchangeRate['id'],
+                        'actual_stake'       => $actualStake,
+                        'actual_to_win'      => $actualStake * $request->odds,
+                        'actual_profit_loss' => null,
+                        'exchange_rate'      => $exchangeRate['exchange_rate'],
+                        'punter_percentage'  => $percentage,
+                    ]);
+
                     $userPlaceBet = WalletFacade::subtractBalance($userWalletToken, auth()->user()->uuid, trim($provCurrencyCode), ($row['stake']), "[PLACE_BET][BET_PENDING] - Placed Bet " . $provCurrencyCode . " " . $walletAmount);
 
                     if (empty($userPlaceBet) || array_key_exists('error', $userPlaceBet) || !array_key_exists('status_code', $userPlaceBet) || $userPlaceBet->status_code != 200) {
@@ -594,33 +581,20 @@ class OrdersController extends Controller
                         $payload,
                         $requestId
                     );
-                } else {
-                    if (empty($unplacedBet) || array_key_exists('error', $unplacedBet) || !array_key_exists('status_code', $unplacedBet) || $unplacedBet->status_code != 200) {
-                        $toLogs = [
-                            "class"       => "OrdersController",
-                            "message"     => trans('game.wallet-api.error.user'),
-                            "module"      => "API_ERROR",
-                            "status_code" => 404,
-                            "data"        => $unplacedBet,
-                        ];
-                        monitorLog('monitor_api', 'error', $toLogs);
-
-                        throw new BadRequestException(trans('game.wallet-api.error.user'));
-                    }
                 }
 
                 DB::commit();
 
                 SwooleHandler::incCtr('minMaxRequestsTable', $request->market_id . ":" . strtolower($request->markets[0]['provider']));
-
-                return response()->json([
-                    'status'      => true,
-                    'status_code' => 200,
-                    'data'        => trans('game.bet.fast-bet.success'),
-                    'order_id'    => $placeBet->id,
-                    'created_at'  => Carbon::parse($placeBet->created_at)->toDateTimeString()
-                ], 200);
             }
+
+            return response()->json([
+                'status'      => true,
+                'status_code' => 200,
+                'data'        => trans('game.bet.fast-bet.success'),
+                'order_id'    => $placeBet->id,
+                'created_at'  => Carbon::parse($placeBet->created_at)->toDateTimeString()
+            ], 200);
         } catch (BadRequestException $e) {
             DB::rollback();
 
@@ -687,10 +661,12 @@ class OrdersController extends Controller
                     ];
 
                     $userStake -= $stake;
-                } else {
+                } else if ($userStake > 0) {
                     $returnArray[$ctr] = [
-                        'place' => false,
-                        'stake' => $userStake,
+                        'place'       => false,
+                        'provider'    => $row['provider'],
+                        'provider_id' => $row['provider_id'],
+                        'stake'       => $userStake,
                     ];
                     $userStake = 0;
 
