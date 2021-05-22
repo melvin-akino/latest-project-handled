@@ -83,7 +83,7 @@ class MinMaxProduce implements CustomProcessInterface
 
                                     // if (!$minmaxOnqueueExist) {
                                         kafkaPush(
-                                            strtolower($minMaxRequest['provider']) . env('KAFKA_SCRAPE_MINMAX_REQUEST_POSTFIX', '_minmax_req'),
+                                            env('KAFKA_SCRAPE_MINMAXHIGH_REQUEST', 'minmax-high_req'),
                                             $payload,
                                             $requestId
                                         );
