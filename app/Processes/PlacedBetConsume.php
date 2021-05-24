@@ -19,14 +19,6 @@ class PlacedBetConsume implements CustomProcessInterface
     {
         try {
             if ($swoole->data2SwtTable->exist('data2Swt')) {
-                $toLogs = [
-                    "class"       => "PlacedBetConsume",
-                    "message"     => "Initiating...",
-                    "module"      => "PROCESS",
-                    "status_code" => 102,
-                ];
-                monitorLog('monitor_process', 'info', $toLogs);
-
                 $betTransformationHandler = app('BetTransformationHandler');
 
                 $kafkaConsumer = app('KafkaConsumer');
@@ -35,50 +27,79 @@ class PlacedBetConsume implements CustomProcessInterface
                 ]);
 
                 while (!self::$quit) {
-                    $message = $kafkaConsumer->consume(0);
-                    if ($message->err == RD_KAFKA_RESP_ERR_NO_ERROR) {
-                        $payload = json_decode($message->payload);
+                    try {
+                        $message = $kafkaConsumer->consume(0);
 
-                        if (empty($payload->data->status)) {
+                        if ($message->err == RD_KAFKA_RESP_ERR_NO_ERROR) {
+                            $payload = json_decode($message->payload);
+
                             $toLogs = [
                                 "class"       => "PlacedBetConsume",
-                                "message"     => "Bet Transformation ignored - Status Or Odds Not Found",
-                                "module"      => "PRODUCE_ERROR",
-                                "status_code" => 404,
+                                "message"     => "Initiating...",
+                                "module"      => "PROCESS",
+                                "status_code" => 102,
+                                "payload"     => $payload,
                             ];
-                            monitorLog('monitor_process', 'error', $toLogs);
+                            monitorLog('monitor_process', 'info', $toLogs);
 
-                            if (env('CONSUMER_PRODUCER_LOG', false)) {
+                            if (empty($payload->data->status)) {
                                 $toLogs = [
                                     "class"       => "PlacedBetConsume",
-                                    "message"     => $message,
+                                    "message"     => "Bet Transformation ignored - Status Or Odds Not Found",
                                     "module"      => "PRODUCE_ERROR",
-                                    "status_code" => 206,
+                                    "status_code" => 404,
                                 ];
-                                monitorLog('kafkalog', 'info', $toLogs);
+                                monitorLog('monitor_process', 'error', $toLogs);
+
+                                if (env('CONSUMER_PRODUCER_LOG', false)) {
+                                    $toLogs = [
+                                        "class"       => "PlacedBetConsume",
+                                        "message"     => $message,
+                                        "module"      => "PRODUCE_ERROR",
+                                        "status_code" => 206,
+                                    ];
+                                    monitorLog('kafkalog', 'info', $toLogs);
+                                }
+                                continue;
+                            } else if (strpos($payload->data->reason, "Internal Error: Session Inactive")) {
+                                $toLogs = [
+                                    "class"       => "PlacedBetConsume",
+                                    "message"     => "Bet Transformation ignored - Internal error",
+                                    "module"      => "PRODUCE_ERROR",
+                                    "status_code" => 400,
+                                ];
+                                monitorLog('monitor_process', 'error', $toLogs);
+
+                                continue;
                             }
+
+                            $betTransformationHandler->init($payload, $message->offset)->handle();
+
+                            $kafkaConsumer->commitAsync($message);
+                            Coroutine::sleep(0.05);
+
                             continue;
-                        } else if (strpos($payload->data->reason, "Internal Error: Session Inactive")) {
+                        } else {
                             $toLogs = [
                                 "class"       => "PlacedBetConsume",
-                                "message"     => "Bet Transformation ignored - Internal error",
+                                "message"     => $message->err,
                                 "module"      => "PRODUCE_ERROR",
-                                "status_code" => 400,
+                                "status_code" => $e->getCode(),
+                                "payload"     => $message,
                             ];
                             monitorLog('monitor_process', 'error', $toLogs);
-
-                            continue;
                         }
 
-                        $betTransformationHandler->init($payload, $message->offset)->handle();
-
-                        Coroutine::sleep(0.01);
-                        $kafkaConsumer->commitAsync($message);
-
-                        continue;
+                        Coroutine::sleep(0.05);
+                    } catch (Exception $e) {
+                        $toLogs = [
+                            "class"       => "PlacedBetConsume",
+                            "message"     => $message->err,
+                            "module"      => "PRODUCE_ERROR",
+                            "status_code" => $e->getCode(),
+                        ];
+                        monitorLog('monitor_process', 'error', $toLogs);
                     }
-
-                    Coroutine::sleep(0.01);
                 }
             }
         } catch (Exception $e) {

@@ -84,7 +84,7 @@
                             </template>
                             <template v-slot:expanded-item="{ headers, item }">
                                 <template v-if="item.hasOwnProperty('provider_bets')">
-                                    <tr :rowspan="headers.length">
+                                    <tr class="childHeader" :rowspan="headers.length">
                                         <th colspan="2" class="text-center">Bet ID</th>
                                         <th class="text-center">Post Date</th>
                                         <th class="text-start">Provider</th>
@@ -96,7 +96,7 @@
                                         <th class="text-right">Profit Loss</th>
                                         <th colspan="2" class="text-start">Reason</th>
                                     </tr>
-                                    <tr :class="{'_green': greenStatus.includes(item.status), '_failed': redStatus.includes(item.status)}" :rowspan="headers.length" v-for="bet in item.provider_bets" :key="bet.id">
+                                    <tr class="childRow" :class="{'_green': greenStatus.includes(item.status), '_failed': redStatus.includes(item.status)}" :rowspan="headers.length" v-for="bet in item.provider_bets" :key="bet.id">
                                         <td colspan="2" class="text-center">{{bet.bet_id}}</td>
                                         <td class="text-center">{{bet.created}}</td>
                                         <td class="text-start font-bold">{{bet.provider}}</td>
@@ -433,5 +433,13 @@
 
     .v-application--wrap {
         min-height: auto !important;
+    }
+
+    .childHeader th {
+        background-color: #e8a446 !important;
+    }
+
+    .childRow {
+        background-color: #e0e0e0;
     }
 </style>

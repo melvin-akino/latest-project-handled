@@ -80,11 +80,7 @@ class TradeController extends Controller
 
                         $score = array_map('trim', explode('-', $currentScore));
 
-                        $userBetBar = DB::table('bet_bar_v2')
-                            ->where('user_id', auth()->user()->id)
-                            ->where('user_bet_id', $betData->user_bet_id)
-                            ->pluck('sum', 'status')
-                            ->toArray();
+                        $userBetBar = DB::table('bet_bar_v2')->where('user_id', auth()->user()->id)->where('user_bet_id', $betData->user_bet_id)->pluck('sum', 'status')->toArray();
 
                         $data[] = [
                             "bet_id"       => $betData->user_bet_id,
@@ -109,7 +105,7 @@ class TradeController extends Controller
                             'bet_status'   => [
                                 "placed" => array_key_exists('SUCCESS', $userBetBar) ? number_format($userBetBar['SUCCESS'], 2, '.', ',') : null,
                                 "queued" => array_key_exists('PENDING', $userBetBar) ? number_format($userBetBar['PENDING'], 2, '.', ',') : null,
-                                "failed" => array_key_exists('FAILED', $userBetBar) ? number_format($userBetBar['FAILED'], 2, '.', ',') : null,
+                                "failed" => array_key_exists('FAILED', $userBetBar) ? number_format($userBetBar['FAILED'], 2, '.', ',') : (array_key_exists('UNPLACED', $userBetBar) ? number_format($userBetBar['UNPLACED'], 2, '.', ',') : null),
                             ],
                             'created_at'   => Carbon::createFromFormat("Y-m-d H:i:s", $betData->created_at, 'Etc/UTC')->setTimezone($userTz)->format("Y-m-d H:i:s"),
                         ];

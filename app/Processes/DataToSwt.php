@@ -5,7 +5,7 @@ namespace App\Processes;
 use App\Facades\SwooleHandler;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
-use App\Models\{Order, Provider, Sport, SystemConfiguration};
+use App\Models\{Order, Provider, Sport, SystemConfiguration, UserBet};
 use Hhxsv5\LaravelS\Swoole\Process\CustomProcessInterface;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -522,7 +522,7 @@ class DataToSwt implements CustomProcessInterface
 
     private static function db2SwtMLBetId(Server $swoole)
     {
-        $lastMLBetId = Order::orderBy('created_at', 'desc')->first();
+        $lastMLBetId = UserBet::orderBy('created_at', 'desc')->first();
 
         if (is_null($lastMLBetId)) {
             $betId = "ML" . date('Ymd') . "000001";
