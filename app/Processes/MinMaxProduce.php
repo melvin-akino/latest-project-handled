@@ -72,7 +72,7 @@ class MinMaxProduce implements CustomProcessInterface
                                         'Min-max  total number of  market id  pushed .', $minMaxRequest['market_id']);
 
                                     kafkaPush(
-                                        env('KAFKA_SCRAPE_MINMAXHIGH_REQUEST', 'minmax-high_req'),
+                                        strtolower($minMaxRequest['provider']) . env('KAFKA_SCRAPE_MINMAX_REQUEST_POSTFIX', '_minmax_req'),
                                         $payload,
                                         $requestId
                                     );
