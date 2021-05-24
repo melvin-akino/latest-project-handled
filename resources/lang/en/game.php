@@ -17,6 +17,7 @@ return [
             'type_has_been_changed' => ":type has been changed. Please refresh the bet slip",
             'place-bet-event-ended' => "Match already ended. Please close this Bet Slip.",
             'not-enough-min-stake'  => "Stake lower than minimum stake or cannot proceed to next provider.",
+            'price-is-low'          => "Market Price did not reach the threshold Price input value.",
         ],
         'empty-market' => "Your Orders are empty! Please select at least one (1) market.",
     ],
