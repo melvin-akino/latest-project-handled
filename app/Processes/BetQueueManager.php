@@ -39,7 +39,7 @@ class BetQueueManager implements CustomProcessInterface
             $colMinusOne    = OddType::whereIn('type', ['1X2', 'HT 1X2', 'OE'])->pluck('id')->toArray();
 
             while(true) {
-                usleep(5000000);
+                usleep(1000000);
 
                 try {
                     echo "Initializing queue...\n";
@@ -171,6 +171,31 @@ class BetQueueManager implements CustomProcessInterface
                                     if (!$event) {
                                         continue 2;
                                     }
+
+                                    $requestId = (string) Str::uuid();
+                                    $requestTs = getMilliseconds();
+
+                                    $payload         = [
+                                        'request_uid' => $requestId,
+                                        'request_ts'  => $requestTs,
+                                        'sub_command' => 'scrape',
+                                        'command'     => 'minmax'
+                                    ];
+                                    $payload['data'] = [
+                                        'provider'  => strtolower($provider->alias),
+                                        'market_id' => $marketId,
+                                        'sport'     => $userBet->sport_id,
+                                        'event_id'  => (string) $eventMarket->event_identifier,
+                                        'schedule'  => $providerBetQueue->game_schedule,
+                                        'odds'      => $maxOdds
+                                    ];
+
+                                    kafkaPush(
+                                        strtolower($provider->alias) . env('KAFKA_SCRAPE_MINMAX_REQUEST_POSTFIX', '_minmax_req'),
+                                        $payload,
+                                        $requestId
+                                    );
+
                                     if (!empty($providerBetQueue->provider_account_id)) {
                                         BlockedLine::updateOrCreate([
                                             'event_id'    => $event->id,

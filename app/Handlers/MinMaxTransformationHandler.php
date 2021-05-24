@@ -51,8 +51,6 @@ class MinMaxTransformationHandler
                 if ($row['market_id'] == $data->market_id) {
                     $memUID = $row['memUID'];
 
-                    foreach ($topics as $_key => $_row) {
-                        if (strpos($_row['topic_name'], 'min-max-' . $data->market_id) === 0) {
                             $userId        = explode(':', $_key)[1];
                             $fd            = $wsTable->get('uid:' . $userId);
                             $providerSwtId = "providerAlias:" . $data->provider;
@@ -224,8 +222,6 @@ class MinMaxTransformationHandler
                                     ]));
                                 }
                             }
-                        }
-                    }
                 }
             }
         } catch (Exception $e) {
