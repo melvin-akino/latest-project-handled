@@ -71,12 +71,13 @@ class BetQueueManager implements CustomProcessInterface
                                     foreach ($providerBetQueues as $providerBetQueue) {
                                         $providerBet = ProviderBet::find($providerBetQueue->id);
                                         ProviderBet::where('id', $providerBetQueue->id)->update([
-                                            'status' => 'UNPLACED'
+                                            'status' => 'FAILED',
+                                            'reason' => 'Bet expired'
                                         ]);
 
                                         ProviderBetLog::create([
                                             'provider_bet_id' => $providerBet->id,
-                                            'status'          => 'UNPLACED'
+                                            'status'          => 'FAILED'
                                         ]);
 
                                         $user = DB::table('users as u')
@@ -89,7 +90,7 @@ class BetQueueManager implements CustomProcessInterface
                                 }
 
                                 $userBet = UserBet::find($userBet->id);
-                                $userBet->status = 'DONE';
+                                $userBet->status = 'UNSETTLED';
                                 $userBet->save();
 
                                 echo "User bet expired: " . $userBet->ml_bet_identifier . "\n";
