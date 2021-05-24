@@ -498,13 +498,13 @@ class OrdersController extends Controller
                     'provider_id'               => $row['provider_id'],
                     'provider_account_id'       => is_null($assignedAccount) ? null : $assignedAccount->id,
                     'provider_error_message_id' => null,
-                    'status'                    => $row['place'] ? "PENDING" : "UNPLACED",
+                    'status'                    => $row['place'] ? "PENDING" : "QUEUE",
                     'bet_id'                    => null,
                     'odds'                      => $request->markets[0]['price'],
                     'stake'                     => $row['stake'],
                     'to_win'                    => $request->markets[0]['price'] * $row['stake'],
                     'profit_loss'               => null,
-                    'reason'                    => $row['place'] ? null : "The remaining amount did not reach the Market Minimum Value.",
+                    'reason'                    => null,
                     'settled_date'              => null,
                     'game_schedule'             => $eventMarketData->game_schedule,
                     'market_id'                 => $eventMarketData->bet_identifier,
@@ -512,7 +512,7 @@ class OrdersController extends Controller
 
                 $providerBetLog = ProviderBetLog::create([
                     'provider_bet_id' => $providerBet->id,
-                    'status'          => $row['place'] ? "PENDING" : "UNPLACED",
+                    'status'          => $row['place'] ? "PENDING" : "QUEUE",
                 ]);
 
                 if ($row['place']) {
@@ -544,11 +544,11 @@ class OrdersController extends Controller
                     BetWalletTransaction::create([
                         'provider_bet_log_id' => $providerBetLog->id,
                         'user_id'             => auth()->user()->id,
-                        'source_id'           => Source::getIdByName($row['place'] ? 'PLACE_BET' : 'RETURN_STAKE'),
+                        'source_id'           => Source::getIdByName('PLACE_BET'),
                         'currency_id'         => auth()->user()->currency_id,
                         'wallet_ledger_id'    => $userPlaceBet->data->id,
                         'provider_account_id' => is_null($assignedAccount) ? null : $assignedAccount->id,
-                        'reason'              => $row['place'] ? "Placed Bet" : "Unplaced Bet",
+                        'reason'              => 'Placed Bet',
                         'amount'              => $row['stake'],
                     ]);
 
