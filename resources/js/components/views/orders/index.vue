@@ -436,7 +436,7 @@
     }
 
     .childHeader th {
-        background-color: #cf391f !important;
+        background-color: #2d374896 !important;
     }
 
     .childRow {
