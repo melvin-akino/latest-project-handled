@@ -66,6 +66,8 @@ class BetQueueManager implements CustomProcessInterface
                                     }
                                 }
 
+                                $userBet = UserBet::find($userBet->id);
+
                                 $providerBetQueues = ProviderBet::getQueue($userBet);
                                 if ($providerBetQueues->count() > 0) {
                                     foreach ($providerBetQueues as $providerBetQueue) {
@@ -87,11 +89,12 @@ class BetQueueManager implements CustomProcessInterface
 
                                         $userBalance = WalletFacade::addBalance($walletToken, $user->uuid, trim(strtoupper($user->code)), $providerBet->stake, "[RETURN_STAKE] - transaction for provider bet id " . $providerBet->id);
                                     }
-                                }
 
-                                $userBet = UserBet::find($userBet->id);
-                                $userBet->status = 'UNSETTLED';
-                                $userBet->save();
+                                    if ($userBet->status == 'PENDING') {
+                                        $userBet->status = 'FAILED';
+                                        $userBet->save();
+                                    }
+                                }
 
                                 echo "User bet expired: " . $userBet->ml_bet_identifier . "\n";
                                 Log::channel('bet_queue')->info([

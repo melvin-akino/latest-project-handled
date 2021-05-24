@@ -81,6 +81,12 @@ class BetTransformationHandler
                     ]);
 
                     if ($status != strtoupper(self::STATUS_FAILED)) {
+                        $userBet = UserBet::find($order->user_bet_id);
+                        if ($userBet->status == 'PENDING') {
+                            $userBet->status = $status;
+                            $userBet->save();
+                        }
+
                         ProviderAccount::find($order->provider_account_id)->update([
                             'updated_at' => Carbon::now()
                         ]);
