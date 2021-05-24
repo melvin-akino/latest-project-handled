@@ -67,8 +67,8 @@ class ProviderBet extends Model
             })
             ->select([
                 'provider_bets.id',
+                'ml_bet_identifier',
                 'user_bet_id',
-                'bet_id',
                 'p.alias as provider',
                 'provider_bets.stake',
                 'provider_bets.odds',

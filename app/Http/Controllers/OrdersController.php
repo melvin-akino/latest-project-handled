@@ -1312,7 +1312,7 @@ class OrdersController extends Controller
                 $data[] = [
                     'id'          => $providerBet->id,
                     'user_bet_id' => $providerBet->user_bet_id,
-                    'bet_id'      => $providerBet->bet_id,
+                    'bet_id'      => $providerBet->ml_bet_identifier."-".$providerBet->id,
                     'provider'    => $providerBet->provider,
                     'stake'       => $providerBet->stake,
                     'odds'        => $providerBet->odds,
