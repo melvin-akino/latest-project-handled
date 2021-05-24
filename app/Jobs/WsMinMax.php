@@ -62,7 +62,7 @@ class WsMinMax implements ShouldQueue
 
                     if (!$minMaxRequestsTable->exists($this->master_event_market_unique_id . ":" . strtolower($eventMarket->alias))) {
                         $minMaxRequestsTable->set($this->master_event_market_unique_id . ":" . strtolower($eventMarket->alias), $minMaxRequestsPayload);
-                    } else {
+                    } else if (!$doesExist) {
                         SwooleHandler::incCtr('minMaxRequestsTable', $this->master_event_market_unique_id . ":" . strtolower($eventMarket->alias));
                     }
 
