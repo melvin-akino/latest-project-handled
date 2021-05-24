@@ -342,6 +342,18 @@ class OrdersController extends Controller
                 throw new BadRequestException(trans('game.bet.empty-market'));
             }
 
+            if (($request->markets[0]['price'] + 0.10) < $request->odds) {
+                $toLogs = [
+                    "class"       => "OrdersController",
+                    "message"     => trans('game.bet.price-is-low'),
+                    "module"      => "API_ERROR",
+                    "status_code" => 400,
+                ];
+                monitorLog('monitor_api', 'error', $toLogs);
+
+                throw new BadRequestException(trans('game.bet.price-is-low'));
+            }
+
             $swoole                = app('swoole');
             $currenciesSWT         = $swoole->currenciesTable;
             $exchangeRatesSWT      = $swoole->exchangeRatesTable;

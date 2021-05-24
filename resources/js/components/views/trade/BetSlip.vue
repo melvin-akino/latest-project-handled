@@ -98,7 +98,7 @@
                         </div>
                         <div class="flex justify-between items-center py-2">
                             <label class="text-sm">Price</label>
-                            <input class="w-40 shadow appearance-none border rounded text-sm py-1 px-3 text-gray-700 leading-tight focus:outline-none" type="text" v-model="$v.inputPrice.$model" @keyup="clearOrderMessage" disabled>
+                            <input class="w-40 shadow appearance-none border rounded text-sm py-1 px-3 text-gray-700 leading-tight focus:outline-none" type="text" v-model="$v.inputPrice.$model" @keyup="clearOrderMessage">
                         </div>
                         <div class="flex justify-between items-center py-2" :class="{'hidden': betSlipSettings.adv_placement_opt == 0, 'block': betSlipSettings.adv_placement_opt == 1}">
                             <label class="text-sm">Order Expiry</label>
@@ -336,6 +336,14 @@ export default {
                     return points
                 }
             }
+        },
+        hasValidPriceInput() {
+            let minPrice = Math.min(...this.minMaxData.filter(minmax => minmax.price != null).map(minmax => minmax.price))
+            let maxPrice = Math.max(...this.minMaxData.filter(minmax => minmax.price != null).map(minmax => minmax.price))
+            if(this.initialPrice >= (minPrice - 0.10) && this.initialPrice <= (maxPrice + 0.10)) {
+                return true
+            }
+            return false
         }
     },
     watch: {
@@ -593,6 +601,9 @@ export default {
                 this.orderMessage = 'Available markets are too low.'
                 this.isBetSuccessful = false
                 this.hasErrorOnInput = false
+            } else if(!this.hasValidPriceInput) {
+                this.orderMessage = 'Invalid price input.'
+                this.isBetSuccessful = false
             } else {
                 this.isPlacingOrder = true
                 this.hasErrorOnInput = false
