@@ -342,7 +342,7 @@ class OrdersController extends Controller
                 throw new BadRequestException(trans('game.bet.empty-market'));
             }
 
-            if ($request->markets[0]['price'] < $request->odds) {
+            if (($request->markets[0]['price'] + 0.10) < $request->odds) {
                 $toLogs = [
                     "class"       => "OrdersController",
                     "message"     => trans('game.bet.price-is-low'),
