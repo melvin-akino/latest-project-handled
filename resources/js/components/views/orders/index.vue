@@ -51,9 +51,9 @@
                             </template>
 
                             <template v-slot:item="props">
-                                <tr :class="{'_green': greenStatus.includes(props.item.status), '_failed': redStatus.includes(props.item.status)}" @click="props.expand(!props.isExpanded)">
+                                <tr :class="{'_green': greenStatus.includes(props.item.status), '_failed': redStatus.includes(props.item.status)}" @click="props.item.has_provider_bets ? props.expand(!props.isExpanded) : null">
                                     <td>
-                                        <v-btn icon small>
+                                        <v-btn icon small v-if="props.item.has_provider_bets">
                                             <v-icon small v-if="props.isExpanded">mdi-chevron-up</v-icon>
                                             <v-icon small v-else>mdi-chevron-down</v-icon>
                                         </v-btn>
@@ -83,7 +83,7 @@
                                 </tr>
                             </template>
                             <template v-slot:expanded-item="{ headers, item }">
-                                <template v-if="item.hasOwnProperty('provider_bets')">
+                                <template v-if="item.hasOwnProperty('provider_bets') && item.has_provider_bets">
                                     <tr class="childHeader" :rowspan="headers.length">
                                         <th colspan="2" class="text-center">Bet ID</th>
                                         <th class="text-center">Post Date</th>
@@ -96,7 +96,7 @@
                                         <th class="text-right">Profit Loss</th>
                                         <th colspan="2" class="text-start">Reason</th>
                                     </tr>
-                                    <tr class="childRow" :class="{'_green': greenStatus.includes(item.status), '_failed': redStatus.includes(item.status)}" :rowspan="headers.length" v-for="bet in item.provider_bets" :key="bet.id">
+                                    <tr class="childRow" :class="{'_green': greenStatus.includes(bet.status), '_failed': redStatus.includes(bet.status)}" :rowspan="headers.length" v-for="bet in item.provider_bets" :key="bet.id">
                                         <td colspan="2" class="text-center">{{bet.bet_id}}</td>
                                         <td class="text-center">{{bet.created}}</td>
                                         <td class="text-start font-bold">{{bet.provider}}</td>
@@ -105,7 +105,7 @@
                                         <td class="text-right">{{bet.towin}}</td>
                                         <td class="text-center font-bold status">{{bet.status}}</td>
                                         <td class="text-right">{{bet.valid_stake}}</td>
-                                        <td class="text-right" v-adjust-total-pl-color="item.pl">{{bet.pl}}</td>
+                                        <td class="text-right" v-adjust-total-pl-color="bet.pl">{{bet.pl}}</td>
                                         <td colspan="2" class="text-start">{{bet.reason}}</td>
                                     </tr>
                                 </template>

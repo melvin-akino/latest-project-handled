@@ -2,7 +2,7 @@
 
 namespace App\Services;
 
-use App\Models\{OddType, Timezones, UserConfiguration};
+use App\Models\{OddType, Timezones, UserConfiguration, ProviderBet};
 use App\Http\Requests\OrderRequest;
 use Illuminate\Support\Facades\{DB, Log};
 
@@ -129,25 +129,26 @@ class OrderService
                     }
 
                     $transactions[] = [
-                        'order_id'      => $row->id,
-                        'odd_type_id'   => $row->odd_type_id,
-                        'date'          => date("Y-m-d", strtotime($created)),
-                        'leaguename'    => $row->master_league_name,
-                        'bet_id'        => $row->ml_bet_identifier,
-                        'bet_selection' => nl2br($betSelection),
-                        'created'       => $created,
-                        'status'        => $row->status,
-                        'stake'         => $row->stake,
-                        'valid_stake'   => $row->profit_loss ? abs($row->profit_loss) : 0,
-                        'towin'         => $row->to_win,
-                        'score'         => !empty($row->final_score) ? $scorePrefix . (string) $score[0] . " - " . $score[1] : "",
-                        'home_score'    => $score[0],
-                        'away_score'    => $score[1],
-                        'pl'            => (string) $row->profit_loss,
-                        'odds'          => $row->odds,
-                        'points'        => $row->odds_label,
-                        'event_id'      => $row->master_event_unique_id,
-                        'market_id'     => $row->mem_uid
+                        'order_id'          => $row->id,
+                        'odd_type_id'       => $row->odd_type_id,
+                        'date'              => date("Y-m-d", strtotime($created)),
+                        'leaguename'        => $row->master_league_name,
+                        'bet_id'            => $row->ml_bet_identifier,
+                        'bet_selection'     => nl2br($betSelection),
+                        'created'           => $created,
+                        'status'            => $row->status,
+                        'stake'             => $row->stake,
+                        'valid_stake'       => $row->profit_loss ? abs($row->profit_loss) : 0,
+                        'towin'             => $row->to_win,
+                        'score'             => !empty($row->final_score) ? $scorePrefix . (string) $score[0] . " - " . $score[1] : "",
+                        'home_score'        => $score[0],
+                        'away_score'        => $score[1],
+                        'pl'                => (string) $row->profit_loss,
+                        'odds'              => $row->odds,
+                        'points'            => $row->odds_label,
+                        'event_id'          => $row->master_event_unique_id,
+                        'market_id'         => $row->mem_uid,
+                        'has_provider_bets' => ProviderBet::where('user_bet_id', $row->id)->where('status', '!=', 'FAILED')->count()
                     ];
 
                     $dups[] = $row->id;
