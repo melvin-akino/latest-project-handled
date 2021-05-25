@@ -119,6 +119,11 @@ class BetTransformationHandler
                         ]);
                     } else {
                         if ($requeue) {
+                            ProviderBetLog::create([
+                                'provider_bet_id' => $orderData->id,
+                                'status'          => $status,
+                            ]);
+
                             $orderLogs = ProviderBetLog::create([
                                 'provider_bet_id' => $orderData->id,
                                 'status'          => "QUEUE",
