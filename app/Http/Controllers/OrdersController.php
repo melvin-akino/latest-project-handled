@@ -431,14 +431,13 @@ class OrdersController extends Controller
                 'exchange_rate' => $exchangeRatesSWT[$exchangeRatesKey]['exchange_rate'],
             ];
 
-            $lines                = [];
-            $split                = self::splitStake($request->stake, $request->markets);
-            $walletAmount         = $request->stake * $exchangeRate['exchange_rate'];
-            $percentage           = $userProviderPercentage >= 0 ? $userProviderPercentage : $providerInfo['punter_percentage'];
-            $eventMarketData      = Game::getMasterEventByMarketId($request->market_id, $request->markets[0]['provider_id']);
-            $providerCurrencyInfo = Currency::find(Provider::find($request->markets[0]['provider_id'])->currency_id);
-            $provCurrencyCode     = trim($providerCurrencyInfo['code']);
-            $minMaxOddsArray      = array_map(function ($odds) {
+            $lines            = [];
+            $split            = self::splitStake($request->stake, $request->markets);
+            $walletAmount     = $request->stake * $exchangeRate['exchange_rate'];
+            $percentage       = $userProviderPercentage >= 0 ? $userProviderPercentage : $providerInfo['punter_percentage'];
+            $eventMarketData  = Game::getMasterEventByMarketId($request->market_id, $request->markets[0]['provider_id']);
+            $provCurrencyCode = trim($providerCurrencyInfo['code']);
+            $minMaxOddsArray  = array_map(function ($odds) {
                 return $odds['price'];
             }, $request->markets);
 
@@ -515,6 +514,32 @@ class OrdersController extends Controller
                     'status'          => $row['place'] ? "PENDING" : "QUEUE",
                 ]);
 
+                $userPlaceBet = WalletFacade::subtractBalance($userWalletToken, auth()->user()->uuid, trim($provCurrencyCode), ($convertedStake), "[PLACE_BET][BET_PENDING] - Placed Bet " . $provCurrencyCode . " " . $walletAmount);
+
+                if (empty($userPlaceBet) || array_key_exists('error', $userPlaceBet) || !array_key_exists('status_code', $userPlaceBet) || $userPlaceBet->status_code != 200) {
+                    $toLogs = [
+                        "class"       => "OrdersController",
+                        "message"     => trans('game.wallet-api.error.user'),
+                        "module"      => "API_ERROR",
+                        "status_code" => 404,
+                        "data"        => $userPlaceBet,
+                    ];
+                    monitorLog('monitor_api', 'error', $toLogs);
+
+                    throw new BadRequestException(trans('game.wallet-api.error.user'));
+                }
+
+                BetWalletTransaction::create([
+                    'provider_bet_log_id' => $providerBetLog->id,
+                    'user_id'             => auth()->user()->id,
+                    'source_id'           => Source::getIdByName('PLACE_BET'),
+                    'currency_id'         => auth()->user()->currency_id,
+                    'wallet_ledger_id'    => $userPlaceBet->data->id,
+                    'provider_account_id' => is_null($assignedAccount) ? null : $assignedAccount->id,
+                    'reason'              => "Placed Bet",
+                    'amount'              => $row['stake'],
+                ]);
+
                 if ($row['place']) {
                     ProviderBetTransaction::create([
                         'provider_bet_id'    => $providerBet->id,
@@ -524,32 +549,6 @@ class OrdersController extends Controller
                         'actual_profit_loss' => null,
                         'exchange_rate'      => $exchangeRate['exchange_rate'],
                         'punter_percentage'  => $percentage,
-                    ]);
-
-                    $userPlaceBet = WalletFacade::subtractBalance($userWalletToken, auth()->user()->uuid, trim($provCurrencyCode), ($row['stake']), "[PLACE_BET][BET_PENDING] - Placed Bet " . $provCurrencyCode . " " . $walletAmount);
-
-                    if (empty($userPlaceBet) || array_key_exists('error', $userPlaceBet) || !array_key_exists('status_code', $userPlaceBet) || $userPlaceBet->status_code != 200) {
-                        $toLogs = [
-                            "class"       => "OrdersController",
-                            "message"     => trans('game.wallet-api.error.user'),
-                            "module"      => "API_ERROR",
-                            "status_code" => 404,
-                            "data"        => $userPlaceBet,
-                        ];
-                        monitorLog('monitor_api', 'error', $toLogs);
-
-                        throw new BadRequestException(trans('game.wallet-api.error.user'));
-                    }
-
-                    BetWalletTransaction::create([
-                        'provider_bet_log_id' => $providerBetLog->id,
-                        'user_id'             => auth()->user()->id,
-                        'source_id'           => Source::getIdByName('PLACE_BET'),
-                        'currency_id'         => auth()->user()->currency_id,
-                        'wallet_ledger_id'    => $userPlaceBet->data->id,
-                        'provider_account_id' => is_null($assignedAccount) ? null : $assignedAccount->id,
-                        'reason'              => 'Placed Bet',
-                        'amount'              => $row['stake'],
                     ]);
 
                     $requestId = Str::uuid() . "-" . $providerBet->id;
