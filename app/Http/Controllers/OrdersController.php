@@ -495,7 +495,7 @@ class OrdersController extends Controller
 
                 $providerBet = ProviderBet::create([
                     'user_bet_id'               => $placeBet->id,
-                    'provider_id'               => $row['provider_id'],
+                    'provider_id'               => $row['place'] ? $row['provider_id'] : null,
                     'provider_account_id'       => is_null($assignedAccount) ? null : $assignedAccount->id,
                     'provider_error_message_id' => null,
                     'status'                    => $row['place'] ? "PENDING" : "QUEUE",

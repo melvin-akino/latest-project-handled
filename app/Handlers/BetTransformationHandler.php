@@ -69,19 +69,21 @@ class BetTransformationHandler
                     $orderId        = $orderData->id;
                     $status         = $this->message->data->status != self::STATUS_PENDING ? strtoupper($this->message->data->status) : strtoupper(self::STATUS_SUCCESS);
                     $errorMessageId = providerErrorMapping($this->message->data->reason);
+                    $requeue        = Carbon::now()->diffInSeconds($orderData->created_at) < $userBet->order_expiry;
 
                     $order = ProviderBet::updateOrCreate([
                         'id' => $messageOrderId
                     ], [
                         'bet_id'                    => $this->message->data->bet_id,
                         'reason'                    => $this->message->data->reason,
-                        'status'                    => $status,
+                        'status'                    => $status == "FAILED" && $requeue ? "QUEUE" : $status,
                         'odds'                      => empty($this->message->data->odds) ? (float) 0.00 : $this->message->data->odds,
-                        'provider_error_message_id' => $errorMessageId
+                        'provider_error_message_id' => $errorMessageId,
+                        'provider_id'               => $status == "FAILED" && $requeue ? null : $orderData->provider_id,
+                        'provider_account_id'       => $status == "FAILED" && $requeue ? null : $orderData->provider_account_id,
                     ]);
 
                     if ($status != strtoupper(self::STATUS_FAILED)) {
-                        $userBet = UserBet::find($order->user_bet_id);
                         if ($userBet->status == 'PENDING') {
                             $userBet->status = $status;
                             $userBet->save();
@@ -116,20 +118,27 @@ class BetTransformationHandler
                             'punter_percentage'  => Provider::find($order->provider_id)->punter_percentage,
                         ]);
                     } else {
-                        $source       = Source::where('source_name', 'LIKE', 'RETURN_STAKE')->first();
-                        $walletToken  = SwooleHandler::getValue('walletClientsTable', 'ml-users')['token'];
-                        $user         = User::find($userBet->user_id);
-                        $currencyCode = $user->currency()->first()->code;
-                        $reason       = "[RETURN_STAKE][BET FAILED/CANCELLED] - transaction for order id " . $order->id;
-                        $userBalance  = WalletFacade::addBalance($walletToken, $user->uuid, trim(strtoupper($currencyCode)), $order->stake, $reason);
+                        if ($requeue) {
+                            $orderLogs = ProviderBetLog::create([
+                                'provider_bet_id' => $orderData->id,
+                                'status'          => "QUEUE",
+                            ]);
+                        } else {
+                            $source       = Source::where('source_name', 'LIKE', 'RETURN_STAKE')->first();
+                            $walletToken  = SwooleHandler::getValue('walletClientsTable', 'ml-users')['token'];
+                            $user         = User::find($userBet->user_id);
+                            $currencyCode = $user->currency()->first()->code;
+                            $reason       = "[RETURN_STAKE][BET FAILED/CANCELLED] - transaction for order id " . $order->id;
+                            $userBalance  = WalletFacade::addBalance($walletToken, $user->uuid, trim(strtoupper($currencyCode)), $order->stake, $reason);
 
-                        $orderLogs = ProviderBetLog::create([
-                            'provider_bet_id' => $orderData->id,
-                            'status'          => $status,
-                        ]);
+                            $orderLogs = ProviderBetLog::create([
+                                'provider_bet_id' => $orderData->id,
+                                'status'          => $status,
+                            ]);
 
-                        if ($order->status == strtoupper(self::STATUS_SUCCESS)) {
-                            return;
+                            if ($order->status == strtoupper(self::STATUS_SUCCESS)) {
+                                return;
+                            }
                         }
                     }
 
