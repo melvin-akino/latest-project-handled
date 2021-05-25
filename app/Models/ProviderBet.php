@@ -55,7 +55,7 @@ class ProviderBet extends Model
 
     public static function getProviderBets(int $userBetId = null, string $memUID = null)
     {
-        return self::join('providers as p' , 'p.id', 'provider_bets.provider_id')
+        return self::leftJoin('providers as p' , 'p.id', 'provider_bets.provider_id')
             ->leftJoin('provider_error_messages as pem', 'pem.id', 'provider_bets.provider_error_message_id')
             ->leftJoin('error_messages as em', 'em.id', 'pem.error_message_id')
             ->join('user_bets as ub', 'ub.id', 'provider_bets.user_bet_id')
