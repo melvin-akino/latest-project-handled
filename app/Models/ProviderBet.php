@@ -65,6 +65,7 @@ class ProviderBet extends Model
             ->when($memUID, function($query) use($memUID) {
                 return $query->where('ub.mem_uid', $memUID);
             })
+            ->where('provider_bets.status', '!=', 'FAILED')
             ->select([
                 'provider_bets.id',
                 'ml_bet_identifier',
