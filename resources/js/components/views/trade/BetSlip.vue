@@ -614,9 +614,12 @@ export default {
                     })
 
                     let sortedByPriceArray = greaterThanOrEqualThanPriceArray.sort((a, b) => (a.price < b.price) ? 1 : -1)
-
+                    let lowestMin = Math.min(...sortedByPriceArray.map(minmax => minmax.min))
                     if(this.orderForm.stake > this.wallet.credit) {
                         this.orderMessage = 'Insufficient wallet balance.'
+                        this.isBetSuccessful = false
+                    } else if(this.orderForm.stake < lowestMin) {
+                        this.orderMessage = 'Stake is lower than minimum stake.'
                         this.isBetSuccessful = false
                     } else {
                         this.orderForm.stake = 0
