@@ -564,8 +564,14 @@ class OrdersController extends Controller
                     $query->column_type . " " . $query->odd_label . "(" . $query->score . ")",
                 ]);
 
+                $blockedLinesParam = [
+                    'event_id'    => $query->event_id,
+                    'odd_type_id' => $query->odd_type_id,
+                    'points'      => $query->odd_label,
+                ];
+
                 $providerToken   = SwooleHandler::getValue('walletClientsTable', trim(strtolower($providerInfo['alias'])) . '-users')['token'];
-                $providerAccount = ProviderAccount::getBettingAccount($row['provider_id'], $actualStake, $isUserVIP, $payload['event_id'], $query->odd_type_id, $query->market_flag, $providerToken);
+                $providerAccount = ProviderAccount::getBettingAccount($row['provider_id'], $actualStake, $isUserVIP, $payload['event_id'], $query->odd_type_id, $query->market_flag, $providerToken, $blockedLinesParam);
 
                 if (!$providerAccount) {
                     $toLogs = [
