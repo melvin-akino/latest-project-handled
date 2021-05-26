@@ -92,28 +92,24 @@
                             <span class="text-sm">{{points}}</span>
                         </div>
                         <div class="flex justify-between items-center py-2">
-                            <label class="text-sm">Stake</label>
-                            <input type="text" style="padding-right: 4rem;" class="w-40 shadow appearance-none border rounded text-sm py-1 pl-3 pr-16 text-gray-700 leading-tight focus:outline-none" v-model="$v.orderForm.stake.$model" @keyup="clearOrderMessage">
-                            <button class="absolute bg-primary-500 right-0 mr-5 px-3 text-white rounded text-xs uppercase focus:outline-none hover:bg-primary-600" style="padding: 0.1rem 0.5rem;padding" @click="sumOfMaxStake"><i class="fa fa-angle-double-up" aria-hidden="true"></i>&nbsp;&nbsp;&nbsp;MAX</button>
+                            <label class="text-sm">Price</label>
+                            <div class="flex justify-end items-center">
+                                <input type="text" class="betslipInput w-40 shadow appearance-none border rounded text-sm py-1 px-3 text-gray-700 leading-tight focus:outline-none" v-model="$v.inputPrice.$model" @keyup="clearOrderMessage" disabled>
+                                <button class="minMaxBtn absolute bg-primary-500 right-0 mr-5 px-3 text-white rounded text-xs uppercase focus:outline-none hover:bg-primary-600" @click="setMinPrice">MIN</button>
+                                <div class="toolTip text-gray-700">
+                                    <i class="fas fa-info-circle"></i>
+                                    <span class="toolTipText p-2 text-white text-justify bg-gray-800">When you click the "MIN" button, this selects all providers for you to get the minimum price available. You now allow your bets to be placed within this range of prices.</span>    
+                                </div>
+                            </div>
                         </div>
                         <div class="flex justify-between items-center py-2">
-                            <label class="text-sm">Price</label>
-                            <input class="w-40 shadow appearance-none border rounded text-sm py-1 px-3 text-gray-700 leading-tight focus:outline-none" type="text" v-model="$v.inputPrice.$model" @keyup="clearOrderMessage" disabled>
-                        </div>
-                        <div class="flex justify-between items-center py-2" :class="{'hidden': betSlipSettings.adv_placement_opt == 0, 'block': betSlipSettings.adv_placement_opt == 1}">
-                            <label class="text-sm">Order Expiry</label>
-                            <div class="relative w-40">
-                                <select class="shadow appearance-none border rounded text-sm w-full py-1 px-3 text-gray-700 leading-tight focus:outline-none" v-model="orderForm.orderExpiry" @change="clearOrderMessage">
-                                    <option value="30">Now</option>
-                                    <option value="120">2 mins</option>
-                                    <option value="300">5 mins</option>
-                                    <option value="600">10 mins</option>
-                                    <option value="1800">30 mins</option>
-                                    <option value="3600">1 hour</option>
-                                    <option value="7200">2 hours</option>
-                                </select>
-                                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
-                                    <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
+                            <label class="text-sm">Stake</label>
+                            <div class="flex justify-end items-center">
+                                <input type="text" class="betslipInput w-40 shadow appearance-none border rounded text-sm py-1 pl-3 pr-16 text-gray-700 leading-tight focus:outline-none" v-model="$v.orderForm.stake.$model" @keyup="clearOrderMessage">
+                                <button class="minMaxBtn absolute bg-primary-500 mr-5 px-3 text-white rounded text-xs uppercase focus:outline-none hover:bg-primary-600" @click="setMaxStake">MAX</button>
+                                <div class="toolTip text-gray-700">
+                                    <i class="fas fa-info-circle"></i>
+                                    <span class="toolTipText p-2 text-white text-justify bg-gray-800">When you click this "MAX" button, this inputs your maximum possible stake across all providers selected.</span>    
                                 </div>
                             </div>
                         </div>
@@ -178,7 +174,6 @@ export default {
             market_id: this.odd_details.odd.market_id,
             orderForm: {
                 stake: '',
-                orderExpiry: 30,
                 betType: 'FAST_BET',
                 markets: []
             },
@@ -404,13 +399,20 @@ export default {
             this.clearOrderMessage();
             this.getMarketDetails(false)
         },
-        sumOfMaxStake() {
-            let maxs = this.minMaxData.map(minmax => minmax.max)
-            let maxAmount = 0;
-            maxs.map(max => {
-                maxAmount += max
+        setMaxStake() {
+            this.clearOrderMessage()
+            this.orderForm.stake = twoDecimalPlacesFormat(this.highestMax)
+        },
+        setMinPrice() {
+            this.clearOrderMessage()
+            let minMaxProviders = this.minMaxProviders.filter(minmax => minmax.price != null && !this.underMaintenanceProviders.includes(minmax.provider.toLowerCase()))
+            minMaxProviders.map(minmax => {
+                if(!this.selectedProviders.includes(minmax.provider_id)) {
+                    this.selectedProviders.push(minmax.provider_id)
+                    this.minMaxData.push(minmax)
+                }
             })
-            this.orderForm.stake = maxAmount
+            this.inputPrice = Math.min(...this.minMaxData.filter(minmax => minmax.price != null).map(minmax => minmax.price))
         },
         getMarketDetails(setMinMaxProviders = true, updatedPoints = true) {
             let token = Cookies.get('mltoken')
@@ -593,13 +595,15 @@ export default {
                 this.orderMessage = 'Available markets are too low.'
                 this.isBetSuccessful = false
                 this.hasErrorOnInput = false
+            } else if(Number(this.orderForm.stake) > twoDecimalPlacesFormat(this.highestMax)) {
+                this.orderMessage = 'You can only place up to the max combined stake from all selected bookmakers.'
+                this.isBetSuccessful = false
             } else {
                 this.isPlacingOrder = true
                 this.hasErrorOnInput = false
                 let data = {
                     betType: this.orderForm.betType,
                     stake: this.orderForm.stake,
-                    orderExpiry: this.orderForm.orderExpiry,
                     market_id: this.market_id
                 }
 
@@ -611,7 +615,7 @@ export default {
                             greaterThanOrEqualThanPriceArray.push(minmax)
                         }
                     })
-                    let sortedByPriceArray = greaterThanOrEqualThanPriceArray.sort((a, b) => (a.price > b.price) ? 1 : -1)
+                    let sortedByPriceArray = greaterThanOrEqualThanPriceArray.sort((a, b) => (a.price < b.price) ? 1 : -1)
                     sortedByPriceArray.map(sortedByPrice => {
                         if(this.orderForm.stake > sortedByPrice.max) {
                             if(this.wallet.credit >= sortedByPrice.max) {
@@ -784,5 +788,33 @@ export default {
     padding: 0 5px;
     background-color: #ce6a17;
     font-size: 20px;
+}
+
+.betslipInput {
+    padding-right: 4rem; 
+    margin-right:4px;
+}
+
+.minMaxBtn {
+    padding: 0.1rem 0.5rem; 
+    right: 17px;
+}
+
+.toolTip {
+    position: relative;
+    cursor: pointer;
+    font-size: 13px;
+}
+
+.toolTipText {
+    visibility: hidden;
+    width: 200px;
+    border-radius: 6px;
+    position: absolute;
+    z-index: 1;
+}
+
+.toolTip:hover .toolTipText {
+    visibility: visible;
 }
 </style>
