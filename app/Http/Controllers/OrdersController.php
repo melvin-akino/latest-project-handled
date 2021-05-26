@@ -17,7 +17,8 @@ use App\Models\{
     Order,
     Timezones,
     UserWallet,
-    ProviderAccount
+    ProviderAccount,
+    BlockedLine
 };
 use Illuminate\Http\Request;
 use Illuminate\Support\{Facades\DB, Facades\Log, Str};
@@ -613,6 +614,15 @@ class OrdersController extends Controller
 
                 if (!$userWalletTransaction) {
                     throw new BadRequestException(trans('game.wallet-api.error.user'));
+                }
+
+                if (!empty($providerAccount->id)) {
+                    BlockedLine::updateOrCreate([
+                        'event_id'    => $query->event_id,
+                        'odd_type_id' => $query->odd_type_id,
+                        'points'      => $query->odd_label,
+                        'line'        => $providerAccount->line
+                    ]);
                 }
 
                 $providerWalletToken = SwooleHandler::getValue('walletClientsTable', trim(strtolower($providerInfo['alias'])) . '-users')['token'];
