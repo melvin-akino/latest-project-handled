@@ -3,7 +3,6 @@
 namespace App\Processes;
 
 use App\Models\SystemConfiguration;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Hhxsv5\LaravelS\Swoole\Process\CustomProcessInterface;
 use Swoole\Http\Server;
@@ -27,7 +26,6 @@ class MinMaxProduce implements CustomProcessInterface
 
             if ($swoole->data2SwtTable->exist('data2Swt')) {
                 $minMaxRequestsTable        = $swoole->minMaxRequestsTable;
-                $minmaxOnqueueRequestsTable = $swoole->minmaxOnqueueRequestsTable;
                 $initialTime                = Carbon::createFromFormat('H:i:s', Carbon::now()->format('H:i:s'));
                 $minmaxTime                 = 0;
                 $systemConfigurationsTimers = [];
@@ -45,14 +43,6 @@ class MinMaxProduce implements CustomProcessInterface
 
                         if (!empty($systemConfigurationsTimers)) {
                             foreach ($minMaxRequestsTable as $minMaxRequest) {
-                                $minmaxOnqueueExist = false;
-                                foreach ($minmaxOnqueueRequestsTable as $key => $row) {
-                                    if (strpos($key, 'min-max-' . $minMaxRequest['market_id']) === 0) {
-                                        $minmaxOnqueueExist = true;
-                                        break;
-                                    }
-                                }
-
                                 $requestId = (string) Str::uuid();
                                 $requestTs = getMilliseconds();
                                 $scheduleFrequency = 1;
@@ -80,24 +70,21 @@ class MinMaxProduce implements CustomProcessInterface
                                     PrometheusMatric::MakeMatrix('request_market_id_total',
                                         'Min-max  total number of  market id  pushed .', $minMaxRequest['market_id']);
 
+                                    kafkaPush(
+                                        strtolower($minMaxRequest['provider']) . env('KAFKA_SCRAPE_MINMAX_REQUEST_POSTFIX', '_minmax_req'),
+                                        $payload,
+                                        $requestId
+                                    );
 
-                                    // if (!$minmaxOnqueueExist) {
-                                        kafkaPush(
-                                            strtolower($minMaxRequest['provider']) . env('KAFKA_SCRAPE_MINMAX_REQUEST_POSTFIX', '_minmax_req'),
-                                            $payload,
-                                            $requestId
-                                        );
-
-                                        $toLogs = [
-                                            "class"       => "MinMaxProduce",
-                                            "message"     => [
-                                                "payload_sent" => $payload
-                                            ],
-                                            "module"      => "PROCESS",
-                                            "status_code" => 200,
-                                        ];
-                                        monitorLog('monitor_process', 'info', $toLogs);
-                                    // }
+                                    $toLogs = [
+                                        "class"       => "MinMaxProduce",
+                                        "message"     => [
+                                            "payload_sent" => $payload
+                                        ],
+                                        "module"      => "PROCESS",
+                                        "status_code" => 200,
+                                    ];
+                                    monitorLog('monitor_process', 'info', $toLogs);
                                 }
                             }
                         }

@@ -589,10 +589,10 @@ if (!function_exists('eventTransformation')) {
                 if (
                     empty($data[$transformed->master_event_unique_id]['market_odds']['main'][$transformed->type][$transformed->market_flag]['market_id']) ||
                     (
-                        !empty($data[$transformed->master_event_unique_id]['market_odds']['main'][$transformed->type][$transformed->market_flag]['market_id']) && 
+                        !empty($data[$transformed->master_event_unique_id]['market_odds']['main'][$transformed->type][$transformed->market_flag]['market_id']) &&
                         $transformed->provider_id == $primaryProviderId
                     )
-                    
+
                 ) {
                     $data[$transformed->master_event_unique_id]['market_odds']['main'][$transformed->type][$transformed->market_flag]['mem_uid_from_provider'] = $transformed->provider_id;
                     $data[$transformed->master_event_unique_id]['market_odds']['main'][$transformed->type][$transformed->market_flag]['market_id'] = !empty($transformed->master_event_market_unique_id) && empty($transformed->is_market_empty) ? $transformed->master_event_market_unique_id : "";
@@ -638,7 +638,7 @@ if (!function_exists('eventTransformation')) {
                             if (empty($otherValues[$d['odd_type'] . $d['market_flag'] . $d['points']])) {
                                 $otherResult[$d['market_event_identifier']][$d['odd_type']][$d['market_flag']]['market_id']             = $d['market_id'];
                                 $otherResult[$d['market_event_identifier']][$d['odd_type']][$d['market_flag']]['mem_uid_from_provider'] = $d['provider_id'];
-                                
+
                                 $otherResult[$d['market_event_identifier']][$d['odd_type']][$d['market_flag']]['points']                = $d['points'];
                                 $otherResult[$d['market_event_identifier']][$d['odd_type']][$d['market_flag']]['provider_alias']        = $d['provider_alias'];
                                 $otherResult[$d['market_event_identifier']][$d['odd_type']][$d['market_flag']]['odds']                  = $d['odds'];
@@ -654,7 +654,7 @@ if (!function_exists('eventTransformation')) {
                                     ]);
                                 }
                             }
-                            
+
                             else {
                                 $key = $otherValues[$d['odd_type'] . $d['market_flag'] . $d['points']];
                                 if (
@@ -669,7 +669,7 @@ if (!function_exists('eventTransformation')) {
                                     (
                                         !empty($otherResult[$key][$d['odd_type']][$d['market_flag']]['market_id']) &&
                                         $d['provider_id'] == $primaryProviderId
-                                    )   
+                                    )
                                 ) {
                                     $otherResult[$key][$d['odd_type']][$d['market_flag']]['market_id'] = $d['market_id'];
                                     $otherResult[$key][$d['odd_type']][$d['market_flag']]['mem_uid_from_provider'] = $d['provider_id'];
