@@ -5,6 +5,7 @@ namespace App\Jobs;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Support\Facades\Log;
+use App\Facades\SwooleHandler;
 use App\Models\EventMarket;
 use Exception;
 use Illuminate\Support\Str;
@@ -55,10 +56,15 @@ class WsMinMax implements ShouldQueue
                         'schedule'  => $eventMarket->game_schedule,
                         'event_id'  => $eventMarket->event_identifier,
                         'odds'      => $eventMarket->odds,
-                        'memUID'    => $this->master_event_market_unique_id
+                        'memUID'    => $this->master_event_market_unique_id,
+                        'counter'   => 1,
                     ];
 
-                    $minMaxRequestsTable->set('mId:' . $eventMarket->bet_identifier . ':memUID:' . $this->master_event_market_unique_id, $minMaxRequestsPayload);
+                    if (!$minMaxRequestsTable->exists($this->master_event_market_unique_id . ":" . strtolower($eventMarket->alias))) {
+                        $minMaxRequestsTable->set($this->master_event_market_unique_id . ":" . strtolower($eventMarket->alias), $minMaxRequestsPayload);
+                    } else if (!$doesExist) {
+                        SwooleHandler::incCtr('minMaxRequestsTable', $this->master_event_market_unique_id . ":" . strtolower($eventMarket->alias));
+                    }
 
                     SendLogData::MinMax('requestminmax', json_encode($minMaxRequestsPayload));
 
