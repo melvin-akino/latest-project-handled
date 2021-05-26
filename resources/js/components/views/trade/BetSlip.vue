@@ -811,6 +811,7 @@ export default {
     width: 200px;
     border-radius: 6px;
     position: absolute;
+    z-index: 1;
 }
 
 .toolTip:hover .toolTipText {
