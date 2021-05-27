@@ -874,10 +874,11 @@ class OrdersController extends Controller
                 }
 
                 $teamname = $order->market_flag == 'HOME' ? $order->home_team_name : $order->away_team_name;
+                $betTeam  = $order->market_flag;
 
                 if (in_array($order->odd_type_id, $ouLabels)) {
                     $ou       = explode(' ', $order->points)[0];
-                    $teamname = $ou == "O" ? "Over" : "Under";
+                    $betTeam  = $teamname = $ou == "O" ? "Over" : "Under";
                 }
 
                 $scoreOnBet = explode(' - ', $order->score_on_bet);
@@ -888,7 +889,7 @@ class OrdersController extends Controller
                     'odds'              => $order->odds,
                     'type'              => $type,
                     'odd_type_name'     => $order->sport_odd_type_name,
-                    'bet_team'          => $order->market_flag,
+                    'bet_team'          => $betTeam,
                     'team_name'         => $teamname,
                     'home_score_on_bet' => $scoreOnBet[0],
                     'away_score_on_bet' => $scoreOnBet[1],
