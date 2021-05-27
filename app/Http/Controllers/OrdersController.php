@@ -711,7 +711,6 @@ class OrdersController extends Controller
                     'score'            => $incrementIds['payload'][$i]['score'],
                     'username'         => $incrementIds['provider_account'][$i],
                     'created_at'       => $incrementIds['created_at'][$i],
-                    'orderExpiry'      => is_null($incrementIds['payload'][$i]['orderExpiry']) ? 30 : $incrementIds['payload'][$i]['orderExpiry'],
                     'exchange_rate_id' => $incrementIds['payload'][$i]['exchange_rate_id'],
                     'exchange_rate'    => $incrementIds['payload'][$i]['exchange_rate'],
                 ];
