@@ -25,7 +25,7 @@
                 </div>
                 <div class="flex items-center bg-black text-white p-1">
                     <span class="w-64">Bet Type</span>
-                    <span class="w-32">Bet Team</span>
+                    <span class="w-32">Selection</span>
                     <span class="w-32">Price</span>
                     <span class="w-32">Stake</span>
                     <span class="w-32">Score on Bet</span>

@@ -565,6 +565,7 @@ export default {
             if(Number(this.orderForm.stake) > twoDecimalPlacesFormat(this.highestMax)) {
                 this.orderMessage = 'Cannot input more than the combined max stakes of selected bookmakers!'
                 this.isDoneBetting = true
+                this.isBetSuccessful = false
             } else {
                 this.orderMessage = ''
                 this.isDoneBetting = false
