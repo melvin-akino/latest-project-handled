@@ -597,7 +597,7 @@ class OrdersController extends Controller
                     'stake'                         => $payloadStake,
                     'actual_stake'                  => $actualStake,
                     'score'                         => $query->score,
-                    'expiry'                        => $request->orderExpiry,
+                    'expiry'                        => is_null($request->orderExpiry) ? 30 : $request->orderExpiry,
                     'bet_selection'                 => $betSelection,
                     'odd_type_id'                   => $query->odd_type_id,
                     'market_flag'                   => $query->market_flag,
