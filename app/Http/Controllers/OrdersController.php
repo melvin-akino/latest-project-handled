@@ -685,7 +685,8 @@ class OrdersController extends Controller
                     ]);
                 }
 
-                $orderIds[] = $orderId;
+                $orderIds[]     = $orderId;
+                $exceptionArray = [];
             }
 
             if ($betType == "BEST_PRICE") {
@@ -765,7 +766,9 @@ class OrdersController extends Controller
         } catch (BadRequestException $e) {
             DB::rollback();
 
-            WalletFacade::addBalance($exceptionArray['token'], $exceptionArray['uuid'], $exceptionArray['currency_code'], ($exceptionArray['stake']), "[PLACE_BET][RETURN_STAKE] - Something went wrong: " . $e->getMessage());
+            if (!empty($exceptionArray)) {
+                WalletFacade::addBalance($exceptionArray['token'], $exceptionArray['uuid'], $exceptionArray['currency_code'], ($exceptionArray['stake']), "[PLACE_BET][RETURN_STAKE] - Something went wrong: " . $e->getMessage());
+            }
 
             $toLogs = [
                 "class"       => "OrdersController",
@@ -783,7 +786,9 @@ class OrdersController extends Controller
         } catch (NotFoundException $e) {
             DB::rollback();
 
-            WalletFacade::addBalance($exceptionArray['token'], $exceptionArray['uuid'], $exceptionArray['currency_code'], ($exceptionArray['stake']), "[PLACE_BET][RETURN_STAKE] - Something went wrong: " . $e->getMessage());
+            if (!empty($exceptionArray)) {
+                WalletFacade::addBalance($exceptionArray['token'], $exceptionArray['uuid'], $exceptionArray['currency_code'], ($exceptionArray['stake']), "[PLACE_BET][RETURN_STAKE] - Something went wrong: " . $e->getMessage());
+            }
 
             $toLogs = [
                 "class"       => "OrdersController",
@@ -801,7 +806,9 @@ class OrdersController extends Controller
         } catch (Exception $e) {
             DB::rollback();
 
-            WalletFacade::addBalance($exceptionArray['token'], $exceptionArray['uuid'], $exceptionArray['currency_code'], ($exceptionArray['stake']), "[PLACE_BET][RETURN_STAKE] - Something went wrong: " . $e->getMessage());
+            if (!empty($exceptionArray)) {
+                WalletFacade::addBalance($exceptionArray['token'], $exceptionArray['uuid'], $exceptionArray['currency_code'], ($exceptionArray['stake']), "[PLACE_BET][RETURN_STAKE] - Something went wrong: " . $e->getMessage());
+            }
 
             $toLogs = [
                 "class"       => "OrdersController",
