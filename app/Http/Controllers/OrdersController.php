@@ -317,6 +317,8 @@ class OrdersController extends Controller
 
     public function postPlaceBet(Request $request)
     {
+        $exceptionArray = [];
+
         try {
             DB::beginTransaction();
 
@@ -634,7 +636,14 @@ class OrdersController extends Controller
                 $providerWalletToken = SwooleHandler::getValue('walletClientsTable', trim(strtolower($providerInfo['alias'])) . '-users')['token'];
                 $providerUUID        = trim($providerAccount->uuid);
                 $providerReason      = "[PLACE_BET][BET PENDING] - transaction for order id " . $orderCreation['orders']->id;
-                $providerWallet      = WalletFacade::subtractBalance($providerWalletToken, $providerUUID, trim(strtoupper($providerCurrencyInfo['code'])), $actualStake, $providerReason);
+                $exceptionArray      = [
+                    'token'         => $providerWalletToken,
+                    'uuid'          => $providerUUID,
+                    'currency_code' => trim(strtoupper($providerCurrencyInfo['code'])),
+                    'stake'         => $actualStake,
+                ];
+
+                $providerWallet = WalletFacade::subtractBalance($providerWalletToken, $providerUUID, trim(strtoupper($providerCurrencyInfo['code'])), $actualStake, $providerReason);
 
                 if (empty($providerWallet) || array_key_exists('error', $providerWallet) || !array_key_exists('status_code', $providerWallet) || $providerWallet->status_code != 200) {
                     $userWalletToken = SwooleHandler::getValue('walletClientsTable', 'ml-users')['token'];
@@ -755,6 +764,9 @@ class OrdersController extends Controller
             ], $returnCode);
         } catch (BadRequestException $e) {
             DB::rollback();
+
+            WalletFacade::addBalance($exceptionArray['token'], $exceptionArray['uuid'], $exceptionArray['currency_code'], ($exceptionArray['stake']), "[PLACE_BET][RETURN_STAKE] - Something went wrong: " . $e->getMessage());
+
             $toLogs = [
                 "class"       => "OrdersController",
                 "message"     => "Line " . $e->getLine() . " | " . $e->getMessage(),
@@ -770,6 +782,9 @@ class OrdersController extends Controller
             ], 400);
         } catch (NotFoundException $e) {
             DB::rollback();
+
+            WalletFacade::addBalance($exceptionArray['token'], $exceptionArray['uuid'], $exceptionArray['currency_code'], ($exceptionArray['stake']), "[PLACE_BET][RETURN_STAKE] - Something went wrong: " . $e->getMessage());
+
             $toLogs = [
                 "class"       => "OrdersController",
                 "message"     => "Line " . $e->getLine() . " | " . $e->getMessage(),
@@ -785,6 +800,9 @@ class OrdersController extends Controller
             ], 404);
         } catch (Exception $e) {
             DB::rollback();
+
+            WalletFacade::addBalance($exceptionArray['token'], $exceptionArray['uuid'], $exceptionArray['currency_code'], ($exceptionArray['stake']), "[PLACE_BET][RETURN_STAKE] - Something went wrong: " . $e->getMessage());
+
             $toLogs = [
                 "class"       => "OrdersController",
                 "message"     => "Line " . $e->getLine() . " | " . $e->getMessage(),
