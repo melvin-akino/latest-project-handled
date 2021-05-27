@@ -400,11 +400,10 @@ export default {
             this.getMarketDetails(false)
         },
         setMaxStake() {
-            this.clearOrderMessage()
             this.orderForm.stake = twoDecimalPlacesFormat(this.highestMax)
+            this.clearOrderMessage()
         },
         setMinPrice() {
-            this.clearOrderMessage()
             let minMaxProviders = this.minMaxProviders.filter(minmax => minmax.price != null && !this.underMaintenanceProviders.includes(minmax.provider.toLowerCase()))
             minMaxProviders.map(minmax => {
                 if(!this.selectedProviders.includes(minmax.provider_id)) {
@@ -413,6 +412,7 @@ export default {
                 }
             })
             this.inputPrice = Math.min(...this.minMaxData.filter(minmax => minmax.price != null).map(minmax => minmax.price))
+            this.clearOrderMessage()
         },
         getMarketDetails(setMinMaxProviders = true, updatedPoints = true) {
             let token = Cookies.get('mltoken')
@@ -562,15 +562,19 @@ export default {
             this.showBetMatrix = false
         },
         clearOrderMessage() {
-            this.orderMessage = ''
-            this.isDoneBetting = false
+            if(Number(this.orderForm.stake) > twoDecimalPlacesFormat(this.highestMax)) {
+                this.orderMessage = 'Cannot input more than the combined max stakes of selected bookmakers!'
+                this.isDoneBetting = true
+            } else {
+                this.orderMessage = ''
+                this.isDoneBetting = false
+            }
         },
         updatePrice(price) {
             this.inputPrice = twoDecimalPlacesFormat(price)
             this.clearOrderMessage()
         },
         toggleMinmaxProviders(minmax, provider_id) {
-            this.clearOrderMessage()
             if(this.selectedProviders.includes(provider_id)) {
                 this.selectedProviders = this.selectedProviders.filter(provider => provider != provider_id)
                 this.minMaxData = this.minMaxData.filter(minmax => minmax.provider_id != provider_id)
@@ -585,6 +589,7 @@ export default {
             } else {
                 this.inputPrice = null
             }
+            this.clearOrderMessage()
         },
         placeOrder() {
             this.isDoneBetting = true
@@ -596,7 +601,7 @@ export default {
                 this.isBetSuccessful = false
                 this.hasErrorOnInput = false
             } else if(Number(this.orderForm.stake) > twoDecimalPlacesFormat(this.highestMax)) {
-                this.orderMessage = 'You can only place up to the max combined stake from all selected bookmakers.'
+                this.orderMessage = 'Cannot input more than the combined max stakes of selected bookmakers!'
                 this.isBetSuccessful = false
             } else {
                 this.isPlacingOrder = true
