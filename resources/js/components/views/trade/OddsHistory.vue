@@ -22,7 +22,7 @@
                                     <p>{{log.odd_type_name}} {{Number(log.stake) | moneyFormat}} @ {{log.odds}}</p>
                                 </div>
                                 <div class="w-1/6 text-right">{{log.provider}}</div>
-                                <div class="w-1/6 text-right"><span class="font-bold">{{log.status == 'SUCCESS' ? 'PLACED' : log.status}}</span></div>
+                                <div class="w-1/6 text-right"><span class="font-bold" :class="{ '_green': greenStatus.includes(log.status),  '_red': redStatus.includes(log.status) }">{{log.status == 'SUCCESS' ? 'PLACED' : log.status}}</span></div>
                             </div>
                         </div>
                         <div class="flex justify-center items-center p-2" v-else>
@@ -58,7 +58,13 @@ export default {
     },
     computed: {
         ...mapState('trade', ['activePopup', 'popupZIndex']),
-        ...mapState('settings', ['defaultPriceFormat'])
+        ...mapState('settings', ['defaultPriceFormat']),
+        greenStatus() {
+            return ['WIN', 'HALF WIN', 'PUSH']
+        },
+        redStatus() {
+            return ['LOSE', 'HALF LOSE', 'FAILED']
+        }
     },
     mounted() {
         this.getOrderLogs()
@@ -69,7 +75,7 @@ export default {
                 this.isLoadingOrderLogs = true
                 this.orderLogsPrompt = 'Loading order logs'
                 let orderLogs = await this.$store.dispatch('trade/getOrderLogs', this.event_id)
-                this.logs = orderLogs.reverse()
+                this.logs = orderLogs
                 this.isLoadingOrderLogs = false
                 this.retrievedOrderLogs = true
                 this.orderLogsPrompt = ''
@@ -110,5 +116,13 @@ export default {
     padding: 0;
     max-height: 440px;
     overflow-y: auto;
+}
+
+._green {
+    color: #009E28;
+}
+
+._red {
+    color: #FF2525;
 }
 </style>
