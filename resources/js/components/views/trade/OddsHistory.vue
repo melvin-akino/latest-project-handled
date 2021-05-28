@@ -22,7 +22,7 @@
                                     <p>{{log.odd_type_name}} {{Number(log.stake) | moneyFormat}} @ {{log.odds}}</p>
                                 </div>
                                 <div class="w-1/6 text-right">{{log.provider}}</div>
-                                <div class="w-1/6 text-right"><span class="font-bold" :class="{ '_green': greenStatus.includes(log.status),  '_red': redStatus.includes(log.status) }">{{log.status == 'SUCCESS' ? 'PLACED' : log.status}}</span></div>
+                                <div class="w-1/6 text-right"><span class="font-bold" :class="{ 'greenLogStatus': greenStatus.includes(log.status),  'redLogStatus': redStatus.includes(log.status) }">{{log.status == 'SUCCESS' ? 'PLACED' : log.status}}</span></div>
                             </div>
                         </div>
                         <div class="flex justify-center items-center p-2" v-else>
@@ -118,11 +118,11 @@ export default {
     overflow-y: auto;
 }
 
-._green {
+.greenLogStatus {
     color: #009E28;
 }
 
-._red {
+.redLogStatus {
     color: #FF2525;
 }
 </style>
