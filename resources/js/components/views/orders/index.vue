@@ -63,12 +63,12 @@
                                     <td class="text-right">
                                         <a href="#" @click.prevent="openBetMatrix(props.item.order_id, `${props.item.order_id}-betmatrix`)"
                                             class="betdata-btn text-center rounded-full py-2 px-3 hover:bg-gray-400 w-1/2"
-                                            v-if="oddTypesWithSpreads.includes(props.item.odd_type_id) && !failedBetStatus.includes(props.item.status)">
+                                            v-if="!failedBetStatus.includes(props.item.status)">
                                                 <i class="fas fa-chart-area" title="Bet Matrix"></i>
                                         </a>
                                         <a href="#" @click.prevent="openOddsHistory(props.item.order_id, `${props.item.order_id}-orderlogs`)"
                                             class="betdata-btn text-center rounded-full py-2 px-3 hover:bg-gray-400 w-1/2"
-                                            :class="{'ml-4': !oddTypesWithSpreads.includes(props.item.odd_type_id) || failedBetStatus.includes(props.item.status)}">
+                                            :class="{'ml-4': failedBetStatus.includes(props.item.status)}">
                                                 <i class="fas fa-bars" title="Odds History"></i>
                                         </a>
                                     </td>
@@ -129,7 +129,6 @@
                     { text: 'reason', value: 'reason', align: 'start', sortable: false, },
                     { text: '', value: 'betData', align: 'end', sortable: false, width: 100, },
                 ],
-                oddTypesWithSpreads: [3, 4, 11, 12],
                 openedOddsHistory: [],
                 openedBetMatrix: [],
             }

@@ -10,7 +10,7 @@
                     <div class="flex items-center w-3/4">
                         <span class="text-white uppercase font-bold mr-2 my-2 px-2 bg-orange-500">{{market_details.odd_type}}</span>
                         <span class="text-gray-800 font-bold my-2 pr-6">{{market_details.league_name}}</span>
-                        <a href="#" @click.prevent="openBetMatrix(`${odd_details.betslip_id}-betmatrix`)" class="text-center py-1 pr-1" title="Bet Matrix" v-if="oddTypesWithSpreads.includes(market_details.odd_type) && odd_details.has_bet"><i class="fas fa-chart-area"></i></a>
+                        <a href="#" @click.prevent="openBetMatrix(`${odd_details.betslip_id}-betmatrix`)" class="text-center py-1 pr-1" title="Bet Matrix" v-if="odd_details.has_bet"><i class="fas fa-chart-area"></i></a>
                         <a href="#" @click.prevent="openOddsHistory(`${odd_details.betslip_id}-orderlogs`)" class="text-center py-1" title="Odds History"><i class="fas fa-bars"></i></a>
                     </div>
                     <div class="flex items-center">

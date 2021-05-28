@@ -50,7 +50,7 @@
                         </div>
                         <div class="w-64 mr-2">
                             <input type="text" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700
-                            text-sm leading-tight focus:outline-none" v-model="order.points.$model" @keyup="clearMatrixTable">
+                            text-sm leading-tight focus:outline-none" v-model="order.points.$model" @keyup="clearMatrixTable" :disabled="order.type.$model == '1x2' || order.type.$model == 'Odd' || order.type.$model == 'Even'">
                             <span class="text-red-600 text-xs" v-if="order.points.$dirty && !order.points.required">Points is required.</span>
                             <span class="text-red-600 text-xs" v-if="order.points.$dirty && !order.points.decimal">Points should be a numeric/decimal value.</span>
                         </div>
@@ -58,9 +58,12 @@
                             <div class="relative">
                                 <select class="text-sm shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none" v-model="order.type.$model" @change="clearMatrixTable">
                                     <option :value="null">Select Type</option>
+                                    <option value="1x2">1x2</option>
                                     <option value="HDP">HDP</option>
                                     <option value="O">O</option>
                                     <option value="U">U</option>
+                                    <option value="Odd">Odd</option>
+                                    <option value="Even">Even</option>
                                 </select>
                                 <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
                                     <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
@@ -74,6 +77,7 @@
                                     <option :value="null">Select Team</option>
                                     <option value="HOME">HOME</option>
                                     <option value="AWAY">AWAY</option>
+                                    <option v-if="order.type.$model == '1x2'" value="DRAW">DRAW</option>
                                 </select>
                                 <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
                                     <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
@@ -120,7 +124,7 @@
 
 <script>
 import { twoDecimalPlacesFormat } from '../../helpers/numberFormat'
-import { required, decimal, integer } from 'vuelidate/lib/validators'
+import { required, requiredIf, decimal, integer } from 'vuelidate/lib/validators'
 
 export default {
     name: 'BetMatrixSimulator',
@@ -152,7 +156,12 @@ export default {
                 $each: {
                     stake: { required, decimal },
                     odds: { required, decimal },
-                    points: { required, decimal },
+                    points: {
+                        required: requiredIf(function(value) {
+                            return value.type == 'HDP' || value.type == 'O' || value.type == 'U'
+                        }),
+                        decimal
+                    },
                     type: { required },
                     bet_team: { required },
                     home_score_on_bet: {  required, integer },
@@ -177,7 +186,7 @@ export default {
             this.matrix_data.matrix_orders.forEach(order => {
                 let stake = Number(order.stake)
                 let price = Number(order.odds)
-                let towin = Number(order.stake) * Number(order.odds)
+                let towin = order.type == '1x2' || order.type == 'Odd' || order.type == 'Even'  ? stake * (price - 1) : stake * price
                 let points = Number(order.points)
                 let home_score_on_bet = Number(order.home_score_on_bet)
                 let away_score_on_bet = Number(order.away_score_on_bet)
@@ -237,6 +246,41 @@ export default {
                                 var result = (stake * price) / 2
                             } else {
                                 var result = stake * price
+                            }
+                        }
+                        if(type == 'Odd') {
+                            if((home_team_counter + away_team_counter) % 2 != 0) {
+                                var result = stake * (price - 1)
+                            } else {
+                                var result = stake * -1
+                            }
+                        }
+                        if(type == 'Even') {
+                            if((home_team_counter + away_team_counter) % 2 == 0) {
+                                var result = stake * (price - 1)
+                            } else {
+                                var result = stake * -1
+                            }
+                        }
+                        if(type == '1x2') {
+                            if(bet_team == 'HOME') {
+                                if(home_team_counter > away_team_counter) {
+                                    var result = stake * (price - 1)
+                                } else {
+                                    var result = stake * -1
+                                }
+                            } else if(bet_team == 'AWAY') {
+                                if(home_team_counter < away_team_counter) {
+                                    var result = stake * (price - 1)
+                                } else {
+                                    var result = stake * -1
+                                }
+                            } else {
+                                if(home_team_counter == away_team_counter) {
+                                    var result = stake * (price - 1)
+                                } else {
+                                    var result = stake * -1
+                                }
                             }
                         }
 

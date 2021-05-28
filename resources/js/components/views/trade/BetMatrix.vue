@@ -37,7 +37,7 @@
                             <label class="text-gray-500 font-bold">
                                 <input class="mr-2 leading-tight" type="checkbox" @change="toggleEventOrder(order, order.order_id)" :checked="selectedOrders.includes(order.order_id)">
                             </label>
-                            {{ order.odd_type_name == "FT O/U" && order.odd_type_name.indexOf("FT") >= 0 ? "FT " : (order.odd_type_name == "FT O/U" && order.odd_type_name.indexOf("HT") >= 0 ? "HT " : "") }}{{order.team_name}} {{ order.type == 'HDP' ? order.odd_type_name : ''}} {{order.points}} {{`(${defaultPriceFormat})`}}
+                            {{ (order.odd_type == "OU" || order.odd_type == "OE") && order.odd_type_name.indexOf("FT") >= 0 ? "FT " : ((order.odd_type == "OU" || order.odd_type == "OE") && order.odd_type_name.indexOf("HT") >= 0 ? "HT " : "") }} {{order.team_name}} {{ order.type == 'HDP' || order.type == '1x2' ? order.odd_type_name : ''}} {{order.points}} {{`(${defaultPriceFormat})`}}
                         </div>
                         <span class="w-32">{{order.bet_team}}</span>
                         <span class="w-32">{{order.odds}}</span>
@@ -124,7 +124,7 @@ export default {
             this.matrix_orders.forEach(order => {
                 let stake = Number(order.stake)
                 let price = Number(order.odds)
-                let towin = Number(order.stake) * Number(order.odds)
+                let towin = order.type == '1x2' || order.type == 'Odd' || order.type == 'Even' ? stake * (price - 1) : stake * price
                 let points = Number(order.points)
                 let home_score_on_bet = Number(order.home_score_on_bet)
                 let away_score_on_bet = Number(order.away_score_on_bet)
@@ -184,6 +184,41 @@ export default {
                                 var result = (stake * price) / 2
                             } else {
                                 var result = stake * price
+                            }
+                        }
+                        if(type == 'Odd') {
+                            if((home_team_counter + away_team_counter) % 2 != 0) {
+                                var result = stake * (price - 1)
+                            } else {
+                                var result = stake * -1
+                            }
+                        }
+                        if(type == 'Even') {
+                            if((home_team_counter + away_team_counter) % 2 == 0) {
+                                var result = stake * (price - 1)
+                            } else {
+                                var result = stake * -1
+                            }
+                        }
+                        if(type == '1x2') {
+                            if(bet_team == 'HOME') {
+                                if(home_team_counter > away_team_counter) {
+                                    var result = stake * (price - 1)
+                                } else {
+                                    var result = stake * -1
+                                }
+                            } else if(bet_team == 'AWAY') {
+                                if(home_team_counter < away_team_counter) {
+                                    var result = stake * (price - 1)
+                                } else {
+                                    var result = stake * -1
+                                }
+                            } else {
+                                if(home_team_counter == away_team_counter) {
+                                    var result = stake * (price - 1)
+                                } else {
+                                    var result = stake * -1
+                                }
                             }
                         }
 
