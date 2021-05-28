@@ -98,18 +98,18 @@
                                 <button class="minMaxBtn absolute bg-primary-500 right-0 mr-5 px-3 text-white rounded text-xs uppercase focus:outline-none hover:bg-primary-600" @click="setMinPrice">MIN</button>
                                 <div class="toolTip text-gray-700">
                                     <i class="fas fa-info-circle"></i>
-                                    <span class="toolTipText p-2 text-white text-justify bg-gray-800">When you click the "MIN" button, this selects all providers for you to get the minimum price available. You now allow your bets to be placed within this range of prices.</span>    
+                                    <span class="toolTipText p-2 text-white text-justify bg-gray-800">When you click the "MIN" button, this selects all providers for you to get the minimum price available. You now allow your bets to be placed within this range of prices.</span>
                                 </div>
                             </div>
                         </div>
                         <div class="flex justify-between items-center py-2">
                             <label class="text-sm">Stake</label>
                             <div class="flex justify-end items-center">
-                                <input type="text" class="betslipInput w-40 shadow appearance-none border rounded text-sm py-1 pl-3 pr-16 text-gray-700 leading-tight focus:outline-none" v-model="$v.orderForm.stake.$model" @keyup="clearOrderMessage">
+                                <input ref="stake" type="text" class="betslipInput w-40 shadow appearance-none border rounded text-sm py-1 pl-3 pr-16 text-gray-700 leading-tight focus:outline-none" v-model="$v.orderForm.stake.$model" @keyup="clearOrderMessage">
                                 <button class="minMaxBtn absolute bg-primary-500 mr-5 px-3 text-white rounded text-xs uppercase focus:outline-none hover:bg-primary-600" @click="setMaxStake">MAX</button>
                                 <div class="toolTip text-gray-700">
                                     <i class="fas fa-info-circle"></i>
-                                    <span class="toolTipText p-2 text-white text-justify bg-gray-800">When you click this "MAX" button, this inputs your maximum possible stake across all providers selected.</span>    
+                                    <span class="toolTipText p-2 text-white text-justify bg-gray-800">When you click this "MAX" button, this inputs your maximum possible stake across all providers selected.</span>
                                 </div>
                             </div>
                         </div>
@@ -398,6 +398,7 @@ export default {
             this.minMaxUpdateCounter = 0
             this.clearOrderMessage();
             this.getMarketDetails(false)
+            this.orderForm.stake = ''
         },
         setMaxStake() {
             this.orderForm.stake = twoDecimalPlacesFormat(this.highestMax)
@@ -430,6 +431,7 @@ export default {
                         }
                     }
                     this.$store.commit('trade/SHOW_BET_MATRIX_IN_BETSLIP', { market_id: this.market_id, has_bet: response.data.data.has_bets })
+                    this.$refs.stake.focus()
                 })
                 .catch(err => {
                     this.$store.dispatch('auth/checkIfTokenIsValid', err.response.status)
@@ -463,6 +465,8 @@ export default {
             this.clearOrderMessage()
             this.getMarketDetails(false, false)
             this.points = points
+            this.orderForm.stake = ''
+            this.$refs.stake.focus()
         },
         sendMinMax(market_id) {
             return new Promise((resolve) => {
@@ -797,12 +801,12 @@ export default {
 }
 
 .betslipInput {
-    padding-right: 4rem; 
+    padding-right: 4rem;
     margin-right:4px;
 }
 
 .minMaxBtn {
-    padding: 0.1rem 0.5rem; 
+    padding: 0.1rem 0.5rem;
     right: 17px;
 }
 
