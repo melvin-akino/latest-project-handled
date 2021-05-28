@@ -267,7 +267,7 @@ class OrdersController extends Controller
                 ], 404);
             }
 
-            $eventBets = Order::getOrdersByEvent($masterEvent->master_event_unique_id, true)->count();
+            $eventBets = Order::getOrdersByEvent($masterEvent->master_event_unique_id)->count();
 
             $hasBets = false;
             if ($eventBets > 0) {
@@ -883,19 +883,25 @@ class OrdersController extends Controller
                 $userTz = Timezones::find($getUserConfig->value)->name;
             }
 
-            $orders   = Order::getOrdersByEvent($uid, true)->get();
+            $orders   = Order::getOrdersByEvent($uid)->get();
             $ouLabels = OddType::where('type', 'ILIKE', '%OU%')->pluck('id')->toArray();
+            $oeLabels = OddType::where('type', 'ILIKE', '%OE%')->pluck('id')->toArray();
 
             $data = [];
             foreach ($orders as $order) {
-                $type = '';
-                if ($order->odd_type_id == 3 || $order->odd_type_id == 11) {
+                $type   = '';
+                $points = '';
+                if (stripos($order->odd_type, 'HDP') !== false) {
                     $type   = 'HDP';
                     $points = $order->points;
-                } else if ($order->odd_type_id == 4 || $order->odd_type_id == 12) {
+                } else if (stripos($order->odd_type, 'OU') !== false) {
                     $ouOddLabel = explode(' ', $order->points);
                     $type       = $ouOddLabel[0];
                     $points     = $ouOddLabel[1];
+                } else if(stripos($order->odd_type, '1x2') !== false) {
+                    $type = '1x2';
+                } else if(stripos($order->odd_type, 'OE') !== false) {
+                    $type = $order->points == "O" ? "Odd" : "Even";
                 }
 
                 $teamname = $order->market_flag == 'HOME' ? $order->home_team_name : $order->away_team_name;
@@ -904,6 +910,10 @@ class OrdersController extends Controller
                 if (in_array($order->odd_type_id, $ouLabels)) {
                     $ou       = explode(' ', $order->points)[0];
                     $betTeam  = $teamname = $ou == "O" ? "Over" : "Under";
+                }
+
+                if (in_array($order->odd_type_id, $oeLabels)) {
+                    $betTeam  = $teamname = $order->points == "O" ? "Odd" : "Even";
                 }
 
                 $scoreOnBet = explode(' - ', $order->score_on_bet);
@@ -920,6 +930,7 @@ class OrdersController extends Controller
                     'away_score_on_bet' => $scoreOnBet[1],
                     'created_at'        => Carbon::createFromFormat("Y-m-d H:i:s", $order->created_at, 'Etc/UTC')->setTimezone($userTz)->format("Y-m-d H:i:s"),
                     'final_score'       => $order->final_score,
+                    'odd_type'          => $order->odd_type
                 ];
             }
 

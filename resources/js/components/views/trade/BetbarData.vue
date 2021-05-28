@@ -10,7 +10,7 @@
             <span v-if="bet.bet_info[6] != ''">{{ bet.bet_info[6] }}</span>
         </div>
         <div class="w-3/12 py-1 px-3" v-if="bet.bet_info[6] == ''">
-            {{bet.bet_info[1]}} {{defaultPriceFormat}} {{oddTypesWithBetMatrix.includes(bet.odd_type_id) ? bet.bet_info[4] : ''}} {{ `(${bet.score_on_bet})` }}
+            {{bet.bet_info[1]}} {{defaultPriceFormat}} {{bet.bet_info[4]}} {{ `(${bet.score_on_bet})` }}
         </div>
         <div class="w-3/12 py-1 px-3" v-if="bet.bet_info[6] != ''">
             {{ bet.bet_info[1].indexOf("FT") >= 0 ? "FT " : (bet.bet_info[1].indexOf("HT") >= 0 ? "HT " : "") }}{{ bet.bet_info[6] }} {{ defaultPriceFormat }} {{ `(${bet.score_on_bet})` }}
@@ -19,8 +19,8 @@
             {{bet.provider_alias}} - {{Number(bet.bet_info[3]) | moneyFormat}}@{{Number(bet.bet_info[2]) | twoDecimalPlacesFormat}} - {{ bet.status == 'SUCCESS' ? 'PLACED' : bet.status }}
         </div>
         <div class="flex items-center w-20 px-1">
-            <a href="#" @click.prevent="openBetMatrix(`${bet.order_id}-betmatrix`)" class="text-center py-1 w-1/2" title="Bet Matrix" v-if="oddTypesWithBetMatrix.includes(bet.odd_type_id) && !failedBetStatus.includes(bet.status)"><i class="fas fa-chart-area"></i></a>
-            <a href="#" @click.prevent="openOddsHistory(`${bet.order_id}-orderlogs`)" class="text-center py-1 w-1/2" :class="{'ml-5': !oddTypesWithBetMatrix.includes(bet.odd_type_id) || failedBetStatus.includes(bet.status)}" title="Odds History"><i class="fas fa-bars"></i></a>
+            <a href="#" @click.prevent="openBetMatrix(`${bet.order_id}-betmatrix`)" class="text-center py-1 w-1/2" title="Bet Matrix" v-if="!failedBetStatus.includes(bet.status)"><i class="fas fa-chart-area"></i></a>
+            <a href="#" @click.prevent="openOddsHistory(`${bet.order_id}-orderlogs`)" class="text-center py-1 w-1/2" :class="{'ml-5': failedBetStatus.includes(bet.status)}" title="Odds History"><i class="fas fa-bars"></i></a>
         </div>
         <odds-history v-if="showOddsHistory" @close="closeOddsHistory" :market_id="bet.market_id" :event_id="bet.event_id" :key="`${bet.order_id}-orderlogs`"></odds-history>
         <bet-matrix v-if="showBetMatrix" @close="closeBetMatrix" :market_id="bet.market_id" :analysis-data="analysisData" :event_id="bet.event_id" :key="`${bet.order_id}-betmatrix`"></bet-matrix>
@@ -42,8 +42,7 @@ export default {
     data() {
         return {
             showOddsHistory: false,
-            showBetMatrix: false,
-            oddTypesWithBetMatrix: [3, 4, 11, 12]
+            showBetMatrix: false
         }
     },
     computed: {

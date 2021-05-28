@@ -96,7 +96,7 @@ class Order extends Model
         return self::where('user_id', auth()->user()->id)->count();
     }
 
-    public static function getOrdersByEvent($eventId, $betMatrix = false)
+    public static function getOrdersByEvent($eventId)
     {
         return DB::table('orders as o')
                  ->leftJoin('odd_types AS ot', 'ot.id', 'o.odd_type_id')
@@ -105,12 +105,7 @@ class Order extends Model
                  ->where('sot.sport_id', DB::raw('o.sport_id'))
                  ->where('user_id', auth()->user()->id)
                  ->where('o.master_event_unique_id', $eventId)
-                 ->when($betMatrix, function ($query, $betMatrix) {
-                     return $query->whereNotIn('status', ['PENDING', 'FAILED', 'CANCELLED', 'REJECTED', 'VOID', 'ABNORMAL BET', 'REFUNDED'])
-                                  ->whereIn('o.odd_type_id', function ($query) {
-                                      $query->select('id')->from('odd_types')->whereIn('type', ['HDP', 'HT HDP', 'OU', 'HT OU']);
-                                  });
-                 })
+                 ->whereNotIn('status', ['PENDING', 'FAILED', 'CANCELLED', 'REJECTED', 'VOID', 'ABNORMAL BET', 'REFUNDED'])
                  ->select([
                      'o.id',
                      'stake',
@@ -125,7 +120,8 @@ class Order extends Model
                      'sot.name as sport_odd_type_name',
                      'p.alias as provider',
                      'o.status',
-                     'final_score'
+                     'final_score',
+                     'ot.type as odd_type'
                  ]);
     }
 
