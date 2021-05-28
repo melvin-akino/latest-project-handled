@@ -2,7 +2,7 @@
     <div class="oddsHistory text-sm">
         <dialog-drag title="Order Logs" :options="options" @close="$emit('close')" @mousedown.native="$store.dispatch('trade/setActivePopup', $vnode.key)" v-order-logs="activePopup==$vnode.key">
             <div class="flex flex-col">
-                <div class="bg-gray-800 w-full p-2">
+                <div class="bg-gray-800 w-full px-2">
                     <div class="container mx-auto">
                         <p class="text-white">Order logs for Event: {{event_id}}</p>
                     </div>
@@ -15,10 +15,14 @@
                     </div>
                     <div v-else>
                         <div v-if="logs.length != 0">
-                            <div class="flex px-3 my-1 text-gray-700" v-for="(log, index) in logs" :key="index">
-                                <div class="w-1/4">{{log.created_at}}</div>
-                                <div class="w-1/4"><span class="font-bold">{{log.odd_type_name}}</span> ({{log.bet_team}})</div>
-                                <div class="w-2/4">Order Placed to <span class="font-bold">{{log.provider}}</span>: {{log.odds}} - {{log.status == 'SUCCESS' ? 'PLACED' : log.status}}</div>
+                            <div class="flex px-3 my-2 text-gray-700" v-for="(log, index) in logs" :key="index">
+                                <div class="w-2/6">{{log.created_at}}</div>
+                                <div class="w-2/6">
+                                    <p>{{log.bet_team}} {{log.points}} ({{defaultPriceFormat}}, {{log.score_on_bet}})</p>
+                                    <p>{{log.odd_type_name}} {{Number(log.stake) | moneyFormat}} @ {{log.odds}}</p>
+                                </div>
+                                <div class="w-1/6 text-right">{{log.provider}}</div>
+                                <div class="w-1/6 text-right"><span class="font-bold">{{log.status == 'SUCCESS' ? 'PLACED' : log.status}}</span></div>
                             </div>
                         </div>
                         <div class="flex justify-center items-center p-2" v-else>
@@ -32,7 +36,7 @@
 </template>
 <script>
 import { mapState } from 'vuex'
-import Cookies from 'js-cookie'
+import { moneyFormat } from '../../../helpers/numberFormat'
 import _ from 'lodash'
 import DialogDrag from 'vue-dialog-drag'
 export default {
@@ -53,7 +57,8 @@ export default {
         }
     },
     computed: {
-        ...mapState('trade', ['activePopup', 'popupZIndex'])
+        ...mapState('trade', ['activePopup', 'popupZIndex']),
+        ...mapState('settings', ['defaultPriceFormat'])
     },
     mounted() {
         this.getOrderLogs()
@@ -94,6 +99,9 @@ export default {
                 el.style.marginLeft = `calc(${el.offsetWidth}px / 2 * -1)`
             }
         }
+    },
+    filters: {
+        moneyFormat
     }
 }
 </script>

@@ -836,14 +836,37 @@ class OrdersController extends Controller
             if (!is_null($getUserConfig)) {
                 $userTz = Timezones::find($getUserConfig->value)->name;
             }
-            $orders = Order::getOrdersByEvent($uid)->get();
-            $data   = [];
+            $orders   = Order::getOrdersByEvent($uid)->get();
+            $ouLabels = OddType::where('type', 'ILIKE', '%OU%')->pluck('id')->toArray();
+            $oeLabels = OddType::where('type', 'ILIKE', '%OE%')->pluck('id')->toArray();
+            $data     = [];
             foreach ($orders as $order) {
+                $betTeam       = $order->market_flag == 'HOME' ? $order->home_team_name : $order->away_team_name;
+                $oddTypeName   = $order->sport_odd_type_name;
+                $oddTypePrefix = stripos($order->odd_type, 'HT ') !== false ? 'HT' : 'FT';
+                $points        = $order->points;
+
+                if (in_array($order->odd_type_id, $ouLabels)) {
+                    $ouOddLabel  = explode(' ', $order->points);
+                    $betTeam     = $ouOddLabel[0] == "O" ? "Over" : "Under";
+                    $oddTypeName = $oddTypePrefix . " " . $betTeam;
+                    $points      = $ouOddLabel[1];
+                }
+
+                if (in_array($order->odd_type_id, $oeLabels)) {
+                    $betTeam     = $order->points == "O" ? "Odd" : "Even";
+                    $oddTypeName = $oddTypePrefix . " " . $betTeam;
+                    $points      = '';
+                }
+
                 $data[] = [
                     'order_id'      => $order->id,
+                    'stake'         => $order->stake,
                     'odds'          => $order->odds,
-                    'odd_type_name' => $order->sport_odd_type_name,
-                    'bet_team'      => $order->market_flag,
+                    'points'        => $points,
+                    'odd_type_name' => $oddTypeName,
+                    'bet_team'      => $betTeam,
+                    'score_on_bet'  => $order->score_on_bet,
                     'provider'      => $order->provider,
                     'status'        => $order->status,
                     'created_at'    => Carbon::createFromFormat("Y-m-d H:i:s", $order->created_at, 'Etc/UTC')->setTimezone($userTz)->format("Y-m-d H:i:s"),
