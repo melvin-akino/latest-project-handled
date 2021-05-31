@@ -40,10 +40,11 @@
                         </div>
                         <div class="flex flex-col bg-white shadow-xl">
                             <div class="flex justify-between items-center py-2 bg-orange-500 text-white">
-                                <span class="w-1/5 text-sm font-bold text-center pl-4">
-                                    <label class="text-gray-500 font-bold">
-                                        <input class="mr-8 leading-tight" type="checkbox" v-model="selectAllProviders" @change="toggleAllProviders">
+                                <span class="relative w-1/5 text-sm font-bold text-center pl-3">
+                                    <label class="selectAll absolute text-gray-500 font-bold">
+                                        <input class="mr-2 leading-tight" type="checkbox" v-model="selectAllProviders" @change="toggleAllProviders" :disabled="!retrievedMarketData">
                                     </label>
+                                    <span class="selectAllLabel relative">Select All</span>
                                 </span>
                                 <span class="w-1/5 text-sm font-bold text-center">Min</span>
                                 <span class="w-1/5 text-sm font-bold text-center">Max</span>
@@ -51,8 +52,8 @@
                                 <span class="w-1/5"></span>
                             </div>
                             <div class="flex items-center py-2" v-for="minmax in minMaxProviders" :key="minmax.provider_id">
-                                <span class="w-1/5 text-sm font-bold text-center pl-3">
-                                    <label class="text-gray-500 font-bold">
+                                <span class="relative w-1/5 text-sm font-bold text-center pl-3">
+                                    <label class="providerCheckbox absolute text-gray-500 font-bold">
                                         <input class="mr-2 leading-tight" type="checkbox" @change="toggleMinmaxProviders(minmax, minmax.provider_id)" :checked="selectedProviders.includes(minmax.provider_id) && minmax.hasMarketData && !underMaintenanceProviders.includes(minmax.provider.toLowerCase())" :disabled="!minmax.hasMarketData || underMaintenanceProviders.includes(minmax.provider.toLowerCase())">
                                     </label>
                                     {{minmax.provider}}
@@ -98,32 +99,27 @@
                             <div class="flex justify-end items-center">
                                 <div class="toolTip mr-1 text-gray-700">
                                     <i class="fas fa-info-circle"></i>
-                                    <span class="toolTipText p-2 text-white text-justify bg-gray-800">When you click the "MIN" button, this selects all providers for you to get the minimum price available. You now allow your bets to be placed within this range of prices.</span>
+                                    <span class="toolTipText p-2 text-white bg-gray-800">Minimum Accepted Price</span>
                                 </div>
                                 <input type="text" class="betslipInput w-40 shadow appearance-none border rounded text-sm py-1 px-3 text-gray-700 leading-tight focus:outline-none" v-model="$v.inputPrice.$model" @keyup="priceInput">
-                                <!-- <button class="minMaxBtn absolute bg-primary-500 right-0 mr-5 px-3 text-white rounded text-xs uppercase focus:outline-none hover:bg-primary-600" @click="setMinPrice">MIN</button> -->
                             </div>
                         </div>
                         <div class="flex justify-between items-center py-2">
                             <label class="text-sm">Stake</label>
                             <div class="flex justify-end items-center">
                                 <button class="minMaxBtn minStake absolute bg-primary-500 mr-5 px-3 text-white rounded text-xs uppercase focus:outline-none hover:bg-primary-600" @click="setMinStake">MIN</button>
-                                <input ref="stake" type="text" class="betslipInput stake w-40 shadow appearance-none border rounded text-sm py-1 pl-3 pr-16 text-gray-700 leading-tight focus:outline-none" v-model="$v.orderForm.stake.$model" @keyup="stakeInput" :disabled="qualifiedProviders.length == 0">
+                                <input ref="stake" type="text" class="betslipInput stake w-40 shadow appearance-none border rounded text-sm text-green-600 py-1 pl-3 pr-16 leading-tight focus:outline-none" v-model="$v.orderForm.stake.$model" @keyup="stakeInput" :disabled="qualifiedProviders.length == 0">
                                 <button class="minMaxBtn absolute bg-primary-500 mr-5 px-3 text-white rounded text-xs uppercase focus:outline-none hover:bg-primary-600" @click="setMaxStake">MAX</button>
                                 <div class="toolTip text-gray-700">
                                     <i class="fas fa-info-circle"></i>
-                                    <span class="toolTipText p-2 text-white text-justify bg-gray-800">When you click this "MAX" button, this inputs your maximum possible stake across all providers selected.</span>
+                                    <span class="toolTipText p-2 text-white bg-gray-800">By clicking the "MIN" button this inputs your MINIMUM possible stake across all providers selected. By clicking the "MAX" button, this inputs your MAXIMUM possible stake across all providers selected.</span>
                                 </div>
                             </div>
                         </div>
                         <div class="flex justify-between items-center py-2">
-                            <div class="flex justify-end items-center">
+                            <div class="flex justify-end items-center text-green-600">
                                 <span class="text-sm mr-12">Average Price</span>
                                 <span class="text-sm">{{displayedAveragePrice | twoDecimalPlacesFormat}}</span>
-                                <div class="toolTip ml-1 text-gray-700">
-                                    <i class="fas fa-info-circle"></i>
-                                    <span class="toolTipText p-2 text-white text-justify bg-gray-800">Average Price</span>
-                                </div>
                             </div>
                         </div>
                         <div class="justify-between items-center py-2 hidden" :class="{'hidden': betSlipSettings.adv_placement_opt == 0, 'flex': betSlipSettings.adv_placement_opt == 1}">
@@ -397,6 +393,8 @@ export default {
 
                 if(!this.$v.inputPrice.$dirty) {
                     this.inputPrice = this.lowestPrice
+                } else if(this.$v.inputPrice.$dirty && !this.$v.orderForm.stake.$dirty){
+                    this.orderForm.stake = this.highestMaxByValidPrice
                 }
 
                 if(this.qualifiedProviders.length == 0 && this.$v.inputPrice.$dirty && !this.$v.inputPrice.$invalid) {
@@ -463,17 +461,6 @@ export default {
         setMaxStake() {
             this.orderForm.stake = twoDecimalPlacesFormat(this.highestMaxByValidPrice)
             this.$v.orderForm.stake.$touch()
-            this.clearOrderMessage()
-        },
-        setMinPrice() {
-            let minMaxProviders = this.minMaxProviders.filter(minmax => minmax.price != null && !this.underMaintenanceProviders.includes(minmax.provider.toLowerCase()))
-            minMaxProviders.map(minmax => {
-                if(!this.selectedProviders.includes(minmax.provider_id)) {
-                    this.selectedProviders.push(minmax.provider_id)
-                    this.minMaxData.push(minmax)
-                }
-            })
-            this.inputPrice = Math.min(...this.minMaxData.filter(minmax => minmax.price != null).map(minmax => minmax.price))
             this.clearOrderMessage()
         },
         getMarketDetails(setMinMaxProviders = true, updatedPoints = true) {
@@ -639,8 +626,7 @@ export default {
                     this.$v.orderForm.stake.$touch()
                 }
             } else {
-                this.isDoneBetting = false
-                this.orderMessage = ''
+                this.clearOrderMessage()
                 this.orderForm.stake = ''
                 this.$v.orderForm.stake.$touch()
             }
@@ -678,6 +664,12 @@ export default {
             } else {
                 this.inputPrice = null
                 this.orderForm.stake = null
+            }
+
+            if(this.minMaxProviders.length == this.minMaxData.length) {
+                this.selectAllProviders = true
+            } else {
+                this.selectAllProviders = false
             }
             this.clearOrderMessage()
         },
@@ -934,5 +926,13 @@ export default {
 
 .toolTip:hover .toolTipText {
     visibility: visible;
+}
+
+.selectAllLabel {
+    left: 19px;
+}
+
+.providerCheckbox {
+    left: 24px;
 }
 </style>
