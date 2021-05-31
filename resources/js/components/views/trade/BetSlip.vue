@@ -103,7 +103,7 @@
                                 </div>
                             </div>
                             <div class="flex justify-end items-center">
-                                <input type="text" class="betslipInput price shadow appearance-none border rounded text-sm py-1 px-3 text-gray-700 leading-tight focus:outline-none" v-model="$v.inputPrice.$model" @keyup="priceInput">
+                                <input type="text" class="betslipInput price shadow appearance-none border rounded text-sm py-1 px-3 text-gray-700 leading-tight focus:outline-none" v-model="$v.inputPrice.$model" @keyup="priceInput" :disabled="!retrievedMarketData">
                             </div>
                         </div>
                         <div class="flex justify-between items-center py-2">
