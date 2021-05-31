@@ -42,7 +42,7 @@
                             <div class="flex justify-between items-center py-2 bg-orange-500 text-white">
                                 <span class="relative w-1/5 text-sm font-bold text-center pl-3">
                                     <label class="selectAll absolute text-gray-500 font-bold">
-                                        <input class="mr-2 leading-tight" type="checkbox" v-model="selectAllProviders" @change="toggleAllProviders" :disabled="!retrievedMarketData">
+                                        <input class="mr-2 leading-tight" type="checkbox" v-model="selectAllProviders" @change="toggleAllProviders" :disabled="!retrievedMarketData || minMaxProviders.filter(minmax => minmax.hasMarketData && !underMaintenanceProviders.includes(minmax.provider.toLowerCase())).length == 1">
                                     </label>
                                     <span class="selectAllLabel relative">Select All</span>
                                 </span>
@@ -666,7 +666,8 @@ export default {
                 this.orderForm.stake = null
             }
 
-            if(this.minMaxProviders.length == this.minMaxData.length) {
+            let minMaxProviders = this.minMaxProviders.filter(minmax => minmax.price != null && !this.underMaintenanceProviders.includes(minmax.provider.toLowerCase()))
+            if(minMaxProviders.length == this.minMaxData.length) {
                 this.selectAllProviders = true
             } else {
                 this.selectAllProviders = false
