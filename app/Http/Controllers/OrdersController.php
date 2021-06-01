@@ -624,15 +624,6 @@ class OrdersController extends Controller
                     throw new BadRequestException(trans('game.wallet-api.error.user'));
                 }
 
-                if (!empty($providerAccount->id)) {
-                    BlockedLine::updateOrCreate([
-                        'event_id'    => $query->event_id,
-                        'odd_type_id' => $query->odd_type_id,
-                        'points'      => $query->odd_label,
-                        'line'        => $providerAccount->line
-                    ]);
-                }
-
                 $providerWalletToken = SwooleHandler::getValue('walletClientsTable', trim(strtolower($providerInfo['alias'])) . '-users')['token'];
                 $providerUUID        = trim($providerAccount->uuid);
                 $providerReason      = "[PLACE_BET][BET PENDING] - transaction for order id " . $orderCreation['orders']->id;
