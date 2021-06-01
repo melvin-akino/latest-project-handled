@@ -4,8 +4,17 @@ namespace App\Handlers;
 
 use App\Facades\{WalletFacade, SwooleHandler};
 use App\User;
-use App\Models\{OddType, Order, ProviderAccount, OrderLogs, ProviderAccountOrder, UserWallet, Source};
-
+use App\Models\{
+    OddType,
+    Order,
+    ProviderAccount,
+    OrderLogs,
+    ProviderAccountOrder,
+    UserWallet,
+    Source,
+    BlockedLine,
+    EventMarket
+};
 use Carbon\Carbon;
 use Exception;
 use Illuminate\Support\Facades\{DB, Log};
@@ -49,6 +58,8 @@ class BetTransformationHandler
             $requestUIDArray = explode('-', $this->message->request_uid);
             $messageOrderId  = end($requestUIDArray);
             $orderData       = Order::find($messageOrderId);
+            $providerAccount = ProviderAccount::find($orderData->provider_account_id);
+            $eventId         = EventMarket::where('bet_identifier', $orderData->market_id)->first()->event_id;
 
             if ($this->message->data->status == self::STATUS_RECEIVED) {
                 if (time() - strtotime($orderData->created_at) > 60) {
@@ -59,6 +70,15 @@ class BetTransformationHandler
 
                     $orderSWTKey = 'orderId:' . $messageOrderId;
                     SwooleHandler::setColumnValue('ordersTable', $orderSWTKey, 'status', 'FAILED');
+
+                    if (!empty($providerAccount->id)) {
+                        BlockedLine::updateOrCreate([
+                            'event_id'    => $eventId,
+                            'odd_type_id' => $orderData->odd_type_id,
+                            'points'      => $orderData->odd_label,
+                            'line'        => $providerAccount->line
+                        ]);
+                    }
                 }
             } else {
                 if ($orderData) {
@@ -77,7 +97,7 @@ class BetTransformationHandler
                     ]);
 
                     if ($status != strtoupper(self::STATUS_FAILED)) {
-                        ProviderAccount::find($order->provider_account_id)->update([
+                        $providerAccount->update([
                             'updated_at' => Carbon::now()
                         ]);
 
@@ -128,6 +148,15 @@ class BetTransformationHandler
                         $currencyCode = $user->currency()->first()->code;
                         $reason       = "[RETURN_STAKE][BET FAILED/CANCELLED] - transaction for order id " . $order->id;
                         $userBalance  = WalletFacade::addBalance($walletToken, $user->uuid, trim(strtoupper($currencyCode)), $order->stake, $reason);
+
+                        if (!empty($providerAccount->id)) {
+                            BlockedLine::updateOrCreate([
+                                'event_id'    => $eventId,
+                                'odd_type_id' => $orderData->odd_type_id,
+                                'points'      => $orderData->odd_label,
+                                'line'        => $providerAccount->line
+                            ]);
+                        }
 
                         $orderLogs  = OrderLogs::create([
                             'provider_id'   => $order->provider_id,
