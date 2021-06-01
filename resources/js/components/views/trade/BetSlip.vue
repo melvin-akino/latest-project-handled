@@ -99,26 +99,28 @@
                                 <label class="text-sm">Min Price</label>
                                 <div class="toolTip ml-1 text-gray-700">
                                     <i class="fas fa-info-circle"></i>
-                                    <span class="toolTipText price p-2 text-white bg-gray-800">Minimum Accepted Price</span>
+                                    <span class="toolTipText p-2 text-white bg-gray-800">Minimum Accepted Price</span>
                                 </div>
                             </div>
                             <div class="flex justify-end items-center">
-                                <input type="text" class="betslipInput price shadow appearance-none border rounded text-sm py-1 px-3 text-gray-700 leading-tight focus:outline-none" v-model="$v.inputPrice.$model" @keyup="priceInput" :disabled="!retrievedMarketData">
+                                <input type="text" class="betslipInput w-40 shadow appearance-none border rounded text-sm text-right py-1 px-3 text-gray-700 leading-tight focus:outline-none" v-model="$v.inputPrice.$model" @keyup="priceInput" :disabled="!retrievedMarketData">
                             </div>
                         </div>
                         <div class="flex justify-between items-center py-2">
-                            <label class="text-sm">Stake</label>
-                            <div class="relative flex justify-end items-center">
-                                <button class="minMaxBtn minStake absolute bg-primary-500 px-3 text-white rounded text-xs uppercase focus:outline-none hover:bg-primary-600" @click="setMinStake">MIN</button>
-                                <input ref="stake" type="text" class="betslipInput stake w-40 shadow appearance-none border rounded text-sm text-green-600 text-right py-1 pr-10 leading-tight focus:outline-none" v-model="$v.orderForm.stake.$model" @keyup="stakeInput" :disabled="qualifiedProviders.length == 0">
-                                <button class="minMaxBtn absolute bg-primary-500 px-3 text-white rounded text-xs uppercase focus:outline-none hover:bg-primary-600" @click="setMaxStake">MAX</button>
-                                <div class="toolTip text-gray-700">
+                            <div class="flex justify-start items-center">
+                                <label class="text-sm">Stake</label>
+                                <div class="toolTip ml-1 text-gray-700">
                                     <i class="fas fa-info-circle"></i>
                                     <span class="toolTipText p-2 text-white bg-gray-800">By clicking the "MIN" button this inputs your MINIMUM possible stake across all providers selected. By clicking the "MAX" button, this inputs your MAXIMUM possible stake across all providers selected.</span>
                                 </div>
                             </div>
+                            <div class="relative flex justify-end items-center">
+                                <button class="minMaxBtn minStake absolute bg-primary-500 px-3 text-white rounded text-xs uppercase focus:outline-none hover:bg-primary-600" @click="setMinStake">MIN</button>
+                                <input ref="stake" type="text" class="betslipInput w-40 shadow appearance-none border rounded text-sm text-green-600 text-right py-1 pr-10 leading-tight focus:outline-none" v-model="$v.orderForm.stake.$model" @keyup="stakeInput" :disabled="qualifiedProviders.length == 0">
+                                <button class="minMaxBtn absolute bg-primary-500 px-3 text-white rounded text-xs uppercase focus:outline-none hover:bg-primary-600" @click="setMaxStake">MAX</button>
+                            </div>
                         </div>
-                        <div class="flex justify-end items-center py-2 text-green-600">
+                        <div class="flex justify-between items-center py-2 text-green-600">
                             <span class="text-sm mr-12">Average Price</span>
                             <span class="text-sm">{{displayedAveragePrice | twoDecimalPlacesFormat}}</span>
                         </div>
@@ -900,21 +902,12 @@ export default {
     font-size: 20px;
 }
 
-.betslipInput.price {
-    width: 178px;
-}
-
-.betslipInput.stake {
-    margin-right: 4px !important;
-}
-
 .minMaxBtn {
     padding: 0.1rem 0.5rem;
-    right: 17px;
 }
 
 .minMaxBtn.minStake {
-    right: 142px;
+    right: 125px;
 }
 
 .toolTip {
@@ -929,10 +922,8 @@ export default {
     border-radius: 6px;
     position: absolute;
     z-index: 1;
-}
-
-.toolTipText.price {
-    right: 13px;
+    right: 12px;
+    top: 12px;
 }
 
 .toolTip:hover .toolTipText {
