@@ -39,7 +39,8 @@ const state = {
     failedBetStatus: ['PENDING', 'FAILED', 'CANCELLED', 'REJECTED', 'VOID', 'ABNORMAL BET', 'REFUNDED'],
     eventsError: false,
     underMaintenanceProviders: [],
-    popupZIndex: 100
+    popupZIndex: 100,
+    receivedOrderStatusIds: []
 }
 
 const getters = {
@@ -300,6 +301,9 @@ const mutations = {
     },
     SET_POPUP_ZINDEX: (state) => {
         state.popupZIndex++
+    },
+    SET_RECEIVED_ORDER_STATUS_ID: (state, id) => {
+        state.receivedOrderStatusIds.push(id)
     }
 }
 

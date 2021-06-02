@@ -751,7 +751,7 @@ class OrdersController extends Controller
                 'status'      => true,
                 'status_code' => $returnCode,
                 'data'        => $return,
-                'order_id'    => $orderIds,
+                'order_id'    => $orderIncrement->id,
                 'created_at'  => Carbon::parse($orderIncrement->created_at)->toDateTimeString()
             ], $returnCode);
         } catch (BadRequestException $e) {

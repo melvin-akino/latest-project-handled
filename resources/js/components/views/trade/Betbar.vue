@@ -42,6 +42,7 @@ export default {
             this.$options.sockets.onmessage = (response => {
                 if(getSocketKey(response.data) === 'getOrderStatus') {
                     let orderStatus = getSocketValue(response.data, 'getOrderStatus')
+                    this.$store.commit('trade/SET_RECEIVED_ORDER_STATUS_ID', orderStatus.order_id)
                     this.bets.map(bet => {
                         if(bet.order_id == orderStatus.order_id) {
                             this.$set(bet, 'status', orderStatus.status)

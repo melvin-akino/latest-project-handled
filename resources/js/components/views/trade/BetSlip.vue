@@ -222,7 +222,7 @@ export default {
         }
     },
     computed: {
-        ...mapState('trade', ['activePopup', 'popupZIndex', 'bookies', 'betSlipSettings', 'wallet', 'underMaintenanceProviders']),
+        ...mapState('trade', ['activePopup', 'popupZIndex', 'bookies', 'betSlipSettings', 'wallet', 'underMaintenanceProviders', 'receivedOrderStatusIds']),
         ...mapState('settings', ['defaultPriceFormat']),
         lowestPrice() {
             if(!_.isEmpty(this.minMaxData)) {
@@ -402,8 +402,9 @@ export default {
                 if(this.qualifiedProviders.length == 0 && this.$v.inputPrice.$dirty && !this.$v.inputPrice.$invalid) {
                     this.availableMarketsTooLow()
                 } else {
-                    this.orderMessage = ''
-                    this.isDoneBetting = false
+                    if(!this.isBetSuccessful) {
+                        this.clearOrderMessage()
+                    }
                 }
 
             }
@@ -713,6 +714,7 @@ export default {
             } else {
                 this.isPlacingOrder = true
                 this.hasErrorOnInput = false
+                this.$v.orderForm.stake.$touch()
                 let data = {
                     betType: this.orderForm.betType,
                     stake: this.orderForm.stake,
@@ -800,6 +802,12 @@ export default {
                                 this.$store.dispatch('trade/addToWatchlist', { type: 'event', data: this.odd_details.game.uid, payload: this.odd_details.game })
                             }
                             this.isPlacingOrder = false
+
+                            setTimeout(() => {
+                                if(!this.receivedOrderStatusIds.includes(response.data.order_id)) {
+                                    this.$store.dispatch('trade/getBetbarData', this.market_id)
+                                }
+                            }, 15000)
                         })
                         .catch(err => {
                             this.isBetSuccessful = false
@@ -934,7 +942,7 @@ export default {
     left: 19px;
 }
 
-.providerCheckbox {
+.selectAll, .providerCheckbox {
     left: 24px;
 }
 </style>
