@@ -153,7 +153,7 @@
             </div>
         </dialog-drag>
         <odds-history v-if="showOddsHistory" @close="closeOddsHistory" :market_id="market_id" :event_id="odd_details.game.uid" :key="`${odd_details.betslip_id}-orderlogs`"></odds-history>
-        <bet-matrix v-if="showBetMatrix" @close="closeBetMatrix" :market_id="market_id" :analysis-data="analysisData" :event_id="odd_details.game.uid" :key="`${odd_details.betslip_id}-betmatrix`"></bet-matrix>
+        <bet-matrix v-if="showBetMatrix" @close="closeBetMatrix" :market_id="market_id" :event_id="odd_details.game.uid" :key="`${odd_details.betslip_id}-betmatrix`"></bet-matrix>
     </div>
 </template>
 
@@ -316,12 +316,6 @@ export default {
                 return this.minMaxData.filter(minmax => minmax.price != null && minmax.price >= this.price)
             } else {
                 return []
-            }
-        },
-        analysisData() {
-            return {
-                home_score: this.market_details.score.split(' - ')[0],
-                away_score: this.market_details.score.split(' - ')[1]
             }
         },
         tradeWindowOdds() {

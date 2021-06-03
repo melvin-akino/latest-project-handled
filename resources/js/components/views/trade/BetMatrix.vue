@@ -58,7 +58,7 @@ import Cookies from 'js-cookie'
 import { twoDecimalPlacesFormat, convertPointAsNumeric, moneyFormat } from '../../../helpers/numberFormat'
 
 export default {
-    props: ['market_id', 'analysisData', 'event_id'],
+    props: ['market_id', 'event_id'],
     components: {
         DialogDrag
     },
@@ -69,13 +69,10 @@ export default {
                 buttonPin: false,
             },
             matrix_table: [],
+            current_score: '',
             matrix_data: {
-                stake: Number(this.analysisData.stake),
-                price: Number(this.analysisData.price),
-                home_score: Number(this.analysisData.home_score),
-                away_score: Number(this.analysisData.away_score),
-                points: convertPointAsNumeric(this.analysisData.points, this.analysisData.odd_type),
-                created_at: this.analysisData.created_at
+                home_score: 0,
+                away_score: 0,
             },
             matrix_orders_list: [],
             matrix_orders: [],
@@ -87,12 +84,6 @@ export default {
         ...mapState('trade', ['wallet', 'activePopup', 'popupZIndex']),
         ...mapState('settings', ['defaultPriceFormat']),
     },
-    watch: {
-        analysisData() {
-            this.matrix_table = []
-            this.generateBetMatrix()
-        }
-    },
     mounted() {
         this.getBetMatrixOrders()
     },
@@ -102,10 +93,14 @@ export default {
 
             axios.get(`v1/orders/bet-matrix/${this.event_id}`, { headers: { 'Authorization': `Bearer ${token}` }})
             .then(response => {
+                let { data, current_score } = response.data
                 this.isLoadingBetMatrixOrders = false
-                this.matrix_orders_list = response.data.data
-                this.matrix_orders = response.data.data
-                this.selectedOrders = response.data.data.map(order => order.order_id)
+                this.current_score = current_score
+                this.matrix_data.home_score = Number(current_score.home)
+                this.matrix_data.away_score = Number(current_score.away)
+                this.matrix_orders_list = data
+                this.matrix_orders = data
+                this.selectedOrders = data.map(order => order.order_id)
                 this.generateBetMatrix()
             })
             .catch(err => {
@@ -287,12 +282,12 @@ export default {
                     this.matrix_data.home_score = final_score[0]
                     this.matrix_data.away_score = final_score[1]
                 } else {
-                    this.matrix_data.home_score = this.analysisData.home_score
-                    this.matrix_data.away_score = this.analysisData.away_score
+                    this.matrix_data.home_score = this.current_score.home
+                    this.matrix_data.away_score = this.current_score.away
                 }
             } else {
-                this.matrix_data.home_score = this.analysisData.home_score
-                this.matrix_data.away_score = this.analysisData.away_score
+                this.matrix_data.home_score = this.current_score.home
+                this.matrix_data.away_score = this.current_score.away
             }
 
             this.matrix_table = []

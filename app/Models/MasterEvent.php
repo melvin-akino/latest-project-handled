@@ -45,4 +45,13 @@ class MasterEvent extends Model
                  ->where('ref_schedule', $eventData['ref_schedule'])
                  ->whereNull('deleted_at');
     }
+
+    public static function getMasterEvent($eventId)
+    {
+        return DB::table('master_events as me')
+                ->join('event_groups as eg', 'eg.master_event_id', 'me.id')
+                ->join('events as e', 'eg.event_id', 'e.id')
+                ->where('me.master_event_unique_id', $eventId)
+                ->first();
+    }
 }
