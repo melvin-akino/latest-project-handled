@@ -23,7 +23,7 @@
             <a href="#" @click.prevent="openOddsHistory(`${bet.order_id}-orderlogs`)" class="text-center py-1 w-1/2" :class="{'ml-5': failedBetStatus.includes(bet.status)}" title="Odds History"><i class="fas fa-bars"></i></a>
         </div>
         <odds-history v-if="showOddsHistory" @close="closeOddsHistory" :market_id="bet.market_id" :event_id="bet.event_id" :key="`${bet.order_id}-orderlogs`"></odds-history>
-        <bet-matrix v-if="showBetMatrix" @close="closeBetMatrix" :market_id="bet.market_id" :analysis-data="analysisData" :event_id="bet.event_id" :key="`${bet.order_id}-betmatrix`"></bet-matrix>
+        <bet-matrix v-if="showBetMatrix" @close="closeBetMatrix" :market_id="bet.market_id" :event_id="bet.event_id" :key="`${bet.order_id}-betmatrix`"></bet-matrix>
     </div>
 </template>
 
@@ -48,20 +48,6 @@ export default {
     computed: {
         ...mapState('settings', ['defaultPriceFormat']),
         ...mapState('trade', ['wallet', 'failedBetStatus']),
-        analysisData() {
-            return {
-                stake: Number(this.bet.bet_info[3]).toFixed(2),
-                points: this.bet.bet_info[4],
-                price:  this.bet.bet_info[2],
-                home_score:  this.bet.home_score,
-                away_score:  this.bet.away_score,
-                odd_type: this.bet.odd_type_id,
-                created_at: this.bet.created_at,
-                bet_team: this.bet.bet_info[5],
-                price_format: this.defaultPriceFormat,
-                currency_symbol: this.wallet.currency_symbol
-            }
-        }
     },
     methods: {
         openOddsHistory(data) {

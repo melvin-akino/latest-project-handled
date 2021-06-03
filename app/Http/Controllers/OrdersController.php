@@ -18,7 +18,8 @@ use App\Models\{
     Timezones,
     UserWallet,
     ProviderAccount,
-    BlockedLine
+    BlockedLine,
+    MasterEvent
 };
 use Illuminate\Http\Request;
 use Illuminate\Support\{Facades\DB, Facades\Log, Str};
@@ -822,8 +823,8 @@ class OrdersController extends Controller
         try {
             $userTz        = "Etc/UTC";
             $getUserConfig = UserConfiguration::getUserConfig(auth()->user()->id)
-                                              ->where('type', 'timezone')
-                                              ->first();
+                                ->where('type', 'timezone')
+                                ->first();
             if (!is_null($getUserConfig)) {
                 $userTz = Timezones::find($getUserConfig->value)->name;
             }
@@ -890,16 +891,22 @@ class OrdersController extends Controller
         try {
             $userTz        = "Etc/UTC";
             $getUserConfig = UserConfiguration::getUserConfig(auth()->user()->id)
-                                              ->where('type', 'timezone')
-                                              ->first();
+                                ->where('type', 'timezone')
+                                ->first();
 
             if (!is_null($getUserConfig)) {
                 $userTz = Timezones::find($getUserConfig->value)->name;
             }
 
-            $orders   = Order::getOrdersByEvent($uid, true)->get();
-            $ouLabels = OddType::where('type', 'ILIKE', '%OU%')->pluck('id')->toArray();
-            $oeLabels = OddType::where('type', 'ILIKE', '%OE%')->pluck('id')->toArray();
+            $orders     = Order::getOrdersByEvent($uid, true)->get();
+            $ouLabels   = OddType::where('type', 'ILIKE', '%OU%')->pluck('id')->toArray();
+            $oeLabels   = OddType::where('type', 'ILIKE', '%OE%')->pluck('id')->toArray();
+            $eventScore = array_map('trim', explode('-', MasterEvent::getMasterEvent($uid)->score));
+
+            $currentScore = [
+                'home' => $eventScore[0],
+                'away' => $eventScore[1]
+            ];
 
             $data = [];
             foreach ($orders as $order) {
@@ -930,7 +937,7 @@ class OrdersController extends Controller
                     $betTeam  = $teamname = $order->points == "O" ? "Odd" : "Even";
                 }
 
-                $scoreOnBet = explode(' - ', $order->score_on_bet);
+                $scoreOnBet = array_map('trim', explode('-', $order->score_on_bet));
                 $data[]     = [
                     'order_id'          => $order->id,
                     'stake'             => $order->stake,
@@ -949,9 +956,10 @@ class OrdersController extends Controller
             }
 
             return response()->json([
-                'status'      => true,
-                'status_code' => 200,
-                'data'        => $data,
+                'status'        => true,
+                'status_code'   => 200,
+                'data'          => $data,
+                'current_score' => $currentScore
             ], 200);
         } catch (Exception $e) {
             $toLogs = [
