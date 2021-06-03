@@ -3,7 +3,7 @@
         <dialog-drag :title="'Bet Slip - '+market_id" :options="options" @close="closeBetSlip($vnode.key)" @mousedown.native="$store.dispatch('trade/setActivePopup', $vnode.key)" v-betslip="activePopup==$vnode.key">
             <div class="flex flex-col justify-center items-center w-full h-full absolute top-0 left-0 bg-gray-200 z-10" :class="{'hidden': !isLoadingMarketDetailsAndProviders}">
                 <span class="betSlipSpinner"><i class="fas fa-circle-notch fa-spin"></i></span>
-                <span class="text-center mt-2">Loading Market Details...</span>
+                <span class="text-center mt-2">{{loadingMessage}}</span>
             </div>
             <div class="container mx-auto p-2">
                 <div class="flex justify-between items-center w-full leagueAndTeamDetails">
@@ -212,7 +212,8 @@ export default {
             minMaxUpdateCounter: 0,
             hasNewOddsInTradeWindow: false,
             toggledProviders: false,
-            selectAllProviders: false
+            selectAllProviders: false,
+            loadingMessage: 'Loading Market Details...'
         }
     },
     validations: {
@@ -374,7 +375,7 @@ export default {
             deep: true,
             handler(value) {
                 this.minMaxUpdateCounter++
-                if(this.minMaxUpdateCounter == 2) {
+                if(this.minMaxUpdateCounter == this.minMaxProviders.length) {
                     this.selectAllProviders = true
                 }
 
@@ -389,7 +390,7 @@ export default {
 
                 if(!this.$v.inputPrice.$dirty) {
                     this.inputPrice = this.lowestPrice
-                } else if(this.$v.inputPrice.$dirty && !this.$v.orderForm.stake.$dirty){
+                } else if(this.$v.inputPrice.$dirty && !this.$v.orderForm.stake.$dirty) {
                     this.orderForm.stake = this.highestMaxByValidPrice
                 }
 
@@ -441,15 +442,25 @@ export default {
                 return this.odd_details.odd[key]
             }
         },
-        reloadSpread() {
-            this.isLoadingMarketDetailsAndProviders = true
+        reloadSpread(placeOrder = false) {
+            this.getMarketDetails(false)
             this.isEventNotAvailable = false
             this.hasNewOddsInTradeWindow = false
-            this.minMaxUpdateCounter = 0
-            this.clearOrderMessage();
-            this.getMarketDetails(false)
-            this.$v.$reset()
-            this.orderForm.stake = this.highestMax
+
+            if(!placeOrder) {
+                this.isLoadingMarketDetailsAndProviders = true
+                this.clearOrderMessage()
+            }
+
+            if(this.$v.inputPrice.$invalid) {
+                this.$v.inputPrice.$reset()
+                this.inputPrice = this.lowestPrice
+            }
+
+            if(this.$v.orderForm.stake.$invalid) {
+                this.$v.orderForm.stake.$reset()
+                this.orderForm.stake = this.highestMaxByValidPrice
+            }
         },
         setMinStake() {
             this.orderForm.stake = twoDecimalPlacesFormat(this.lowestMinByValidPrice)
@@ -468,6 +479,7 @@ export default {
                 .then(response => {
                     this.market_details = response.data.data
                     this.formattedRefSchedule = response.data.data.ref_schedule.split(' ')
+                    this.loadingMessage = 'Loading Market Details...'
                     if(updatedPoints) {
                         if (setMinMaxProviders) {
                             this.setMinMaxProviders()
@@ -709,6 +721,8 @@ export default {
                 this.isPlacingOrder = true
                 this.hasErrorOnInput = false
                 this.$v.orderForm.stake.$touch()
+                this.isLoadingMarketDetailsAndProviders = true
+                this.loadingMessage = 'Placing bet, please check the recent orders'
                 let data = {
                     betType: this.orderForm.betType,
                     stake: this.orderForm.stake,
@@ -724,26 +738,27 @@ export default {
                         }
                     })
                     let sortedByPriceArray = greaterThanOrEqualThanPriceArray.sort((a, b) => (a.price < b.price) ? 1 : -1)
+                    let placedStake = this.orderForm.stake
                     sortedByPriceArray.map(sortedByPrice => {
-                        if(this.orderForm.stake > sortedByPrice.max) {
+                        if(placedStake > sortedByPrice.max) {
                             if(this.wallet.credit >= sortedByPrice.max) {
-                                this.orderForm.stake = twoDecimalPlacesFormat(this.orderForm.stake - sortedByPrice.max)
+                                placedStake = twoDecimalPlacesFormat(placedStake - sortedByPrice.max)
                                 this.orderForm.markets.push(sortedByPrice)
                                 this.orderMessage = ''
                             } else {
                                 this.orderMessage = 'Insufficient wallet balance.'
                                 this.isBetSuccessful = false
                             }
-                        } else if(this.orderForm.stake <= sortedByPrice.max && this.orderForm.stake >= sortedByPrice.min) {
-                            if(this.wallet.credit >= this.orderForm.stake) {
-                                this.orderForm.stake = 0
+                        } else if(placedStake <= sortedByPrice.max && placedStake >= sortedByPrice.min) {
+                            if(this.wallet.credit >= placedStake) {
+                                placedStake = 0
                                 this.orderForm.markets.push(sortedByPrice)
                                 this.orderMessage = ''
                             } else {
                                 this.orderMessage = 'Insufficient wallet balance.'
                                 this.isBetSuccessful = false
                             }
-                        } else if(this.orderForm.stake < sortedByPrice.min && this.orderForm.stake != 0) {
+                        } else if(placedStake < sortedByPrice.min && placedStake != 0) {
                             this.orderMessage = 'Stake lower than minimum stake or cannot proceed to next provider.'
                             this.isBetSuccessful = false
                         }
@@ -786,6 +801,7 @@ export default {
                 if(this.orderForm.markets.length != 0) {
                     axios.post('v1/orders/bet', data, { headers: { 'Authorization': `Bearer ${token}` }})
                         .then(response => {
+                            this.reloadSpread(true)
                             this.isBetSuccessful = true
                             this.orderMessage = response.data.data
                             this.$store.dispatch('trade/getBetbarData', this.market_id)
@@ -812,6 +828,8 @@ export default {
                             this.$store.dispatch('auth/checkIfTokenIsValid', err.response.status)
                         })
                 } else {
+                    this.isLoadingMarketDetailsAndProviders = false
+                    this.loadingMessage = 'Loading Market Details...'
                     this.isPlacingOrder = false
                 }
             }
