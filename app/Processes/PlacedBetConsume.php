@@ -70,7 +70,7 @@ class PlacedBetConsume implements CustomProcessInterface
                             continue;
                         }
 
-                        $betTransformationHandler->init($payload, $message->offset)->handle();
+                        // $betTransformationHandler->init($payload, $message->offset)->handle();
 
                         Coroutine::sleep(0.01);
                         $kafkaConsumer->commitAsync($message);
