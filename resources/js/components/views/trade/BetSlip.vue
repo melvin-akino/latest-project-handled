@@ -135,9 +135,9 @@
                             </label>
                         </div>
                         <span v-if="isPlacingOrder" class="text-sm text-gray-700">Placing bet, please check the recent orders</span>
-                        <div v-if="!isPlacingOrder && isDoneBetting" class="orderMessage relative flex justify-center items-center text-white py-1 px-2 mt-2 w-full rounded" :class="{'failed': !isBetSuccessful, 'success': isBetSuccessful}">
-                            <span class="text-xs mr-1" v-show="!isBetSuccessful"><i class="fas fa-exclamation-triangle"></i></span>
-                            <span class="text-xs mr-1" v-show="isBetSuccessful"><i class="fas fa-check"></i></span>
+                        <div v-if="!isPlacingOrder && isDoneBetting" class="orderMessage relative flex justify-center items-center text-white py-1 px-2 mt-2 w-full rounded" :class="betMessageColor">
+                            <span class="text-xs mr-1" v-show="!isBetSuccessful || betMessageColor == 'warning'"><i class="fas fa-exclamation-triangle"></i></span>
+                            <span class="text-xs mr-1" v-show="isBetSuccessful && betMessageColor != 'warning'"><i class="fas fa-check"></i></span>
                             <span class="px-2" v-if="(!$v.orderForm.stake.decimal || !$v.inputPrice.decimal)  && !isBetSuccessful && hasErrorOnInput">Stake and price should have a numeric value.</span>
                             <span class="px-2" v-else-if="(!$v.orderForm.stake.required || !$v.inputPrice.required) && !isBetSuccessful && hasErrorOnInput">Please input stake and price.</span>
                             <span class="px-2" v-else-if="(!$v.orderForm.stake.minValue || !$v.inputPrice.minValue)  && !isBetSuccessful && hasErrorOnInput">Input a valid stake and price. Stake Min: 1, Price Min: 0</span>
@@ -165,7 +165,7 @@ import OddsHistory from './OddsHistory'
 import BetMatrix from './BetMatrix'
 import DialogDrag from 'vue-dialog-drag'
 import { getSocketKey, getSocketValue } from '../../../helpers/socket'
-import { twoDecimalPlacesFormat, moneyFormat } from '../../../helpers/numberFormat'
+import { twoDecimalPlacesFormat, moneyFormat, formatAverage } from '../../../helpers/numberFormat'
 import { moveToFirstElement } from '../../../helpers/array'
 import { required, decimal, minValue } from 'vuelidate/lib/validators'
 
@@ -213,7 +213,8 @@ export default {
             hasNewOddsInTradeWindow: false,
             toggledProviders: false,
             selectAllProviders: false,
-            loadingMessage: 'Loading Market Details...'
+            loadingMessage: 'Loading Market Details...',
+            betStatus: null
         }
     },
     validations: {
@@ -301,7 +302,7 @@ export default {
                 })
                 let sumOfPrices = prices.reduce((firstPrice, secondPrice) => firstPrice + secondPrice, 0)
                 if(!_.isEmpty(prices) && this.orderForm.stake <= this.highestMaxByValidPrice) {
-                    return sumOfPrices / prices.length
+                    return formatAverage(sumOfPrices / prices.length)
                 } else {
                     return 0
                 }
@@ -328,6 +329,19 @@ export default {
                 return this.minMaxData.filter(minmax => minmax.price != null && minmax.price >= this.price)
             } else {
                 return []
+            }
+        },
+        betMessageColor() {
+            let betStatusColors = {
+                200: 'success',
+                210: 'continue',
+                211: 'warning'
+            }
+
+            if(this.isBetSuccessful) {
+                return betStatusColors[this.betStatus]
+            } else {
+                return 'failed'
             }
         },
         tradeWindowOdds() {
@@ -769,8 +783,7 @@ export default {
                                 this.isBetSuccessful = false
                             }
                         } else if(placedStake < sortedByPrice.min && placedStake != 0) {
-                            this.orderMessage = 'Stake lower than minimum stake or cannot proceed to next provider.'
-                            this.isBetSuccessful = false
+                            this.orderForm.stake = placedStake
                         }
                     })
                 } else if(this.orderForm.betType == 'BEST_PRICE') {
@@ -813,6 +826,7 @@ export default {
                         .then(response => {
                             this.reloadSpread(true)
                             this.isBetSuccessful = true
+                            this.betStatus = response.data.status_code
                             this.orderMessage = response.data.data
                             this.$store.dispatch('trade/getBetbarData', this.market_id)
                             this.$store.commit('trade/TOGGLE_BETBAR', true)
@@ -831,6 +845,7 @@ export default {
                         })
                         .catch(err => {
                             this.isBetSuccessful = false
+                            this.betStatus = err.response.status
                             this.isLoadingMarketDetailsAndProviders = false
                             this.loadingMessage = 'Loading Market Details...'
                             this.isPlacingOrder = false
@@ -902,6 +917,18 @@ export default {
 
 .failed {
     background-color: #d9534f;
+}
+
+.warning {
+    color: #664d03 !important;
+    background-color: #fff3cd;
+    border: solid #ffecb5 1px;
+}
+
+.continue {
+    color: #084298 !important;
+    background-color: #cfe2ff;
+    border: solid #b6d4fe 1px;
 }
 
 .orderMessage {
