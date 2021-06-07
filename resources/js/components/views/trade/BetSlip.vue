@@ -831,6 +831,8 @@ export default {
                         })
                         .catch(err => {
                             this.isBetSuccessful = false
+                            this.isLoadingMarketDetailsAndProviders = false
+                            this.loadingMessage = 'Loading Market Details...'
                             this.isPlacingOrder = false
                             if(this.orderMessage == '') {
                                 this.orderMessage = err.response.data.message
