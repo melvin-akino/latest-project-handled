@@ -286,8 +286,8 @@ export default {
             }
         },
         averagePrice() {
-            if(!_.isEmpty(this.minMaxData) && this.orderForm.stake) {
-                let prices = this.minMaxData.filter(minmax => minmax.price != null && (minmax.min <= this.orderForm.stake || minmax.max <= this.orderForm.stake)).map(minmax => minmax.price)
+            if(!_.isEmpty(this.qualifiedProviders) && this.orderForm.stake) {
+                let prices = this.qualifiedProviders.filter(minmax => minmax.price != null && (minmax.min <= this.orderForm.stake || minmax.max <= this.orderForm.stake)).map(minmax => minmax.price)
                 let sumOfPrices = prices.reduce((firstPrice, secondPrice) => firstPrice + secondPrice, 0)
                 if(!_.isEmpty(prices) && this.orderForm.stake <= this.highestMaxByValidPrice) {
                     return sumOfPrices / prices.length
