@@ -3,14 +3,14 @@
         <dialog-drag :title="'Bet Slip - '+market_id" :options="options" @close="closeBetSlip($vnode.key)" @mousedown.native="$store.dispatch('trade/setActivePopup', $vnode.key)" v-betslip="activePopup==$vnode.key">
             <div class="flex flex-col justify-center items-center w-full h-full absolute top-0 left-0 bg-gray-200 z-10" :class="{'hidden': !isLoadingMarketDetailsAndProviders}">
                 <span class="betSlipSpinner"><i class="fas fa-circle-notch fa-spin"></i></span>
-                <span class="text-center mt-2">Loading Market Details...</span>
+                <span class="text-center mt-2">{{loadingMessage}}</span>
             </div>
             <div class="container mx-auto p-2">
                 <div class="flex justify-between items-center w-full leagueAndTeamDetails">
                     <div class="flex items-center w-3/4">
                         <span class="text-white uppercase font-bold mr-2 my-2 px-2 bg-orange-500">{{market_details.odd_type}}</span>
                         <span class="text-gray-800 font-bold my-2 pr-6">{{market_details.league_name}}</span>
-                        <a href="#" @click.prevent="openBetMatrix(`${odd_details.betslip_id}-betmatrix`)" class="text-center py-1 pr-1" title="Bet Matrix" v-if="oddTypesWithSpreads.includes(market_details.odd_type) && odd_details.has_bet"><i class="fas fa-chart-area"></i></a>
+                        <a href="#" @click.prevent="openBetMatrix(`${odd_details.betslip_id}-betmatrix`)" class="text-center py-1 pr-1" title="Bet Matrix" v-if="odd_details.has_bet"><i class="fas fa-chart-area"></i></a>
                         <a href="#" @click.prevent="openOddsHistory(`${odd_details.betslip_id}-orderlogs`)" class="text-center py-1" title="Odds History"><i class="fas fa-bars"></i></a>
                     </div>
                     <div class="flex items-center">
@@ -40,15 +40,20 @@
                         </div>
                         <div class="flex flex-col bg-white shadow-xl">
                             <div class="flex justify-between items-center py-2 bg-orange-500 text-white">
-                                <span class="w-1/5"></span>
+                                <span class="relative w-1/5 text-sm font-bold text-center pl-3">
+                                    <label class="selectAll absolute text-gray-500 font-bold">
+                                        <input class="mr-2 leading-tight" type="checkbox" v-model="selectAllProviders" @change="toggleAllProviders" :disabled="!retrievedMarketData || minMaxProviders.filter(minmax => minmax.hasMarketData && !underMaintenanceProviders.includes(minmax.provider.toLowerCase())).length <= 1">
+                                    </label>
+                                    <span class="selectAllLabel relative">Select All</span>
+                                </span>
                                 <span class="w-1/5 text-sm font-bold text-center">Min</span>
                                 <span class="w-1/5 text-sm font-bold text-center">Max</span>
                                 <span class="w-1/5 text-sm font-bold text-center">Price</span>
                                 <span class="w-1/5"></span>
                             </div>
                             <div class="flex items-center py-2" v-for="minmax in minMaxProviders" :key="minmax.provider_id">
-                                <span class="w-1/5 text-sm font-bold text-center pl-3">
-                                    <label class="text-gray-500 font-bold">
+                                <span class="relative w-1/5 text-sm font-bold text-center pl-3">
+                                    <label class="providerCheckbox absolute text-gray-500 font-bold">
                                         <input class="mr-2 leading-tight" type="checkbox" @change="toggleMinmaxProviders(minmax, minmax.provider_id)" :checked="selectedProviders.includes(minmax.provider_id) && minmax.hasMarketData && !underMaintenanceProviders.includes(minmax.provider.toLowerCase())" :disabled="!minmax.hasMarketData || underMaintenanceProviders.includes(minmax.provider.toLowerCase())">
                                     </label>
                                     {{minmax.provider}}
@@ -71,16 +76,18 @@
                     <div class="flex flex-col mt-4 p-2 shadow-xl bg-white w-2/5 h-full">
                         <div class="advanceBetSlipInfo" :class="{'hidden': betSlipSettings.adv_betslip_info == 0, 'block': betSlipSettings.adv_betslip_info == 1}">
                             <div class="flex justify-between items-center py-2">
-                                <span class="text-sm">Min Stake</span>
-                                <span class="text-sm">{{lowestMin | moneyFormat}}</span>
+                                <span class="text-sm">Minimum Stake</span>
+                                <span class="text-sm" v-if="!$v.inputPrice.$dirty">{{lowestMin ? lowestMin : 0 | moneyFormat}}</span>
+                                <span class="text-sm" v-else>{{lowestMinByValidPrice ? lowestMinByValidPrice : 0 | moneyFormat}}</span>
                             </div>
                             <div class="flex justify-between items-center py-2">
-                                <span class="text-sm">Max Stake</span>
-                                <span class="text-sm">{{highestMax | moneyFormat}}</span>
+                                <span class="text-sm">Maximum Stake</span>
+                                <span class="text-sm" v-if="!$v.inputPrice.$dirty">{{highestMax ? highestMax : 0 | moneyFormat}}</span>
+                                <span class="text-sm" v-else>{{highestMaxByValidPrice ? highestMaxByValidPrice : 0 | moneyFormat}}</span>
                             </div>
                             <div class="flex justify-between items-center py-2">
-                                <span class="text-sm">Average Price</span>
-                                <span class="text-sm">{{displayedAveragePrice | twoDecimalPlacesFormat}}</span>
+                                <span class="text-sm">{{market_details.odd_type}}</span>
+                                <span class="text-sm">{{points}}</span>
                             </div>
                             <div class="flex justify-between items-center py-2">
                                 <span class="text-sm">To Win</span>
@@ -88,34 +95,34 @@
                             </div>
                         </div>
                         <div class="flex justify-between items-center py-2">
-                            <span class="text-sm">{{market_details.odd_type}}</span>
-                            <span class="text-sm">{{points}}</span>
-                        </div>
-                        <div class="flex justify-between items-center py-2">
-                            <label class="text-sm">Stake</label>
-                            <input type="text" style="padding-right: 4rem;" class="w-40 shadow appearance-none border rounded text-sm py-1 pl-3 pr-16 text-gray-700 leading-tight focus:outline-none" v-model="$v.orderForm.stake.$model" @keyup="clearOrderMessage">
-                            <button class="absolute bg-primary-500 right-0 mr-5 px-3 text-white rounded text-xs uppercase focus:outline-none hover:bg-primary-600" style="padding: 0.1rem 0.5rem;padding" @click="sumOfMaxStake"><i class="fa fa-angle-double-up" aria-hidden="true"></i>&nbsp;&nbsp;&nbsp;MAX</button>
-                        </div>
-                        <div class="flex justify-between items-center py-2">
-                            <label class="text-sm">Price</label>
-                            <input class="w-40 shadow appearance-none border rounded text-sm py-1 px-3 text-gray-700 leading-tight focus:outline-none" type="text" v-model="$v.inputPrice.$model" @keyup="clearOrderMessage" disabled>
-                        </div>
-                        <div class="flex justify-between items-center py-2" :class="{'hidden': betSlipSettings.adv_placement_opt == 0, 'block': betSlipSettings.adv_placement_opt == 1}">
-                            <label class="text-sm">Order Expiry</label>
-                            <div class="relative w-40">
-                                <select class="shadow appearance-none border rounded text-sm w-full py-1 px-3 text-gray-700 leading-tight focus:outline-none" v-model="orderForm.orderExpiry" @change="clearOrderMessage">
-                                    <option value="30">Now</option>
-                                    <option value="120">2 mins</option>
-                                    <option value="300">5 mins</option>
-                                    <option value="600">10 mins</option>
-                                    <option value="1800">30 mins</option>
-                                    <option value="3600">1 hour</option>
-                                    <option value="7200">2 hours</option>
-                                </select>
-                                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
-                                    <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
+                            <div class="flex justify-start items-center">
+                                <label class="text-sm">Min Price</label>
+                                <div class="toolTip ml-1 text-gray-700">
+                                    <i class="fas fa-info-circle"></i>
+                                    <span class="toolTipText p-2 text-white bg-gray-800">Minimum Accepted Price</span>
                                 </div>
                             </div>
+                            <div class="flex justify-end items-center">
+                                <input type="text" class="betslipInput w-40 shadow appearance-none border rounded text-sm text-right py-1 px-3 text-gray-700 leading-tight focus:outline-none" v-model="$v.inputPrice.$model" @keyup="priceInput" :disabled="!retrievedMarketData || minMaxData.length == 0">
+                            </div>
+                        </div>
+                        <div class="flex justify-between items-center py-2">
+                            <div class="flex justify-start items-center">
+                                <label class="text-sm">Stake</label>
+                                <div class="toolTip ml-1 text-gray-700">
+                                    <i class="fas fa-info-circle"></i>
+                                    <span class="toolTipText p-2 text-white bg-gray-800">By clicking the "MIN" button this inputs your MINIMUM possible stake across all providers selected. By clicking the "MAX" button, this inputs your MAXIMUM possible stake across all providers selected.</span>
+                                </div>
+                            </div>
+                            <div class="relative flex justify-end items-center">
+                                <button class="minMaxBtn minStake absolute bg-primary-500 px-3 text-white rounded text-xs uppercase focus:outline-none hover:bg-primary-600" @click="setMinStake">MIN</button>
+                                <input ref="stake" type="text" class="betslipInput w-40 shadow appearance-none border rounded text-sm text-green-600 text-right py-1 pr-10 leading-tight focus:outline-none" v-model="$v.orderForm.stake.$model" @keyup="stakeInput" :disabled="qualifiedProviders.length == 0">
+                                <button class="minMaxBtn absolute bg-primary-500 px-3 text-white rounded text-xs uppercase focus:outline-none hover:bg-primary-600" @click="setMaxStake">MAX</button>
+                            </div>
+                        </div>
+                        <div class="flex justify-between items-center py-2 text-green-600">
+                            <span class="text-sm mr-12">Average Price</span>
+                            <span class="text-sm">{{averagePrice | twoDecimalPlacesFormat}}</span>
                         </div>
                         <div class="justify-between items-center py-2 hidden" :class="{'hidden': betSlipSettings.adv_placement_opt == 0, 'flex': betSlipSettings.adv_placement_opt == 1}">
                             <label class="text-sm flex items-center">
@@ -131,8 +138,8 @@
                         <div v-if="!isPlacingOrder && isDoneBetting" class="orderMessage relative flex justify-center items-center text-white py-1 px-2 mt-2 w-full rounded" :class="{'failed': !isBetSuccessful, 'success': isBetSuccessful}">
                             <span class="text-xs mr-1" v-show="!isBetSuccessful"><i class="fas fa-exclamation-triangle"></i></span>
                             <span class="text-xs mr-1" v-show="isBetSuccessful"><i class="fas fa-check"></i></span>
-                            <span class="px-2" v-if="(!$v.orderForm.stake.required || !$v.inputPrice.required) && !isBetSuccessful && hasErrorOnInput">Please input stake and price.</span>
-                            <span class="px-2" v-else-if="(!$v.orderForm.stake.decimal || !$v.inputPrice.decimal)  && !isBetSuccessful && hasErrorOnInput">Stake and price should have a numeric value.</span>
+                            <span class="px-2" v-if="(!$v.orderForm.stake.decimal || !$v.inputPrice.decimal)  && !isBetSuccessful && hasErrorOnInput">Stake and price should have a numeric value.</span>
+                            <span class="px-2" v-else-if="(!$v.orderForm.stake.required || !$v.inputPrice.required) && !isBetSuccessful && hasErrorOnInput">Please input stake and price.</span>
                             <span class="px-2" v-else-if="(!$v.orderForm.stake.minValue || !$v.inputPrice.minValue)  && !isBetSuccessful && hasErrorOnInput">Input a valid stake and price. Stake Min: 1, Price Min: 0</span>
                             <span class="px-2" v-else v-html="orderMessage"></span>
                             <span class="absolute clearOrderMessage float-right cursor-pointer text-xs" @click="isDoneBetting = false"><i class="fas fa-times-circle"></i></span>
@@ -146,7 +153,7 @@
             </div>
         </dialog-drag>
         <odds-history v-if="showOddsHistory" @close="closeOddsHistory" :market_id="market_id" :event_id="odd_details.game.uid" :key="`${odd_details.betslip_id}-orderlogs`"></odds-history>
-        <bet-matrix v-if="showBetMatrix" @close="closeBetMatrix" :market_id="market_id" :analysis-data="analysisData" :event_id="odd_details.game.uid" :key="`${odd_details.betslip_id}-betmatrix`"></bet-matrix>
+        <bet-matrix v-if="showBetMatrix" @close="closeBetMatrix" :market_id="market_id" :event_id="odd_details.game.uid" :key="`${odd_details.betslip_id}-betmatrix`"></bet-matrix>
     </div>
 </template>
 
@@ -173,12 +180,11 @@ export default {
         return {
             market_details: {},
             formattedRefSchedule: [],
-            inputPrice: null || twoDecimalPlacesFormat(this.odd_details.odd.odds),
+            inputPrice: null,
             points: null || this.odd_details.odd.points,
             market_id: this.odd_details.odd.market_id,
             orderForm: {
                 stake: '',
-                orderExpiry: 30,
                 betType: 'FAST_BET',
                 markets: []
             },
@@ -204,7 +210,10 @@ export default {
             endPointIndex: 5,
             isEventNotAvailable: null,
             minMaxUpdateCounter: 0,
-            hasNewOddsInTradeWindow: false
+            hasNewOddsInTradeWindow: false,
+            toggledProviders: false,
+            selectAllProviders: false,
+            loadingMessage: 'Loading Market Details...'
         }
     },
     validations: {
@@ -214,37 +223,73 @@ export default {
         }
     },
     computed: {
-        ...mapState('trade', ['activePopup', 'popupZIndex', 'bookies', 'betSlipSettings', 'wallet', 'underMaintenanceProviders']),
+        ...mapState('trade', ['activePopup', 'popupZIndex', 'bookies', 'betSlipSettings', 'wallet', 'underMaintenanceProviders', 'receivedOrderStatusIds']),
         ...mapState('settings', ['defaultPriceFormat']),
+        lowestPrice() {
+            if(!_.isEmpty(this.minMaxData)) {
+                let minPrices = this.minMaxData.filter(minmax => minmax.price != null).map(minmax => minmax.price)
+                if(!_.isEmpty(minPrices)) {
+                    return Math.min(...minPrices)
+                } else {
+                    return null
+                }
+            } else {
+                return null
+            }
+        },
         lowestMin() {
             if(!_.isEmpty(this.minMaxData)) {
                 let minValues = this.minMaxData.filter(minmax => minmax.min != null).map(minmax => minmax.min)
                 if(!_.isEmpty(minValues)) {
-                    return Math.max(...minValues)
+                    return Math.min(...minValues)
                 } else {
-                    return 0
+                    return null
                 }
             } else {
-                return 0
+                return null
             }
         },
         highestMax() {
             if(!_.isEmpty(this.minMaxData)) {
                 let maxValues = this.minMaxData.filter(minmax => minmax.max != null).map(minmax => minmax.max)
                 if(!_.isEmpty(maxValues)) {
-                    return maxValues.reduce((firstMax, secondMax) => firstMax + secondMax, 0)
+                    return maxValues.reduce((firstMax, secondMax) => Number(twoDecimalPlacesFormat(firstMax + secondMax)), 0)
                 } else {
-                    return 0
+                    return null
                 }
             } else {
-                return 0
+                return null
             }
         },
-        displayedAveragePrice() {
-            if(!_.isEmpty(this.minMaxData)) {
-                let prices = this.minMaxData.filter(minmax => minmax.price != null).map(minmax => minmax.price)
+        lowestMinByValidPrice() {
+            if(!_.isEmpty(this.qualifiedProviders)) {
+                let minValues = this.qualifiedProviders.filter(minmax => minmax.min != null).map(minmax => minmax.min)
+                if(!_.isEmpty(minValues)) {
+                    return Math.min(...minValues)
+                } else {
+                    return null
+                }
+            } else {
+                return null
+            }
+        },
+        highestMaxByValidPrice() {
+            if(!_.isEmpty(this.qualifiedProviders)) {
+                let maxValues = this.qualifiedProviders.filter(minmax => minmax.max != null).map(minmax => minmax.max)
+                if(!_.isEmpty(maxValues)) {
+                    return maxValues.reduce((firstMax, secondMax) => Number(twoDecimalPlacesFormat(firstMax + secondMax)), 0)
+                } else {
+                    return null
+                }
+            } else {
+                return null
+            }
+        },
+        averagePrice() {
+            if(!_.isEmpty(this.qualifiedProviders) && this.orderForm.stake) {
+                let prices = this.qualifiedProviders.filter(minmax => minmax.price != null && (minmax.min <= this.orderForm.stake || minmax.max <= this.orderForm.stake)).map(minmax => minmax.price)
                 let sumOfPrices = prices.reduce((firstPrice, secondPrice) => firstPrice + secondPrice, 0)
-                if(!_.isEmpty(prices)) {
+                if(!_.isEmpty(prices) && this.orderForm.stake <= this.highestMaxByValidPrice) {
                     return sumOfPrices / prices.length
                 } else {
                     return 0
@@ -253,38 +298,25 @@ export default {
                 return 0
             }
         },
-        initialPrice() {
+        price() {
             return Number(this.inputPrice)
         },
         towin() {
             if(!this.$v.$invalid) {
                 if (this.market_details.odd_type == '1X2' || this.market_details.odd_type == 'HT 1X2' || this.market_details.odd_type == 'OE') {
-                    return this.orderForm.stake * (this.initialPrice - 1)
+                    return this.orderForm.stake * (this.price - 1)
                 } else {
-                    return this.orderForm.stake * this.initialPrice
+                    return this.orderForm.stake * this.price
                 }
             } else {
                 return 0
             }
         },
-        numberOfQualifiedProviders() {
-            if(!_.isEmpty(this.minMaxData)) {
-                let prices = this.minMaxData.map(minmax => minmax.price)
-                let qualifiedPrices = []
-                prices.map(price => {
-                    if(Number(twoDecimalPlacesFormat(price)) >= this.initialPrice) {
-                        qualifiedPrices.push(price)
-                    }
-                })
-                return qualifiedPrices.length
+        qualifiedProviders() {
+            if(!_.isEmpty(this.minMaxData) && !this.$v.inputPrice.$invalid) {
+                return this.minMaxData.filter(minmax => minmax.price != null && minmax.price >= this.price)
             } else {
-                return 0
-            }
-        },
-        analysisData() {
-            return {
-                home_score: this.market_details.score.split(' - ')[0],
-                away_score: this.market_details.score.split(' - ')[1]
+                return []
             }
         },
         tradeWindowOdds() {
@@ -342,19 +374,38 @@ export default {
         minMaxProviders: {
             deep: true,
             handler(value) {
-                this.minMaxUpdateCounter = this.minMaxUpdateCounter + 1
-                if(this.minMaxUpdateCounter <= (this.market_details.providers.length + 1)) {
-                    let minMaxPrices = value.filter(minmax => minmax.price != null && !this.underMaintenanceProviders.includes(minmax.provider.toLowerCase())).map(minmax => minmax.price)
-                    if(minMaxPrices.length > 0) {
-                        this.inputPrice = twoDecimalPlacesFormat(Math.max(...minMaxPrices))
-                        this.minMaxData = value.filter(minmax => minmax.price == Math.max(...minMaxPrices) && !this.underMaintenanceProviders.includes(minmax.provider.toLowerCase()))
-                        this.selectedProviders = this.minMaxData.filter(minmax => minmax.price != null).map(minmax => minmax.provider_id)
-                    }
+                this.minMaxUpdateCounter++
+                if(this.minMaxUpdateCounter == this.minMaxProviders.length) {
+                    this.selectAllProviders = true
                 }
 
-                if(!_.isEmpty(this.minMaxData)) {
-                    let selectedMinmaxDataPrices = this.minMaxData.filter(minmax => minmax.price != null).map(minmax => minmax.price)
-                    this.inputPrice = twoDecimalPlacesFormat(Math.min(...selectedMinmaxDataPrices))
+                if(!this.toggledProviders) {
+                    this.minMaxData = value.filter(minmax => minmax.price != null && !this.underMaintenanceProviders.includes(minmax.provider.toLowerCase()))
+                    this.selectedProviders = this.minMaxData.map(minmax => minmax.provider_id)
+                }
+
+                if(!this.$v.orderForm.stake.$dirty) {
+                    this.orderForm.stake = this.highestMax
+                }
+
+                if(!this.$v.inputPrice.$dirty) {
+                    this.inputPrice = this.lowestPrice
+                } else if(this.$v.inputPrice.$dirty && !this.$v.orderForm.stake.$dirty) {
+                    this.orderForm.stake = this.highestMaxByValidPrice
+                }
+
+                if(this.qualifiedProviders.length == 0 && this.$v.inputPrice.$dirty && !this.$v.inputPrice.$invalid) {
+                    if(this.minMaxData.length != 0) {
+                        this.availableMarketsTooLow()
+                    } else {
+                        this.orderForm.stake = null
+                        this.inputPrice = null
+                        this.clearOrderMessage()
+                    }
+                } else {
+                    if(!this.isBetSuccessful) {
+                        this.clearOrderMessage()
+                    }
                 }
             }
         },
@@ -396,21 +447,35 @@ export default {
                 return this.odd_details.odd[key]
             }
         },
-        reloadSpread() {
-            this.isLoadingMarketDetailsAndProviders = true
+        reloadSpread(placeOrder = false) {
+            this.getMarketDetails(false)
             this.isEventNotAvailable = false
             this.hasNewOddsInTradeWindow = false
-            this.minMaxUpdateCounter = 0
-            this.clearOrderMessage();
-            this.getMarketDetails(false)
+
+            if(!placeOrder) {
+                this.isLoadingMarketDetailsAndProviders = true
+                this.clearOrderMessage()
+            }
+
+            if(this.$v.inputPrice.$invalid) {
+                this.$v.inputPrice.$reset()
+                this.inputPrice = this.lowestPrice
+            }
+
+            if(this.$v.orderForm.stake.$invalid) {
+                this.$v.orderForm.stake.$reset()
+                this.orderForm.stake = this.highestMaxByValidPrice
+            }
         },
-        sumOfMaxStake() {
-            let maxs = this.minMaxData.map(minmax => minmax.max)
-            let maxAmount = 0;
-            maxs.map(max => {
-                maxAmount += max
-            })
-            this.orderForm.stake = maxAmount
+        setMinStake() {
+            this.orderForm.stake = twoDecimalPlacesFormat(this.lowestMinByValidPrice)
+            this.$v.orderForm.stake.$touch()
+            this.clearOrderMessage()
+        },
+        setMaxStake() {
+            this.orderForm.stake = twoDecimalPlacesFormat(this.highestMaxByValidPrice)
+            this.$v.orderForm.stake.$touch()
+            this.clearOrderMessage()
         },
         getMarketDetails(setMinMaxProviders = true, updatedPoints = true) {
             let token = Cookies.get('mltoken')
@@ -419,6 +484,7 @@ export default {
                 .then(response => {
                     this.market_details = response.data.data
                     this.formattedRefSchedule = response.data.data.ref_schedule.split(' ')
+                    this.loadingMessage = 'Loading Market Details...'
                     if(updatedPoints) {
                         if (setMinMaxProviders) {
                             this.setMinMaxProviders()
@@ -461,6 +527,10 @@ export default {
             this.clearOrderMessage()
             this.getMarketDetails(false, false)
             this.points = points
+            this.orderForm.stake = ''
+            this.$v.$reset()
+            this.toggledProviders = false
+            this.selectAllProviders = false
         },
         sendMinMax(market_id) {
             return new Promise((resolve) => {
@@ -488,15 +558,6 @@ export default {
                                 provider.hasMarketData = hasMarketData
                             }
                         })
-
-                        let selectedMinMaxPrices = this.minMaxData.filter(minmax => minmax.price != null).map(minmax => minmax.price)
-                        if(selectedMinMaxPrices.length != 0) {
-                            if(this.minMaxData.length > 1) {
-                                this.inputPrice = twoDecimalPlacesFormat(Math.min(...selectedMinMaxPrices))
-                            } else {
-                                this.inputPrice = twoDecimalPlacesFormat(Math.max(...selectedMinMaxPrices))
-                            }
-                        }
                     }
                 }
             }
@@ -563,12 +624,47 @@ export default {
             this.orderMessage = ''
             this.isDoneBetting = false
         },
+        availableMarketsTooLow() {
+            this.orderMessage = 'Available markets are too low.'
+            this.isDoneBetting = true
+            this.isBetSuccessful = false
+            this.orderForm.stake = null
+        },
+        priceInput() {
+            if(!this.$v.inputPrice.$invalid) {
+                if(this.qualifiedProviders.length != 0) {
+                    this.clearOrderMessage()
+                    this.$v.orderForm.stake.$reset()
+                    this.orderForm.stake = this.highestMaxByValidPrice
+                } else {
+                    this.availableMarketsTooLow()
+                    this.$v.orderForm.stake.$touch()
+                }
+            } else {
+                this.clearOrderMessage()
+                this.orderForm.stake = ''
+                this.$v.orderForm.stake.$touch()
+            }
+        },
+        stakeInput() {
+            if(Number(this.orderForm.stake) > twoDecimalPlacesFormat(this.highestMaxByValidPrice)) {
+                this.orderMessage = 'Cannot input more than the combined max stakes of selected bookmakers!'
+                this.isDoneBetting = true
+                this.isBetSuccessful = false
+                this.orderForm.stake = this.highestMaxByValidPrice
+            } else {
+                this.clearOrderMessage()
+            }
+        },
         updatePrice(price) {
             this.inputPrice = twoDecimalPlacesFormat(price)
+            this.$v.$touch()
+            this.orderForm.stake = this.highestMaxByValidPrice
             this.clearOrderMessage()
         },
         toggleMinmaxProviders(minmax, provider_id) {
-            this.clearOrderMessage()
+            this.toggledProviders = true
+            this.$v.$reset()
             if(this.selectedProviders.includes(provider_id)) {
                 this.selectedProviders = this.selectedProviders.filter(provider => provider != provider_id)
                 this.minMaxData = this.minMaxData.filter(minmax => minmax.provider_id != provider_id)
@@ -578,28 +674,63 @@ export default {
             }
 
             if(this.minMaxData.length != 0) {
-                let minmaxPrices = this.minMaxData.filter(minmax => minmax.price != null).map(minmax => minmax.price)
-                this.inputPrice = twoDecimalPlacesFormat(Math.min(...minmaxPrices))
+                this.inputPrice = this.lowestPrice
+                this.orderForm.stake = this.highestMax
             } else {
                 this.inputPrice = null
+                this.orderForm.stake = null
             }
+
+            let minMaxProviders = this.minMaxProviders.filter(minmax => minmax.price != null && !this.underMaintenanceProviders.includes(minmax.provider.toLowerCase()))
+            if(minMaxProviders.length == this.minMaxData.length) {
+                this.selectAllProviders = true
+            } else {
+                this.selectAllProviders = false
+            }
+            this.clearOrderMessage()
+        },
+        toggleAllProviders() {
+            this.toggledProviders = true
+            this.$v.$reset()
+
+            let minMaxProviders = this.minMaxProviders.filter(minmax => minmax.price != null && !this.underMaintenanceProviders.includes(minmax.provider.toLowerCase()))
+            if(this.selectAllProviders) {
+                this.minMaxData = minMaxProviders
+            } else {
+                let bestPrice = Math.max(...minMaxProviders.map(minmax => minmax.price))
+                let providersWithBestPrice = this.minMaxProviders.filter(minmax => minmax.price == bestPrice && !this.underMaintenanceProviders.includes(minmax.provider.toLowerCase()))
+                if(providersWithBestPrice.length == 1) {
+                    this.minMaxData = providersWithBestPrice
+                } else {
+                    let primaryProvider = this.bookies.filter(provider => provider.is_primary)[0]
+                    this.minMaxData = this.minMaxProviders.filter(minmax => minmax.provider_id == primaryProvider.id && !this.underMaintenanceProviders.includes(minmax.provider.toLowerCase()))
+                }
+            }
+            this.selectedProviders = this.minMaxData.map(minmax => minmax.provider_id)
+            this.inputPrice = this.lowestPrice
+            this.orderForm.stake = this.highestMax
         },
         placeOrder() {
             this.isDoneBetting = true
             if(this.$v.$invalid) {
                 this.isBetSuccessful = false
                 this.hasErrorOnInput = true
-            } else if(this.numberOfQualifiedProviders == 0) {
+            } else if(this.qualifiedProviders.length == 0) {
                 this.orderMessage = 'Available markets are too low.'
                 this.isBetSuccessful = false
                 this.hasErrorOnInput = false
+            } else if(Number(this.orderForm.stake) > twoDecimalPlacesFormat(this.highestMax)) {
+                this.orderMessage = 'Cannot input more than the combined max stakes of selected bookmakers!'
+                this.isBetSuccessful = false
             } else {
                 this.isPlacingOrder = true
                 this.hasErrorOnInput = false
+                this.$v.orderForm.stake.$touch()
+                this.isLoadingMarketDetailsAndProviders = true
+                this.loadingMessage = 'Placing bet, please check the recent orders'
                 let data = {
                     betType: this.orderForm.betType,
                     stake: this.orderForm.stake,
-                    orderExpiry: this.orderForm.orderExpiry,
                     market_id: this.market_id
                 }
 
@@ -607,31 +738,32 @@ export default {
                     let greaterThanOrEqualThanPriceArray = []
                     this.orderForm.markets = []
                     this.minMaxData.map(minmax => {
-                        if(minmax.price >= this.initialPrice) {
+                        if(minmax.price >= this.price) {
                             greaterThanOrEqualThanPriceArray.push(minmax)
                         }
                     })
-                    let sortedByPriceArray = greaterThanOrEqualThanPriceArray.sort((a, b) => (a.price > b.price) ? 1 : -1)
+                    let sortedByPriceArray = greaterThanOrEqualThanPriceArray.sort((a, b) => (a.price < b.price) ? 1 : -1)
+                    let placedStake = this.orderForm.stake
                     sortedByPriceArray.map(sortedByPrice => {
-                        if(this.orderForm.stake > sortedByPrice.max) {
+                        if(placedStake > sortedByPrice.max) {
                             if(this.wallet.credit >= sortedByPrice.max) {
-                                this.orderForm.stake = twoDecimalPlacesFormat(this.orderForm.stake - sortedByPrice.max)
+                                placedStake = twoDecimalPlacesFormat(placedStake - sortedByPrice.max)
                                 this.orderForm.markets.push(sortedByPrice)
                                 this.orderMessage = ''
                             } else {
                                 this.orderMessage = 'Insufficient wallet balance.'
                                 this.isBetSuccessful = false
                             }
-                        } else if(this.orderForm.stake <= sortedByPrice.max && this.orderForm.stake >= sortedByPrice.min) {
-                            if(this.wallet.credit >= this.orderForm.stake) {
-                                this.orderForm.stake = 0
+                        } else if(placedStake <= sortedByPrice.max && placedStake >= sortedByPrice.min) {
+                            if(this.wallet.credit >= placedStake) {
+                                placedStake = 0
                                 this.orderForm.markets.push(sortedByPrice)
                                 this.orderMessage = ''
                             } else {
                                 this.orderMessage = 'Insufficient wallet balance.'
                                 this.isBetSuccessful = false
                             }
-                        } else if(this.orderForm.stake < sortedByPrice.min && this.orderForm.stake != 0) {
+                        } else if(placedStake < sortedByPrice.min && placedStake != 0) {
                             this.orderMessage = 'Stake lower than minimum stake or cannot proceed to next provider.'
                             this.isBetSuccessful = false
                         }
@@ -639,7 +771,7 @@ export default {
                 } else if(this.orderForm.betType == 'BEST_PRICE') {
                     let greaterThanOrEqualThanPriceArray = []
                     this.minMaxData.map(minmax => {
-                        if(minmax.price >= this.initialPrice) {
+                        if(minmax.price >= this.price) {
                             greaterThanOrEqualThanPriceArray.push(minmax.price)
                         }
                     })
@@ -674,6 +806,7 @@ export default {
                 if(this.orderForm.markets.length != 0) {
                     axios.post('v1/orders/bet', data, { headers: { 'Authorization': `Bearer ${token}` }})
                         .then(response => {
+                            this.reloadSpread(true)
                             this.isBetSuccessful = true
                             this.orderMessage = response.data.data
                             this.$store.dispatch('trade/getBetbarData', this.market_id)
@@ -684,6 +817,12 @@ export default {
                                 this.$store.dispatch('trade/addToWatchlist', { type: 'event', data: this.odd_details.game.uid, payload: this.odd_details.game })
                             }
                             this.isPlacingOrder = false
+
+                            setTimeout(() => {
+                                if(!this.receivedOrderStatusIds.includes(response.data.order_id)) {
+                                    this.$store.dispatch('trade/getBetbarData', this.market_id)
+                                }
+                            }, 15000)
                         })
                         .catch(err => {
                             this.isBetSuccessful = false
@@ -694,6 +833,8 @@ export default {
                             this.$store.dispatch('auth/checkIfTokenIsValid', err.response.status)
                         })
                 } else {
+                    this.isLoadingMarketDetailsAndProviders = false
+                    this.loadingMessage = 'Loading Market Details...'
                     this.isPlacingOrder = false
                 }
             }
@@ -784,5 +925,41 @@ export default {
     padding: 0 5px;
     background-color: #ce6a17;
     font-size: 20px;
+}
+
+.minMaxBtn {
+    padding: 0.1rem 0.5rem;
+}
+
+.minMaxBtn.minStake {
+    right: 125px;
+}
+
+.toolTip {
+    position: relative;
+    cursor: pointer;
+    font-size: 13px;
+}
+
+.toolTipText {
+    visibility: hidden;
+    width: 200px;
+    border-radius: 6px;
+    position: absolute;
+    z-index: 1;
+    right: 12px;
+    top: 12px;
+}
+
+.toolTip:hover .toolTipText {
+    visibility: visible;
+}
+
+.selectAllLabel {
+    left: 19px;
+}
+
+.selectAll, .providerCheckbox {
+    left: 24px;
 }
 </style>

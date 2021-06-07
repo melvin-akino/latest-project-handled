@@ -25,7 +25,7 @@
                 </div>
                 <div class="flex items-center bg-black text-white p-1">
                     <span class="w-64">Bet Type</span>
-                    <span class="w-32">Bet Team</span>
+                    <span class="w-32">Selection</span>
                     <span class="w-32">Price</span>
                     <span class="w-32">Stake</span>
                     <span class="w-32">Score on Bet</span>
@@ -37,7 +37,7 @@
                             <label class="text-gray-500 font-bold">
                                 <input class="mr-2 leading-tight" type="checkbox" @change="toggleEventOrder(order, order.order_id)" :checked="selectedOrders.includes(order.order_id)">
                             </label>
-                            {{ order.odd_type_name == "FT O/U" && order.odd_type_name.indexOf("FT") >= 0 ? "FT " : (order.odd_type_name == "FT O/U" && order.odd_type_name.indexOf("HT") >= 0 ? "HT " : "") }}{{order.team_name}} {{ order.type == 'HDP' ? order.odd_type_name : ''}} {{order.points}} {{`(${defaultPriceFormat})`}}
+                            {{ (order.odd_type == "OU" || order.odd_type == "OE") && order.odd_type_name.indexOf("FT") >= 0 ? "FT " : ((order.odd_type == "OU" || order.odd_type == "OE") && order.odd_type_name.indexOf("HT") >= 0 ? "HT " : "") }} {{order.team_name}} {{ order.type == 'HDP' || order.type == '1x2' ? order.odd_type_name : ''}} {{order.points}} {{`(${defaultPriceFormat})`}}
                         </div>
                         <span class="w-32">{{order.bet_team}}</span>
                         <span class="w-32">{{order.odds}}</span>
@@ -58,7 +58,7 @@ import Cookies from 'js-cookie'
 import { twoDecimalPlacesFormat, convertPointAsNumeric, moneyFormat } from '../../../helpers/numberFormat'
 
 export default {
-    props: ['market_id', 'analysisData', 'event_id'],
+    props: ['market_id', 'event_id'],
     components: {
         DialogDrag
     },
@@ -69,13 +69,10 @@ export default {
                 buttonPin: false,
             },
             matrix_table: [],
+            current_score: '',
             matrix_data: {
-                stake: Number(this.analysisData.stake),
-                price: Number(this.analysisData.price),
-                home_score: Number(this.analysisData.home_score),
-                away_score: Number(this.analysisData.away_score),
-                points: convertPointAsNumeric(this.analysisData.points, this.analysisData.odd_type),
-                created_at: this.analysisData.created_at
+                home_score: 0,
+                away_score: 0,
             },
             matrix_orders_list: [],
             matrix_orders: [],
@@ -87,12 +84,6 @@ export default {
         ...mapState('trade', ['wallet', 'activePopup', 'popupZIndex']),
         ...mapState('settings', ['defaultPriceFormat']),
     },
-    watch: {
-        analysisData() {
-            this.matrix_table = []
-            this.generateBetMatrix()
-        }
-    },
     mounted() {
         this.getBetMatrixOrders()
     },
@@ -102,10 +93,14 @@ export default {
 
             axios.get(`v1/orders/bet-matrix/${this.event_id}`, { headers: { 'Authorization': `Bearer ${token}` }})
             .then(response => {
+                let { data, current_score } = response.data
                 this.isLoadingBetMatrixOrders = false
-                this.matrix_orders_list = response.data.data
-                this.matrix_orders = response.data.data
-                this.selectedOrders = response.data.data.map(order => order.order_id)
+                this.current_score = current_score
+                this.matrix_data.home_score = Number(current_score.home)
+                this.matrix_data.away_score = Number(current_score.away)
+                this.matrix_orders_list = data
+                this.matrix_orders = data
+                this.selectedOrders = data.map(order => order.order_id)
                 this.generateBetMatrix()
             })
             .catch(err => {
@@ -124,7 +119,7 @@ export default {
             this.matrix_orders.forEach(order => {
                 let stake = Number(order.stake)
                 let price = Number(order.odds)
-                let towin = Number(order.stake) * Number(order.odds)
+                let towin = order.type == '1x2' || order.type == 'Odd' || order.type == 'Even' ? stake * (price - 1) : stake * price
                 let points = Number(order.points)
                 let home_score_on_bet = Number(order.home_score_on_bet)
                 let away_score_on_bet = Number(order.away_score_on_bet)
@@ -184,6 +179,41 @@ export default {
                                 var result = (stake * price) / 2
                             } else {
                                 var result = stake * price
+                            }
+                        }
+                        if(type == 'Odd') {
+                            if((home_team_counter + away_team_counter) % 2 != 0) {
+                                var result = stake * (price - 1)
+                            } else {
+                                var result = stake * -1
+                            }
+                        }
+                        if(type == 'Even') {
+                            if((home_team_counter + away_team_counter) % 2 == 0) {
+                                var result = stake * (price - 1)
+                            } else {
+                                var result = stake * -1
+                            }
+                        }
+                        if(type == '1x2') {
+                            if(bet_team == 'HOME') {
+                                if(home_team_counter > away_team_counter) {
+                                    var result = stake * (price - 1)
+                                } else {
+                                    var result = stake * -1
+                                }
+                            } else if(bet_team == 'AWAY') {
+                                if(home_team_counter < away_team_counter) {
+                                    var result = stake * (price - 1)
+                                } else {
+                                    var result = stake * -1
+                                }
+                            } else {
+                                if(home_team_counter == away_team_counter) {
+                                    var result = stake * (price - 1)
+                                } else {
+                                    var result = stake * -1
+                                }
                             }
                         }
 
@@ -252,12 +282,12 @@ export default {
                     this.matrix_data.home_score = final_score[0]
                     this.matrix_data.away_score = final_score[1]
                 } else {
-                    this.matrix_data.home_score = this.analysisData.home_score
-                    this.matrix_data.away_score = this.analysisData.away_score
+                    this.matrix_data.home_score = this.current_score.home
+                    this.matrix_data.away_score = this.current_score.away
                 }
             } else {
-                this.matrix_data.home_score = this.analysisData.home_score
-                this.matrix_data.away_score = this.analysisData.away_score
+                this.matrix_data.home_score = this.current_score.home
+                this.matrix_data.away_score = this.current_score.away
             }
 
             this.matrix_table = []

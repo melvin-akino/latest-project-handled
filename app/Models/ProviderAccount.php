@@ -53,12 +53,19 @@ class ProviderAccount extends Model
             ->uuid;
     }
 
-    public static function getBettingAccount($providerId, $stake, $isVIP, $eventId, $oddType, $marketFlag, $token)
+    public static function getBettingAccount($providerId, $stake, $isVIP, $eventId, $oddType, $marketFlag, $token, $blockedLinesArray)
     {
-        $type     = $isVIP ? "BET_VIP" : "BET_NORMAL";
-        $provider = Provider::find($providerId);
-        $currency = Currency::find($provider->currency_id);
-        $query    = self::where('provider_id', $providerId)
+        $type         = $isVIP ? "BET_VIP" : "BET_NORMAL";
+        $provider     = Provider::find($providerId);
+        $currency     = Currency::find($provider->currency_id);
+        $blockedLines = BlockedLine::where('event_id', $blockedLinesArray['event_id'])
+            ->where('odd_type_id', $blockedLinesArray['odd_type_id'])
+            ->where('points', $blockedLinesArray['points'])
+            ->pluck('line')
+            ->toArray();
+
+        $query = self::where('provider_id', $providerId)
+            ->whereNotIn('line', $blockedLines)
             ->where('is_enabled', true)
             ->where('type', $type);
 

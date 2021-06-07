@@ -17,7 +17,9 @@ use App\Models\{
     Order,
     Timezones,
     UserWallet,
-    ProviderAccount
+    ProviderAccount,
+    BlockedLine,
+    MasterEvent
 };
 use Illuminate\Http\Request;
 use Illuminate\Support\{Facades\DB, Facades\Log, Str};
@@ -316,6 +318,8 @@ class OrdersController extends Controller
 
     public function postPlaceBet(Request $request)
     {
+        $exceptionArray = [];
+
         try {
             DB::beginTransaction();
 
@@ -568,8 +572,14 @@ class OrdersController extends Controller
                     $query->column_type . " " . $query->odd_label . "(" . $query->score . ")",
                 ]);
 
+                $blockedLinesParam = [
+                    'event_id'    => $query->event_id,
+                    'odd_type_id' => $query->odd_type_id,
+                    'points'      => $query->odd_label,
+                ];
+
                 $providerToken   = SwooleHandler::getValue('walletClientsTable', trim(strtolower($providerInfo['alias'])) . '-users')['token'];
-                $providerAccount = ProviderAccount::getBettingAccount($row['provider_id'], $actualStake, $isUserVIP, $payload['event_id'], $query->odd_type_id, $query->market_flag, $providerToken);
+                $providerAccount = ProviderAccount::getBettingAccount($row['provider_id'], $actualStake, $isUserVIP, $payload['event_id'], $query->odd_type_id, $query->market_flag, $providerToken, $blockedLinesParam);
 
                 if (!$providerAccount) {
                     $toLogs = [
@@ -595,7 +605,7 @@ class OrdersController extends Controller
                     'stake'                         => $payloadStake,
                     'actual_stake'                  => $actualStake,
                     'score'                         => $query->score,
-                    'expiry'                        => $request->orderExpiry,
+                    'expiry'                        => is_null($request->orderExpiry) ? 30 : $request->orderExpiry,
                     'bet_selection'                 => $betSelection,
                     'odd_type_id'                   => $query->odd_type_id,
                     'market_flag'                   => $query->market_flag,
@@ -623,7 +633,14 @@ class OrdersController extends Controller
                 $providerWalletToken = SwooleHandler::getValue('walletClientsTable', trim(strtolower($providerInfo['alias'])) . '-users')['token'];
                 $providerUUID        = trim($providerAccount->uuid);
                 $providerReason      = "[PLACE_BET][BET PENDING] - transaction for order id " . $orderCreation['orders']->id;
-                $providerWallet      = WalletFacade::subtractBalance($providerWalletToken, $providerUUID, trim(strtoupper($providerCurrencyInfo['code'])), $actualStake, $providerReason);
+                $exceptionArray      = [
+                    'token'         => $providerWalletToken,
+                    'uuid'          => $providerUUID,
+                    'currency_code' => trim(strtoupper($providerCurrencyInfo['code'])),
+                    'stake'         => $actualStake,
+                ];
+
+                $providerWallet = WalletFacade::subtractBalance($providerWalletToken, $providerUUID, trim(strtoupper($providerCurrencyInfo['code'])), $actualStake, $providerReason);
 
                 if (empty($providerWallet) || array_key_exists('error', $providerWallet) || !array_key_exists('status_code', $providerWallet) || $providerWallet->status_code != 200) {
                     $userWalletToken = SwooleHandler::getValue('walletClientsTable', 'ml-users')['token'];
@@ -665,7 +682,8 @@ class OrdersController extends Controller
                     ]);
                 }
 
-                $orderIds[] = $orderId;
+                $orderIds[]     = $orderId;
+                $exceptionArray = [];
             }
 
             if ($betType == "BEST_PRICE") {
@@ -701,7 +719,7 @@ class OrdersController extends Controller
                     'score'            => $incrementIds['payload'][$i]['score'],
                     'username'         => $incrementIds['provider_account'][$i],
                     'created_at'       => $incrementIds['created_at'][$i],
-                    'orderExpiry'      => $incrementIds['payload'][$i]['orderExpiry'],
+                    'orderExpiry'      => is_null($incrementIds['payload'][$i]['orderExpiry']) ? 30 : $incrementIds['payload'][$i]['orderExpiry'],
                     'exchange_rate_id' => $incrementIds['payload'][$i]['exchange_rate_id'],
                     'exchange_rate'    => $incrementIds['payload'][$i]['exchange_rate'],
                 ];
@@ -740,11 +758,16 @@ class OrdersController extends Controller
                 'status'      => true,
                 'status_code' => $returnCode,
                 'data'        => $return,
-                'order_id'    => $orderIds,
+                'order_id'    => $orderIncrement->id,
                 'created_at'  => Carbon::parse($orderIncrement->created_at)->toDateTimeString()
             ], $returnCode);
         } catch (BadRequestException $e) {
             DB::rollback();
+
+            if (!empty($exceptionArray)) {
+                WalletFacade::addBalance($exceptionArray['token'], $exceptionArray['uuid'], $exceptionArray['currency_code'], ($exceptionArray['stake']), "[PLACE_BET][RETURN_STAKE] - Something went wrong: " . $e->getMessage());
+            }
+
             $toLogs = [
                 "class"       => "OrdersController",
                 "message"     => "Line " . $e->getLine() . " | " . $e->getMessage(),
@@ -760,6 +783,11 @@ class OrdersController extends Controller
             ], 400);
         } catch (NotFoundException $e) {
             DB::rollback();
+
+            if (!empty($exceptionArray)) {
+                WalletFacade::addBalance($exceptionArray['token'], $exceptionArray['uuid'], $exceptionArray['currency_code'], ($exceptionArray['stake']), "[PLACE_BET][RETURN_STAKE] - Something went wrong: " . $e->getMessage());
+            }
+
             $toLogs = [
                 "class"       => "OrdersController",
                 "message"     => "Line " . $e->getLine() . " | " . $e->getMessage(),
@@ -775,6 +803,11 @@ class OrdersController extends Controller
             ], 404);
         } catch (Exception $e) {
             DB::rollback();
+
+            if (!empty($exceptionArray)) {
+                WalletFacade::addBalance($exceptionArray['token'], $exceptionArray['uuid'], $exceptionArray['currency_code'], ($exceptionArray['stake']), "[PLACE_BET][RETURN_STAKE] - Something went wrong: " . $e->getMessage());
+            }
+
             $toLogs = [
                 "class"       => "OrdersController",
                 "message"     => "Line " . $e->getLine() . " | " . $e->getMessage(),
@@ -796,19 +829,42 @@ class OrdersController extends Controller
         try {
             $userTz        = "Etc/UTC";
             $getUserConfig = UserConfiguration::getUserConfig(auth()->user()->id)
-                                              ->where('type', 'timezone')
-                                              ->first();
+                                ->where('type', 'timezone')
+                                ->first();
             if (!is_null($getUserConfig)) {
                 $userTz = Timezones::find($getUserConfig->value)->name;
             }
-            $orders = Order::getOrdersByEvent($uid)->get();
-            $data   = [];
+            $orders   = Order::getOrdersByEvent($uid)->get();
+            $ouLabels = OddType::where('type', 'ILIKE', '%OU%')->pluck('id')->toArray();
+            $oeLabels = OddType::where('type', 'ILIKE', '%OE%')->pluck('id')->toArray();
+            $data     = [];
             foreach ($orders as $order) {
+                $betTeam       = $order->market_flag == 'HOME' ? $order->home_team_name : $order->away_team_name;
+                $oddTypeName   = $order->sport_odd_type_name;
+                $oddTypePrefix = stripos($order->odd_type, 'HT ') !== false ? 'HT' : 'FT';
+                $points        = $order->points;
+
+                if (in_array($order->odd_type_id, $ouLabels)) {
+                    $ouOddLabel  = explode(' ', $order->points);
+                    $betTeam     = $ouOddLabel[0] == "O" ? "Over" : "Under";
+                    $oddTypeName = $oddTypePrefix . " " . $betTeam;
+                    $points      = $ouOddLabel[1];
+                }
+
+                if (in_array($order->odd_type_id, $oeLabels)) {
+                    $betTeam     = $order->points == "O" ? "Odd" : "Even";
+                    $oddTypeName = $oddTypePrefix . " " . $betTeam;
+                    $points      = '';
+                }
+
                 $data[] = [
                     'order_id'      => $order->id,
+                    'stake'         => $order->stake,
                     'odds'          => $order->odds,
-                    'odd_type_name' => $order->sport_odd_type_name,
-                    'bet_team'      => $order->market_flag,
+                    'points'        => $points,
+                    'odd_type_name' => $oddTypeName,
+                    'bet_team'      => $betTeam,
+                    'score_on_bet'  => $order->score_on_bet,
                     'provider'      => $order->provider,
                     'status'        => $order->status,
                     'created_at'    => Carbon::createFromFormat("Y-m-d H:i:s", $order->created_at, 'Etc/UTC')->setTimezone($userTz)->format("Y-m-d H:i:s"),
@@ -841,36 +897,53 @@ class OrdersController extends Controller
         try {
             $userTz        = "Etc/UTC";
             $getUserConfig = UserConfiguration::getUserConfig(auth()->user()->id)
-                                              ->where('type', 'timezone')
-                                              ->first();
+                                ->where('type', 'timezone')
+                                ->first();
 
             if (!is_null($getUserConfig)) {
                 $userTz = Timezones::find($getUserConfig->value)->name;
             }
 
-            $orders   = Order::getOrdersByEvent($uid, true)->get();
-            $ouLabels = OddType::where('type', 'ILIKE', '%OU%')->pluck('id')->toArray();
+            $orders     = Order::getOrdersByEvent($uid, true)->get();
+            $ouLabels   = OddType::where('type', 'ILIKE', '%OU%')->pluck('id')->toArray();
+            $oeLabels   = OddType::where('type', 'ILIKE', '%OE%')->pluck('id')->toArray();
+            $eventScore = array_map('trim', explode('-', MasterEvent::getMasterEvent($uid)->score));
+
+            $currentScore = [
+                'home' => $eventScore[0],
+                'away' => $eventScore[1]
+            ];
 
             $data = [];
             foreach ($orders as $order) {
-                $type = '';
-                if ($order->odd_type_id == 3 || $order->odd_type_id == 11) {
+                $type   = '';
+                $points = '';
+                if (stripos($order->odd_type, 'HDP') !== false) {
                     $type   = 'HDP';
                     $points = $order->points;
-                } else if ($order->odd_type_id == 4 || $order->odd_type_id == 12) {
+                } else if (stripos($order->odd_type, 'OU') !== false) {
                     $ouOddLabel = explode(' ', $order->points);
                     $type       = $ouOddLabel[0];
                     $points     = $ouOddLabel[1];
+                } else if(stripos($order->odd_type, '1x2') !== false) {
+                    $type = '1x2';
+                } else if(stripos($order->odd_type, 'OE') !== false) {
+                    $type = $order->points == "O" ? "Odd" : "Even";
                 }
 
                 $teamname = $order->market_flag == 'HOME' ? $order->home_team_name : $order->away_team_name;
+                $betTeam  = $order->market_flag;
 
                 if (in_array($order->odd_type_id, $ouLabels)) {
                     $ou       = explode(' ', $order->points)[0];
-                    $teamname = $ou == "O" ? "Over" : "Under";
+                    $betTeam  = $teamname = $ou == "O" ? "Over" : "Under";
                 }
 
-                $scoreOnBet = explode(' - ', $order->score_on_bet);
+                if (in_array($order->odd_type_id, $oeLabels)) {
+                    $betTeam  = $teamname = $order->points == "O" ? "Odd" : "Even";
+                }
+
+                $scoreOnBet = array_map('trim', explode('-', $order->score_on_bet));
                 $data[]     = [
                     'order_id'          => $order->id,
                     'stake'             => $order->stake,
@@ -878,19 +951,21 @@ class OrdersController extends Controller
                     'odds'              => $order->odds,
                     'type'              => $type,
                     'odd_type_name'     => $order->sport_odd_type_name,
-                    'bet_team'          => $order->market_flag,
+                    'bet_team'          => $betTeam,
                     'team_name'         => $teamname,
                     'home_score_on_bet' => $scoreOnBet[0],
                     'away_score_on_bet' => $scoreOnBet[1],
                     'created_at'        => Carbon::createFromFormat("Y-m-d H:i:s", $order->created_at, 'Etc/UTC')->setTimezone($userTz)->format("Y-m-d H:i:s"),
                     'final_score'       => $order->final_score,
+                    'odd_type'          => $order->odd_type
                 ];
             }
 
             return response()->json([
-                'status'      => true,
-                'status_code' => 200,
-                'data'        => $data,
+                'status'        => true,
+                'status_code'   => 200,
+                'data'          => $data,
+                'current_score' => $currentScore
             ], 200);
         } catch (Exception $e) {
             $toLogs = [

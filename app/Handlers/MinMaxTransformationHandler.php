@@ -3,8 +3,7 @@
 namespace App\Handlers;
 
 use App\Facades\SwooleHandler;
-use App\Models\{MasterEventMarket, EventMarket, SystemConfiguration};
-use Illuminate\Support\Facades\Log;
+use App\Models\{EventMarket, SystemConfiguration};
 use Exception;
 
 class MinMaxTransformationHandler
@@ -50,14 +49,14 @@ class MinMaxTransformationHandler
 
                 if ($row['market_id'] == $data->market_id) {
                     $memUID = $row['memUID'];
+                    $providerSwtId = "providerAlias:" . $data->provider;
+                    if (!empty($this->data->message) && $this->data->message != 'onqueue') {
+                        foreach ($topics as $_key => $_row) {
+                            if (strpos($_row['topic_name'], 'min-max-' . $data->market_id) === 0) {
+                                $userId        = explode(':', $_key)[1];
+                                $fd            = $wsTable->get('uid:' . $userId);
 
-                    foreach ($topics as $_key => $_row) {
-                        if (strpos($_row['topic_name'], 'min-max-' . $data->market_id) === 0) {
-                            $userId        = explode(':', $_key)[1];
-                            $fd            = $wsTable->get('uid:' . $userId);
-                            $providerSwtId = "providerAlias:" . $data->provider;
 
-                            if (!empty($this->data->message) && $this->data->message != 'onqueue') {
                                 if ($swoole->isEstablished($fd['value'])) {
                                     $swoole->push($fd['value'], json_encode([
                                         'getMinMax' => [
@@ -67,34 +66,40 @@ class MinMaxTransformationHandler
                                         ]
                                     ]));
                                 }
+                            }
+                        }
 
-                                $minMaxRequests->del('mId:' . $data->market_id . ':memUID:' . $memUID);
-                            } else if ($this->data->message == 'onqueue') {
-                                $doesExist = false;
-                                foreach ($minmaxOnqueueRequestsTable as $key => $row) {
-                                    if (strpos($key, 'min-max-' . $data->market_id) === 0) {
-                                        $doesExist = true;
-                                        break;
-                                    }
-                                }
+                        $minMaxRequests->del($memUID . ":" . strtolower($data->provider));
+                    } else if ($this->data->message == 'onqueue') {
+                        $doesExist = false;
+                        foreach ($minmaxOnqueueRequestsTable as $key => $row) {
+                            if (strpos($key, 'min-max-' . $data->market_id) === 0) {
+                                $doesExist = true;
+                                break;
+                            }
+                        }
 
-                                if (!$doesExist) {
-                                    $minmaxOnqueueRequestsTable->set('min-max-' . $data->market_id, ['onqueue' => true]);
-                                }
+                        if (!$doesExist) {
+                            $minmaxOnqueueRequestsTable->set('min-max-' . $data->market_id, ['onqueue' => true]);
+                        }
 
-                                continue;
-                            } else {
-                                $minmaxOnqueueRequestsTable->del('min-max-' . $data->market_id);
+                        continue;
+                    } else {
+                        $minmaxOnqueueRequestsTable->del('min-max-' . $data->market_id);
 
-                                $userCurrency = [
-                                    'id'   => 1,
-                                    'code' => "CNY",
-                                ];
+                        $userCurrency = [
+                            'id'   => 1,
+                            'code' => "CNY",
+                        ];
 
-                                $providerCurrency = [
-                                    'id'   => 1,
-                                    'code' => "CNY",
-                                ];
+                        $providerCurrency = [
+                            'id'   => 1,
+                            'code' => "CNY",
+                        ];
+
+                        foreach ($topics as $_key => $_row) {
+                            if (strpos($_row['topic_name'], 'min-max-' . $data->market_id) === 0) {
+                                $userId        = explode(':', $_key)[1];
 
                                 $userSwtId = "userId:" . $userId;
                                 $doesExist = false;
@@ -139,7 +144,7 @@ class MinMaxTransformationHandler
                                     $punterPercentage = $userProviderConfigTable->get($userProviderSwtId)['punter_percentage'];
                                 }
 
-                                $maxBetDisplay = $missingCountConfiguration = SystemConfiguration::getSystemConfigurationValue('MAX_BET')->value;
+                                $maxBetDisplay = SystemConfiguration::getSystemConfigurationValue('MAX_BET')->value;
                                 $maximum       = floor((($data->maximum) * ($punterPercentage / 100)) * 100 ) / 100;
                                 $timeDiff      = time() - (int) $data->timestamp;
                                 $age           = ($timeDiff > 60) ? floor($timeDiff / 60) . 'm' : $timeDiff . 's';
@@ -195,22 +200,23 @@ class MinMaxTransformationHandler
                                     $transformed['max'] = ($max <= $maxBetDisplay) ? $max : $maxBetDisplay;
                                 }
 
-                                SwooleHandler::setValue('minmaxDataTable', 'minmax-market:' . $memUID, [
-                                    'min' => $data->minimum,
-                                    'max' => $data->maximum,
-                                    'ts'  => getMilliseconds()
-                                ]);
-
                                 SwooleHandler::setValue('minmaxDataTable', 'minmax-market:' . $data->market_id, [
-                                    'min' => $data->minimum,
-                                    'max' => $data->maximum,
-                                    'ts'  => getMilliseconds()
+                                    'min'       => $data->minimum,
+                                    'max'       => $data->maximum,
+                                    'odds'      => (double) $data->odds,
+                                    'market_id' => $data->market_id,
+                                    'mem_uid'   => $memUID,
+                                    "provider"  => strtoupper($data->provider),
+                                    'ts'        => getMilliseconds()
                                 ]);
 
                                 EventMarket::updateProviderEventMarketsByMemUIDWithOdds($data->market_id, $transformed['price']);
 
+                                $fd            = $wsTable->get('uid:' . $userId);
+
                                 if ($swoole->isEstablished($fd['value'])) {
-                                    $minMaxRequests['mId:' . $data->market_id . ':memUID:' . $memUID]['odds'] = $transformed['price'];
+                                    $minMaxRequests[$memUID . ":" . strtolower($data->provider)]['odds'] = $transformed['price'];
+
                                     $swoole->push($fd['value'], json_encode([
                                         'getMinMax' => $transformed
                                     ]));

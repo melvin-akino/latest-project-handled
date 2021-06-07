@@ -105,12 +105,10 @@ class Order extends Model
                  ->where('sot.sport_id', DB::raw('o.sport_id'))
                  ->where('user_id', auth()->user()->id)
                  ->where('o.master_event_unique_id', $eventId)
-                 ->when($betMatrix, function ($query, $betMatrix) {
-                     return $query->whereNotIn('status', ['PENDING', 'FAILED', 'CANCELLED', 'REJECTED', 'VOID', 'ABNORMAL BET', 'REFUNDED'])
-                                  ->whereIn('o.odd_type_id', function ($query) {
-                                      $query->select('id')->from('odd_types')->whereIn('type', ['HDP', 'HT HDP', 'OU', 'HT OU']);
-                                  });
+                 ->when($betMatrix, function($query) {
+                     return $query->whereNotIn('status', ['PENDING', 'FAILED', 'CANCELLED', 'REJECTED', 'VOID', 'ABNORMAL BET', 'REFUNDED']);
                  })
+                 ->orderBy('o.created_at', 'DESC')
                  ->select([
                      'o.id',
                      'stake',
@@ -125,7 +123,8 @@ class Order extends Model
                      'sot.name as sport_odd_type_name',
                      'p.alias as provider',
                      'o.status',
-                     'final_score'
+                     'final_score',
+                     'ot.type as odd_type'
                  ]);
     }
 
