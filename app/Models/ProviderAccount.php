@@ -137,7 +137,7 @@ class ProviderAccount extends Model
                 }
 
                 usort($accountFinalCandidates, function ($a, $b) {
-                    return $b['credits'] <=> $a['credits'];
+                    return $a['updated_at'] <=> $b['updated_at'];
                 });
 
                 Log::info("Account Candidates - Final candidates");
@@ -168,14 +168,24 @@ class ProviderAccount extends Model
                         ]);
                     }
 
+                    self::where('id', $finalProvider->id)->update([
+                        'updated_at' => Carbon::now()
+                    ]);
+
                     return $finalProvider;
                 } else {
                     return null;
                 }
             } else {
-                $query->orderBy('updated_at', 'ASC');
+                $finalProvider = $query->orderBy('updated_at', 'ASC')->first();
 
-                return $query->first();
+                if ($finalProvider) {
+                    self::where('id', $finalProvider->id)->update([
+                        'updated_at' => Carbon::now()
+                    ]);
+                }
+                
+                return $finalProvider;
             }
         }
     }
