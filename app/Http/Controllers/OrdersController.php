@@ -341,11 +341,14 @@ class OrdersController extends Controller
             $topicSWT              = $swoole->topicTable;
             $userProviderConfigSWT = $swoole->userProviderConfigTable;
 
+            $remainingStake        = null;
+
             /**
              * Initial Variable Declarations
              *
              * @type {String}
              */
+            $minPrice     = null;
             $betType      = "";
             $return       = "";
             $returnCode   = 200;
@@ -356,6 +359,10 @@ class OrdersController extends Controller
             $colMinusOne  = OddType::whereIn('type', ['1X2', 'HT 1X2', 'OE'])->pluck('id')->toArray();
 
             foreach ($request->markets as $row) {
+                if (is_null($minPrice) || $minPrice > $row['min']) {
+                    $minPrice = $row['min'];
+                }
+
                 $betType = $request->betType;
                 $mlBetId = generateMLBetIdentifier();
 
@@ -451,6 +458,10 @@ class OrdersController extends Controller
                 ];
 
                 $percentage = $userProviderPercentage >= 0 ? $userProviderPercentage : $providerInfo['punter_percentage'];
+
+                if (is_null($remainingStake)) {
+                    $remainingStake = $request->stake;
+                }
 
                 if ($prevStake == 0) {
                     $payloadStake = $request->stake < $row['max'] ? $request->stake : $row['max'];
@@ -663,6 +674,8 @@ class OrdersController extends Controller
                     } else {
                         $prevStake = $prevStake - $payloadStake;
                     }
+
+                    $remainingStake -= $payloadStake;
                 }
 
                 $topicKey = implode(':', [
@@ -687,8 +700,9 @@ class OrdersController extends Controller
             }
 
             if ($betType == "FAST_BET") {
-                $return     = $prevStake > 0 ? trans('game.bet.fast-bet.continue') : trans('game.bet.fast-bet.success');
-                $returnCode = $prevStake > 0 ? 210 : 200;
+                $notEnoughMessage = "You have placed your stake of " . ($request->stake - $prevStake) . " amongst selected bookmakers. A remaining stake of " . $prevStake . " doesn't meet the minimum price of any of the selected bookmakers and was not placed. ";
+                $return     = $prevStake > 0 ? ($prevStake > $minPrice ? trans('game.bet.fast-bet.continue') : $notEnoughMessage) : trans('game.bet.fast-bet.success');
+                $returnCode = $prevStake > 0 ? ($prevStake > $minPrice ? 210 : 211) : 200;
             }
 
             DB::commit();

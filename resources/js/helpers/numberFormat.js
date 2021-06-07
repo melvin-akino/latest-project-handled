@@ -24,8 +24,18 @@ const convertPointAsNumeric = (points, oddType) => {
     }
 }
 
+const formatAverage = (average) => {
+    let averageArray = average.toString().split('.')
+    if(averageArray[1].length >= 3) {
+        return average.toFixed(3)
+    } else {
+        return average
+    }
+}
+
 module.exports = {
     twoDecimalPlacesFormat,
     moneyFormat,
-    convertPointAsNumeric
+    convertPointAsNumeric,
+    formatAverage
 }
