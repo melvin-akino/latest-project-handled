@@ -287,7 +287,18 @@ export default {
         },
         averagePrice() {
             if(!_.isEmpty(this.qualifiedProviders) && this.orderForm.stake) {
-                let prices = this.qualifiedProviders.filter(minmax => minmax.price != null && (minmax.min <= this.orderForm.stake || minmax.max <= this.orderForm.stake)).map(minmax => minmax.price)
+                let sortedByPriceArray = this.qualifiedProviders.sort((a, b) => (a.price < b.price) ? 1 : -1)
+                let prices = []
+                let placedStake = this.orderForm.stake
+                sortedByPriceArray.map(sortedByPrice => {
+                    if(placedStake > sortedByPrice.max && this.wallet.credit >= sortedByPrice.max) {
+                        prices.push(sortedByPrice.price)
+                        placedStake = twoDecimalPlacesFormat(placedStake - sortedByPrice.max)
+                    } else if(placedStake <= sortedByPrice.max && placedStake >= sortedByPrice.min && this.wallet.credit >= placedStake) {
+                        prices.push(sortedByPrice.price)
+                        placedStake = 0
+                    } 
+                })
                 let sumOfPrices = prices.reduce((firstPrice, secondPrice) => firstPrice + secondPrice, 0)
                 if(!_.isEmpty(prices) && this.orderForm.stake <= this.highestMaxByValidPrice) {
                     return sumOfPrices / prices.length
@@ -735,14 +746,8 @@ export default {
                 }
 
                 if(this.orderForm.betType == 'FAST_BET') {
-                    let greaterThanOrEqualThanPriceArray = []
                     this.orderForm.markets = []
-                    this.minMaxData.map(minmax => {
-                        if(minmax.price >= this.price) {
-                            greaterThanOrEqualThanPriceArray.push(minmax)
-                        }
-                    })
-                    let sortedByPriceArray = greaterThanOrEqualThanPriceArray.sort((a, b) => (a.price < b.price) ? 1 : -1)
+                    let sortedByPriceArray = this.qualifiedProviders.sort((a, b) => (a.price < b.price) ? 1 : -1)
                     let placedStake = this.orderForm.stake
                     sortedByPriceArray.map(sortedByPrice => {
                         if(placedStake > sortedByPrice.max) {
