@@ -103,7 +103,7 @@
                                 </div>
                             </div>
                             <div class="flex justify-end items-center">
-                                <input type="text" class="betslipInput w-40 shadow appearance-none border rounded text-sm text-right py-1 px-3 text-gray-700 leading-tight focus:outline-none" v-model="$v.inputPrice.$model" @keyup="priceInput" :disabled="!retrievedMarketData">
+                                <input type="text" class="betslipInput w-40 shadow appearance-none border rounded text-sm text-right py-1 px-3 text-gray-700 leading-tight focus:outline-none" v-model="$v.inputPrice.$model" @keyup="priceInput" :disabled="!retrievedMarketData || minMaxData.length == 0">
                             </div>
                         </div>
                         <div class="flex justify-between items-center py-2">
@@ -122,7 +122,7 @@
                         </div>
                         <div class="flex justify-between items-center py-2 text-green-600">
                             <span class="text-sm mr-12">Average Price</span>
-                            <span class="text-sm">{{displayedAveragePrice | twoDecimalPlacesFormat}}</span>
+                            <span class="text-sm">{{averagePrice | twoDecimalPlacesFormat}}</span>
                         </div>
                         <div class="justify-between items-center py-2 hidden" :class="{'hidden': betSlipSettings.adv_placement_opt == 0, 'flex': betSlipSettings.adv_placement_opt == 1}">
                             <label class="text-sm flex items-center">
@@ -285,11 +285,11 @@ export default {
                 return null
             }
         },
-        displayedAveragePrice() {
-            if(!_.isEmpty(this.minMaxData)) {
-                let prices = this.minMaxData.filter(minmax => minmax.price != null).map(minmax => minmax.price)
+        averagePrice() {
+            if(!_.isEmpty(this.minMaxData) && this.orderForm.stake) {
+                let prices = this.minMaxData.filter(minmax => minmax.price != null && (minmax.min <= this.orderForm.stake || minmax.max <= this.orderForm.stake)).map(minmax => minmax.price)
                 let sumOfPrices = prices.reduce((firstPrice, secondPrice) => firstPrice + secondPrice, 0)
-                if(!_.isEmpty(prices)) {
+                if(!_.isEmpty(prices) && this.orderForm.stake <= this.highestMaxByValidPrice) {
                     return sumOfPrices / prices.length
                 } else {
                     return 0
@@ -395,13 +395,18 @@ export default {
                 }
 
                 if(this.qualifiedProviders.length == 0 && this.$v.inputPrice.$dirty && !this.$v.inputPrice.$invalid) {
-                    this.availableMarketsTooLow()
+                    if(this.minMaxData.length != 0) {
+                        this.availableMarketsTooLow()
+                    } else {
+                        this.orderForm.stake = null
+                        this.inputPrice = null
+                        this.clearOrderMessage()
+                    }
                 } else {
                     if(!this.isBetSuccessful) {
                         this.clearOrderMessage()
                     }
                 }
-
             }
         },
         tradeWindowOdds(newValue, oldValue) {
@@ -623,7 +628,7 @@ export default {
             this.orderMessage = 'Available markets are too low.'
             this.isDoneBetting = true
             this.isBetSuccessful = false
-            this.orderForm.stake = ''
+            this.orderForm.stake = null
         },
         priceInput() {
             if(!this.$v.inputPrice.$invalid) {
