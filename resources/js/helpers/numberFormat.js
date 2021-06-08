@@ -25,12 +25,8 @@ const convertPointAsNumeric = (points, oddType) => {
 }
 
 const formatAverage = (average) => {
-    if(average) {
-        let formatDecimal = Math.floor(average * 1000) / 1000
-        return formatDecimal.toFixed(3)
-    } else {
-        return average.toFixed(2)
-    }
+    let formatDecimal = Math.floor(average * 1000) / 1000
+    return formatDecimal.toFixed(3)
 }
 
 module.exports = {
