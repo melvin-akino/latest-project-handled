@@ -701,7 +701,7 @@ class OrdersController extends Controller
 
             if ($betType == "FAST_BET") {
                 $notEnoughMessage = strtoupper($userCurrencyInfo['code']) . " " . ($request->stake - $prevStake) . " placed at " . $request->price . "<br>
-                " . strtoupper($userCurrencyInfo['code']) . " " . $prevStake . " was not placed. (Does not meet minumum bet)";
+                " . strtoupper($userCurrencyInfo['code']) . " " . $prevStake . " was not placed. (Does not meet minimum bet)";
                 $return     = $prevStake > 0 ? ($prevStake > $minPrice ? trans('game.bet.fast-bet.continue') : $notEnoughMessage) : trans('game.bet.fast-bet.success');
                 $returnCode = $prevStake > 0 ? ($prevStake > $minPrice ? 210 : 211) : 200;
             }
