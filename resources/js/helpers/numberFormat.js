@@ -25,11 +25,10 @@ const convertPointAsNumeric = (points, oddType) => {
 }
 
 const formatAverage = (average) => {
-    let averageArray = average.toString().split('.')
-    if(averageArray[1].length >= 3) {
+    if(average) {
         return average.toFixed(3)
     } else {
-        return average
+        return average.toFixed(2)
     }
 }
 

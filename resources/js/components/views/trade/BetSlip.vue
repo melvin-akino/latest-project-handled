@@ -122,7 +122,7 @@
                         </div>
                         <div class="flex justify-between items-center py-2 text-green-600">
                             <span class="text-sm mr-12">Average Price</span>
-                            <span class="text-sm">{{averagePrice | twoDecimalPlacesFormat}}</span>
+                            <span class="text-sm">{{averagePrice | formatAverage}}</span>
                         </div>
                         <div class="justify-between items-center py-2 hidden" :class="{'hidden': betSlipSettings.adv_placement_opt == 0, 'flex': betSlipSettings.adv_placement_opt == 1}">
                             <label class="text-sm flex items-center">
@@ -286,40 +286,52 @@ export default {
                 return null
             }
         },
-        averagePrice() {
+        betDetails() {
             if(!_.isEmpty(this.qualifiedProviders) && this.orderForm.stake) {
                 let sortedByPriceArray = this.qualifiedProviders.sort((a, b) => (a.price < b.price) ? 1 : -1)
-                let prices = []
+                let towins = []
+                let stakes = []
+                let rawToWins = []
                 let placedStake = this.orderForm.stake
                 sortedByPriceArray.map(sortedByPrice => {
-                    if(placedStake > sortedByPrice.max && this.wallet.credit >= sortedByPrice.max) {
-                        prices.push(sortedByPrice.price)
-                        placedStake = twoDecimalPlacesFormat(placedStake - sortedByPrice.max)
-                    } else if(placedStake <= sortedByPrice.max && placedStake >= sortedByPrice.min && this.wallet.credit >= placedStake) {
-                        prices.push(sortedByPrice.price)
+                    let price = this.market_details.odd_type.includes('1X2') || this.market_details.odd_type.includes('OE') ? sortedByPrice.price - 1 : sortedByPrice.price
+                    if(placedStake > sortedByPrice.max) {
+                        stakes.push(sortedByPrice.max)
+                        towins.push(sortedByPrice.max * price)
+                        rawToWins.push(sortedByPrice.max * sortedByPrice.price)
+                        placedStake = placedStake - sortedByPrice.max
+                    } else if(placedStake <= sortedByPrice.max && placedStake >= sortedByPrice.min) {
+                        stakes.push(placedStake)
+                        towins.push(placedStake * price)
+                        rawToWins.push(placedStake * sortedByPrice.price)
                         placedStake = 0
-                    } 
+                    }
                 })
-                let sumOfPrices = prices.reduce((firstPrice, secondPrice) => firstPrice + secondPrice, 0)
-                if(!_.isEmpty(prices) && this.orderForm.stake <= this.highestMaxByValidPrice) {
-                    return formatAverage(sumOfPrices / prices.length)
+                let totalStake = stakes.reduce((firstStake, secondStake) => firstStake + secondStake, 0)
+                let totalTowin = towins.reduce((firstTowin, secondTowin) => firstTowin + secondTowin, 0)
+                let totalRawTowin = rawToWins.reduce((firstTowin, secondTowin) => firstTowin + secondTowin, 0)
+                if(!_.isEmpty(towins) && !_.isEmpty(stakes) && this.orderForm.stake <= this.highestMaxByValidPrice) {
+                    return { totalStake, totalTowin, totalRawTowin }
                 } else {
-                    return 0
+                    return {}
                 }
             } else {
-                return 0
+                return {}
             }
         },
         price() {
             return Number(this.inputPrice)
         },
+        averagePrice() {
+            if(this.betDetails.hasOwnProperty('totalStake') && this.betDetails.hasOwnProperty('totalRawTowin')) {
+                return this.betDetails.totalRawTowin / this.betDetails.totalStake
+            } else {
+                return 0
+            }
+        },
         towin() {
-            if(!this.$v.$invalid) {
-                if (this.market_details.odd_type == '1X2' || this.market_details.odd_type == 'HT 1X2' || this.market_details.odd_type == 'OE') {
-                    return this.orderForm.stake * (this.price - 1)
-                } else {
-                    return this.orderForm.stake * this.price
-                }
+            if(this.betDetails.hasOwnProperty('totalTowin')) {
+                return this.betDetails.totalTowin
             } else {
                 return 0
             }
@@ -766,7 +778,7 @@ export default {
                     sortedByPriceArray.map(sortedByPrice => {
                         if(placedStake > sortedByPrice.max) {
                             if(this.wallet.credit >= sortedByPrice.max) {
-                                placedStake = twoDecimalPlacesFormat(placedStake - sortedByPrice.max)
+                                placedStake = Number(twoDecimalPlacesFormat(placedStake - sortedByPrice.max))
                                 this.orderForm.markets.push(sortedByPrice)
                                 this.orderMessage = ''
                             } else {
@@ -881,7 +893,8 @@ export default {
     },
     filters: {
         twoDecimalPlacesFormat,
-        moneyFormat
+        moneyFormat,
+        formatAverage
     }
 }
 </script>
