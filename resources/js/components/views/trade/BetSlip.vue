@@ -768,6 +768,7 @@ export default {
                 let data = {
                     betType: this.orderForm.betType,
                     stake: this.orderForm.stake,
+                    price: this.inputPrice,
                     market_id: this.market_id
                 }
 
