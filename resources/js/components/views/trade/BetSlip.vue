@@ -797,6 +797,8 @@ export default {
                             }
                         } else if(placedStake < sortedByPrice.min && placedStake != 0) {
                             this.orderForm.stake = placedStake
+                            this.orderMessage = 'Stake is lower than minimum stake or cannot proceed to next provider.'
+                            this.isBetSuccessful = false
                         }
                     })
                 } else if(this.orderForm.betType == 'BEST_PRICE') {
