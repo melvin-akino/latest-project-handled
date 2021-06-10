@@ -59,7 +59,7 @@ class BetTransformationHandler
             $messageOrderId  = end($requestUIDArray);
             $orderData       = Order::find($messageOrderId);
             $providerAccount = ProviderAccount::find($orderData->provider_account_id);
-            $eventId         = EventMarket::where('bet_identifier', $orderData->market_id)->first()->event_id;
+            $eventId         = EventMarket::withTrashed()->where('bet_identifier', $orderData->market_id)->first()->event_id;
 
             if ($this->message->data->status == self::STATUS_RECEIVED) {
                 if (time() - strtotime($orderData->created_at) > 60) {
