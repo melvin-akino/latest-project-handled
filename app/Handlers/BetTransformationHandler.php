@@ -72,12 +72,19 @@ class BetTransformationHandler
                     SwooleHandler::setColumnValue('ordersTable', $orderSWTKey, 'status', 'FAILED');
 
                     if (!empty($providerAccount->id)) {
-                        BlockedLine::updateOrCreate([
-                            'event_id'    => $eventId,
-                            'odd_type_id' => $orderData->odd_type_id,
-                            'points'      => $orderData->odd_label,
-                            'line'        => $providerAccount->line
-                        ]);
+                        if (
+                            in_array($orderData->reason, ['1X029', '1X012']) ||
+                            strpos($orderData->reason, 'The bet amount entered should not exceed the assigned total credit line') !== false ||
+                            strpos($orderData->reason, 'You do not have sufficient credit to place this bet') !== false ||
+                            strpos($orderData->reason, 'The maximum bet amount for this event is') !== false
+                        ) {
+                            BlockedLine::updateOrCreate([
+                                'event_id'    => $eventId,
+                                'odd_type_id' => $orderData->odd_type_id,
+                                'points'      => $orderData->odd_label,
+                                'line'        => $providerAccount->line
+                            ]);
+                        }
                     }
                 }
             } else {
