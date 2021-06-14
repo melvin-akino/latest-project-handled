@@ -16,6 +16,7 @@ use App\Models\{
     ProviderAccount,
     Currency
 };
+use App\User;
 use Carbon\Carbon;
 use Exception;
 use Illuminate\Support\Facades\{DB, Log};
