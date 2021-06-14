@@ -179,6 +179,10 @@ class ProviderAccount extends Model
             } else {
                 $query->orderBy('updated_at', 'ASC');
 
+                self::find($query->first()->id)->update([
+                    'updated_at' => Carbon::now(),
+                ]);
+
                 return $query->first();
             }
         }
