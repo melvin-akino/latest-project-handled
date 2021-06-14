@@ -137,7 +137,7 @@ class ProviderAccount extends Model
                 }
 
                 usort($accountFinalCandidates, function ($a, $b) {
-                    return $b['updated_at'] <=> $a['updated_at'];
+                    return $a['updated_at'] <=> $b['updated_at'];
                 });
 
                 Log::info("Account Candidates - Final candidates");
