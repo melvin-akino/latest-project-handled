@@ -137,7 +137,7 @@ class ProviderAccount extends Model
                 }
 
                 usort($accountFinalCandidates, function ($a, $b) {
-                    return $b['credits'] <=> $a['credits'];
+                    return $b['updated_at'] <=> $a['updated_at'];
                 });
 
                 Log::info("Account Candidates - Final candidates");
@@ -165,6 +165,10 @@ class ProviderAccount extends Model
                             'odd_type_id'         => $oddType,
                             'team_ground'         => $marketFlag,
                             'not_allowed_ground'  => $notAllowed
+                        ]);
+
+                        self::find($providerAccountId)->update([
+                            'updated_at' => Carbon::now(),
                         ]);
                     }
 
