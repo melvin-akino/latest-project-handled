@@ -52,20 +52,20 @@ class BetTransformationHandler
         try {
             DB::beginTransaction();
 
-            $swoole             = app('swoole');
-            $topics             = $swoole->topicTable;
-            $colMinusOne        = OddType::whereIn('type', ['1X2', 'HT 1X2', 'OE'])->pluck('id')->toArray();
-            $requestUIDArray    = explode('-', $this->message->request_uid);
-            $messageOrderId     = end($requestUIDArray);
-            $orderData          = Order::find($messageOrderId);
-            $providerAccount    = ProviderAccount::find($orderData->provider_account_id);
-            $eventId            = EventMarket::withTrashed()->where('bet_identifier', $orderData->market_id)->first()->event_id;
-            $blockedLineReasons = explode(',', env('BLOCKED_LINE_REASONS', ''));
-            $reasons            = [];
+            $swoole               = app('swoole');
+            $topics               = $swoole->topicTable;
+            $colMinusOne          = OddType::whereIn('type', ['1X2', 'HT 1X2', 'OE'])->pluck('id')->toArray();
+            $requestUIDArray      = explode('-', $this->message->request_uid);
+            $messageOrderId       = end($requestUIDArray);
+            $orderData            = Order::find($messageOrderId);
+            $providerAccount      = ProviderAccount::find($orderData->provider_account_id);
+            $eventId              = EventMarket::withTrashed()->where('bet_identifier', $orderData->market_id)->first()->event_id;
+            $blockedLineReasons   = explode('|', env('BLOCKED_LINE_REASONS', ''));
+            $hasBlockedLineReason = false;
 
             foreach($blockedLineReasons as $reason) {
                 if(stripos($orderData->reason, $reason) !== false) {
-                    $reasons[] = $reason;
+                    $hasBlockedLineReason = true;
                 }
             }
 
@@ -80,7 +80,7 @@ class BetTransformationHandler
                     SwooleHandler::setColumnValue('ordersTable', $orderSWTKey, 'status', 'FAILED');
 
                     if (!empty($providerAccount->id)) {
-                        if (!empty($reasons)) {
+                        if (!empty($hasBlockedLineReason)) {
                             BlockedLine::updateOrCreate([
                                 'event_id'    => $eventId,
                                 'odd_type_id' => $orderData->odd_type_id,
@@ -160,7 +160,7 @@ class BetTransformationHandler
                         $userBalance  = WalletFacade::addBalance($walletToken, $user->uuid, trim(strtoupper($currencyCode)), $order->stake, $reason);
 
                         if (!empty($providerAccount->id)) {
-                            if (!empty($reasons)) {
+                            if (!empty($hasBlockedLineReason)) {
                                 BlockedLine::updateOrCreate([
                                     'event_id'    => $eventId,
                                     'odd_type_id' => $orderData->odd_type_id,
