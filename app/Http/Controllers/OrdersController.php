@@ -607,7 +607,7 @@ class OrdersController extends Controller
                     'master_event_market_unique_id' => $query->mem_uid,
                     'market_id'                     => $query->bet_identifier,
                     'odds'                          => $row['price'],
-                    'odd_label'                     => $query->odd_label,
+                    'odd_label'                     => $request->points,
                     'stake'                         => $payloadStake,
                     'actual_stake'                  => $actualStake,
                     'score'                         => $query->score,
