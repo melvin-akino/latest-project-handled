@@ -338,7 +338,7 @@ return [
             ],
         ],
         'providerEventMarkets'              => [ //key format [$betIdentifier.":".$oddType.$marketFlag.$oddPoints]
-            'size'   => 20000,
+            'size'   => 100000,
             'column' => [
                 ['name' => 'mem_uid', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 100],
                 ['name' => 'bet_identifier', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 30],
