@@ -411,8 +411,14 @@ export default {
         },
         tradeWindowPoints(value) {
             this.points = value
-            this.initialSpread()
             this.getMarketDetails(false, false)
+        },
+        'market_details.spreads'() {
+            this.initialSpread()
+        },
+        'odd_details.game.market_odds'() {
+            this.getMarketDetails(false, false)
+            this.initialSpread()
         }
     },
     mounted() {
@@ -465,10 +471,6 @@ export default {
                 if(this.market_details.spreads.length != 0 && this.odd_details.game.has_other_markets) {
                     this.market_details.spreads.map(spread => {
                         points.map(point => {
-                            if(spread.market_id == point.market_id) {
-                                this.$set(spread, 'points', point.points)
-                                this.$set(spread, 'odds', point.odds)
-                            }
                             if(spread.points == point.points) {
                                 this.$set(spread, 'market_id', point.market_id)
                             }
@@ -476,9 +478,9 @@ export default {
                     })
 
                     if(this.odd_details.game.market_odds.hasOwnProperty('other')) {
-                        this.spreads = moveToFirstElement(points, 'market_id', 'points', this.odd_details.odd.market_id)
+                        this.spreads = moveToFirstElement(points, 'market_id', 'points', this.odd_details.odd.market_id, this.odd_details.odd.points)
                     } else {
-                        this.spreads = moveToFirstElement(this.market_details.spreads, 'market_id', 'points', this.odd_details.odd.market_id)
+                        this.spreads = moveToFirstElement(this.market_details.spreads, 'market_id', 'points', this.odd_details.odd.market_id, this.odd_details.odd.points)
                     }
                 } else {
                     this.spreads = points
@@ -522,7 +524,6 @@ export default {
                     this.market_details = response.data.data
                     this.formattedRefSchedule = response.data.data.ref_schedule.split(' ')
                     this.loadingMessage = 'Loading Market Details...'
-                    this.initialSpread()
                     if(updatedPoints) {
                         if (setMinMaxProviders) {
                             this.setMinMaxProviders()
@@ -562,7 +563,7 @@ export default {
             this.showBetMatrix = false
             this.minMaxUpdateCounter = 0
             this.clearOrderMessage()
-            this.getMarketDetails(false, false)
+            this.initialSpread()
             this.points = points
             this.orderForm.stake = ''
             this.$v.$reset()
@@ -582,22 +583,28 @@ export default {
             })
         },
         updateMinMaxData(minmax, hasMarketData, noMarketAvailable) {
-            if(minmax.market_id == this.market_id) {
-                if(!_.isEmpty(this.minMaxProviders)) {
-                    let minMaxProviderIds = this.minMaxProviders.map(provider => provider.provider_id)
-                    if(minMaxProviderIds.includes(minmax.provider_id)) {
-                        this.minMaxProviders.map(provider => {
-                            if(provider.provider_id == minmax.provider_id) {
-                                provider.min = minmax.message == '' && minmax.points == this.points ? Number(twoDecimalPlacesFormat(minmax.min)) : null
-                                provider.max = minmax.message == '' && minmax.points == this.points ? Number(twoDecimalPlacesFormat(minmax.max)) : null
-                                provider.price = minmax.message == '' && minmax.points == this.points ? Number(twoDecimalPlacesFormat(minmax.price)) : null
-                                provider.points = minmax.message == '' && minmax.points == this.points ? Number(twoDecimalPlacesFormat(minmax.points)) : null
-                                provider.age = minmax.message == '' && minmax.points == this.points ? minmax.age : null
-                                provider.hasMarketData = hasMarketData
-                                provider.noMarketAvailable = noMarketAvailable
+            if(minmax.market_id == this.market_id && !_.isEmpty(this.minMaxProviders)) {
+                let minMaxProviderIds = this.minMaxProviders.map(provider => provider.provider_id)
+                if(minMaxProviderIds.includes(minmax.provider_id)) {
+                    this.minMaxProviders.map(provider => {
+                        if(provider.provider_id == minmax.provider_id) {
+                            provider.hasMarketData = hasMarketData
+                            provider.noMarketAvailable = noMarketAvailable
+                            if(provider.hasMarketData) {
+                                provider.min = Number(twoDecimalPlacesFormat(minmax.min)) || null
+                                provider.max = Number(twoDecimalPlacesFormat(minmax.max)) || null
+                                provider.price = Number(twoDecimalPlacesFormat(minmax.price)) || null
+                                provider.points = Number(twoDecimalPlacesFormat(minmax.points)) || null
+                                provider.age = minmax.age || null
+                            } else {
+                                provider.min = null
+                                provider.max = null
+                                provider.price = null
+                                provider.points =  null
+                                provider.age = null
                             }
-                        })
-                    }
+                        }
+                    })
                 }
             }
         },
@@ -605,25 +612,34 @@ export default {
             this.$options.sockets.onmessage = (response => {
                 if(getSocketKey(response.data) === 'getMinMax') {
                     let minmax = getSocketValue(response.data, 'getMinMax')
-                    if(minmax.message == '' && minmax.points == this.points) {
-                        this.updateMinMaxData(minmax, true, false)
-                        this.$store.dispatch('trade/updateOdds', { market_id: minmax.market_id, odds: minmax.price })
+                    if(minmax.message == '') {
+                        if(this.market_details.odd_type.includes('1X2') || this.market_details.odd_type.includes('OE')) {
+                            this.updateMinMaxData(minmax, true, false)
+                            this.$store.dispatch('trade/updateOdds', { market_id: minmax.market_id, odds: minmax.price })
+                        } else {
+                            if(this.points == minmax.points) {
+                                this.updateMinMaxData(minmax, true, false)
+                                this.$store.dispatch('trade/updateOdds', { market_id: minmax.market_id, odds: minmax.price })
+                            } else {
+                                this.minMaxData = this.minMaxData.filter(provider => provider.provider_id != minmax.provider_id)
+                                this.selectedProviders = this.selectedProviders.filter(provider => provider != minmax.provider_id)
+                                this.updateMinMaxData(minmax, false, true)
+
+                                let spreadPoints = this.market_details.spreads.length != 0 ? this.market_details.spreads.map(spread => spread.points) : []
+                                if(!spreadPoints.includes(minmax.points) && minmax.points) {
+                                    this.market_details.spreads.push({
+                                        market_id: minmax.market_id,
+                                        odds: minmax.price,
+                                        points: minmax.points,
+                                        provider_id: minmax.provider_id
+                                    })
+                                }
+                            }
+                        }
                     } else {
                         this.minMaxData = this.minMaxData.filter(provider => provider.provider_id != minmax.provider_id)
                         this.selectedProviders = this.selectedProviders.filter(provider => provider != minmax.provider_id)
                         this.updateMinMaxData(minmax, false, true)
-
-                        if(minmax.hasOwnProperty('points')) {
-                            let spreadPoints = this.spreads.map(spread => spread.points)
-                            if(minmax.points != this.points && !spreadPoints.includes(minmax.points)) {
-                                this.spreads.push({
-                                    market_id: minmax.market_id,
-                                    odds: minmax.price,
-                                    points: minmax.points,
-                                    provider_id: minmax.provider_id
-                                })
-                            }
-                        }
                     }
                     this.retrievedMarketData = true
                 }
@@ -640,6 +656,7 @@ export default {
                             provider.price = null
                             provider.age = null
                             provider.hasMarketData = false
+                            provider.noMarketAvailable = false
                         })
                         this.retrievedMarketData = false
                         this.minMaxData = []
