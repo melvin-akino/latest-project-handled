@@ -67,7 +67,8 @@ class ProviderAccount extends Model
         $query = self::where('provider_id', $providerId)
             ->whereNotIn('line', $blockedLines)
             ->where('is_enabled', true)
-            ->where('type', $type);
+            ->where('type', $type)
+            ->where('usage', '!=', 'CLOSE');
 
         if ($query->pluck('uuid')->count() == 0) {
             return null;
