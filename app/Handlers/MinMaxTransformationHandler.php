@@ -144,6 +144,7 @@ class MinMaxTransformationHandler
                                     $punterPercentage = $userProviderConfigTable->get($userProviderSwtId)['punter_percentage'];
                                 }
 
+                                $eventMarket   = EventMarket::where('bet_identifier', $data->market_id)->first();
                                 $maxBetDisplay = SystemConfiguration::getSystemConfigurationValue('MAX_BET')->value;
                                 $maximum       = floor((($data->maximum) * ($punterPercentage / 100)) * 100 ) / 100;
                                 $timeDiff      = time() - (int) $data->timestamp;
@@ -155,7 +156,7 @@ class MinMaxTransformationHandler
                                     "min"         => $data->minimum,
                                     "max"         => ($maximum <= $maxBetDisplay) ? $maximum : $maxBetDisplay,
                                     "price"       => (double) $data->odds,
-                                    "points"      => $data->points,
+                                    "points"      => $eventMarket->odd_label,
                                     'market_id'   => $memUID,
                                     'age'         => $age,
                                     'message'     => ''
@@ -205,7 +206,7 @@ class MinMaxTransformationHandler
                                     'min'       => $data->minimum,
                                     'max'       => $data->maximum,
                                     'odds'      => (double) $data->odds,
-                                    'points'    => $data->points,
+                                    'points'    => $eventMarket->odd_label,
                                     'market_id' => $data->market_id,
                                     'mem_uid'   => $memUID,
                                     "provider"  => strtoupper($data->provider),
