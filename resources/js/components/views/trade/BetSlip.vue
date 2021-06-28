@@ -597,6 +597,8 @@ export default {
                                 provider.points = Number(twoDecimalPlacesFormat(minmax.points)) || null
                                 provider.age = minmax.age || null
                             } else {
+                                this.minMaxData = this.minMaxData.filter(provider => provider.provider_id != minmax.provider_id)
+                                this.selectedProviders = this.selectedProviders.filter(provider => provider != minmax.provider_id)
                                 provider.min = null
                                 provider.max = null
                                 provider.price = null
@@ -621,8 +623,6 @@ export default {
                                 this.updateMinMaxData(minmax, true, false)
                                 this.$store.dispatch('trade/updateOdds', { market_id: minmax.market_id, odds: minmax.price })
                             } else {
-                                this.minMaxData = this.minMaxData.filter(provider => provider.provider_id != minmax.provider_id)
-                                this.selectedProviders = this.selectedProviders.filter(provider => provider != minmax.provider_id)
                                 this.updateMinMaxData(minmax, false, true)
 
                                 let spreadPoints = this.market_details.spreads.length != 0 ? this.market_details.spreads.map(spread => spread.points) : []
@@ -637,8 +637,6 @@ export default {
                             }
                         }
                     } else {
-                        this.minMaxData = this.minMaxData.filter(provider => provider.provider_id != minmax.provider_id)
-                        this.selectedProviders = this.selectedProviders.filter(provider => provider != minmax.provider_id)
                         this.updateMinMaxData(minmax, false, true)
                     }
                     this.retrievedMarketData = true
