@@ -626,7 +626,7 @@ export default {
                                 this.updateMinMaxData(minmax, false, true)
 
                                 let spreadPoints = this.market_details.spreads.length != 0 ? this.market_details.spreads.map(spread => spread.points) : []
-                                if(!spreadPoints.includes(minmax.points) && minmax.points) {
+                                if(!spreadPoints.includes(minmax.points) && minmax.points && minmax.market_id == this.market_id) {
                                     this.market_details.spreads.push({
                                         market_id: minmax.market_id,
                                         odds: minmax.price,
