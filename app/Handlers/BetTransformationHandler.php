@@ -174,7 +174,20 @@ class BetTransformationHandler
                             $orderData->updated_at = Carbon::now();
                             $orderData->save();
 
-                            $orderLogs  = OrderLogs::create([
+                            OrderLogs::create([
+                                'provider_id'   => $order->provider_id,
+                                'sport_id'      => $order->sport_id,
+                                'bet_id'        => $this->message->data->bet_id,
+                                'bet_selection' => $order->bet_selection,
+                                'status'        => $status,
+                                'user_id'       => $order->user_id,
+                                'reason'        => $this->message->data->reason,
+                                'profit_loss'   => $order->profit_loss,
+                                'order_id'      => $order->id,
+                                'settled_date'  => null,
+                            ]);
+
+                            OrderLogs::create([
                                 'provider_id'   => $order->provider_id,
                                 'sport_id'      => $order->sport_id,
                                 'bet_id'        => $this->message->data->bet_id,
