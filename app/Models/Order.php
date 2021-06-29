@@ -38,7 +38,8 @@ class Order extends Model
         'master_team_away_name',
         'master_event_unique_id',
         'master_event_market_unique_id',
-        'provider_error_message_id'
+        'provider_error_message_id',
+        'retry_count',
     ];
 
     protected $hidden = [];
