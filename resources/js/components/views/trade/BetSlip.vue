@@ -516,12 +516,16 @@ export default {
             this.$v.orderForm.stake.$touch()
             this.clearOrderMessage()
         },
-        getMarketDetails(setMinMaxProviders = true, updatedPoints = true) {
+        getMarketDetails(setMinMaxProviders = true, updatedPoints = true, changedPoints = false) {
             let token = Cookies.get('mltoken')
 
             axios.get(`v1/orders/${this.market_id}`, { headers: { 'Authorization': `Bearer ${token}` }})
                 .then(response => {
-                    this.market_details = response.data.data
+                    if(changedPoints) {
+                        this.market_details.providers = response.data.data.providers
+                    } else {
+                        this.market_details = response.data.data
+                    }
                     this.formattedRefSchedule = response.data.data.ref_schedule.split(' ')
                     this.loadingMessage = 'Loading Market Details...'
                     if(updatedPoints) {
@@ -563,6 +567,7 @@ export default {
             this.showBetMatrix = false
             this.minMaxUpdateCounter = 0
             this.clearOrderMessage()
+            this.getMarketDetails(false, false, true)
             this.initialSpread()
             this.points = points
             this.orderForm.stake = ''
