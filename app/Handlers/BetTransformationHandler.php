@@ -133,16 +133,17 @@ class BetTransformationHandler
                         $exchangeRateId = $providerAccountOrder->exchange_rate_id;
 
                         $orderLogs = OrderLogs::create([
-                            'provider_id'   => $order->provider_id,
-                            'sport_id'      => $order->sport_id,
-                            'bet_id'        => $this->message->data->bet_id,
-                            'bet_selection' => $order->bet_selection,
-                            'status'        => $status,
-                            'user_id'       => $order->user_id,
-                            'reason'        => $this->message->data->reason,
-                            'profit_loss'   => $order->profit_loss,
-                            'order_id'      => $order->id,
-                            'settled_date'  => null,
+                            'provider_id'         => $order->provider_id,
+                            'sport_id'            => $order->sport_id,
+                            'bet_id'              => $this->message->data->bet_id,
+                            'bet_selection'       => $order->bet_selection,
+                            'status'              => $status,
+                            'user_id'             => $order->user_id,
+                            'reason'              => $this->message->data->reason,
+                            'profit_loss'         => $order->profit_loss,
+                            'order_id'            => $order->id,
+                            'settled_date'        => null,
+                            'provider_account_id' => $orderData->provider_account_id,
                         ]);
 
                         ProviderAccountOrder::create([
@@ -175,29 +176,31 @@ class BetTransformationHandler
                             $orderData->save();
 
                             OrderLogs::create([
-                                'provider_id'   => $order->provider_id,
-                                'sport_id'      => $order->sport_id,
-                                'bet_id'        => $this->message->data->bet_id,
-                                'bet_selection' => $order->bet_selection,
-                                'status'        => $status,
-                                'user_id'       => $order->user_id,
-                                'reason'        => $this->message->data->reason,
-                                'profit_loss'   => $order->profit_loss,
-                                'order_id'      => $order->id,
-                                'settled_date'  => null,
+                                'provider_id'         => $order->provider_id,
+                                'sport_id'            => $order->sport_id,
+                                'bet_id'              => $this->message->data->bet_id,
+                                'bet_selection'       => $order->bet_selection,
+                                'status'              => $status,
+                                'user_id'             => $order->user_id,
+                                'reason'              => $this->message->data->reason,
+                                'profit_loss'         => $order->profit_loss,
+                                'order_id'            => $order->id,
+                                'settled_date'        => null,
+                                'provider_account_id' => $orderData->provider_account_id,
                             ]);
 
                             OrderLogs::create([
-                                'provider_id'   => $order->provider_id,
-                                'sport_id'      => $order->sport_id,
-                                'bet_id'        => $this->message->data->bet_id,
-                                'bet_selection' => $order->bet_selection,
-                                'status'        => "PENDING",
-                                'user_id'       => $order->user_id,
-                                'reason'        => "Retry Placed Order",
-                                'profit_loss'   => $order->profit_loss,
-                                'order_id'      => $order->id,
-                                'settled_date'  => null,
+                                'provider_id'         => $order->provider_id,
+                                'sport_id'            => $order->sport_id,
+                                'bet_id'              => $this->message->data->bet_id,
+                                'bet_selection'       => $order->bet_selection,
+                                'status'              => "PENDING",
+                                'user_id'             => $order->user_id,
+                                'reason'              => "Retry Placed Order",
+                                'profit_loss'         => $order->profit_loss,
+                                'order_id'            => $order->id,
+                                'settled_date'        => null,
+                                'provider_account_id' => $orderData->provider_account_id,
                             ]);
                         } else {
                             $source       = Source::where('source_name', 'LIKE', 'RETURN_STAKE')->first();
@@ -219,16 +222,17 @@ class BetTransformationHandler
                             }
 
                             $orderLogs  = OrderLogs::create([
-                                'provider_id'   => $order->provider_id,
-                                'sport_id'      => $order->sport_id,
-                                'bet_id'        => $this->message->data->bet_id,
-                                'bet_selection' => $order->bet_selection,
-                                'status'        => $status,
-                                'user_id'       => $order->user_id,
-                                'reason'        => $this->message->data->reason,
-                                'profit_loss'   => $order->profit_loss,
-                                'order_id'      => $order->id,
-                                'settled_date'  => null,
+                                'provider_id'         => $order->provider_id,
+                                'sport_id'            => $order->sport_id,
+                                'bet_id'              => $this->message->data->bet_id,
+                                'bet_selection'       => $order->bet_selection,
+                                'status'              => $status,
+                                'user_id'             => $order->user_id,
+                                'reason'              => $this->message->data->reason,
+                                'profit_loss'         => $order->profit_loss,
+                                'order_id'            => $order->id,
+                                'settled_date'        => null,
+                                'provider_account_id' => $orderData->provider_account_id,
                             ]);
 
                             if ($order->status == strtoupper(self::STATUS_SUCCESS)) {
