@@ -37,7 +37,7 @@
                             <label class="text-gray-500 font-bold">
                                 <input class="mr-2 leading-tight" type="checkbox" @change="toggleEventOrder(order, order.order_id)" :checked="selectedOrders.includes(order.order_id)">
                             </label>
-                            {{ (order.odd_type == "OU" || order.odd_type == "OE") && order.odd_type_name.indexOf("FT") >= 0 ? "FT " : ((order.odd_type == "OU" || order.odd_type == "OE") && order.odd_type_name.indexOf("HT") >= 0 ? "HT " : "") }} {{order.team_name}} {{ order.type == 'HDP' || order.type == '1x2' ? order.odd_type_name : ''}} {{order.points}} {{`(${defaultPriceFormat})`}}
+                            {{ (order.odd_type.includes("OU") || order.odd_type.includes("OE")) && order.odd_type_name.includes("FT") ? "FT " : ((order.odd_type.includes("OU") || order.odd_type.includes("OE")) && order.odd_type_name.includes("HT") ? "HT " : "") }} {{order.team_name}} {{ order.type == 'HDP' || order.type == '1x2' ? order.odd_type_name : ''}} {{order.points}} {{`(${defaultPriceFormat})`}}
                         </div>
                         <span class="w-32">{{order.bet_team}}</span>
                         <span class="w-32">{{order.odds}}</span>
@@ -91,7 +91,7 @@ export default {
         getBetMatrixOrders() {
             let token = Cookies.get('mltoken')
 
-            axios.get(`v1/orders/bet-matrix/${this.event_id}`, { headers: { 'Authorization': `Bearer ${token}` }})
+            axios.get('v1/orders/bet-matrix', { params: { event_id: this.event_id, market_id: this.market_id }, headers: { 'Authorization': `Bearer ${token}` }})
             .then(response => {
                 let { data, current_score } = response.data
                 this.isLoadingBetMatrixOrders = false
