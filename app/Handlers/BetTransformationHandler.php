@@ -155,11 +155,9 @@ class BetTransformationHandler
                             'exchange_rate'      => $exchangeRate,
                         ]);
                     } else {
-                        $retryExpiry   = SystemConfiguration::getSystemConfigurationValue('RETRY_EXPIRY')->value;
-                        $retryMaxCount = SystemConfiguration::getSystemConfigurationValue('RETRY_COUNT')->value;
+                        $retryExpiry = SystemConfiguration::getSystemConfigurationValue('RETRY_EXPIRY')->value;
 
-                        if (time() - strtotime($orderData->created_at) > $retryExpiry) {
-                            $attemptRetry    = true;
+                        if (time() - strtotime($orderData->created_at) <= $retryExpiry) {
                             $redisExpiration = env('REDIS_TOOL_BALANCE_EXPIRE', 3600);
 
                             Redis::hmset('queue', $orderId, json_encode($orderData->toArray()));
