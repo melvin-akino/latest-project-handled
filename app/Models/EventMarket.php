@@ -118,4 +118,13 @@ class EventMarket extends Model
             ->where('bet_identifier', $betID)
             ->update([ 'em.odds' => $odds ]);
     }
+
+    public static function getOddTypeByMemUID(string $memUID)
+    {
+        return DB::table('event_markets as em')
+                ->join('odd_types as ot', 'ot.id', 'em.odd_type_id')
+                ->where('mem_uid', $memUID)
+                ->select('ot.id', 'ot.type', 'mem_uid')
+                ->first();
+    }
 }

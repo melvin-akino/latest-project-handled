@@ -67,7 +67,8 @@ class ProviderAccount extends Model
         $query = self::where('provider_id', $providerId)
             ->whereNotIn('line', $blockedLines)
             ->where('is_enabled', true)
-            ->where('type', $type);
+            ->where('type', $type)
+            ->where('usage', '!=', 'CLOSE');
 
         if ($query->pluck('uuid')->count() == 0) {
             return null;
@@ -137,7 +138,7 @@ class ProviderAccount extends Model
                 }
 
                 usort($accountFinalCandidates, function ($a, $b) {
-                    return $b['credits'] <=> $a['credits'];
+                    return $a['updated_at'] <=> $b['updated_at'];
                 });
 
                 Log::info("Account Candidates - Final candidates");
@@ -166,6 +167,10 @@ class ProviderAccount extends Model
                             'team_ground'         => $marketFlag,
                             'not_allowed_ground'  => $notAllowed
                         ]);
+
+                        self::find($providerAccountId)->update([
+                            'updated_at' => Carbon::now(),
+                        ]);
                     }
 
                     return $finalProvider;
@@ -174,6 +179,10 @@ class ProviderAccount extends Model
                 }
             } else {
                 $query->orderBy('updated_at', 'ASC');
+
+                self::find($query->first()->id)->update([
+                    'updated_at' => Carbon::now(),
+                ]);
 
                 return $query->first();
             }
