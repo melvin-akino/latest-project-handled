@@ -84,7 +84,7 @@
                         <label class="font-bold text-xs uppercase">Export</label><br />
                         <json-excel
                             class="inline-block border-2 border-gray-400 hover:border-orange-500 hover:bg-orange-500 hover:text-white px-4 py-2 text-xs text-center transition ease-in-out duration-100 select-none focus:outline-none cursor-pointer tracking-wide"
-                            :data="myorders"
+                            :data="myorders.filter(order => order.status !== 'FAILED')"
                             :fields="exportFields"
                             :name="filename">
                                 <i class="fas fa-download mr-2"></i> <strong>EXCEL</strong> (.xlsx)
@@ -92,7 +92,7 @@
 
                         <json-csv
                             class="inline-block border-2 border-gray-400 hover:border-orange-500 hover:bg-orange-500 hover:text-white px-4 py-2 text-xs text-center transition ease-in-out duration-100 select-none focus:outline-none cursor-pointer tracking-wide"
-                            :data="myorders"
+                            :data="myorders.filter(order => order.status !== 'FAILED')"
                             :name="`${ filename }.csv`">
                                 <i class="fas fa-download mr-2"></i> <strong>CSV FILE</strong> (.csv)
                         </json-csv>
