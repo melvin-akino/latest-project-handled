@@ -22,7 +22,12 @@ use App\Models\{
     MasterEvent
 };
 use Illuminate\Http\Request;
-use Illuminate\Support\{Facades\DB, Facades\Log, Str};
+use Illuminate\Support\{
+    Facades\DB,
+    Facades\Log,
+    Facades\Redis,
+    Str
+};
 use Carbon\Carbon;
 use SendLogData;
 use App\Http\Requests\OrderRequest;
@@ -709,9 +714,11 @@ class OrdersController extends Controller
             DB::commit();
 
             for ($i = 0; $i < count($incrementIds['id']); $i++) {
-                $requestId = Str::uuid() . "-" . $incrementIds['id'][$i];
-                $requestTs = self::milliseconds();
-                $payload   = [
+                $orderData       = Order::find($incrementIds['id'][$i])->first();
+                $redisExpiration = env('REDIS_TOOL_BALANCE_EXPIRE', 3600);
+                $requestId       = Str::uuid() . "-" . $incrementIds['id'][$i];
+                $requestTs       = self::milliseconds();
+                $payload         = [
                     'request_uid' => $requestId,
                     'request_ts'  => $requestTs,
                     'sub_command' => 'place',
@@ -733,11 +740,19 @@ class OrdersController extends Controller
                     'exchange_rate'    => $incrementIds['payload'][$i]['exchange_rate'],
                 ];
 
-                KafkaPush::dispatch(
-                    $incrementIds['payload'][$i]['provider_id'] . env('KAFKA_SCRAPE_ORDER_REQUEST_POSTFIX', '_bet_req'),
-                    $payload,
-                    $requestId
-                );
+                // KafkaPush::dispatch(
+                //     $incrementIds['payload'][$i]['provider_id'] . env('KAFKA_SCRAPE_ORDER_REQUEST_POSTFIX', '_bet_req'),
+                //     $payload,
+                //     $requestId
+                // );
+
+                Redis::hmset('queue', $orderId, json_encode($orderData->toArray()));
+
+                $ttl = Redis::ttl('queue');
+
+                if ($ttl < 0) {
+                    Redis::expire('queue', $redisExpiration);
+                }
 
                 $toLogs = [
                     "class"       => "OrdersController",
