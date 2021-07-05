@@ -740,12 +740,6 @@ class OrdersController extends Controller
                     'exchange_rate'    => $incrementIds['payload'][$i]['exchange_rate'],
                 ];
 
-                // KafkaPush::dispatch(
-                //     $incrementIds['payload'][$i]['provider_id'] . env('KAFKA_SCRAPE_ORDER_REQUEST_POSTFIX', '_bet_req'),
-                //     $payload,
-                //     $requestId
-                // );
-
                 Redis::hmset('queue', $orderId, json_encode($orderData->toArray()));
 
                 $ttl = Redis::ttl('queue');
