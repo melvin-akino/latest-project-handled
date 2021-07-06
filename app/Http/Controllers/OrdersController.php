@@ -613,7 +613,7 @@ class OrdersController extends Controller
                     'master_event_market_unique_id' => $query->mem_uid,
                     'market_id'                     => $query->bet_identifier,
                     'odds'                          => $row['price'],
-                    'odd_label'                     => $query->odd_label,
+                    'odd_label'                     => $request->points,
                     'stake'                         => $payloadStake,
                     'actual_stake'                  => $actualStake,
                     'score'                         => $query->score,
@@ -973,7 +973,7 @@ class OrdersController extends Controller
         }
     }
 
-    public function betMatrixOrders(Request $request)
+    public function betMatrixOrders(string $uid)
     {
         try {
             $userTz        = "Etc/UTC";
@@ -985,20 +985,10 @@ class OrdersController extends Controller
                 $userTz = Timezones::find($getUserConfig->value)->name;
             }
 
-            $eventId  = $request->event_id;
-            $marketId = $request->market_id;
-
-            $oddType  = EventMarket::getOddTypeByMemUID($marketId);
-            $halfTime = false;
-
-            if(stripos($oddType->type, 'HT') !== false) {
-                $halfTime = true;
-            }
-
-            $orders     = Order::getOrdersByEvent($eventId, true, $halfTime)->get();
+            $orders     = Order::getOrdersByEvent($uid, true)->get();
             $ouLabels   = OddType::where('type', 'ILIKE', '%OU%')->pluck('id')->toArray();
             $oeLabels   = OddType::where('type', 'ILIKE', '%OE%')->pluck('id')->toArray();
-            $eventScore = array_map('trim', explode('-', MasterEvent::getMasterEvent($eventId)->score));
+            $eventScore = array_map('trim', explode('-', MasterEvent::getMasterEvent($uid)->score));
 
             $currentScore = [
                 'home' => $eventScore[0],
@@ -1035,13 +1025,6 @@ class OrdersController extends Controller
                 }
 
                 $scoreOnBet = array_map('trim', explode('-', $order->score_on_bet));
-
-                if(!empty($order->final_score)) {
-                    $finalScore =  array_map('trim', explode('-', $order->final_score));
-                    $currentScore['home'] = $finalScore[0];
-                    $currentScore['away'] = $finalScore[1];
-                }
-
                 $data[]     = [
                     'order_id'          => $order->id,
                     'stake'             => $order->stake,

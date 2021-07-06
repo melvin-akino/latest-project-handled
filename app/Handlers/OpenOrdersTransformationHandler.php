@@ -14,7 +14,8 @@ use App\Models\{
     OddType,
     WalletLedger,
     ProviderAccount,
-    Currency
+    Currency,
+    SystemConfiguration
 };
 use App\User;
 use Carbon\Carbon;
@@ -50,16 +51,18 @@ class OpenOrdersTransformationHandler
         try {
             DB::beginTransaction();
 
-            $swoole      = app('swoole');
-            $ordersTable = $swoole->ordersTable;
-            $providers   = $swoole->providersTable;
-            $openOrders  = $this->data->data;
-            $colMinusOne = OddType::whereIn('type', ['1X2', 'HT 1X2', 'OE'])->pluck('id')->toArray();
+            $swoole          = app('swoole');
+            $ordersTable     = $swoole->ordersTable;
+            $providers       = $swoole->providersTable;
+            $openOrders      = $this->data->data;
+            $colMinusOne     = OddType::whereIn('type', ['1X2', 'HT 1X2', 'OE'])->pluck('id')->toArray();
+            $disregardStatus = explode(',', SystemConfiguration::getSystemConfigurationValue('DISREGARDED_OPEN_ORDERS_STATUS')->value);
 
             foreach ($ordersTable as $_key => $orderTable) {
                 if (!in_array(strtoupper($orderTable['status']), ['SUCCESS', 'PENDING'])) {
                     continue;
                 }
+
                 $orderId        = substr($_key, strlen('orderId:'));
                 $expiry         = $orderTable['orderExpiry'];
                 $orderData      = Order::find($orderId);
@@ -73,6 +76,10 @@ class OpenOrdersTransformationHandler
 
                 if (!empty($openOrders)) {
                     foreach ($openOrders as $order) {
+                        if (in_array(strtoupper($order->status), $disregardStatus)) {
+                            continue;
+                        }
+
                         $betId            = $order->bet_id;
                         $providerCurrency = $providers->get('providerAlias:' . $order->provider)['currency_id'];
                         $exchangeRate     = ExchangeRate::where('from_currency_id', $providerCurrency)->where('to_currency_id', 1)->first();
