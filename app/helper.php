@@ -43,7 +43,7 @@ use App\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\Paginator;
-use Illuminate\Support\Facades\{Cookie, Log};
+use Illuminate\Support\Facades\{Cookie, Log, Redis};
 
 /* Datatable for CRM admin */
 
@@ -889,5 +889,21 @@ if (!function_exists('monitorLog')) {
     function monitorLog(string $channel, string $level, $data)
     {
         Log::channel($channel)->{$level}(json_encode($data));
+    }
+}
+
+
+if (!function_exists('retryCacheToRedis')) {
+    function retryCacheToRedis($orderData)
+    {
+        $redisExpiration = env('REDIS_TOOL_BALANCE_EXPIRE', 3600);
+
+        Redis::hmset('queue', $orderData['id'], json_encode($orderData));
+
+        $ttl = Redis::ttl('queue');
+
+        if ($ttl < 0) {
+            Redis::expire('queue', $redisExpiration);
+        }
     }
 }
