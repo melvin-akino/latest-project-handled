@@ -158,15 +158,7 @@ class BetTransformationHandler
                         $retryExpiry = SystemConfiguration::getSystemConfigurationValue('RETRY_EXPIRY')->value;
 
                         if (time() - strtotime($orderData->created_at) <= $retryExpiry) {
-                            $redisExpiration = env('REDIS_TOOL_BALANCE_EXPIRE', 3600);
-
-                            Redis::hmset('queue', $orderId, json_encode($orderData->toArray()));
-
-                            $ttl = Redis::ttl('queue');
-
-                            if ($ttl < 0) {
-                                Redis::expire('queue', $redisExpiration);
-                            }
+                            retryCacheToRedis($orderData->toArray());
 
                             $orderData->status     = "PENDING";
                             $orderData->reason     = "Retrying Order";
