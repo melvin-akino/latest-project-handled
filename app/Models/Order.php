@@ -240,11 +240,15 @@ class Order extends Model
                 $join->on('pao.order_log_id', 'ol.id');
                 $join->where('ol.status', 'PENDING');
             })
+            ->join('providers AS p', 'p.id', 'orders.provider_id')
+            ->join('event_markets AS em', 'em.bet_identifier', 'orders.market_id')
             ->join('provider_accounts AS pa', 'pa.id', 'orders.provider_account_id')
             ->select([
                 'orders.*',
                 'pao.actual_stake',
                 'pa.username',
+                'p.alias',
+                'em.event_id',
             ])
             ->where('orders.id', $orderId)
             ->first();
