@@ -239,4 +239,20 @@ class Order extends Model
                     'me.sport_id'
                 ]);
     }
+
+    public static function retryBetData($orderId)
+    {
+        return self::join('order_logs AS ol', 'ol.order_id', 'orders.id')
+            ->join('provider_account_orders AS pao', function ($join) {
+                $join->on('pao.order_log_id', 'ol.id');
+                $join->where('ol.status', 'PENDING');
+            })
+            ->join('provider_accounts AS pa', 'pa.id', 'orders.provider_account_id')
+            ->select([
+                'orders.*',
+                'pao.actual_stake',
+                'pa.username',
+            ])
+            ->first();
+    }
 }

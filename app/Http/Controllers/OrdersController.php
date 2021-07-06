@@ -19,7 +19,8 @@ use App\Models\{
     UserWallet,
     ProviderAccount,
     BlockedLine,
-    MasterEvent
+    MasterEvent,
+    RetryType
 };
 use Illuminate\Http\Request;
 use Illuminate\Support\{
@@ -714,7 +715,7 @@ class OrdersController extends Controller
             DB::commit();
 
             for ($i = 0; $i < count($incrementIds['id']); $i++) {
-                $orderData       = Order::find($incrementIds['id'][$i])->first();
+                $orderData       = Order::retryBetData($incrementIds['id'][$i]);
                 $redisExpiration = env('REDIS_TOOL_BALANCE_EXPIRE', 3600);
                 $requestId       = Str::uuid() . "-" . $incrementIds['id'][$i];
                 $requestTs       = self::milliseconds();
@@ -740,13 +741,7 @@ class OrdersController extends Controller
                     'exchange_rate'    => $incrementIds['payload'][$i]['exchange_rate'],
                 ];
 
-                Redis::hmset('queue', $orderId, json_encode($orderData->toArray()));
-
-                $ttl = Redis::ttl('queue');
-
-                if ($ttl < 0) {
-                    Redis::expire('queue', $redisExpiration);
-                }
+                retryCacheToRedis($orderData->toArray());
 
                 $toLogs = [
                     "class"       => "OrdersController",
@@ -826,6 +821,74 @@ class OrdersController extends Controller
                 WalletFacade::addBalance($exceptionArray['token'], $exceptionArray['uuid'], $exceptionArray['currency_code'], ($exceptionArray['stake']), "[PLACE_BET][RETURN_STAKE] - Something went wrong: " . $e->getMessage());
             }
 
+            $toLogs = [
+                "class"       => "OrdersController",
+                "message"     => "Line " . $e->getLine() . " | " . $e->getMessage(),
+                "module"      => "API_ERROR",
+                "status_code" => $e->getCode(),
+            ];
+            monitorLog('monitor_api', 'error', $toLogs);
+
+            return response()->json([
+                'status'      => false,
+                'status_code' => 500,
+                'message'     => trans('generic.internal-server-error')
+            ], 500);
+        }
+    }
+
+    public function postRetryBet(Request $request)
+    {
+        try {
+            $retryTypes = RetryType::pluck('type')->toArray();
+            $orderData  = Order::retryBetData($request->order_id);
+
+            if (in_array($request->retry_type, $retryTypes)) {
+                switch (strtolower($request->retry_type)) {
+                    case 'manual-same-account':
+                        retryCacheToRedis($orderData->toArray());
+                    break;
+                }
+            } else {
+                $toLogs = [
+                    "class"       => "OrdersController",
+                    "message"     => trans('generic.bad-request'),
+                    "module"      => "API_ERROR",
+                    "status_code" => 400,
+                ];
+                monitorLog('monitor_api', 'error', $toLogs);
+
+                throw new BadRequestException(trans('generic.bad-request'));
+            }
+        } catch (BadRequestException $e) {
+            $toLogs = [
+                "class"       => "OrdersController",
+                "message"     => "Line " . $e->getLine() . " | " . $e->getMessage(),
+                "module"      => "API_ERROR",
+                "status_code" => 400,
+            ];
+            monitorLog('monitor_api', 'error', $toLogs);
+
+            return response()->json([
+                'status'      => false,
+                'status_code' => 400,
+                'message'     => $e->getMessage()
+            ], 400);
+        } catch (NotFoundException $e) {
+            $toLogs = [
+                "class"       => "OrdersController",
+                "message"     => "Line " . $e->getLine() . " | " . $e->getMessage(),
+                "module"      => "API_ERROR",
+                "status_code" => 404,
+            ];
+            monitorLog('monitor_api', 'error', $toLogs);
+
+            return response()->json([
+                'status'      => false,
+                'status_code' => 404,
+                'message'     => $e->getMessage()
+            ], 404);
+        } catch (Exception $e) {
             $toLogs = [
                 "class"       => "OrdersController",
                 "message"     => "Line " . $e->getLine() . " | " . $e->getMessage(),
