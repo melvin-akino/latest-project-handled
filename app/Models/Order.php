@@ -253,6 +253,7 @@ class Order extends Model
                 'pao.actual_stake',
                 'pa.username',
             ])
+            ->where('orders.id', $orderId)
             ->first();
     }
 }
