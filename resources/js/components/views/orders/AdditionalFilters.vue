@@ -262,12 +262,12 @@
                         date_to: moment().subtract(1, 'days').format('YYYY-MM-DD')
                     },
                     this_week: {
-                        date_from: moment().startOf('isoweek').format('YYYY-MM-DD'),
-                        date_to: moment().endOf('isoweek').format('YYYY-MM-DD')
+                        date_from: moment().startOf('isoWeek').format('YYYY-MM-DD'),
+                        date_to: moment().endOf('isoWeek').format('YYYY-MM-DD')
                     },
                     last_week: {
-                        date_from: moment().startOf('isoweek').subtract(1, 'week').add(1, 'day').format('YYYY-MM-DD'),
-                        date_to: moment().endOf('isoweek').subtract(1, 'week').add(1, 'day').format('YYYY-MM-DD')
+                        date_from: moment().startOf('isoWeek').subtract(1, 'week').format('YYYY-MM-DD'),
+                        date_to: moment().endOf('isoWeek').subtract(1, 'week').format('YYYY-MM-DD')
                     },
                     monthly: {
                         date_from: moment().startOf('month').format('YYYY-MM-DD'),
@@ -294,12 +294,12 @@
 
                 if (this.ordersPage.includes('history')) {
                     this.form.period = 'last_week'
-                    this.form.date_from = moment().startOf('isoweek').subtract(1, 'week').add(1, 'day').format('YYYY-MM-DD')
-                    this.form.date_to = moment().endOf('isoweek').subtract(1, 'week').add(1, 'day').format('YYYY-MM-DD')
+                    this.form.date_from = moment().startOf('isoWeek').subtract(1, 'week').format('YYYY-MM-DD')
+                    this.form.date_to = moment().endOf('isoWeek').subtract(1, 'week').format('YYYY-MM-DD')
                 } else if (this.ordersPage.includes('orders')) {
                     this.form.period = 'this_week'
-                    this.form.date_from = moment().startOf('isoweek').format('YYYY-MM-DD')
-                    this.form.date_to = moment().endOf('isoweek').format('YYYY-MM-DD')
+                    this.form.date_from = moment().startOf('isoWeek').format('YYYY-MM-DD')
+                    this.form.date_to = moment().endOf('isoWeek').format('YYYY-MM-DD')
                     this.isDaily = false
                 }
 
