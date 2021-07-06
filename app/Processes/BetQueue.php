@@ -30,11 +30,13 @@ class BetQueue implements CustomProcessInterface
                     $maxRetryCount = SystemConfiguration::getSystemConfigurationValue('RETRY_COUNT');
                     $retryExpiry = SystemConfiguration::getSystemConfigurationValue('RETRY_EXPIRY');
 
-                    if (!empty($redis)) {
-                        foreach ($betQueue as $key => $bet) {
+                    if (!empty($betQueue)) {
+                        foreach ($betQueue as $key => $b) {
+                            $bet = json_decode($b, true);
+                            
                             if ($bet['retry_count'] < $maxRetryCount->value) {
                                 $now = Carbon::now();
-                                if ($now->diffInSeconds($bet['created_at']) <= $retryExpiry) {
+                                if ($now->diffInSeconds($bet['created_at']) <= $retryExpiry['value']) {
                                     $selectedAccount = null; // @TODO call bet selection
 
                                     DB::beginTransaction();
@@ -59,6 +61,8 @@ class BetQueue implements CustomProcessInterface
                                             'provider_account_id' => $selectedAccount
                                         ]
                                     );
+
+                                    DB::commit();
 
                                     $requestId = Str::uuid() . "-" . $bet['id'];
                                     $requestTs = getMilliseconds();
@@ -99,9 +103,13 @@ class BetQueue implements CustomProcessInterface
                             }
                         }
                     }
+
+                    usleep(5000);
                 }
             }
         } catch (Exception $e) {
+            var_dump($e->getMessage());
+            var_dump($e->getLine());
             $toLogs = [
                 "class"       => "BetQueue",
                 "message"     => "Line " . $e->getLine() . " | " . $e->getMessage(),
