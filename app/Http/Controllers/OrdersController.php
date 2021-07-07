@@ -850,16 +850,6 @@ class OrdersController extends Controller
                 ], 404);
             }
     
-            $hasActiveEventMarketWithSamePosition = EventMarket::hasActiveEventMarketWithSamePosition($eventMarketDetails);
-    
-            if (!$hasActiveEventMarketWithSamePosition) {
-                return response()->json([
-                    'status'      => false,
-                    'status_code' => 200,
-                    'message'     => 'No active event market with same position'
-                ], 200);
-            }
-    
             $eventDetails = Order::getEventDetails($orderId);
     
             $meUID       = $eventDetails->master_event_unique_id;
@@ -877,16 +867,28 @@ class OrdersController extends Controller
     
             $data = eventTransformation($gameDetails, $userId, $topicTable, 'bet-retry', $otherMarketDetails, $singleEvent);
             $eventData = is_array($data) ? array_values($data)[0] : [];
-            
-            return response()->json([
-                'status'      => true,
-                'status_code' => 200,
-                'data'        => [
-                    'is_main' => $eventMarketDetails->is_main,
-                    'market_event_identifier' => $eventMarketDetails->market_event_identifier,
-                    'event' => $eventData
-                ]
-            ], 200);
+            $responseData = [
+                'is_main' => $eventMarketDetails->is_main,
+                'market_event_identifier' => $eventMarketDetails->market_event_identifier,
+                'event' => $eventData
+            ];
+    
+            $hasActiveEventMarketWithSamePosition = EventMarket::hasActiveEventMarketWithSamePosition($eventMarketDetails);
+    
+            if (!$hasActiveEventMarketWithSamePosition) {
+                return response()->json([
+                    'status'      => false,
+                    'status_code' => 200,
+                    'message'     => 'No active event market with same position',
+                    'data'        => $responseData
+                ], 200);
+            } else {
+                return response()->json([
+                    'status'      => true,
+                    'status_code' => 200,
+                    'data'        => $responseData
+                ], 200);
+            }
         } catch (Exception $e) {
             $toLogs = [
                 "class"       => "OrdersController",
