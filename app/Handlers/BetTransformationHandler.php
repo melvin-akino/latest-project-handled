@@ -65,7 +65,6 @@ class BetTransformationHandler
 
             foreach($blockedLineReasons as $reason) {
                 if(stripos($orderData->reason, $reason) !== false) {
-                    $reasons[]            = $reason;
                     $hasBlockedLineReason = true;
                 }
             }
