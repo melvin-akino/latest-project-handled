@@ -900,10 +900,10 @@ if (!function_exists('retryCacheToRedis')) {
 
         Redis::rpush('ml-queue', json_encode($orderData));
 
-        $ttl = Redis::ttl('queue');
+        $ttl = Redis::ttl('ml-queue');
 
         if ($ttl < 0) {
-            Redis::expire('queue', $redisExpiration);
+            Redis::expire('ml-queue', $redisExpiration);
         }
     }
 }
