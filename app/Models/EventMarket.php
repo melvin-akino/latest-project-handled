@@ -118,4 +118,14 @@ class EventMarket extends Model
             ->where('bet_identifier', $betID)
             ->update([ 'em.odds' => $odds ]);
     }
+
+    public static function hasActiveEventMarketWithSamePosition($eventMarketDetails) {
+        return DB::table('event_markets')
+                 ->where('event_id', $eventMarketDetails->event_id)
+                 ->where('odd_type_id', $eventMarketDetails->odd_type_id)
+                 ->where('odd_label', $eventMarketDetails->odd_label)
+                 ->where('market_flag', $eventMarketDetails->market_flag)
+                 ->whereNull('deleted_at')
+                 ->first();
+    }
 }

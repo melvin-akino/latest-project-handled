@@ -837,6 +837,73 @@ class OrdersController extends Controller
         }
     }
 
+    public function getEventDetails(Request $request) {
+        try {
+            $orderId = $request->order_id;
+            $eventMarketDetails = Order::getEventMarketDetails($orderId);
+    
+            if (!$eventMarketDetails) {
+                return response()->json([
+                    'status'      => false,
+                    'status_code' => 404,
+                    'message'     => 'Event is not found or no longer active'
+                ], 404);
+            }
+    
+            $hasActiveEventMarketWithSamePosition = EventMarket::hasActiveEventMarketWithSamePosition($eventMarketDetails);
+    
+            if (!$hasActiveEventMarketWithSamePosition) {
+                return response()->json([
+                    'status'      => false,
+                    'status_code' => 200,
+                    'message'     => 'No active event market with same position'
+                ], 200);
+            }
+    
+            $eventDetails = Order::getEventDetails($orderId);
+    
+            $meUID       = $eventDetails->master_event_unique_id;
+            $userId      = auth()->user()->id;
+            $topicTable  = app('swoole')->topicTable;
+            $singleEvent = true;
+            $gameDetails = Game::getGameDetails($eventDetails->master_league_id, $eventDetails->game_schedule, $userId, $meUID);
+    
+            
+            $otherTransformed   = Game::getOtherMarketsByMasterEventId($meUID);
+            $otherMarketDetails = [
+                'meUID'       => $meUID,
+                'transformed' => $otherTransformed
+            ];
+    
+            $data = eventTransformation($gameDetails, $userId, $topicTable, 'bet-retry', $otherMarketDetails, $singleEvent);
+            $eventData = is_array($data) ? array_values($data)[0] : [];
+            
+            return response()->json([
+                'status'      => true,
+                'status_code' => 200,
+                'data'        => [
+                    'is_main' => $eventMarketDetails->is_main,
+                    'market_event_identifier' => $eventMarketDetails->market_event_identifier,
+                    'event' => $eventData
+                ]
+            ], 200);
+        } catch (Exception $e) {
+            $toLogs = [
+                "class"       => "OrdersController",
+                "message"     => "Line " . $e->getLine() . " | " . $e->getMessage(),
+                "module"      => "API_ERROR",
+                "status_code" => $e->getCode(),
+            ];
+            monitorLog('monitor_api', 'error', $toLogs);
+
+            return response()->json([
+                'status'      => false,
+                'status_code' => 500,
+                'message'     => trans('generic.internal-server-error')
+            ], 500);
+        }
+    }
+
     public function postRetryBet(Request $request)
     {
         try {

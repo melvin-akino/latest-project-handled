@@ -233,6 +233,36 @@ class Order extends Model
                 ]);
     }
 
+    public static function getEventMarketDetails($orderId) {
+        return self::join('event_markets as em', 'em.bet_identifier', 'orders.market_id')
+            ->join('events as e', 'e.id', 'em.event_id')
+            ->select([
+                'em.event_id',
+                'em.odd_type_id',
+                'em.odd_label',
+                'em.market_flag',
+                'em.is_main',
+                'em.market_event_identifier'
+            ])
+            ->where('orders.id', $orderId)
+            ->whereNull('e.deleted_at')
+            ->first();
+    }
+
+    public static function getEventDetails($orderId) {
+        return self::join('event_markets as em', 'em.bet_identifier', 'orders.market_id')
+            ->join('events as e', 'e.id', 'em.event_id')
+            ->join('event_groups as eg', 'eg.event_id', 'e.id')
+            ->join('master_events as me', 'me.id', 'eg.master_event_id')
+            ->select([
+                'me.master_league_id',
+                'me.master_event_unique_id',
+                'e.game_schedule'
+            ])
+            ->where('orders.id', $orderId)
+            ->first();
+    }
+
     public static function retryBetData($orderId)
     {
         return self::join('order_logs AS ol', 'ol.order_id', 'orders.id')
