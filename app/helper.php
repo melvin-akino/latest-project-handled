@@ -896,14 +896,6 @@ if (!function_exists('monitorLog')) {
 if (!function_exists('retryCacheToRedis')) {
     function retryCacheToRedis($orderData)
     {
-        $redisExpiration = env('REDIS_TOOL_BALANCE_EXPIRE', 3600);
-
         Redis::rpush('ml-queue', json_encode($orderData));
-
-        $ttl = Redis::ttl('queue');
-
-        if ($ttl < 0) {
-            Redis::expire('queue', $redisExpiration);
-        }
     }
 }
