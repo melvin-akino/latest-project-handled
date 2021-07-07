@@ -27,92 +27,86 @@ class BetQueue implements CustomProcessInterface
         try {
             if ($swoole->data2SwtTable->exist('data2Swt')) {
                 while (!self::$quit) {
-                    $betQueue = Redis::hgetall('queue');
+                    $betStack = Redis::lpop('ml-queue');
 
                     $maxRetryCount = SystemConfiguration::getSystemConfigurationValue('RETRY_COUNT');
                     $retryExpiry = SystemConfiguration::getSystemConfigurationValue('RETRY_EXPIRY');
 
-                    if (!empty($betQueue)) {
-                        foreach ($betQueue as $key => $b) {
-                            $bet = json_decode($b, true);
-                            
-                            if ($bet['retry_count'] < $maxRetryCount->value) {
-                                $now = Carbon::now();
-                                if ($now->diffInSeconds($bet['created_at']) <= $retryExpiry['value']) {
-                                    $providerToken   = SwooleHandler::getValue('walletClientsTable', trim(strtolower($bet['alias'])) . '-users')['token'];
+                    if (!empty($betStack)) {
+                        $bet = json_decode($betStack, true);
+                        if ($bet['retry_count'] < $maxRetryCount->value) {
+                            $now = Carbon::now();
+                            if ($now->diffInSeconds($bet['created_at']) <= $retryExpiry['value']) {
+                                $providerToken   = SwooleHandler::getValue('walletClientsTable', trim(strtolower($bet['alias'])) . '-users')['token'];
 
-                                    $user = User::find($bet['user_id']);
-                                    
-                                    $providerAccount = ProviderAccount::getBettingAccount($bet['provider_id'], $bet['actual_stake'], $user->is_vip, $bet['event_id'], $bet['odd_type_id'], $bet['market_flag'], $providerToken, []);
+                                $user = User::find($bet['user_id']);
+                                
+                                $providerAccount = ProviderAccount::getBettingAccount($bet['provider_id'], $bet['actual_stake'], $user->is_vip, $bet['event_id'], $bet['odd_type_id'], $bet['market_flag'], $providerToken, []);
 
-                                    DB::beginTransaction();
-                                    Order::where('id', $bet['id'])->update(
-                                        [
-                                            'status' => 'PENDING',
-                                            'provider_account_id' => $providerAccount->id,
-                                            'provider_id'         => $providerAccount->provider_id,
-                                            'reason'    => 'Trying to place bet'
-                                        ]
-                                    );
+                                DB::beginTransaction();
+                                Order::where('id', $bet['id'])->update(
+                                    [
+                                        'status' => 'PENDING',
+                                        'provider_account_id' => $providerAccount->id,
+                                        'provider_id'         => $providerAccount->provider_id,
+                                        'reason'    => 'Trying to place bet'
+                                    ]
+                                );
 
-                                    OrderLogs::create(
-                                        [
-                                            'user_id'             => $bet['user_id'],
-                                            'provider_id'         => $providerAccount->provider_id,
-                                            'sport_id'            => $bet['sport_id'],
-                                            'bet_id'              => $bet['bet_id'],
-                                            'bet_selection'       => $bet['bet_selection'],
-                                            'status'              => 'PENDING',
-                                            'settled_date'        => null,
-                                            'reason'              => 'Trying to place bet',
-                                            'profit_loss'         => 0,
-                                            'order_id'            => $bet['id'],
-                                            'provider_account_id' => $providerAccount->id
-                                        ]
-                                    );
+                                OrderLogs::create(
+                                    [
+                                        'user_id'             => $bet['user_id'],
+                                        'provider_id'         => $providerAccount->provider_id,
+                                        'sport_id'            => $bet['sport_id'],
+                                        'bet_id'              => $bet['bet_id'],
+                                        'bet_selection'       => $bet['bet_selection'],
+                                        'status'              => 'PENDING',
+                                        'settled_date'        => null,
+                                        'reason'              => 'Trying to place bet',
+                                        'profit_loss'         => 0,
+                                        'order_id'            => $bet['id'],
+                                        'provider_account_id' => $providerAccount->id
+                                    ]
+                                );
 
-                                    DB::commit();
+                                DB::commit();
 
-                                    $requestId = Str::uuid() . "-" . $bet['id'];
-                                    $requestTs = getMilliseconds();
-                                    $payload = [
-                                        'request_uid' => $requestId,
-                                        'request_ts'  => $requestTs,
-                                        'sub_command' => 'place',
-                                        'command'     => 'bet'
-                                    ];
+                                $requestId = Str::uuid() . "-" . $bet['id'];
+                                $requestTs = getMilliseconds();
+                                $payload = [
+                                    'request_uid' => $requestId,
+                                    'request_ts'  => $requestTs,
+                                    'sub_command' => 'place',
+                                    'command'     => 'bet'
+                                ];
 
-                                    $payload['data'] = [
-                                        'provider'  => $bet['alias'],
-                                        'sport'     => $bet['sport_id'],
-                                        'stake'     => $bet['actual_stake'],
-                                        'odds'      => $bet['odds'],
-                                        'market_id' => $bet['market_id'],
-                                        'event_id'  => $bet['event_id'],
-                                        'score'     => $bet['score_on_bet'],
-                                        'username'  => $bet['username']
-                                    ];
-                                    KafkaPush::dispatch(
-                                        strtolower($bet['alias']) . env('KAFKA_SCRAPE_ORDER_REQUEST_POSTFIX', '_bet_req'),
-                                        $payload,
-                                        $requestId
-                                    );
+                                $payload['data'] = [
+                                    'provider'  => $bet['alias'],
+                                    'sport'     => $bet['sport_id'],
+                                    'stake'     => $bet['actual_stake'],
+                                    'odds'      => $bet['odds'],
+                                    'market_id' => $bet['market_id'],
+                                    'event_id'  => $bet['event_id'],
+                                    'score'     => $bet['score_on_bet'],
+                                    'username'  => $bet['username']
+                                ];
+                                KafkaPush::dispatch(
+                                    strtolower($bet['alias']) . env('KAFKA_SCRAPE_ORDER_REQUEST_POSTFIX', '_bet_req'),
+                                    $payload,
+                                    $requestId
+                                );
 
-                                    Redis::hDel('queue', $key);
-                                } else {
-                                    // Expired retry
-                                    Redis::hDel('queue', $key);
-                                    continue;
-                                }
                             } else {
-                                // Max count retry
-                                Redis::hdel('queue', $key);
+                                // Expired retry
                                 continue;
                             }
+                        } else {
+                            // Max count retry
+                            continue;
                         }
+                    } else {
+                        usleep(5000);
                     }
-
-                    usleep(5000);
                 }
             }
         } catch (Exception $e) {

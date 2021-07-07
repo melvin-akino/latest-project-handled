@@ -898,7 +898,7 @@ if (!function_exists('retryCacheToRedis')) {
     {
         $redisExpiration = env('REDIS_TOOL_BALANCE_EXPIRE', 3600);
 
-        Redis::hmset('queue', $orderData['id'], json_encode($orderData));
+        Redis::rpush('ml-queue', json_encode($orderData));
 
         $ttl = Redis::ttl('queue');
 
