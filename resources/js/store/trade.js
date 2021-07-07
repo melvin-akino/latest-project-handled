@@ -234,14 +234,15 @@ const mutations = {
         state.eventsList = state.eventsList.filter(event => !event.hasOwnProperty('watchlist'))
     },
     OPEN_BETSLIP: (state, data) => {
-        let openedBetSlips = state.openedBetSlips.map(betSlips => betSlips.market_id)
-        if(!openedBetSlips.includes(data.odd.market_id)) {
+        let openedBetSlips = state.openedBetSlips.map(betSlips => betSlips.betslip_id)
+        let betslipId = `${data.game.uid}-${data.odd.market_id}`
+        if(!openedBetSlips.includes(betslipId)) {
             let betslip = {
                 odd: data.odd,
                 game: data.game,
                 marketType: data.marketType,
                 eventIdentifier: data.eventIdentifier,
-                betslip_id: `${data.game.uid}-${data.odd.market_id}`,
+                betslip_id: betslipId,
                 has_bet: false
             }
             state.openedBetSlips.push(betslip)
@@ -398,7 +399,6 @@ const actions = {
         await dispatch('getInitialEvents')
         await dispatch('getBetbarData')
         Vue.prototype.$socket.send(`getSelectedLeagues_${state.selectedSport}`)
-        dispatch('getOrders')
     },
     async loadTradeWindow({dispatch, commit}) {
         if(Cookies.get('under_maintenance')) {
@@ -431,11 +431,6 @@ const actions = {
             .catch(err => {
                 dispatch('auth/checkIfTokenIsValid', err.response.status, { root: true })
             })
-    },
-    getOrders() {
-        state.bets.map(bet => {
-            Vue.prototype.$socket.send(`getOrder_${bet.order_id}`)
-        })
     },
     getWalletData({commit, dispatch}) {
         axios.get('v1/user/wallet', { headers: { 'Authorization': `Bearer ${token}` }})

@@ -13,7 +13,9 @@ use App\Models\{
     UserWallet,
     Source,
     BlockedLine,
-    EventMarket
+    EventMarket,
+    SystemConfiguration,
+    ProviderErrors
 };
 use Carbon\Carbon;
 use Exception;
@@ -92,9 +94,12 @@ class BetTransformationHandler
                 }
             } else {
                 if ($orderData) {
-                    $orderId        = $orderData->id;
-                    $status         = $this->message->data->status != self::STATUS_PENDING ? strtoupper($this->message->data->status) : strtoupper(self::STATUS_SUCCESS);
-                    $errorMessageId = providerErrorMapping($this->message->data->reason);
+                    $orderId         = $orderData->id;
+                    $status          = $this->message->data->status != self::STATUS_PENDING ? strtoupper($this->message->data->status) : strtoupper(self::STATUS_SUCCESS);
+                    $errorMessageId  = providerErrorMapping($this->message->data->reason);
+                    $retryType       = null;
+                    $oddsHaveChanged = false;
+                    $error           = null;
 
                     $order = Order::updateOrCreate([
                         'id' => $messageOrderId
@@ -153,6 +158,17 @@ class BetTransformationHandler
                         ]);
                     } else {
                         $retryExpiry = SystemConfiguration::getSystemConfigurationValue('RETRY_EXPIRY')->value;
+
+                        if(!empty($errorMessageId)) {
+                            $providerErrorMessage = ProviderErrors::getProviderErrorMessage($errorMessageId);
+                            if($providerErrorMessage->exists()) {
+                                $providerError        = $providerErrorMessage->first();
+                                $retryType            = $providerError->retry_type;
+                                $oddsHaveChanged      = $providerError->odds_have_changed;
+                                $error                = $providerError->error;
+                            }
+                        }
+
 
                         if (time() - strtotime($orderData->created_at) <= $retryExpiry) {
                             retryCacheToRedis($orderData->toArray());
@@ -237,7 +253,10 @@ class BetTransformationHandler
                         $status,
                         $this->message->data->odds,
                         $orderData->orderExpiry,
-                        $orderData->created_at
+                        $orderData->created_at,
+                        $retryType,
+                        $oddsHaveChanged,
+                        $error
                     );
 
                     $topics->set('unique:' . uniqid(), [
