@@ -52,14 +52,23 @@ class BetTransformationHandler
         try {
             DB::beginTransaction();
 
-            $swoole          = app('swoole');
-            $topics          = $swoole->topicTable;
-            $colMinusOne     = OddType::whereIn('type', ['1X2', 'HT 1X2', 'OE'])->pluck('id')->toArray();
-            $requestUIDArray = explode('-', $this->message->request_uid);
-            $messageOrderId  = end($requestUIDArray);
-            $orderData       = Order::find($messageOrderId);
-            $providerAccount = ProviderAccount::find($orderData->provider_account_id);
-            $eventId         = EventMarket::withTrashed()->where('bet_identifier', $orderData->market_id)->first()->event_id;
+            $swoole               = app('swoole');
+            $topics               = $swoole->topicTable;
+            $colMinusOne          = OddType::whereIn('type', ['1X2', 'HT 1X2', 'OE'])->pluck('id')->toArray();
+            $requestUIDArray      = explode('-', $this->message->request_uid);
+            $messageOrderId       = end($requestUIDArray);
+            $orderData            = Order::find($messageOrderId);
+            $providerAccount      = ProviderAccount::find($orderData->provider_account_id);
+            $eventId              = EventMarket::withTrashed()->where('bet_identifier', $orderData->market_id)->first()->event_id;
+            $blockedLineReasons   = explode('|', env('BLOCKED_LINE_REASONS', ''));
+            $hasBlockedLineReason = false;
+
+            foreach($blockedLineReasons as $reason) {
+                if(stripos($orderData->reason, $reason) !== false) {
+                    $reasons[]            = $reason;
+                    $hasBlockedLineReason = true;
+                }
+            }
 
             if ($this->message->data->status == self::STATUS_RECEIVED) {
                 if (time() - strtotime($orderData->created_at) > 60) {
@@ -72,12 +81,7 @@ class BetTransformationHandler
                     SwooleHandler::setColumnValue('ordersTable', $orderSWTKey, 'status', 'FAILED');
 
                     if (!empty($providerAccount->id)) {
-                        if (
-                            in_array($orderData->reason, ['1X029', '1X012']) ||
-                            strpos($orderData->reason, 'The bet amount entered should not exceed the assigned total credit line') !== false ||
-                            strpos($orderData->reason, 'You do not have sufficient credit to place this bet') !== false ||
-                            strpos($orderData->reason, 'The maximum bet amount for this event is') !== false
-                        ) {
+                        if (!empty($hasBlockedLineReason)) {
                             BlockedLine::updateOrCreate([
                                 'event_id'    => $eventId,
                                 'odd_type_id' => $orderData->odd_type_id,
