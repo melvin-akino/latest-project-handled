@@ -15,7 +15,8 @@ use App\Models\{
     WalletLedger,
     ProviderAccount,
     Currency,
-    SystemConfiguration
+    SystemConfiguration,
+    ProviderErrors
 };
 use App\User;
 use Carbon\Carbon;
@@ -159,15 +160,18 @@ class OpenOrdersTransformationHandler
                                 $retryType       = null;
                                 $oddsHaveChanged = false;
                                 $error           = null;
+                                $errorMessageId  = providerErrorMapping($reason);
 
-                                if(!empty($orderData->provider_error_message_id)) {
-                                    $providerErrorMessage = ProviderErrors::getProviderErrorMessage($orderData->provider_error_message_id);
+                                if(!empty($errorMessageId)) {
+                                    $providerErrorMessage = ProviderErrors::getProviderErrorMessage($errorMessageId);
                                     if($providerErrorMessage->exists()) {
                                         $providerError        = $providerErrorMessage->first();
                                         $retryType            = $providerError->retry_type;
                                         $oddsHaveChanged      = $providerError->odds_have_changed;
                                         $error                = $providerError->error;
                                     }
+                                } else {
+                                    $error = $reason;
                                 }
 
                                 orderStatus($userId, $orderId, strtoupper($order->status), $order->odds, $expiry, $orderTable['created_at'], $retryType, $oddsHaveChanged, $error);
