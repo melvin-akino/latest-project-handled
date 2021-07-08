@@ -172,6 +172,7 @@ class BetTransformationHandler
 
                         $providerErrorMessage = providerErrorMapping($this->message->data->reason, false);
 
+                        var_dump($providerErrorMessage); 
                         if (!$providerErrorMessage->retry_type_id) {
                             if (time() - strtotime($orderData->created_at) <= $retryExpiry) {
                                 $isRetry                              = true;

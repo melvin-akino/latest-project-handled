@@ -356,7 +356,7 @@ if (!function_exists('getMilliseconds')) {
  * @author  Kevin Uy
  */
 if (!function_exists('ordersCreation')) {
-    function ordersCreation(int $userId, int $sportId, int $providerId, int $providerAccountId, array $orderData, array $exchangeRate, string $mlBetId, array $colMinusOne = [])
+    function ordersCreation(int $userId, int $sportId, int $providerId, $providerAccountId = null, array $orderData, array $exchangeRate, string $mlBetId, array $colMinusOne = [])
     {
         $order = Order::create([
             'user_id'                       => $userId,

@@ -734,7 +734,7 @@ class OrdersController extends Controller
                     'market_id'        => $incrementIds['payload'][$i]['market_id'],
                     'event_id'         => $incrementIds['payload'][$i]['event_id'],
                     'score'            => $incrementIds['payload'][$i]['score'],
-                    'username'         => $incrementIds['provider_account'][$i],
+                    // 'username'         => $incrementIds['provider_account'][$i],
                     'created_at'       => $incrementIds['created_at'][$i],
                     'orderExpiry'      => is_null($incrementIds['payload'][$i]['orderExpiry']) ? 30 : $incrementIds['payload'][$i]['orderExpiry'],
                     'exchange_rate_id' => $incrementIds['payload'][$i]['exchange_rate_id'],
@@ -754,7 +754,7 @@ class OrdersController extends Controller
                 monitorLog('monitor_api', 'info', $toLogs);
 
                 $orderSWTKey = 'orderId:' . $incrementIds['id'][$i];
-                SwooleHandler::setColumnValue('ordersTable', $orderSWTKey, 'username', $payload['data']['username']);
+                // SwooleHandler::setColumnValue('ordersTable', $orderSWTKey, 'username', $payload['data']['username']);
                 SwooleHandler::setColumnValue('ordersTable', $orderSWTKey, 'orderExpiry', $payload['data']['orderExpiry']);
                 SwooleHandler::setColumnValue('ordersTable', $orderSWTKey, 'created_at', $incrementIds['created_at'][$i]);
                 SwooleHandler::setColumnValue('ordersTable', $orderSWTKey, 'status', 'PENDING');

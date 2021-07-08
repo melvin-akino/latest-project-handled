@@ -28,6 +28,7 @@ class BetQueue implements CustomProcessInterface
             if ($swoole->data2SwtTable->exist('data2Swt')) {
                 while (!self::$quit) {
                     $betStack      = Redis::lpop('ml-queue');
+                    // var_dump($betStack);
                     $maxRetryCount = SystemConfiguration::getSystemConfigurationValue('RETRY_COUNT');
                     $retryExpiry   = SystemConfiguration::getSystemConfigurationValue('RETRY_EXPIRY');
 
@@ -50,6 +51,14 @@ class BetQueue implements CustomProcessInterface
                                     ];
 
                                     $providerAccount = ProviderAccount::getBettingAccount($bet['provider_id'], $bet['actual_stake'], $user->is_vip, $bet['event_id'], $bet['odd_type_id'], $bet['market_flag'], $providerToken, $blockedLinesParam);
+
+                                    if (empty($providerAccount)) {
+                                        throw new NotFoundException($bet);
+                                    }
+
+                                    var_dump($providerAccount);
+                                    $orderSWTKey = 'orderId:' . $bet['id'];
+                                    SwooleHandler::setColumnValue('ordersTable', $orderSWTKey, 'username', $providerAccount->username);
 
                                     DB::beginTransaction();
 
@@ -93,7 +102,7 @@ class BetQueue implements CustomProcessInterface
                                         'market_id' => $bet['market_id'],
                                         'event_id'  => $bet['event_id'],
                                         'score'     => $bet['score_on_bet'],
-                                        'username'  => $bet['username']
+                                        'username'  => $providerAccount->username
                                     ];
 
                                     KafkaPush::dispatch(
@@ -110,8 +119,8 @@ class BetQueue implements CustomProcessInterface
                                 self::failBet($walletToken, $bet, $bet['reason']);
                                 continue;
                             }
-                        } catch (NotFoundException $e) {
-                            retryCacheToRedis($bet->toArray());
+                        } catch (NotFoundException $bet) {
+                            retryCacheToRedis($bet);
                         } catch (QueryException $e) {
                             DB::rollback();
                         } catch (Exception $e) {
