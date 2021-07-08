@@ -20,7 +20,6 @@
 <script>
 import BetbarData from './BetbarData'
 import { mapState } from 'vuex'
-import Cookies from 'js-cookie'
 import _ from 'lodash'
 import { getSocketKey, getSocketValue } from '../../../helpers/socket'
 
@@ -46,15 +45,10 @@ export default {
                     this.bets.map(bet => {
                         if(bet.order_id == orderStatus.order_id) {
                             this.$set(bet, 'status', orderStatus.status)
-                            this.$set(bet, 'bet_info', [
-                                bet.bet_info[0],
-                                bet.bet_info[1],
-                                orderStatus.odds,
-                                bet.bet_info[3],
-                                bet.bet_info[4],
-                                bet.bet_info[5],
-                                bet.bet_info[6],
-                            ])
+                            this.$set(bet, 'odds', orderStatus.odds)
+                            this.$set(bet, 'retry_type', orderStatus.retry_type)
+                            this.$set(bet, 'odds_have_changed', orderStatus.odds_have_changed)
+                            this.$set(bet, 'error', orderStatus.error)
                             if(!this.failedBetStatus.includes(orderStatus.status)) {
                                 this.$store.commit('trade/SHOW_BET_MATRIX_IN_BETSLIP', { market_id: bet.market_id, has_bet: true })
                             }
