@@ -30,7 +30,7 @@ class SwtToWs implements CustomProcessInterface
 
                     if ($i % 5 == 0) {
                         self::getInActiveEvents($swoole);
-                        self::getForBetBarRemoval($swoole);
+                        // self::getForBetBarRemoval($swoole);
                     }
                     usleep(1000000);
                     $i++;
@@ -111,28 +111,28 @@ class SwtToWs implements CustomProcessInterface
 //        }
     }
 
-    private static function getForBetBarRemoval($swoole)
-    {
-        $topicTable        = $swoole->topicTable;
-        $userForRemovalBet = [];
-        foreach ($topicTable as $key => $topic) {
-            if (strpos($topic['topic_name'], 'removal-bet-') === 0) {
-                $userForRemovalBet[$topic['user_id']] = true;
-                SwooleHandler::remove('topicTable', $key);
-            }
-        }
+    // private static function getForBetBarRemoval($swoole)
+    // {
+    //     $topicTable        = $swoole->topicTable;
+    //     $userForRemovalBet = [];
+    //     foreach ($topicTable as $key => $topic) {
+    //         if (strpos($topic['topic_name'], 'removal-bet-') === 0) {
+    //             $userForRemovalBet[$topic['user_id']] = true;
+    //             SwooleHandler::remove('topicTable', $key);
+    //         }
+    //     }
 
-        if (!empty($userForRemovalBet)) {
-            foreach ($userForRemovalBet as $userId => $bet) {
-                $fd = $swoole->wsTable->get('uid:' . $userId);
-                if ($swoole->isEstablished($fd['value'])) {
-                    $swoole->push($fd['value'], json_encode([
-                        'forBetBarRemoval' => ['status' => true]
-                    ]));
-                }
-            }
-        }
-    }
+    //     if (!empty($userForRemovalBet)) {
+    //         foreach ($userForRemovalBet as $userId => $bet) {
+    //             $fd = $swoole->wsTable->get('uid:' . $userId);
+    //             if ($swoole->isEstablished($fd['value'])) {
+    //                 $swoole->push($fd['value'], json_encode([
+    //                     'forBetBarRemoval' => ['status' => true]
+    //                 ]));
+    //             }
+    //         }
+    //     }
+    // }
 
     private static function getEventScored($swoole)
     {

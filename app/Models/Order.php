@@ -140,10 +140,14 @@ class Order extends Model
                  ->leftJoin('odd_types AS ot', 'ot.id', 'o.odd_type_id')
                  ->leftJoin('sport_odd_type AS sot', 'sot.odd_type_id', 'ot.id')
                  ->leftJoin('event_scores as es', 'es.master_event_unique_id', 'o.master_event_unique_id')
+                 ->leftJoin('provider_error_messages as pem', 'o.provider_error_message_id', 'pem.id')
+                 ->leftJoin('error_messages as em', 'pem.error_message_id', 'em.id')
+                 ->leftJoin('retry_types as rt', 'pem.retry_type_id', 'rt.id')
                  ->distinct()
                  ->where('sot.sport_id', DB::raw('o.sport_id'))
                  ->where('o.user_id', $userId)
                  ->whereNull('o.settled_date')
+                 ->whereIn('o.status', ['PENDING', 'SUCCESS', 'FAILED'])
                  ->select([
                      'o.id AS order_id',
                      'p.alias',
@@ -153,16 +157,19 @@ class Order extends Model
                      'o.master_league_name',
                      'o.master_team_home_name',
                      'o.master_team_away_name',
-                     'es.score as current_score',
                      'o.score_on_bet',
                      'ot.id AS odd_type_id',
-                     'sot.name',
+                     'ot.type as odd_type',
+                     'sot.name as odd_type_name',
                      'o.odds',
                      'o.stake',
                      'o.status',
                      'o.created_at',
                      'o.order_expiry',
-                     'o.odd_label'
+                     'o.odd_label',
+                     'em.error',
+                     'rt.type as retry_type',
+                     'pem.odds_have_changed'
                  ])
                  ->orderBy('o.created_at', 'desc')
                  ->get();
@@ -231,6 +238,36 @@ class Order extends Model
                     'e.away_penalty',
                     'me.sport_id'
                 ]);
+    }
+
+    public static function getEventMarketDetails($orderId) {
+        return self::join('event_markets as em', 'em.bet_identifier', 'orders.market_id')
+            ->join('events as e', 'e.id', 'em.event_id')
+            ->select([
+                'em.event_id',
+                'em.odd_type_id',
+                'em.odd_label',
+                'em.market_flag',
+                'em.is_main',
+                'em.market_event_identifier'
+            ])
+            ->where('orders.id', $orderId)
+            ->whereNull('e.deleted_at')
+            ->first();
+    }
+
+    public static function getEventDetails($orderId) {
+        return self::join('event_markets as em', 'em.bet_identifier', 'orders.market_id')
+            ->join('events as e', 'e.id', 'em.event_id')
+            ->join('event_groups as eg', 'eg.event_id', 'e.id')
+            ->join('master_events as me', 'me.id', 'eg.master_event_id')
+            ->select([
+                'me.master_league_id',
+                'me.master_event_unique_id',
+                'e.game_schedule'
+            ])
+            ->where('orders.id', $orderId)
+            ->first();
     }
 
     public static function retryBetData($orderId)

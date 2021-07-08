@@ -801,7 +801,7 @@ if (!function_exists('providerErrorMapping')) {
 
 
 if (!function_exists('orderStatus')) {
-    function orderStatus($userId, $orderId, $status, $odds, $expiry, $createdAt)
+    function orderStatus($userId, $orderId, $status, $odds, $expiry, $createdAt, $retryType, $oddsHaveChanged, $error)
     {
         $swoole = app('swoole');
 
@@ -811,9 +811,12 @@ if (!function_exists('orderStatus')) {
             if ($swoole->isEstablished($fd['value'])) {
                 $swoole->push($fd['value'], json_encode([
                     'getOrderStatus' => [
-                        'order_id' => $orderId,
-                        'status'   => $status,
-                        'odds'     => $odds
+                        'order_id'          => $orderId,
+                        'status'            => $status,
+                        'odds'              => $odds,
+                        'retry_type'        => $retryType,
+                        'odds_have_changed' => $oddsHaveChanged,
+                        'error'             => $error
                     ]
                 ]));
             } else {
@@ -829,9 +832,12 @@ if (!function_exists('orderStatus')) {
                     'retry'   => 1,
                     'payload' => [
                         'getOrderStatus' => [
-                            'order_id' => $orderId,
-                            'status'   => $status,
-                            'odds'     => $odds
+                            'order_id'          => $orderId,
+                            'status'            => $status,
+                            'odds'              => $odds,
+                            'retry_type'        => $retryType,
+                            'odds_have_changed' => $oddsHaveChanged,
+                            'error'             => $error
                         ]
                     ]
                 ];
@@ -839,18 +845,18 @@ if (!function_exists('orderStatus')) {
                 kafkaPush(env('KAFKA_SOCKET', 'SOCKET-DATA'), $payload, $requestId);
             }
 
-            $forBetBarRemoval = [
-                'FAILED',
-                'CANCELLED',
-            ];
-            if (in_array(strtoupper($status), $forBetBarRemoval)) {
-                if (time() - strtotime($createdAt) > $expiry) {
-                    SwooleHandler::setValue('topicTable', 'userId:' . $userId . ':unique:' . uniqid(), [
-                        'user_id'    => $userId,
-                        'topic_name' => 'removal-bet-' . $orderId
-                    ]);
-                }
-            }
+            // $forBetBarRemoval = [
+            //     'FAILED',
+            //     'CANCELLED',
+            // ];
+            // if (in_array(strtoupper($status), $forBetBarRemoval)) {
+            //     if (time() - strtotime($createdAt) > $expiry) {
+            //         SwooleHandler::setValue('topicTable', 'userId:' . $userId . ':unique:' . uniqid(), [
+            //             'user_id'    => $userId,
+            //             'topic_name' => 'removal-bet-' . $orderId
+            //         ]);
+            //     }
+            // }
         }
     }
 }

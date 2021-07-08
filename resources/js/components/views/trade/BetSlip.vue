@@ -97,10 +97,7 @@
                         <div class="flex justify-between items-center py-2">
                             <div class="flex justify-start items-center">
                                 <label class="text-sm">Min Price</label>
-                                <div class="toolTip ml-1 text-gray-700">
-                                    <i class="fas fa-info-circle"></i>
-                                    <span class="toolTipText p-2 text-white bg-gray-800">Minimum Accepted Price</span>
-                                </div>
+                                <tooltip icon="fas fa-info-circle" text="Minimum Accepted Price" color="text-gray-700"></tooltip>
                             </div>
                             <div class="flex justify-end items-center">
                                 <input type="text" class="betslipInput w-40 shadow appearance-none border rounded text-sm text-right py-1 px-3 text-gray-700 leading-tight focus:outline-none" v-model="$v.inputPrice.$model" @keyup="priceInput" :disabled="!retrievedMarketData || minMaxData.length == 0">
@@ -109,10 +106,7 @@
                         <div class="flex justify-between items-center py-2">
                             <div class="flex justify-start items-center">
                                 <label class="text-sm">Stake</label>
-                                <div class="toolTip ml-1 text-gray-700">
-                                    <i class="fas fa-info-circle"></i>
-                                    <span class="toolTipText p-2 text-white bg-gray-800">By clicking the "MIN" button this inputs your MINIMUM possible stake across all providers selected. By clicking the "MAX" button, this inputs your MAXIMUM possible stake across all providers selected.</span>
-                                </div>
+                                <tooltip icon="fas fa-info-circle" text="By clicking the 'MIN' button this inputs your MINIMUM possible stake across all providers selected. By clicking the 'MAX' button, this inputs your MAXIMUM possible stake across all providers selected." color="text-gray-700"></tooltip>
                             </div>
                             <div class="relative flex justify-end items-center">
                                 <button class="minMaxBtn minStake absolute bg-primary-500 px-3 text-white rounded text-xs uppercase focus:outline-none hover:bg-primary-600" @click="setMinStake">MIN</button>
@@ -164,6 +158,7 @@ import _ from 'lodash'
 import OddsHistory from './OddsHistory'
 import BetMatrix from './BetMatrix'
 import DialogDrag from 'vue-dialog-drag'
+import Tooltip from '../../component/Tooltip'
 import { getSocketKey, getSocketValue } from '../../../helpers/socket'
 import { twoDecimalPlacesFormat, moneyFormat, formatAverage } from '../../../helpers/numberFormat'
 import { moveToFirstElement } from '../../../helpers/array'
@@ -174,7 +169,8 @@ export default {
     components: {
         DialogDrag,
         OddsHistory,
-        BetMatrix
+        BetMatrix,
+        Tooltip
     },
     data() {
         return {
@@ -1016,26 +1012,6 @@ export default {
 
 .minMaxBtn.minStake {
     right: 125px;
-}
-
-.toolTip {
-    position: relative;
-    cursor: pointer;
-    font-size: 13px;
-}
-
-.toolTipText {
-    visibility: hidden;
-    width: 200px;
-    border-radius: 6px;
-    position: absolute;
-    z-index: 1;
-    right: 12px;
-    top: 12px;
-}
-
-.toolTip:hover .toolTipText {
-    visibility: visible;
 }
 
 .selectAllLabel {
