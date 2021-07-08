@@ -2,6 +2,7 @@
 
 namespace App\Processes;
 
+use App\Exceptions\NotFoundException;
 use App\Jobs\KafkaPush;
 use App\User;
 use App\Models\{Order, OrderLogs, SystemConfiguration, ProviderAccount, RetryType};
@@ -28,7 +29,7 @@ class BetQueue implements CustomProcessInterface
             if ($swoole->data2SwtTable->exist('data2Swt')) {
                 while (!self::$quit) {
                     $betStack      = Redis::lpop('ml-queue');
-                    // var_dump($betStack);
+                    
                     $maxRetryCount = SystemConfiguration::getSystemConfigurationValue('RETRY_COUNT');
                     $retryExpiry   = SystemConfiguration::getSystemConfigurationValue('RETRY_EXPIRY');
 
@@ -53,10 +54,9 @@ class BetQueue implements CustomProcessInterface
                                     $providerAccount = ProviderAccount::getBettingAccount($bet['provider_id'], $bet['actual_stake'], $user->is_vip, $bet['event_id'], $bet['odd_type_id'], $bet['market_flag'], $providerToken, $blockedLinesParam);
 
                                     if (empty($providerAccount)) {
-                                        throw new NotFoundException($bet);
+                                        throw new NotFoundException(trans('game.bet.errors.no_bookmaker'));
                                     }
 
-                                    var_dump($providerAccount);
                                     $orderSWTKey = 'orderId:' . $bet['id'];
                                     SwooleHandler::setColumnValue('ordersTable', $orderSWTKey, 'username', $providerAccount->username);
 
@@ -119,7 +119,11 @@ class BetQueue implements CustomProcessInterface
                                 self::failBet($walletToken, $bet, $bet['reason']);
                                 continue;
                             }
-                        } catch (NotFoundException $bet) {
+                        } catch (NotFoundException $e) {
+                            $bet['retry_count'] += 1;
+                            Order::where('id', $bet['id'])->update([
+                                'retry_count'              => $bet['retry_count']
+                            ]);
                             retryCacheToRedis($bet);
                         } catch (QueryException $e) {
                             DB::rollback();
@@ -127,13 +131,14 @@ class BetQueue implements CustomProcessInterface
                             throw $e;
                         }
                     } else {
-                        usleep(5000);
+                        usleep(50000);
                     }
                 }
             }
         } catch (Exception $e) {
             var_dump($e->getMessage());
             var_dump($e->getLine());
+            var_dump($e->getFile());
             $toLogs = [
                 "class"       => "BetQueue",
                 "message"     => "Line " . $e->getLine() . " | " . $e->getMessage(),
@@ -144,7 +149,7 @@ class BetQueue implements CustomProcessInterface
         }
     }
 
-    private function failBet($walletToken, $bet, $reason)
+    private static function failBet($walletToken, $bet, $reason)
     {
         if ($bet) {
             $order = Order::updateOrCreate([

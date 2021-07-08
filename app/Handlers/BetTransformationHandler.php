@@ -15,7 +15,8 @@ use App\Models\{
     BlockedLine,
     EventMarket,
     SystemConfiguration,
-    ProviderErrors
+    ProviderErrors,
+    RetryType
 };
 use Carbon\Carbon;
 use Exception;
@@ -172,44 +173,43 @@ class BetTransformationHandler
 
                         $providerErrorMessage = providerErrorMapping($this->message->data->reason, false);
 
-                        var_dump($providerErrorMessage); 
-                        if (!$providerErrorMessage->retry_type_id) {
-                            if (time() - strtotime($orderData->created_at) <= $retryExpiry) {
-                                $isRetry                              = true;
-                                $orderData->status                    = "FAILED";
-                                $orderData->reason                    = $this->message->data->reason;
-                                $orderData->provider_error_message_id = $providerErrorMessage->id;
-                                $orderData->updated_at                = Carbon::now();
-                                $orderData->save();
+                        $orderData->status                    = "FAILED";
+                        $orderData->reason                    = $this->message->data->reason;
+                        if ($providerErrorMessage) {
+                            $orderData->provider_error_message_id = $providerErrorMessage->id;
+                        }
+                        $orderData->updated_at                = Carbon::now();
+                        $orderData->save();
 
-                                OrderLogs::create([
-                                    'provider_id'         => $order->provider_id,
-                                    'sport_id'            => $order->sport_id,
-                                    'bet_id'              => $this->message->data->bet_id,
-                                    'bet_selection'       => $order->bet_selection,
-                                    'status'              => $status,
-                                    'user_id'             => $order->user_id,
-                                    'reason'              => $this->message->data->reason,
-                                    'profit_loss'         => $order->profit_loss,
-                                    'order_id'            => $order->id,
-                                    'settled_date'        => null,
-                                    'provider_account_id' => $orderData->provider_account_id,
+                        OrderLogs::create([
+                            'provider_id'         => $order->provider_id,
+                            'sport_id'            => $order->sport_id,
+                            'bet_id'              => $this->message->data->bet_id,
+                            'bet_selection'       => $order->bet_selection,
+                            'status'              => $status,
+                            'user_id'             => $order->user_id,
+                            'reason'              => $this->message->data->reason,
+                            'profit_loss'         => $order->profit_loss,
+                            'order_id'            => $order->id,
+                            'settled_date'        => null,
+                            'provider_account_id' => $orderData->provider_account_id,
+                        ]);
+
+                        if ($providerErrorMessage->retry_type_id) {
+                            $isRetry                              = true;
+                            $betData                  = Order::retryBetData($orderData->id)->toArray();
+                            $betData['retry_type_id'] = $providerErrorMessage->retry_type_id;
+
+                            if (!empty($providerAccount->id) && RetryType::getTypeById($betData['retry_type_id']) == "auto-new-line") {
+                                var_dump($providerAccount);
+                                BlockedLine::updateOrCreate([
+                                    'event_id'    => $eventId, 
+                                    'odd_type_id' => $orderData->odd_type_id,
+                                    'points'      => $orderData->odd_label,
+                                    'line'        => $providerAccount->line
                                 ]);
-
-                                $betData                  = Order::retryBetData($orderData->id)->toArray();
-                                $betData['retry_type_id'] = $providerErrorMessage->retry_type_id;
-
-                                if ($bet['retry_type_id'] && RetryType::getTypeById($bet['retry_type_id']) == "auto-new-line") {
-                                    BlockedLine::updateOrCreate([
-                                        'event_id'    => $eventId,
-                                        'odd_type_id' => $orderData->odd_type_id,
-                                        'points'      => $orderData->odd_label,
-                                        'line'        => $providerAccount->line
-                                    ]);
-                                }
-
-                                retryCacheToRedis($betData);
                             }
+                            retryCacheToRedis($betData);
                         } else {
                             $source       = Source::where('source_name', 'LIKE', 'RETURN_STAKE')->first();
                             $walletToken  = SwooleHandler::getValue('walletClientsTable', 'ml-users')['token'];
@@ -228,26 +228,6 @@ class BetTransformationHandler
                                     ]);
                                 }
                             }
-
-                            $orderData->status                    = "FAILED";
-                            $orderData->reason                    = $this->message->data->reason;
-                            $orderData->provider_error_message_id = $providerErrorMessage->id;
-                            $orderData->updated_at                = Carbon::now();
-                            $orderData->save();
-
-                            OrderLogs::create([
-                                'provider_id'         => $order->provider_id,
-                                'sport_id'            => $order->sport_id,
-                                'bet_id'              => $this->message->data->bet_id,
-                                'bet_selection'       => $order->bet_selection,
-                                'status'              => $status,
-                                'user_id'             => $order->user_id,
-                                'reason'              => $this->message->data->reason,
-                                'profit_loss'         => $order->profit_loss,
-                                'order_id'            => $order->id,
-                                'settled_date'        => null,
-                                'provider_account_id' => $orderData->provider_account_id,
-                            ]);
                         }
 
                         if ($order->status == strtoupper(self::STATUS_SUCCESS)) {
