@@ -198,6 +198,15 @@ class BetTransformationHandler
                                 $betData                  = Order::retryBetData($orderData->id)->toArray();
                                 $betData['retry_type_id'] = $providerErrorMessage->retry_type_id;
 
+                                if ($bet['retry_type_id'] && RetryType::getTypeById($bet['retry_type_id']) == "auto-new-line") {
+                                    BlockedLine::updateOrCreate([
+                                        'event_id'    => $eventId,
+                                        'odd_type_id' => $orderData->odd_type_id,
+                                        'points'      => $orderData->odd_label,
+                                        'line'        => $providerAccount->line
+                                    ]);
+                                }
+
                                 retryCacheToRedis($betData);
                             }
                         } else {
