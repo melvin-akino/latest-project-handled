@@ -324,7 +324,7 @@ class OrdersController extends Controller
 
     public function postPlaceBet(Request $request)
     {
-        $exceptionArray = [];
+        // $exceptionArray = [];
 
         try {
             DB::beginTransaction();
@@ -591,22 +591,22 @@ class OrdersController extends Controller
                 ];
 
                 $providerToken   = SwooleHandler::getValue('walletClientsTable', trim(strtolower($providerInfo['alias'])) . '-users')['token'];
-                $providerAccount = ProviderAccount::getBettingAccount($row['provider_id'], $actualStake, $isUserVIP, $payload['event_id'], $query->odd_type_id, $query->market_flag, $providerToken, $blockedLinesParam);
+                // $providerAccount = ProviderAccount::getBettingAccount($row['provider_id'], $actualStake, $isUserVIP, $payload['event_id'], $query->odd_type_id, $query->market_flag, $providerToken, $blockedLinesParam);
 
-                if (!$providerAccount) {
-                    $toLogs = [
-                        "class"       => "OrdersController",
-                        "message"     => trans('game.bet.errors.no_bookmaker'),
-                        "module"      => "API_ERROR",
-                        "status_code" => 404,
-                    ];
-                    monitorLog('monitor_api', 'error', $toLogs);
+                // if (!$providerAccount) {
+                //     $toLogs = [
+                //         "class"       => "OrdersController",
+                //         "message"     => trans('game.bet.errors.no_bookmaker'),
+                //         "module"      => "API_ERROR",
+                //         "status_code" => 404,
+                //     ];
+                //     monitorLog('monitor_api', 'error', $toLogs);
 
-                    throw new NotFoundException(trans('game.bet.errors.no_bookmaker'));
-                }
+                //     throw new NotFoundException(trans('game.bet.errors.no_bookmaker'));
+                // }
 
-                $providerAccountUserName = $providerAccount->username;
-                $providerAccountId       = $providerAccount->id;
+                // $providerAccountUserName = $providerAccount->username;
+                // $providerAccountId       = $providerAccount->id;
 
                 $_orderData = [
                     'master_event_unique_id'        => $query->master_event_unique_id,
@@ -631,7 +631,7 @@ class OrdersController extends Controller
                     'exchange_rate' => $exchangeRate['exchange_rate'],
                 ];
 
-                $orderCreation  = ordersCreation(auth()->user()->id, $query->sport_id, $row['provider_id'], $providerAccountId, $_orderData, $_exchangeRate, $mlBetId, $colMinusOne);
+                $orderCreation  = ordersCreation(auth()->user()->id, $query->sport_id, $row['provider_id'], null, $_orderData, $_exchangeRate, $mlBetId, $colMinusOne);
                 $orderIncrement = $orderCreation['orders'];
                 $orderLogsId    = $orderCreation['order_logs']->id;
                 $reason         = "[PLACE_BET][BET PENDING] - transaction for order id " . $orderCreation['orders']->id;
@@ -642,37 +642,37 @@ class OrdersController extends Controller
                     throw new BadRequestException(trans('game.wallet-api.error.user'));
                 }
 
-                $providerWalletToken = SwooleHandler::getValue('walletClientsTable', trim(strtolower($providerInfo['alias'])) . '-users')['token'];
-                $providerUUID        = trim($providerAccount->uuid);
-                $providerReason      = "[PLACE_BET][BET PENDING] - transaction for order id " . $orderCreation['orders']->id;
-                $exceptionArray      = [
-                    'token'         => $providerWalletToken,
-                    'uuid'          => $providerUUID,
-                    'currency_code' => trim(strtoupper($providerCurrencyInfo['code'])),
-                    'stake'         => $actualStake,
-                ];
+                // $providerWalletToken = SwooleHandler::getValue('walletClientsTable', trim(strtolower($providerInfo['alias'])) . '-users')['token'];
+                // $providerUUID        = trim($providerAccount->uuid);
+                // $providerReason      = "[PLACE_BET][BET PENDING] - transaction for order id " . $orderCreation['orders']->id;
+                // $exceptionArray      = [
+                //     'token'         => $providerWalletToken,
+                //     'uuid'          => $providerUUID,
+                //     'currency_code' => trim(strtoupper($providerCurrencyInfo['code'])),
+                //     'stake'         => $actualStake,
+                // ];
 
-                $providerWallet = WalletFacade::subtractBalance($providerWalletToken, $providerUUID, trim(strtoupper($providerCurrencyInfo['code'])), $actualStake, $providerReason);
+                // $providerWallet = WalletFacade::subtractBalance($providerWalletToken, $providerUUID, trim(strtoupper($providerCurrencyInfo['code'])), $actualStake, $providerReason);
 
-                if (empty($providerWallet) || array_key_exists('error', $providerWallet) || !array_key_exists('status_code', $providerWallet) || $providerWallet->status_code != 200) {
-                    $userWalletToken = SwooleHandler::getValue('walletClientsTable', 'ml-users')['token'];
-                    $error = !empty($providerWallet->error) ? $providerWallet->error : "Wallet API interaction";
-                    $userReturnStake = WalletFacade::addBalance($userWalletToken, auth()->user()->uuid, $providerCurrencyInfo['code'], ($payloadStake), "[PLACE_BET][RETURN_STAKE] - Something went wrong: " . $error);
+                // if (empty($providerWallet) || array_key_exists('error', $providerWallet) || !array_key_exists('status_code', $providerWallet) || $providerWallet->status_code != 200) {
+                //     $userWalletToken = SwooleHandler::getValue('walletClientsTable', 'ml-users')['token'];
+                //     $error = !empty($providerWallet->error) ? $providerWallet->error : "Wallet API interaction";
+                //     $userReturnStake = WalletFacade::addBalance($userWalletToken, auth()->user()->uuid, $providerCurrencyInfo['code'], ($payloadStake), "[PLACE_BET][RETURN_STAKE] - Something went wrong: " . $error);
 
-                    if (empty($userReturnStake) || array_key_exists('error', $userReturnStake) || !array_key_exists('status_code', $userReturnStake) || $userReturnStake->status_code != 200) {
-                        throw new BadRequestException(trans('game.wallet-api.error.user'));
-                    }
+                //     if (empty($userReturnStake) || array_key_exists('error', $userReturnStake) || !array_key_exists('status_code', $userReturnStake) || $userReturnStake->status_code != 200) {
+                //         throw new BadRequestException(trans('game.wallet-api.error.user'));
+                //     }
 
-                    throw new BadRequestException(trans('game.wallet-api.error.prov'));
-                }
+                //     throw new BadRequestException(trans('game.wallet-api.error.prov'));
+                // }
 
-                $updateProvider             = ProviderAccount::find($providerAccountId);
-                $updateProvider->updated_at = Carbon::now();
-                $updateProvider->save();
+                // $updateProvider             = ProviderAccount::find($providerAccountId);
+                // $updateProvider->updated_at = Carbon::now();
+                // $updateProvider->save();
 
                 $incrementIds['id'][]               = $orderIncrement->id;
                 $incrementIds['created_at'][]       = (string) $orderIncrement->created_at;
-                $incrementIds['provider_account'][] = $providerAccountUserName;
+                // $incrementIds['provider_account'][] = $providerAccountUserName;
 
                 if ($request->betType == "FAST_BET") {
                     if ($prevStake == 0) {
@@ -697,7 +697,7 @@ class OrdersController extends Controller
                 }
 
                 $orderIds[]     = $orderId;
-                $exceptionArray = [];
+                // $exceptionArray = [];
             }
 
             if ($betType == "BEST_PRICE") {
@@ -777,9 +777,9 @@ class OrdersController extends Controller
         } catch (BadRequestException $e) {
             DB::rollback();
 
-            if (!empty($exceptionArray)) {
-                WalletFacade::addBalance($exceptionArray['token'], $exceptionArray['uuid'], $exceptionArray['currency_code'], ($exceptionArray['stake']), "[PLACE_BET][RETURN_STAKE] - Something went wrong: " . $e->getMessage());
-            }
+            // if (!empty($exceptionArray)) {
+            //     WalletFacade::addBalance($exceptionArray['token'], $exceptionArray['uuid'], $exceptionArray['currency_code'], ($exceptionArray['stake']), "[PLACE_BET][RETURN_STAKE] - Something went wrong: " . $e->getMessage());
+            // }
 
             $toLogs = [
                 "class"       => "OrdersController",
@@ -797,9 +797,9 @@ class OrdersController extends Controller
         } catch (NotFoundException $e) {
             DB::rollback();
 
-            if (!empty($exceptionArray)) {
-                WalletFacade::addBalance($exceptionArray['token'], $exceptionArray['uuid'], $exceptionArray['currency_code'], ($exceptionArray['stake']), "[PLACE_BET][RETURN_STAKE] - Something went wrong: " . $e->getMessage());
-            }
+            // if (!empty($exceptionArray)) {
+            //     WalletFacade::addBalance($exceptionArray['token'], $exceptionArray['uuid'], $exceptionArray['currency_code'], ($exceptionArray['stake']), "[PLACE_BET][RETURN_STAKE] - Something went wrong: " . $e->getMessage());
+            // }
 
             $toLogs = [
                 "class"       => "OrdersController",
@@ -817,9 +817,9 @@ class OrdersController extends Controller
         } catch (Exception $e) {
             DB::rollback();
 
-            if (!empty($exceptionArray)) {
-                WalletFacade::addBalance($exceptionArray['token'], $exceptionArray['uuid'], $exceptionArray['currency_code'], ($exceptionArray['stake']), "[PLACE_BET][RETURN_STAKE] - Something went wrong: " . $e->getMessage());
-            }
+            // if (!empty($exceptionArray)) {
+            //     WalletFacade::addBalance($exceptionArray['token'], $exceptionArray['uuid'], $exceptionArray['currency_code'], ($exceptionArray['stake']), "[PLACE_BET][RETURN_STAKE] - Something went wrong: " . $e->getMessage());
+            // }
 
             $toLogs = [
                 "class"       => "OrdersController",

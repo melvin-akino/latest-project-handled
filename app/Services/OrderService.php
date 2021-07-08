@@ -206,4 +206,72 @@ class OrderService
             ], 500);
         }
     }
+
+    public function postRetryBet(Request $request)
+    {
+        try {
+            $retryTypes = RetryType::pluck('type')->toArray();
+            $orderData  = Order::retryBetData($request->order_id);
+
+            if (in_array($request->retry_type, $retryTypes)) {
+                switch (strtolower($request->retry_type)) {
+                    case 'manual-same-account':
+                        retryCacheToRedis($orderData->toArray());
+                    break;
+                }
+            } else {
+                $toLogs = [
+                    "class"       => "OrdersController",
+                    "message"     => trans('generic.bad-request'),
+                    "module"      => "API_ERROR",
+                    "status_code" => 400,
+                ];
+                monitorLog('monitor_api', 'error', $toLogs);
+
+                throw new BadRequestException(trans('generic.bad-request'));
+            }
+        } catch (BadRequestException $e) {
+            $toLogs = [
+                "class"       => "OrdersController",
+                "message"     => "Line " . $e->getLine() . " | " . $e->getMessage(),
+                "module"      => "API_ERROR",
+                "status_code" => 400,
+            ];
+            monitorLog('monitor_api', 'error', $toLogs);
+
+            return response()->json([
+                'status'      => false,
+                'status_code' => 400,
+                'message'     => $e->getMessage()
+            ], 400);
+        } catch (NotFoundException $e) {
+            $toLogs = [
+                "class"       => "OrdersController",
+                "message"     => "Line " . $e->getLine() . " | " . $e->getMessage(),
+                "module"      => "API_ERROR",
+                "status_code" => 404,
+            ];
+            monitorLog('monitor_api', 'error', $toLogs);
+
+            return response()->json([
+                'status'      => false,
+                'status_code' => 404,
+                'message'     => $e->getMessage()
+            ], 404);
+        } catch (Exception $e) {
+            $toLogs = [
+                "class"       => "OrdersController",
+                "message"     => "Line " . $e->getLine() . " | " . $e->getMessage(),
+                "module"      => "API_ERROR",
+                "status_code" => $e->getCode(),
+            ];
+            monitorLog('monitor_api', 'error', $toLogs);
+
+            return response()->json([
+                'status'      => false,
+                'status_code' => 500,
+                'message'     => trans('generic.internal-server-error')
+            ], 500);
+        }
+    }
 }

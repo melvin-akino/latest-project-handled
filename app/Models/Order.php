@@ -279,13 +279,15 @@ class Order extends Model
             })
             ->join('providers AS p', 'p.id', 'orders.provider_id')
             ->join('event_markets AS em', 'em.bet_identifier', 'orders.market_id')
-            ->join('provider_accounts AS pa', 'pa.id', 'orders.provider_account_id')
+            ->leftJoin('provider_accounts AS pa', 'pa.id', 'orders.provider_account_id')
             ->select([
                 'orders.*',
                 'pao.actual_stake',
                 'pa.username',
+                'pa.line',
                 'p.alias',
                 'em.event_id',
+                DB::raw("NULL AS retry_type_id"),
             ])
             ->where('orders.id', $orderId)
             ->first();
