@@ -786,16 +786,18 @@ if (!function_exists('appLog')) {
 }
 
 if (!function_exists('providerErrorMapping')) {
-
-    function providerErrorMapping($string)
+    function providerErrorMapping($string, bool $returnId = true)
     {
         $data = DB::select(DB::raw("SELECT * FROM provider_error_messages WHERE '" . pg_escape_string($string) . "' LIKE '%' || message || '%'"));
         if ($data) {
-            return $data[0]->id;
+            if ($returnId) {
+                return $data[0]->id;
+            } else {
+                return $data[0];
+            }
         } else {
             return null;
         }
-
     }
 }
 
