@@ -85,7 +85,7 @@ class BetQueue implements CustomProcessInterface
                                         'provider_account_id' => $providerAccount->id
                                     ]);
 
-                                    if (!$bet['new_bet']) {
+                                    // if (!$bet['new_bet']) {
                                         $providerAccountOrder = ProviderAccountOrder::where('order_log_id', $orderLog->id)->orderBy('id', 'DESC')->first();
 
                                         ProviderAccountOrder::create([
@@ -96,7 +96,7 @@ class BetQueue implements CustomProcessInterface
                                             'actual_profit_loss' => $providerAccountOrder->actual_profit_loss,
                                             'exchange_rate'      => $providerAccountOrder->exchange_rate,
                                         ]);
-                                    }
+                                    // }
 
                                     DB::commit();
 
