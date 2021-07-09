@@ -5,7 +5,7 @@ namespace App\Processes;
 use App\Exceptions\NotFoundException;
 use App\Jobs\KafkaPush;
 use App\User;
-use App\Models\{Order, OrderLogs, SystemConfiguration, ProviderAccount, RetryType};
+use App\Models\{Order, OrderLogs, SystemConfiguration, ProviderAccount, ProviderAccountOrder};
 use Hhxsv5\LaravelS\Swoole\Process\CustomProcessInterface;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -15,6 +15,7 @@ use App\Facades\SwooleHandler;
 use Exception;
 use Illuminate\Support\Facades\Redis;
 use Carbon\Carbon;
+use App\Facades\WalletFacade;
 
 class BetQueue implements CustomProcessInterface
 {
@@ -69,7 +70,9 @@ class BetQueue implements CustomProcessInterface
                                         'reason'              => 'Trying to place bet'
                                     ]);
 
-                                    OrderLogs::create([
+                                    $orderLog = OrderLogs::where('order_id', $bet['id'])->orderBy('id', 'DESC')->first();
+
+                                    $orderLogs = OrderLogs::create([
                                         'user_id'             => $bet['user_id'],
                                         'provider_id'         => $providerAccount->provider_id,
                                         'sport_id'            => $bet['sport_id'],
@@ -81,6 +84,17 @@ class BetQueue implements CustomProcessInterface
                                         'profit_loss'         => 0,
                                         'order_id'            => $bet['id'],
                                         'provider_account_id' => $providerAccount->id
+                                    ]);
+
+                                    $providerAccountOrder = ProviderAccountOrder::where('order_log_id', $orderLog->id)->orderBy('id', 'DESC')->first();
+
+                                    ProviderAccountOrder::create([
+                                        'order_log_id'       => $orderLogs->id,
+                                        'exchange_rate_id'   => $providerAccountOrder->exchange_rate_id,
+                                        'actual_stake'       => $providerAccountOrder->actual_stake,
+                                        'actual_to_win'      => $providerAccountOrder->actual_to_win,
+                                        'actual_profit_loss' => $providerAccountOrder->actual_profit_loss,
+                                        'exchange_rate'      => $providerAccountOrder->exchange_rate,
                                     ]);
 
                                     DB::commit();
@@ -155,7 +169,7 @@ class BetQueue implements CustomProcessInterface
             $order = Order::updateOrCreate([
                 'id' => $bet['id']
             ], [
-                'bet_id'                    => null,
+                'bet_id'                    => '',
                 'reason'                    => $reason,
                 'status'                    => 'FAILED',
                 'provider_error_message_id' => null
