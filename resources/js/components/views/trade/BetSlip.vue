@@ -141,13 +141,14 @@
                     </div>
                 </div>
                 <div class="flex justify-center w-full" v-if="market_details.user_status == 1">
-                    <button v-if="isPlacingOrder" @click="placeOrder" class="bg-orange-500 text-white rounded-lg w-full text-sm uppercase p-2 mt-2 opacity-75" disabled>Placing Order... <span class="text-sm"><i class="fas fa-circle-notch fa-spin"></i></span></button>
-                    <button v-if="!isPlacingOrder" @click="placeOrder" class="bg-orange-500 text-white rounded-lg w-full text-sm uppercase p-2 mt-2 focus:outline-none" :class="[!retrievedMarketData || minMaxData.length == 0 ? 'opacity-75' : 'hover:bg-orange-600']" :disabled="!retrievedMarketData || minMaxData.length == 0">Place Order</button>
+                    <button v-if="isPlacingOrder" class="bg-orange-500 text-white rounded-lg w-full text-sm uppercase p-2 mt-2 opacity-75" disabled>Placing Order... <span class="text-sm"><i class="fas fa-circle-notch fa-spin"></i></span></button>
+                    <button v-if="!isPlacingOrder" @click="bet" class="bg-orange-500 text-white rounded-lg w-full text-sm uppercase p-2 mt-2 focus:outline-none" :class="[!retrievedMarketData || minMaxData.length == 0 || showAwaitingPlacement ? 'opacity-75' : 'hover:bg-orange-600']" :disabled="!retrievedMarketData || minMaxData.length == 0 || showAwaitingPlacement">Place Order</button>
                 </div>
             </div>
         </dialog-drag>
         <odds-history v-if="showOddsHistory" @close="closeOddsHistory" :market_id="market_id" :event_id="odd_details.game.uid" :key="`${odd_details.betslip_id}-orderlogs`"></odds-history>
         <bet-matrix v-if="showBetMatrix" @close="closeBetMatrix" :market_id="market_id" :event_id="odd_details.game.uid" :key="`${odd_details.betslip_id}-betmatrix`"></bet-matrix>
+        <bet-dialog v-if="showAwaitingPlacement && pendingBet" message="You have bet(s) currently awaiting placement" mode="awaitingPlacement" :key="`awaitingPlacement-${odd_details.betslip_id}`" :bet="pendingBet" @close="closeAwaitingPlacement" @confirm="placeOrder"></bet-dialog>
     </div>
 </template>
 
@@ -159,6 +160,7 @@ import OddsHistory from './OddsHistory'
 import BetMatrix from './BetMatrix'
 import DialogDrag from 'vue-dialog-drag'
 import Tooltip from '../../component/Tooltip'
+import BetDialog from '../../component/BetDialog'
 import { getSocketKey, getSocketValue } from '../../../helpers/socket'
 import { twoDecimalPlacesFormat, moneyFormat, formatAverage } from '../../../helpers/numberFormat'
 import { moveToFirstElement } from '../../../helpers/array'
@@ -170,14 +172,15 @@ export default {
         DialogDrag,
         OddsHistory,
         BetMatrix,
-        Tooltip
+        Tooltip,
+        BetDialog
     },
     data() {
         return {
             market_details: {},
             formattedRefSchedule: [],
             inputPrice: null,
-            points: null || this.odd_details.odd.points,
+            points: this.odd_details.odd.points || null,
             market_id: this.odd_details.odd.market_id,
             orderForm: {
                 stake: '',
@@ -200,6 +203,7 @@ export default {
             hasErrorOnInput: false,
             showOddsHistory: false,
             showBetMatrix: false,
+            showAwaitingPlacement: false,
             disabledBookies: [],
             retrievedMarketData: false,
             startPointIndex: 0,
@@ -220,7 +224,7 @@ export default {
         }
     },
     computed: {
-        ...mapState('trade', ['activePopup', 'popupZIndex', 'bookies', 'betSlipSettings', 'wallet', 'underMaintenanceProviders', 'receivedOrderStatusIds']),
+        ...mapState('trade', ['activePopup', 'popupZIndex', 'bookies', 'betSlipSettings', 'wallet', 'underMaintenanceProviders', 'receivedOrderStatusIds', 'bets']),
         ...mapState('settings', ['defaultPriceFormat']),
         lowestPrice() {
             if(!_.isEmpty(this.minMaxData)) {
@@ -357,6 +361,14 @@ export default {
         },
         tradeWindowPoints() {
             return this.getTradeWindowData('points') || null
+        },
+        pendingBet() {
+            let similarPendingBet = this.bets.filter(bet => bet.status == 'PENDING' && bet.event_id == this.odd_details.game.uid && bet.odd_type == this.market_details.odd_type && bet.odd_label == this.points && bet.market_flag == this.market_details.market_flag)
+            if(similarPendingBet.length != 0) {
+                return similarPendingBet[0]
+            } else {
+                return null
+            }
         }
     },
     watch: {
@@ -685,6 +697,9 @@ export default {
         closeBetMatrix() {
             this.showBetMatrix = false
         },
+        closeAwaitingPlacement() {
+            this.showAwaitingPlacement = false
+        },
         clearOrderMessage() {
             this.orderMessage = ''
             this.isDoneBetting = false
@@ -775,8 +790,16 @@ export default {
             this.inputPrice = this.lowestPrice
             this.orderForm.stake = this.highestMax
         },
+        bet() {
+            if(this.pendingBet && this.betSlipSettings.awaiting_placement_msg == '1') {
+                this.showAwaitingPlacement = true
+            } else {
+                this.placeOrder()
+            }
+        },
         placeOrder() {
             this.isDoneBetting = true
+            this.showAwaitingPlacement = false
             if(this.$v.$invalid) {
                 this.isBetSuccessful = false
                 this.hasErrorOnInput = true

@@ -41,6 +41,14 @@
                 <span class="w-4/12 text-sm">Show advanced betslip information</span>
                 <p class="text-xs w-7/12 text-left">Select to show expected returns, average price, and minimum & maximum order</p>
             </div>
+            <div class="flex items-center mb-12">
+                <label class="relative flex items-center w-1/12">
+                    <input type="checkbox" class="appearance-none shadow border border-gray-400 bg-gray-400 rounded-full h-3 w-12 mr-4 focus:outline-none" :value="betSlipSettingsForm.awaiting_placement_msg"  @change="toggleBetSlipSettings(betSlipSettingsForm.awaiting_placement_msg, 'awaiting_placement_msg')">
+                    <span class="absolute shadow shadow-inner w-6 h-6 rounded-full" :class="[betSlipSettingsForm.awaiting_placement_msg === '1' ? 'on-switch bg-orange-500' : 'left-0 bg-white']"></span>
+                </label>
+                <span class="w-4/12 text-sm">Show awaiting placement message</span>
+                <p class="text-xs w-7/12 text-left">Show a message dialog that there is a bet awaiting placement during placing of bet on the same betslip</p>
+            </div>
             <div class="flex items-center mb-12 hidden">
                 <label class="relative flex items-center w-1/12">
                     <input type="checkbox" class="appearance-none shadow border border-gray-400 bg-gray-400 rounded-full h-3 w-12 mr-4 focus:outline-none" :value="betSlipSettingsForm.tint_bookies"  @change="toggleBetSlipSettings(betSlipSettingsForm.tint_bookies, 'tint_bookies')">
@@ -84,7 +92,8 @@ export default {
                 bets_to_fav: null,
                 adv_betslip_info: null,
                 tint_bookies: null,
-                adaptive_selection: null
+                adaptive_selection: null,
+                awaiting_placement_msg: null
             },
             adaptive_selections: []
         }
@@ -131,6 +140,7 @@ export default {
                 adv_betslip_info: this.betSlipSettingsForm.adv_betslip_info,
                 tint_bookies: this.betSlipSettingsForm.tint_bookies,
                 adaptive_selection: this.betSlipSettingsForm.adaptive_selection,
+                awaiting_placement_msg: this.betSlipSettingsForm.awaiting_placement_msg
             }
 
             axios.post('/v1/user/settings/bet-slip', data, { headers: { 'Authorization': `Bearer ${token}` } })

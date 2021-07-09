@@ -272,6 +272,9 @@ const mutations = {
     SET_BET_SLIP_SETTINGS: (state, betSlipSettings) => {
         state.betSlipSettings = betSlipSettings
     },
+    UPDATE_BET_SLIP_SETTINGS: (state, data) => {
+        state.betSlipSettings[data.key] = data.value
+    },
     SHOW_SEARCH: (state, data) => {
         state.showSearch = data
     },

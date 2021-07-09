@@ -71,7 +71,7 @@ export default {
                 this.oldBetData = oldValue
                 this.newBetData = value
 
-                if(value.status == 'FAILED' && value.retry_type == 'manual-same-account' && value.odds_have_changed) {
+                if(oldValue.status != value.status && value.status == 'FAILED' && value.retry_type == 'manual-same-account' && value.odds_have_changed) {
                     this.showOddsHaveChanged = true
                 }
             }

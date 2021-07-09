@@ -22,6 +22,15 @@
                     <button @click="$emit('close')" class="rounded w-20 mr-6 bg-red-600 hover:bg-red-800 text-white text-sm uppercase px-4 py-2">Cancel</button>
                     <button @click="$emit('confirm')" class="rounded w-20 bg-blue-400 hover:bg-blue-600 text-white text-sm uppercase px-4 py-2">Yes</button>
                 </div>
+                <div class="mt-4 font-bold text-red-600" v-if="mode=='awaitingPlacement'">
+                    <p><i class="fas fa-exclamation-triangle mr-2"></i>YES <span class="font-normal">may result in placing duplicate bet(s).</span></p>
+                    <span>
+                        <label>
+                            <input class="mr-1 leading-tight" type="checkbox" v-model="disable" @change="disableAwaitingPlacement">
+                            Don't ask me again.
+                        </label>
+                    </span>
+                </div>
             </div>
         </dialog-drag>
     </div>
@@ -31,6 +40,7 @@
 import DialogDrag from 'vue-dialog-drag'
 import { mapState } from 'vuex'
 import { moneyFormat, twoDecimalPlacesFormat } from '../../helpers/numberFormat'
+import Cookies from 'js-cookie'
 
 export default {
     props: ['message', 'mode', 'oldBet', 'bet'],
@@ -39,6 +49,7 @@ export default {
     },
     data() {
         return {
+            disable: false,
             options: {
                 width:550,
                 buttonPin: false,
@@ -46,8 +57,31 @@ export default {
         }
     },
     computed: {
-        ...mapState('trade', ['activePopup', 'popupZIndex']),
+        ...mapState('trade', ['activePopup', 'popupZIndex', 'betSlipSettings']),
         ...mapState('settings', ['defaultPriceFormat'])
+    },
+    methods: {
+        disableAwaitingPlacement() {
+            let token = Cookies.get('mltoken')
+            let awaitingPlacement = this.disable ? '0' : '1'
+            let data = {
+                use_equivalent_bets: this.betSlipSettings.use_equivalent_bets,
+                offers_on_exchanges: this.betSlipSettings.offers_on_exchanges,
+                adv_placement_opt: this.betSlipSettings.adv_placement_opt,
+                bets_to_fav: this.betSlipSettings.bets_to_fav,
+                adv_betslip_info: this.betSlipSettings.adv_betslip_info,
+                tint_bookies: this.betSlipSettings.tint_bookies,
+                adaptive_selection: this.betSlipSettings.adaptive_selection,
+                awaiting_placement_msg: awaitingPlacement
+            }
+
+            this.$store.commit('trade/UPDATE_BET_SLIP_SETTINGS', { key: 'awaiting_placement_msg', value: awaitingPlacement })
+
+            axios.post('/v1/user/settings/bet-slip', data, { headers: { 'Authorization': `Bearer ${token}` } })
+            .catch(err => {
+                this.$store.dispatch('auth/checkIfTokenIsValid', err.response.status)
+            })
+        }
     },
     directives: {
         betDialog: {
