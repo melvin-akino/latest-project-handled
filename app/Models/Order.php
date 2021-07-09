@@ -168,6 +168,7 @@ class Order extends Model
                      'o.order_expiry',
                      'o.odd_label',
                      'em.error',
+                     'o.reason',
                      'rt.type as retry_type',
                      'pem.odds_have_changed'
                  ])

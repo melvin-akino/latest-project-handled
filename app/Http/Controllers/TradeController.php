@@ -76,7 +76,7 @@ class TradeController extends Controller
                     'score_on_bet'      => $betData->score_on_bet,
                     'status'            => $betData->status,
                     'created_at'        => Carbon::createFromFormat("Y-m-d H:i:s", $betData->created_at, 'Etc/UTC')->setTimezone($userTz)->format("Y-m-d H:i:s"),
-                    'error'             => $betData->error,
+                    'error'             => !empty($betData->error) ? $betData->error : $betData->reason,
                     'retry_type'        => $betData->retry_type,
                     'odds_have_changed' => $betData->odds_have_changed
                 ];

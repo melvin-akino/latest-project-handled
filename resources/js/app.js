@@ -31,9 +31,9 @@ if(Cookies.get('mltoken')) {
     Vue.use(VueNativeSock, `${process.env.MIX_WEBSOCKET_URL}?token=${token}`, { connectManually: true })
 }
 
-import Vuetify, { VApp, VAutocomplete, VBtn, VCombobox, VData, VDataFooter, VDataTable, VDatePicker, VIcon, VMain, VMenu, VPagination, VSelect, VSimpleTable, VTextField } from "vuetify/lib";
+import Vuetify, { VApp, VAutocomplete, VBtn, VCombobox, VData, VDataFooter, VDataTable, VDatePicker, VIcon, VMain, VMenu, VPagination, VSelect, VSimpleTable, VTextField, VSnackbar } from "vuetify/lib";
 Vue.use(Vuetify, {
-  components: { VApp, VAutocomplete, VBtn, VCombobox, VData, VDataFooter, VDataTable, VDatePicker, VIcon, VMain, VMenu, VPagination, VSelect, VSimpleTable, VTextField }
+  components: { VApp, VAutocomplete, VBtn, VCombobox, VData, VDataFooter, VDataTable, VDatePicker, VIcon, VMain, VMenu, VPagination, VSelect, VSimpleTable, VTextField, VSnackbar }
 });
 const vuetify = new Vuetify();
 
