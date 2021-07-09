@@ -196,7 +196,7 @@ class BetTransformationHandler
                         ]);
 
                         if ($providerErrorMessage->retry_type_id) {
-                            $isRetry                              = true;
+                            $isRetry                  = true;
                             $betData                  = Order::retryBetData($orderData->id)->toArray();
                             $betData['retry_type_id'] = $providerErrorMessage->retry_type_id;
 

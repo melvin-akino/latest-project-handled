@@ -406,14 +406,14 @@ if (!function_exists('ordersCreation')) {
             'order_id'      => $order->id,
         ]);
 
-        // ProviderAccountOrder::create([
-        //     'order_log_id'       => $orderLogs->id,
-        //     'exchange_rate_id'   => $exchangeRate['id'],
-        //     'actual_stake'       => $orderData['actual_stake'],
-        //     'actual_to_win'      => !in_array($orderData['odd_type_id'], $colMinusOne) ? $orderData['actual_stake'] * $orderData['odds'] : $orderData['actual_stake'] * ($orderData['odds'] - 1),
-        //     'actual_profit_loss' => 0.00,
-        //     'exchange_rate'      => $exchangeRate['exchange_rate'],
-        // ]);
+        ProviderAccountOrder::create([
+            'order_log_id'       => $orderLogs->id,
+            'exchange_rate_id'   => $exchangeRate['id'],
+            'actual_stake'       => $orderData['actual_stake'],
+            'actual_to_win'      => !in_array($orderData['odd_type_id'], $colMinusOne) ? $orderData['actual_stake'] * $orderData['odds'] : $orderData['actual_stake'] * ($orderData['odds'] - 1),
+            'actual_profit_loss' => 0.00,
+            'exchange_rate'      => $exchangeRate['exchange_rate'],
+        ]);
 
         return [
             'orders'     => $order,

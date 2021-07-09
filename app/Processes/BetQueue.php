@@ -30,7 +30,6 @@ class BetQueue implements CustomProcessInterface
             if ($swoole->data2SwtTable->exist('data2Swt')) {
                 while (!self::$quit) {
                     $betStack      = Redis::lpop('ml-queue');
-                    
                     $maxRetryCount = SystemConfiguration::getSystemConfigurationValue('RETRY_COUNT');
                     $retryExpiry   = SystemConfiguration::getSystemConfigurationValue('RETRY_EXPIRY');
 
@@ -86,16 +85,18 @@ class BetQueue implements CustomProcessInterface
                                         'provider_account_id' => $providerAccount->id
                                     ]);
 
-                                    $providerAccountOrder = ProviderAccountOrder::where('order_log_id', $orderLog->id)->orderBy('id', 'DESC')->first();
+                                    if (!$bet['new_bet']) {
+                                        $providerAccountOrder = ProviderAccountOrder::where('order_log_id', $orderLog->id)->orderBy('id', 'DESC')->first();
 
-                                    ProviderAccountOrder::create([
-                                        'order_log_id'       => $orderLogs->id,
-                                        'exchange_rate_id'   => $providerAccountOrder->exchange_rate_id,
-                                        'actual_stake'       => $providerAccountOrder->actual_stake,
-                                        'actual_to_win'      => $providerAccountOrder->actual_to_win,
-                                        'actual_profit_loss' => $providerAccountOrder->actual_profit_loss,
-                                        'exchange_rate'      => $providerAccountOrder->exchange_rate,
-                                    ]);
+                                        ProviderAccountOrder::create([
+                                            'order_log_id'       => $orderLogs->id,
+                                            'exchange_rate_id'   => $providerAccountOrder->exchange_rate_id,
+                                            'actual_stake'       => $providerAccountOrder->actual_stake,
+                                            'actual_to_win'      => $providerAccountOrder->actual_to_win,
+                                            'actual_profit_loss' => $providerAccountOrder->actual_profit_loss,
+                                            'exchange_rate'      => $providerAccountOrder->exchange_rate,
+                                        ]);
+                                    }
 
                                     DB::commit();
 
@@ -135,9 +136,11 @@ class BetQueue implements CustomProcessInterface
                             }
                         } catch (NotFoundException $e) {
                             $bet['retry_count'] += 1;
+
                             Order::where('id', $bet['id'])->update([
-                                'retry_count'              => $bet['retry_count']
+                                'retry_count' => $bet['retry_count']
                             ]);
+
                             retryCacheToRedis($bet);
                         } catch (QueryException $e) {
                             DB::rollback();

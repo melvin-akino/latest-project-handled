@@ -270,8 +270,10 @@ class Order extends Model
             ->first();
     }
 
-    public static function retryBetData($orderId)
+    public static function retryBetData($orderId, bool $newBet = false)
     {
+        $newBet = $newBet ?: null;
+
         return self::join('order_logs AS ol', 'ol.order_id', 'orders.id')
             ->join('provider_account_orders AS pao', function ($join) {
                 $join->on('pao.order_log_id', 'ol.id');
@@ -287,7 +289,8 @@ class Order extends Model
                 'pa.line',
                 'p.alias',
                 'em.event_id',
-                DB::raw("NULL AS retry_type_id"),
+                DB::raw("null AS retry_type_id"),
+                DB::raw("$newBet AS new_bet"),
             ])
             ->where('orders.id', $orderId)
             ->first();
