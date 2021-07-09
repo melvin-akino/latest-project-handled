@@ -1,17 +1,20 @@
 <template>
     <appwrapper>
         <router-view></router-view>
+        <snack-bar></snack-bar>
     </appwrapper>
 </template>
 
 <script>
 import appwrapper from './layouts/appwrapper'
+import SnackBar from './component/Snackbar'
 
 export default {
     name: 'App',
     props: ['onloadData'],
     components: {
-        appwrapper
+        appwrapper,
+        SnackBar
     },
     mounted() {
         this.fetchSettingsOnLoadData()

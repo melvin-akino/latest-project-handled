@@ -17,7 +17,7 @@
         </div>
         <div class="w-4/12 py-1 text-center" :class="{'success': bet.status==='SUCCESS', 'failed': bet.status==='FAILED', 'processing': bet.status==='PENDING'}">
             {{bet.provider_alias}} - {{Number(bet.stake) | moneyFormat}}@{{Number(bet.odds) | twoDecimalPlacesFormat}} - {{ bet.status == 'SUCCESS' ? 'PLACED' : bet.status }}
-            <tooltip icon="fas fa-info-circle" :text="bet.error" color="text-white" v-if="bet.status == 'FAILED'"></tooltip>
+            <tooltip icon="fas fa-info-circle" :text="bet.error" color="text-white" v-if="bet.status == 'FAILED' && bet.error"></tooltip>
         </div>
         <div class="flex items-center w-20 px-1">
             <a href="#" @click.prevent="openBetMatrix(`${bet.order_id}-betmatrix`)" class="text-center py-1 w-1/2" title="Bet Matrix" v-if="!failedBetStatus.includes(bet.status)"><i class="fas fa-chart-area"></i></a>
@@ -25,6 +25,7 @@
         </div>
         <odds-history v-if="showOddsHistory" @close="closeOddsHistory" :market_id="bet.market_id" :event_id="bet.event_id" :key="`${bet.order_id}-orderlogs`"></odds-history>
         <bet-matrix v-if="showBetMatrix" @close="closeBetMatrix" :market_id="bet.market_id" :event_id="bet.event_id" :key="`${bet.order_id}-betmatrix`"></bet-matrix>
+        <bet-dialog  v-if="showOddsHaveChanged" message="The odds have changed." mode="oddsHaveChanged" :key="`retry-${bet.order_id}`" :oldBet="oldBetData" :bet="newBetData" @close="closeOddsHaveChanged" @confirm="retryBet"></bet-dialog>
     </div>
 </template>
 
@@ -32,27 +33,49 @@
 import OddsHistory from './OddsHistory'
 import BetMatrix from './BetMatrix'
 import Tooltip from '../../component/Tooltip'
+import BetDialog from '../../component/BetDialog'
 import { mapState } from 'vuex'
 import { twoDecimalPlacesFormat, moneyFormat } from '../../../helpers/numberFormat'
 import Cookies from 'js-cookie'
 import Swal from 'sweetalert2'
+import bus from '../../../eventBus'
 
 export default {
     props: ['bet'],
     components: {
         OddsHistory,
         BetMatrix,
-        Tooltip
+        Tooltip,
+        BetDialog
     },
     data() {
         return {
             showOddsHistory: false,
-            showBetMatrix: false
+            showBetMatrix: false,
+            showOddsHaveChanged: false,
+            oldBetData: null,
+            newBetData: null
         }
     },
     computed: {
         ...mapState('settings', ['defaultPriceFormat']),
         ...mapState('trade', ['wallet', 'failedBetStatus']),
+        item() {
+            return { ...this.bet }
+        }
+    },
+    watch: {
+        item: {
+            deep: true,
+            handler(value, oldValue) {
+                this.oldBetData = oldValue
+                this.newBetData = value
+
+                if(oldValue.status != value.status && value.status == 'FAILED' && value.retry_type == 'manual-same-account' && value.odds_have_changed) {
+                    this.showOddsHaveChanged = true
+                }
+            }
+        }
     },
     methods: {
         openOddsHistory(data) {
@@ -68,6 +91,9 @@ export default {
         },
         closeBetMatrix() {
             this.showBetMatrix = false
+        },
+        closeOddsHaveChanged() {
+            this.showOddsHaveChanged = false
         },
         openBetSlip() {
             let token = Cookies.get('mltoken')
@@ -105,6 +131,30 @@ export default {
                         text: err.response.data.message
                     })
                 }
+                this.$store.dispatch('auth/checkIfTokenIsValid', err.response.status)
+            })
+        },
+        retryBet() {
+            let token = Cookies.get('mltoken')
+
+            bus.$emit("SHOW_SNACKBAR", {
+                color: "success",
+                text: "Retrying bet..."
+            });
+
+            axios.post('v1/orders/bet/retry', this.bet, { headers: { 'Authorization': `Bearer ${token}` }})
+            .then(() => {
+                this.closeOddsHaveChanged()
+                bus.$emit("SHOW_SNACKBAR", {
+                    color: "success",
+                    text: "Bet was successfully retried."
+                });
+            })
+            .catch(err => {
+                bus.$emit("SHOW_SNACKBAR", {
+                    color: "error",
+                    text: err.response.data.message
+                });
                 this.$store.dispatch('auth/checkIfTokenIsValid', err.response.status)
             })
         }

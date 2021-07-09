@@ -169,6 +169,8 @@ class BetTransformationHandler
                                 $oddsHaveChanged      = $providerError->odds_have_changed;
                                 $error                = $providerError->error;
                             }
+                        } else {
+                            $error = $this->message->data->reason;
                         }
 
                         $providerErrorMessage = providerErrorMapping($this->message->data->reason, false);

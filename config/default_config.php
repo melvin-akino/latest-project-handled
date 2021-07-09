@@ -22,6 +22,7 @@ return [
         'adv_betslip_info'          => '1',
         'tint_bookies'              => '0',
         'adaptive_selection'        => 2,
+        'awaiting_placement_msg'    => '1'
     ],
     'bookies'                       => [
         'disabled_bookies'          => []

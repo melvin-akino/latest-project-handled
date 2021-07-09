@@ -79,6 +79,7 @@ class SettingsRequests extends FormRequest
                 'adv_betslip_info'          => 'required|boolean',
                 'tint_bookies'              => 'required|boolean',
                 'adaptive_selection'        => 'required|numeric|in:' . $selections,
+                'awaiting_placement_msg'    => 'required|boolean',
             ];
         } else if ($type == 'bookies') {
             $providers = Provider::getActiveProviders()->get()->toArray();
