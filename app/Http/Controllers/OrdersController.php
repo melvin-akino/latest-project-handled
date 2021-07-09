@@ -715,7 +715,7 @@ class OrdersController extends Controller
             DB::commit();
 
             for ($i = 0; $i < count($incrementIds['id']); $i++) {
-                $orderData       = Order::retryBetData($incrementIds['id'][$i]);
+                $orderData       = Order::retryBetData($incrementIds['id'][$i], true);
                 $redisExpiration = env('REDIS_TOOL_BALANCE_EXPIRE', 3600);
                 $requestId       = Str::uuid() . "-" . $incrementIds['id'][$i];
                 $requestTs       = self::milliseconds();

@@ -86,16 +86,18 @@ class BetQueue implements CustomProcessInterface
                                         'provider_account_id' => $providerAccount->id
                                     ]);
 
-                                    $providerAccountOrder = ProviderAccountOrder::where('order_log_id', $orderLog->id)->orderBy('id', 'DESC')->first();
+                                    if (!$bet['new_bet']) {
+                                        $providerAccountOrder = ProviderAccountOrder::where('order_log_id', $orderLog->id)->orderBy('id', 'DESC')->first();
 
-                                    ProviderAccountOrder::create([
-                                        'order_log_id'       => $orderLogs->id,
-                                        'exchange_rate_id'   => $providerAccountOrder->exchange_rate_id,
-                                        'actual_stake'       => $providerAccountOrder->actual_stake,
-                                        'actual_to_win'      => $providerAccountOrder->actual_to_win,
-                                        'actual_profit_loss' => $providerAccountOrder->actual_profit_loss,
-                                        'exchange_rate'      => $providerAccountOrder->exchange_rate,
-                                    ]);
+                                        ProviderAccountOrder::create([
+                                            'order_log_id'       => $orderLogs->id,
+                                            'exchange_rate_id'   => $providerAccountOrder->exchange_rate_id,
+                                            'actual_stake'       => $providerAccountOrder->actual_stake,
+                                            'actual_to_win'      => $providerAccountOrder->actual_to_win,
+                                            'actual_profit_loss' => $providerAccountOrder->actual_profit_loss,
+                                            'exchange_rate'      => $providerAccountOrder->exchange_rate,
+                                        ]);
+                                    }
 
                                     DB::commit();
 
