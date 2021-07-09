@@ -324,8 +324,6 @@ class OrdersController extends Controller
 
     public function postPlaceBet(Request $request)
     {
-        // $exceptionArray = [];
-
         try {
             DB::beginTransaction();
 
@@ -346,7 +344,6 @@ class OrdersController extends Controller
             $providersSWT          = $swoole->providersTable;
             $topicSWT              = $swoole->topicTable;
             $userProviderConfigSWT = $swoole->userProviderConfigTable;
-
             $remainingStake        = null;
 
             /**
@@ -590,24 +587,6 @@ class OrdersController extends Controller
                     'points'      => $query->odd_label,
                 ];
 
-                $providerToken   = SwooleHandler::getValue('walletClientsTable', trim(strtolower($providerInfo['alias'])) . '-users')['token'];
-                // $providerAccount = ProviderAccount::getBettingAccount($row['provider_id'], $actualStake, $isUserVIP, $payload['event_id'], $query->odd_type_id, $query->market_flag, $providerToken, $blockedLinesParam);
-
-                // if (!$providerAccount) {
-                //     $toLogs = [
-                //         "class"       => "OrdersController",
-                //         "message"     => trans('game.bet.errors.no_bookmaker'),
-                //         "module"      => "API_ERROR",
-                //         "status_code" => 404,
-                //     ];
-                //     monitorLog('monitor_api', 'error', $toLogs);
-
-                //     throw new NotFoundException(trans('game.bet.errors.no_bookmaker'));
-                // }
-
-                // $providerAccountUserName = $providerAccount->username;
-                // $providerAccountId       = $providerAccount->id;
-
                 $_orderData = [
                     'master_event_unique_id'        => $query->master_event_unique_id,
                     'master_event_market_unique_id' => $query->mem_uid,
@@ -642,37 +621,8 @@ class OrdersController extends Controller
                     throw new BadRequestException(trans('game.wallet-api.error.user'));
                 }
 
-                // $providerWalletToken = SwooleHandler::getValue('walletClientsTable', trim(strtolower($providerInfo['alias'])) . '-users')['token'];
-                // $providerUUID        = trim($providerAccount->uuid);
-                // $providerReason      = "[PLACE_BET][BET PENDING] - transaction for order id " . $orderCreation['orders']->id;
-                // $exceptionArray      = [
-                //     'token'         => $providerWalletToken,
-                //     'uuid'          => $providerUUID,
-                //     'currency_code' => trim(strtoupper($providerCurrencyInfo['code'])),
-                //     'stake'         => $actualStake,
-                // ];
-
-                // $providerWallet = WalletFacade::subtractBalance($providerWalletToken, $providerUUID, trim(strtoupper($providerCurrencyInfo['code'])), $actualStake, $providerReason);
-
-                // if (empty($providerWallet) || array_key_exists('error', $providerWallet) || !array_key_exists('status_code', $providerWallet) || $providerWallet->status_code != 200) {
-                //     $userWalletToken = SwooleHandler::getValue('walletClientsTable', 'ml-users')['token'];
-                //     $error = !empty($providerWallet->error) ? $providerWallet->error : "Wallet API interaction";
-                //     $userReturnStake = WalletFacade::addBalance($userWalletToken, auth()->user()->uuid, $providerCurrencyInfo['code'], ($payloadStake), "[PLACE_BET][RETURN_STAKE] - Something went wrong: " . $error);
-
-                //     if (empty($userReturnStake) || array_key_exists('error', $userReturnStake) || !array_key_exists('status_code', $userReturnStake) || $userReturnStake->status_code != 200) {
-                //         throw new BadRequestException(trans('game.wallet-api.error.user'));
-                //     }
-
-                //     throw new BadRequestException(trans('game.wallet-api.error.prov'));
-                // }
-
-                // $updateProvider             = ProviderAccount::find($providerAccountId);
-                // $updateProvider->updated_at = Carbon::now();
-                // $updateProvider->save();
-
-                $incrementIds['id'][]               = $orderIncrement->id;
-                $incrementIds['created_at'][]       = (string) $orderIncrement->created_at;
-                // $incrementIds['provider_account'][] = $providerAccountUserName;
+                $incrementIds['id'][]         = $orderIncrement->id;
+                $incrementIds['created_at'][] = (string) $orderIncrement->created_at;
 
                 if ($request->betType == "FAST_BET") {
                     if ($prevStake == 0) {
@@ -696,8 +646,7 @@ class OrdersController extends Controller
                     ]);
                 }
 
-                $orderIds[]     = $orderId;
-                // $exceptionArray = [];
+                $orderIds[] = $orderId;
             }
 
             if ($betType == "BEST_PRICE") {
@@ -754,8 +703,6 @@ class OrdersController extends Controller
                 monitorLog('monitor_api', 'info', $toLogs);
 
                 $orderSWTKey = 'orderId:' . $incrementIds['id'][$i];
-                // SwooleHandler::setColumnValue('ordersTable', $orderSWTKey, 'username', $payload['data']['username']);
-                SwooleHandler::setColumnValue('ordersTable', $orderSWTKey, 'orderExpiry', $payload['data']['orderExpiry']);
                 SwooleHandler::setColumnValue('ordersTable', $orderSWTKey, 'created_at', $incrementIds['created_at'][$i]);
                 SwooleHandler::setColumnValue('ordersTable', $orderSWTKey, 'status', 'PENDING');
 

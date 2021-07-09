@@ -88,13 +88,13 @@ class ProviderAccount extends Model
                     }
                 }
 
+                $excludeAccounts   = [];
+                $reservedAccounts  = [];
                 $uuids             = array_keys((array) $batch->data);
                 $accountCandidates = $query->whereIn('uuid', $uuids)->get()->toArray();
                 $betRules          = ProviderBetRules::where('not_allowed_ground', $marketFlag)
                     ->where('event_id', $eventId)
                     ->get();
-                $excludeAccounts   = [];
-                $reservedAccounts  = [];
 
                 Log::info("Account Candidates - All that have enough credits");
                 Log::info(json_encode($accountCandidates));
