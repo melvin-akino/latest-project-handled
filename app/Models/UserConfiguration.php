@@ -87,7 +87,8 @@ class UserConfiguration extends Model
                     'bets_to_fav',
                     'adv_betslip_info',
                     'tint_bookies',
-                    'adaptive_selection'
+                    'adaptive_selection',
+                    'awaiting_placement_msg'
                 ],
                 'notifications-and-sounds'  => [
                     'bet_confirm',
