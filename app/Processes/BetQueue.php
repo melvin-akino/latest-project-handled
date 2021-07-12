@@ -110,7 +110,7 @@ class BetQueue implements CustomProcessInterface
                                     ];
 
                                     $payload['data'] = [
-                                        'provider'  => $bet['alias'],
+                                        'provider'  => strtolower($bet['alias']),
                                         'sport'     => $bet['sport_id'],
                                         'stake'     => $bet['actual_stake'],
                                         'odds'      => $bet['odds'],
