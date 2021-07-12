@@ -148,6 +148,7 @@ class BetTransformationHandler
                             'profit_loss'   => $order->profit_loss,
                             'order_id'      => $order->id,
                             'settled_date'  => null,
+                            'provider_account_id' => $order->provider_account_id
                         ]);
 
                         ProviderAccountOrder::create([
