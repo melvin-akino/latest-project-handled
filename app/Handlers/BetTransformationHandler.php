@@ -184,7 +184,14 @@ class BetTransformationHandler
                         $orderData->updated_at                = Carbon::now();
                         $orderData->save();
 
-                        OrderLogs::create([
+                        $orderLogData         = OrderLogs::where('order_id', $orderData->id)->orderBy('id', 'desc')->first();
+                        $providerAccountOrder = ProviderAccountOrder::where('order_log_id', $orderLogData->id)->orderBy('id', 'desc')->first();
+
+                        $actualStake    = $providerAccountOrder->actual_stake;
+                        $exchangeRate   = $providerAccountOrder->exchange_rate;
+                        $exchangeRateId = $providerAccountOrder->exchange_rate_id;
+
+                        $orderLogs = OrderLogs::create([
                             'provider_id'         => $order->provider_id,
                             'sport_id'            => $order->sport_id,
                             'bet_id'              => $this->message->data->bet_id,
@@ -196,6 +203,15 @@ class BetTransformationHandler
                             'order_id'            => $order->id,
                             'settled_date'        => null,
                             'provider_account_id' => $orderData->provider_account_id,
+                        ]);
+
+                        ProviderAccountOrder::create([
+                            'order_log_id'       => $orderLogs->id,
+                            'exchange_rate_id'   => $exchangeRateId,
+                            'actual_stake'       => $actualStake,
+                            'actual_to_win'      => !in_array($order->odd_type_id, $colMinusOne) ? $actualStake * $order->odds : $actualStake * ($order->odds - 1),
+                            'actual_profit_loss' => 0.00,
+                            'exchange_rate'      => $exchangeRate,
                         ]);
 
                         if ($providerErrorMessage->retry_type_id) {
