@@ -228,6 +228,10 @@ class BetTransformationHandler
                                     'line'        => $providerAccount->line
                                 ]);
                             }
+
+                            $orderData->retry_count = $orderData->retry_count + 1;
+                            $orderData->save();
+
                             retryCacheToRedis($betData);
                         } else {
                             $source       = Source::where('source_name', 'LIKE', 'RETURN_STAKE')->first();
