@@ -143,11 +143,14 @@ class Order extends Model
                  ->leftJoin('provider_error_messages as pem', 'o.provider_error_message_id', 'pem.id')
                  ->leftJoin('error_messages as em', 'pem.error_message_id', 'em.id')
                  ->leftJoin('retry_types as rt', 'pem.retry_type_id', 'rt.id')
+                 ->leftJoin('event_markets', 'event_markets.bet_identifier', 'o.market_id')
+                 ->leftJoin('events as e', 'e.id', 'event_markets.event_id')
                  ->distinct()
                  ->where('sot.sport_id', DB::raw('o.sport_id'))
                  ->where('o.user_id', $userId)
                  ->whereNull('o.settled_date')
                  ->whereIn('o.status', ['PENDING', 'SUCCESS', 'FAILED'])
+                 ->whereNull('e.deleted_at')
                  ->select([
                      'o.id AS order_id',
                      'p.alias',
