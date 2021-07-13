@@ -13,7 +13,7 @@ export default {
 
 <style>
 .toolTip {
-    position: relative;
+    position: absolute;
     cursor: pointer;
     font-size: 13px;
     display:inline-block;

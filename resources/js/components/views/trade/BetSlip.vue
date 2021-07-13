@@ -96,8 +96,10 @@
                         </div>
                         <div class="flex justify-between items-center py-2">
                             <div class="flex justify-start items-center">
-                                <label class="text-sm">Min Price</label>
-                                <tooltip icon="fas fa-info-circle" text="Minimum Accepted Price" color="text-gray-700"></tooltip>
+                                <label class="text-sm">
+                                    Min Price
+                                    <tooltip icon="fas fa-info-circle" text="Minimum Accepted Price" color="text-gray-700"></tooltip>
+                                </label>
                             </div>
                             <div class="flex justify-end items-center">
                                 <input type="text" class="betslipInput w-40 shadow appearance-none border rounded text-sm text-right py-1 px-3 text-gray-700 leading-tight focus:outline-none" v-model="$v.inputPrice.$model" @keyup="priceInput" :disabled="!retrievedMarketData || minMaxData.length == 0">
@@ -105,8 +107,10 @@
                         </div>
                         <div class="flex justify-between items-center py-2">
                             <div class="flex justify-start items-center">
-                                <label class="text-sm">Stake</label>
-                                <tooltip icon="fas fa-info-circle" text="By clicking the 'MIN' button this inputs your MINIMUM possible stake across all providers selected. By clicking the 'MAX' button, this inputs your MAXIMUM possible stake across all providers selected." color="text-gray-700"></tooltip>
+                                <label class="text-sm">
+                                    Stake
+                                    <tooltip icon="fas fa-info-circle" text="By clicking the 'MIN' button this inputs your MINIMUM possible stake across all providers selected. By clicking the 'MAX' button, this inputs your MAXIMUM possible stake across all providers selected." color="text-gray-700"></tooltip>
+                                </label>
                             </div>
                             <div class="relative flex justify-end items-center">
                                 <button class="minMaxBtn minStake absolute bg-primary-500 px-3 text-white rounded text-xs uppercase focus:outline-none hover:bg-primary-600" @click="setMinStake">MIN</button>
@@ -427,6 +431,11 @@ export default {
         'odd_details.game.market_odds'() {
             this.getMarketDetails(false, false)
             this.initialSpread()
+        },
+        pendingBet(value) {
+            if(!value) {
+                this.showAwaitingPlacement = false
+            }
         }
     },
     mounted() {
