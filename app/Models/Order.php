@@ -271,8 +271,11 @@ class Order extends Model
             ->first();
     }
 
-    public static function retryBetData($orderId)
+    public static function retryBetData($orderId, bool $newBet = false)
     {
+        $newBet = $newBet ?: 'null';
+
+
         return self::join('order_logs AS ol', 'ol.order_id', 'orders.id')
             ->join('provider_account_orders AS pao', function ($join) {
                 $join->on('pao.order_log_id', 'ol.id');
@@ -280,13 +283,16 @@ class Order extends Model
             })
             ->join('providers AS p', 'p.id', 'orders.provider_id')
             ->join('event_markets AS em', 'em.bet_identifier', 'orders.market_id')
-            ->join('provider_accounts AS pa', 'pa.id', 'orders.provider_account_id')
+            ->leftJoin('provider_accounts AS pa', 'pa.id', 'orders.provider_account_id')
             ->select([
                 'orders.*',
                 'pao.actual_stake',
                 'pa.username',
+                'pa.line',
                 'p.alias',
                 'em.event_id',
+                DB::raw("null AS retry_type_id"),
+                DB::raw("$newBet AS new_bet")
             ])
             ->where('orders.id', $orderId)
             ->first();

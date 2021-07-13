@@ -356,7 +356,7 @@ if (!function_exists('getMilliseconds')) {
  * @author  Kevin Uy
  */
 if (!function_exists('ordersCreation')) {
-    function ordersCreation(int $userId, int $sportId, int $providerId, int $providerAccountId, array $orderData, array $exchangeRate, string $mlBetId, array $colMinusOne = [])
+    function ordersCreation(int $userId, int $sportId, int $providerId, $providerAccountId = null, array $orderData, array $exchangeRate, string $mlBetId, array $colMinusOne = [])
     {
         $order = Order::create([
             'user_id'                       => $userId,
@@ -786,16 +786,18 @@ if (!function_exists('appLog')) {
 }
 
 if (!function_exists('providerErrorMapping')) {
-
-    function providerErrorMapping($string)
+    function providerErrorMapping($string, bool $returnId = true)
     {
         $data = DB::select(DB::raw("SELECT * FROM provider_error_messages WHERE '" . pg_escape_string($string) . "' LIKE '%' || message || '%'"));
         if ($data) {
-            return $data[0]->id;
+            if ($returnId) {
+                return $data[0]->id;
+            } else {
+                return $data[0];
+            }
         } else {
             return null;
         }
-
     }
 }
 
