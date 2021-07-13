@@ -41,6 +41,7 @@ import { getSocketKey, getSocketValue } from '../../../helpers/socket'
 import { sortByObjectKeys } from '../../../helpers/array'
 import Vue from 'vue'
 const vm = new Vue()
+import bus from '../../../eventBus'
 
 export default {
     components: {
@@ -287,24 +288,17 @@ export default {
                     let maintenance = getSocketValue(response.data, 'getMaintenance')
                     if(this.maintenance[maintenance.provider] != maintenance.under_maintenance) {
                         if(maintenance.under_maintenance) {
-                            Swal.fire({
-                                icon: 'warning',
-                                text: maintenance.provider.toUpperCase() + ' bookmaker is unavailable',
-                                allowOutsideClick: false,
-                                allowEscapeKey: false,
-                                allowEnterKey: false,
-                                confirmButtonText: "Okay"
-                            })
+                            bus.$emit("SHOW_SNACKBAR", {
+                                color: "error",
+                                text: `${maintenance.provider.toUpperCase()} bookmaker is unavailable`,
+                                timeout: -1
+                            });
                             this.$store.commit('trade/ADD_TO_UNDER_MAINTENANCE_PROVIDERS', maintenance.provider)
                         } else {
-                            Swal.fire({
-                                icon: 'info',
-                                text: maintenance.provider.toUpperCase() + ' bookmaker is now available',
-                                allowOutsideClick: false,
-                                allowEscapeKey: false,
-                                allowEnterKey: false,
-                                confirmButtonText: "Okay"
-                            })
+                            bus.$emit("SHOW_SNACKBAR", {
+                                color: "primary",
+                                text: `${maintenance.provider.toUpperCase()} bookmaker is available`
+                            });
                             this.$store.commit('trade/REMOVE_FROM_UNDER_MAINTENANCE_PROVIDERS', maintenance.provider)
                         }
                     }

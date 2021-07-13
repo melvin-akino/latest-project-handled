@@ -1,32 +1,41 @@
 <template>
-    <v-snackbar v-model="snackbar.show" right dark :color="snackbar.color">
-        <span class="subtitle-1">{{ snackbar.text }}</span>
-        <template v-slot:action="{ attrs }">
-        <v-btn @click="snackbar.show = false" dark icon :bind="attrs">
-            <v-icon>mdi-close</v-icon>
-        </v-btn>
+    <v-snackbars :objects.sync="messages" right>
+        <template v-slot:default="{ message }">
+            <span class="text-base">{{ message }}</span>
         </template>
-    </v-snackbar>
+        <template v-slot:action="{ close }">
+            <v-btn @click="close()" dark icon>
+                <v-icon small>mdi-close</v-icon>
+            </v-btn>
+        </template>
+    </v-snackbars>
 </template>
 
 <script>
 import bus from "../../eventBus";
+import VSnackbars from 'v-snackbars'
 
 export default {
+    components: {
+        VSnackbars
+    },
     data() {
         return {
-            snackbar: {
-                show: false,
-                color: "",
-                text: ""
-            }
+            colors: {
+                success: '#5cb85c',
+                error: '#d9534f',
+                primary: '#0275d8'
+            },
+            messages: []
         }
     },
     mounted() {
         bus.$on("SHOW_SNACKBAR", data => {
-            this.snackbar.show = true;
-            this.snackbar.color = data.color == 'success' ? '#5cb85c' : '#d9534f';
-            this.snackbar.text = data.text;
+            let message = data.text || ''
+            let color =  data.color ? this.colors[data.color] : '#0f0f0f';
+            let timeout = data.timeout || 5000
+
+            this.messages.push({ message, color, timeout })
         });
     }
 };
