@@ -10,7 +10,7 @@
                 <p class="text-sm">{{wallet.currency_symbol}} {{wallet.profit_loss  | moneyFormat}}</p>
             </div>
             <div class="flex justify-between">
-                <p class="text-sm">Open Orders</p>
+                <router-link to="/orders" class="text-sm text-orange-500 underline">Open Orders</router-link>
                 <p class="text-sm">{{wallet.currency_symbol}} {{wallet.orders  | moneyFormat}}</p>
             </div>
         </div>
