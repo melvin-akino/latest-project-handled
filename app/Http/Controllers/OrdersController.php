@@ -990,7 +990,7 @@ class OrdersController extends Controller
         }
     }
 
-    public function betMatrixOrders(string $uid)
+    public function betMatrixOrders(Request $request)
     {
         try {
             $userTz        = "Etc/UTC";
@@ -1002,10 +1002,20 @@ class OrdersController extends Controller
                 $userTz = Timezones::find($getUserConfig->value)->name;
             }
 
-            $orders     = Order::getOrdersByEvent($uid, true)->get();
+            $eventId  = $request->event_id;
+            $marketId = $request->market_id;
+
+            $oddType  = EventMarket::getOddTypeByMemUID($marketId);
+            $halfTime = false;
+
+            if(stripos($oddType->type, 'HT') !== false) {
+                $halfTime = true;
+            }
+
+            $orders     = Order::getOrdersByEvent($eventId, true, $halfTime)->get();
             $ouLabels   = OddType::where('type', 'ILIKE', '%OU%')->pluck('id')->toArray();
             $oeLabels   = OddType::where('type', 'ILIKE', '%OE%')->pluck('id')->toArray();
-            $eventScore = array_map('trim', explode('-', MasterEvent::getMasterEvent($uid)->score));
+            $eventScore = array_map('trim', explode('-', MasterEvent::getMasterEvent($eventId)->score));
 
             $currentScore = [
                 'home' => $eventScore[0],
@@ -1042,6 +1052,13 @@ class OrdersController extends Controller
                 }
 
                 $scoreOnBet = array_map('trim', explode('-', $order->score_on_bet));
+
+                if(!empty($order->final_score)) {
+                    $finalScore =  array_map('trim', explode('-', $order->final_score));
+                    $currentScore['home'] = $finalScore[0];
+                    $currentScore['away'] = $finalScore[1];
+                }
+
                 $data[]     = [
                     'order_id'          => $order->id,
                     'stake'             => $order->stake,

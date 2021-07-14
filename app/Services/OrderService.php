@@ -95,6 +95,7 @@ class OrderService
                     'o.master_team_home_name',
                     'o.master_team_away_name',
                     'o.master_event_unique_id',
+                    'o.master_event_market_unique_id',
                     'pao.actual_stake',
                     'pao.actual_to_win',
                     'pao.actual_profit_loss',
@@ -177,6 +178,7 @@ class OrderService
                         'odds'          => $row->odds,
                         'points'        => $row->odd_label,
                         'event_id'      => $row->master_event_unique_id,
+                        'market_id'     => $row->master_event_market_unique_id
                     ];
 
                     $dups[] = $row->id;
