@@ -24,4 +24,9 @@ class RetryType extends Model
     {
         return self::find($id)->type;
     }
+
+    public static function getIdByType($type)
+    {
+        return self::where('type', $type)->id;
+    }
 }

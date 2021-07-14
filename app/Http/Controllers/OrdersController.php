@@ -856,13 +856,14 @@ class OrdersController extends Controller
     public function postRetryBet(Request $request)
     {
         try {
-            $retryTypes = RetryType::pluck('type')->toArray();
-            $orderData  = Order::retryBetData($request->order_id);
+            $retryTypes                 = RetryType::pluck('type')->toArray();
+            $orderData                  = Order::retryBetData($request->order_id)->toArray();
+            $orderData['retry_type_id'] = RetryType::getIdByType('manual-same-account');
 
             if (in_array($request->retry_type, $retryTypes)) {
                 switch (strtolower($request->retry_type)) {
                     case 'manual-same-account':
-                        retryCacheToRedis($orderData->toArray());
+                        retryCacheToRedis($orderData);
                     break;
                 }
             } else {
