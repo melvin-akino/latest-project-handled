@@ -159,6 +159,10 @@ class BetTransformationHandler
                             'actual_profit_loss' => 0.00,
                             'exchange_rate'      => $exchangeRate,
                         ]);
+
+                        if ($status == strtoupper(self::STATUS_SUCCESS)) {
+                            SwooleHandler::remove('pendingOrdersWithinExpiryTable', 'orderId:' . $orderId);
+                        }
                     } else {
                         $retryExpiry = SystemConfiguration::getSystemConfigurationValue('RETRY_EXPIRY')->value;
 
@@ -214,23 +218,37 @@ class BetTransformationHandler
                             'exchange_rate'      => $exchangeRate,
                         ]);
 
-                        if ($providerErrorMessage->retry_type_id) {
-                            $isRetry                  = true;
-                            $betData                  = Order::retryBetData($orderData->id)->toArray();
-                            $betData['retry_type_id'] = $providerErrorMessage->retry_type_id;
-
-                            if (!empty($providerAccount->id) && RetryType::getTypeById($betData['retry_type_id']) == "auto-new-line") {
-                                var_dump($providerAccount);
+                        if (!empty($providerAccount->id)) {
+                            if (!empty($hasBlockedLineReason)) {
                                 BlockedLine::updateOrCreate([
-                                    'event_id'    => $eventId, 
+                                    'event_id'    => $eventId,
                                     'odd_type_id' => $orderData->odd_type_id,
                                     'points'      => $orderData->odd_label,
                                     'line'        => $providerAccount->line
                                 ]);
                             }
+                        }
+
+                        $maxRetryCount = SystemConfiguration::getSystemConfigurationValue('RETRY_COUNT');
+                        $retryExpiry   = SystemConfiguration::getSystemConfigurationValue('RETRY_EXPIRY');
+                        $now = Carbon::now();
+                        if ($providerErrorMessage->retry_type_id && 
+                            $orderData->retry_count < $maxRetryCount->value && 
+                            $now->diffInSeconds($orderData->created_at) <= $retryExpiry['value']
+                        ) {
+                            $isRetry                  = true;
+                            $betData                  = Order::retryBetData($orderData->id)->toArray();
+                            $betData['retry_type_id'] = $providerErrorMessage->retry_type_id;
 
                             $orderData->retry_count = $orderData->retry_count + 1;
                             $orderData->save();
+
+                            $toLogs = [
+                                "class"       => "BetTransformationHandler",
+                                "message"     => json_encode($betData),
+                                "module"      => "HANDLER_INFO"
+                            ];
+                            monitorLog('monitor_handlers', 'info', $toLogs);
 
                             retryCacheToRedis($betData);
                         } else {
@@ -240,29 +258,10 @@ class BetTransformationHandler
                             $currencyCode = $user->currency()->first()->code;
                             $reason       = "[RETURN_STAKE][BET FAILED/CANCELLED] - transaction for order id " . $order->id;
                             $userBalance  = WalletFacade::addBalance($walletToken, $user->uuid, trim(strtoupper($currencyCode)), $order->stake, $reason);
-
-                            if (!empty($providerAccount->id)) {
-                                if (!empty($hasBlockedLineReason)) {
-                                    BlockedLine::updateOrCreate([
-                                        'event_id'    => $eventId,
-                                        'odd_type_id' => $orderData->odd_type_id,
-                                        'points'      => $orderData->odd_label,
-                                        'line'        => $providerAccount->line
-                                    ]);
-                                }
-                            }
-                        }
-
-                        if ($order->status == strtoupper(self::STATUS_SUCCESS)) {
-                            return;
                         }
                     }
 
                     if (!$isRetry) {
-                        if ($status == strtoupper(self::STATUS_SUCCESS)) {
-                            SwooleHandler::remove('pendingOrdersWithinExpiryTable', 'orderId:' . $orderId);
-                        }
-
                         orderStatus(
                             $orderData->user_id,
                             $orderId,
@@ -274,15 +273,15 @@ class BetTransformationHandler
                             $oddsHaveChanged,
                             $error
                         );
-
-                        $topics->set('unique:' . uniqid(), [
-                            'user_id'    => $orderData->user_id,
-                            'topic_name' => 'open-order-' . $this->message->data->bet_id
-                        ]);
-
-                        SwooleHandler::setColumnValue('ordersTable', 'orderId:' . $messageOrderId, 'bet_id', $this->message->data->bet_id);
-                        SwooleHandler::setColumnValue('ordersTable', 'orderId:' . $messageOrderId, 'status', $status);
                     }
+
+                    $topics->set('unique:' . uniqid(), [
+                        'user_id'    => $orderData->user_id,
+                        'topic_name' => 'open-order-' . $this->message->data->bet_id
+                    ]);
+
+                    SwooleHandler::setColumnValue('ordersTable', 'orderId:' . $messageOrderId, 'bet_id', $this->message->data->bet_id);
+                    SwooleHandler::setColumnValue('ordersTable', 'orderId:' . $messageOrderId, 'status', $status);
                 }
             }
 
