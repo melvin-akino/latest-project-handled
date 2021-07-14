@@ -138,6 +138,7 @@ export default {
             let token = Cookies.get('mltoken')
 
             bus.$emit("SHOW_SNACKBAR", {
+                id: "retrying-bet",
                 color: "success",
                 text: "Retrying bet..."
             });
@@ -145,13 +146,17 @@ export default {
             axios.post('v1/orders/bet/retry', this.bet, { headers: { 'Authorization': `Bearer ${token}` }})
             .then(() => {
                 this.closeOddsHaveChanged()
+                bus.$emit("REMOVE_PREVIOUS_SNACKBAR")
                 bus.$emit("SHOW_SNACKBAR", {
+                    id: "retrying-bet-success",
                     color: "success",
                     text: "Bet was successfully retried."
                 });
             })
             .catch(err => {
+                bus.$emit("REMOVE_PREVIOUS_SNACKBAR")
                 bus.$emit("SHOW_SNACKBAR", {
+                    id: "retrying-bet-error",
                     color: "error",
                     text: err.response.data.message
                 });

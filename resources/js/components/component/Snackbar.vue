@@ -43,6 +43,12 @@ export default {
             }
         });
 
+        bus.$on("REMOVE_PREVIOUS_SNACKBAR", data => {
+            setTimeout(() => {
+                this.messages.splice(this.messages.length - 2, 1)
+            }, 200)
+        })
+
         bus.$on("CLEAR_SNACKBARS", data => {
             this.messages.splice(0, this.messages.length)
         })
