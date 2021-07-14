@@ -64,8 +64,7 @@ class BetQueue implements CustomProcessInterface
                                 throw new NotFoundException(trans('game.bet.errors.no_bookmaker'));
                             }
 
-                            $providerAccount->updated_at = Carbon::now();
-                            $providerAccount->save();
+                            ProviderAccount::where('id', $providerAccount->id)->update('updated_at', Carbon::now());
 
                             $orderSWTKey = 'orderId:' . $bet['id'];
                             SwooleHandler::setColumnValue('ordersTable', $orderSWTKey, 'username', $providerAccount->username);
