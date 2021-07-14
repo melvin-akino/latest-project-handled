@@ -5,7 +5,7 @@ namespace App\Processes;
 use App\Exceptions\NotFoundException;
 use App\Jobs\KafkaPush;
 use App\User;
-use App\Models\{Order, OrderLogs, SystemConfiguration, ProviderAccount, ProviderAccountOrder};
+use App\Models\{Order, OrderLogs, SystemConfiguration, ProviderAccount, ProviderAccountOrder, RetryType};
 use Hhxsv5\LaravelS\Swoole\Process\CustomProcessInterface;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -40,18 +40,32 @@ class BetQueue implements CustomProcessInterface
                         try {
                             $providerToken     = SwooleHandler::getValue('walletClientsTable', trim(strtolower($bet['alias'])) . '-users')['token'];
                             $user              = User::find($bet['user_id']);
-                            $retryType         = null;
+                            $prevAccount       = [];
                             $blockedLinesParam = [
                                 'event_id'    => $bet['event_id'],
                                 'odd_type_id' => $bet['odd_type_id'],
                                 'points'      => $bet['odd_label'],
                             ];
 
-                            $providerAccount = ProviderAccount::getBettingAccount($bet['provider_id'], $bet['actual_stake'], $user->is_vip, $bet['event_id'], $bet['odd_type_id'], $bet['market_flag'], $providerToken, $blockedLinesParam);
+                            if (($bet['retry_type_id']) && (RetryType::getTypeById($bet['retry_type_id']) == "auto-new-account")) {
+                                $prevAccount = OrderLogs::where('order_id', $bet['id'])
+                                    ->where('status', 'FAILED')
+                                    ->pluck('provider_account_id')
+                                    ->toArray();
+                            }
+
+                            if (($bet['retry_type_id']) && (RetryType::getTypeById($bet['retry_type_id']) == "auto-same-account")) {
+                                $providerAccount = ProviderAccount::find($bet['provider_account_id']);
+                            } else {
+                                $providerAccount = ProviderAccount::getBettingAccount($bet['provider_id'], $bet['actual_stake'], $user->is_vip, $bet['event_id'], $bet['odd_type_id'], $bet['market_flag'], $providerToken, $blockedLinesParam, $prevAccount);
+                            }
 
                             if (empty($providerAccount)) {
                                 throw new NotFoundException(trans('game.bet.errors.no_bookmaker'));
                             }
+
+                            $providerAccount->updated_at = Carbon::now();
+                            $providerAccount->save();
 
                             $orderSWTKey = 'orderId:' . $bet['id'];
                             SwooleHandler::setColumnValue('ordersTable', $orderSWTKey, 'username', $providerAccount->username);
@@ -65,8 +79,7 @@ class BetQueue implements CustomProcessInterface
                                 'reason'              => 'Trying to place bet'
                             ]);
 
-                            $orderLog = OrderLogs::where('order_id', $bet['id'])->orderBy('id', 'DESC')->first();
-
+                            $orderLog  = OrderLogs::where('order_id', $bet['id'])->orderBy('id', 'DESC')->first();
                             $orderLogs = OrderLogs::create([
                                 'user_id'             => $bet['user_id'],
                                 'provider_id'         => $providerAccount->provider_id,
@@ -120,13 +133,21 @@ class BetQueue implements CustomProcessInterface
                                 $requestId
                             );
                         } catch (NotFoundException $e) {
+                            $maxRetryCount = SystemConfiguration::getSystemConfigurationValue('RETRY_COUNT');
+                            $retryExpiry   = SystemConfiguration::getSystemConfigurationValue('RETRY_EXPIRY');
+                            $now           = Carbon::now();
+
                             $bet['retry_count'] += 1;
 
-                            Order::where('id', $bet['id'])->update([
-                                'retry_count' => $bet['retry_count']
-                            ]);
+                            if ($orderData->retry_count < $maxRetryCount->value && $now->diffInSeconds($orderData->created_at) <= $retryExpiry->value) {
+                                Order::where('id', $bet['id'])->update([
+                                    'retry_count' => $bet['retry_count']
+                                ]);
 
-                            retryCacheToRedis($bet);
+                                retryCacheToRedis($bet);
+                            } else {
+                                self::failBet($walletToken, $bet, "Retry attempt limit exceeded.");
+                            }
                         } catch (QueryException $e) {
                             DB::rollback();
                         } catch (Exception $e) {

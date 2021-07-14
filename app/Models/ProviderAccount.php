@@ -53,7 +53,7 @@ class ProviderAccount extends Model
             ->uuid;
     }
 
-    public static function getBettingAccount($providerId, $stake, $isVIP, $eventId, $oddType, $marketFlag, $token, $blockedLinesArray)
+    public static function getBettingAccount($providerId, $stake, $isVIP, $eventId, $oddType, $marketFlag, $token, $blockedLinesArray, $prevAccount = [])
     {
         $type         = $isVIP ? "BET_VIP" : "BET_NORMAL";
         $provider     = Provider::find($providerId);
@@ -68,6 +68,10 @@ class ProviderAccount extends Model
             ->whereNotIn('line', $blockedLines)
             ->where('is_enabled', true)
             ->where('type', $type);
+
+        if (!empty($prevAccount)) {
+            $query = $query->whereNotIn('id', $prevAccount);
+        }
 
         if ($query->pluck('uuid')->count() == 0) {
             return null;

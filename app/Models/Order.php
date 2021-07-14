@@ -278,7 +278,6 @@ class Order extends Model
     {
         $newBet = $newBet ?: 'null';
 
-
         return self::join('order_logs AS ol', 'ol.order_id', 'orders.id')
             ->join('provider_account_orders AS pao', function ($join) {
                 $join->on('pao.order_log_id', 'ol.id');

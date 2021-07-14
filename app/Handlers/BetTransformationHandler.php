@@ -68,7 +68,7 @@ class BetTransformationHandler
             $isRetry              = false;
 
             foreach($blockedLineReasons as $reason) {
-                if(stripos($orderData->reason, $reason) !== false) {
+                if(stripos($this->message->data->reason, $reason) !== false) {
                     $hasBlockedLineReason = true;
                 }
             }
@@ -169,10 +169,10 @@ class BetTransformationHandler
                         if(!empty($errorMessageId)) {
                             $providerErrorMessage = ProviderErrors::getProviderErrorMessage($errorMessageId);
                             if($providerErrorMessage->exists()) {
-                                $providerError        = $providerErrorMessage->first();
-                                $retryType            = $providerError->retry_type;
-                                $oddsHaveChanged      = $providerError->odds_have_changed;
-                                $error                = $providerError->error;
+                                $providerError   = $providerErrorMessage->first();
+                                $retryType       = $providerError->retry_type;
+                                $oddsHaveChanged = $providerError->odds_have_changed;
+                                $error           = $providerError->error;
                             }
                         } else {
                             $error = $this->message->data->reason;
@@ -180,20 +180,21 @@ class BetTransformationHandler
 
                         $providerErrorMessage = providerErrorMapping($this->message->data->reason, false);
 
-                        $orderData->status                    = "FAILED";
-                        $orderData->reason                    = $this->message->data->reason;
+                        $orderData->status = "FAILED";
+                        $orderData->reason = $this->message->data->reason;
+
                         if ($providerErrorMessage) {
                             $orderData->provider_error_message_id = $providerErrorMessage->id;
                         }
-                        $orderData->updated_at                = Carbon::now();
+
+                        $orderData->updated_at = Carbon::now();
                         $orderData->save();
 
                         $orderLogData         = OrderLogs::where('order_id', $orderData->id)->orderBy('id', 'desc')->first();
                         $providerAccountOrder = ProviderAccountOrder::where('order_log_id', $orderLogData->id)->orderBy('id', 'desc')->first();
-
-                        $actualStake    = $providerAccountOrder->actual_stake;
-                        $exchangeRate   = $providerAccountOrder->exchange_rate;
-                        $exchangeRateId = $providerAccountOrder->exchange_rate_id;
+                        $actualStake          = $providerAccountOrder->actual_stake;
+                        $exchangeRate         = $providerAccountOrder->exchange_rate;
+                        $exchangeRateId       = $providerAccountOrder->exchange_rate_id;
 
                         $orderLogs = OrderLogs::create([
                             'provider_id'         => $order->provider_id,
