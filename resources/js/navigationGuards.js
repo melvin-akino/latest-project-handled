@@ -2,6 +2,7 @@ import router from './router'
 import Cookies from 'js-cookie'
 import axios from 'axios'
 import store from './store'
+import bus from './eventBus'
 
 export default router.beforeEach((to, from, next) => {
     const authRoutes = ['/login', '/forgot-password', '/reset-password/:token']
@@ -46,4 +47,6 @@ export default router.beforeEach((to, from, next) => {
             }
         }
     }
+
+    bus.$emit('CLEAR_SNACKBARS')
 })

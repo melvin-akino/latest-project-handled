@@ -289,6 +289,7 @@ export default {
                     if(this.maintenance[maintenance.provider] != maintenance.under_maintenance) {
                         if(maintenance.under_maintenance) {
                             bus.$emit("SHOW_SNACKBAR", {
+                                id: `${maintenance.provider.toUpperCase()}-maintenance`,
                                 color: "error",
                                 text: `${maintenance.provider.toUpperCase()} bookmaker is unavailable`,
                                 timeout: -1
@@ -296,6 +297,7 @@ export default {
                             this.$store.commit('trade/ADD_TO_UNDER_MAINTENANCE_PROVIDERS', maintenance.provider)
                         } else {
                             bus.$emit("SHOW_SNACKBAR", {
+                                id: `${maintenance.provider.toUpperCase()}-maintenance`,
                                 color: "primary",
                                 text: `${maintenance.provider.toUpperCase()} bookmaker is available`
                             });

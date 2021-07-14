@@ -31,12 +31,27 @@ export default {
     },
     mounted() {
         bus.$on("SHOW_SNACKBAR", data => {
+            let id = data.id || null
             let message = data.text || ''
             let color =  data.color ? this.colors[data.color] : '#0f0f0f';
             let timeout = data.timeout || 5000
 
-            this.messages.push({ message, color, timeout })
+            let existingMessage = this.messages.filter(item => item.id == id)
+
+            if(existingMessage.length == 0) {
+                this.messages.push({ id, message, color, timeout })
+            }
         });
+
+        bus.$on("REMOVE_PREVIOUS_SNACKBAR", data => {
+            setTimeout(() => {
+                this.messages.splice(this.messages.length - 2, 1)
+            }, 200)
+        })
+
+        bus.$on("CLEAR_SNACKBARS", data => {
+            this.messages.splice(0, this.messages.length)
+        })
     }
 };
 </script>
