@@ -1,22 +1,23 @@
 <template>
     <div class="flex border-b text-white text-sm">
         <div class="w-3/12 py-1 px-3">{{bet.league_name}}</div>
-        <div class="w-5/12 py-1 px-3"><a class="text-orange-500 underline" href="#" @click="openBetSlip">{{bet.home}} vs {{bet.away}}</a></div>
-        <div class="w-3/12 py-1 px-3">{{bet.created_at}}</div>
-        <div class="w-3/12 py-1 px-3">
+        <div class="w-3/12 py-1 px-3"><a class="text-orange-500 underline" href="#" @click="openBetSlip">{{bet.home}} vs {{bet.away}}</a></div>
+        <div class="w-2/12 text-center py-1 px-3">{{bet.created_at}}</div>
+        <div class="w-3/12 text-center py-1 px-3">
             <span v-if="bet.bet_team === '' && bet.market_flag === 'HOME'">{{bet.home}}</span>
             <span v-if="bet.bet_team === '' && bet.market_flag === 'AWAY'">{{bet.away}}</span>
             <span v-if="bet.bet_team === '' && bet.market_flag === 'DRAW'">Draw</span>
             <span v-if="bet.bet_team != ''">{{ bet.bet_team }}</span>
         </div>
-        <div class="w-3/12 py-1 px-3" v-if="bet.bet_team == ''">
+        <div class="w-2/12 text-center py-1 px-3" v-if="bet.bet_team == ''">
             {{bet.odd_type_name}} {{defaultPriceFormat}} {{bet.odd_label}} {{ `(${bet.score_on_bet})` }}
         </div>
-        <div class="w-3/12 py-1 px-3" v-if="bet.bet_team != ''">
+        <div class="w-2/12 text-center py-1 px-3" v-if="bet.bet_team != ''">
             {{ bet.odd_type_name.includes("FT") ? "FT " : (bet.odd_type_name.includes("HT") ? "HT " : "") }}{{ bet.bet_team }} {{ defaultPriceFormat }} {{ `(${bet.score_on_bet})` }}
         </div>
         <div class="w-4/12 py-1 text-center" :class="{'success': bet.status==='SUCCESS', 'failed': bet.status==='FAILED', 'processing': bet.status==='PENDING'}">
             {{bet.provider_alias}} - {{Number(bet.stake) | moneyFormat}}@{{Number(bet.odds) | twoDecimalPlacesFormat}} - {{ bet.status == 'SUCCESS' ? 'PLACED' : bet.status }}
+            <span v-if="bet.status == 'PENDING'">[Trying to place bet...]</span>
             <tooltip icon="fas fa-info-circle" :text="bet.error" color="text-white" v-if="bet.status == 'FAILED' && bet.error"></tooltip>
         </div>
         <div class="flex items-center w-20 px-1">
