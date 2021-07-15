@@ -15,7 +15,7 @@
         <div class="w-2/12 text-center py-1 px-3" v-if="bet.bet_team != ''">
             {{ bet.odd_type_name.includes("FT") ? "FT " : (bet.odd_type_name.includes("HT") ? "HT " : "") }}{{ bet.bet_team }} {{ defaultPriceFormat }} {{ `(${bet.score_on_bet})` }}
         </div>
-        <div class="w-4/12 py-1 text-center" :class="{'success': bet.status==='SUCCESS', 'failed': bet.status==='FAILED', 'processing': bet.status==='PENDING'}">
+        <div class="relative w-4/12 py-1 text-center" :class="{'success': bet.status==='SUCCESS', 'failed': bet.status==='FAILED', 'processing': bet.status==='PENDING'}">
             {{bet.provider_alias}} - {{Number(bet.stake) | moneyFormat}}@{{Number(bet.odds) | twoDecimalPlacesFormat}} - {{ bet.status == 'SUCCESS' ? 'PLACED' : bet.status }}
             <span v-if="bet.status == 'PENDING'">[Trying to place bet...]</span>
             <tooltip icon="fas fa-info-circle" :text="bet.error" color="text-white" v-if="bet.status == 'FAILED' && bet.error"></tooltip>
