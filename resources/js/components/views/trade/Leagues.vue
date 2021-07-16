@@ -93,10 +93,10 @@ export default {
                         leagueIds.map(master_league_id => {
                             if(!newLeagueIds.includes(master_league_id)) {
                                 if(selectedLeaguesIds.includes(master_league_id)) {
-                                    this.$store.commit('REMOVE_SELECTED_LEAGUE', { schedule: schedule, league: master_league_id })
-                                    this.$store.dispatch('toggleLeague', { action: 'remove', sport_id: this.selectedSport, schedule: schedule, master_league_id: master_league_id  })
+                                    this.$store.commit('trade/REMOVE_SELECTED_LEAGUE', { schedule: schedule, league: master_league_id })
+                                    this.$store.dispatch('trade/toggleLeague', { action: 'remove', sport_id: this.selectedSport, schedule: schedule, master_league_id: master_league_id  })
                                 }
-                                this.$store.commit('REMOVE_FROM_EVENT_LIST', { master_league_id: master_league_id, game_schedule: schedule })
+                                this.$store.commit('trade/REMOVE_FROM_EVENT_LIST', { master_league_id: master_league_id, game_schedule: schedule })
                             }
                         })
                         this.$store.commit('trade/SET_LEAGUES_BY_SCHEDULE', { schedule: schedule, leagues: getSidebarLeagues[schedule] })
