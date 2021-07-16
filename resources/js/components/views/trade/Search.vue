@@ -77,7 +77,6 @@ export default {
         addToWatchlist(type, data) {
             this.isSearching = false
             this.searchKeyword = ''
-            let token = Cookies.get('mltoken')
             if(type=='league') {
                 this.$store.dispatch('trade/addToWatchlist', { type: type, data: data })
             } else if(type=='event') {

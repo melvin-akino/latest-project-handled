@@ -26,16 +26,9 @@ class ToggleLeaguesRequest extends FormRequest
     public function rules()
     {
         return [
-            'league_name' => [ 'required', function($attribute, $value, $fail) {
-                    $masterLeagueExists = MasterLeague::where('name', $value)->exists();
-                    $leagueExists = League::where('name', $value)->exists();
-                    if(empty($masterLeagueExists) && empty($leagueExists)) {
-                        return $fail($attribute." does not exist.");
-                    }
-                }
-            ],
-            'schedule'    => 'required',
-            'sport_id'    => 'required|exists:sports,id'
+            'master_league_id' => 'required|exists:master_leagues,id',
+            'schedule'         => 'required',
+            'sport_id'         => 'required|exists:sports,id'
         ];
     }
 

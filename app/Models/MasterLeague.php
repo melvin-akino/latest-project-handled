@@ -45,7 +45,7 @@ class MasterLeague extends Model
         $primaryProviderId = Provider::getIdFromAlias(SystemConfiguration::getSystemConfigurationValue('PRIMARY_PROVIDER')->value);
         $maxMissingCount = SystemConfiguration::getSystemConfigurationValue('EVENT_VALID_MAX_MISSING_COUNT')->value;
 
-        $sql = "SELECT name, COUNT(name) AS match_count FROM (SELECT COALESCE(ml.name, l.name) as name FROM master_leagues as ml
+        $sql = "SELECT master_league_id, name, COUNT(name) AS match_count FROM (SELECT ml.id as master_league_id, COALESCE(ml.name, l.name) as name FROM master_leagues as ml
         JOIN league_groups as lg ON lg.master_league_id = ml.id
         JOIN leagues as l ON lg.league_id = l.id
         JOIN master_events as me ON me.master_league_id = ml.id
@@ -54,7 +54,7 @@ class MasterLeague extends Model
         AND me.id NOT IN (SELECT master_event_id FROM user_watchlist as uw WHERE uw.user_id = :user_id)
         AND provider_id = :provider_id
         AND l.sport_id = :sport_id) as sidebar_leagues
-        GROUP BY name
+        GROUP BY name, master_league_id
         ORDER BY name";
 
         return DB::select($sql, [
@@ -71,7 +71,7 @@ class MasterLeague extends Model
         $maxMissingCount = SystemConfiguration::getSystemConfigurationValue('EVENT_VALID_MAX_MISSING_COUNT')->value;
 
         if($keyword) {
-            $columns = [DB::raw("'league' as type"), 'master_league_name as data','master_league_name as label'];
+            $columns = [DB::raw("'league' as type"), DB::raw('master_league_id::text as data'),'master_league_name as label'];
         } else {
             $columns = ['master_league_name', DB::raw('COUNT(master_league_name) AS match_count')];
         }
@@ -85,8 +85,8 @@ class MasterLeague extends Model
             ->whereNotIn('master_event_id', function($query) use ($userId) {
                 $query->select('master_event_id')->from('user_watchlist')->where('user_id', $userId);
             })
-            ->select('master_league_name', 'master_event_id')
-            ->groupBy('master_league_name', 'master_event_id');
+            ->select('master_league_id', 'master_league_name', 'master_event_id')
+            ->groupBy('master_league_id', 'master_league_name', 'master_event_id');
 
         return DB::table(DB::raw("({$subquery->toSql()}) AS leagues_list"))
             ->mergeBindings($subquery)
@@ -94,7 +94,7 @@ class MasterLeague extends Model
             ->when($keyword, function($query, $keyword) {
                 return $query->where('master_league_name', 'ILIKE', str_replace('%', '^', $keyword) . '%');
             })
-            ->groupBy('master_league_name');
+            ->groupBy('master_league_id', 'master_league_name');
     }
 
     public static function getLeagueNameDetails(string $league)

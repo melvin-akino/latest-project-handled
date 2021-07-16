@@ -20,7 +20,7 @@ class WsEvents implements ShouldQueue
     {
         $this->userId           = $userId;
         $this->params           = $params;
-        $this->masterLeagueName = $params[1];
+        $this->masterLeagueId   = $params[1];
         $this->schedule         = $params[2];
         $this->additional       = $additional;
     }
@@ -34,12 +34,10 @@ class WsEvents implements ShouldQueue
         $fd          = SwooleHandler::getValue('wsTable', 'uid:' . $userId);
         try {
             $topicTable   = SwooleHandler::table('topicTable');
-            $masterLeague = MasterLeague::getLeagueNameDetails($this->masterLeagueName)->first();
-
             if (count($this->params) > 3) {
                 $meUID       = $this->params[3];
                 $singleEvent = true;
-                $gameDetails = Game::getGameDetails($masterLeague->master_league_id, $this->schedule, $userId, $meUID);
+                $gameDetails = Game::getGameDetails($this->masterLeagueId, $this->schedule, $userId, $meUID);
                 if (count($this->params) > 4) {
                     $otherTransformed   = Game::getOtherMarketsByMasterEventId($meUID);
                     $otherMarketDetails = [
@@ -51,7 +49,7 @@ class WsEvents implements ShouldQueue
                     $data = eventTransformation($gameDetails, $userId, $topicTable, 'socket', [], $singleEvent);
                 }
             } else {
-                $gameDetails = Game::getGameDetails($masterLeague->master_league_id, $this->schedule, $userId);
+                $gameDetails = Game::getGameDetails($this->masterLeagueId, $this->schedule, $userId);
                 $data        = eventTransformation($gameDetails, $userId, $topicTable, 'socket');
             }
 
@@ -69,14 +67,14 @@ class WsEvents implements ShouldQueue
             if ($server->isEstablished($fd['value'])) {
                 if (count($this->params) > 3) {
                     $payload = [
-                        'leagueName' => $this->masterLeagueName,
-                        'schedule'   => $this->schedule,
-                        'uid'        => $this->params[3]
+                        'master_league_id' => $this->masterLeagueId,
+                        'schedule'         => $this->schedule,
+                        'uid'              => $this->params[3]
                     ];
                 } else {
                     $payload = [
-                        'leagueName' => $this->masterLeagueName,
-                        'schedule'   => $this->schedule
+                        'master_league_id' => $this->masterLeagueId,
+                        'schedule'         => $this->schedule
                     ];
                 }
 

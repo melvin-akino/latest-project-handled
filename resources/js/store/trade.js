@@ -62,8 +62,8 @@ const getters = {
     },
     events: (state) => {
         let schedule = _.uniq(state.eventsList.map(event => event.game_schedule))
-        let leagues = _.uniq(state.eventsList.map(event => event.league_name))
-        let eventStartTime = _.uniq(state.eventsList.map(event => `[${event.ref_schedule.split(' ')[1]}] ${event.league_name}`))
+        let leagues = _.uniq(state.eventsList.map(event => `${event.master_league_id}_${event.league_name}`))
+        let eventStartTime = _.uniq(state.eventsList.map(event => `${event.master_league_id}_[${event.ref_schedule.split(' ')[1]}] ${event.league_name}`))
         let eventObject = {
             watchlist: {},
             inplay: {},
@@ -74,7 +74,7 @@ const getters = {
             if(state.tradePageSettings.sort_event == 1) {
                 leagues.map(league => {
                     state.eventsList.map(event => {
-                        if(schedule == event.game_schedule && league == event.league_name) {
+                        if(schedule == event.game_schedule && league == `${event.master_league_id}_${event.league_name}`) {
                             let eventSchedule = event.hasOwnProperty('watchlist') ? 'watchlist' : event.game_schedule
                             if(typeof(eventObject[eventSchedule][league]) == "undefined") {
                                 eventObject[eventSchedule][league] = []
@@ -87,7 +87,7 @@ const getters = {
             } else {
                 eventStartTime.map(startTime => {
                     state.eventsList.map(event => {
-                        let eventSchedLeague = `[${event.ref_schedule.split(' ')[1]}] ${event.league_name}`
+                        let eventSchedLeague = `${event.master_league_id}_[${event.ref_schedule.split(' ')[1]}] ${event.league_name}`
                         if(schedule == event.game_schedule && startTime == eventSchedLeague) {
                             let eventSchedule = event.hasOwnProperty('watchlist') ? 'watchlist' : event.game_schedule
                             if(typeof(eventObject[eventSchedule][startTime]) == "undefined") {
@@ -122,12 +122,12 @@ const mutations = {
     },
     REMOVE_FROM_LEAGUE: (state, data) => {
         if(state.leagues.hasOwnProperty(data.schedule)) {
-            state.leagues[data.schedule] = state.leagues[data.schedule].filter(league => league.name != data.league)
+            state.leagues[data.schedule] = state.leagues[data.schedule].filter(league => league.master_league_id != data.league)
         }
     },
     REMOVE_FROM_LEAGUE_BY_NAME: (state, data) => {
         Object.keys(state.leagues).map(schedule => {
-            state.leagues[schedule] = state.leagues[schedule].filter(league => league.name != data.league)
+            state.leagues[schedule] = state.leagues[schedule].filter(league => league.master_league_id != data.league)
         })
     },
     CLEAR_LEAGUES: (state) => {
@@ -150,11 +150,11 @@ const mutations = {
         }
     },
     REMOVE_SELECTED_LEAGUE: (state, data) => {
-        state.selectedLeagues[data.schedule] = state.selectedLeagues[data.schedule].filter(league => league != data.league)
+        state.selectedLeagues[data.schedule] = state.selectedLeagues[data.schedule].filter(league => league.master_league_id != data.league)
     },
     REMOVE_SELECTED_LEAGUE_BY_NAME: (state, removedLeague) => {
         Object.keys(state.selectedLeagues).map(schedule => {
-            state.selectedLeagues[schedule] = state.selectedLeagues[schedule].filter(league => league != removedLeague)
+            state.selectedLeagues[schedule] = state.selectedLeagues[schedule].filter(league => league.master_league_id != removedLeague)
         })
     },
     CLEAR_SELECTED_LEAGUES: (state, data) => {
@@ -177,6 +177,9 @@ const mutations = {
         if(eventsListUID.includes(newEvent.uid)) {
             state.eventsList.map(event => {
                 if(event.uid == newEvent.uid) {
+                    Vue.set(event, 'league_name', newEvent.league_name)
+                    Vue.set(event.home, 'name', newEvent.home.name)
+                    Vue.set(event.away, 'name', newEvent.away.name)
                     Vue.set(event, 'game_schedule', newEvent.game_schedule)
                     Vue.set(event.home, 'score', newEvent.home.score)
                     Vue.set(event.away, 'score', newEvent.away.score)
@@ -197,7 +200,7 @@ const mutations = {
     },
     REMOVE_FROM_EVENT_LIST: (state, data) => {
         state.eventsList.map(event => {
-            if(event.league_name == data.league_name && event.game_schedule == data.game_schedule && !event.hasOwnProperty('watchlist')) {
+            if(event.master_league_id == data.master_league_id && event.game_schedule == data.game_schedule && !event.hasOwnProperty('watchlist')) {
                 if(data.hasOwnProperty('uid')) {
                     state.eventsList = state.eventsList.filter(filteredEvent => filteredEvent.uid != data.uid)
                 } else {
@@ -210,12 +213,12 @@ const mutations = {
         if(data.hasOwnProperty('uid')) {
             state.eventsList = state.eventsList.filter(event => event.uid != data.uid)
         } else {
-            state.eventsList = state.eventsList.filter(event => event.league_name != data.league_name && event.game_schedule != data.game_schedule)
+            state.eventsList = state.eventsList.filter(event => event.master_league_id != data.master_league_id && event.game_schedule != data.game_schedule)
         }
     },
     REMOVE_FROM_EVENT_LIST_BY_LEAGUE: (state, data) => {
         state.eventsList.map(event => {
-            if(event.league_name == data.league_name && !event.hasOwnProperty('watchlist')) {
+            if(event.master_league_id == data.master_league_id && !event.hasOwnProperty('watchlist')) {
                 state.eventsList = state.eventsList.filter(filteredEvent => filteredEvent.uid != event.uid)
             }
         })
@@ -351,15 +354,16 @@ const actions = {
             .then(response => {
                 if(response.data.sport_id == state.selectedSport) {
                     Object.keys(state.leagues).map(schedule => {
-                        let leagueNames = state.leagues[schedule].map(league => league.name)
-                        let newLeagueNames = response.data.data[schedule].map(league => league.name)
-                        leagueNames.map(league => {
-                            if(!newLeagueNames.includes(league)) {
-                                if(state.selectedLeagues[schedule].includes(league)) {
-                                    commit('REMOVE_SELECTED_LEAGUE', { schedule: schedule, league: league })
-                                    dispatch('toggleLeague', { action: 'remove', league_name: league, sport_id: state.selectedSport, schedule: schedule  })
+                        let leagueIds = state.leagues[schedule].map(league => league.master_league_id)
+                        let newLeagueIds = response.data.data[schedule].map(league => league.master_league_id)
+                        let selectedLeaguesIds = state.selectedLeagues[schedule].map(league => league.master_league_id)
+                        leagueIds.map(master_league_id => {
+                            if(!newLeagueIds.includes(master_league_id)) {
+                                if(selectedLeaguesIds.includes(master_league_id)) {
+                                    commit('REMOVE_SELECTED_LEAGUE', { schedule: schedule, league: master_league_id })
+                                    dispatch('toggleLeague', { action: 'remove', sport_id: state.selectedSport, schedule: schedule, master_league_id: master_league_id  })
                                 }
-                                commit('REMOVE_FROM_EVENT_LIST', { league_name: league, game_schedule: schedule })
+                                commit('REMOVE_FROM_EVENT_LIST', { master_league_id: master_league_id, game_schedule: schedule })
                             }
                         })
                     })
@@ -454,7 +458,7 @@ const actions = {
         commit('SET_BET_SLIP_SETTINGS', betSlipSettings)
     },
     toggleLeague({dispatch}, data) {
-        axios.post(`v1/trade/leagues/toggle/${data.action}`, { league_name: data.league_name, sport_id: data.sport_id, schedule: data.schedule}, { headers: { 'Authorization': `Bearer ${token}` } })
+        axios.post(`v1/trade/leagues/toggle/${data.action}`, { sport_id: data.sport_id, schedule: data.schedule, master_league_id: data.master_league_id }, { headers: { 'Authorization': `Bearer ${token}` } })
             .catch(err => {
                 dispatch('auth/checkIfTokenIsValid', err.response.status, { root: true })
             })
@@ -462,8 +466,9 @@ const actions = {
     toggleLeagueByName({dispatch}, data) {
         let schedule = ['inplay', 'today', 'early']
         schedule.map(schedule => {
-            if(state.selectedLeagues[schedule].length != 0 && state.selectedLeagues[schedule].includes(data.league_name)) {
-                dispatch('toggleLeague', { action: data.action, league_name: data.league_name, sport_id: data.sport_id, schedule: schedule })
+            let selectedLeaguesIds = state.selectedLeagues[schedule].map(league => league.master_league_id)
+            if(selectedLeaguesIds.length != 0 && selectedLeaguesIds.includes(data.master_league_id)) {
+                dispatch('toggleLeague', { action: data.action, master_league_id: data.master_league_id, sport_id: data.sport_id, schedule: schedule })
             }
         })
     },
@@ -472,20 +477,20 @@ const actions = {
             await axios.post('v1/trade/watchlist/add', { type: data.type, data: data.data }, { headers: { 'Authorization': `Bearer ${token}` }})
             Vue.prototype.$socket.send('getWatchlist')
             if(data.type=='league') {
-                await dispatch('toggleLeagueByName', { action: 'remove', league_name: data.data, sport_id: state.selectedSport })
+                await dispatch('toggleLeagueByName', { action: 'remove', master_league_id: data.data, sport_id: state.selectedSport })
                 commit('REMOVE_SELECTED_LEAGUE_BY_NAME', data.data)
                 commit('REMOVE_FROM_LEAGUE_BY_NAME', { league: data.data })
-                commit('REMOVE_FROM_EVENT_LIST_BY_LEAGUE', { league_name: data.data })
+                commit('REMOVE_FROM_EVENT_LIST_BY_LEAGUE', { master_league_id: data.data })
             } else if(data.type=='event') {
                 if(data.payload) {
-                    commit('REMOVE_FROM_EVENT_LIST',  { league_name: data.payload.league_name, game_schedule: data.payload.game_schedule, uid: data.data })
-                    let leagueMatchCount = state.eventsList.filter(event => event.league_name == data.payload.league_name && event.game_schedule == data.payload.game_schedule && !event.hasOwnProperty('watchlist')).length
+                    commit('REMOVE_FROM_EVENT_LIST',  { master_league_id: data.payload.master_league_id, game_schedule: data.payload.game_schedule, uid: data.data })
+                    let leagueMatchCount = state.eventsList.filter(event => event.master_league_id == data.payload.master_league_id && event.game_schedule == data.payload.game_schedule && !event.hasOwnProperty('watchlist')).length
                     if(leagueMatchCount == 0) {
-                        await dispatch('toggleLeague', { action: 'remove', league_name: data.payload.league_name,  schedule: data.payload.game_schedule, sport_id: state.selectedSport })
-                        commit('REMOVE_SELECTED_LEAGUE', {schedule: data.payload.game_schedule, league: data.payload.league_name })
-                        commit('REMOVE_FROM_LEAGUE', {schedule: data.payload.game_schedule, league: data.payload.league_name })
+                        await dispatch('toggleLeague', { action: 'remove', master_league_id: data.payload.master_league_id,  schedule: data.payload.game_schedule, sport_id: state.selectedSport })
+                        commit('REMOVE_SELECTED_LEAGUE', {schedule: data.payload.game_schedule, league: data.payload.master_league_id })
+                        commit('REMOVE_FROM_LEAGUE', {schedule: data.payload.game_schedule, league: data.payload.master_league_id })
                     } else {
-                        dispatch('updateLeagueMatchCount', { schedule: data.payload.game_schedule, league: data.payload.league_name, match_count: leagueMatchCount })
+                        dispatch('updateLeagueMatchCount', { schedule: data.payload.game_schedule, league: { name: data.payload.league_name, master_league_id: data.payload.master_league_id }, match_count: leagueMatchCount })
                     }
                 }
             }
@@ -551,19 +556,19 @@ const actions = {
     updateLeagueMatchCount({state, commit, dispatch}, data) {
         let isNotLeagueFound = true;
         state.leagues[data.schedule].map(league => {
-            if(league.name == data.league) {
+            if(league.master_league_id == data.league.master_league_id) {
                 isNotLeagueFound = false;
                 if(data.hasOwnProperty('match_count')) {
                     Vue.set(league, 'match_count', data.match_count)
                 } else {
-                    let match_count = state.eventsList.filter(event => event.league_name == data.league && event.game_schedule == data.schedule && !event.hasOwnProperty('watchlist')).length
+                    let match_count = state.eventsList.filter(event => event.master_league_id == data.league.master_league_id && event.game_schedule == data.schedule && !event.hasOwnProperty('watchlist')).length
                     Vue.set(league, 'match_count', match_count)
                 }
             }
         })
         if (isNotLeagueFound) {
-            commit('ADD_TO_LEAGUES', { schedule: data.schedule, league: data.league, match_count: 1 })
-            dispatch('toggleLeague', { action: 'add', league_name: data.league, sport_id: state.selectedSport, schedule: data.schedule  })
+            commit('ADD_TO_LEAGUES', { schedule: data.schedule, league: { name: data.league.name, master_league_id: data.league.master_league_id, match_count: 1 } })
+            dispatch('toggleLeague', { action: 'add', sport_id: state.selectedSport, schedule: data.schedule, master_league_id: data.league.master_league_id  })
             commit('ADD_TO_SELECTED_LEAGUE', { schedule: data.schedule, league: data.league })
         }
     }
