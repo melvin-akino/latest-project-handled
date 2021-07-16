@@ -65,7 +65,6 @@ class BetTransformationHandler
             $eventId              = EventMarket::withTrashed()->where('bet_identifier', $orderData->market_id)->first()->event_id;
             $blockedLineReasons   = explode('|', env('BLOCKED_LINE_REASONS', ''));
             $hasBlockedLineReason = false;
-            $isRetry              = false;
 
             foreach($blockedLineReasons as $reason) {
                 if(stripos($this->message->data->reason, $reason) !== false) {
@@ -163,6 +162,9 @@ class BetTransformationHandler
                         if ($status == strtoupper(self::STATUS_SUCCESS)) {
                             SwooleHandler::remove('pendingOrdersWithinExpiryTable', 'orderId:' . $orderId);
                         }
+
+                        SwooleHandler::setColumnValue('ordersTable', 'orderId:' . $messageOrderId, 'bet_id', $this->message->data->bet_id);
+                        SwooleHandler::setColumnValue('ordersTable', 'orderId:' . $messageOrderId, 'status', $status);
                     } else {
                         $retryExpiry = SystemConfiguration::getSystemConfigurationValue('RETRY_EXPIRY')->value;
 
@@ -180,15 +182,15 @@ class BetTransformationHandler
 
                         $providerErrorMessage = providerErrorMapping($this->message->data->reason, false);
 
-                        $orderData->status = "FAILED";
-                        $orderData->reason = $this->message->data->reason;
+                        // $orderData->status = "FAILED";
+                        // $orderData->reason = $this->message->data->reason;
 
                         if ($providerErrorMessage) {
                             $orderData->provider_error_message_id = $providerErrorMessage->id;
                         }
 
-                        $orderData->updated_at = Carbon::now();
-                        $orderData->save();
+                        // $orderData->updated_at = Carbon::now();
+                        // $orderData->save();
 
                         $orderLogData         = OrderLogs::where('order_id', $orderData->id)->orderBy('id', 'desc')->first();
                         $providerAccountOrder = ProviderAccountOrder::where('order_log_id', $orderLogData->id)->orderBy('id', 'desc')->first();
@@ -237,7 +239,6 @@ class BetTransformationHandler
                             $orderData->retry_count < $maxRetryCount->value && 
                             $now->diffInSeconds($orderData->created_at) <= $retryExpiry['value']
                         ) {
-                            $isRetry                  = true;
                             $betData                  = Order::retryBetData($orderData->id)->toArray();
                             $betData['retry_type_id'] = $providerErrorMessage->retry_type_id;
 
@@ -253,36 +254,36 @@ class BetTransformationHandler
 
                             retryCacheToRedis($betData);
                         } else {
+                            $orderData->status = "FAILED";
+                            $orderData->reason = $this->message->data->reason;
+
+                            if ($providerErrorMessage) {
+                                $orderData->provider_error_message_id = $providerErrorMessage->id;
+                            }
+
+                            $orderData->updated_at = Carbon::now();
+                            $orderData->save();
+                            
                             $source       = Source::where('source_name', 'LIKE', 'RETURN_STAKE')->first();
                             $walletToken  = SwooleHandler::getValue('walletClientsTable', 'ml-users')['token'];
                             $user         = User::find($order->user_id);
                             $currencyCode = $user->currency()->first()->code;
                             $reason       = "[RETURN_STAKE][BET FAILED/CANCELLED] - transaction for order id " . $order->id;
                             $userBalance  = WalletFacade::addBalance($walletToken, $user->uuid, trim(strtoupper($currencyCode)), $order->stake, $reason);
+
+                            orderStatus(
+                                $orderData->user_id,
+                                $orderId,
+                                $status,
+                                $this->message->data->odds,
+                                $orderData->orderExpiry,
+                                $orderData->created_at,
+                                $retryType,
+                                $oddsHaveChanged,
+                                $error
+                            );
                         }
                     }
-
-                    if (!$isRetry) {
-                        orderStatus(
-                            $orderData->user_id,
-                            $orderId,
-                            $status,
-                            $this->message->data->odds,
-                            $orderData->orderExpiry,
-                            $orderData->created_at,
-                            $retryType,
-                            $oddsHaveChanged,
-                            $error
-                        );
-                    }
-
-                    $topics->set('unique:' . uniqid(), [
-                        'user_id'    => $orderData->user_id,
-                        'topic_name' => 'open-order-' . $this->message->data->bet_id
-                    ]);
-
-                    SwooleHandler::setColumnValue('ordersTable', 'orderId:' . $messageOrderId, 'bet_id', $this->message->data->bet_id);
-                    SwooleHandler::setColumnValue('ordersTable', 'orderId:' . $messageOrderId, 'status', $status);
                 }
             }
 
@@ -290,7 +291,7 @@ class BetTransformationHandler
 
             $toLogs = [
                 "class"       => "BetTransformationHandler",
-                "message"     => "Processed (open-order-" . $this->message->data->bet_id . ")",
+                "message"     => "Processed (offset: " . $this->offset . ", data: " . json_encode((array) $this->message) . ")",
                 "module"      => "HANDLER",
                 "status_code" => 200,
             ];
