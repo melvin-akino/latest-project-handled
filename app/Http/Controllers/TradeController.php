@@ -56,30 +56,40 @@ class TradeController extends Controller
                     $betTeam = $betData->odd_label == "O" ? "Odd" : "Even";
                 }
 
-                $data[] = [
-                    'order_id'          => $betData->order_id,
-                    'provider_alias'    => $betData->alias,
-                    'event_id'          => $betData->master_event_unique_id,
-                    'market_id'         => $betData->master_event_market_unique_id,
-                    'odd_type_id'       => $betData->odd_type_id,
-                    'odd_type'          => $betData->odd_type,
-                    'league_name'       => $betData->master_league_name,
-                    'home'              => $betData->master_team_home_name,
-                    'away'              => $betData->master_team_away_name,
-                    'market_flag'       => $betData->market_flag,
-                    'odd_type_name'     => $betData->odd_type_name,
-                    'odds'              => $betData->odds,
-                    'stake'             => $betData->stake,
-                    'odd_label'         => $betData->odd_label,
-                    'team_name'         => $betData->market_flag == 'HOME' ? $betData->master_team_home_name : $betData->master_team_away_name,
-                    'bet_team'          => $betTeam,
-                    'score_on_bet'      => $betData->score_on_bet,
-                    'status'            => $betData->status,
-                    'created_at'        => Carbon::createFromFormat("Y-m-d H:i:s", $betData->created_at, 'Etc/UTC')->setTimezone($userTz)->format("Y-m-d H:i:s"),
-                    'error'             => !empty($betData->error) ? $betData->error : $betData->reason,
-                    'retry_type'        => $betData->retry_type,
-                    'odds_have_changed' => $betData->odds_have_changed
-                ];
+                $betbar = true;
+                $eventMarketDetails = Order::getEventMarketDetails($betData->order_id);
+
+                if($betData->status == 'FAILED' && !$eventMarketDetails) {
+                    $betbar = false;
+                }
+
+
+                if($betbar) {
+                    $data[] = [
+                        'order_id'          => $betData->order_id,
+                        'provider_alias'    => $betData->alias,
+                        'event_id'          => $betData->master_event_unique_id,
+                        'market_id'         => $betData->master_event_market_unique_id,
+                        'odd_type_id'       => $betData->odd_type_id,
+                        'odd_type'          => $betData->odd_type,
+                        'league_name'       => $betData->master_league_name,
+                        'home'              => $betData->master_team_home_name,
+                        'away'              => $betData->master_team_away_name,
+                        'market_flag'       => $betData->market_flag,
+                        'odd_type_name'     => $betData->odd_type_name,
+                        'odds'              => $betData->odds,
+                        'stake'             => $betData->stake,
+                        'odd_label'         => $betData->odd_label,
+                        'team_name'         => $betData->market_flag == 'HOME' ? $betData->master_team_home_name : $betData->master_team_away_name,
+                        'bet_team'          => $betTeam,
+                        'score_on_bet'      => $betData->score_on_bet,
+                        'status'            => $betData->status,
+                        'created_at'        => Carbon::createFromFormat("Y-m-d H:i:s", $betData->created_at, 'Etc/UTC')->setTimezone($userTz)->format("Y-m-d H:i:s"),
+                        'error'             => !empty($betData->error) ? $betData->error : $betData->reason,
+                        'retry_type'        => $betData->retry_type,
+                        'odds_have_changed' => $betData->odds_have_changed
+                    ];
+                }
             }
 
             return response()->json([
