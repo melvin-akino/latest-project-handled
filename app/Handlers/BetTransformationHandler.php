@@ -182,16 +182,6 @@ class BetTransformationHandler
 
                         $providerErrorMessage = providerErrorMapping($this->message->data->reason, false);
 
-                        // $orderData->status = "FAILED";
-                        // $orderData->reason = $this->message->data->reason;
-
-                        if ($providerErrorMessage) {
-                            $orderData->provider_error_message_id = $providerErrorMessage->id;
-                        }
-
-                        // $orderData->updated_at = Carbon::now();
-                        // $orderData->save();
-
                         $orderLogData         = OrderLogs::where('order_id', $orderData->id)->orderBy('id', 'desc')->first();
                         $providerAccountOrder = ProviderAccountOrder::where('order_log_id', $orderLogData->id)->orderBy('id', 'desc')->first();
                         $actualStake          = $providerAccountOrder->actual_stake;
@@ -263,7 +253,7 @@ class BetTransformationHandler
 
                             $orderData->updated_at = Carbon::now();
                             $orderData->save();
-                            
+
                             $source       = Source::where('source_name', 'LIKE', 'RETURN_STAKE')->first();
                             $walletToken  = SwooleHandler::getValue('walletClientsTable', 'ml-users')['token'];
                             $user         = User::find($order->user_id);
