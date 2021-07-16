@@ -88,7 +88,7 @@ export default {
                         })
 
                         let leagueIds = this.leagues[schedule].map(league => league.master_league_id)
-                        let newLeagueIds = response.data.data[schedule].map(league => league.master_league_id)
+                        let newLeagueIds = getSidebarLeagues[schedule].map(league => league.master_league_id)
                         let selectedLeaguesIds = this.selectedLeagues[schedule].map(league => league.master_league_id)
                         leagueIds.map(master_league_id => {
                             if(!newLeagueIds.includes(master_league_id)) {
