@@ -403,10 +403,10 @@ class DataToSwt implements CustomProcessInterface
                     'lId:' . $userSelectedLeague->master_league_id,
                     'schedule:' . $userSelectedLeague->game_schedule
                 ]), [
-                    'user_id'     => $userSelectedLeague->user_id,
-                    'sport_id'    => $userSelectedLeague->sport_id,
-                    'league_name' => $userSelectedLeague->master_league_name,
-                    'schedule'    => $userSelectedLeague->game_schedule
+                    'user_id'          => $userSelectedLeague->user_id,
+                    'sport_id'         => $userSelectedLeague->sport_id,
+                    'master_league_id' => $userSelectedLeague->master_league_id,
+                    'schedule'         => $userSelectedLeague->game_schedule
                 ]);
         }, $userSelectedLeagues->toArray());
     }
