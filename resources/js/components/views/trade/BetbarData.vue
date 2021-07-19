@@ -153,6 +153,7 @@ export default {
                     color: "success",
                     text: "Bet was successfully retried."
                 });
+                this.$store.dispatch('trade/getBetbarData')
             })
             .catch(err => {
                 bus.$emit("REMOVE_PREVIOUS_SNACKBAR")
