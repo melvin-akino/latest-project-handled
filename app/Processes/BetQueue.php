@@ -7,6 +7,7 @@ use App\Jobs\KafkaPush;
 use App\User;
 use App\Models\{Order, OrderLogs, SystemConfiguration, ProviderAccount, ProviderAccountOrder, RetryType};
 use Hhxsv5\LaravelS\Swoole\Process\CustomProcessInterface;
+use Hhxsv5\LaravelS\Swoole\Task\Task;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Swoole\Http\Server;
@@ -128,11 +129,8 @@ class BetQueue implements CustomProcessInterface
                                 'username'  => $providerAccount->username
                             ];
 
-                            KafkaPush::dispatch(
-                                strtolower($bet['alias']) . env('KAFKA_SCRAPE_ORDER_REQUEST_POSTFIX', '_bet_req'),
-                                $payload,
-                                $requestId
-                            );
+                            $betRetryPush = app('BetRetryPush');
+                            Task::deliver($betRetryPush->init($bet, $payload, $requestId));
                         } catch (NotFoundException $e) {
                             $maxRetryCount = SystemConfiguration::getSystemConfigurationValue('RETRY_COUNT');
                             $retryExpiry   = SystemConfiguration::getSystemConfigurationValue('RETRY_EXPIRY');
