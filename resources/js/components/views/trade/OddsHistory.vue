@@ -60,10 +60,10 @@ export default {
         ...mapState('trade', ['activePopup', 'popupZIndex']),
         ...mapState('settings', ['defaultPriceFormat']),
         greenStatus() {
-            return ['WIN', 'HALF WIN', 'PUSH']
+            return ['WIN', 'HALF WIN', 'PUSH', 'REFUNDED']
         },
         redStatus() {
-            return ['LOSE', 'HALF LOSE', 'FAILED']
+            return ['FAILED', 'REJECTED', 'CANCELLED', 'ABNORMAL BET', 'VOID']
         }
     },
     mounted() {
