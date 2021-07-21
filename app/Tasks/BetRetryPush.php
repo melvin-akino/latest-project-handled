@@ -3,6 +3,7 @@
 namespace App\Tasks;
 
 use App\Facades\SwooleHandler;
+use App\Jobs\KafkaPush;
 use Hhxsv5\LaravelS\Swoole\Task\Task;
 use Illuminate\Support\Facades\Log;
 use Swoole\Coroutine;
