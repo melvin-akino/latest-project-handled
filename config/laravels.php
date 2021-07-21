@@ -221,7 +221,7 @@ return [
         'userSelectedLeagues' => [// key format [userId:1:sId:$sportId:schedule:early:id:$id] => [league_name = $multileaguename, ...]
             'size'   => env('SWT_MAX_SIZE', 102400),// The max size
             'column' => [// Define the columns
-                ['name' => 'league_name', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 100],
+                ['name' => 'master_league_id', 'type' => \Swoole\Table::TYPE_INT],
                 ['name' => 'sport_id', 'type' => \Swoole\Table::TYPE_INT],
                 ['name' => 'schedule', 'type' => \Swoole\Table::TYPE_STRING, 'size' => 6],
                 ['name' => 'user_id', 'type' => \Swoole\Table::TYPE_INT],
