@@ -36,13 +36,13 @@ class BetRetryPush extends Task
 
         try {
             if (!empty($this->bet['retry_type_id'])) {
-                Coroutine::sleep(2);
+                sleep(2);
             }
 
             KafkaPush::dispatch(
                 strtolower($this->bet['alias']) . env('KAFKA_SCRAPE_ORDER_REQUEST_POSTFIX', '_bet_req'),
                 $this->payload,
-                $this->requestId
+                $this->requestUID
             );
         } catch (Exception $e) {
             $toLogs = [
