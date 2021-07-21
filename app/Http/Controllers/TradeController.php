@@ -130,27 +130,9 @@ class TradeController extends Controller
 
             switch ($request->type) {
                 case 'league':
-                    $leagueId = MasterLeague::getLeagueDetailsByName($request->data)->id;
-
-                    if ($leagueId) {
-                        $masterEventUniqueIds = MasterEvent::getActiveEvents('master_league_id', '=', $leagueId)
-                                                           ->get(['id', 'master_event_unique_id'])
-                                                           ->toArray();
-                    } else {
-                        $toLogs = [
-                            "class"       => "TradeController",
-                            "message"     => trans('generic.not-found'),
-                            "module"      => "API_ERROR",
-                            "status_code" => 404,
-                        ];
-                        monitorLog('monitor_api', 'error', $toLogs);
-
-                        return response()->json([
-                            'status'      => false,
-                            'status_code' => 404,
-                            'message'     => trans('generic.not-found')
-                        ], 404);
-                    }
+                    $masterEventUniqueIds = MasterEvent::getActiveEvents('master_league_id', '=', $request->data)
+                                                       ->get(['id', 'master_event_unique_id'])
+                                                       ->toArray();
                     break;
 
                 case 'event':
@@ -230,8 +212,9 @@ class TradeController extends Controller
 
                 foreach ($ActiveleaguesWithActiveEvents as $league) {
                     $dataSchedule[$key][$league->name] = [
-                        'name'        => $league->name,
-                        'match_count' => $league->match_count
+                        'name'             => $league->name,
+                        'match_count'      => $league->match_count,
+                        'master_league_id' => $league->master_league_id
                     ];
                 }
                 $dataSchedule[$key] = array_values($dataSchedule[$key]);
@@ -286,21 +269,20 @@ class TradeController extends Controller
     {
         try {
             $userId       = auth()->user()->id;
-            $masterLeague = MasterLeague::getLeagueDetailsByName($request->league_name);
             $checkTable   = UserSelectedLeague::getUserSelectedLeague($userId, [
-                'league_id' => $masterLeague->id,
+                'league_id' => $request->master_league_id,
                 'schedule'  => $request->schedule,
                 'sport_id'  => $request->sport_id
             ]);
 
-            $swtKey = 'userId:' . $userId . ':sId:' . $request->sport_id . ':lId:' . $masterLeague->id . ':schedule:' . $request->schedule;
+            $swtKey = 'userId:' . $userId . ':sId:' . $request->sport_id . ':lId:' . $request->master_league_id . ':schedule:' . $request->schedule;
 
             if ($action == 'add' && $checkTable->count() == 0) {
                 UserSelectedLeague::create(
                     [
                         'user_id'          => $userId,
                         'sport_id'         => $request->sport_id,
-                        'master_league_id' => $masterLeague->id,
+                        'master_league_id' => $request->master_league_id,
                         'game_schedule'    => $request->schedule
                     ]
                 );
@@ -308,10 +290,10 @@ class TradeController extends Controller
                 if (empty($_SERVER['_PHPUNIT'])) {
                     if (!SwooleHandler::exists('userSelectedLeaguesTable', $swtKey)) {
                         SwooleHandler::setValue('userSelectedLeaguesTable', $swtKey, [
-                            'user_id'     => $userId,
-                            'sport_id'    => $request->sport_id,
-                            'league_name' => $request->league_name,
-                            'schedule'    => $request->schedule
+                            'user_id'          => $userId,
+                            'sport_id'         => $request->sport_id,
+                            'master_league_id' => $request->master_league_id,
+                            'schedule'         => $request->schedule
                         ]);
                     }
                 }
@@ -322,7 +304,7 @@ class TradeController extends Controller
                     $previouslySelectedEvents = DB::table('master_events AS me')
                         ->join('event_groups AS eg', 'eg.master_event_id', 'me.id')
                         ->join('events AS e', 'e.id', 'eg.event_id')
-                        ->where('me.master_league_id', $masterLeague->id)
+                        ->where('me.master_league_id', $request->master_league_id)
                         ->where('e.game_schedule', $request->schedule)
                         ->where('me.sport_id', $request->sport_id)
                         ->get();

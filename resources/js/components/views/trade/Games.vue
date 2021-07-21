@@ -14,14 +14,14 @@
                     <div class="bg-white text-sm text-gray-700" v-for="(league, index) in games" :key="index">
                         <div class="flex justify-between py-2 px-4 font-bold border-t border-orange-500 leaguePanel">
                             <div>
-                                <button type="button" class="mt-1 pr-1 text-red-600 focus:outline-none" @click="gameSchedType==='watchlist' ? removeFromWatchlist('league', index, league) : unselectLeague(index)"><i class="fas fa-times-circle"></i></button>
+                                <button type="button" class="mt-1 pr-1 text-red-600 focus:outline-none" @click="gameSchedType==='watchlist' ? removeFromWatchlist('league', index.split('_')[0], league) : unselectLeague(index.split('_')[0])"><i class="fas fa-times-circle"></i></button>
                                 <button type="button" class="mt-1 pr-1 text-orange-500 focus:outline-none" @click="toggleLeague(index)">
                                     <span v-show="closedLeagues.includes(index)"><i class="fas fa-chevron-down"></i></span>
                                     <span v-show="!closedLeagues.includes(index)"><i class="fas fa-chevron-up"></i></span>
                                 </button>
-                                {{index}}
+                                {{index.split('_')[1]}}
                             </div>
-                            <div :class="[gameSchedType==='watchlist' ? 'in-watchlist-star' : 'text-white']" @click="gameSchedType==='watchlist' ? removeFromWatchlist('league', index, league) : addToWatchlist('league', index, league)"><i class="fas fa-star"></i></div>
+                            <div :class="[gameSchedType==='watchlist' ? 'in-watchlist-star' : 'text-white']" @click="gameSchedType==='watchlist' ? removeFromWatchlist('league', index.split('_')[0], league) : addToWatchlist('league', index.split('_')[0], league)"><i class="fas fa-star"></i></div>
                         </div>
                         <div class="gamesWrapper" :class="!closedLeagues.includes(index) ? 'h-full' : 'h-0 overflow-hidden'">
                             <div class="asianLayout"  v-if="tradeLayout==1">
@@ -180,20 +180,12 @@ export default {
                 this.closedLeagues.push(index)
             }
         },
-        unselectLeague(league) {
-            if(this.tradePageSettings.sort_event == 2) {
-                league = league.split('] ')[1]
-            }
-            let token = Cookies.get('mltoken')
-            this.$store.commit('trade/REMOVE_SELECTED_LEAGUE', { schedule: this.gameSchedType, league: league })
-            this.$store.commit('trade/REMOVE_FROM_EVENT_LIST', {  league_name: league, game_schedule: this.gameSchedType })
-            this.$store.dispatch('trade/toggleLeague', { action: 'remove', league_name: league, sport_id: this.selectedSport, schedule: this.gameSchedType })
+        unselectLeague(master_league_id) {
+            this.$store.commit('trade/REMOVE_SELECTED_LEAGUE', { schedule: this.gameSchedType, league: master_league_id })
+            this.$store.commit('trade/REMOVE_FROM_EVENT_LIST', {  master_league_id: master_league_id, game_schedule: this.gameSchedType })
+            this.$store.dispatch('trade/toggleLeague', { action: 'remove', sport_id: this.selectedSport, schedule: this.gameSchedType, master_league_id: master_league_id })
         },
         addToWatchlist(type, data, payload) {
-            let token = Cookies.get('mltoken')
-            if(type=='league' && this.tradePageSettings.sort_event == 2) {
-                data = data.split('] ')[1]
-            }
             this.$store.dispatch('trade/addToWatchlist', { type: type, data: data, payload: payload, game_schedule: this.gameSchedType})
         },
         providerColors(provider) {
@@ -209,39 +201,37 @@ export default {
         },
         removeFromWatchlist(type, data, payload) {
             let token = Cookies.get('mltoken')
-            if(type=='league' && this.tradePageSettings.sort_event == 2) {
-                data = data.split('] ')[1]
-            }
             axios.post('v1/trade/watchlist/remove', { type: type, data: data }, { headers: { 'Authorization': `Bearer ${token}` }})
                 .then(response => {
                     if(type==='league') {
                         let league_name = _.uniq(payload.map(event => event.league_name))[0]
+                        let master_league_id = _.uniq(payload.map(event => event.master_league_id))[0]
                         let game_schedule = _.uniq(payload.map(event => event.game_schedule))
                         game_schedule.map(schedule => {
-                            this.$store.dispatch('trade/toggleLeague', { action: 'add', league_name: league_name, sport_id: this.selectedSport, schedule: schedule  })
-                            this.$store.commit('trade/ADD_TO_SELECTED_LEAGUE', { schedule: schedule, league: league_name })
+                            this.$store.dispatch('trade/toggleLeague', { action: 'add', master_league_id: data, sport_id: this.selectedSport, schedule: schedule  })
+                            this.$store.commit('trade/ADD_TO_SELECTED_LEAGUE', { schedule: schedule, league: { name: league_name, master_league_id: master_league_id } })
                         })
                         payload.map(watchlistEvent => {
                             this.$store.commit('trade/REMOVE_FROM_WATCHLIST', watchlistEvent.uid)
-                            let leagueNames = this.leagues[watchlistEvent.game_schedule].map(league => league.name)
-                            let leagueMatchCount = this.eventsList.filter(event => watchlistEvent.league_name == event.league_name && watchlistEvent.game_schedule == event.game_schedule && !event.hasOwnProperty('watchlist')).length
-                            if(leagueNames.includes(watchlistEvent.league_name)) {
-                                this.$store.dispatch('trade/updateLeagueMatchCount', { schedule: watchlistEvent.game_schedule, league: watchlistEvent.league_name, match_count: leagueMatchCount  })
+                            let leagueIds = this.leagues[watchlistEvent.game_schedule].map(league => league.master_league_id)
+                            let leagueMatchCount = this.eventsList.filter(event => watchlistEvent.master_league_id == event.master_league_id && watchlistEvent.game_schedule == event.game_schedule && !event.hasOwnProperty('watchlist')).length
+                            if(leagueIds.includes(watchlistEvent.master_league_id)) {
+                                this.$store.dispatch('trade/updateLeagueMatchCount', { schedule: watchlistEvent.game_schedule, league: { name: watchlistEvent.league_name, master_league_id: watchlistEvent.master_league_id }, match_count: leagueMatchCount  })
                             } else {
-                                this.$store.commit('trade/ADD_TO_LEAGUES', { schedule: watchlistEvent.game_schedule, league: { name: watchlistEvent.league_name, match_count: leagueMatchCount } })
+                                this.$store.commit('trade/ADD_TO_LEAGUES', { schedule: watchlistEvent.game_schedule, league: { name: watchlistEvent.league_name, master_league_id: watchlistEvent.master_league_id, match_count: leagueMatchCount } })
                             }
                         })
                     } else if(type==='event') {
                         this.$store.commit('trade/REMOVE_FROM_WATCHLIST', data)
-                        this.$store.dispatch('trade/toggleLeague', { action: 'add', league_name: payload.league_name, sport_id: this.selectedSport, schedule: payload.game_schedule  })
-                        this.$store.commit('trade/ADD_TO_SELECTED_LEAGUE', { schedule: payload.game_schedule, league: payload.league_name })
-                        let leagueNames = this.leagues[payload.game_schedule].map(league => league.name)
-                        if(leagueNames.includes(payload.league_name)) {
-                            let leagueMatchCount = this.leagues[payload.game_schedule].filter(league => league.name == payload.league_name)[0].match_count
-                            this.$store.dispatch('trade/updateLeagueMatchCount', { schedule: payload.game_schedule, league: payload.league_name, match_count: leagueMatchCount + 1 })
+                        this.$store.dispatch('trade/toggleLeague', { action: 'add', master_league_id: payload.master_league_id, sport_id: this.selectedSport, schedule: payload.game_schedule  })
+                        this.$store.commit('trade/ADD_TO_SELECTED_LEAGUE', { schedule: payload.game_schedule, league: { name: payload.league_name, master_league_id: payload.master_league_id } })
+                        let leagueIds = this.leagues[payload.game_schedule].map(league => league.master_league_id)
+                        if(leagueIds.includes(payload.master_league_id)) {
+                            let leagueMatchCount = this.leagues[payload.game_schedule].filter(league => league.master_league_id == payload.master_league_id)[0].match_count
+                            this.$store.dispatch('trade/updateLeagueMatchCount', { schedule: payload.game_schedule, league: { name: payload.league_name, master_league_id: payload.master_league_id }, match_count: leagueMatchCount + 1 })
                         } else {
-                            let leagueMatchCount = this.eventsList.filter(event => event.league_name == payload.league_name && event.game_schedule == payload.game_schedule && !event.hasOwnProperty('watchlist')).length
-                            this.$store.commit('trade/ADD_TO_LEAGUES', { schedule: payload.game_schedule, league: { name: payload.league_name, match_count: leagueMatchCount } })
+                            let leagueMatchCount = this.eventsList.filter(event => event.master_league_id == payload.master_league_id && event.game_schedule == payload.game_schedule && !event.hasOwnProperty('watchlist')).length
+                            this.$store.commit('trade/ADD_TO_LEAGUES', { schedule: payload.game_schedule, league: { name: payload.league_name, master_league_id: payload.master_league_id, match_count: leagueMatchCount } })
                         }
                     }
                 })

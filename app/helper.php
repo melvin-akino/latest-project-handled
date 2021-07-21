@@ -463,10 +463,10 @@ if (!function_exists('eventTransformation')) {
             }
 
             if ($userConfig == 1) {
-                $groupIndex = $transformed->master_league_name;
+                $groupIndex = $transformed->master_league_id. "_" . $transformed->master_league_name;
             } else {
                 $refSchedule = DateTime::createFromFormat('Y-m-d H:i:s', $transformed->ref_schedule);
-                $groupIndex  = $refSchedule->format('[H:i:s]') . ' ' . $transformed->master_league_name;
+                $groupIndex  = $transformed->master_league_id . "_" . $refSchedule->format('[H:i:s]') . ' ' . $transformed->master_league_name;
             }
 
             if (!SwooleHandler::exists('providerEventsTable', $transformed->event_identifier)) {
@@ -486,6 +486,7 @@ if (!function_exists('eventTransformation')) {
                 }
 
                 $data[$transformed->master_event_unique_id]["uid"]               = $transformed->master_event_unique_id;
+                $data[$transformed->master_event_unique_id]["master_league_id"]  = $transformed->master_league_id;
                 $data[$transformed->master_event_unique_id]['sport_id']          = $transformed->sport_id;
                 $data[$transformed->master_event_unique_id]['sport']             = $transformed->sport;
                 $data[$transformed->master_event_unique_id]['provider_id']       = $transformed->provider_id;

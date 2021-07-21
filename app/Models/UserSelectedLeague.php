@@ -51,6 +51,7 @@ class UserSelectedLeague extends Model
                  ->whereNull('e.deleted_at')
                  ->select([
                     'usl.game_schedule',
+                    'ml.id as master_league_id',
                     DB::raw('COALESCE(ml.name, l.name) as master_league_name')
                  ])
                  ->distinct()

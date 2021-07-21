@@ -83,10 +83,9 @@ class LeaguesTransformationHandler
                 ->select('master_league_id')
                 ->pluck('master_league_id');
 
-            $unusedMasterLeagues = MasterLeague::whereNotIn('id', $leagueIds)->pluck('name')->toArray();
-            UserSelectedLeague::removeByMasterLeagueNamesAndSchedule($unusedMasterLeagues, $this->message->data->schedule);
+            $unusedMasterLeagues = MasterLeague::whereNotIn('id', $leagueIds)->pluck('id')->toArray();
             foreach (SwooleHandler::table('userSelectedLeaguesTable') as $key => $userSelectedLeague) {
-                if (in_array($userSelectedLeague['league_name'], $unusedMasterLeagues) &&
+                if (in_array($userSelectedLeague['master_league_id'], $unusedMasterLeagues) &&
                     $userSelectedLeague['schedule'] == $this->message->data->schedule
                 ) {
                     SwooleHandler::remove('userSelectedLeaguesTable', $key);
