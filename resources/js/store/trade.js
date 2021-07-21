@@ -62,8 +62,8 @@ const getters = {
     },
     events: (state) => {
         let schedule = _.uniq(state.eventsList.map(event => event.game_schedule))
-        let leagues = _.uniq(state.eventsList.map(event => `${event.master_league_id}_${event.league_name}`))
-        let eventStartTime = _.uniq(state.eventsList.map(event => `${event.master_league_id}_[${event.ref_schedule.split(' ')[1]}] ${event.league_name}`))
+        let leagues = _.uniq(state.eventsList.map(event => event.league_name))
+        let eventStartTime = _.uniq(state.eventsList.map(event => `[${event.ref_schedule.split(' ')[1]}] ${event.league_name}`))
         let eventObject = {
             watchlist: {},
             inplay: {},
@@ -74,7 +74,7 @@ const getters = {
             if(state.tradePageSettings.sort_event == 1) {
                 leagues.map(league => {
                     state.eventsList.map(event => {
-                        if(schedule == event.game_schedule && league == `${event.master_league_id}_${event.league_name}`) {
+                        if(schedule == event.game_schedule && league == event.league_name) {
                             let eventSchedule = event.hasOwnProperty('watchlist') ? 'watchlist' : event.game_schedule
                             if(typeof(eventObject[eventSchedule][league]) == "undefined") {
                                 eventObject[eventSchedule][league] = []
@@ -87,7 +87,7 @@ const getters = {
             } else {
                 eventStartTime.map(startTime => {
                     state.eventsList.map(event => {
-                        let eventSchedLeague = `${event.master_league_id}_[${event.ref_schedule.split(' ')[1]}] ${event.league_name}`
+                        let eventSchedLeague = `[${event.ref_schedule.split(' ')[1]}] ${event.league_name}`
                         if(schedule == event.game_schedule && startTime == eventSchedLeague) {
                             let eventSchedule = event.hasOwnProperty('watchlist') ? 'watchlist' : event.game_schedule
                             if(typeof(eventObject[eventSchedule][startTime]) == "undefined") {
