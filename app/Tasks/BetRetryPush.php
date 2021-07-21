@@ -35,7 +35,7 @@ class BetRetryPush extends Task
         Log::info("Starting Task: BetRetryPush");
 
         try {
-            if ($this->bet['retry_count'] > 0) {
+            if (!empty($this->bet['retry_type_id'])) {
                 Coroutine::sleep(2);
             }
 
