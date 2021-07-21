@@ -163,7 +163,7 @@ export default {
                         if(game.hasOwnProperty('watchlist')) {
                             this.$socket.send(`getWatchlist_${game.uid}_withOtherMarket`)
                         } else {
-                            this.$socket.send(`getEvents_${game.league_name}_${game.game_schedule}_${game.uid}_withOtherMarket`)
+                            this.$socket.send(`getEvents_${game.master_league_id}_${game.game_schedule}_${game.uid}_withOtherMarket`)
                         }
                     }
                 }
