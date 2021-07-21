@@ -186,6 +186,7 @@ return [
         App\Providers\LogToolProvider::class,
         App\Providers\WalletServiceProvider::class,
         App\Providers\SocketProvider::class,
+        App\Providers\BetRetryProvider::class,
     ],
 
     /*
