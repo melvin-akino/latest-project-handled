@@ -14,14 +14,14 @@
                     <div class="bg-white text-sm text-gray-700" v-for="(league, index) in games" :key="index">
                         <div class="flex justify-between py-2 px-4 font-bold border-t border-orange-500 leaguePanel">
                             <div>
-                                <button type="button" class="mt-1 pr-1 text-red-600 focus:outline-none" @click="gameSchedType==='watchlist' ? removeFromWatchlist('league', index.split('_')[0], league) : unselectLeague(index.split('_')[0])"><i class="fas fa-times-circle"></i></button>
+                                <button type="button" class="mt-1 pr-1 text-red-600 focus:outline-none" @click="gameSchedType==='watchlist' ? removeFromWatchlist('league', league[0].master_league_id, league) : unselectLeague(league[0].master_league_id)"><i class="fas fa-times-circle"></i></button>
                                 <button type="button" class="mt-1 pr-1 text-orange-500 focus:outline-none" @click="toggleLeague(index)">
                                     <span v-show="closedLeagues.includes(index)"><i class="fas fa-chevron-down"></i></span>
                                     <span v-show="!closedLeagues.includes(index)"><i class="fas fa-chevron-up"></i></span>
                                 </button>
-                                {{index.split('_')[1]}}
+                                {{index}}
                             </div>
-                            <div :class="[gameSchedType==='watchlist' ? 'in-watchlist-star' : 'text-white']" @click="gameSchedType==='watchlist' ? removeFromWatchlist('league', index.split('_')[0], league) : addToWatchlist('league', index.split('_')[0], league)"><i class="fas fa-star"></i></div>
+                            <div :class="[gameSchedType==='watchlist' ? 'in-watchlist-star' : 'text-white']" @click="gameSchedType==='watchlist' ? removeFromWatchlist('league', league[0].master_league_id, league) : addToWatchlist('league', league[0].master_league_id, league)"><i class="fas fa-star"></i></div>
                         </div>
                         <div class="gamesWrapper" :class="!closedLeagues.includes(index) ? 'h-full' : 'h-0 overflow-hidden'">
                             <div class="asianLayout"  v-if="tradeLayout==1">

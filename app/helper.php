@@ -463,10 +463,10 @@ if (!function_exists('eventTransformation')) {
             }
 
             if ($userConfig == 1) {
-                $groupIndex = $transformed->master_league_id. "_" . $transformed->master_league_name;
+                $groupIndex = $transformed->master_league_name;
             } else {
                 $refSchedule = DateTime::createFromFormat('Y-m-d H:i:s', $transformed->ref_schedule);
-                $groupIndex  = $transformed->master_league_id . "_" . $refSchedule->format('[H:i:s]') . ' ' . $transformed->master_league_name;
+                $groupIndex  = $refSchedule->format('[H:i:s]') . ' ' . $transformed->master_league_name;
             }
 
             if (!SwooleHandler::exists('providerEventsTable', $transformed->event_identifier)) {
