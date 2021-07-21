@@ -78,7 +78,7 @@ class BetQueue implements CustomProcessInterface
                                 'status'              => 'PENDING',
                                 'provider_account_id' => $providerAccount->id,
                                 'provider_id'         => $providerAccount->provider_id,
-                                'reason'              => 'Trying to place bet'
+                                'reason'              => ''
                             ]);
 
                             $orderLog  = OrderLogs::where('order_id', $bet['id'])->orderBy('id', 'DESC')->first();
@@ -90,7 +90,7 @@ class BetQueue implements CustomProcessInterface
                                 'bet_selection'       => $bet['bet_selection'],
                                 'status'              => 'PENDING',
                                 'settled_date'        => null,
-                                'reason'              => 'Trying to place bet',
+                                'reason'              => '',
                                 'profit_loss'         => 0,
                                 'order_id'            => $bet['id'],
                                 'provider_account_id' => $providerAccount->id
@@ -138,7 +138,7 @@ class BetQueue implements CustomProcessInterface
 
                             $bet['retry_count'] += 1;
 
-                            if ($orderData->retry_count < $maxRetryCount->value && $now->diffInSeconds($orderData->created_at) <= $retryExpiry->value) {
+                            if ($bet['retry_count'] < $maxRetryCount->value && $now->diffInSeconds($bet['created_at']) <= $retryExpiry->value) {
                                 Order::where('id', $bet['id'])->update([
                                     'retry_count' => $bet['retry_count']
                                 ]);
