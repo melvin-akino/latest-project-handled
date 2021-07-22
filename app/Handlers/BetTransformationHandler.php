@@ -184,7 +184,6 @@ class BetTransformationHandler
                         }
 
                         $providerErrorMessage = providerErrorMapping($this->message->data->reason, false);
-
                         $orderLogData         = OrderLogs::where('order_id', $orderData->id)->orderBy('id', 'desc')->first();
                         $providerAccountOrder = ProviderAccountOrder::where('order_log_id', $orderLogData->id)->orderBy('id', 'desc')->first();
                         $actualStake          = $providerAccountOrder->actual_stake;
@@ -227,17 +226,19 @@ class BetTransformationHandler
 
                         $maxRetryCount = SystemConfiguration::getSystemConfigurationValue('RETRY_COUNT');
                         $retryExpiry   = SystemConfiguration::getSystemConfigurationValue('RETRY_EXPIRY');
-                        $now = Carbon::now();
-                        $betData = Order::retryBetData($orderData->id)->toArray();
+                        $now           = Carbon::now();
+                        $betData       = Order::retryBetData($orderData->id)->toArray();
 
                         if (
-                            ($betData['retry_type_id'] && RetryType::getTypeById($betData['retry_type_id']) != "manual-same-account") &&
-                            (empty($mappedProviderError) ||
                             (
-                                $providerErrorMessage->retry_type_id &&
-                                $orderData->retry_count < $maxRetryCount->value &&
-                                $now->diffInSeconds($orderData->created_at) <= $retryExpiry['value']
-                            ))
+                                empty($mappedProviderError) ||
+                                 (
+                                     $providerErrorMessage->retry_type_id &&
+                                     RetryType::getTypeById($providerErrorMessage->retry_type_id) != "manual-same-account"
+                                 )
+                             ) &&
+                            $orderData->retry_count < $maxRetryCount->value &&
+                            $now->diffInSeconds($orderData->created_at) <= $retryExpiry['value']
                         ) {
                             if (empty($mappedProviderError)) {
                                 $betData['retry_type_id'] = RetryType::getIdByType("auto-new-account");
@@ -246,13 +247,13 @@ class BetTransformationHandler
                                 $betData['retry_type_id'] = $providerErrorMessage->retry_type_id;
                             }
 
-                            $orderData->retry_count = $orderData->retry_count + 1;
+                            $orderData->retry_count += 1;
                             $orderData->save();
 
                             $toLogs = [
-                                "class"       => "BetTransformationHandler",
-                                "message"     => json_encode($betData),
-                                "module"      => "HANDLER_INFO"
+                                "class"   => "BetTransformationHandler",
+                                "message" => json_encode($betData),
+                                "module"  => "HANDLER_INFO"
                             ];
                             monitorLog('monitor_handlers', 'info', $toLogs);
 

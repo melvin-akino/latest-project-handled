@@ -22,7 +22,8 @@ use App\Models\{
     MasterEvent,
     RetryType,
     Source,
-    OrderLogs
+    OrderLogs,
+    SystemConfiguration
 };
 use Illuminate\Http\Request;
 use Illuminate\Support\{
@@ -858,6 +859,9 @@ class OrdersController extends Controller
     public function postRetryBet(Request $request)
     {
         try {
+            $now                        = Carbon::now();
+            $maxRetryCount              = SystemConfiguration::getSystemConfigurationValue('RETRY_COUNT');
+            $retryExpiry                = SystemConfiguration::getSystemConfigurationValue('RETRY_EXPIRY');
             $retryTypes                 = RetryType::pluck('type')->toArray();
             $orderData                  = Order::retryBetData($request->order_id)->toArray();
             $orderData['retry_type_id'] = RetryType::getIdByType('manual-same-account');
@@ -866,15 +870,26 @@ class OrdersController extends Controller
             if (in_array($request->retry_type, $retryTypes)) {
                 switch (strtolower($request->retry_type)) {
                     case 'manual-same-account':
-                        if($manualRetryCount > 0) {
-                            $source       = Source::where('source_name', 'LIKE', 'RETURN_STAKE')->first();
-                            $walletToken  = SwooleHandler::getValue('walletClientsTable', 'ml-users')['token'];
-                            $user         = auth()->user();
-                            $currencyCode = $user->currency()->first()->code;
-                            $reason       = "[RETURN_STAKE][BET FAILED/CANCELLED] - transaction for order id " . $request->order_id;
-                            $userBalance  = WalletFacade::subtractBalance($walletToken, $user->uuid, trim(strtoupper($currencyCode)), $request->stake, $reason);
+                        if (
+                            ($orderData['retry_count'] < $maxRetryCount->value) &&
+                            ($now->diffInSeconds($orderData['created_at']) <= $retryExpiry->value)
+                        ) {
+                            if($manualRetryCount > 0) {
+                                $source       = Source::where('source_name', 'LIKE', 'PLACE_BET')->first();
+                                $walletToken  = SwooleHandler::getValue('walletClientsTable', 'ml-users')['token'];
+                                $user         = auth()->user();
+                                $currencyCode = $user->currency()->first()->code;
+                                $reason       = "[PLACE_BET][BET PENDING] - transaction for order id " . $request->order_id;
+                                $userBalance  = WalletFacade::subtractBalance($walletToken, $user->uuid, trim(strtoupper($currencyCode)), $request->stake, $reason);
+                            }
+
+                            monitorLog('monitor_api', 'debug', $orderData);
 
                             retryCacheToRedis($orderData);
+
+                            usleep(2000000);
+                        } else {
+                            return false;
                         }
                     break;
                 }
