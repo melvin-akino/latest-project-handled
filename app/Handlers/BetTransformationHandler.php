@@ -231,13 +231,13 @@ class BetTransformationHandler
                         $betData = Order::retryBetData($orderData->id)->toArray();
 
                         if (
-                            empty($mappedProviderError) ||
-                            ($betData['retry_type_id'] && RetryType::getTypeById($betData['retry_type_id']) != "manual-same-account") ||
+                            ($betData['retry_type_id'] && RetryType::getTypeById($betData['retry_type_id']) != "manual-same-account") &&
+                            (empty($mappedProviderError) ||
                             (
                                 $providerErrorMessage->retry_type_id &&
                                 $orderData->retry_count < $maxRetryCount->value &&
                                 $now->diffInSeconds($orderData->created_at) <= $retryExpiry['value']
-                            )
+                            ))
                         ) {
                             if (empty($mappedProviderError)) {
                                 $betData['retry_type_id'] = RetryType::getIdByType("auto-new-account");
