@@ -160,7 +160,7 @@ class BetQueue implements CustomProcessInterface
         } catch (Exception $e) {
             $toLogs = [
                 "class"       => "BetQueue",
-                "message"     => "Line " . $e->getLine() . " | " . $e->getMessage(),
+                "message"     => "Line " . $e->getLine() . " | " . $e->getMessage() . " | " . $e->getFile(),
                 "module"      => "PRODUCE_ERROR",
                 "status_code" => $e->getCode(),
             ];

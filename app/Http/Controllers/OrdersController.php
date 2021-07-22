@@ -20,7 +20,9 @@ use App\Models\{
     ProviderAccount,
     BlockedLine,
     MasterEvent,
-    RetryType
+    RetryType,
+    Source,
+    OrderLogs
 };
 use Illuminate\Http\Request;
 use Illuminate\Support\{
@@ -859,11 +861,21 @@ class OrdersController extends Controller
             $retryTypes                 = RetryType::pluck('type')->toArray();
             $orderData                  = Order::retryBetData($request->order_id)->toArray();
             $orderData['retry_type_id'] = RetryType::getIdByType('manual-same-account');
+            $manualRetryCount           = OrderLogs::getLogByRetryType($request->order_id, $orderData['retry_type_id'])->count();
 
             if (in_array($request->retry_type, $retryTypes)) {
                 switch (strtolower($request->retry_type)) {
                     case 'manual-same-account':
-                        retryCacheToRedis($orderData);
+                        if($manualRetryCount > 0) {
+                            $source       = Source::where('source_name', 'LIKE', 'RETURN_STAKE')->first();
+                            $walletToken  = SwooleHandler::getValue('walletClientsTable', 'ml-users')['token'];
+                            $user         = auth()->user();
+                            $currencyCode = $user->currency()->first()->code;
+                            $reason       = "[RETURN_STAKE][BET FAILED/CANCELLED] - transaction for order id " . $request->order_id;
+                            $userBalance  = WalletFacade::subtractBalance($walletToken, $user->uuid, trim(strtoupper($currencyCode)), $request->stake, $reason);
+
+                            retryCacheToRedis($orderData);
+                        }
                     break;
                 }
             } else {

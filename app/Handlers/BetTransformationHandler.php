@@ -228,15 +228,17 @@ class BetTransformationHandler
                         $maxRetryCount = SystemConfiguration::getSystemConfigurationValue('RETRY_COUNT');
                         $retryExpiry   = SystemConfiguration::getSystemConfigurationValue('RETRY_EXPIRY');
                         $now = Carbon::now();
+                        $betData = Order::retryBetData($orderData->id)->toArray();
+
                         if (
-                            empty($mappedProviderError) || 
+                            empty($mappedProviderError) ||
+                            ($betData['retry_type_id'] && RetryType::getTypeById($betData['retry_type_id']) != "manual-same-account") ||
                             (
-                                $providerErrorMessage->retry_type_id && 
-                                $orderData->retry_count < $maxRetryCount->value && 
+                                $providerErrorMessage->retry_type_id &&
+                                $orderData->retry_count < $maxRetryCount->value &&
                                 $now->diffInSeconds($orderData->created_at) <= $retryExpiry['value']
                             )
                         ) {
-                            $betData = Order::retryBetData($orderData->id)->toArray();
                             if (empty($mappedProviderError)) {
                                 $betData['retry_type_id'] = RetryType::getIdByType("auto-new-account");
                                 var_dump('retry new account not mapped');
@@ -301,7 +303,7 @@ class BetTransformationHandler
         } catch (Exception $e) {
             $toLogs = [
                 "class"       => "BetTransformationHandler",
-                "message"     => "Line " . $e->getLine() . " | " . $e->getMessage(),
+                "message"     => "Line " . $e->getLine() . " | " . $e->getMessage() . " | " . $e->getFile(),
                 "module"      => "HANDLER_ERROR",
                 "status_code" => $e->getCode(),
             ];
