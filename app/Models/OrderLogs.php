@@ -26,4 +26,12 @@ class OrderLogs extends Model
 
     protected $hidden = [];
 
+    public static function getLogByRetryType(int $orderId, int $retryTypeId)
+    {
+        return self::leftJoin('provider_error_messages as pem', 'pem.message', 'order_logs.reason')
+            ->where('pem.retry_type_id', $retryTypeId)
+            ->where('order_id', $orderId)
+            ->whereIn('order_logs.status', ['PENDING', 'FAILED']);
+    }
+
 }

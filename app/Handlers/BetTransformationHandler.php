@@ -168,6 +168,7 @@ class BetTransformationHandler
                     } else {
                         $retryExpiry = SystemConfiguration::getSystemConfigurationValue('RETRY_EXPIRY')->value;
 
+                        $mappedProviderError = false;
                         if(!empty($errorMessageId)) {
                             $providerErrorMessage = ProviderErrors::getProviderErrorMessage($errorMessageId);
                             if($providerErrorMessage->exists()) {
@@ -175,13 +176,14 @@ class BetTransformationHandler
                                 $retryType       = $providerError->retry_type;
                                 $oddsHaveChanged = $providerError->odds_have_changed;
                                 $error           = $providerError->error;
+
+                                $mappedProviderError = true;
                             }
                         } else {
                             $error = $this->message->data->reason;
                         }
 
                         $providerErrorMessage = providerErrorMapping($this->message->data->reason, false);
-
                         $orderLogData         = OrderLogs::where('order_id', $orderData->id)->orderBy('id', 'desc')->first();
                         $providerAccountOrder = ProviderAccountOrder::where('order_log_id', $orderLogData->id)->orderBy('id', 'desc')->first();
                         $actualStake          = $providerAccountOrder->actual_stake;
@@ -224,21 +226,34 @@ class BetTransformationHandler
 
                         $maxRetryCount = SystemConfiguration::getSystemConfigurationValue('RETRY_COUNT');
                         $retryExpiry   = SystemConfiguration::getSystemConfigurationValue('RETRY_EXPIRY');
-                        $now = Carbon::now();
-                        if ($providerErrorMessage->retry_type_id && 
-                            $orderData->retry_count < $maxRetryCount->value && 
+                        $now           = Carbon::now();
+                        $betData       = Order::retryBetData($orderData->id)->toArray();
+
+                        if (
+                            (
+                                empty($mappedProviderError) ||
+                                 (
+                                     $providerErrorMessage->retry_type_id &&
+                                     RetryType::getTypeById($providerErrorMessage->retry_type_id) != "manual-same-account"
+                                 )
+                             ) &&
+                            $orderData->retry_count < $maxRetryCount->value &&
                             $now->diffInSeconds($orderData->created_at) <= $retryExpiry['value']
                         ) {
-                            $betData                  = Order::retryBetData($orderData->id)->toArray();
-                            $betData['retry_type_id'] = $providerErrorMessage->retry_type_id;
+                            if (empty($mappedProviderError)) {
+                                $betData['retry_type_id'] = RetryType::getIdByType("auto-new-account");
+                                var_dump('retry new account not mapped');
+                            } else {
+                                $betData['retry_type_id'] = $providerErrorMessage->retry_type_id;
+                            }
 
-                            $orderData->retry_count = $orderData->retry_count + 1;
+                            $orderData->retry_count += 1;
                             $orderData->save();
 
                             $toLogs = [
-                                "class"       => "BetTransformationHandler",
-                                "message"     => json_encode($betData),
-                                "module"      => "HANDLER_INFO"
+                                "class"   => "BetTransformationHandler",
+                                "message" => json_encode($betData),
+                                "module"  => "HANDLER_INFO"
                             ];
                             monitorLog('monitor_handlers', 'info', $toLogs);
 
@@ -289,7 +304,7 @@ class BetTransformationHandler
         } catch (Exception $e) {
             $toLogs = [
                 "class"       => "BetTransformationHandler",
-                "message"     => "Line " . $e->getLine() . " | " . $e->getMessage(),
+                "message"     => "Line " . $e->getLine() . " | " . $e->getMessage() . " | " . $e->getFile(),
                 "module"      => "HANDLER_ERROR",
                 "status_code" => $e->getCode(),
             ];

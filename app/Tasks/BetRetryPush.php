@@ -37,7 +37,7 @@ class BetRetryPush extends Task
 
         try {
             if (!empty($this->bet['retry_type_id'])) {
-                sleep(2);
+                usleep(2000000);
             }
 
             KafkaPush::dispatch(
