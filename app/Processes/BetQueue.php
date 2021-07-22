@@ -145,7 +145,7 @@ class BetQueue implements CustomProcessInterface
 
                                 retryCacheToRedis($bet);
                             } else {
-                                self::failBet($walletToken, $bet, "Retry attempt limit exceeded.");
+                                self::failBet($walletToken, $bet, trans('game.bet.errors.no_bookmaker'));
                             }
                         } catch (QueryException $e) {
                             DB::rollback();
@@ -158,9 +158,6 @@ class BetQueue implements CustomProcessInterface
                 }
             }
         } catch (Exception $e) {
-            var_dump($e->getMessage());
-            var_dump($e->getLine());
-            var_dump($e->getFile());
             $toLogs = [
                 "class"       => "BetQueue",
                 "message"     => "Line " . $e->getLine() . " | " . $e->getMessage(),
