@@ -87,7 +87,7 @@ class OpenOrdersTransformationHandler
                         $stake            = $order->stake * $exchangeRate->exchange_rate;
 
                         if ($orderTable['bet_id'] == $betId) {
-                            if (strtoupper($order->status) != strtoupper($orderData->status)) {
+                            if ((strtoupper($order->status) != strtoupper($orderData->status)) && (strtoupper($orderData->status) == "SUCCESS")) {
                                 $ordersTable[$_key]['status'] = strtoupper($order->status);
                                 $reason                       = $order->reason;
                                 $betSelectionArray            = explode("\n", $orderData->bet_selection);
@@ -185,16 +185,18 @@ class OpenOrdersTransformationHandler
                             }
                         }
 
-                        OrderTransaction::create([
-                            'order_logs_id'       => $orderLogsId,
-                            'user_id'             => $userId,
-                            'source_id'           => $sourceId->id,
-                            'currency_id'         => $providerCurrency,
-                            'wallet_ledger_id'    => $walletLedgerId,
-                            'provider_account_id' => ProviderAccount::getUsernameId($orderTable['username']),
-                            'reason'              => $reason,
-                            'amount'              => $credit
-                        ]);
+                        if (strtoupper($orderData->status) == "SUCCESS") {
+                            OrderTransaction::create([
+                                'order_logs_id'       => $orderLogsId,
+                                'user_id'             => $userId,
+                                'source_id'           => $sourceId->id,
+                                'currency_id'         => $providerCurrency,
+                                'wallet_ledger_id'    => $walletLedgerId,
+                                'provider_account_id' => ProviderAccount::getUsernameId($orderTable['username']),
+                                'reason'              => $reason,
+                                'amount'              => $credit
+                            ]);
+                        }
                     }
                 }
             }
