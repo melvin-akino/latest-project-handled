@@ -165,6 +165,18 @@ class BetTransformationHandler
 
                         SwooleHandler::setColumnValue('ordersTable', 'orderId:' . $messageOrderId, 'bet_id', $this->message->data->bet_id);
                         SwooleHandler::setColumnValue('ordersTable', 'orderId:' . $messageOrderId, 'status', $status);
+
+                        orderStatus(
+                            $orderData->user_id,
+                            $orderId,
+                            $status,
+                            $this->message->data->odds,
+                            $orderData->orderExpiry,
+                            $orderData->created_at,
+                            $retryType,
+                            $oddsHaveChanged,
+                            $error
+                        );
                     } else {
                         $retryExpiry = SystemConfiguration::getSystemConfigurationValue('RETRY_EXPIRY')->value;
 
