@@ -165,6 +165,18 @@ class BetTransformationHandler
 
                         SwooleHandler::setColumnValue('ordersTable', 'orderId:' . $messageOrderId, 'bet_id', $this->message->data->bet_id);
                         SwooleHandler::setColumnValue('ordersTable', 'orderId:' . $messageOrderId, 'status', $status);
+
+                        orderStatus(
+                            $orderData->user_id,
+                            $orderId,
+                            $status,
+                            $this->message->data->odds,
+                            $orderData->orderExpiry,
+                            $orderData->created_at,
+                            $retryType,
+                            $oddsHaveChanged,
+                            $error
+                        );
                     } else {
                         $retryExpiry = SystemConfiguration::getSystemConfigurationValue('RETRY_EXPIRY')->value;
 
@@ -275,20 +287,20 @@ class BetTransformationHandler
                             $currencyCode = $user->currency()->first()->code;
                             $reason       = "[RETURN_STAKE][BET FAILED/CANCELLED] - transaction for order id " . $order->id;
                             $userBalance  = WalletFacade::addBalance($walletToken, $user->uuid, trim(strtoupper($currencyCode)), $order->stake, $reason);
+
+                            orderStatus(
+                                $orderData->user_id,
+                                $orderId,
+                                $status,
+                                $this->message->data->odds,
+                                $orderData->orderExpiry,
+                                $orderData->created_at,
+                                $retryType,
+                                $oddsHaveChanged,
+                                $error
+                            );
                         }
                     }
-
-                    orderStatus(
-                        $orderData->user_id,
-                        $orderId,
-                        $status,
-                        $this->message->data->odds,
-                        $orderData->orderExpiry,
-                        $orderData->created_at,
-                        $retryType,
-                        $oddsHaveChanged,
-                        $error
-                    );
                 }
             }
 
