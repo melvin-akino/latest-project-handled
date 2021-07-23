@@ -275,20 +275,20 @@ class BetTransformationHandler
                             $currencyCode = $user->currency()->first()->code;
                             $reason       = "[RETURN_STAKE][BET FAILED/CANCELLED] - transaction for order id " . $order->id;
                             $userBalance  = WalletFacade::addBalance($walletToken, $user->uuid, trim(strtoupper($currencyCode)), $order->stake, $reason);
-
-                            orderStatus(
-                                $orderData->user_id,
-                                $orderId,
-                                $status,
-                                $this->message->data->odds,
-                                $orderData->orderExpiry,
-                                $orderData->created_at,
-                                $retryType,
-                                $oddsHaveChanged,
-                                $error
-                            );
                         }
                     }
+
+                    orderStatus(
+                        $orderData->user_id,
+                        $orderId,
+                        $status,
+                        $this->message->data->odds,
+                        $orderData->orderExpiry,
+                        $orderData->created_at,
+                        $retryType,
+                        $oddsHaveChanged,
+                        $error
+                    );
                 }
             }
 
