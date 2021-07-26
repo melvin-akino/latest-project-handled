@@ -1,12 +1,12 @@
 <template>
-    <div class="betbar flex flex-col w-full bg-gray-800 left-0 bottom-0 fixed shadow-inner z-30" :class="{'openBetBar': isBetBarOpen}">
+    <div class="betbar flex flex-col w-full bg-gray-800 left-0 bottom-0 fixed shadow-inner z-30">
         <slot></slot>
         <div class="text-center text-white h-10 pt-2 cursor-pointer bg-orange-500" @click="toggleBetBar()">
             Recent Orders
             <span v-show="isBetBarOpen"><i class="fas fa-chevron-down"></i></span>
             <span v-show="!isBetBarOpen"><i class="fas fa-chevron-up"></i></span>
         </div>
-        <div class="overflow-y-auto" v-show="isBetBarOpen">
+        <div class="bets overflow-y-auto" :class="[isBetBarOpen ? 'showBets' : 'hideBets']">
             <div v-if="bets.length == 0">
                 <div class="text-base text-white text-center">No recent orders.</div>
             </div>
@@ -65,14 +65,18 @@ export default {
 </script>
 
 <style>
-    .betbar {
+    .bets {
         transition: all 0.3s;
-        height: 40px;
     }
 
-    .openBetBar {
-        height: 192px !important;
+    .hideBets {
+        height: 0;
     }
+
+    .showBets {
+        height: 153px !important;
+    }
+
     .success {
         background-color: #5cb85c;
     }
