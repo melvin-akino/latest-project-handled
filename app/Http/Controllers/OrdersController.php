@@ -23,7 +23,8 @@ use App\Models\{
     RetryType,
     Source,
     OrderLogs,
-    SystemConfiguration
+    SystemConfiguration,
+    UserWatchlist
 };
 use Illuminate\Http\Request;
 use Illuminate\Support\{
@@ -791,7 +792,7 @@ class OrdersController extends Controller
         try {
             $orderId = $request->order_id;
             $eventMarketDetails = Order::getEventMarketDetails($orderId);
-    
+
             if (!$eventMarketDetails) {
                 return response()->json([
                     'status'      => false,
@@ -799,22 +800,28 @@ class OrdersController extends Controller
                     'message'     => 'Event is not found or no longer active'
                 ], 404);
             }
-    
+
             $eventDetails = Order::getEventDetails($orderId);
-    
+
             $meUID       = $eventDetails->master_event_unique_id;
             $userId      = auth()->user()->id;
             $topicTable  = app('swoole')->topicTable;
             $singleEvent = true;
-            $gameDetails = Game::getGameDetails($eventDetails->master_league_id, $eventDetails->game_schedule, $userId, $meUID);
-    
-            
+
+            $watchlistEvent = UserWatchlist::where('master_event_id', $eventDetails->master_event_id)->where('user_id', $userId)->exists();
+
+            if($watchlistEvent) {
+                $gameDetails = Game::getWatchlistGameDetails($userId, $eventDetails->master_event_id);
+            } else {
+                $gameDetails = Game::getGameDetails($eventDetails->master_league_id, $eventDetails->game_schedule, $userId, $meUID);
+            }
+
             $otherTransformed   = Game::getOtherMarketsByMasterEventId($meUID);
             $otherMarketDetails = [
                 'meUID'       => $meUID,
                 'transformed' => $otherTransformed
             ];
-    
+
             $data = eventTransformation($gameDetails, $userId, $topicTable, 'bet-retry', $otherMarketDetails, $singleEvent);
             $eventData = is_array($data) ? array_values($data)[0] : [];
             $responseData = [
@@ -822,9 +829,9 @@ class OrdersController extends Controller
                 'market_event_identifier' => $eventMarketDetails->market_event_identifier,
                 'event' => $eventData
             ];
-    
+
             $hasActiveEventMarketWithSamePosition = EventMarket::hasActiveEventMarketWithSamePosition($eventMarketDetails);
-    
+
             if (!$hasActiveEventMarketWithSamePosition) {
                 return response()->json([
                     'status'      => false,

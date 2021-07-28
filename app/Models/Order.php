@@ -271,6 +271,7 @@ class Order extends Model
             ->select([
                 'me.master_league_id',
                 'me.master_event_unique_id',
+                'me.id as master_event_id',
                 'e.game_schedule'
             ])
             ->where('orders.id', $orderId)
