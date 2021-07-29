@@ -111,20 +111,29 @@ class Game extends Model
 
     public static function getMasterEventByMarketId(string $marketId, $providerId)
     {
-        $event         = DB::table('event_markets')->where('mem_uid', $marketId)
-                            ->join('events', 'event_markets.event_id', 'events.id')->first();
-        $masterEventId = DB::table('event_groups')->select('master_event_id')->where('event_id', $event->event_id)->first();
-        $eventIds      = DB::table('event_groups')->where('master_event_id', $masterEventId->master_event_id)->pluck('event_id');
-        $query         = DB::table('master_events AS me')
+        $primaryProvider = Provider::getIdFromAlias(SystemConfiguration::getSystemConfigurationValue('PRIMARY_PROVIDER')->value);
+        $event           = DB::table('event_markets')->where('mem_uid', $marketId)->join('events', 'event_markets.event_id', 'events.id')->first();
+        $masterEventId   = DB::table('event_groups')->select('master_event_id')->where('event_id', $event->event_id)->first();
+        $eventIds        = DB::table('event_groups')->where('master_event_id', $masterEventId->master_event_id)->pluck('event_id');
+        $query           = DB::table('master_events AS me')
             ->leftJoin('master_leagues as ml', 'ml.id', 'me.master_league_id')
             ->leftJoin('league_groups as lg', 'ml.id', 'lg.master_league_id')
-            ->leftJoin('leagues as l', 'l.id', 'lg.league_id')
+            ->join('leagues as l', function ($join) use ($primaryProvider) {
+                $join->on('l.id', 'lg.league_id');
+                $join->where('l.provider_id', $primaryProvider);
+            })
             ->leftJoin('master_teams as mth', 'mth.id', 'me.master_team_home_id')
             ->leftJoin('team_groups AS tgh', 'tgh.master_team_id', 'mth.id')
-            ->leftJoin('teams AS th', 'th.id', 'tgh.team_id')
+            ->join('teams AS th', function ($join) use ($primaryProvider) {
+                $join->on('th.id', 'tgh.team_id');
+                $join->where('th.provider_id', $primaryProvider);
+            })
             ->leftJoin('master_teams as mta', 'mta.id', 'me.master_team_away_id')
             ->leftJoin('team_groups AS tga', 'tga.master_team_id', 'mta.id')
-            ->leftJoin('teams AS ta', 'ta.id', 'tga.team_id')
+            ->join('teams AS ta', function ($join) use ($primaryProvider) {
+                $join->on('ta.id', 'tga.team_id');
+                $join->where('ta.provider_id', $primaryProvider);
+            })
             ->leftJoin('event_groups as eg', 'me.id', 'eg.master_event_id')
             ->join('events as e', 'eg.event_id', 'e.id')
             ->join('event_markets AS em', 'em.event_id', 'e.id')
