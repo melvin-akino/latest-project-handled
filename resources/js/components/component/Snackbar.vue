@@ -37,8 +37,14 @@ export default {
             let timeout = data.timeout || 5000
 
             let existingMessage = this.messages.filter(item => item.id == id)
+            let existingMessageIndex = this.messages.map(item => item.id).indexOf(id)
 
-            if(existingMessage.length == 0) {
+            if(existingMessage.length != 0) {
+                this.messages.splice(existingMessageIndex, 1)
+                setTimeout(() => {
+                    this.messages.push({ id, message, color, timeout })
+                }, 1000);
+            } else {
                 this.messages.push({ id, message, color, timeout })
             }
         });

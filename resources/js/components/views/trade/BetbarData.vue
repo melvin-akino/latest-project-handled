@@ -22,7 +22,7 @@
         </div>
         <div class="flex items-center w-20 px-1">
             <a href="#" @click.prevent="openBetMatrix(`${bet.order_id}-betmatrix`)" class="text-center py-1 w-1/2" title="Bet Matrix" v-if="!failedBetStatus.includes(bet.status)"><i class="fas fa-chart-area"></i></a>
-            <a href="#" @click.prevent="openOddsHistory(`${bet.order_id}-orderlogs`)" class="text-center py-1 w-1/2" :class="{'ml-5': failedBetStatus.includes(bet.status)}" title="Odds History"><i class="fas fa-bars"></i></a>
+            <a href="#" @click.prevent="openOddsHistory(`${bet.order_id}-orderlogs`)" class="text-center py-1 w-1/2" :class="{'ml-6': failedBetStatus.includes(bet.status)}" title="Odds History"><i class="fas fa-bars"></i></a>
         </div>
         <odds-history v-if="showOddsHistory" @close="closeOddsHistory" :market_id="bet.market_id" :event_id="bet.event_id" :key="`${bet.order_id}-orderlogs`"></odds-history>
         <bet-matrix v-if="showBetMatrix" @close="closeBetMatrix" :market_id="bet.market_id" :event_id="bet.event_id" :key="`${bet.order_id}-betmatrix`"></bet-matrix>
