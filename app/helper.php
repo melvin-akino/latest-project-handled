@@ -627,7 +627,8 @@ if (!function_exists('eventTransformation')) {
                                 'provider_alias'          => $otherTransformed->alias,
                                 'provider_id'             => $otherTransformed->provider_id,
                                 'bet_identifier'          => $otherTransformed->bet_identifier,
-                                'event_identifier'        => $otherTransformed->event_identifier
+                                'event_identifier'        => $otherTransformed->event_identifier,
+                                'market_common'           => $otherTransformed->market_common,
                             ];
                         }
                     }, $otherTransformed->toArray());
@@ -643,6 +644,7 @@ if (!function_exists('eventTransformation')) {
                                 $otherResult[$d['market_event_identifier']][$d['odd_type']][$d['market_flag']]['points']                = $d['points'];
                                 $otherResult[$d['market_event_identifier']][$d['odd_type']][$d['market_flag']]['provider_alias']        = $d['provider_alias'];
                                 $otherResult[$d['market_event_identifier']][$d['odd_type']][$d['market_flag']]['odds']                  = $d['odds'];
+                                $otherResult[$d['market_event_identifier']][$d['odd_type']][$d['market_flag']]['market_common']         = $d['market_common'];
                                 $otherValues[$d['odd_type'] . $d['market_flag'] . $d['points']]                                         = $d['market_event_identifier'];
 
                                 if (!SwooleHandler::exists('providerEventMarketsTable', $d['event_identifier'] . ":" . $d['odd_type'] . $d['market_flag'] . $d['points'])) {

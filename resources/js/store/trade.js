@@ -243,8 +243,6 @@ const mutations = {
             let betslip = {
                 odd: data.odd,
                 game: data.game,
-                marketType: data.marketType,
-                eventIdentifier: data.eventIdentifier,
                 betslip_id: betslipId,
                 has_bet: false
             }

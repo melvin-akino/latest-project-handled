@@ -102,18 +102,24 @@ export default {
 
             axios.get('v1/orders/bet/event-details', { params: { order_id }, headers: { 'Authorization': `Bearer ${token}` } })
             .then(response => {
-                let { is_main, market_event_identifier, event } = response.data.data
+                let { market_common, event } = response.data.data
+                let odds = []
 
-                let marketType = is_main ? 'main' : 'other'
-                let eventIdentifier = is_main ? null : market_event_identifier
-                let odd
                 if(event.hasOwnProperty('market_odds')) {
-                    if(marketType == 'main' && event.market_odds.hasOwnProperty('main') && event.market_odds.main.hasOwnProperty(odd_type) && event.market_odds.main[odd_type].hasOwnProperty(market_flag)) {
-                        odd = event.market_odds.main[odd_type][market_flag]
-                    } else if(marketType == 'other' && event.market_odds.hasOwnProperty('other') && event.market_odds.other.hasOwnProperty(eventIdentifier) && event.market_odds.other[eventIdentifier].hasOwnProperty(odd_type)&& event.market_odds.other[eventIdentifier][odd_type].hasOwnProperty(market_flag)) {
-                        odd = event.market_odds.other[eventIdentifier][odd_type][market_flag]
+                    if(event.market_odds.hasOwnProperty('main') && event.market_odds.main.hasOwnProperty(odd_type) && event.market_odds.main[odd_type].hasOwnProperty(market_flag)) {
+                        odds.push(event.market_odds.main[odd_type][market_flag])
+                    }
+
+                    if(event.market_odds.hasOwnProperty('other')) {
+                        Object.keys(event.market_odds.other).map(eventIdentifier => {
+                            if(event.market_odds.other[eventIdentifier].hasOwnProperty(odd_type) && event.market_odds.other[eventIdentifier][odd_type].hasOwnProperty(market_flag)) {
+                                odds.push(event.market_odds.other[eventIdentifier][odd_type][market_flag])
+                            }
+                        })
                     }
                 }
+
+                let odd = odds.filter(odd => odd.market_common == market_common)[0]
 
                 if(response.data.hasOwnProperty('message')) {
                     Swal.fire({
@@ -122,7 +128,7 @@ export default {
                     })
                 }
 
-                this.$store.commit('trade/OPEN_BETSLIP', { odd, game: event, marketType, eventIdentifier })
+                this.$store.commit('trade/OPEN_BETSLIP', { odd, game: event })
                 this.$store.dispatch('trade/setActivePopup', `${event.uid}-${odd.market_id}`)
             })
             .catch(err => {

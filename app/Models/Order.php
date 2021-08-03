@@ -250,13 +250,15 @@ class Order extends Model
     public static function getEventMarketDetails($orderId) {
         return self::join('event_markets as em', 'em.bet_identifier', 'orders.market_id')
             ->join('events as e', 'e.id', 'em.event_id')
+            ->join('odd_types as ot', 'ot.id', 'em.odd_type_id')
             ->select([
                 'em.event_id',
                 'em.odd_type_id',
                 'em.odd_label',
                 'em.market_flag',
                 'em.is_main',
-                'em.market_event_identifier'
+                'em.market_event_identifier',
+                DB::raw('CONCAT(ot.type, em.market_flag, em.odd_label) as market_common')
             ])
             ->where('orders.id', $orderId)
             ->whereNull('e.deleted_at')
