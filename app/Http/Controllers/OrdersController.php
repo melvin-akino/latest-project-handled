@@ -825,8 +825,7 @@ class OrdersController extends Controller
             $data = eventTransformation($gameDetails, $userId, $topicTable, 'bet-retry', $otherMarketDetails, $singleEvent);
             $eventData = is_array($data) ? array_values($data)[0] : [];
             $responseData = [
-                'is_main' => $eventMarketDetails->is_main,
-                'market_event_identifier' => $eventMarketDetails->market_event_identifier,
+                'market_common' => $eventMarketDetails->market_common,
                 'event' => $eventData
             ];
 

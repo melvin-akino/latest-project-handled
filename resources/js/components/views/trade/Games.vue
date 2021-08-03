@@ -170,7 +170,7 @@ export default {
             });
         },
         openBetSlip(odd, game, marketType, eventIdentifier) {
-            this.$store.commit('trade/OPEN_BETSLIP', { odd, game, marketType, eventIdentifier })
+            this.$store.commit('trade/OPEN_BETSLIP', { odd, game })
             this.$store.dispatch('trade/setActivePopup', `${game.uid}-${odd.market_id}`)
         },
         toggleLeague(index) {
