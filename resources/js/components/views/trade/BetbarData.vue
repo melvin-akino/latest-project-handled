@@ -117,19 +117,39 @@ export default {
                             }
                         })
                     }
-                }
 
-                let odd = odds.filter(odd => odd.market_common == market_common)[0]
+                    if(odds.length != 0) {
+                        let odd
+                        let same_market_common = odds.filter(odd => odd.market_common == market_common)[0]
 
-                if(response.data.hasOwnProperty('message')) {
+                        if(same_market_common) {
+                            odd = same_market_common
+                        } else {
+                            odd = odds[0]
+                        }
+
+                        if(response.data.hasOwnProperty('message')) {
+                            Swal.fire({
+                                icon: 'warning',
+                                text: response.data.message
+                            })
+                        }
+
+                        this.$store.commit('trade/OPEN_BETSLIP', { odd, game: event })
+                        this.$store.dispatch('trade/setActivePopup', `${event.uid}-${odd.market_id}`)
+                    } else {
+                        Swal.fire({
+                            icon: 'warning',
+                            text: 'Market type is no longer available'
+                        })
+                    }
+                } else {
                     Swal.fire({
                         icon: 'warning',
-                        text: response.data.message
+                        text: 'Market is no longer available'
                     })
                 }
 
-                this.$store.commit('trade/OPEN_BETSLIP', { odd, game: event })
-                this.$store.dispatch('trade/setActivePopup', `${event.uid}-${odd.market_id}`)
             })
             .catch(err => {
                 if(err.response.status == 404) {
