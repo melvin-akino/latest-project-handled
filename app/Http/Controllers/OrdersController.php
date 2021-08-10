@@ -793,14 +793,6 @@ class OrdersController extends Controller
             $orderId = $request->order_id;
             $eventMarketDetails = Order::getEventMarketDetails($orderId);
 
-            if (!$eventMarketDetails) {
-                return response()->json([
-                    'status'      => false,
-                    'status_code' => 404,
-                    'message'     => 'Event is not found or no longer active'
-                ], 404);
-            }
-
             $eventDetails = Order::getEventDetails($orderId);
 
             $meUID       = $eventDetails->master_event_unique_id;
@@ -823,7 +815,16 @@ class OrdersController extends Controller
             ];
 
             $data = eventTransformation($gameDetails, $userId, $topicTable, 'bet-retry', $otherMarketDetails, $singleEvent);
-            $eventData = is_array($data) ? array_values($data)[0] : [];
+            $eventData = is_array($data) ? (!empty($data) ? array_values($data)[0] : []) : [];
+
+            if (!$eventMarketDetails || empty($eventData)) {
+                return response()->json([
+                    'status'      => false,
+                    'status_code' => 404,
+                    'message'     => 'Event is not found or no longer active'
+                ], 404);
+            }
+
             $responseData = [
                 'market_common' => $eventMarketDetails->market_common,
                 'event' => $eventData
