@@ -444,29 +444,30 @@ export default {
     },
     methods: {
         getTradeWindowData(key) {
-            if(!_.isEmpty(this.market_details)) {
+            if(!_.isEmpty(this.market_details) && this.odd_details.game.hasOwnProperty('market_odds')) {
                 let odd_type = this.market_details.odd_type
                 let market_flag = this.market_details.market_flag
                 let market_common = this.odd_details.odd.market_common
                 let odds = []
-                if(this.odd_details.game.hasOwnProperty('market_odds')) {
-                    if(this.odd_details.game.market_odds.hasOwnProperty('main') && this.odd_details.game.market_odds.main.hasOwnProperty(odd_type) && this.odd_details.game.market_odds.main[odd_type].hasOwnProperty(market_flag)) {
-                        odds.push(this.odd_details.game.market_odds.main[odd_type][market_flag])
-                    }
-
-                    if(this.odd_details.game.market_odds.hasOwnProperty('other')) {
-                        Object.keys(this.odd_details.game.market_odds.other).map(eventIdentifier => {
-                            if(this.odd_details.game.market_odds.other.hasOwnProperty(eventIdentifier) && this.odd_details.game.market_odds.other[eventIdentifier].hasOwnProperty(odd_type) && this.odd_details.game.market_odds.other[eventIdentifier][odd_type].hasOwnProperty(market_flag)) {
-                                odds.push(this.odd_details.game.market_odds.other[eventIdentifier][odd_type][market_flag])
-                            }
-                        })
-                    }
+                if(this.odd_details.game.market_odds.hasOwnProperty('main') && this.odd_details.game.market_odds.main.hasOwnProperty(odd_type) && this.odd_details.game.market_odds.main[odd_type].hasOwnProperty(market_flag)) {
+                    odds.push(this.odd_details.game.market_odds.main[odd_type][market_flag])
                 }
 
-                let odd = odds.filter(odd => odd.market_common == market_common)[0]
+                if(this.odd_details.game.market_odds.hasOwnProperty('other')) {
+                    Object.keys(this.odd_details.game.market_odds.other).map(eventIdentifier => {
+                        if(this.odd_details.game.market_odds.other[eventIdentifier].hasOwnProperty(odd_type) && this.odd_details.game.market_odds.other[eventIdentifier][odd_type].hasOwnProperty(market_flag)) {
+                            odds.push(this.odd_details.game.market_odds.other[eventIdentifier][odd_type][market_flag])
+                        }
+                    })
+                }
 
-                if(odd.hasOwnProperty(key)) {
-                    return odd[key]
+                if(odds.length != 0) {
+                    let same_market_common = odds.filter(odd => odd.market_common == market_common)[0]
+                    if(same_market_common) {
+                        return same_market_common[key]
+                    } else {
+                        return odds[0][key]
+                    }
                 } else {
                     return this.odd_details.odd[key]
                 }
