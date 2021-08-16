@@ -589,6 +589,7 @@ export default {
         },
         changePoint(points, market_id, odds) {
             this.emptyMinMax(this.market_id)
+            this.resetMinMax()
             this.market_id = market_id
             this.inputPrice = twoDecimalPlacesFormat(Number(odds))
             this.minmax(market_id)
@@ -676,30 +677,20 @@ export default {
                 }
             })
         },
-        getRemoveMinMax() {
-            this.$options.sockets.onmessage = (response => {
-                if(getSocketKey(response.data) === 'removeMinMax') {
-                    let removeMinMax = getSocketValue(response.data, 'removeMinMax')
-                    if(removeMinMax.status) {
-                        this.minMaxProviders.map(provider => {
-                            provider.min = null
-                            provider.max = null
-                            provider.price = null
-                            provider.age = null
-                            provider.hasMarketData = false
-                            provider.noMarketAvailable = false
-                        })
-                        this.retrievedMarketData = false
-                        this.minMaxData = []
-                    }
-                }
+        resetMinMax() {
+            this.minMaxProviders.map(provider => {
+                provider.min = null
+                provider.max = null
+                provider.price = null
+                provider.age = null
+                provider.hasMarketData = false
+                provider.noMarketAvailable = false
             })
+            this.retrievedMarketData = false
+            this.minMaxData = []
         },
         emptyMinMax(market_id) {
             this.removeMinMax(market_id)
-                .then(() => {
-                    this.getRemoveMinMax()
-                })
         },
         minmax(market_id) {
             this.sendMinMax(market_id)
@@ -710,6 +701,7 @@ export default {
         closeBetSlip(betslip_id) {
             this.$store.commit('trade/CLOSE_BETSLIP', betslip_id)
             this.emptyMinMax(this.market_id)
+            this.resetMinMax()
         },
         closeOddsHistory() {
             this.showOddsHistory = false
