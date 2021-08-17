@@ -1,78 +1,122 @@
-<p align="center"><img src="https://res.cloudinary.com/dtfbvvkyp/image/upload/v1566331377/laravel-logolockup-cmyk-red.svg" width="400"></p>
+Service requirements
+- PHP Swoole
+- Redis
+- Nginx
+- Websocket
 
-<p align="center">
-<a href="https://travis-ci.org/laravel/framework"><img src="https://travis-ci.org/laravel/framework.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://poser.pugx.org/laravel/framework/d/total.svg" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://poser.pugx.org/laravel/framework/v/stable.svg" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://poser.pugx.org/laravel/framework/license.svg" alt="License"></a>
-</p>
+<hr />
 
-## About Laravel
+.env variables
+```
+APP_NAME=
+APP_ENV=
+APP_KEY=
+APP_DEBUG=
+APP_URL=
+API_URL=
+MIX_API_URL="${API_URL}"
+MIX_WEBSOCKET_URL=
+MIX_APP_URL=
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+WALLET_URL=http://wallet
+WALLET_CLIENT_ID=
+WALLET_CLIENT_SECRET=
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+LARAVELS_LISTEN_IP=0.0.0.0
+LARAVELS_LISTEN_PORT=1215
+LARAVELS_WEBSOCKET=true
+LARAVELS_TASK_WORKER_NUM=32
+LARAVELS_TASK_MAX_REQUEST=0
+LARAVELS_KAFKA_CONSUME=true
+LARAVELS_KAFKA_PRODUCE=true
+LARAVELS_KAFKA_SCRAPE_PRODUCE=false
+LARAVELS_TIMER=true
+LARAVELS_HANDLE_STATIC=true
+SWT_MAX_SIZE=100000
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+DB_CONNECTION=pgsql
+#(change this IP to your own local IP machine)
+DB_HOST=db
+DB_PORT=
+DB_DATABASE=
+DB_USERNAME=
+DB_PASSWORD=
 
-## Learning Laravel
+MAIL_DRIVER=smtp
+MAIL_FROM_ADDRESS=
+MAIL_FROM_NAME=
+MAIL_HOST=
+MAIL_PORT=
+MAIL_USERNAME=
+MAIL_PASSWORD=
+MAIL_ENCRYPTION=
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+PASSPORT_TOKEN='Multiline Authentication Token'
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains over 1500 video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+KAFKA_BROKERS=kafka:9092
+KAFKA_DEBUG=false
+KAFKA_GROUP_ID=ml
+KAFKA_SCRAPE_REQUEST_POSTFIX=_req
+KAFKA_SCRAPE_ODDS=SCRAPING-ODDS
+KAFKA_SCRAPE_LEAGUES=SCRAPING-PROVIDER-LEAGUES
+KAFKA_SCRAPE_EVENTS=SCRAPING-PROVIDER-EVENTS
+KAFKA_SCRAPE_MINMAX_REQUEST_POSTFIX=_minmax_req
+KAFKA_SCRAPE_MINMAX_ODDS=MINMAX-ODDS
+KAFKA_SCRAPE_ORDER_REQUEST_POSTFIX=_bet_req
+KAFKA_BET_PLACED=PLACED-BET
+KAFKA_SCRAPE_OPEN_ORDERS_POSTFIX=_openorder_req
+KAFKA_SCRAPE_OPEN_ORDERS=OPEN-ORDERS
+KAFKA_SCRAPE_SETTLEMENT_POSTFIX=_settlement_req
+KAFKA_SCRAPE_SETTLEMENTS=SCRAPING-SETTLEMENTS
+KAFKA_SCRAPE_BALANCE_POSTFIX=_balance_req
+KAFKA_SCRAPE_BALANCE=BALANCE
+KAFKA_SCRAPE_MAINTENANCE=PROVIDER-MAINTENANCE
+KAFKA_SIDEBAR_LEAGUES=SIDEBAR-LEAGUES
+KAFKA_SOCKET=SOCKET-DATA
+KAFKA_LOG=false
 
-## Laravel Sponsors
+REDIS_PORT=
+REDIS_CLIENT=
+REDIS_CLUSTER=
+REDIS_HOST=
+REDIS_DB=0
+REDIS_CACHE_DB=0
+QUEUE_CONNECTION=sync
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the Laravel [Patreon page](https://patreon.com/taylorotwell).
+PROMETHEUS_NAMESPACE=
+PROMETHEUS_METRICS_ROUTE_ENABLED=
+PROMETHEUS_METRICS_ROUTE_MIDDLEWARE=
+PROMETHEUS_STORAGE_ADAPTER=
+PROMETHEUS_EXPIRE=
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Cubet Techno Labs](https://cubettech.com)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[British Software Development](https://www.britishsoftware.co)**
-- **[Webdock, Fast VPS Hosting](https://www.webdock.io/en)**
-- **[DevSquad](https://devsquad.com)**
-- [UserInsights](https://userinsights.com)
-- [Fragrantica](https://www.fragrantica.com)
-- [SOFTonSOFA](https://softonsofa.com/)
-- [User10](https://user10.com)
-- [Soumettre.fr](https://soumettre.fr/)
-- [CodeBrisk](https://codebrisk.com)
-- [1Forge](https://1forge.com)
-- [TECPRESSO](https://tecpresso.co.jp/)
-- [Runtime Converter](http://runtimeconverter.com/)
-- [WebL'Agence](https://weblagence.com/)
-- [Invoice Ninja](https://www.invoiceninja.com)
-- [iMi digital](https://www.imi-digital.de/)
-- [Earthlink](https://www.earthlink.ro/)
-- [Steadfast Collective](https://steadfastcollective.com/)
-- [We Are The Robots Inc.](https://watr.mx/)
-- [Understand.io](https://www.understand.io/)
-- [Abdel Elrafa](https://abdelelrafa.com)
-- [Hyper Host](https://hyper.host)
-- [Appoly](https://www.appoly.co.uk)
-- [OP.GG](https://op.gg)
+REDIS_TOOL_PLACED_BET=
+REDIS_TOOL_PLACED_BET_EXPIRE=
+REDIS_TOOL_MINMAX=
+REDIS_TOOL_MINMAX_EXPIRE=
+REDIS_TOOL_SCRAPE_ODDS=
+REDIS_TOOL_SCRAPE_EXPIRE=120
+KAFKA_MON_TOOL_GROUP_NAME=
+DEBUGGING_URL=
+MIX_DEBUGGING_URL="${DEBUGGING_URL}"
+CONSUMER_PRODUCER_LOG=false
+BLOCKED_LINE_REASONS=
 
-## Contributing
+```
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+Pre run
+```
+$ composer install
+$ npm install
+$ npm run prod
 
-## Code of Conduct
+```
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+Run service
+```
+$ php bin/laravels start -d
+```
 
-## Security Vulnerabilities
-
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
-
-## License
-
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+Stop service
+```
+$ php bin/laravels stop
+```
