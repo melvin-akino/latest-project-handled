@@ -3,6 +3,7 @@ Service requirements
 - Redis
 - Nginx
 - Websocket
+- Kafka
 
 <hr />
 
