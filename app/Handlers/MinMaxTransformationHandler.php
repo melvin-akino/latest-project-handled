@@ -27,6 +27,12 @@ class MinMaxTransformationHandler
 
     public function handle()
     {
+        $toLogs = [
+            "class" => "MinMaxTransformationHandler",
+            "qwe"   => $this->data,
+        ];
+        monitorLog('monitor_handlers', 'info', $toLogs);
+
         $swoole                     = app('swoole');
         $topics                     = $swoole->topicTable;
         $minMaxRequests             = $swoole->minMaxRequestsTable;
