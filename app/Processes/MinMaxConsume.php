@@ -85,6 +85,12 @@ class MinMaxConsume implements CustomProcessInterface
                             continue;
                         }
 
+                        $toLogs = [
+                            "class" => "MinMaxConsume",
+                            "data"  => $payload,
+                        ];
+                        monitorLog('monitor_process', 'debug', $toLogs);
+
                         $swoole->minmaxPayloadTable->set('minmax-payload:' . $payload->data->market_id, [
                             'value' => md5(json_encode([
                                 'odds'    => $payload->data->odds,
