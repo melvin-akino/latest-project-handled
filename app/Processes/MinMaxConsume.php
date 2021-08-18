@@ -55,14 +55,14 @@ class MinMaxConsume implements CustomProcessInterface
 
                         $doesMinMaxKeyExist = false;
                         foreach ($swoole->minmaxMarketTable as $key => $minmaxValue) {
-                            if ($key == 'minmax-market:' . $payload->data->market_id) {
+                            if ($key == 'minmax-market:'  . $payload->data->provider . ':' . $payload->data->market_id) {
                                 $doesMinMaxKeyExist = true;
                                 break;
                             }
                         }
 
                         if (!empty($payload->data->timestamp) && $doesMinMaxKeyExist &&
-                            $swoole->minmaxMarketTable->get('minmax-market:' . $payload->data->market_id)['value'] >= $payload->data->timestamp
+                            $swoole->minmaxMarketTable->get('minmax-market:'  . $payload->data->provider . ':' . $payload->data->market_id)['value'] >= $payload->data->timestamp
                         ) {
                             $toLogs = [
                                 "class"       => "MinMaxConsume",
