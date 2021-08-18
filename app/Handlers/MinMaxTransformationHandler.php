@@ -40,7 +40,7 @@ class MinMaxTransformationHandler
         $minmaxOnqueueRequestsTable = $swoole->minmaxOnqueueRequestsTable;
 
         try {
-            $minmaxMarketTable->set('minmax-market:' . $this->data->data->market_id, [
+            $minmaxMarketTable->set('minmax-market:' . $this->data->data->provider . ':' . $this->data->data->market_id, [
                 'value' => $this->data->data->timestamp
             ]);
 
@@ -201,7 +201,7 @@ class MinMaxTransformationHandler
                                     $transformed['max'] = ($max <= $maxBetDisplay) ? $max : $maxBetDisplay;
                                 }
 
-                                SwooleHandler::setValue('minmaxDataTable', 'minmax-market:' . $data->market_id, [
+                                SwooleHandler::setValue('minmaxDataTable', 'minmax-market:' . $data->provider . ':' . $data->market_id, [
                                     'min'       => $data->minimum,
                                     'max'       => $data->maximum,
                                     'odds'      => (double) $data->odds,
