@@ -70,29 +70,29 @@ class MinMaxConsume implements CustomProcessInterface
                         ];
                         monitorLog('monitor_process', 'debug', $testLogs);
 
-                        if (!empty($payload->data->timestamp) && $doesMinMaxKeyExist &&
-                            $swoole->minmaxMarketTable->get('minmax-market:' . $payload->data->provider . ':' . $payload->data->market_id)['value'] >= $payload->data->timestamp
-                        ) {
-                            $toLogs = [
-                                "class"       => "MinMaxConsume",
-                                "message"     => "Min Max Transformation ignored - Same or Old Timestamp",
-                                "module"      => "PRODUCE_ERROR",
-                                "status_code" => 208,
-                            ];
-                            monitorLog('monitor_process', 'error', $toLogs);
+                        // if (!empty($payload->data->timestamp) && $doesMinMaxKeyExist &&
+                        //     $swoole->minmaxMarketTable->get('minmax-market:' . $payload->data->provider . ':' . $payload->data->market_id)['value'] >= $payload->data->timestamp
+                        // ) {
+                        //     $toLogs = [
+                        //         "class"       => "MinMaxConsume",
+                        //         "message"     => "Min Max Transformation ignored - Same or Old Timestamp",
+                        //         "module"      => "PRODUCE_ERROR",
+                        //         "status_code" => 208,
+                        //     ];
+                        //     monitorLog('monitor_process', 'error', $toLogs);
 
-                            if (env('CONSUMER_PRODUCER_LOG', false)) {
-                                $toLogs = [
-                                    "class"       => "MinMaxConsume",
-                                    "message"     => $message,
-                                    "module"      => "PROCESS",
-                                    "status_code" => 206,
-                                ];
-                                monitorLog('kafkalog', 'info', $toLogs);
-                            }
+                        //     if (env('CONSUMER_PRODUCER_LOG', false)) {
+                        //         $toLogs = [
+                        //             "class"       => "MinMaxConsume",
+                        //             "message"     => $message,
+                        //             "module"      => "PROCESS",
+                        //             "status_code" => 206,
+                        //         ];
+                        //         monitorLog('kafkalog', 'info', $toLogs);
+                        //     }
 
-                            continue;
-                        }
+                        //     continue;
+                        // }
 
                         $toLogs = [
                             "class" => "MinMaxConsume",
